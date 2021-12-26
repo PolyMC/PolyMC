@@ -39,3 +39,7 @@ secrets/
 run/
 
 .cache/
+
+# Flatpak builds
+.flatpak-builder
+flatbuild
