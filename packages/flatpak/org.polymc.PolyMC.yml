@@ -16,8 +16,6 @@ modules:
   - name: compile
     buildsystem: simple
     build-commands:
-      - echo $PWD
-      - ls jdk
       - mkdir build
       - mkdir -p /app/bin
       - cd build && JAVA_HOME=/run/build/compile/jdk PATH=$JAVA_HOME:$PATH JAVA_COMPILER=../jdk/bin/javac cmake -DLauncher_LAYOUT=lin-system -DCMAKE_INSTALL_PREFIX=/app/ .. && make -j$(nproc) install
@@ -37,7 +35,6 @@ modules:
       - ./configure --prefix=/app
       - make
       - make install
-      - ls /app/bin/
     sources:
       - type: archive
         url: https://xorg.freedesktop.org/archive/individual/app/xrandr-1.5.1.tar.xz
@@ -68,3 +65,10 @@ modules:
         url: https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u312-b07/OpenJDK8U-jre_x64_linux_hotspot_8u312b07.tar.gz
         sha256: 18fd13e77621f712326bfcf79c3e3cc08c880e3e4b8f63a1e5da619f3054b063
         strip-components: 0
+  - name: desktopfiles
+    buildsystem: simple
+    build-commands:
+      - install -Dm644 org.polymc.PolyMC.desktop /app/share/applications/org.polymc.PolyMC.desktop
+    sources:
+      - type: file
+        path: org.polymc.PolyMC.desktop
