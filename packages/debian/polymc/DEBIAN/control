@@ -1,5 +1,5 @@
 Package: polymc
-Version: 1.0.0
+Version: Set to latest git tag by makedeb.sh at build time
 Section: games
 Priority: optional
 Architecture: amd64
