@@ -49,3 +49,4 @@ packages/debian/polymc/usr/bin
 packages/debian/polymc/usr/lib
 packages/debian/polymc/usr/share/polymc/jars
 packages/debian/polymc.deb
+packages/debian/polymc/DEBIAN/control
