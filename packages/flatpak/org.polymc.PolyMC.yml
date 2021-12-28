@@ -22,7 +22,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/PolyMC/PolyMC.git
-        branch: develop
+        tag: 1.0.0
       - type: archive
         url: https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17%2B35/OpenJDK17-jdk_x64_linux_hotspot_17_35.tar.gz
         sha256: 6f1335d9a7855159f982dac557420397be9aa85f3f7bc84e111d25871c02c0c7
