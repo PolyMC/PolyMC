@@ -83,11 +83,7 @@ bool openDirectory(const QString &path, bool ensureExists)
     {
         return QDesktopServices::openUrl(QUrl::fromLocalFile(dir.absolutePath()));
     };
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    return IndirectOpen(f);
-#else
     return f();
-#endif
 }
 
 bool openFile(const QString &path)
@@ -97,25 +93,13 @@ bool openFile(const QString &path)
     {
         return QDesktopServices::openUrl(QUrl::fromLocalFile(path));
     };
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    return IndirectOpen(f);
-#else
     return f();
-#endif
 }
 
 bool openFile(const QString &application, const QString &path, const QString &workingDirectory, qint64 *pid)
 {
     qDebug() << "Opening file" << path << "using" << application;
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    // FIXME: the pid here is fake. So if something depends on it, it will likely misbehave
-    return IndirectOpen([&]()
-    {
-        return QProcess::startDetached(application, QStringList() << path, workingDirectory);
-    }, pid);
-#else
     return QProcess::startDetached(application, QStringList() << path, workingDirectory, pid);
-#endif
 }
 
 bool run(const QString &application, const QStringList &args, const QString &workingDirectory, qint64 *pid)
@@ -139,11 +123,7 @@ bool openUrl(const QUrl &url)
     {
         return QDesktopServices::openUrl(url);
     };
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    return IndirectOpen(f);
-#else
     return f();
-#endif
 }
 
 }
