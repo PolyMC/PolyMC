@@ -24,10 +24,11 @@ jobs:
           ./tag-metainfo-xml PolyMC PolyMC ../program_info/org.polymc.PolyMC.metainfo.xml
       - name: update tag with metainfo changes
         run: |
-          git config user.name github-actions
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git config user.name $GITHUB_ACTOR
+          git config user.email $GITHUB_ACTOR@users.noreply.github.com
           git add program_info/org.polymc.PolyMC.metainfo.xml
-          git commit -m "bot: update metainfo with latest tags"
           tag=$(git describe --tags $(git rev-list --tags --max-count=1))
+          msg=$(git tag -l --format='%(contents)' $tag)
+          git commit -m "$msgs"
           git tag -f $tag
           git push --force origin $tag
