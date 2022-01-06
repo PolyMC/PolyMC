@@ -29,6 +29,6 @@ jobs:
           git add program_info/org.polymc.PolyMC.metainfo.xml
           tag=$(git describe --tags $(git rev-list --tags --max-count=1))
           msg=$(git tag -l --format='%(contents)' $tag)
-          git commit -m "$msgs"
+          git commit -m "$msg"
           git tag -f $tag
           git push --force origin $tag
