@@ -19,7 +19,6 @@ jobs:
         run: |
           git clone https://github.com/dada513/tag-metainfo-xml metainfo-updater
           cd metainfo-updater
-        # checkout to good known commit
           git checkout ace02c74fe014def09250c161c87d82cecd95036
           go build
           ./tag-metainfo-xml PolyMC PolyMC ../program_info/org.polymc.PolyMC.metainfo.xml
