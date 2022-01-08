@@ -53,9 +53,7 @@ Feel free to create an issue if you need help. However, you might find it easier
 
 For people who don't want to use Discord, we have a Matrix Space which is bridged to the Discord server.
 
-[![Polymc Space](https://matrix.to/img/matrix-badge.svg)](https://matrix.to/#/#polymc:polymc.org)
-
-[![PolyMC Space](https://img.shields.io/matrix/polymc:polymc.org?label=PolyMC%20Space&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#polymc:polymc.org)
+[![Polymc Space](https://matrix.to/img/matrix-badge.svg?label=%23discussion)](https://matrix.to/#/#polymc:polymc.org)
 
 If there is any issues with the space or you are using a client that does not support the feature here are the individual rooms:
 
