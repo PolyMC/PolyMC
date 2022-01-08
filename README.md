@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://avatars.githubusercontent.com/u/96310119" alt="PolyMC logo"/>
+  <img src="/program_info/polymc_logo.png" alt="PolyMC logo"/>
 </p>
 
 PolyMC 5
