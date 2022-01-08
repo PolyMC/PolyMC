@@ -1,8 +1,6 @@
 <p align="center">
   <img src="/program_info/polymc_logo.png" alt="PolyMC logo"/>
 </p>
-
-PolyMC 5
 =========
 
 PolyMC is a custom launcher for Minecraft that focuses on predictability, long term stability and simplicity.
