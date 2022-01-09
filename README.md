@@ -9,6 +9,7 @@ This is a **fork** of the MultiMC Launcher and not endorsed by MultiMC. The Poly
 
 ## Packages
 Several source build packages are available, along with experimental pre-built generic packages.
+
 <a href='https://flathub.org/apps/details/org.polymc.PolyMC'><img width='240' alt='Download on Flathub' src='https://flathub.org/assets/badges/flathub-badge-en.png'/></a>
 - [![AUR package](https://img.shields.io/aur/version/polymc-git)](https://aur.archlinux.org/packages/polymc-git/)
 - A Gentoo ebuild is available in the [swirl](https://git.swurl.xyz/swirl/ebuilds) overlay, named `games-action/polymc`. Check the README for instructions on how to add the overlay. 
