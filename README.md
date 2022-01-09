@@ -50,7 +50,7 @@ Feel free to create an issue if you need help. However, you might find it easier
 
 [![PolyMC Discord](https://img.shields.io/discord/923671181020766230?label=PolyMC%20Discord)](https://discord.gg/xq7fxrgtMP)
 
-For people who don't want to use Discord, we have a Matrix Space which is bridged to the Discord server.
+For people who don't want to use Discord, we have a Matrix Space which is bridged to the Discord server:
 
 [![PolyMC Space](https://img.shields.io/matrix/polymc:polymc.org?label=PolyMC%20Space&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#polymc:polymc.org)
 
