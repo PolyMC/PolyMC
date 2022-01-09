@@ -54,7 +54,7 @@ For people who don't want to use Discord, we have a Matrix Space which is bridge
 
 [![PolyMC Space](https://img.shields.io/matrix/polymc:polymc.org?label=PolyMC%20Space&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#polymc:polymc.org)
 
-If there is any issues with the space or you are using a client that does not support the feature here are the individual rooms:
+If there are any issues with the space or you are using a client that does not support the feature here are the individual rooms:
 
 [![Support](https://img.shields.io/matrix/support:polymc.org?label=%23support&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#support:polymc.org)
 [![Discussion](https://img.shields.io/matrix/discussion:polymc.org?label=%23discussion&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#discussion:polymc.org)
