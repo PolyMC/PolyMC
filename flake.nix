@@ -1,6 +1,10 @@
 {
   description = "PolyMC flake";
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  inputs.flake-compat = {
+    url = "github:edolstra/flake-compat";
+    flake = false;
+  };
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.libnbtplusplus = {
     url = "github:multimc/libnbtplusplus";
