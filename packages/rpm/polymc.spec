@@ -27,7 +27,12 @@ cp -r %{_origdir}/../../* %{_builddir}/%{name}
 
 %build
 cd %{_builddir}/%{name}
-%cmake
+%cmake \
+  -DLauncher_LAYOUT=lin-system \
+  -DCMAKE_INSTALL_PREFIX=/usr \
+  -DLauncher_LIBRARY_DEST_DIR=%{_lib} \
+  .
+
 %cmake_build
 
 %install
@@ -47,6 +52,6 @@ cd %{_builddir}/%{name}
 
 %changelog
 * Mon Jan 10 2022 Cappy Ishihara - 1.0.4
-- Simplify the cmake macro
+- Made the cmake command a macro
 * Fri Jan 7 2022 getchoo <getchoo at tuta dot io> - 1.0.4
 - Initial polymc spec
