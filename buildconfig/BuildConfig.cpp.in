@@ -50,6 +50,8 @@ Config::Config()
     BUG_TRACKER_URL = "@Launcher_BUG_TRACKER_URL@";
     DISCORD_URL = "@Launcher_DISCORD_URL@";
     SUBREDDIT_URL = "@Launcher_SUBREDDIT_URL@";
+
+    DRM = @Launcher_DRM@;
 }
 
 QString Config::printableVersionString() const

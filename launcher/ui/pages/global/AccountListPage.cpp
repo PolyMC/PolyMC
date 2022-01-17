@@ -156,6 +156,15 @@ void AccountListPage::on_actionAddMicrosoft_triggered()
 
 void AccountListPage::on_actionAddOffline_triggered()
 {
+
+    if (BuildConfig.DRM && m_accounts->count() == 0) {
+        QMessageBox::warning(
+            this,
+            tr("Error"),
+            tr("You must add a Microsoft or Mojang account before you can add an offline account.")
+        );
+        return;
+    }
     MinecraftAccountPtr account = OfflineLoginDialog::newAccount(
         this,
         tr("Please enter your desired username to add your offline account.")

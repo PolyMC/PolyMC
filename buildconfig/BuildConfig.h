@@ -109,6 +109,8 @@ public:
      * \return The version number in string format (major.minor.revision.build).
      */
     QString printableVersionString() const;
+
+    bool DRM;
 };
 
 extern const Config BuildConfig;

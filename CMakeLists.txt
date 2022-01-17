@@ -99,6 +99,9 @@ set(Launcher_RELEASE_VERSION_NAME "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_
 add_custom_target(version echo "Version: ${Launcher_RELEASE_VERSION_NAME}")
 add_custom_target(tcversion echo "\\#\\#teamcity[setParameter name=\\'env.LAUNCHER_VERSION\\' value=\\'${Launcher_RELEASE_VERSION_NAME}\\']")
 
+# DRM
+set(Launcher_DRM "true" CACHE STRING "DRM")
+
 ################################ 3rd Party Libs ################################
 
 # Find the required Qt parts
