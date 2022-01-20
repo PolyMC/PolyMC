@@ -154,7 +154,7 @@ void LauncherPage::on_migrateDataFolderMacBtn_clicked()
 {
     QFile file(QDir::current().absolutePath() + "/dontmovemacdata");
     file.remove();
-    QProcess::startDetached(qApp->arguments()[0]);
+    QProcess::startDetached(qApp->arguments().first(), QStringList());
     qApp->quit();
 }
 

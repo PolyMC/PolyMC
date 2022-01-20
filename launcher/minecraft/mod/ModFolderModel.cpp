@@ -89,9 +89,11 @@ bool ModFolderModel::update()
 
 void ModFolderModel::finishUpdate()
 {
-    QSet<QString> currentSet = modsIndex.keys().toSet();
+    auto currentList = modsIndex.keys();
+    QSet<QString> currentSet(currentList.begin(), currentList.end());
     auto & newMods = m_update->mods;
-    QSet<QString> newSet = newMods.keys().toSet();
+    auto newList = newMods.keys();
+    QSet<QString> newSet = QSet<QString>(newList.begin(), newList.end());
 
     // see if the kept mods changed in some way
     {

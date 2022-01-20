@@ -197,7 +197,7 @@ QVariant WorldList::data(const QModelIndex &index, int role) const
     }
     case SeedRole:
     {
-        return qVariantFromValue<qlonglong>(world.seed());
+        return QVariant::fromValue<qlonglong>(world.seed());
     }
     case NameRole:
     {

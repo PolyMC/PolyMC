@@ -10,7 +10,8 @@ void PrivatePackManager::load()
 {
     try
     {
-        currentPacks = QString::fromUtf8(FS::read(m_filename)).split('\n', QString::SkipEmptyParts).toSet();
+        auto l = QString::fromUtf8(FS::read(m_filename)).split('\n', Qt::SkipEmptyParts);
+        currentPacks = QSet<QString>(l.begin(), l.end());
         dirty = false;
     }
     catch(...)
@@ -28,7 +29,7 @@ void PrivatePackManager::save() const
     }
     try
     {
-        QStringList list = currentPacks.toList();
+        QStringList list = currentPacks.values();
         FS::write(m_filename, list.join('\n').toUtf8());
         dirty = false;
     }

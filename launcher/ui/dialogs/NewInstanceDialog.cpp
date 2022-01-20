@@ -53,8 +53,9 @@ NewInstanceDialog::NewInstanceDialog(const QString & initialGroup, const QString
     InstIconKey = "default";
     ui->iconButton->setIcon(APPLICATION->icons()->getIcon(InstIconKey));
 
-    auto groups = APPLICATION->instances()->getGroups().toSet();
-    auto groupList = QStringList(groups.toList());
+    auto groupList = APPLICATION->instances()->getGroups();
+    auto groups = QSet<QString>(groupList.begin(), groupList.end());
+    groupList = groups.values();
     groupList.sort(Qt::CaseInsensitive);
     groupList.removeOne("");
     groupList.push_front(initialGroup);

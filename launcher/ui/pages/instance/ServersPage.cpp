@@ -252,7 +252,7 @@ public:
             return false;
         }
         beginMoveRows(QModelIndex(), row, row, QModelIndex(), row - 1);
-        m_servers.swap(row-1, row);
+        m_servers.swapItemsAt(row-1, row);
         endMoveRows();
         scheduleSave();
         return true;
@@ -270,7 +270,7 @@ public:
             return false;
         }
         beginMoveRows(QModelIndex(), row, row, QModelIndex(), row + 2);
-        m_servers.swap(row+1, row);
+        m_servers.swapItemsAt(row+1, row);
         endMoveRows();
         scheduleSave();
         return true;

@@ -1169,7 +1169,7 @@ void MainWindow::updateNotAvailable()
 
 QList<int> stringToIntList(const QString &string)
 {
-    QStringList split = string.split(',', QString::SkipEmptyParts);
+    QStringList split = string.split(',', Qt::SkipEmptyParts);
     QList<int> out;
     for (int i = 0; i < split.size(); ++i)
     {

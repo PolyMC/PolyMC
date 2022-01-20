@@ -468,7 +468,7 @@ void ExportInstanceDialog::loadPackIgnore()
     }
     auto data = ignoreFile.readAll();
     auto string = QString::fromUtf8(data);
-    proxyModel->setBlockedPaths(string.split('\n', QString::SkipEmptyParts));
+    proxyModel->setBlockedPaths(string.split('\n', Qt::SkipEmptyParts));
 }
 
 void ExportInstanceDialog::savePackIgnore()

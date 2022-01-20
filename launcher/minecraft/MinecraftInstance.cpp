@@ -459,7 +459,7 @@ QStringList MinecraftInstance::processMinecraftArgs(
     token_mapping["assets_root"] = absAssetsDir;
     token_mapping["assets_index_name"] = assets->id;
 
-    QStringList parts = args_pattern.split(' ', QString::SkipEmptyParts);
+    QStringList parts = args_pattern.split(' ', Qt::SkipEmptyParts);
     for (int i = 0; i < parts.length(); i++)
     {
         parts[i] = replaceTokensIn(parts[i], token_mapping);
