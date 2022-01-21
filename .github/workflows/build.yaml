@@ -12,9 +12,15 @@ jobs:
         with:
           submodules: recursive
 
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ runner.os }}-${{ runner.arch }}
+          max-size: 100M
+
       - name: Cache Qt
         id: cache-qt
-        uses: actions/cache@v1  # not v2!
+        uses: actions/cache@v1  # not v2! TODO: why though?
         with:
           path: ../Qt
           key: ${{ runner.os }}-QtCache
@@ -32,10 +38,10 @@ jobs:
 
       - name: Run CMake
         run: |
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           mkdir -p build install
           cmake -B build -S . -DCMAKE_INSTALL_PREFIX=install
           make -C build -j$(nproc) install
-          zip -r ../ ./
 
       - uses: actions/upload-artifact@v2
         with:
