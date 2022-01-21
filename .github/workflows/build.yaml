@@ -1,0 +1,37 @@
+name: Build
+on:
+  - push
+  - pull_request
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: recursive
+
+      - name: Cache Qt
+        id: cache-qt
+        uses: actions/cache@v1  # not v2!
+        with:
+          path: ../Qt
+          key: ${{ runner.os }}-QtCache
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v2
+        with:
+          version: '5.15.2'
+          cached: ${{ steps.cache-qt.outputs.cache-hit }}
+
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v1.12
+        with:
+          cmake-version: '3.22.x'
+
+      - name: Run CMake
+        run: |
+          mkdir -p build install
+          cmake -B build -S . -DCMAKE_INSTALL_PREFIX=install
+          make -C build -j$(nproc) install
