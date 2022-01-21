@@ -35,13 +35,9 @@ jobs:
           mkdir -p build install
           cmake -B build -S . -DCMAKE_INSTALL_PREFIX=install
           make -C build -j$(nproc) install
-
-      - name: Compress binary
-        run: |
-          cd install
-          zip -r ../portable-${RUNNER_OS}-${RUNNER_ARCH}-${GITHUB_REF#refs/heads/}-${GITHUB_SHA}.zip ./
+          zip -r ../ ./
 
       - uses: actions/upload-artifact@v2
         with:
-          name: portable-binary
-          path: build-*.zip
+          name: portable-binary.${{ github.sha }}.${{ runner.os }}-${{ runner.arch }}
+          path: install/**
