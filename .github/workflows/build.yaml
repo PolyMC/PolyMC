@@ -40,7 +40,7 @@ jobs:
         with:
           cmake-version: '3.22.x'
 
-      - name: Run CMake
+      - name: Build
         run: |
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           mkdir -p build install
