@@ -27,7 +27,7 @@ jobs:
         uses: actions/cache@v1  # not v2! TODO: why though?
         with:
           path: ../Qt
-          key: ${{ matrix.os }}-QtCache
+          key: ${{ matrix.os }}-qt-${{ matrix.qt }}
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
