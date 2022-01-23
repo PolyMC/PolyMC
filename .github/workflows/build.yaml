@@ -5,8 +5,11 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, macos-11]
+        qt: [5.15.2]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v1
         with:
@@ -15,7 +18,7 @@ jobs:
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1
         with:
-          key: ${{ runner.os }}-${{ runner.arch }}
+          key: ${{ matrix.os }}-${{ runner.arch }}
           max-size: 100M
 
       - name: Cache Qt
@@ -23,12 +26,12 @@ jobs:
         uses: actions/cache@v1  # not v2! TODO: why though?
         with:
           path: ../Qt
-          key: ${{ runner.os }}-QtCache
+          key: ${{ matrix.os }}-QtCache
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
-          version: '5.15.2'
+          version: ${{ matrix.qt }}
           cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
       - name: Setup cmake
@@ -45,5 +48,5 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: portable-binary.${{ github.sha }}.${{ runner.os }}-${{ runner.arch }}
+          name: portable-binary.${{ github.sha }}.${{ matrix.os }}-${{ runner.arch }}
           path: install/**
