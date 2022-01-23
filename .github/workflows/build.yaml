@@ -6,6 +6,7 @@ jobs:
   build:
     name: Build
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-20.04, macos-11]
         qt: [5.15.2]
