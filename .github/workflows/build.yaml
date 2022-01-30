@@ -40,12 +40,16 @@ jobs:
         with:
           cmake-version: '3.22.x'
 
+      - name: Install Ninja
+        uses: urkle/action-get-ninja@v1
+
       - name: Build
         run: |
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           mkdir -p build install
-          cmake -B build -S . -DCMAKE_INSTALL_PREFIX=install
-          make -C build -j$(nproc) install
+          cmake -B build -S . -DCMAKE_INSTALL_PREFIX=install -G Ninja
+          ninja -v -C build
+          ninja -C build install
 
       - uses: actions/upload-artifact@v2
         with:
