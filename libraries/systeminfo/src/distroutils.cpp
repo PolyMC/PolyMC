@@ -88,7 +88,9 @@ bool Sys::main_lsb_info(Sys::LsbInfo & out)
 {
     int status=0;
     QProcess lsbProcess;
-    lsbProcess.start("lsb_release -a");
+    QStringList arguments;
+    arguments << "-a";
+    lsbProcess.start("lsb_release",  arguments);
     lsbProcess.waitForFinished();
     status = lsbProcess.exitStatus();
     QString output = lsbProcess.readAllStandardOutput();
@@ -170,7 +172,7 @@ void Sys::lsb_postprocess(Sys::LsbInfo & lsb, Sys::DistributionInfo & out)
     else
     {
         // ubuntu, debian, gentoo, scientific, slackware, ... ?
-        auto parts = dist.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+        auto parts = dist.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
         if(parts.size())
         {
             dist = parts[0];
@@ -209,7 +211,7 @@ QString Sys::_extract_distribution(const QString & x)
     {
         return "sles";
     }
-    QStringList list = release.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+    QStringList list = release.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
     if(list.size())
     {
         return list[0];
@@ -220,7 +222,7 @@ QString Sys::_extract_distribution(const QString & x)
 QString Sys::_extract_version(const QString & x)
 {
     QRegExp versionish_string("\\d+(?:\\.\\d+)*$");
-    QStringList list = x.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+    QStringList list = x.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
     for(int i = list.size() - 1; i >= 0; --i)
     {
         QString chunk = list[i];
