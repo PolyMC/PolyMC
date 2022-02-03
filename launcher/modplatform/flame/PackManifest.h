@@ -20,7 +20,7 @@ struct File
     bool resolved = false;
     QString fileName;
     QUrl url;
-    QString targetFolder = QLatin1Literal("mods");
+    QString targetFolder = "mods";
     enum class Type
     {
         Unknown,
