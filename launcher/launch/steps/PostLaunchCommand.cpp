@@ -27,9 +27,13 @@ PostLaunchCommand::PostLaunchCommand(LaunchTask *parent) : LaunchStep(parent)
 
 void PostLaunchCommand::executeTask()
 {
-    QString postlaunch_cmd = m_parent->substituteVariables(m_command);
-    emit logLine(tr("Running Post-Launch command: %1").arg(postlaunch_cmd), MessageLevel::Launcher);
-    m_process.start(postlaunch_cmd);
+    // old FIXME: where to put this?
+    auto args = QProcess::splitCommand(m_command);
+    m_parent->substituteVariables(args);
+
+    emit logLine(tr("Running Post-Launch command: %1").arg(args.join(' ')), MessageLevel::Launcher);
+    const QString program = args.takeFirst();
+    m_process.start(program, args);
 }
 
 void PostLaunchCommand::on_state(LoggedProcess::State state)

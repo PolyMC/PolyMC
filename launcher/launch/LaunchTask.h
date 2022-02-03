@@ -85,7 +85,7 @@ public: /* methods */
     shared_qobject_ptr<LogModel> getLogModel();
 
 public:
-    QString substituteVariables(const QString &cmd) const;
+    void substituteVariables(const QStringList &args) const;
     QString censorPrivateInfo(QString in);
 
 protected: /* methods */
