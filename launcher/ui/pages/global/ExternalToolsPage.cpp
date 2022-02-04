@@ -103,7 +103,7 @@ void ExternalToolsPage::on_jprofilerPathBtn_clicked()
             ui->jprofilerPathEdit->setText(cooked_dir);
             break;
         }
-    } while (1);
+    } while (true);
 }
 void ExternalToolsPage::on_jprofilerCheckBtn_clicked()
 {
@@ -140,7 +140,7 @@ void ExternalToolsPage::on_jvisualvmPathBtn_clicked()
             ui->jvisualvmPathEdit->setText(cooked_dir);
             break;
         }
-    } while (1);
+    } while (true);
 }
 void ExternalToolsPage::on_jvisualvmCheckBtn_clicked()
 {
@@ -181,7 +181,7 @@ void ExternalToolsPage::on_mceditPathBtn_clicked()
             ui->mceditPathEdit->setText(cooked_dir);
             break;
         }
-    } while (1);
+    } while (true);
 }
 void ExternalToolsPage::on_mceditCheckBtn_clicked()
 {

@@ -1375,7 +1375,7 @@ void MainWindow::addInstance(QString url)
         if(!map.contains("group"))
             break;
         groupName = map["group"].toString();
-    } while(0);
+    } while(false);
 
     if(groupName.isEmpty())
     {

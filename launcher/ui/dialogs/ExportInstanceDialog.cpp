@@ -188,7 +188,7 @@ public:
                 QModelIndex doing = rootIndex;
                 int row = 0;
                 QStack<QModelIndex> todo;
-                while (1)
+                while (true)
                 {
                     auto node = doing.child(row, 0);
                     if (!node.isValid())
@@ -226,7 +226,7 @@ public:
             emit dataChanged(index, index, {Qt::CheckStateRole});
             // update everything above index
             QModelIndex up = index.parent();
-            while (1)
+            while (true)
             {
                 if (!up.isValid())
                     break;
@@ -237,7 +237,7 @@ public:
             QModelIndex doing = index;
             int row = 0;
             QStack<QModelIndex> todo;
-            while (1)
+            while (true)
             {
                 auto node = doing.child(row, 0);
                 if (!node.isValid())
