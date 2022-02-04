@@ -39,16 +39,16 @@ public:
 
     void downloadIndex();
 
+    // hide copy constructor
+    TranslationsModel(const TranslationsModel &) = delete;
+    // hide assign op
+    TranslationsModel &operator=(const TranslationsModel &) = delete;
+
 private:
     Language *findLanguage(const QString & key);
     void reloadLocalFiles();
     void downloadTranslation(QString key);
     void downloadNext();
-
-    // hide copy constructor
-    TranslationsModel(const TranslationsModel &) = delete;
-    // hide assign op
-    TranslationsModel &operator=(const TranslationsModel &) = delete;
 
 private slots:
     void indexReceived();

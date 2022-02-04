@@ -61,15 +61,15 @@ public:
 
     void startWatching();
     void stopWatching();
+    // hide copy constructor
+    IconList(const IconList &) = delete;
+    // hide assign op
+    IconList &operator=(const IconList &) = delete;
 
 signals:
     void iconUpdated(QString key);
 
 private:
-    // hide copy constructor
-    IconList(const IconList &) = delete;
-    // hide assign op
-    IconList &operator=(const IconList &) = delete;
     void reindex();
 
 public slots:
