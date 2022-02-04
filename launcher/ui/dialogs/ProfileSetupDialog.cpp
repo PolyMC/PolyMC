@@ -189,7 +189,7 @@ void ProfileSetupDialog::setupProfile(const QString &profileName) {
     request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Authorization", QString("Bearer %1").arg(token).toUtf8());
 
-    QString payloadTemplate("{\"profileName\":\"%1\"}");
+    QString payloadTemplate(R"({"profileName":"%1"})");
     auto data = payloadTemplate.arg(profileName).toUtf8();
 
     AuthRequest *requestor = new AuthRequest(this);

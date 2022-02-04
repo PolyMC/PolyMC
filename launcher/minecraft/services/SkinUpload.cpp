@@ -29,7 +29,7 @@ void SkinUpload::executeTask()
 
     QHttpPart skin;
     skin.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/png"));
-    skin.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"file\"; filename=\"skin.png\""));
+    skin.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(R"(form-data; name="file"; filename="skin.png")"));
     skin.setBody(m_skin);
 
     QHttpPart model;

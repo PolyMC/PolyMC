@@ -56,7 +56,7 @@ QString reprocessMarkdown(QByteArray markdown)
     QString output = hoedown.process(markdown);
 
     // HACK: easier than customizing hoedown
-    output.replace(QRegExp("GH-([0-9]+)"), "<a href=\"https://github.com/PolyMC/PolyMC/issues/\\1\">GH-\\1</a>");
+    output.replace(QRegExp("GH-([0-9]+)"), R"(<a href="https://github.com/PolyMC/PolyMC/issues/\1">GH-\1</a>)");
     qDebug() << output;
     return output;
 }
@@ -160,7 +160,7 @@ void UpdateDialog::changelogLoaded()
 
 void UpdateDialog::changelogFailed(QString reason)
 {
-    ui->changelogBrowser->setHtml(tr("<p align=\"center\" <span style=\"font-size:22pt;\">Failed to fetch changelog... Error: %1</span></p>").arg(reason));
+    ui->changelogBrowser->setHtml(tr(R"(<p align="center" <span style="font-size:22pt;">Failed to fetch changelog... Error: %1</span></p>)").arg(reason));
 }
 
 void UpdateDialog::on_btnUpdateLater_clicked()

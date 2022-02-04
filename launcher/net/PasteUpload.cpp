@@ -24,7 +24,7 @@ void PasteUpload::executeTask()
     QHttpPart filePart;
     filePart.setBody(m_text);
     filePart.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
-    filePart.setHeader(QNetworkRequest::ContentDispositionHeader, "form-data; name=\"file\"; filename=\"log.txt\"");
+    filePart.setHeader(QNetworkRequest::ContentDispositionHeader, R"(form-data; name="file"; filename="log.txt")");
 
     multiPart->append(filePart);
 
