@@ -101,7 +101,7 @@ class FilterModel : public QIdentityProxyModel
 {
     Q_OBJECT
 public:
-    explicit FilterModel(QObject *parent = 0) : QIdentityProxyModel(parent)
+    explicit FilterModel(QObject *parent = nullptr) : QIdentityProxyModel(parent)
     {
         m_thumbnailingPool.setMaxThreadCount(4);
         m_thumbnailCache = std::make_shared<SharedIconCache>();
@@ -193,7 +193,7 @@ private:
 class CenteredEditingDelegate : public QStyledItemDelegate
 {
 public:
-    explicit CenteredEditingDelegate(QObject *parent = 0) : QStyledItemDelegate(parent) {}
+    explicit CenteredEditingDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
     ~CenteredEditingDelegate() override {}
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                                   const QModelIndex &index) const override
@@ -234,7 +234,7 @@ ScreenshotsPage::ScreenshotsPage(QString path, QWidget *parent)
     ui->listView->setViewMode(QListView::IconMode);
     ui->listView->setResizeMode(QListView::Adjust);
     ui->listView->installEventFilter(this);
-    ui->listView->setEditTriggers(0);
+    ui->listView->setEditTriggers(nullptr);
     ui->listView->setItemDelegate(new CenteredEditingDelegate(this));
     ui->listView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->listView, &QListView::customContextMenuRequested, this, &ScreenshotsPage::ShowContextMenu);

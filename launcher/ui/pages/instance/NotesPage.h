@@ -31,7 +31,7 @@ class NotesPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit NotesPage(BaseInstance *inst, QWidget *parent = 0);
+    explicit NotesPage(BaseInstance *inst, QWidget *parent = nullptr);
     ~NotesPage() override;
     QString displayName() const override
     {

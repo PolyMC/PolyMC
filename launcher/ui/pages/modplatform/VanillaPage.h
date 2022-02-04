@@ -33,7 +33,7 @@ class VanillaPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit VanillaPage(NewInstanceDialog *dialog, QWidget *parent = 0);
+    explicit VanillaPage(NewInstanceDialog *dialog, QWidget *parent = nullptr);
     ~VanillaPage() override;
     QString displayName() const override
     {

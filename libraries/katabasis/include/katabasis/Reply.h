@@ -16,7 +16,7 @@ class Reply: public QTimer {
     Q_OBJECT
 
 public:
-    Reply(QNetworkReply *reply, int timeOut = defaultTimeout, QObject *parent = 0);
+    Reply(QNetworkReply *reply, int timeOut = defaultTimeout, QObject *parent = nullptr);
 
 signals:
     void error(QNetworkReply::NetworkError);

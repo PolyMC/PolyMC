@@ -32,7 +32,7 @@ class LegacyUpgradePage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit LegacyUpgradePage(InstancePtr inst, QWidget *parent = 0);
+    explicit LegacyUpgradePage(InstancePtr inst, QWidget *parent = nullptr);
     ~LegacyUpgradePage() override;
     QString displayName() const override
     {

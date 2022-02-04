@@ -21,7 +21,7 @@ public:
     static MinecraftAccountPtr newAccount(QWidget *parent, QString message);
 
 private:
-    explicit OfflineLoginDialog(QWidget *parent = 0);
+    explicit OfflineLoginDialog(QWidget *parent = nullptr);
 
     void setUserInputsEnabled(bool enable);
 

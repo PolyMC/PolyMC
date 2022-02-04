@@ -27,7 +27,7 @@ class CustomCommands : public QWidget
     Q_OBJECT
 
 public:
-    explicit CustomCommands(QWidget *parent = 0);
+    explicit CustomCommands(QWidget *parent = nullptr);
     ~CustomCommands() override;
     void initialize(bool checkable, bool checked, const QString & prelaunch, const QString & wrapper, const QString & postexit);
 

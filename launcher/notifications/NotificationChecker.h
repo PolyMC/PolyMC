@@ -10,7 +10,7 @@ class NotificationChecker : public QObject
     Q_OBJECT
 
 public:
-    explicit NotificationChecker(QObject *parent = 0);
+    explicit NotificationChecker(QObject *parent = nullptr);
 
     void setNotificationsUrl(const QUrl &notificationsUrl);
     void setApplicationPlatform(QString platform);

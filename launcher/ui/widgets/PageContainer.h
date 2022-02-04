@@ -36,7 +36,7 @@ class PageContainer : public QWidget, public BasePageContainer
     Q_OBJECT
 public:
     explicit PageContainer(BasePageProvider *pageProvider, QString defaultId = QString(),
-                        QWidget *parent = 0);
+                        QWidget *parent = nullptr);
     ~PageContainer() override {}
 
     void addButtons(QWidget * buttons);
@@ -78,7 +78,7 @@ private slots:
 
 private:
     BasePageContainer * m_container = nullptr;
-    BasePage * m_currentPage = 0;
+    BasePage * m_currentPage = nullptr;
     QSortFilterProxyModel *m_proxyModel;
     PageModel *m_model;
     QStackedLayout *m_pageStack;

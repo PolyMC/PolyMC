@@ -33,7 +33,7 @@ class ExportInstanceDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ExportInstanceDialog(InstancePtr instance, QWidget *parent = 0);
+    explicit ExportInstanceDialog(InstancePtr instance, QWidget *parent = nullptr);
     ~ExportInstanceDialog() override;
 
     void done(int result) override;

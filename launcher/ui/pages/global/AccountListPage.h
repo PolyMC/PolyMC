@@ -34,7 +34,7 @@ class AccountListPage : public QMainWindow, public BasePage
 {
     Q_OBJECT
 public:
-    explicit AccountListPage(QWidget *parent = 0);
+    explicit AccountListPage(QWidget *parent = nullptr);
     ~AccountListPage() override;
 
     QString displayName() const override

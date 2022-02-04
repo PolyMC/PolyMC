@@ -28,7 +28,7 @@ class INISettingsObject : public SettingsObject
 {
     Q_OBJECT
 public:
-    explicit INISettingsObject(const QString &path, QObject *parent = 0);
+    explicit INISettingsObject(const QString &path, QObject *parent = nullptr);
 
     /*!
      * \brief Gets the path to the INI file.

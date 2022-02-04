@@ -29,7 +29,7 @@ class SetupWizard : public QWizard
     Q_OBJECT
 
 public: /* con/destructors */
-    explicit SetupWizard(QWidget *parent = 0);
+    explicit SetupWizard(QWidget *parent = nullptr);
     ~SetupWizard() override;
 
     void changeEvent(QEvent * event) override;

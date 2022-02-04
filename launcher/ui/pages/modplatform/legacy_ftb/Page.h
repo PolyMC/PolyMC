@@ -46,7 +46,7 @@ class Page : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit Page(NewInstanceDialog * dialog, QWidget *parent = 0);
+    explicit Page(NewInstanceDialog * dialog, QWidget *parent = nullptr);
     ~Page() override;
     QString displayName() const override
     {

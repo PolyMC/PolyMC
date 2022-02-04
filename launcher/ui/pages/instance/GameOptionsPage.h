@@ -34,7 +34,7 @@ class GameOptionsPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit GameOptionsPage(MinecraftInstance *inst, QWidget *parent = 0);
+    explicit GameOptionsPage(MinecraftInstance *inst, QWidget *parent = nullptr);
     ~GameOptionsPage() override;
 
     void openedImpl() override;

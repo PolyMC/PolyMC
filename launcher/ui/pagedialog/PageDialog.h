@@ -23,7 +23,7 @@ class PageDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit PageDialog(BasePageProvider *pageProvider, QString defaultId = QString(), QWidget *parent = 0);
+    explicit PageDialog(BasePageProvider *pageProvider, QString defaultId = QString(), QWidget *parent = nullptr);
     ~PageDialog() override {}
 
 private

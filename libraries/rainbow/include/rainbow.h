@@ -50,7 +50,7 @@ RAINBOW_EXPORT qreal luma(const QColor &);
  * @since 5.0
  */
 RAINBOW_EXPORT void getHcy(const QColor &, qreal *hue, qreal *chroma, qreal *luma,
-                           qreal *alpha = 0);
+                           qreal *alpha = nullptr);
 
 /**
  * Calculate the contrast ratio between two colors, according to the

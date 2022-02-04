@@ -36,7 +36,7 @@ class ScreenshotsPage : public QMainWindow, public BasePage
     Q_OBJECT
 
 public:
-    explicit ScreenshotsPage(QString path, QWidget *parent = 0);
+    explicit ScreenshotsPage(QString path, QWidget *parent = nullptr);
     ~ScreenshotsPage() override;
 
     void openedImpl() override;

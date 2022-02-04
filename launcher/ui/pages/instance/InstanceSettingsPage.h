@@ -35,7 +35,7 @@ class InstanceSettingsPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit InstanceSettingsPage(BaseInstance *inst, QWidget *parent = 0);
+    explicit InstanceSettingsPage(BaseInstance *inst, QWidget *parent = nullptr);
     ~InstanceSettingsPage() override;
     QString displayName() const override
     {

@@ -37,7 +37,7 @@ public:
     int exec() override;
 
 private:
-    explicit MSALoginDialog(QWidget *parent = 0);
+    explicit MSALoginDialog(QWidget *parent = nullptr);
 
     void setUserInputsEnabled(bool enable);
 

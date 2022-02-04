@@ -36,7 +36,7 @@ public:
     static MinecraftAccountPtr newAccount(QWidget *parent, QString message);
 
 private:
-    explicit LoginDialog(QWidget *parent = 0);
+    explicit LoginDialog(QWidget *parent = nullptr);
 
     void setUserInputsEnabled(bool enable);
 

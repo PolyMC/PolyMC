@@ -13,7 +13,7 @@ class AuthRequest: public QObject {
     Q_OBJECT
 
 public:
-    explicit AuthRequest(QObject *parent = 0);
+    explicit AuthRequest(QObject *parent = nullptr);
     ~AuthRequest() override;
 
 public slots:

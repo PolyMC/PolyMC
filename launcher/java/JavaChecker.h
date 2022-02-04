@@ -34,7 +34,7 @@ class JavaChecker : public QObject
 {
     Q_OBJECT
 public:
-    explicit JavaChecker(QObject *parent = 0);
+    explicit JavaChecker(QObject *parent = nullptr);
     void performCheck();
 
     QString m_path;

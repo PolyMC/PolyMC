@@ -52,7 +52,7 @@ class InstanceList : public QAbstractListModel
     Q_OBJECT
 
 public:
-    explicit InstanceList(SettingsObjectPtr settings, const QString & instDir, QObject *parent = 0);
+    explicit InstanceList(SettingsObjectPtr settings, const QString & instDir, QObject *parent = nullptr);
     ~InstanceList() override;
 
 public:

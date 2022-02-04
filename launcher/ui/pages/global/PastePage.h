@@ -29,7 +29,7 @@ class PastePage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit PastePage(QWidget *parent = 0);
+    explicit PastePage(QWidget *parent = nullptr);
     ~PastePage() override;
 
     QString displayName() const override

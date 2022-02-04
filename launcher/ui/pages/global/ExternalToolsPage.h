@@ -29,7 +29,7 @@ class ExternalToolsPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit ExternalToolsPage(QWidget *parent = 0);
+    explicit ExternalToolsPage(QWidget *parent = nullptr);
     ~ExternalToolsPage() override;
 
     QString displayName() const override

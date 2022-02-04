@@ -36,7 +36,7 @@ class FtbPage : public QWidget, public BasePage
 Q_OBJECT
 
 public:
-    explicit FtbPage(NewInstanceDialog* dialog, QWidget *parent = 0);
+    explicit FtbPage(NewInstanceDialog* dialog, QWidget *parent = nullptr);
     ~FtbPage() override;
     QString displayName() const override
     {

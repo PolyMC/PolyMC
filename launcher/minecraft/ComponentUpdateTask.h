@@ -18,7 +18,7 @@ public:
     };
 
 public:
-    explicit ComponentUpdateTask(Mode mode, Net::Mode netmode, PackProfile * list, QObject *parent = 0);
+    explicit ComponentUpdateTask(Mode mode, Net::Mode netmode, PackProfile * list, QObject *parent = nullptr);
     ~ComponentUpdateTask() override;
 
 protected:

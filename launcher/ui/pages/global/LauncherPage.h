@@ -37,7 +37,7 @@ class LauncherPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit LauncherPage(QWidget *parent = 0);
+    explicit LauncherPage(QWidget *parent = nullptr);
     ~LauncherPage() override;
 
     QString displayName() const override

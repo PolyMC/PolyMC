@@ -45,7 +45,7 @@ class AccountTask : public Task
 {
     Q_OBJECT
 public:
-    explicit AccountTask(AccountData * data, QObject *parent = 0);
+    explicit AccountTask(AccountData * data, QObject *parent = nullptr);
     ~AccountTask() override {};
 
     AccountTaskState m_taskState = AccountTaskState::STATE_CREATED;

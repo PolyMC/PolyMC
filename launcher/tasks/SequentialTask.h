@@ -9,7 +9,7 @@ class SequentialTask : public Task
 {
     Q_OBJECT
 public:
-    explicit SequentialTask(QObject *parent = 0);
+    explicit SequentialTask(QObject *parent = nullptr);
     ~SequentialTask() override {};
 
     void addTask(Task::Ptr task);

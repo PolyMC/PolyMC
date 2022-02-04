@@ -34,7 +34,7 @@ class JavaPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit JavaPage(QWidget *parent = 0);
+    explicit JavaPage(QWidget *parent = nullptr);
     ~JavaPage() override;
 
     QString displayName() const override

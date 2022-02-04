@@ -45,7 +45,7 @@ class MainWindow : public QMainWindow
     class Ui;
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
     bool eventFilter(QObject *obj, QEvent *ev) override;

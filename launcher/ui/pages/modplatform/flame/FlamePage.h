@@ -38,7 +38,7 @@ class FlamePage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit FlamePage(NewInstanceDialog* dialog, QWidget *parent = 0);
+    explicit FlamePage(NewInstanceDialog* dialog, QWidget *parent = nullptr);
     ~FlamePage() override;
     QString displayName() const override
     {

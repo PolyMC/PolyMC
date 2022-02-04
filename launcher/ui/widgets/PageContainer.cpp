@@ -37,7 +37,7 @@
 class PageEntryFilterModel : public QSortFilterProxyModel
 {
 public:
-    explicit PageEntryFilterModel(QObject *parent = 0) : QSortFilterProxyModel(parent)
+    explicit PageEntryFilterModel(QObject *parent = nullptr) : QSortFilterProxyModel(parent)
     {
     }
 

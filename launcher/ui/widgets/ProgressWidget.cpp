@@ -27,7 +27,7 @@ void ProgressWidget::start(std::shared_ptr<Task> task)
 {
     if (m_task)
     {
-        disconnect(m_task.get(), 0, this, 0);
+        disconnect(m_task.get(), nullptr, this, nullptr);
     }
     m_task = task;
     connect(m_task.get(), &Task::finished, this, &ProgressWidget::handleTaskFinish);

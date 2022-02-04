@@ -27,7 +27,7 @@ class EditAccountDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit EditAccountDialog(const QString &text = "", QWidget *parent = 0,
+    explicit EditAccountDialog(const QString &text = "", QWidget *parent = nullptr,
                                int flags = UsernameField | PasswordField);
     ~EditAccountDialog() override;
 

@@ -33,7 +33,7 @@ class ImportPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit ImportPage(NewInstanceDialog* dialog, QWidget *parent = 0);
+    explicit ImportPage(NewInstanceDialog* dialog, QWidget *parent = nullptr);
     ~ImportPage() override;
     QString displayName() const override
     {

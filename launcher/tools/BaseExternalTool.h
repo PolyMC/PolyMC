@@ -11,7 +11,7 @@ class BaseExternalTool : public QObject
 {
     Q_OBJECT
 public:
-    explicit BaseExternalTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = 0);
+    explicit BaseExternalTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = nullptr);
     ~BaseExternalTool() override;
 
 protected:
@@ -23,7 +23,7 @@ class BaseDetachedTool : public BaseExternalTool
 {
     Q_OBJECT
 public:
-    explicit BaseDetachedTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = 0);
+    explicit BaseDetachedTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = nullptr);
 
 public
 slots:
@@ -42,7 +42,7 @@ public:
 
     virtual void registerSettings(SettingsObjectPtr settings) = 0;
 
-    virtual BaseExternalTool *createTool(InstancePtr instance, QObject *parent = 0) = 0;
+    virtual BaseExternalTool *createTool(InstancePtr instance, QObject *parent = nullptr) = 0;
 
     virtual bool check(QString *error) = 0;
     virtual bool check(const QString &path, QString *error) = 0;
@@ -54,5 +54,5 @@ protected:
 class BaseDetachedToolFactory : public BaseExternalToolFactory
 {
 public:
-    virtual BaseDetachedTool *createDetachedTool(InstancePtr instance, QObject *parent = 0);
+    virtual BaseDetachedTool *createDetachedTool(InstancePtr instance, QObject *parent = nullptr);
 };

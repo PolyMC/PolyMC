@@ -40,7 +40,7 @@ public:
         QString iconName,
         QString displayName,
         QString helpPage = "",
-        QWidget *parent = 0
+        QWidget *parent = nullptr
     );
     ~ModFolderPage() override;
 
@@ -113,7 +113,7 @@ class CoreModFolderPage : public ModFolderPage
 public:
     explicit CoreModFolderPage(BaseInstance *inst, std::shared_ptr<ModFolderModel> mods, QString id,
                                QString iconName, QString displayName, QString helpPage = "",
-                               QWidget *parent = 0);
+                               QWidget *parent = nullptr);
     ~CoreModFolderPage() override
     {
     }

@@ -67,7 +67,7 @@ public: /* construction */
     explicit MinecraftAccount(const MinecraftAccount &other, QObject *parent) = delete;
 
     //! Default constructor
-    explicit MinecraftAccount(QObject *parent = 0);
+    explicit MinecraftAccount(QObject *parent = nullptr);
 
     static MinecraftAccountPtr createFromUsername(const QString &username);
 

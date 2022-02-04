@@ -38,7 +38,7 @@ class JavaInstallList : public BaseVersionList
         Done
     };
 public:
-    explicit JavaInstallList(QObject *parent = 0);
+    explicit JavaInstallList(QObject *parent = nullptr);
 
     Task::Ptr getLoadTask() override;
     bool isLoaded() override;

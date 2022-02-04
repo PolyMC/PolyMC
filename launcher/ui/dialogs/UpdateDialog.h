@@ -40,7 +40,7 @@ class UpdateDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit UpdateDialog(bool hasUpdate = true, QWidget *parent = 0);
+    explicit UpdateDialog(bool hasUpdate = true, QWidget *parent = nullptr);
     ~UpdateDialog() override;
 
 public slots:

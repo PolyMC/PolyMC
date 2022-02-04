@@ -36,7 +36,7 @@ class Yggdrasil : public AccountTask
 public:
     explicit Yggdrasil(
         AccountData *data,
-        QObject *parent = 0
+        QObject *parent = nullptr
     );
     ~Yggdrasil() override = default;
 

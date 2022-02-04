@@ -38,7 +38,7 @@ class AtlPage : public QWidget, public BasePage, public ATLauncher::UserInteract
 Q_OBJECT
 
 public:
-    explicit AtlPage(NewInstanceDialog* dialog, QWidget *parent = 0);
+    explicit AtlPage(NewInstanceDialog* dialog, QWidget *parent = nullptr);
     ~AtlPage() override;
     QString displayName() const override
     {

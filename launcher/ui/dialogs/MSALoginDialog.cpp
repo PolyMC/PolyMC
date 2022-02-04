@@ -149,5 +149,5 @@ MinecraftAccountPtr MSALoginDialog::newAccount(QWidget *parent, QString msg)
     {
         return dlg.m_account;
     }
-    return 0;
+    return nullptr;
 }

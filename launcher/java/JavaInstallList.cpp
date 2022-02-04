@@ -135,7 +135,7 @@ void JavaInstallList::sortVersions()
 JavaListLoadTask::JavaListLoadTask(JavaInstallList *vlist) : Task()
 {
     m_list = vlist;
-    m_currentRecommended = NULL;
+    m_currentRecommended = nullptr;
 }
 
 JavaListLoadTask::~JavaListLoadTask()

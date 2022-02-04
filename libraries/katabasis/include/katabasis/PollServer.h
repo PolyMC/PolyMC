@@ -17,7 +17,7 @@ class PollServer : public QObject
     Q_OBJECT
 
 public:
-    explicit PollServer(QNetworkAccessManager * manager, const QNetworkRequest &request, const QByteArray & payload, int expiresIn, QObject *parent = 0);
+    explicit PollServer(QNetworkAccessManager * manager, const QNetworkRequest &request, const QByteArray & payload, int expiresIn, QObject *parent = nullptr);
 
     /// Seconds to wait between polling requests
     Q_PROPERTY(int interval READ interval WRITE setInterval)

@@ -40,7 +40,7 @@ public:
 class PageModel : public QAbstractListModel
 {
 public:
-    PageModel(QObject *parent = 0) : QAbstractListModel(parent)
+    PageModel(QObject *parent = nullptr) : QAbstractListModel(parent)
     {
         QPixmap empty(pageIconSize, pageIconSize);
         empty.fill(Qt::transparent);
@@ -98,7 +98,7 @@ public:
 class PageView : public QListView
 {
 public:
-    PageView(QWidget *parent = 0) : QListView(parent)
+    PageView(QWidget *parent = nullptr) : QListView(parent)
     {
         setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
         setItemDelegate(new PageViewDelegate(this));

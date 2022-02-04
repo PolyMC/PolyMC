@@ -34,7 +34,7 @@ class LogPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit LogPage(InstancePtr instance, QWidget *parent = 0);
+    explicit LogPage(InstancePtr instance, QWidget *parent = nullptr);
     ~LogPage() override;
     QString displayName() const override
     {

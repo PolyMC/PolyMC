@@ -21,7 +21,7 @@ class VersionListView : public QTreeView
     Q_OBJECT
 public:
 
-    explicit VersionListView(QWidget *parent = 0);
+    explicit VersionListView(QWidget *parent = nullptr);
     void paintEvent(QPaintEvent *event) override;
     void setModel(QAbstractItemModel* model) override;
 

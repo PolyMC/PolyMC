@@ -36,7 +36,7 @@ public:
     explicit WorldListPage(
         BaseInstance *inst,
         std::shared_ptr<WorldList> worlds,
-        QWidget *parent = 0
+        QWidget *parent = nullptr
     );
     ~WorldListPage() override;
 

@@ -34,7 +34,7 @@ class MinecraftPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit MinecraftPage(QWidget *parent = 0);
+    explicit MinecraftPage(QWidget *parent = nullptr);
     ~MinecraftPage() override;
 
     QString displayName() const override

@@ -29,7 +29,7 @@ class VersionSelectWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit VersionSelectWidget(QWidget *parent = 0);
+    explicit VersionSelectWidget(QWidget *parent = nullptr);
     ~VersionSelectWidget() override;
 
     //! loads the list if needed.

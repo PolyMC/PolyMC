@@ -20,7 +20,7 @@ void SequentialTask::startNext()
     if (m_currentIndex != -1)
     {
         Task::Ptr previous = m_queue[m_currentIndex];
-        disconnect(previous.get(), 0, this, 0);
+        disconnect(previous.get(), nullptr, this, nullptr);
     }
     m_currentIndex++;
     if (m_queue.isEmpty() || m_currentIndex >= m_queue.size())

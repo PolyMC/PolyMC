@@ -28,7 +28,7 @@ class MCModInfoFrame : public QFrame
     Q_OBJECT
 
 public:
-    explicit MCModInfoFrame(QWidget *parent = 0);
+    explicit MCModInfoFrame(QWidget *parent = nullptr);
     ~MCModInfoFrame() override;
 
     void setModText(QString text);

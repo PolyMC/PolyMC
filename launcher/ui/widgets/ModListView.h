@@ -20,6 +20,6 @@ class ModListView: public QTreeView
 {
     Q_OBJECT
 public:
-    explicit ModListView ( QWidget* parent = 0 );
+    explicit ModListView ( QWidget* parent = nullptr );
     void setModel ( QAbstractItemModel* model ) override;
 };

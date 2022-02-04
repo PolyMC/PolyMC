@@ -30,7 +30,7 @@ class ProgressDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ProgressDialog(QWidget *parent = 0);
+    explicit ProgressDialog(QWidget *parent = nullptr);
     ~ProgressDialog() override;
 
     void updateSize();

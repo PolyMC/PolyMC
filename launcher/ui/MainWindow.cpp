@@ -1758,7 +1758,7 @@ void MainWindow::taskEnd()
 {
     QObject *sender = QObject::sender();
     if (sender == m_versionLoadTask)
-        m_versionLoadTask = NULL;
+        m_versionLoadTask = nullptr;
 
     sender->deleteLater();
 }

@@ -24,7 +24,7 @@ public:
     typedef QHash<BaseVersionList::ModelRoles, std::shared_ptr<Filter>> FilterMap;
 
 public:
-    VersionProxyModel ( QObject* parent = 0 );
+    VersionProxyModel ( QObject* parent = nullptr );
     ~VersionProxyModel() override {};
 
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;

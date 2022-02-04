@@ -144,7 +144,7 @@ public:
     {
         ServerPtrRole = Qt::UserRole,
     };
-    explicit ServersModel(const QString &path, QObject *parent = 0)
+    explicit ServersModel(const QString &path, QObject *parent = nullptr)
         : QAbstractListModel(parent)
     {
         m_path = path;

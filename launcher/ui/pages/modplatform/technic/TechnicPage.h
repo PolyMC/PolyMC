@@ -38,7 +38,7 @@ class TechnicPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit TechnicPage(NewInstanceDialog* dialog, QWidget *parent = 0);
+    explicit TechnicPage(NewInstanceDialog* dialog, QWidget *parent = nullptr);
     ~TechnicPage() override;
     QString displayName() const override
     {

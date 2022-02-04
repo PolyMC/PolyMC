@@ -47,7 +47,7 @@ public:
         NUM_COLUMNS
     };
 
-    explicit AccountList(QObject *parent = 0);
+    explicit AccountList(QObject *parent = nullptr);
     ~AccountList() noexcept override;
 
     const MinecraftAccountPtr at(int i) const;

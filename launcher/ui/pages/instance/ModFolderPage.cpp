@@ -51,7 +51,7 @@ namespace {
 class ModSortProxy : public QSortFilterProxyModel
 {
 public:
-    explicit ModSortProxy(QObject *parent = 0) : QSortFilterProxyModel(parent)
+    explicit ModSortProxy(QObject *parent = nullptr) : QSortFilterProxyModel(parent)
     {
     }
 

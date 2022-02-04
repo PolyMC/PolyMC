@@ -38,7 +38,7 @@ public:
     };
 
 public:
-    explicit LoggedProcess(QObject* parent = 0);
+    explicit LoggedProcess(QObject* parent = nullptr);
     ~LoggedProcess() override;
 
     State state() const;

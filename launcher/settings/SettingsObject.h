@@ -58,7 +58,7 @@ public:
         SettingsObjectPtr m_locked;
     };
 public:
-    explicit SettingsObject(QObject *parent = 0);
+    explicit SettingsObject(QObject *parent = nullptr);
     ~SettingsObject() override;
     /*!
      * Registers an override setting for the given original setting in this settings object

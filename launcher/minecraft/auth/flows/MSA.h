@@ -7,7 +7,7 @@ class MSAInteractive : public AuthFlow
 public:
     explicit MSAInteractive(
         AccountData *data,
-        QObject *parent = 0
+        QObject *parent = nullptr
     );
 };
 
@@ -17,6 +17,6 @@ class MSASilent : public AuthFlow
 public:
     explicit MSASilent(
         AccountData * data,
-        QObject *parent = 0
+        QObject *parent = nullptr
     );
 };

@@ -27,7 +27,7 @@ class CustomCommandsPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit CustomCommandsPage(QWidget *parent = 0);
+    explicit CustomCommandsPage(QWidget *parent = nullptr);
     ~CustomCommandsPage() override;
 
     QString displayName() const override

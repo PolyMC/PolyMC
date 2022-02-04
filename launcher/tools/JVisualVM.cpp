@@ -11,7 +11,7 @@ class JVisualVM : public BaseProfiler
 {
     Q_OBJECT
 public:
-    JVisualVM(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = 0);
+    JVisualVM(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = nullptr);
 
 private slots:
     void profilerStarted();
@@ -41,7 +41,7 @@ void JVisualVM::profilerFinished(int exit, QProcess::ExitStatus status)
     if (m_profilerProcess)
     {
         m_profilerProcess->deleteLater();
-        m_profilerProcess = 0;
+        m_profilerProcess = nullptr;
     }
 }
 

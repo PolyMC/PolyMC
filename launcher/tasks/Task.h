@@ -37,7 +37,7 @@ public:
     };
 
 public:
-    explicit Task(QObject *parent = 0);
+    explicit Task(QObject *parent = nullptr);
     ~Task() override {};
 
     bool isRunning() const;

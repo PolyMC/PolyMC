@@ -31,7 +31,7 @@ class MinecraftUpdate : public Task
 {
     Q_OBJECT
 public:
-    explicit MinecraftUpdate(MinecraftInstance *inst, QObject *parent = 0);
+    explicit MinecraftUpdate(MinecraftInstance *inst, QObject *parent = nullptr);
     ~MinecraftUpdate() override {};
 
     void executeTask() override;

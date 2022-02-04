@@ -310,7 +310,7 @@ void DeviceFlow::serverHasClosed(bool paramsfound)
         updateActivity(Activity::FailedHard);
     }
     // poll server is not re-used for later auth requests
-    setPollServer(NULL);
+    setPollServer(nullptr);
 }
 
 void DeviceFlow::logout() {

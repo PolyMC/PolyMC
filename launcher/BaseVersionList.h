@@ -55,7 +55,7 @@ public:
     };
     typedef QList<int> RoleList;
 
-    explicit BaseVersionList(QObject *parent = 0);
+    explicit BaseVersionList(QObject *parent = nullptr);
 
     /*!
      * \brief Gets a task that will reload the version list.
