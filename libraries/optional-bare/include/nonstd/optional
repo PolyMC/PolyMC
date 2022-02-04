@@ -161,11 +161,9 @@ public:
     typedef T value_type;
 
     optional()
-    : has_value_( false )
     {}
 
     optional( nullopt_t )
-    : has_value_( false )
     {}
 
     optional( T const & arg )
@@ -291,7 +289,7 @@ private:
     }
 
 private:
-    bool has_value_;
+    bool has_value_{ false };
     value_type value_;
 };
 

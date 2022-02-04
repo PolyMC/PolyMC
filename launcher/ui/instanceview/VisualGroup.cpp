@@ -23,7 +23,7 @@
 
 #include "InstanceView.h"
 
-VisualGroup::VisualGroup(const QString &text, InstanceView *view) : view(view), text(text), collapsed(false)
+VisualGroup::VisualGroup(const QString &text, InstanceView *view) : view(view), text(text) 
 {
 }
 

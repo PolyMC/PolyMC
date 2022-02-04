@@ -1,6 +1,6 @@
 #include "SequentialTask.h"
 
-SequentialTask::SequentialTask(QObject *parent) : Task(parent), m_currentIndex(-1)
+SequentialTask::SequentialTask(QObject *parent) : Task(parent) 
 {
 }
 

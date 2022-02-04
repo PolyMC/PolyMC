@@ -68,14 +68,14 @@ struct QIconDirInfo
         Threshold
     };
     QIconDirInfo(const QString &_path = QString())
-        : path(_path), size(0), maxSize(0), minSize(0), threshold(0), type(Threshold)
+        : path(_path),  type(Threshold)
     {
     }
     QString path;
-    short size;
-    short maxSize;
-    short minSize;
-    short threshold;
+    short size{0};
+    short maxSize{0};
+    short minSize{0};
+    short threshold{0};
     Type type : 4;
 };
 
@@ -126,7 +126,7 @@ private:
     QIconLoaderEngineFixed(const QIconLoaderEngineFixed &other);
     QThemeIconEntries m_entries;
     QString m_iconName;
-    uint m_key;
+    uint m_key{0};
 
     friend class QIconLoader;
 };
@@ -135,7 +135,7 @@ class QIconTheme
 {
 public:
     QIconTheme(const QString &name);
-    QIconTheme() : m_valid(false)
+    QIconTheme()  
     {
     }
     QStringList parents()
@@ -164,7 +164,7 @@ private:
     QStringList m_contentDirs;
     QVector<QIconDirInfo> m_keyList;
     QStringList m_parents;
-    bool m_valid;
+    bool m_valid{false};
 };
 
 class QIconLoader
@@ -200,9 +200,9 @@ public:
 private:
     QThemeIconEntries findIconHelper(const QString &themeName, const QString &iconName,
                                      QStringList &visited) const;
-    uint m_themeKey;
-    bool m_supportsSvg;
-    bool m_initialized;
+    uint m_themeKey{1};
+    bool m_supportsSvg{false};
+    bool m_initialized{false};
 
     mutable QString m_userTheme;
     mutable QString m_systemTheme;

@@ -58,7 +58,7 @@ static QString fallbackTheme()
     return QString("hicolor");
 }
 
-QIconLoader::QIconLoader() : m_themeKey(1), m_supportsSvg(false), m_initialized(false)
+QIconLoader::QIconLoader()
 {
 }
 
@@ -139,7 +139,7 @@ QStringList QIconLoader::themeSearchPaths() const
     return m_iconDirs;
 }
 
-QIconTheme::QIconTheme(const QString &themeName) : m_valid(false)
+QIconTheme::QIconTheme(const QString &themeName)
 {
     QFile themeIndex;
 
@@ -407,7 +407,7 @@ QThemeIconEntries QIconLoader::loadIcon(const QString &name) const
 // -------- Icon Loader Engine -------- //
 
 QIconLoaderEngineFixed::QIconLoaderEngineFixed(const QString &iconName)
-    : m_iconName(iconName), m_key(0)
+    : m_iconName(iconName)
 {
 }
 
@@ -417,7 +417,7 @@ QIconLoaderEngineFixed::~QIconLoaderEngineFixed()
 }
 
 QIconLoaderEngineFixed::QIconLoaderEngineFixed(const QIconLoaderEngineFixed &other)
-    : QIconEngine(other), m_iconName(other.m_iconName), m_key(0)
+    : QIconEngine(other), m_iconName(other.m_iconName)
 {
 }
 

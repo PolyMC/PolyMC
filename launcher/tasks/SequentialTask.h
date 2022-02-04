@@ -26,5 +26,5 @@ slots:
 
 private:
     QQueue<Task::Ptr > m_queue;
-    int m_currentIndex;
+    int m_currentIndex{-1};
 };
