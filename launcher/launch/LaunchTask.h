@@ -44,7 +44,7 @@ public:
 
 public: /* methods */
     static shared_qobject_ptr<LaunchTask> create(InstancePtr inst);
-    ~LaunchTask() override {};
+    ~LaunchTask() override = default;
 
     void appendStep(shared_qobject_ptr<LaunchStep> step);
     void prependStep(shared_qobject_ptr<LaunchStep> step);

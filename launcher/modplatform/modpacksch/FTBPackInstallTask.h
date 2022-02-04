@@ -30,7 +30,7 @@ class PackInstallTask : public InstanceTask
 
 public:
     explicit PackInstallTask(Modpack pack, QString version);
-    ~PackInstallTask() override{}
+    ~PackInstallTask() override = default;
 
     bool canAbort() const override { return true; }
     bool abort() override;

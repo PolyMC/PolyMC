@@ -8,8 +8,8 @@ namespace Net {
 class Sink
 {
 public: /* con/des */
-    Sink() {};
-    virtual ~Sink() {};
+    Sink() = default;
+    virtual ~Sink() = default;
 
 public: /* methods */
     virtual JobStatus init(QNetworkRequest & request) = 0;

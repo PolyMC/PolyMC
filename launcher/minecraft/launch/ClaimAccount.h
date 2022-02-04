@@ -23,7 +23,7 @@ class ClaimAccount: public LaunchStep
     Q_OBJECT
 public:
     explicit ClaimAccount(LaunchTask *parent, AuthSessionPtr session);
-    ~ClaimAccount() override {};
+    ~ClaimAccount() override = default;
 
     void executeTask() override;
     void finalize() override;

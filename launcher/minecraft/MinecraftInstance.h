@@ -17,7 +17,7 @@ class MinecraftInstance: public BaseInstance
     Q_OBJECT
 public:
     MinecraftInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString &rootDir);
-    ~MinecraftInstance() override {};
+    ~MinecraftInstance() override = default;
     void saveNow() override;
 
     // FIXME: remove

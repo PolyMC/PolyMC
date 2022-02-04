@@ -171,9 +171,7 @@ public:
     /**
      * Create a pool of constants
      */
-    constant_pool()
-    {
-    }
+    constant_pool() = default;
     /**
      * Load a java constant pool
      */

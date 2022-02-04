@@ -23,7 +23,7 @@ class PostLaunchCommand: public LaunchStep
     Q_OBJECT
 public:
     explicit PostLaunchCommand(LaunchTask *parent);
-    ~PostLaunchCommand() override {};
+    ~PostLaunchCommand() override = default;
 
     void executeTask() override;
     bool abort() override;

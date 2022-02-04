@@ -37,7 +37,7 @@ class PageContainer : public QWidget, public BasePageContainer
 public:
     explicit PageContainer(BasePageProvider *pageProvider, QString defaultId = QString(),
                         QWidget *parent = nullptr);
-    ~PageContainer() override {}
+    ~PageContainer() override = default;
 
     void addButtons(QWidget * buttons);
     void addButtons(QLayout * buttons);

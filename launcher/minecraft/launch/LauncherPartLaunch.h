@@ -26,7 +26,7 @@ class LauncherPartLaunch: public LaunchStep
     Q_OBJECT
 public:
     explicit LauncherPartLaunch(LaunchTask *parent);
-    ~LauncherPartLaunch() override {};
+    ~LauncherPartLaunch() override = default;
 
     void executeTask() override;
     bool abort() override;

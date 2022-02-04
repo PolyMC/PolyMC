@@ -12,10 +12,7 @@ MetaCacheSink::MetaCacheSink(MetaEntryPtr entry, ChecksumValidator * md5sum)
     addValidator(md5sum);
 }
 
-MetaCacheSink::~MetaCacheSink()
-{
-    // nil
-}
+MetaCacheSink::~MetaCacheSink() = default;
 
 JobStatus MetaCacheSink::initCache(QNetworkRequest& request)
 {

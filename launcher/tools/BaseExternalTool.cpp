@@ -14,9 +14,7 @@ BaseExternalTool::BaseExternalTool(SettingsObjectPtr settings, InstancePtr insta
 {
 }
 
-BaseExternalTool::~BaseExternalTool()
-{
-}
+BaseExternalTool::~BaseExternalTool() = default;
 
 BaseDetachedTool::BaseDetachedTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent)
     : BaseExternalTool(settings, instance, parent)
@@ -30,9 +28,7 @@ void BaseDetachedTool::run()
 }
 
 
-BaseExternalToolFactory::~BaseExternalToolFactory()
-{
-}
+BaseExternalToolFactory::~BaseExternalToolFactory() = default;
 
 BaseDetachedTool *BaseDetachedToolFactory::createDetachedTool(InstancePtr instance,
                                                               QObject *parent)

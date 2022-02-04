@@ -4,7 +4,7 @@
 class RegexpMatcher : public IPathMatcher
 {
 public:
-    ~RegexpMatcher() override {};
+    ~RegexpMatcher() override = default;
     RegexpMatcher(const QString &regexp)
     {
         m_regexp.setPattern(regexp);

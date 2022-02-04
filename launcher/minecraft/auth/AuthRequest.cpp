@@ -12,8 +12,7 @@
 AuthRequest::AuthRequest(QObject *parent): QObject(parent) {
 }
 
-AuthRequest::~AuthRequest() {
-}
+AuthRequest::~AuthRequest() = default;
 
 void AuthRequest::get(const QNetworkRequest &req, int timeout/* = 60*1000*/) {
     setup(req, QNetworkAccessManager::GetOperation);

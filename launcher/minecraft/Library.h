@@ -25,9 +25,7 @@ class Library
     friend class MojangVersionFormat;
     friend class LibraryTest;
 public:
-    Library()
-    {
-    }
+    Library() = default;
     Library(const QString &name)
     {
         m_name = name;

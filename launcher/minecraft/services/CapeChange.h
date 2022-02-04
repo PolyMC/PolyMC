@@ -11,7 +11,7 @@ class CapeChange : public Task
     Q_OBJECT
 public:
     CapeChange(QObject *parent, QString token, QString capeId);
-    ~CapeChange() override {}
+    ~CapeChange() override = default;
 
 private:
     void setCape(QString & cape);

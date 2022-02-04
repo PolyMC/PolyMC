@@ -82,6 +82,4 @@ void SetupWizard::changeEvent(QEvent *event)
     QWizard::changeEvent(event);
 }
 
-SetupWizard::~SetupWizard()
-{
-}
+SetupWizard::~SetupWizard() = default;

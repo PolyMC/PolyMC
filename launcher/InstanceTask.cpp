@@ -1,9 +1,5 @@
 #include "InstanceTask.h"
 
-InstanceTask::InstanceTask()
-{
-}
+InstanceTask::InstanceTask() = default;
 
-InstanceTask::~InstanceTask()
-{
-}
+InstanceTask::~InstanceTask() = default;

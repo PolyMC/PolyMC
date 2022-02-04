@@ -23,7 +23,7 @@ class PreLaunchCommand: public LaunchStep
     Q_OBJECT
 public:
     explicit PreLaunchCommand(LaunchTask *parent);
-    ~PreLaunchCommand() override {};
+    ~PreLaunchCommand() override = default;
 
     void executeTask() override;
     bool abort() override;

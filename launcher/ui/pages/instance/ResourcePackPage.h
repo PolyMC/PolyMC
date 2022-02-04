@@ -13,7 +13,7 @@ public:
     {
         ui->actionView_configs->setVisible(false);
     }
-    ~ResourcePackPage() override {}
+    ~ResourcePackPage() override = default;
 
     bool shouldDisplay() const override
     {

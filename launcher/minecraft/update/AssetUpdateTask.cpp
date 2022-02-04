@@ -12,9 +12,7 @@ AssetUpdateTask::AssetUpdateTask(MinecraftInstance * inst)
     m_inst = inst;
 }
 
-AssetUpdateTask::~AssetUpdateTask()
-{
-}
+AssetUpdateTask::~AssetUpdateTask() = default;
 
 void AssetUpdateTask::executeTask()
 {

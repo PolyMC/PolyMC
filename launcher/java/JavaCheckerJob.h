@@ -28,7 +28,7 @@ class JavaCheckerJob : public Task
     Q_OBJECT
 public:
     explicit JavaCheckerJob(QString job_name) : Task(), m_job_name(job_name) {};
-    ~JavaCheckerJob() override {};
+    ~JavaCheckerJob() override = default;
 
     bool addJavaCheckerAction(JavaCheckerPtr base)
     {

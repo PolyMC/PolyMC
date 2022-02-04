@@ -114,8 +114,6 @@ public:
     explicit CoreModFolderPage(BaseInstance *inst, std::shared_ptr<ModFolderModel> mods, QString id,
                                QString iconName, QString displayName, QString helpPage = "",
                                QWidget *parent = nullptr);
-    ~CoreModFolderPage() override
-    {
-    }
+    ~CoreModFolderPage() override = default;
     bool shouldDisplay() const override;
 };

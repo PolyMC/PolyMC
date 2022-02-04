@@ -46,7 +46,7 @@ public:
         empty.fill(Qt::transparent);
         m_emptyIcon = QIcon(empty);
     }
-    ~PageModel() override {}
+    ~PageModel() override = default;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override
     {

@@ -21,10 +21,7 @@ GameOptionsPage::GameOptionsPage(MinecraftInstance * inst, QWidget* parent)
     }
 }
 
-GameOptionsPage::~GameOptionsPage()
-{
-    // m_model->save();
-}
+GameOptionsPage::~GameOptionsPage() = default;
 
 void GameOptionsPage::openedImpl()
 {

@@ -38,7 +38,7 @@ public:
 
 public:
     explicit Task(QObject *parent = nullptr);
-    ~Task() override {};
+    ~Task() override = default;
 
     bool isRunning() const;
     bool isFinished() const;

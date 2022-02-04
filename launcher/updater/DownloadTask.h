@@ -36,7 +36,7 @@ public:
      * target is a template - XXXXXX at the end will be replaced with a random generated string, ensuring uniqueness
      */
     explicit DownloadTask(shared_qobject_ptr<QNetworkAccessManager> network, Status status, QString target, QObject* parent = nullptr);
-    ~DownloadTask() override {};
+    ~DownloadTask() override = default;
 
     /// Get the directory that will contain the update files.
     QString updateFilesDir();

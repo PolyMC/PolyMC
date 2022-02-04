@@ -19,7 +19,7 @@ public:
 
     // Note this class takes ownership of the file.
     SkinUpload(QObject *parent, QString token, QByteArray skin, Model model = STEVE);
-    ~SkinUpload() override {}
+    ~SkinUpload() override = default;
 
 private:
     Model m_model;

@@ -60,9 +60,7 @@ InstanceList::InstanceList(SettingsObjectPtr settings, const QString & instDir, 
     m_watcher->addPath(m_instDir);
 }
 
-InstanceList::~InstanceList()
-{
-}
+InstanceList::~InstanceList() = default;
 
 Qt::DropActions InstanceList::supportedDragActions() const
 {
@@ -786,7 +784,7 @@ public:
         connect(&m_backoffTimer, &QTimer::timeout, this, &InstanceStaging::childSucceded);
     }
 
-    ~InstanceStaging() override {};
+    ~InstanceStaging() override = default;
 
 
     // FIXME/TODO: add ability to abort during instance commit retries

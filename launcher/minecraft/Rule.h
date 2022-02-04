@@ -43,7 +43,7 @@ public:
     Rule(RuleAction result) : m_result(result)
     {
     }
-    virtual ~Rule() {};
+    virtual ~Rule() = default;
     virtual QJsonObject toJson() = 0;
     RuleAction apply(const Library *parent)
     {

@@ -17,7 +17,7 @@ public:
         : std::exception(), m_message(other.cause())
     {
     }
-    ~Exception() noexcept override {}
+    ~Exception() noexcept override = default;
     const char *what() const noexcept override
     {
         return m_message.toLatin1().constData();

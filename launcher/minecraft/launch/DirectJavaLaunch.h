@@ -26,7 +26,7 @@ class DirectJavaLaunch: public LaunchStep
     Q_OBJECT
 public:
     explicit DirectJavaLaunch(LaunchTask *parent);
-    ~DirectJavaLaunch() override {};
+    ~DirectJavaLaunch() override = default;
 
     void executeTask() override;
     bool abort() override;

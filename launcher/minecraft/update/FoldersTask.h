@@ -8,7 +8,7 @@ class FoldersTask : public Task
     Q_OBJECT
 public:
     FoldersTask(MinecraftInstance * inst);
-    ~FoldersTask() override {};
+    ~FoldersTask() override = default;
 
     void executeTask() override;
 private:

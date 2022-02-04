@@ -29,9 +29,7 @@ public: /* con/des */
     ParsingValidator(Meta::BaseEntity *entity) : m_entity(entity)
     {
     };
-    ~ParsingValidator() override
-    {
-    };
+    ~ParsingValidator() override = default;
 
 public: /* methods */
     bool init(QNetworkRequest &) override
@@ -69,9 +67,7 @@ private: /* data */
     Meta::BaseEntity *m_entity;
 };
 
-Meta::BaseEntity::~BaseEntity()
-{
-}
+Meta::BaseEntity::~BaseEntity() = default;
 
 QUrl Meta::BaseEntity::url() const
 {

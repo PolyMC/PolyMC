@@ -14,7 +14,7 @@ public:
     void executeTask() override;
 
     LaunchController(QObject * parent = nullptr);
-    ~LaunchController() override{};
+    ~LaunchController() override = default;
 
     void setInstance(InstancePtr instance) {
         m_instance = instance;

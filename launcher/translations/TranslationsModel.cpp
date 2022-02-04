@@ -162,9 +162,7 @@ TranslationsModel::TranslationsModel(QString path, QObject* parent): QAbstractLi
     d->watcher->addPath(d->m_dir.canonicalPath());
 }
 
-TranslationsModel::~TranslationsModel()
-{
-}
+TranslationsModel::~TranslationsModel() = default;
 
 void TranslationsModel::translationDirChanged(const QString& path)
 {

@@ -20,9 +20,7 @@ CustomCommandsPage::CustomCommandsPage(QWidget* parent): QWidget(parent)
     loadSettings();
 }
 
-CustomCommandsPage::~CustomCommandsPage()
-{
-}
+CustomCommandsPage::~CustomCommandsPage() = default;
 
 bool CustomCommandsPage::apply()
 {

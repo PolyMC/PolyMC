@@ -138,9 +138,7 @@ JavaListLoadTask::JavaListLoadTask(JavaInstallList *vlist) : Task()
     m_currentRecommended = nullptr;
 }
 
-JavaListLoadTask::~JavaListLoadTask()
-{
-}
+JavaListLoadTask::~JavaListLoadTask() = default;
 
 void JavaListLoadTask::executeTask()
 {

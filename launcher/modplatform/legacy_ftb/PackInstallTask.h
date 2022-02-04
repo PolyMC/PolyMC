@@ -20,7 +20,7 @@ class PackInstallTask : public InstanceTask
 
 public:
     explicit PackInstallTask(shared_qobject_ptr<QNetworkAccessManager> network, Modpack pack, QString version);
-    ~PackInstallTask() override{}
+    ~PackInstallTask() override = default;
 
     bool canAbort() const override { return true; }
     bool abort() override;

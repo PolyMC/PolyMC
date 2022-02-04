@@ -27,7 +27,7 @@ class Update: public LaunchStep
     Q_OBJECT
 public:
     explicit Update(LaunchTask *parent, Net::Mode mode):LaunchStep(parent), m_mode(mode) {};
-    ~Update() override {};
+    ~Update() override = default;
 
     void executeTask() override;
     bool canAbort() const override;

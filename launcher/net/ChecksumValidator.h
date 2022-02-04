@@ -13,7 +13,7 @@ public: /* con/des */
         :m_checksum(algorithm), m_expected(expected)
     {
     };
-    ~ChecksumValidator() override {};
+    ~ChecksumValidator() override = default;
 
 public: /* methods */
     bool init(QNetworkRequest &) override

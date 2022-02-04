@@ -5,7 +5,7 @@
 class DarkTheme: public FusionTheme
 {
 public:
-    ~DarkTheme() override {}
+    ~DarkTheme() override = default;
 
     QString id() override;
     QString name() override;

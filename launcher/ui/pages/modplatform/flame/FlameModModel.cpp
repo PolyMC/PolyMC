@@ -17,9 +17,7 @@ ListModel::ListModel(FlameModPage *parent) : QAbstractListModel(parent)
 {
 }
 
-ListModel::~ListModel()
-{
-}
+ListModel::~ListModel() = default;
 
 int ListModel::rowCount(const QModelIndex &parent) const
 {

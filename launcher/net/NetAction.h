@@ -44,7 +44,7 @@ protected:
 public:
     using Ptr = shared_qobject_ptr<NetAction>;
 
-    ~NetAction() override {};
+    ~NetAction() override = default;
 
     bool isRunning() const
     {

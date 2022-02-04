@@ -6,7 +6,7 @@ class CustomTheme: public ITheme
 {
 public:
     CustomTheme(ITheme * baseTheme, QString folder);
-    ~CustomTheme() override {}
+    ~CustomTheme() override = default;
 
     QString id() override;
     QString name() override;

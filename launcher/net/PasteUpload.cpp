@@ -12,9 +12,7 @@ PasteUpload::PasteUpload(QWidget *window, QString text, QString url) : m_window(
 {
 }
 
-PasteUpload::~PasteUpload()
-{
-}
+PasteUpload::~PasteUpload() = default;
 
 void PasteUpload::executeTask()
 {

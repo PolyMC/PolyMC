@@ -28,7 +28,7 @@ public:
         inst = parent;
     }
 
-    ~InstancePageProvider() override {};
+    ~InstancePageProvider() override = default;
     QList<BasePage *> getPages() override
     {
         QList<BasePage *> values;

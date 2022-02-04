@@ -5,7 +5,7 @@
 
 struct JavaInstall : public BaseVersion
 {
-    JavaInstall(){}
+    JavaInstall() = default;
     JavaInstall(QString id, QString arch, QString path)
     : id(id), arch(arch), path(path)
     {

@@ -23,7 +23,7 @@ class ModMinecraftJar: public LaunchStep
     Q_OBJECT
 public:
     explicit ModMinecraftJar(LaunchTask *parent) : LaunchStep(parent) {};
-    ~ModMinecraftJar() override{};
+    ~ModMinecraftJar() override = default;
 
     void executeTask() override;
     bool canAbort() const override

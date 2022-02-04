@@ -11,7 +11,7 @@ public:
     {
         setVersionBroken(true);
     }
-    ~NullInstance() override {};
+    ~NullInstance() override = default;
     void saveNow() override
     {
     }

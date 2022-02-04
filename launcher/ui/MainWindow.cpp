@@ -111,7 +111,7 @@ template <typename T>
 class Translated
 {
 public:
-    Translated(){}
+    Translated() = default;
     Translated(QWidget *parent)
     {
         m_contained = new T(parent);
@@ -164,7 +164,7 @@ using TranslatedToolButton = Translated<QToolButton>;
 class TranslatedToolbar
 {
 public:
-    TranslatedToolbar(){}
+    TranslatedToolbar() = default;
     TranslatedToolbar(QWidget *parent)
     {
         m_contained = new QToolBar(parent);
@@ -827,9 +827,7 @@ void MainWindow::retranslateUi()
     ui->retranslateUi(this);
 }
 
-MainWindow::~MainWindow()
-{
-}
+MainWindow::~MainWindow() = default;
 
 QMenu * MainWindow::createPopupMenu()
 {

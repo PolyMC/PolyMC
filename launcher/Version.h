@@ -9,7 +9,7 @@ class Version
 {
 public:
     Version(const QString &str);
-    Version() {}
+    Version() = default;
 
     bool operator<(const Version &other) const;
     bool operator<=(const Version &other) const;
@@ -51,7 +51,7 @@ private:
                 m_stringPart = stringPart.toString();
             }
         }
-        explicit Section() {}
+        explicit Section() = default;
         bool numValid = false;
         int m_numPart = 0;
         QString m_stringPart;

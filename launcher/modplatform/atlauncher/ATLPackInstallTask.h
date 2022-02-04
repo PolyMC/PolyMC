@@ -53,7 +53,7 @@ Q_OBJECT
 
 public:
     explicit PackInstallTask(UserInteractionSupport *support, QString pack, QString version);
-    ~PackInstallTask() override{}
+    ~PackInstallTask() override = default;
 
     bool canAbort() const override { return true; }
     bool abort() override;

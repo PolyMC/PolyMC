@@ -39,7 +39,7 @@ public: /* types */
 protected: /* con/des */
     explicit Download();
 public:
-    ~Download() override{};
+    ~Download() override = default;
     static Download::Ptr makeCached(QUrl url, MetaEntryPtr entry, Options options = Option::NoOptions);
     static Download::Ptr makeByteArray(QUrl url, QByteArray *output, Options options = Option::NoOptions);
     static Download::Ptr makeFile(QUrl url, QString path, Options options = Option::NoOptions);

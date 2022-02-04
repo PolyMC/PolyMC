@@ -62,16 +62,12 @@ static void qt_cleanup_icon_cache()
 /************************************************
 
  ************************************************/
-XdgIcon::XdgIcon()
-{
-}
+XdgIcon::XdgIcon() = default;
 
 /************************************************
 
  ************************************************/
-XdgIcon::~XdgIcon()
-{
-}
+XdgIcon::~XdgIcon() = default;
 
 /************************************************
  Returns the name of the current icon theme.

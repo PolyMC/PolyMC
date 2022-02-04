@@ -34,7 +34,7 @@ class IconList : public QAbstractListModel
     Q_OBJECT
 public:
     explicit IconList(const QStringList &builtinPaths, QString path, QObject *parent = nullptr);
-    ~IconList() override {};
+    ~IconList() override = default;
 
     QIcon getIcon(const QString &key) const;
     int getIconIndex(const QString &key) const;

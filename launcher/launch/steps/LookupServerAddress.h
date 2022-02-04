@@ -25,7 +25,7 @@ class LookupServerAddress: public LaunchStep {
 Q_OBJECT
 public:
     explicit LookupServerAddress(LaunchTask *parent);
-    ~LookupServerAddress() override {};
+    ~LookupServerAddress() override = default;
 
     void executeTask() override;
     bool abort() override;

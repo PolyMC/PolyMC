@@ -27,9 +27,7 @@ UpdateDialog::UpdateDialog(bool hasUpdate, QWidget *parent) : QDialog(parent), u
     restoreGeometry(QByteArray::fromBase64(APPLICATION->settings()->get("UpdateDialogGeometry").toByteArray()));
 }
 
-UpdateDialog::~UpdateDialog()
-{
-}
+UpdateDialog::~UpdateDialog() = default;
 
 void UpdateDialog::loadChangelog()
 {

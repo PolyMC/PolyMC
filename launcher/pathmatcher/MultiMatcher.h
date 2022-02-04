@@ -5,10 +5,8 @@
 class MultiMatcher : public IPathMatcher
 {
 public:
-    ~MultiMatcher() override {};
-    MultiMatcher()
-    {
-    }
+    ~MultiMatcher() override = default;
+    MultiMatcher() = default;
     MultiMatcher &add(Ptr add)
     {
         m_matchers.append(add);

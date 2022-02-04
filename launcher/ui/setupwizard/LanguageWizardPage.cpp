@@ -18,9 +18,7 @@ LanguageWizardPage::LanguageWizardPage(QWidget *parent)
     retranslate();
 }
 
-LanguageWizardPage::~LanguageWizardPage()
-{
-}
+LanguageWizardPage::~LanguageWizardPage() = default;
 
 bool LanguageWizardPage::wantsRefreshButton()
 {

@@ -10,7 +10,7 @@ public:
         : QWizardPage(parent)
     {
     }
-    ~BaseWizardPage() override {};
+    ~BaseWizardPage() override = default;
 
     virtual bool wantsRefreshButton()
     {

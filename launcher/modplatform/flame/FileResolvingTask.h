@@ -11,7 +11,7 @@ class FileResolvingTask : public Task
     Q_OBJECT
 public:
     explicit FileResolvingTask(shared_qobject_ptr<QNetworkAccessManager> network, Flame::Manifest &toProcess);
-    ~FileResolvingTask() override {};
+    ~FileResolvingTask() override = default;
 
     const Flame::Manifest &getResults() const
     {

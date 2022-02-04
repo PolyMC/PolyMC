@@ -25,7 +25,7 @@ class MetaEntry
 {
 friend class HttpMetaCache;
 protected:
-    MetaEntry() {}
+    MetaEntry() = default;
 public:
     bool isStale()
     {

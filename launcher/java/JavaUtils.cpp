@@ -27,9 +27,7 @@
 
 #define IBUS "@im=ibus"
 
-JavaUtils::JavaUtils()
-{
-}
+JavaUtils::JavaUtils() = default;
 
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
 static QString processLD_LIBRARY_PATH(const QString & LD_LIBRARY_PATH)

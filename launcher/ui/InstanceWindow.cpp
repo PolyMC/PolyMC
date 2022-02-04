@@ -222,9 +222,7 @@ void InstanceWindow::refreshContainer()
     m_container->refreshContainer();
 }
 
-InstanceWindow::~InstanceWindow()
-{
-}
+InstanceWindow::~InstanceWindow() = default;
 
 bool InstanceWindow::requestClose()
 {

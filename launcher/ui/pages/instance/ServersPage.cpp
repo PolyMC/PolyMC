@@ -155,7 +155,7 @@ public:
         m_saveTimer.setInterval(5000);
         connect(&m_saveTimer, &QTimer::timeout, this, &ServersModel::save_internal);
     }
-    ~ServersModel() override {};
+    ~ServersModel() override = default;
 
     void observe()
     {

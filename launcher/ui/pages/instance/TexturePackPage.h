@@ -13,7 +13,7 @@ public:
     {
         ui->actionView_configs->setVisible(false);
     }
-    ~TexturePackPage() override {}
+    ~TexturePackPage() override = default;
 
     bool shouldDisplay() const override
     {

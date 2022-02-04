@@ -24,7 +24,7 @@ class CheckJava: public LaunchStep
     Q_OBJECT
 public:
     explicit CheckJava(LaunchTask *parent) :LaunchStep(parent){};
-    ~CheckJava() override {};
+    ~CheckJava() override = default;
 
     void executeTask() override;
     bool canAbort() const override

@@ -25,7 +25,7 @@ class ExtractNatives: public LaunchStep
     Q_OBJECT
 public:
     explicit ExtractNatives(LaunchTask *parent) : LaunchStep(parent){};
-    ~ExtractNatives() override{};
+    ~ExtractNatives() override = default;
 
     void executeTask() override;
     bool canAbort() const override

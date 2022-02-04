@@ -66,7 +66,7 @@ public: /* types */
 
 public:
     /// virtual destructor to make sure the destruction is COMPLETE
-    ~BaseInstance() override {};
+    ~BaseInstance() override = default;
 
     virtual void saveNow() = 0;
 

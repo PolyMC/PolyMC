@@ -82,9 +82,7 @@ struct QIconDirInfo
 class QIconLoaderEngineEntry
 {
 public:
-    virtual ~QIconLoaderEngineEntry()
-    {
-    }
+    virtual ~QIconLoaderEngineEntry() = default;
     virtual QPixmap pixmap(const QSize &size, QIcon::Mode mode, QIcon::State state) = 0;
     QString filename;
     QIconDirInfo dir;

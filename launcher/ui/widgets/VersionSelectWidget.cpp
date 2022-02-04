@@ -57,9 +57,7 @@ void VersionSelectWidget::setEmptyErrorString(QString emptyErrorString)
     listView->setEmptyErrorString(emptyErrorString);
 }
 
-VersionSelectWidget::~VersionSelectWidget()
-{
-}
+VersionSelectWidget::~VersionSelectWidget() = default;
 
 void VersionSelectWidget::setResizeOn(int column)
 {

@@ -5,9 +5,7 @@ class FocusLineEdit : public QLineEdit
     Q_OBJECT
 public:
     FocusLineEdit(QWidget *parent);
-    ~FocusLineEdit() override
-    {
-    }
+    ~FocusLineEdit() override = default;
 
 protected:
     void focusInEvent(QFocusEvent *e) override;

@@ -29,7 +29,7 @@ class TextPrint: public LaunchStep
 public:
     explicit TextPrint(LaunchTask *parent, const QStringList &lines, MessageLevel::Enum level);
     explicit TextPrint(LaunchTask *parent, const QString &line, MessageLevel::Enum level);
-    ~TextPrint() override{};
+    ~TextPrint() override = default;
 
     void executeTask() override;
     bool canAbort() const override;

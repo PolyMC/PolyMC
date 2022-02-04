@@ -10,9 +10,7 @@ class JavaWizardPage : public BaseWizardPage
 public:
     explicit JavaWizardPage(QWidget *parent = Q_NULLPTR);
 
-    ~JavaWizardPage() override
-    {
-    };
+    ~JavaWizardPage() override = default;
 
     bool wantsRefreshButton() override;
     void refresh() override;

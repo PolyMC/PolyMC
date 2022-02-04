@@ -89,9 +89,7 @@ void ModDownloadDialog::setSuggestedMod(const QString& name, ModDownloadTask* ta
     m_buttons->button(QDialogButtonBox::Ok)->setEnabled(task);
 }
 
-ModDownloadDialog::~ModDownloadDialog()
-{
-}
+ModDownloadDialog::~ModDownloadDialog() = default;
 
 ModDownloadTask *ModDownloadDialog::getTask() {
     return modTask.release();

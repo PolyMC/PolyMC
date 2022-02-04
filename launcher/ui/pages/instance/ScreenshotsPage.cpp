@@ -194,7 +194,7 @@ class CenteredEditingDelegate : public QStyledItemDelegate
 {
 public:
     explicit CenteredEditingDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
-    ~CenteredEditingDelegate() override {}
+    ~CenteredEditingDelegate() override = default;
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                                   const QModelIndex &index) const override
     {

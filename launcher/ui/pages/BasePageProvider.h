@@ -34,7 +34,7 @@ public:
         : m_dialogTitle(dialogTitle)
     {
     }
-    virtual ~GenericPageProvider() {}
+    virtual ~GenericPageProvider() = default;
 
     QList<BasePage *> getPages() override
     {

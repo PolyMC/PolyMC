@@ -13,7 +13,7 @@ public:
     {
         ui->actionView_configs->setVisible(false);
     }
-    ~ShaderPackPage() override {}
+    ~ShaderPackPage() override = default;
 
     bool shouldDisplay() const override
     {

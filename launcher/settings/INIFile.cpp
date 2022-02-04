@@ -22,9 +22,7 @@
 #include <QSaveFile>
 #include <QDebug>
 
-INIFile::INIFile()
-{
-}
+INIFile::INIFile() = default;
 
 QString INIFile::unescape(QString orig)
 {
