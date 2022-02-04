@@ -9,14 +9,14 @@ class PasteUpload : public Task
     Q_OBJECT
 public:
     PasteUpload(QWidget *window, QString text, QString url);
-    virtual ~PasteUpload();
+    ~PasteUpload() override;
 
     QString pasteLink()
     {
         return m_pasteLink;
     }
 protected:
-    virtual void executeTask();
+    void executeTask() override;
 
 private:
     QWidget *m_window;

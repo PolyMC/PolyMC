@@ -10,12 +10,12 @@ class SequentialTask : public Task
     Q_OBJECT
 public:
     explicit SequentialTask(QObject *parent = 0);
-    virtual ~SequentialTask() {};
+    ~SequentialTask() override {};
 
     void addTask(Task::Ptr task);
 
 protected:
-    void executeTask();
+    void executeTask() override;
 
 private
 slots:

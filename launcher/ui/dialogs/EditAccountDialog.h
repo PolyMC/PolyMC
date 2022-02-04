@@ -29,7 +29,7 @@ class EditAccountDialog : public QDialog
 public:
     explicit EditAccountDialog(const QString &text = "", QWidget *parent = 0,
                                int flags = UsernameField | PasswordField);
-    ~EditAccountDialog();
+    ~EditAccountDialog() override;
 
     void setUsername(const QString & user) const;
     void setPassword(const QString & pass) const;

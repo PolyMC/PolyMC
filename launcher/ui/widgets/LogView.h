@@ -9,7 +9,7 @@ class LogView: public QPlainTextEdit
     Q_OBJECT
 public:
     explicit LogView(QWidget *parent = nullptr);
-    virtual ~LogView();
+    ~LogView() override;
 
     virtual void setModel(QAbstractItemModel *model);
     QAbstractItemModel *model() const;

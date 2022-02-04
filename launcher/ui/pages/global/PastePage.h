@@ -30,7 +30,7 @@ class PastePage : public QWidget, public BasePage
 
 public:
     explicit PastePage(QWidget *parent = 0);
-    ~PastePage();
+    ~PastePage() override;
 
     QString displayName() const override
     {
@@ -48,7 +48,7 @@ public:
     {
         return "Log-Upload";
     }
-    virtual bool apply() override;
+    bool apply() override;
 
 private:
     void loadSettings();

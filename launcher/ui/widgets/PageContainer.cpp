@@ -42,7 +42,7 @@ public:
     }
 
 protected:
-    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override
     {
         const QString pattern = filterRegExp().pattern();
         const auto model = static_cast<PageModel *>(sourceModel());

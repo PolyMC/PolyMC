@@ -15,7 +15,7 @@ class NotificationDialog : public QDialog
 
 public:
     explicit NotificationDialog(const NotificationChecker::NotificationEntry &entry, QWidget *parent = 0);
-    ~NotificationDialog();
+    ~NotificationDialog() override;
 
     enum ExitCode
     {
@@ -24,7 +24,7 @@ public:
     };
 
 protected:
-    void timerEvent(QTimerEvent *event);
+    void timerEvent(QTimerEvent *event) override;
 
 private:
     Ui::NotificationDialog *ui;

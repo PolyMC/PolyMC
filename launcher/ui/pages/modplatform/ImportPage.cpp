@@ -14,7 +14,7 @@ class UrlValidator : public QValidator
 public:
     using QValidator::QValidator;
 
-    State validate(QString &in, int &pos) const
+    State validate(QString &in, int &pos) const override
     {
         const QUrl url(in);
         if (url.isValid() && !url.isRelative() && !url.isEmpty())

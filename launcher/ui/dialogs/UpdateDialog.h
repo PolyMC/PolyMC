@@ -41,7 +41,7 @@ class UpdateDialog : public QDialog
 
 public:
     explicit UpdateDialog(bool hasUpdate = true, QWidget *parent = 0);
-    ~UpdateDialog();
+    ~UpdateDialog() override;
 
 public slots:
     void on_btnUpdateNow_clicked();

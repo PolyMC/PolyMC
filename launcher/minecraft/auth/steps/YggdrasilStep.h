@@ -11,7 +11,7 @@ class YggdrasilStep : public AuthStep {
 
 public:
     explicit YggdrasilStep(AccountData *data, QString password);
-    virtual ~YggdrasilStep() noexcept;
+    ~YggdrasilStep() noexcept override;
 
     void perform() override;
     void rehydrate() override;

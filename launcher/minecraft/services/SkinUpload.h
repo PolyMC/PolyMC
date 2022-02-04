@@ -19,7 +19,7 @@ public:
 
     // Note this class takes ownership of the file.
     SkinUpload(QObject *parent, QString token, QByteArray skin, Model model = STEVE);
-    virtual ~SkinUpload() {}
+    ~SkinUpload() override {}
 
 private:
     Model m_model;
@@ -27,7 +27,7 @@ private:
     QString m_token;
     shared_qobject_ptr<QNetworkReply> m_reply;
 protected:
-    virtual void executeTask();
+    void executeTask() override;
 
 public slots:
 

@@ -19,10 +19,10 @@ public:
 
 public:
     explicit ComponentUpdateTask(Mode mode, Net::Mode netmode, PackProfile * list, QObject *parent = 0);
-    virtual ~ComponentUpdateTask();
+    ~ComponentUpdateTask() override;
 
 protected:
-    void executeTask();
+    void executeTask() override;
 
 private:
     void loadComponents();

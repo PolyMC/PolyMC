@@ -58,7 +58,7 @@ public:
         m_parentWidget = parentWidget;
     }
 
-    virtual QVariant data(const QModelIndex &proxyIndex, int role = Qt::DisplayRole) const override
+    QVariant data(const QModelIndex &proxyIndex, int role = Qt::DisplayRole) const override
     {
         QVariant var = QIdentityProxyModel::data(proxyIndex, role);
         int column = proxyIndex.column();

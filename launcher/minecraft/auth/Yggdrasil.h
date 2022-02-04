@@ -38,7 +38,7 @@ public:
         AccountData *data,
         QObject *parent = 0
     );
-    virtual ~Yggdrasil() = default;
+    ~Yggdrasil() override = default;
 
     void refresh();
     void login(QString password);
@@ -86,7 +86,7 @@ protected slots:
     void abortByTimeout();
 
 public slots:
-    virtual bool abort() override;
+    bool abort() override;
 
 private:
     void sendRequest(QUrl endpoint, QByteArray content);

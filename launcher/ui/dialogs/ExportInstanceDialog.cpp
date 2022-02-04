@@ -41,7 +41,7 @@ public:
         m_instance = instance;
     }
     // NOTE: Sadly, we have to do sorting ourselves.
-    bool lessThan(const QModelIndex &left, const QModelIndex &right) const
+    bool lessThan(const QModelIndex &left, const QModelIndex &right) const override
     {
         QFileSystemModel *fsm = qobject_cast<QFileSystemModel *>(sourceModel());
         if (!fsm)
@@ -85,7 +85,7 @@ public:
         return QSortFilterProxyModel::lessThan(left, right);
     }
 
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const
+    Qt::ItemFlags flags(const QModelIndex &index) const override
     {
         if (!index.isValid())
             return Qt::NoItemFlags;
@@ -104,7 +104,7 @@ public:
         return flags;
     }
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
     {
         QModelIndex sourceIndex = mapToSource(index);
 
@@ -130,8 +130,8 @@ public:
         return sourceIndex.data(role);
     }
 
-    virtual bool setData(const QModelIndex &index, const QVariant &value,
-                         int role = Qt::EditRole)
+    bool setData(const QModelIndex &index, const QVariant &value,
+                         int role = Qt::EditRole) override
     {
         if (index.column() == 0 && role == Qt::CheckStateRole)
         {
@@ -293,7 +293,7 @@ public:
     }
 
 protected:
-    bool filterAcceptsColumn(int source_column, const QModelIndex &source_parent) const
+    bool filterAcceptsColumn(int source_column, const QModelIndex &source_parent) const override
     {
         Q_UNUSED(source_parent)
 

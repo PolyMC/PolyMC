@@ -53,13 +53,13 @@ Q_OBJECT
 
 public:
     explicit PackInstallTask(UserInteractionSupport *support, QString pack, QString version);
-    virtual ~PackInstallTask(){}
+    ~PackInstallTask() override{}
 
     bool canAbort() const override { return true; }
     bool abort() override;
 
 protected:
-    virtual void executeTask() override;
+    void executeTask() override;
 
 private slots:
     void onDownloadSucceeded();

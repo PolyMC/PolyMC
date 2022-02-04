@@ -28,8 +28,8 @@ public:
         inst = parent;
     }
 
-    virtual ~InstancePageProvider() {};
-    virtual QList<BasePage *> getPages() override
+    ~InstancePageProvider() override {};
+    QList<BasePage *> getPages() override
     {
         QList<BasePage *> values;
         values.append(new LogPage(inst));
@@ -67,7 +67,7 @@ public:
         return values;
     }
 
-    virtual QString dialogTitle() override
+    QString dialogTitle() override
     {
         return tr("Edit Instance (%1)").arg(inst->name());
     }

@@ -6,7 +6,7 @@
 class LaunchProfile: public ProblemProvider
 {
 public:
-    virtual ~LaunchProfile() {};
+    ~LaunchProfile() override {};
 
 public: /* application of profile variables from patches */
     void applyMinecraftVersion(const QString& id);

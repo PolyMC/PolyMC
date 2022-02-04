@@ -16,7 +16,7 @@ public:
     };
 public:
     explicit MSAStep(AccountData *data, Action action);
-    virtual ~MSAStep() noexcept;
+    ~MSAStep() noexcept override;
 
     void perform() override;
     void rehydrate() override;

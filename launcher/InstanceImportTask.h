@@ -39,7 +39,7 @@ public:
 
 protected:
     //! Entry point for tasks.
-    virtual void executeTask() override;
+    void executeTask() override;
 
 private:
     void processZipPack();

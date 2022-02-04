@@ -26,7 +26,7 @@ class JavaSettingsWidget : public QWidget
 
 public:
     explicit JavaSettingsWidget(QWidget *parent);
-    virtual ~JavaSettingsWidget() {};
+    ~JavaSettingsWidget() override {};
 
     enum class JavaStatus
     {

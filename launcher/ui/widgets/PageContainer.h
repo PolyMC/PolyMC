@@ -37,7 +37,7 @@ class PageContainer : public QWidget, public BasePageContainer
 public:
     explicit PageContainer(BasePageProvider *pageProvider, QString defaultId = QString(),
                         QWidget *parent = 0);
-    virtual ~PageContainer() {}
+    ~PageContainer() override {}
 
     void addButtons(QWidget * buttons);
     void addButtons(QLayout * buttons);
@@ -58,7 +58,7 @@ public:
         return false;
     }
 
-    virtual bool selectPage(QString pageId) override;
+    bool selectPage(QString pageId) override;
 
     void refreshContainer() override;
     virtual void setParentContainer(BasePageContainer * container)

@@ -42,33 +42,33 @@ public:
         QString helpPage = "",
         QWidget *parent = 0
     );
-    virtual ~ModFolderPage();
+    ~ModFolderPage() override;
 
     void setFilter(const QString & filter)
     {
         m_fileSelectionFilter = filter;
     }
 
-    virtual QString displayName() const override
+    QString displayName() const override
     {
         return m_displayName;
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon(m_iconName);
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return m_id;
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return m_helpName;
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
-    virtual void openedImpl() override;
-    virtual void closedImpl() override;
+    void openedImpl() override;
+    void closedImpl() override;
 protected:
     bool eventFilter(QObject *obj, QEvent *ev) override;
     bool modListFilter(QKeyEvent *ev);
@@ -114,8 +114,8 @@ public:
     explicit CoreModFolderPage(BaseInstance *inst, std::shared_ptr<ModFolderModel> mods, QString id,
                                QString iconName, QString displayName, QString helpPage = "",
                                QWidget *parent = 0);
-    virtual ~CoreModFolderPage()
+    ~CoreModFolderPage() override
     {
     }
-    virtual bool shouldDisplay() const;
+    bool shouldDisplay() const override;
 };

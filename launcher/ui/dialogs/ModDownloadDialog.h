@@ -24,7 +24,7 @@ class ModDownloadDialog : public QDialog, public BasePageProvider
 
 public:
     explicit ModDownloadDialog(const std::shared_ptr<ModFolderModel> &mods, QWidget *parent, BaseInstance *instance);
-    ~ModDownloadDialog();
+    ~ModDownloadDialog() override;
 
     QString dialogTitle() override;
     QList<BasePage *> getPages() override;

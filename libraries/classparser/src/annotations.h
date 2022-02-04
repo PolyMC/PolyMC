@@ -133,7 +133,7 @@ public:
     {
         return index;
     }
-    virtual std::string toString()
+    std::string toString() override
     {
         return pool[index].toString();
     }
@@ -176,7 +176,7 @@ public:
     {
         return typeIndex;
     }
-    virtual std::string toString()
+    std::string toString() override
     {
         return "enum value";
     }
@@ -208,7 +208,7 @@ public:
     {
         return classIndex;
     }
-    virtual std::string toString()
+    std::string toString() override
     {
         return "class";
     }
@@ -225,7 +225,7 @@ public:
     element_value_annotation(element_value_type type, annotation *nestedAnnotation,
                              constant_pool &pool)
         : element_value(type, pool), nestedAnnotation(nestedAnnotation) {};
-    ~element_value_annotation()
+    ~element_value_annotation() override
     {
         if (nestedAnnotation)
         {
@@ -233,7 +233,7 @@ public:
             nestedAnnotation = nullptr;
         }
     }
-    virtual std::string toString()
+    std::string toString() override
     {
         return "nested annotation";
     }
@@ -253,7 +253,7 @@ public:
     element_value_array(element_value_type type, std::vector<element_value *> &values,
                         constant_pool &pool)
         : element_value(type, pool), values(values) {};
-    ~element_value_array()
+    ~element_value_array() override
     {
         for (unsigned i = 0; i < values.size(); i++)
         {
@@ -269,7 +269,7 @@ public:
     {
         return values.cend();
     }
-    virtual std::string toString()
+    std::string toString() override
     {
         return "array";
     }

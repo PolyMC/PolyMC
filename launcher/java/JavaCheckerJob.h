@@ -28,7 +28,7 @@ class JavaCheckerJob : public Task
     Q_OBJECT
 public:
     explicit JavaCheckerJob(QString job_name) : Task(), m_job_name(job_name) {};
-    virtual ~JavaCheckerJob() {};
+    ~JavaCheckerJob() override {};
 
     bool addJavaCheckerAction(JavaCheckerPtr base)
     {
@@ -51,7 +51,7 @@ private slots:
     void partFinished(JavaCheckResult result);
 
 protected:
-    virtual void executeTask() override;
+    void executeTask() override;
 
 private:
     QString m_job_name;

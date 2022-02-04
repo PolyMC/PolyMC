@@ -12,7 +12,7 @@ class SkinUploadDialog : public QDialog {
     Q_OBJECT
 public:
     explicit SkinUploadDialog(MinecraftAccountPtr acct, QWidget *parent = 0);
-    virtual ~SkinUploadDialog() {};
+    ~SkinUploadDialog() override {};
 
 public slots:
     void on_buttonBox_accepted();

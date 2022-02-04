@@ -11,7 +11,7 @@ class CapeChange : public Task
     Q_OBJECT
 public:
     CapeChange(QObject *parent, QString token, QString capeId);
-    virtual ~CapeChange() {}
+    ~CapeChange() override {}
 
 private:
     void setCape(QString & cape);
@@ -23,7 +23,7 @@ private:
     shared_qobject_ptr<QNetworkReply> m_reply;
 
 protected:
-    virtual void executeTask();
+    void executeTask() override;
 
 public slots:
     void downloadError(QNetworkReply::NetworkError);

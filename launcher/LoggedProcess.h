@@ -39,7 +39,7 @@ public:
 
 public:
     explicit LoggedProcess(QObject* parent = 0);
-    virtual ~LoggedProcess();
+    ~LoggedProcess() override;
 
     State state() const;
     int exitCode() const;

@@ -10,7 +10,7 @@ class JavaWizardPage : public BaseWizardPage
 public:
     explicit JavaWizardPage(QWidget *parent = Q_NULLPTR);
 
-    virtual ~JavaWizardPage()
+    ~JavaWizardPage() override
     {
     };
 

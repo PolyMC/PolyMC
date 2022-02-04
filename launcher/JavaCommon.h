@@ -25,7 +25,7 @@ namespace JavaCommon
             :m_parent(parent), m_path(path), m_args(args), m_minMem(minMem), m_maxMem(maxMem), m_permGen(permGen)
         {
         }
-        virtual ~TestCheck() {};
+        ~TestCheck() override {};
 
         void run();
 

@@ -11,7 +11,7 @@ public:
     {
         setVersionBroken(true);
     }
-    virtual ~NullInstance() {};
+    ~NullInstance() override {};
     void saveNow() override
     {
     }

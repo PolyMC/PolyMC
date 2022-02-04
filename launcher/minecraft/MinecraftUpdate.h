@@ -32,7 +32,7 @@ class MinecraftUpdate : public Task
     Q_OBJECT
 public:
     explicit MinecraftUpdate(MinecraftInstance *inst, QObject *parent = 0);
-    virtual ~MinecraftUpdate() {};
+    ~MinecraftUpdate() override {};
 
     void executeTask() override;
     bool canAbort() const override;

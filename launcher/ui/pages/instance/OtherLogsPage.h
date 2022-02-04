@@ -34,7 +34,7 @@ class OtherLogsPage : public QWidget, public BasePage
 
 public:
     explicit OtherLogsPage(QString path, IPathMatcher::Ptr fileFilter, QWidget *parent = 0);
-    ~OtherLogsPage();
+    ~OtherLogsPage() override;
 
     QString id() const override
     {

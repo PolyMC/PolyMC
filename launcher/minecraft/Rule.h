@@ -63,7 +63,7 @@ private:
     QString m_version_regexp;
 
 protected:
-    virtual bool applies(const Library *)
+    bool applies(const Library *) override
     {
         return (m_system == currentSystem);
     }
@@ -73,7 +73,7 @@ protected:
     }
 
 public:
-    virtual QJsonObject toJson();
+    QJsonObject toJson() override;
     static std::shared_ptr<OsRule> create(RuleAction result, OpSys system,
                                           QString version_regexp)
     {
@@ -84,7 +84,7 @@ public:
 class ImplicitRule : public Rule
 {
 protected:
-    virtual bool applies(const Library *)
+    bool applies(const Library *) override
     {
         return true;
     }
@@ -93,7 +93,7 @@ protected:
     }
 
 public:
-    virtual QJsonObject toJson();
+    QJsonObject toJson() override;
     static std::shared_ptr<ImplicitRule> create(RuleAction result)
     {
         return std::shared_ptr<ImplicitRule>(new ImplicitRule(result));

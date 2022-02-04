@@ -8,7 +8,7 @@ class MetaCacheSink : public FileSink
 {
 public: /* con/des */
     MetaCacheSink(MetaEntryPtr entry, ChecksumValidator * md5sum);
-    virtual ~MetaCacheSink();
+    ~MetaCacheSink() override;
     bool hasLocalData() override;
 
 protected: /* methods */

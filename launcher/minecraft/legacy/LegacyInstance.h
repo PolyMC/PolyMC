@@ -32,7 +32,7 @@ public:
 
     explicit LegacyInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString &rootDir);
 
-    virtual void saveNow() override {}
+    void saveNow() override {}
 
     /// Path to the instance's minecraft.jar
     QString runnableJar() const;
@@ -95,9 +95,9 @@ public:
     };
 
     virtual bool shouldUpdate() const;
-    virtual Task::Ptr createUpdateTask(Net::Mode mode) override;
+    Task::Ptr createUpdateTask(Net::Mode mode) override;
 
-    virtual QString typeName() const override;
+    QString typeName() const override;
 
     bool canLaunch() const override
     {

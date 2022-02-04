@@ -5,7 +5,7 @@
 class MultiMatcher : public IPathMatcher
 {
 public:
-    virtual ~MultiMatcher() {};
+    ~MultiMatcher() override {};
     MultiMatcher()
     {
     }
@@ -15,7 +15,7 @@ public:
         return *this;
     }
 
-    virtual bool matches(const QString &string) const override
+    bool matches(const QString &string) const override
     {
         for(auto iter: m_matchers)
         {

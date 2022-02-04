@@ -31,7 +31,7 @@ class LoginDialog : public QDialog
     Q_OBJECT
 
 public:
-    ~LoginDialog();
+    ~LoginDialog() override;
 
     static MinecraftAccountPtr newAccount(QWidget *parent, QString message);
 
@@ -42,7 +42,7 @@ private:
 
 protected
 slots:
-    void accept();
+    void accept() override;
 
     void onTaskFailed(const QString &reason);
     void onTaskSucceeded();

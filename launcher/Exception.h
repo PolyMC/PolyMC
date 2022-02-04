@@ -17,8 +17,8 @@ public:
         : std::exception(), m_message(other.cause())
     {
     }
-    virtual ~Exception() noexcept {}
-    const char *what() const noexcept
+    ~Exception() noexcept override {}
+    const char *what() const noexcept override
     {
         return m_message.toLatin1().constData();
     }

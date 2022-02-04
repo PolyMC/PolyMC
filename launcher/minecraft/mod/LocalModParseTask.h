@@ -19,7 +19,7 @@ public:
     }
 
     LocalModParseTask(int token, Mod::ModType type, const QFileInfo & modFile);
-    void run();
+    void run() override;
 
 signals:
     void finished(int token);

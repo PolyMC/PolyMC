@@ -39,24 +39,24 @@ class FlamePage : public QWidget, public BasePage
 
 public:
     explicit FlamePage(NewInstanceDialog* dialog, QWidget *parent = 0);
-    virtual ~FlamePage();
-    virtual QString displayName() const override
+    ~FlamePage() override;
+    QString displayName() const override
     {
         return tr("CurseForge");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("flame");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "flame";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "Flame-platform";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
     void openedImpl() override;
 

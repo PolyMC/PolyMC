@@ -15,7 +15,7 @@ public:
         // nil
     };
 
-    virtual ~ByteArraySink()
+    ~ByteArraySink() override
     {
         // nil
     }

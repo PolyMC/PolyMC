@@ -24,10 +24,10 @@ class CheckJava: public LaunchStep
     Q_OBJECT
 public:
     explicit CheckJava(LaunchTask *parent) :LaunchStep(parent){};
-    virtual ~CheckJava() {};
+    ~CheckJava() override {};
 
-    virtual void executeTask();
-    virtual bool canAbort() const
+    void executeTask() override;
+    bool canAbort() const override
     {
         return false;
     }

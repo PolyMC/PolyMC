@@ -786,7 +786,7 @@ public:
         connect(&m_backoffTimer, &QTimer::timeout, this, &InstanceStaging::childSucceded);
     }
 
-    virtual ~InstanceStaging() {};
+    ~InstanceStaging() override {};
 
 
     // FIXME/TODO: add ability to abort during instance commit retries
@@ -808,7 +808,7 @@ public:
     }
 
 protected:
-    virtual void executeTask() override
+    void executeTask() override
     {
         m_child->start();
     }

@@ -37,24 +37,24 @@ Q_OBJECT
 
 public:
     explicit FtbPage(NewInstanceDialog* dialog, QWidget *parent = 0);
-    virtual ~FtbPage();
-    virtual QString displayName() const override
+    ~FtbPage() override;
+    QString displayName() const override
     {
         return tr("FTB");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("ftb_logo");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "ftb";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "FTB-platform";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
     void openedImpl() override;
 

@@ -10,7 +10,7 @@ class LanguageWizardPage : public BaseWizardPage
 public:
     explicit LanguageWizardPage(QWidget *parent = Q_NULLPTR);
 
-    virtual ~LanguageWizardPage();
+    ~LanguageWizardPage() override;
 
     bool wantsRefreshButton() override;
 

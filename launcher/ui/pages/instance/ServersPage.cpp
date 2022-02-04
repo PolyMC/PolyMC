@@ -155,7 +155,7 @@ public:
         m_saveTimer.setInterval(5000);
         connect(&m_saveTimer, &QTimer::timeout, this, &ServersModel::save_internal);
     }
-    virtual ~ServersModel() {};
+    ~ServersModel() override {};
 
     void observe()
     {
@@ -297,7 +297,7 @@ public:
         return QAbstractListModel::headerData(section, orientation, role);
     }
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
     {
         if (!index.isValid())
             return QVariant();
@@ -354,7 +354,7 @@ public:
         }
     }
 
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override
     {
         return m_servers.size();
     }

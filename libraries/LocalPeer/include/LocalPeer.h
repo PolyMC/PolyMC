@@ -81,7 +81,7 @@ class LocalPeer : public QObject
 
 public:
     LocalPeer(QObject *parent, const ApplicationId &appId);
-    ~LocalPeer();
+    ~LocalPeer() override;
     bool isClient();
     bool sendMessage(const QByteArray &message, int timeout);
     ApplicationId applicationId() const;

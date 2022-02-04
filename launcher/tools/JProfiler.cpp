@@ -17,7 +17,7 @@ private slots:
     void profilerFinished(int exit, QProcess::ExitStatus status);
 
 protected:
-    void beginProfilingImpl(shared_qobject_ptr<LaunchTask> process);
+    void beginProfilingImpl(shared_qobject_ptr<LaunchTask> process) override;
 
 private:
     int listeningPort = 0;

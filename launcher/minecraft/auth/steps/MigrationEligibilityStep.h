@@ -10,7 +10,7 @@ class MigrationEligibilityStep : public AuthStep {
 
 public:
     explicit MigrationEligibilityStep(AccountData *data);
-    virtual ~MigrationEligibilityStep() noexcept;
+    ~MigrationEligibilityStep() noexcept override;
 
     void perform() override;
     void rehydrate() override;

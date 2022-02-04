@@ -34,7 +34,7 @@ class ProfileSetupDialog : public QDialog
 public:
 
     explicit ProfileSetupDialog(MinecraftAccountPtr accountToSetup, QWidget *parent = 0);
-    ~ProfileSetupDialog();
+    ~ProfileSetupDialog() override;
 
     enum class NameStatus
     {

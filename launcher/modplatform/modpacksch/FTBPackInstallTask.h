@@ -30,13 +30,13 @@ class PackInstallTask : public InstanceTask
 
 public:
     explicit PackInstallTask(Modpack pack, QString version);
-    virtual ~PackInstallTask(){}
+    ~PackInstallTask() override{}
 
     bool canAbort() const override { return true; }
     bool abort() override;
 
 protected:
-    virtual void executeTask() override;
+    void executeTask() override;
 
 private slots:
     void onDownloadSucceeded();

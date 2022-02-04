@@ -14,7 +14,7 @@ class AuthRequest: public QObject {
 
 public:
     explicit AuthRequest(QObject *parent = 0);
-    ~AuthRequest();
+    ~AuthRequest() override;
 
 public slots:
     void get(const QNetworkRequest &req, int timeout = 60*1000);

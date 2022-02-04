@@ -53,7 +53,7 @@ public:
      * The message will be shown at the top of the dialog. It is an empty string by default.
      */
     explicit ProfileSelectDialog(const QString& message="", int flags=0, QWidget *parent = 0);
-    ~ProfileSelectDialog();
+    ~ProfileSelectDialog() override;
 
     /*!
      * Gets a pointer to the account that the user selected.

@@ -38,7 +38,7 @@ public:
 
 public:
     explicit Task(QObject *parent = 0);
-    virtual ~Task() {};
+    ~Task() override {};
 
     bool isRunning() const;
     bool isFinished() const;

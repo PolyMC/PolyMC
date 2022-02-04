@@ -51,7 +51,7 @@ public:
         m_path = path;
         m_cache = cache;
     }
-    void run()
+    void run() override
     {
         QFileInfo info(m_path);
         if (info.isDir())
@@ -109,8 +109,8 @@ public:
         connect(&watcher, SIGNAL(fileChanged(QString)), SLOT(fileChanged(QString)));
         // FIXME: the watched file set is not updated when files are removed
     }
-    virtual ~FilterModel() { m_thumbnailingPool.waitForDone(500); }
-    virtual QVariant data(const QModelIndex &proxyIndex, int role = Qt::DisplayRole) const
+    ~FilterModel() override { m_thumbnailingPool.waitForDone(500); }
+    QVariant data(const QModelIndex &proxyIndex, int role = Qt::DisplayRole) const override
     {
         auto model = sourceModel();
         if (!model)
@@ -143,8 +143,8 @@ public:
         }
         return sourceModel()->data(mapToSource(proxyIndex), role);
     }
-    virtual bool setData(const QModelIndex &index, const QVariant &value,
-                         int role = Qt::EditRole)
+    bool setData(const QModelIndex &index, const QVariant &value,
+                         int role = Qt::EditRole) override
     {
         auto model = sourceModel();
         if (!model)
@@ -194,9 +194,9 @@ class CenteredEditingDelegate : public QStyledItemDelegate
 {
 public:
     explicit CenteredEditingDelegate(QObject *parent = 0) : QStyledItemDelegate(parent) {}
-    virtual ~CenteredEditingDelegate() {}
-    virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
-                                  const QModelIndex &index) const
+    ~CenteredEditingDelegate() override {}
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                                  const QModelIndex &index) const override
     {
         auto widget = QStyledItemDelegate::createEditor(parent, option, index);
         auto foo = dynamic_cast<QLineEdit *>(widget);

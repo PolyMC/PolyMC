@@ -24,24 +24,24 @@ class FlameModPage : public QWidget, public BasePage
 
 public:
     explicit FlameModPage(ModDownloadDialog *dialog, BaseInstance *instance);
-    virtual ~FlameModPage();
-    virtual QString displayName() const override
+    ~FlameModPage() override;
+    QString displayName() const override
     {
         return tr("CurseForge");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("flame");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "curseforge";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "Flame-platform";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
     void openedImpl() override;
 

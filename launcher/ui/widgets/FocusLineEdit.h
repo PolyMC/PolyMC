@@ -5,13 +5,13 @@ class FocusLineEdit : public QLineEdit
     Q_OBJECT
 public:
     FocusLineEdit(QWidget *parent);
-    virtual ~FocusLineEdit()
+    ~FocusLineEdit() override
     {
     }
 
 protected:
-    void focusInEvent(QFocusEvent *e);
-    void mousePressEvent(QMouseEvent *me);
+    void focusInEvent(QFocusEvent *e) override;
+    void mousePressEvent(QMouseEvent *me) override;
 
     bool _selectOnMousePress;
 };

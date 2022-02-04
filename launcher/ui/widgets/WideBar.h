@@ -13,7 +13,7 @@ class WideBar : public QToolBar
 public:
     explicit WideBar(const QString &title, QWidget * parent = nullptr);
     explicit WideBar(QWidget * parent = nullptr);
-    virtual ~WideBar();
+    ~WideBar() override;
 
     void addAction(QAction *action);
     void addSeparator();

@@ -268,13 +268,13 @@ public:
         m_worlds = worlds;
 
     }
-    QStringList formats() const
+    QStringList formats() const override
     {
         return QMimeData::formats() << "text/uri-list";
     }
 
 protected:
-    QVariant retrieveData(const QString &mimetype, QVariant::Type type) const
+    QVariant retrieveData(const QString &mimetype, QVariant::Type type) const override
     {
         QList<QUrl> urls;
         for(auto &world: m_worlds)

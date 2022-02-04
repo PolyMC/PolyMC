@@ -13,9 +13,9 @@ public:
     {
         ui->actionView_configs->setVisible(false);
     }
-    virtual ~ResourcePackPage() {}
+    ~ResourcePackPage() override {}
 
-    virtual bool shouldDisplay() const override
+    bool shouldDisplay() const override
     {
         return !m_inst->traits().contains("no-texturepacks") &&
                !m_inst->traits().contains("texturepacks");

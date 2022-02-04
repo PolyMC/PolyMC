@@ -29,7 +29,7 @@ public: /* con/des */
     ParsingValidator(Meta::BaseEntity *entity) : m_entity(entity)
     {
     };
-    virtual ~ParsingValidator()
+    ~ParsingValidator() override
     {
     };
 

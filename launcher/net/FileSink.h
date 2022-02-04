@@ -7,7 +7,7 @@ class FileSink : public Sink
 {
 public: /* con/des */
     FileSink(QString filename);
-    virtual ~FileSink();
+    ~FileSink() override;
 
 public: /* methods */
     JobStatus init(QNetworkRequest & request) override;

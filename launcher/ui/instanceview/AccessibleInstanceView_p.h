@@ -63,7 +63,7 @@ protected:
     typedef QHash<int, QAccessible::Id> ChildCache;
     mutable ChildCache childToId;
 
-    virtual ~AccessibleInstanceView();
+    ~AccessibleInstanceView() override;
 
 private:
     inline int logicalIndex(const QModelIndex &index) const;

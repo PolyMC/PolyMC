@@ -10,7 +10,7 @@ class XboxProfileStep : public AuthStep {
 
 public:
     explicit XboxProfileStep(AccountData *data);
-    virtual ~XboxProfileStep() noexcept;
+    ~XboxProfileStep() noexcept override;
 
     void perform() override;
     void rehydrate() override;

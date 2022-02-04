@@ -83,7 +83,7 @@ class HttpMetaCache : public QObject
 public:
     // supply path to the cache index file
     HttpMetaCache(QString path = QString());
-    ~HttpMetaCache();
+    ~HttpMetaCache() override;
 
     // get the entry solely from the cache
     // you probably don't want this, unless you have some specific caching needs.

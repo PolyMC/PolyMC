@@ -20,7 +20,7 @@ public:
 
 public:
     ModFolderLoadTask(QDir dir);
-    void run();
+    void run() override;
 signals:
     void succeeded();
 private:

@@ -15,7 +15,7 @@ public:
 
 public:
     explicit AuthStep(AccountData *data);
-    virtual ~AuthStep() noexcept;
+    ~AuthStep() noexcept override;
 
     virtual QString describe() = 0;
 

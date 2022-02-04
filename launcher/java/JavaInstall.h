@@ -10,17 +10,17 @@ struct JavaInstall : public BaseVersion
     : id(id), arch(arch), path(path)
     {
     }
-    virtual QString descriptor()
+    QString descriptor() override
     {
         return id.toString();
     }
 
-    virtual QString name()
+    QString name() override
     {
         return id.toString();
     }
 
-    virtual QString typeString() const
+    QString typeString() const override
     {
         return arch;
     }

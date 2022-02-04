@@ -14,7 +14,7 @@ class ContainsFilter: public Filter
 {
 public:
     ContainsFilter(const QString &pattern);
-    virtual ~ContainsFilter();
+    ~ContainsFilter() override;
     bool accepts(const QString & value) override;
 private:
     QString pattern;
@@ -24,7 +24,7 @@ class ExactFilter: public Filter
 {
 public:
     ExactFilter(const QString &pattern);
-    virtual ~ExactFilter();
+    ~ExactFilter() override;
     bool accepts(const QString & value) override;
 private:
     QString pattern;
@@ -34,7 +34,7 @@ class RegexpFilter: public Filter
 {
 public:
     RegexpFilter(const QString &regexp, bool invert);
-    virtual ~RegexpFilter();
+    ~RegexpFilter() override;
     bool accepts(const QString & value) override;
 private:
     QRegularExpression pattern;

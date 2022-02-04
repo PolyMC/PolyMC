@@ -44,7 +44,7 @@ public:
 
 public: /* methods */
     static shared_qobject_ptr<LaunchTask> create(InstancePtr inst);
-    virtual ~LaunchTask() {};
+    ~LaunchTask() override {};
 
     void appendStep(shared_qobject_ptr<LaunchStep> step);
     void prependStep(shared_qobject_ptr<LaunchStep> step);
@@ -68,7 +68,7 @@ public: /* methods */
     /**
      * @brief prepare the process for launch (for multi-stage launch)
      */
-    virtual void executeTask() override;
+    void executeTask() override;
 
     /**
      * @brief launch the armed instance
@@ -89,8 +89,8 @@ public:
     QString censorPrivateInfo(QString in);
 
 protected: /* methods */
-    virtual void emitFailed(QString reason) override;
-    virtual void emitSucceeded() override;
+    void emitFailed(QString reason) override;
+    void emitSucceeded() override;
 
 signals:
     /**

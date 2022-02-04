@@ -16,7 +16,7 @@ class OfflineLoginDialog : public QDialog
     Q_OBJECT
 
 public:
-    ~OfflineLoginDialog();
+    ~OfflineLoginDialog() override;
 
     static MinecraftAccountPtr newAccount(QWidget *parent, QString message);
 
@@ -27,7 +27,7 @@ private:
 
 protected
 slots:
-    void accept();
+    void accept() override;
 
     void onTaskFailed(const QString &reason);
     void onTaskSucceeded();

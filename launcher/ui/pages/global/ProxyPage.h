@@ -32,7 +32,7 @@ class ProxyPage : public QWidget, public BasePage
 
 public:
     explicit ProxyPage(QWidget *parent = 0);
-    ~ProxyPage();
+    ~ProxyPage() override;
 
     QString displayName() const override
     {

@@ -33,24 +33,24 @@ class LegacyUpgradePage : public QWidget, public BasePage
 
 public:
     explicit LegacyUpgradePage(InstancePtr inst, QWidget *parent = 0);
-    virtual ~LegacyUpgradePage();
-    virtual QString displayName() const override
+    ~LegacyUpgradePage() override;
+    QString displayName() const override
     {
         return tr("Upgrade");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("checkupdate");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "upgrade";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "Legacy-upgrade";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
 private slots:
     void on_upgradeButton_clicked();

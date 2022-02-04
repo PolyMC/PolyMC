@@ -30,7 +30,7 @@ class SetupWizard : public QWizard
 
 public: /* con/destructors */
     explicit SetupWizard(QWidget *parent = 0);
-    virtual ~SetupWizard();
+    ~SetupWizard() override;
 
     void changeEvent(QEvent * event) override;
     BaseWizardPage *getBasePage(int id);

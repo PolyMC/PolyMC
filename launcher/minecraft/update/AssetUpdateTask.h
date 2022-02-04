@@ -8,7 +8,7 @@ class AssetUpdateTask : public Task
     Q_OBJECT
 public:
     AssetUpdateTask(MinecraftInstance * inst);
-    virtual ~AssetUpdateTask();
+    ~AssetUpdateTask() override;
 
     void executeTask() override;
 

@@ -4,7 +4,7 @@
 class RegexpMatcher : public IPathMatcher
 {
 public:
-    virtual ~RegexpMatcher() {};
+    ~RegexpMatcher() override {};
     RegexpMatcher(const QString &regexp)
     {
         m_regexp.setPattern(regexp);
@@ -24,7 +24,7 @@ public:
         return *this;
     }
 
-    virtual bool matches(const QString &string) const override
+    bool matches(const QString &string) const override
     {
         if(m_onlyFilenamePart)
         {

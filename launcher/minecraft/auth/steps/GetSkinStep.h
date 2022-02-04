@@ -10,7 +10,7 @@ class GetSkinStep : public AuthStep {
 
 public:
     explicit GetSkinStep(AccountData *data);
-    virtual ~GetSkinStep() noexcept;
+    ~GetSkinStep() noexcept override;
 
     void perform() override;
     void rehydrate() override;

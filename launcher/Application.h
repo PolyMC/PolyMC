@@ -57,7 +57,7 @@ public:
 
 public:
     Application(int &argc, char **argv);
-    virtual ~Application();
+    ~Application() override;
 
     std::shared_ptr<SettingsObject> settings() const {
         return m_settings;

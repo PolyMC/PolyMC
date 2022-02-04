@@ -32,7 +32,7 @@ class CopyInstanceDialog : public QDialog
 
 public:
     explicit CopyInstanceDialog(InstancePtr original, QWidget *parent = 0);
-    ~CopyInstanceDialog();
+    ~CopyInstanceDialog() override;
 
     void updateDialogState();
 

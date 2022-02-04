@@ -39,24 +39,24 @@ class TechnicPage : public QWidget, public BasePage
 
 public:
     explicit TechnicPage(NewInstanceDialog* dialog, QWidget *parent = 0);
-    virtual ~TechnicPage();
-    virtual QString displayName() const override
+    ~TechnicPage() override;
+    QString displayName() const override
     {
         return tr("Technic");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("technic");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "technic";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "Technic-platform";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
     void openedImpl() override;
 

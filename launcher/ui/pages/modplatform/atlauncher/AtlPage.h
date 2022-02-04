@@ -39,24 +39,24 @@ Q_OBJECT
 
 public:
     explicit AtlPage(NewInstanceDialog* dialog, QWidget *parent = 0);
-    virtual ~AtlPage();
-    virtual QString displayName() const override
+    ~AtlPage() override;
+    QString displayName() const override
     {
         return tr("ATLauncher");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("atlauncher");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "atl";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "ATL-platform";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
     void openedImpl() override;
 

@@ -35,25 +35,25 @@ class LogPage : public QWidget, public BasePage
 
 public:
     explicit LogPage(InstancePtr instance, QWidget *parent = 0);
-    virtual ~LogPage();
-    virtual QString displayName() const override
+    ~LogPage() override;
+    QString displayName() const override
     {
         return tr("Minecraft Log");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("log");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "console";
     }
-    virtual bool apply() override;
-    virtual QString helpPage() const override
+    bool apply() override;
+    QString helpPage() const override
     {
         return "Minecraft-Logs";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
 private slots:
     void on_btnPaste_clicked();

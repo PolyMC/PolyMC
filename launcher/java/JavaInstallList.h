@@ -68,7 +68,7 @@ class JavaListLoadTask : public Task
 
 public:
     explicit JavaListLoadTask(JavaInstallList *vlist);
-    virtual ~JavaListLoadTask();
+    ~JavaListLoadTask() override;
 
     void executeTask() override;
 public slots:

@@ -13,9 +13,9 @@ public:
     {
         ui->actionView_configs->setVisible(false);
     }
-    virtual ~ShaderPackPage() {}
+    ~ShaderPackPage() override {}
 
-    virtual bool shouldDisplay() const override
+    bool shouldDisplay() const override
     {
         return true;
     }

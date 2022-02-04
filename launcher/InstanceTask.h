@@ -8,7 +8,7 @@ class InstanceTask : public Task
     Q_OBJECT
 public:
     explicit InstanceTask();
-    virtual ~InstanceTask();
+    ~InstanceTask() override;
 
     void setParentSettings(SettingsObjectPtr settings)
     {

@@ -29,7 +29,7 @@ public: /* methods */
     {
         bind(parent);
     };
-    virtual ~LaunchStep() {};
+    ~LaunchStep() override {};
 
 private: /* methods */
     void bind(LaunchTask *parent);

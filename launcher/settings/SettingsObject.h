@@ -59,7 +59,7 @@ public:
     };
 public:
     explicit SettingsObject(QObject *parent = 0);
-    virtual ~SettingsObject();
+    ~SettingsObject() override;
     /*!
      * Registers an override setting for the given original setting in this settings object
      * gate decides if the passthrough (true) or the original (false) is used for value

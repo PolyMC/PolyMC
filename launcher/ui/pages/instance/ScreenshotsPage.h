@@ -37,33 +37,33 @@ class ScreenshotsPage : public QMainWindow, public BasePage
 
 public:
     explicit ScreenshotsPage(QString path, QWidget *parent = 0);
-    virtual ~ScreenshotsPage();
+    ~ScreenshotsPage() override;
 
-    virtual void openedImpl() override;
+    void openedImpl() override;
 
     enum
     {
         NothingDone = 0x42
     };
 
-    virtual bool eventFilter(QObject *, QEvent *) override;
-    virtual QString displayName() const override
+    bool eventFilter(QObject *, QEvent *) override;
+    QString displayName() const override
     {
         return tr("Screenshots");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("screenshots");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "screenshots";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "Screenshots-management";
     }
-    virtual bool apply() override
+    bool apply() override
     {
         return !m_uploadActive;
     }

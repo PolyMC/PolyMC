@@ -12,7 +12,7 @@ class BaseExternalTool : public QObject
     Q_OBJECT
 public:
     explicit BaseExternalTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = 0);
-    virtual ~BaseExternalTool();
+    ~BaseExternalTool() override;
 
 protected:
     InstancePtr m_instance;

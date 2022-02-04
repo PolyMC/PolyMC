@@ -35,24 +35,24 @@ class GameOptionsPage : public QWidget, public BasePage
 
 public:
     explicit GameOptionsPage(MinecraftInstance *inst, QWidget *parent = 0);
-    virtual ~GameOptionsPage();
+    ~GameOptionsPage() override;
 
     void openedImpl() override;
     void closedImpl() override;
 
-    virtual QString displayName() const override
+    QString displayName() const override
     {
         return tr("Game Options");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("settings");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "gameoptions";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "Game-Options-management";
     }

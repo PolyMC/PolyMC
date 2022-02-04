@@ -10,8 +10,8 @@ class LogModel : public QAbstractListModel
 public:
     explicit LogModel(QObject *parent = 0);
 
-    int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    QVariant data(const QModelIndex &index, int role) const;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
 
     void append(MessageLevel::Enum, QString line);
     void clear();

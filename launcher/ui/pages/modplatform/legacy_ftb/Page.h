@@ -47,7 +47,7 @@ class Page : public QWidget, public BasePage
 
 public:
     explicit Page(NewInstanceDialog * dialog, QWidget *parent = 0);
-    virtual ~Page();
+    ~Page() override;
     QString displayName() const override
     {
         return tr("FTB Legacy");
