@@ -14,11 +14,11 @@
  */
 
 #include "DirectJavaLaunch.h"
+#include <Commandline.h>
+#include <FileSystem.h>
+#include <QStandardPaths>
 #include <launch/LaunchTask.h>
 #include <minecraft/MinecraftInstance.h>
-#include <FileSystem.h>
-#include <Commandline.h>
-#include <QStandardPaths>
 
 DirectJavaLaunch::DirectJavaLaunch(LaunchTask *parent) : LaunchStep(parent)
 {

@@ -3,8 +3,8 @@
 #ifndef HOEDOWN_HTML_H
 #define HOEDOWN_HTML_H
 
-#include "document.h"
 #include "buffer.h"
+#include "document.h"
 
 #ifdef __cplusplus
 extern "C" {

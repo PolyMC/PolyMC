@@ -15,8 +15,8 @@
 
 #include "LegacyModList.h"
 #include <FileSystem.h>
-#include <QString>
 #include <QDebug>
+#include <QString>
 #include <utility>
 
 LegacyModList::LegacyModList(const QString &dir, QString list_file)

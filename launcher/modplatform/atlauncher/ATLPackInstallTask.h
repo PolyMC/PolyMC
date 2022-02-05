@@ -17,15 +17,15 @@
 
 #pragma once
 
-#include <meta/VersionList.h>
 #include "ATLPackManifest.h"
+#include <meta/VersionList.h>
 
 #include "InstanceTask.h"
-#include "net/NetJob.h"
-#include "settings/INISettingsObject.h"
+#include "meta/Version.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
-#include "meta/Version.h"
+#include "net/NetJob.h"
+#include "settings/INISettingsObject.h"
 
 #include <nonstd/optional>
 

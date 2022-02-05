@@ -17,8 +17,8 @@
 
 #include <tasks/Task.h>
 
-#include <QString>
 #include <QJsonObject>
+#include <QString>
 #include <QTimer>
 #include <qsslerror.h>
 

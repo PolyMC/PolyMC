@@ -14,14 +14,14 @@
  */
 
 #include "ExtractNatives.h"
-#include <minecraft/MinecraftInstance.h>
 #include <launch/LaunchTask.h>
+#include <minecraft/MinecraftInstance.h>
 
+#include "FileSystem.h"
+#include "MMCZip.h"
+#include <QDir>
 #include <quazip/quazip.h>
 #include <quazip/quazipdir.h>
-#include "MMCZip.h"
-#include "FileSystem.h"
-#include <QDir>
 
 #ifdef major
     #undef major

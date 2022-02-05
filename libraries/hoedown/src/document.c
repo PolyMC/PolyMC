@@ -1,9 +1,9 @@
 #include "hoedown/document.h"
 
 #include <assert.h>
-#include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "hoedown/stack.h"
 

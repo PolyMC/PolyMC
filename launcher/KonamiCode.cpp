@@ -1,7 +1,7 @@
 #include "KonamiCode.h"
 
-#include <array>
 #include <QDebug>
+#include <array>
 
 namespace {
 const std::array<Qt::Key, 10> konamiCode =

@@ -16,12 +16,12 @@
 #include "AccountTask.h"
 #include "MinecraftAccount.h"
 
+#include <QByteArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QNetworkReply>
 #include <QObject>
 #include <QString>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QNetworkReply>
-#include <QByteArray>
 
 #include <QDebug>
 

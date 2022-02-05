@@ -20,10 +20,10 @@
 
 #include "ui/dialogs/NewInstanceDialog.h"
 
+#include "Json.h"
 #include "TechnicModel.h"
 #include "modplatform/technic/SingleZipPackInstallTask.h"
 #include "modplatform/technic/SolderPackInstallTask.h"
-#include "Json.h"
 
 #include "Application.h"
 

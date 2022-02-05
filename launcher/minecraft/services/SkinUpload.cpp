@@ -1,7 +1,7 @@
 #include "SkinUpload.h"
 
-#include <QNetworkRequest>
 #include <QHttpMultiPart>
+#include <QNetworkRequest>
 #include <utility>
 
 #include "Application.h"

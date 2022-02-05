@@ -1,6 +1,6 @@
 #pragma once
-#include <QString>
 #include <QPalette>
+#include <QString>
 
 class QStyle;
 

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "tasks/Task.h"
-#include "net/NetJob.h"
-#include <QUrl>
-#include "settings/SettingsObject.h"
 #include "BaseVersion.h"
 #include "InstanceTask.h"
+#include "net/NetJob.h"
+#include "settings/SettingsObject.h"
+#include "tasks/Task.h"
+#include <QUrl>
 
 class InstanceCreationTask : public InstanceTask
 {

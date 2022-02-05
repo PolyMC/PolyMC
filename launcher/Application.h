@@ -1,12 +1,12 @@
 #pragma once
 
 #include <QApplication>
-#include <memory>
+#include <QDateTime>
 #include <QDebug>
 #include <QFlag>
 #include <QIcon>
-#include <QDateTime>
 #include <QUrl>
+#include <memory>
 #include <updater/GoUpdate.h>
 
 #include <BaseInstance.h>

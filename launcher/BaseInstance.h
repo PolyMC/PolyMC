@@ -16,19 +16,19 @@
 #pragma once
 #include <cassert>
 
-#include <QObject>
 #include "QObjectPtr.h"
 #include <QDateTime>
-#include <QSet>
+#include <QObject>
 #include <QProcess>
+#include <QSet>
 
 #include "settings/SettingsObject.h"
 
-#include "settings/INIFile.h"
 #include "BaseVersionList.h"
-#include "minecraft/auth/MinecraftAccount.h"
 #include "MessageLevel.h"
+#include "minecraft/auth/MinecraftAccount.h"
 #include "pathmatcher/IPathMatcher.h"
+#include "settings/INIFile.h"
 
 #include "net/Mode.h"
 

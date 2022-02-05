@@ -1,15 +1,15 @@
 #include "ImgurAlbumCreation.h"
 
-#include <QNetworkRequest>
+#include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QUrl>
+#include <QNetworkRequest>
 #include <QStringList>
-#include <QDebug>
+#include <QUrl>
 #include <utility>
 
-#include "BuildConfig.h"
 #include "Application.h"
+#include "BuildConfig.h"
 
 ImgurAlbumCreation::ImgurAlbumCreation(QList<ScreenShot::Ptr> screenshots) : NetAction(), m_screenshots(std::move(screenshots))
 {

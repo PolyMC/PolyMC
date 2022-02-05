@@ -1,6 +1,6 @@
 #include "GZip.h"
-#include <zlib.h>
 #include <QByteArray>
+#include <zlib.h>
 
 bool GZip::unzip(const QByteArray &compressedBytes, QByteArray &uncompressedBytes)
 {

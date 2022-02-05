@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QObject>
 #include <BaseInstance.h>
+#include <QObject>
 
 class BaseInstance;
 class SettingsObject;

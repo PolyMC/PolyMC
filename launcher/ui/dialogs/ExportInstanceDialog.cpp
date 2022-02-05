@@ -21,15 +21,15 @@
 #include <QMessageBox>
 #include <qfilesystemmodel.h>
 
-#include <QSortFilterProxyModel>
-#include <QDebug>
-#include <qstack.h>
-#include <QSaveFile>
+#include "Application.h"
 #include "MMCStrings.h"
 #include "SeparatorPrefixTree.h"
-#include "Application.h"
-#include <icons/IconList.h>
 #include <FileSystem.h>
+#include <QDebug>
+#include <QSaveFile>
+#include <QSortFilterProxyModel>
+#include <icons/IconList.h>
+#include <qstack.h>
 
 class PackIgnoreProxy : public QSortFilterProxyModel
 {

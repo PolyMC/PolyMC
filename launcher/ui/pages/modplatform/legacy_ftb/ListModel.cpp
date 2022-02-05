@@ -4,8 +4,8 @@
 #include <MMCStrings.h>
 #include <Version.h>
 
-#include <QtMath>
 #include <QLabel>
+#include <QtMath>
 
 #include <RWStorage.h>
 

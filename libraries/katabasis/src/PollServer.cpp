@@ -2,8 +2,8 @@
 #include <QNetworkReply>
 #include <utility>
 
-#include "katabasis/PollServer.h"
 #include "JsonResponse.h"
+#include "katabasis/PollServer.h"
 
 namespace {
 QMap<QString, QString> toVerificationParams(const QVariantMap &map)

@@ -1,7 +1,7 @@
 #include "CreateGameFolders.h"
-#include "minecraft/MinecraftInstance.h"
-#include "launch/LaunchTask.h"
 #include "FileSystem.h"
+#include "launch/LaunchTask.h"
+#include "minecraft/MinecraftInstance.h"
 
 CreateGameFolders::CreateGameFolders(LaunchTask* parent): LaunchStep(parent)
 {

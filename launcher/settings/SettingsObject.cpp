@@ -14,9 +14,9 @@
  */
 
 #include "settings/SettingsObject.h"
-#include "settings/Setting.h"
-#include "settings/OverrideSetting.h"
 #include "PassthroughSetting.h"
+#include "settings/OverrideSetting.h"
+#include "settings/Setting.h"
 #include <QDebug>
 
 #include <QVariant>

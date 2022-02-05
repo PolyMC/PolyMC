@@ -1,9 +1,9 @@
 #pragma once
 
+#include "tasks/Task.h"
 #include <QFile>
 #include <QtNetwork/QtNetwork>
 #include <memory>
-#include "tasks/Task.h"
 
 typedef shared_qobject_ptr<class SkinUpload> SkinUploadPtr;
 

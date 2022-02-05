@@ -15,13 +15,13 @@
 
 #pragma once
 
-#include <QObject>
 #include <QList>
+#include <QObject>
 #include <QUrl>
 
+#include "minecraft/VersionFilterData.h"
 #include "net/NetJob.h"
 #include "tasks/Task.h"
-#include "minecraft/VersionFilterData.h"
 #include <quazip/quazip.h>
 
 class MinecraftVersion;

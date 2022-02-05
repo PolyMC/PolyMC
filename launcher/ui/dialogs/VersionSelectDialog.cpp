@@ -15,22 +15,22 @@
 
 #include "VersionSelectDialog.h"
 
+#include <QDebug>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QVBoxLayout>
-#include <QDebug>
 
+#include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ProgressDialog.h"
 #include "ui/widgets/VersionSelectWidget.h"
-#include "ui/dialogs/CustomMessageBox.h"
 
+#include "Application.h"
 #include "BaseVersion.h"
 #include "BaseVersionList.h"
-#include "tasks/Task.h"
-#include "Application.h"
 #include "VersionProxyModel.h"
+#include "tasks/Task.h"
 
 VersionSelectDialog::VersionSelectDialog(BaseVersionList *vlist, QString title, QWidget *parent, bool cancelable)
     : QDialog(parent)

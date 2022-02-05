@@ -1,11 +1,11 @@
-#include <QTest>
 #include "TestUtil.h"
+#include <QTest>
 
+#include "FileSystem.h"
+#include "minecraft/Library.h"
 #include "minecraft/MojangVersionFormat.h"
 #include "minecraft/OneSixVersionFormat.h"
-#include "minecraft/Library.h"
 #include "net/HttpMetaCache.h"
-#include "FileSystem.h"
 
 class LibraryTest : public QObject
 {

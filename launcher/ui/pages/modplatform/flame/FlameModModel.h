@@ -3,22 +3,22 @@
 #include <RWStorage.h>
 
 #include <QAbstractListModel>
-#include <QSortFilterProxyModel>
-#include <QThreadPool>
 #include <QIcon>
-#include <QStyledItemDelegate>
 #include <QList>
+#include <QMetaType>
+#include <QSortFilterProxyModel>
 #include <QString>
 #include <QStringList>
-#include <QMetaType>
+#include <QStyledItemDelegate>
+#include <QThreadPool>
 
 #include <functional>
 #include <net/NetJob.h>
 
-#include <modplatform/flame/FlamePackIndex.h>
-#include "modplatform/flame/FlameModIndex.h"
 #include "BaseInstance.h"
 #include "FlameModPage.h"
+#include "modplatform/flame/FlameModIndex.h"
+#include <modplatform/flame/FlamePackIndex.h>
 
 namespace FlameMod {
 

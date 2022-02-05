@@ -18,9 +18,9 @@
 
 #include "ATLPackManifest.h"
 
+#include <QMetaType>
 #include <QString>
 #include <QVector>
-#include <QMetaType>
 
 namespace ATLauncher
 {

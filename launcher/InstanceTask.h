@@ -1,7 +1,7 @@
 #pragma once
 
-#include "tasks/Task.h"
 #include "settings/SettingsObject.h"
+#include "tasks/Task.h"
 
 class InstanceTask : public Task
 {

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QtWidgets/QDialog>
 #include <QtCore/QEventLoop>
+#include <QtWidgets/QDialog>
 
 #include "minecraft/auth/MinecraftAccount.h"
 #include "tasks/Task.h"

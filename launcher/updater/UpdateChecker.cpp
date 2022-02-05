@@ -15,10 +15,10 @@
 
 #include "UpdateChecker.h"
 
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QJsonValue>
 #include <QDebug>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
 
 #define API_VERSION 0
 #define CHANLIST_FORMAT 0

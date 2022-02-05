@@ -1,6 +1,6 @@
 #pragma once
-#include <QAbstractProxyModel>
 #include "BaseVersionList.h"
+#include <QAbstractProxyModel>
 
 #include <Filter.h>
 

@@ -1,10 +1,10 @@
-#include <QObject>
 #include "FlameModIndex.h"
-#include "Json.h"
-#include "net/NetJob.h"
 #include "BaseInstance.h"
+#include "Json.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
+#include "net/NetJob.h"
+#include <QObject>
 
 
 void FlameMod::loadIndexedPack(FlameMod::IndexedPack & pack, QJsonObject & obj)

@@ -1,11 +1,11 @@
 #include "GoUpdate.h"
+#include <FileSystem.h>
 #include <QDebug>
 #include <QDomDocument>
 #include <QFile>
-#include <FileSystem.h>
 
-#include "net/Download.h"
 #include "net/ChecksumValidator.h"
+#include "net/Download.h"
 
 namespace GoUpdate
 {

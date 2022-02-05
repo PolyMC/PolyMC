@@ -1,11 +1,11 @@
 #pragma once
 
-#include <QList>
-#include <QTimer>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QNetworkAccessManager>
 #include <QByteArray>
+#include <QList>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QTimer>
 
 namespace Katabasis {
 

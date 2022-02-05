@@ -1,9 +1,9 @@
 #include "UpdateDialog.h"
-#include "ui_UpdateDialog.h"
-#include <QDebug>
 #include "Application.h"
-#include <settings/SettingsObject.h>
+#include "ui_UpdateDialog.h"
 #include <Json.h>
+#include <QDebug>
+#include <settings/SettingsObject.h>
 
 #include "BuildConfig.h"
 #include "HoeDown.h"

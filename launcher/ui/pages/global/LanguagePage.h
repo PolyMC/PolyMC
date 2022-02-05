@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <memory>
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 #include <QWidget>
+#include <memory>
 
 class LanguageSelectionWidget;
 

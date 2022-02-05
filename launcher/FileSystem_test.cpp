@@ -1,7 +1,7 @@
-#include <QTest>
-#include <QTemporaryDir>
-#include <QStandardPaths>
 #include "TestUtil.h"
+#include <QStandardPaths>
+#include <QTemporaryDir>
+#include <QTest>
 
 #include "FileSystem.h"
 

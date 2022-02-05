@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-#include <QFileInfo>
+#include <QCryptographicHash>
+#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
-#include <QCryptographicHash>
-#include <QJsonParseError>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonParseError>
 #include <QVariant>
-#include <QDebug>
 
 #include "AssetsUtils.h"
-#include "FileSystem.h"
-#include "net/Download.h"
-#include "net/ChecksumValidator.h"
 #include "BuildConfig.h"
+#include "FileSystem.h"
+#include "net/ChecksumValidator.h"
+#include "net/Download.h"
 
 #include "Application.h"
 

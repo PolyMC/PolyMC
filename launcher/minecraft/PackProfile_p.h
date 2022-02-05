@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Component.h"
-#include <map>
-#include <QTimer>
 #include <QList>
 #include <QMap>
+#include <QTimer>
+#include <map>
 
 class MinecraftInstance;
 using ComponentContainer = QList<ComponentPtr>;

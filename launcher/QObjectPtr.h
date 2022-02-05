@@ -1,8 +1,8 @@
 #pragma once
 
+#include <QObject>
 #include <functional>
 #include <memory>
-#include <QObject>
 
 namespace details
 {

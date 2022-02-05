@@ -4,10 +4,10 @@
 #include <QKeyEvent>
 
 #include "Application.h"
+#include "FlameModel.h"
+#include "InstanceImportTask.h"
 #include "Json.h"
 #include "ui/dialogs/NewInstanceDialog.h"
-#include "InstanceImportTask.h"
-#include "FlameModel.h"
 
 FlamePage::FlamePage(NewInstanceDialog* dialog, QWidget *parent)
     : QWidget(parent), ui(new Ui::FlamePage), dialog(dialog)

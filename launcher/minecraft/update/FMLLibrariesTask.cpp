@@ -1,12 +1,12 @@
 #include "FMLLibrariesTask.h"
 
 #include "FileSystem.h"
-#include "minecraft/VersionFilterData.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
+#include "minecraft/VersionFilterData.h"
 
-#include "BuildConfig.h"
 #include "Application.h"
+#include "BuildConfig.h"
 
 FMLLibrariesTask::FMLLibrariesTask(MinecraftInstance * inst)
 {

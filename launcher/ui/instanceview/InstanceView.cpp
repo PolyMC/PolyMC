@@ -15,17 +15,17 @@
 
 #include "InstanceView.h"
 
-#include <QPainter>
-#include <QApplication>
-#include <QtMath>
-#include <QMouseEvent>
-#include <QListView>
-#include <QPersistentModelIndex>
-#include <QDrag>
-#include <QMimeData>
-#include <QCache>
-#include <QScrollBar>
 #include <QAccessible>
+#include <QApplication>
+#include <QCache>
+#include <QDrag>
+#include <QListView>
+#include <QMimeData>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QPersistentModelIndex>
+#include <QScrollBar>
+#include <QtMath>
 
 #include "VisualGroup.h"
 #include <QDebug>

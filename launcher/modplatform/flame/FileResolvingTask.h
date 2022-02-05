@@ -1,8 +1,8 @@
 #pragma once
 
-#include "tasks/Task.h"
-#include "net/NetJob.h"
 #include "PackManifest.h"
+#include "net/NetJob.h"
+#include "tasks/Task.h"
 
 namespace Flame
 {

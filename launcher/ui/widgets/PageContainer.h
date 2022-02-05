@@ -15,11 +15,11 @@
 
 #pragma once
 
-#include <QWidget>
 #include <QModelIndex>
+#include <QWidget>
 
-#include "ui/pages/BasePageProvider.h"
 #include "ui/pages/BasePageContainer.h"
+#include "ui/pages/BasePageProvider.h"
 
 class QLayout;
 class IconLabel;

@@ -13,27 +13,27 @@
  * limitations under the License.
  */
 
-#include <QFile>
 #include <QCryptographicHash>
-#include <Version.h>
-#include <QDir>
-#include <QJsonDocument>
-#include <QJsonArray>
 #include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QSaveFile>
-#include <QUuid>
 #include <QTimer>
+#include <QUuid>
+#include <Version.h>
 
 #include "Exception.h"
-#include "minecraft/OneSixVersionFormat.h"
 #include "FileSystem.h"
+#include "Json.h"
+#include "minecraft/OneSixVersionFormat.h"
 #include "meta/Index.h"
 #include "minecraft/MinecraftInstance.h"
-#include "Json.h"
 
+#include "ComponentUpdateTask.h"
 #include "PackProfile.h"
 #include "PackProfile_p.h"
-#include "ComponentUpdateTask.h"
 
 #include "Application.h"
 

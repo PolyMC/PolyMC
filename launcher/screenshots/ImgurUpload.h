@@ -1,7 +1,7 @@
 #pragma once
 #include "QObjectPtr.h"
-#include "net/NetAction.h"
 #include "Screenshot.h"
+#include "net/NetAction.h"
 
 class ImgurUpload : public NetAction {
 public:

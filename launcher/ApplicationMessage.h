@@ -1,8 +1,8 @@
 #pragma once
 
-#include <QString>
-#include <QMap>
 #include <QByteArray>
+#include <QMap>
+#include <QString>
 
 struct ApplicationMessage {
     QString command;

@@ -11,8 +11,8 @@
 #include "launch/LaunchTask.h"
 #include "settings/Setting.h"
 
-#include "ui/GuiUtil.h"
 #include "ui/ColorCache.h"
+#include "ui/GuiUtil.h"
 
 #include <BuildConfig.h>
 

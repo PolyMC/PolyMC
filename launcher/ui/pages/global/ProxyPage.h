@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <memory>
 #include <QDialog>
+#include <memory>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>

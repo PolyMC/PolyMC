@@ -15,11 +15,11 @@
 
 #include "VisualGroup.h"
 
+#include <QApplication>
+#include <QDebug>
 #include <QModelIndex>
 #include <QPainter>
 #include <QtMath>
-#include <QApplication>
-#include <QDebug>
 #include <utility>
 
 #include "InstanceView.h"

@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#include <QLabel>
-#include <QVBoxLayout>
-#include <QResizeEvent>
-#include <QStyleOption>
 #include "LabeledToolButton.h"
 #include <QApplication>
 #include <QDebug>
+#include <QLabel>
+#include <QResizeEvent>
+#include <QStyleOption>
+#include <QVBoxLayout>
 
 /*
  * 

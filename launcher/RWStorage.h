@@ -1,8 +1,8 @@
 #pragma once
-#include <QWriteLocker>
-#include <QReadLocker>
 #include <QMap>
+#include <QReadLocker>
 #include <QSet>
+#include <QWriteLocker>
 
 template <typename K, typename V>
 class RWStorage

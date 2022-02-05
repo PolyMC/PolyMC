@@ -1,6 +1,6 @@
 #pragma once
-#include <QString>
 #include <QMap>
+#include <QString>
 #include <utility>
 
 struct MojangDownloadInfo

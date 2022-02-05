@@ -16,12 +16,12 @@
 #include "InstanceWindow.h"
 #include "Application.h"
 
-#include <QScrollBar>
-#include <QMessageBox>
-#include <QHBoxLayout>
-#include <QPushButton>
-#include <qlayoutitem.h>
 #include <QCloseEvent>
+#include <QHBoxLayout>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QScrollBar>
+#include <qlayoutitem.h>
 #include <utility>
 
 #include "ui/dialogs/CustomMessageBox.h"

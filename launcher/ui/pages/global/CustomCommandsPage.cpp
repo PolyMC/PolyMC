@@ -1,7 +1,7 @@
 #include "CustomCommandsPage.h"
-#include <QVBoxLayout>
-#include <QTabWidget>
 #include <QTabBar>
+#include <QTabWidget>
+#include <QVBoxLayout>
 
 CustomCommandsPage::CustomCommandsPage(QWidget* parent): QWidget(parent)
 {

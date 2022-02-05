@@ -1,12 +1,12 @@
 #pragma once
 
-#include <memory>
-#include <QList>
-#include <QJsonDocument>
-#include <QDateTime>
 #include "meta/JsonFormat.h"
 #include "ProblemProvider.h"
 #include "QObjectPtr.h"
+#include <QDateTime>
+#include <QJsonDocument>
+#include <QList>
+#include <memory>
 
 class PackProfile;
 class LaunchProfile;

@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#include <QHeaderView>
-#include <QApplication>
-#include <QMouseEvent>
-#include <QDrag>
-#include <QPainter>
 #include "VersionListView.h"
+#include <QApplication>
+#include <QDrag>
+#include <QHeaderView>
+#include <QMouseEvent>
+#include <QPainter>
 
 VersionListView::VersionListView(QWidget *parent)
     :QTreeView ( parent )

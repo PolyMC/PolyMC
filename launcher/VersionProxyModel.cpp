@@ -1,7 +1,7 @@
 #include "VersionProxyModel.h"
 #include "Application.h"
-#include <QSortFilterProxyModel>
 #include <QPixmapCache>
+#include <QSortFilterProxyModel>
 #include <Version.h>
 #include <meta/VersionList.h>
 

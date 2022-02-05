@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <QListView>
-#include <QStyledItemDelegate>
 #include <QEvent>
+#include <QListView>
 #include <QScrollBar>
+#include <QStyledItemDelegate>
 
 class BasePage;
 const int pageIconSize = 24;

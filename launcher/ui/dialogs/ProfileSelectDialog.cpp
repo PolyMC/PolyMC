@@ -16,11 +16,11 @@
 #include "ProfileSelectDialog.h"
 #include "ui_ProfileSelectDialog.h"
 
-#include <QItemSelectionModel>
 #include <QDebug>
+#include <QItemSelectionModel>
 
-#include "SkinUtils.h"
 #include "Application.h"
+#include "SkinUtils.h"
 
 #include "ui/dialogs/ProgressDialog.h"
 

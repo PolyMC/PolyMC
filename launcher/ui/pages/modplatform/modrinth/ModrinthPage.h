@@ -2,10 +2,10 @@
 
 #include <QWidget>
 
+#include "modplatform/modrinth/ModrinthPackIndex.h"
+#include "tasks/Task.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "tasks/Task.h"
-#include "modplatform/modrinth/ModrinthPackIndex.h"
 
 namespace Ui
 {

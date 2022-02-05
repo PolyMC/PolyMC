@@ -14,24 +14,24 @@
  */
 
 #include "WorldListPage.h"
-#include "ui_WorldListPage.h"
 #include "minecraft/WorldList.h"
+#include "ui_WorldListPage.h"
 
-#include <QEvent>
-#include <QMenu>
-#include <QKeyEvent>
 #include <QClipboard>
-#include <QMessageBox>
-#include <QTreeView>
+#include <QEvent>
 #include <QInputDialog>
+#include <QKeyEvent>
+#include <QMenu>
+#include <QMessageBox>
 #include <QProcess>
+#include <QTreeView>
 #include <utility>
 
-#include "tools/MCEditTool.h"
 #include "FileSystem.h"
+#include "tools/MCEditTool.h"
 
-#include "ui/GuiUtil.h"
 #include "DesktopServices.h"
+#include "ui/GuiUtil.h"
 
 #include "Application.h"
 

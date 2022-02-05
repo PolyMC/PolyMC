@@ -1,7 +1,7 @@
 #include "RecursiveFileSystemWatcher.h"
 
-#include <QRegularExpression>
 #include <QDebug>
+#include <QRegularExpression>
 
 RecursiveFileSystemWatcher::RecursiveFileSystemWatcher(QObject *parent)
     : QObject(parent), m_watcher(new QFileSystemWatcher(this))

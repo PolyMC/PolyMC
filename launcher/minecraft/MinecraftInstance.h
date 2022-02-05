@@ -1,10 +1,10 @@
 #pragma once
 #include "BaseInstance.h"
-#include <java/JavaVersion.h>
-#include "minecraft/mod/Mod.h"
-#include <QProcess>
-#include <QDir>
 #include "minecraft/launch/MinecraftServerTarget.h"
+#include "minecraft/mod/Mod.h"
+#include <QDir>
+#include <QProcess>
+#include <java/JavaVersion.h>
 
 class ModFolderModel;
 class WorldList;

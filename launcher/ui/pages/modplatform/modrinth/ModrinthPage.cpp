@@ -4,13 +4,13 @@
 #include <QKeyEvent>
 
 #include "Application.h"
-#include "Json.h"
-#include "ui/dialogs/ModDownloadDialog.h"
 #include "InstanceImportTask.h"
-#include "ModrinthModel.h"
+#include "Json.h"
 #include "ModDownloadTask.h"
+#include "ModrinthModel.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
+#include "ui/dialogs/ModDownloadDialog.h"
 
 ModrinthPage::ModrinthPage(ModDownloadDialog *dialog, BaseInstance *instance)
     : QWidget(dialog), m_instance(instance), ui(new Ui::ModrinthPage), dialog(dialog)

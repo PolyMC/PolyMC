@@ -1,10 +1,10 @@
 #pragma once
 
+#include "tasks/Task.h"
 #include <QString>
+#include <QStringList>
 #include <map>
 #include <set>
-#include <QStringList>
-#include "tasks/Task.h"
 
 namespace mojang_files {
 

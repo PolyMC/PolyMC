@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QString>
 #include <QRegularExpression>
+#include <QString>
 
 class Filter
 {

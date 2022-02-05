@@ -2,9 +2,9 @@
 #include "AccessibleInstanceView.h"
 #include "AccessibleInstanceView_p.h"
 
-#include <qvariant.h>
 #include <qaccessible.h>
 #include <qheaderview.h>
+#include <qvariant.h>
 
 #ifndef QT_NO_ACCESSIBILITY
 

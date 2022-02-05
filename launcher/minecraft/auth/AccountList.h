@@ -17,10 +17,10 @@
 
 #include "MinecraftAccount.h"
 
-#include <QObject>
-#include <QVariant>
 #include <QAbstractListModel>
+#include <QObject>
 #include <QSharedPointer>
+#include <QVariant>
 
 /*!
  * List of available Mojang accounts.

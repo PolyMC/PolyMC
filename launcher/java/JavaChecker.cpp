@@ -1,14 +1,14 @@
 #include "JavaChecker.h"
 
-#include <QFile>
-#include <QProcess>
-#include <QMap>
 #include <QDebug>
+#include <QFile>
+#include <QMap>
+#include <QProcess>
 
-#include "JavaUtils.h"
-#include "FileSystem.h"
-#include "Commandline.h"
 #include "Application.h"
+#include "Commandline.h"
+#include "FileSystem.h"
+#include "JavaUtils.h"
 
 JavaChecker::JavaChecker(QObject *parent) : QObject(parent)
 {

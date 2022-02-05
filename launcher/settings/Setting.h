@@ -16,8 +16,8 @@
 #pragma once
 
 #include <QObject>
-#include <QVariant>
 #include <QStringList>
+#include <QVariant>
 #include <memory>
 
 class SettingsObject;

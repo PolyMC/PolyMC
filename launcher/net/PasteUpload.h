@@ -1,7 +1,7 @@
 #pragma once
 #include "tasks/Task.h"
-#include <QNetworkReply>
 #include <QBuffer>
+#include <QNetworkReply>
 #include <memory>
 
 class PasteUpload : public Task

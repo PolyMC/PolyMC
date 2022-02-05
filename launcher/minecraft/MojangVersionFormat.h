@@ -1,9 +1,9 @@
 #pragma once
 
-#include <minecraft/VersionFile.h>
 #include <minecraft/Library.h>
-#include <QJsonDocument>
 #include <ProblemProvider.h>
+#include <QJsonDocument>
+#include <minecraft/VersionFile.h>
 
 class MojangVersionFormat
 {

@@ -1,5 +1,5 @@
-#include <QTimer>
 #include <QNetworkReply>
+#include <QTimer>
 
 #include "katabasis/Reply.h"
 

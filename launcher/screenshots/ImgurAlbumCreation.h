@@ -1,7 +1,7 @@
 #pragma once
-#include "net/NetAction.h"
-#include "Screenshot.h"
 #include "QObjectPtr.h"
+#include "Screenshot.h"
+#include "net/NetAction.h"
 
 typedef shared_qobject_ptr<class ImgurAlbumCreation> ImgurAlbumCreationPtr;
 class ImgurAlbumCreation : public NetAction

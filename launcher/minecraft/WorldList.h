@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include <QList>
-#include <QString>
-#include <QDir>
-#include <QAbstractListModel>
-#include <QMimeData>
 #include "minecraft/World.h"
+#include <QAbstractListModel>
+#include <QDir>
+#include <QList>
+#include <QMimeData>
+#include <QString>
 
 class QFileSystemWatcher;
 

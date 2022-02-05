@@ -15,17 +15,17 @@
 
 #pragma once
 
+#include <QAbstractListModel>
+#include <QDir>
 #include <QList>
 #include <QMap>
 #include <QSet>
 #include <QString>
-#include <QDir>
-#include <QAbstractListModel>
 
 #include "Mod.h"
 
-#include "ModFolderLoadTask.h"
 #include "LocalModParseTask.h"
+#include "ModFolderLoadTask.h"
 
 class LegacyInstance;
 class BaseInstance;

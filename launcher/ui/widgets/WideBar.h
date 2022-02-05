@@ -1,8 +1,8 @@
 #pragma once
 
-#include <QToolBar>
 #include <QAction>
 #include <QMap>
+#include <QToolBar>
 
 class QMenu;
 

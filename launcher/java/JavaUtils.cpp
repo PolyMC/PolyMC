@@ -13,17 +13,16 @@
  * limitations under the License.
  */
 
-#include <QStringList>
-#include <QString>
 #include <QDir>
+#include <QString>
 #include <QStringList>
 
 #include <settings/Setting.h>
 
-#include <QDebug>
-#include "java/JavaUtils.h"
-#include "java/JavaInstallList.h"
 #include "FileSystem.h"
+#include "java/JavaInstallList.h"
+#include "java/JavaUtils.h"
+#include <QDebug>
 
 #define IBUS "@im=ibus"
 

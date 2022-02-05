@@ -1,8 +1,8 @@
 #include "InstanceSettingsPage.h"
 #include "ui_InstanceSettingsPage.h"
 
-#include <QFileDialog>
 #include <QDialog>
+#include <QFileDialog>
 #include <QMessageBox>
 
 #include <sys.h>
@@ -10,11 +10,11 @@
 #include "ui/dialogs/VersionSelectDialog.h"
 #include "ui/widgets/CustomCommands.h"
 
-#include "JavaCommon.h"
 #include "Application.h"
+#include "JavaCommon.h"
 
-#include "java/JavaInstallList.h"
 #include "FileSystem.h"
+#include "java/JavaInstallList.h"
 
 
 InstanceSettingsPage::InstanceSettingsPage(BaseInstance *inst, QWidget *parent)

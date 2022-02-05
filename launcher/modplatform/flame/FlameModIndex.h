@@ -3,14 +3,14 @@
 //
 
 #pragma once
+#include "BaseInstance.h"
+#include "net/NetJob.h"
 #include <QList>
 #include <QMetaType>
-#include <QString>
-#include <QVector>
 #include <QNetworkAccessManager>
 #include <QObjectPtr.h>
-#include "net/NetJob.h"
-#include "BaseInstance.h"
+#include <QString>
+#include <QVector>
 
 namespace FlameMod {
     struct ModpackAuthor {

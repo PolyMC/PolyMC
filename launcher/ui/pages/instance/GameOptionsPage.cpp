@@ -1,7 +1,7 @@
 #include "GameOptionsPage.h"
-#include "ui_GameOptionsPage.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/gameoptions/GameOptions.h"
+#include "ui_GameOptionsPage.h"
 
 GameOptionsPage::GameOptionsPage(MinecraftInstance * inst, QWidget* parent)
     : QWidget(parent), ui(new Ui::GameOptionsPage)

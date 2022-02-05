@@ -13,22 +13,22 @@
  * limitations under the License.
  */
 
-#include <QDir>
-#include <QString>
-#include <QDebug>
-#include <QSaveFile>
 #include "World.h"
+#include <QDebug>
+#include <QDir>
+#include <QSaveFile>
+#include <QString>
 
 #include "GZip.h"
-#include <MMCZip.h>
 #include <FileSystem.h>
-#include <sstream>
+#include <MMCZip.h>
 #include <io/stream_reader.h>
-#include <tag_string.h>
-#include <tag_primitive.h>
 #include <quazip/quazip.h>
-#include <quazip/quazipfile.h>
 #include <quazip/quazipdir.h>
+#include <quazip/quazipfile.h>
+#include <sstream>
+#include <tag_primitive.h>
+#include <tag_string.h>
 
 #include <QCoreApplication>
 

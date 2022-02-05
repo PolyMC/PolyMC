@@ -1,9 +1,9 @@
 #pragma once
 
 #include <QList>
+#include <QMetaType>
 #include <QString>
 #include <QStringList>
-#include <QMetaType>
 
 namespace LegacyFTB {
 

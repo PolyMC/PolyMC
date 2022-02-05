@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <launch/LaunchStep.h>
-#include <memory>
 #include "minecraft/auth/AuthSession.h"
 #include "minecraft/launch/MinecraftServerTarget.h"
+#include <launch/LaunchStep.h>
+#include <memory>
 #include <utility>
 
 // FIXME: temporary wrapper for existing task.

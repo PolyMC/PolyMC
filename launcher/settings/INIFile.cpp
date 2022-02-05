@@ -16,11 +16,11 @@
 #include "settings/INIFile.h"
 #include <FileSystem.h>
 
-#include <QFile>
-#include <QTextStream>
-#include <QStringList>
-#include <QSaveFile>
 #include <QDebug>
+#include <QFile>
+#include <QSaveFile>
+#include <QStringList>
+#include <QTextStream>
 
 INIFile::INIFile() = default;
 

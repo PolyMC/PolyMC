@@ -1,8 +1,8 @@
 #include "MetaCacheSink.h"
+#include "Application.h"
+#include "FileSystem.h"
 #include <QFile>
 #include <QFileInfo>
-#include "FileSystem.h"
-#include "Application.h"
 
 namespace Net {
 

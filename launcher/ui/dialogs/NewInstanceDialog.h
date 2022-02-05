@@ -18,8 +18,8 @@
 #include <QDialog>
 
 #include "BaseVersion.h"
-#include "ui/pages/BasePageProvider.h"
 #include "InstanceTask.h"
+#include "ui/pages/BasePageProvider.h"
 
 namespace Ui
 {

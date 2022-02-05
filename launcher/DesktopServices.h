@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QUrl>
 #include <QString>
+#include <QUrl>
 
 /**
  * This wraps around QDesktopServices and adds workarounds where needed

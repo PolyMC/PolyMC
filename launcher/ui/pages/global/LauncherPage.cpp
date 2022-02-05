@@ -16,18 +16,18 @@
 #include "LauncherPage.h"
 #include "ui_LauncherPage.h"
 
+#include <QDir>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QDir>
 #include <QTextCharFormat>
 
 #include "updater/UpdateChecker.h"
 
-#include "settings/SettingsObject.h"
-#include <FileSystem.h>
 #include "Application.h"
 #include "BuildConfig.h"
+#include "settings/SettingsObject.h"
 #include "ui/themes/ITheme.h"
+#include <FileSystem.h>
 
 #include <QApplication>
 #include <QProcess>

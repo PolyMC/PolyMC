@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include "tasks/Task.h"
 #include "MessageLevel.h"
+#include "tasks/Task.h"
 
 #include <QStringList>
 

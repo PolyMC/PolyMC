@@ -16,9 +16,9 @@
 
 #pragma once
 
+#include <QJsonObject>
 #include <QString>
 #include <QVector>
-#include <QJsonObject>
 
 namespace ATLauncher
 {

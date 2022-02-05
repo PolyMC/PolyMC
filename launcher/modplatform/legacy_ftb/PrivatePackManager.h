@@ -1,8 +1,8 @@
 #pragma once
 
+#include <QFile>
 #include <QSet>
 #include <QString>
-#include <QFile>
 
 namespace LegacyFTB {
 

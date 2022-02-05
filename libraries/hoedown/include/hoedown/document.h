@@ -3,8 +3,8 @@
 #ifndef HOEDOWN_DOCUMENT_H
 #define HOEDOWN_DOCUMENT_H
 
-#include "buffer.h"
 #include "autolink.h"
+#include "buffer.h"
 
 #ifdef __cplusplus
 extern "C" {

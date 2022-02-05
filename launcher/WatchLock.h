@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include <QString>
 #include <QFileSystemWatcher>
+#include <QString>
 #include <utility>
 
 struct WatchLock

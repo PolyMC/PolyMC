@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <memory>
 #include <QDialog>
+#include <memory>
 
 #include "java/JavaChecker.h"
 #include "ui/pages/BasePage.h"

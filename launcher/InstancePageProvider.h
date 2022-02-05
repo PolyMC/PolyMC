@@ -1,23 +1,23 @@
 #pragma once
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/legacy/LegacyInstance.h"
-#include <FileSystem.h>
 #include "ui/pages/BasePage.h"
 #include "ui/pages/BasePageProvider.h"
-#include "ui/pages/instance/LogPage.h"
-#include "ui/pages/instance/VersionPage.h"
-#include "ui/pages/instance/ModFolderPage.h"
-#include "ui/pages/instance/ResourcePackPage.h"
-#include "ui/pages/instance/TexturePackPage.h"
-#include "ui/pages/instance/ShaderPackPage.h"
-#include "ui/pages/instance/NotesPage.h"
-#include "ui/pages/instance/ScreenshotsPage.h"
-#include "ui/pages/instance/InstanceSettingsPage.h"
-#include "ui/pages/instance/OtherLogsPage.h"
-#include "ui/pages/instance/LegacyUpgradePage.h"
-#include "ui/pages/instance/WorldListPage.h"
-#include "ui/pages/instance/ServersPage.h"
 #include "ui/pages/instance/GameOptionsPage.h"
+#include "ui/pages/instance/InstanceSettingsPage.h"
+#include "ui/pages/instance/LegacyUpgradePage.h"
+#include "ui/pages/instance/LogPage.h"
+#include "ui/pages/instance/ModFolderPage.h"
+#include "ui/pages/instance/NotesPage.h"
+#include "ui/pages/instance/OtherLogsPage.h"
+#include "ui/pages/instance/ResourcePackPage.h"
+#include "ui/pages/instance/ScreenshotsPage.h"
+#include "ui/pages/instance/ServersPage.h"
+#include "ui/pages/instance/ShaderPackPage.h"
+#include "ui/pages/instance/TexturePackPage.h"
+#include "ui/pages/instance/VersionPage.h"
+#include "ui/pages/instance/WorldListPage.h"
+#include <FileSystem.h>
 
 class InstancePageProvider : public QObject, public BasePageProvider
 {

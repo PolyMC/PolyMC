@@ -15,11 +15,11 @@
 
 #pragma once
 
-#include <QString>
-#include <QList>
-#include <QJsonObject>
-#include <memory>
 #include "OpSys.h"
+#include <QJsonObject>
+#include <QList>
+#include <QString>
+#include <memory>
 #include <utility>
 
 class Library;

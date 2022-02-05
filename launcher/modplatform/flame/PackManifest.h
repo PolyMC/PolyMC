@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QString>
-#include <QVector>
 #include <QUrl>
+#include <QVector>
 
 namespace Flame
 {

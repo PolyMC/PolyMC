@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
+#include <QFileDialog>
 #include <QKeyEvent>
 #include <QPushButton>
-#include <QFileDialog>
 
 #include "Application.h"
 

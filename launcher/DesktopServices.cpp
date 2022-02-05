@@ -1,18 +1,18 @@
 #include "DesktopServices.h"
-#include <QDir>
-#include <QDesktopServices>
-#include <QProcess>
 #include <QDebug>
+#include <QDesktopServices>
+#include <QDir>
+#include <QProcess>
 
 /**
  * This shouldn't exist, but until QTBUG-9328 and other unreported bugs are fixed, it needs to be a thing.
  */
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
 
-#include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 template <typename T>
 bool IndirectOpen(T callable, qint64 *pid_forked = nullptr)

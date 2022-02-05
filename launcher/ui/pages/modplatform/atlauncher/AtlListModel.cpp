@@ -16,8 +16,8 @@
 
 #include "AtlListModel.h"
 
-#include <BuildConfig.h>
 #include <Application.h>
+#include <BuildConfig.h>
 #include <Json.h>
 
 namespace Atl {

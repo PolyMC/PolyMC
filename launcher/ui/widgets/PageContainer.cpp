@@ -16,23 +16,23 @@
 #include "PageContainer.h"
 #include "PageContainer_p.h"
 
-#include <QStackedLayout>
-#include <QPushButton>
-#include <QSortFilterProxyModel>
-#include <QUrl>
-#include <QStyledItemDelegate>
-#include <QListView>
-#include <QLineEdit>
-#include <QLabel>
 #include <QDialogButtonBox>
 #include <QGridLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QListView>
+#include <QPushButton>
+#include <QSortFilterProxyModel>
+#include <QStackedLayout>
+#include <QStyledItemDelegate>
+#include <QUrl>
 
 #include "settings/SettingsObject.h"
 
 #include "ui/widgets/IconLabel.h"
 
-#include "DesktopServices.h"
 #include "Application.h"
+#include "DesktopServices.h"
 
 class PageEntryFilterModel : public QSortFilterProxyModel
 {

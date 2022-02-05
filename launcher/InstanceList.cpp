@@ -13,32 +13,32 @@
  * limitations under the License.
  */
 
+#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
-#include <QSet>
 #include <QFile>
-#include <QThread>
-#include <QTextStream>
-#include <QXmlStreamReader>
-#include <QTimer>
-#include <QDebug>
 #include <QFileSystemWatcher>
-#include <QUuid>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QMimeData>
+#include <QSet>
+#include <QTextStream>
+#include <QThread>
+#include <QTimer>
+#include <QUuid>
+#include <QXmlStreamReader>
 #include <utility>
 
-#include "InstanceList.h"
 #include "BaseInstance.h"
-#include "InstanceTask.h"
-#include "settings/INISettingsObject.h"
-#include "minecraft/legacy/LegacyInstance.h"
-#include "NullInstance.h"
-#include "minecraft/MinecraftInstance.h"
-#include "FileSystem.h"
 #include "ExponentialSeries.h"
+#include "FileSystem.h"
+#include "InstanceList.h"
+#include "InstanceTask.h"
+#include "NullInstance.h"
 #include "WatchLock.h"
+#include "minecraft/MinecraftInstance.h"
+#include "minecraft/legacy/LegacyInstance.h"
+#include "settings/INISettingsObject.h"
 
 const static int GROUP_FILE_FORMAT_VERSION = 1;
 

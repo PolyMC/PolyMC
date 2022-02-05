@@ -2,13 +2,13 @@
 #include "ui_ServersPage.h"
 
 #include <FileSystem.h>
-#include <sstream>
 #include <io/stream_reader.h>
-#include <tag_string.h>
-#include <tag_primitive.h>
-#include <tag_list.h>
-#include <tag_compound.h>
 #include <minecraft/MinecraftInstance.h>
+#include <sstream>
+#include <tag_compound.h>
+#include <tag_list.h>
+#include <tag_primitive.h>
+#include <tag_string.h>
 
 #include <QFileSystemWatcher>
 #include <QMenu>

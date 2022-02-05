@@ -2,8 +2,8 @@
 
 #include "Validator.h"
 #include <QCryptographicHash>
-#include <memory>
 #include <QFile>
+#include <memory>
 #include <utility>
 
 namespace Net {

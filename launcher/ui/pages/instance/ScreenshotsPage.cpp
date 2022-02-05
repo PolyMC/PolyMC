@@ -1,33 +1,33 @@
 #include "ScreenshotsPage.h"
 #include "ui_ScreenshotsPage.h"
 
-#include <QModelIndex>
-#include <QMutableListIterator>
-#include <QMap>
-#include <QSet>
+#include <QClipboard>
+#include <QEvent>
 #include <QFileIconProvider>
 #include <QFileSystemModel>
-#include <QStyledItemDelegate>
-#include <QLineEdit>
-#include <QEvent>
-#include <QPainter>
-#include <QClipboard>
 #include <QKeyEvent>
+#include <QLineEdit>
+#include <QMap>
 #include <QMenu>
+#include <QModelIndex>
+#include <QMutableListIterator>
+#include <QPainter>
+#include <QSet>
+#include <QStyledItemDelegate>
 
 #include <Application.h>
 
-#include "ui/dialogs/ProgressDialog.h"
 #include "ui/dialogs/CustomMessageBox.h"
+#include "ui/dialogs/ProgressDialog.h"
 
 #include "net/NetJob.h"
-#include "screenshots/ImgurUpload.h"
 #include "screenshots/ImgurAlbumCreation.h"
+#include "screenshots/ImgurUpload.h"
 #include "tasks/SequentialTask.h"
 
 #include "RWStorage.h"
-#include <FileSystem.h>
 #include <DesktopServices.h>
+#include <FileSystem.h>
 
 typedef RWStorage<QString, QIcon> SharedIconCache;
 typedef std::shared_ptr<SharedIconCache> SharedIconCachePtr;

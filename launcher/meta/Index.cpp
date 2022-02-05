@@ -15,8 +15,8 @@
 
 #include "Index.h"
 
-#include "VersionList.h"
 #include "JsonFormat.h"
+#include "VersionList.h"
 
 namespace Meta
 {

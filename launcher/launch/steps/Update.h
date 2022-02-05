@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <launch/LaunchStep.h>
-#include <QObjectPtr.h>
 #include <LoggedProcess.h>
+#include <QObjectPtr.h>
 #include <java/JavaChecker.h>
+#include <launch/LaunchStep.h>
 #include <net/Mode.h>
 
 // FIXME: stupid. should be defined by the instance type? or even completely abstracted away...

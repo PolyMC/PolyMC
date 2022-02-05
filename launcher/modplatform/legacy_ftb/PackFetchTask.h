@@ -1,10 +1,10 @@
 #pragma once
 
+#include "PackHelpers.h"
 #include "net/NetJob.h"
-#include <QTemporaryDir>
 #include <QByteArray>
 #include <QObject>
-#include "PackHelpers.h"
+#include <QTemporaryDir>
 
 namespace LegacyFTB {
 

@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QWidget>
 #include <QString>
+#include <QWidget>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>

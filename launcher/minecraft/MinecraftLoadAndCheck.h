@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QObject>
 #include <QList>
+#include <QObject>
 #include <QUrl>
 
 #include "tasks/Task.h"

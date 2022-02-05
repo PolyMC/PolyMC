@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include "tasks/Task.h"
-#include "net/NetJob.h"
 #include "GoUpdate.h"
+#include "net/NetJob.h"
+#include "tasks/Task.h"
 
 namespace GoUpdate
 {

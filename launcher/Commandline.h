@@ -20,10 +20,10 @@
 #include <exception>
 #include <stdexcept>
 
-#include <QString>
-#include <QVariant>
 #include <QHash>
+#include <QString>
 #include <QStringList>
+#include <QVariant>
 
 /**
  * @file libutil/include/cmdutils.h

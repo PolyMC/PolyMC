@@ -1,8 +1,8 @@
 #include "FlameModModel.h"
 #include "Application.h"
+#include "FlameModPage.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
-#include "FlameModPage.h"
 #include <Json.h>
 
 #include <MMCStrings.h>

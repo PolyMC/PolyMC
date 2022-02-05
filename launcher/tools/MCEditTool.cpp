@@ -4,9 +4,9 @@
 #include <QProcess>
 #include <QUrl>
 
-#include "settings/SettingsObject.h"
 #include "BaseInstance.h"
 #include "minecraft/MinecraftInstance.h"
+#include "settings/SettingsObject.h"
 
 MCEditTool::MCEditTool(SettingsObjectPtr settings)
 {

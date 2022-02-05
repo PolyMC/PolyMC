@@ -1,19 +1,19 @@
 #include "JavaSettingsWidget.h"
 
-#include <QVBoxLayout>
+#include <QFileDialog>
 #include <QGroupBox>
-#include <QSpinBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QToolButton>
-#include <QFileDialog>
+#include <QVBoxLayout>
 
 #include <sys.h>
 
+#include "FileSystem.h"
 #include "java/JavaInstall.h"
 #include "java/JavaUtils.h"
-#include "FileSystem.h"
 
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/widgets/VersionSelectWidget.h"

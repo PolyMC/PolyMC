@@ -40,13 +40,13 @@
 
 
 #include "LocalPeer.h"
+#include "LockedFile.h"
 #include <QCoreApplication>
 #include <QDataStream>
-#include <QTime>
+#include <QDir>
 #include <QLocalServer>
 #include <QLocalSocket>
-#include <QDir>
-#include "LockedFile.h"
+#include <QTime>
 
 #if defined(Q_OS_WIN)
 #include <QLibrary>
@@ -59,9 +59,9 @@ static PProcessIdToSessionId pProcessIdToSessionId = 0;
 #include <unistd.h>
 #endif
 
+#include <QCryptographicHash>
 #include <chrono>
 #include <thread>
-#include <QCryptographicHash>
 #include <utility>
 
 static const char* ack = "ack";

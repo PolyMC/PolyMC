@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <QtNetwork>
 #include "JavaChecker.h"
 #include "tasks/Task.h"
+#include <QtNetwork>
 #include <utility>
 
 class JavaCheckerJob;

@@ -42,8 +42,8 @@
 #include <QtCore/qglobal.h>
 #include <QtCore/qpoint.h>
 #include <QtCore/qstring.h>
-#include <QtGui/qpolygon.h>
 #include <QtCore/qstringbuilder.h>
+#include <QtGui/qpolygon.h>
 
 #pragma once
 

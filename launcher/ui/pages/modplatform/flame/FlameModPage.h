@@ -2,10 +2,10 @@
 
 #include <QWidget>
 
+#include "modplatform/flame/FlameModIndex.h"
+#include "tasks/Task.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "tasks/Task.h"
-#include "modplatform/flame/FlameModIndex.h"
 
 namespace Ui
 {

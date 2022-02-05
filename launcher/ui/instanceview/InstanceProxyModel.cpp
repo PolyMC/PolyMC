@@ -15,8 +15,8 @@
 
 #include "InstanceProxyModel.h"
 
-#include "InstanceView.h"
 #include "Application.h"
+#include "InstanceView.h"
 #include <BaseInstance.h>
 #include <icons/IconList.h>
 

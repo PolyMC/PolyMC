@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QDialog>
 #include "ui/pages/BasePageProvider.h"
+#include <QDialog>
 
 class PageContainer;
 class PageDialog : public QDialog

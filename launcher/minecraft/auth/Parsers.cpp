@@ -1,8 +1,8 @@
 #include "Parsers.h"
 
-#include <QJsonDocument>
-#include <QJsonArray>
 #include <QDebug>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 namespace Parsers {
 

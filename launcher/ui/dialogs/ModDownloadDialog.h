@@ -4,9 +4,9 @@
 #include <QVBoxLayout>
 
 #include "BaseVersion.h"
-#include "ui/pages/BasePageProvider.h"
-#include "minecraft/mod/ModFolderModel.h"
 #include "ModDownloadTask.h"
+#include "minecraft/mod/ModFolderModel.h"
+#include "ui/pages/BasePageProvider.h"
 #include "ui/pages/modplatform/flame/FlameModPage.h"
 
 namespace Ui

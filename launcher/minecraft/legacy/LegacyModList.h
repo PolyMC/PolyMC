@@ -15,9 +15,9 @@
 
 #pragma once
 
+#include <QDir>
 #include <QList>
 #include <QString>
-#include <QDir>
 
 class LegacyModList
 {

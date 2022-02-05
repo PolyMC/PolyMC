@@ -1,23 +1,23 @@
-#include <QList>
-#include <QPair>
-#include <QDebug>
-#include <QTcpServer>
-#include <QMap>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QNetworkAccessManager>
-#include <QDateTime>
 #include <QCryptographicHash>
-#include <QTimer>
-#include <QVariantMap>
-#include <QUuid>
 #include <QDataStream>
+#include <QDateTime>
+#include <QDebug>
+#include <QList>
+#include <QMap>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QPair>
+#include <QTcpServer>
+#include <QTimer>
+#include <QUuid>
+#include <QVariantMap>
 
 #include <QUrlQuery>
 
 #include "katabasis/DeviceFlow.h"
-#include "katabasis/PollServer.h"
 #include "katabasis/Globals.h"
+#include "katabasis/PollServer.h"
 
 #include "JsonResponse.h"
 

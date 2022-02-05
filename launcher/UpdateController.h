@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QString>
 #include <QList>
+#include <QString>
 #include <updater/GoUpdate.h>
 
 class QWidget;

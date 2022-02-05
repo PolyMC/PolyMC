@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <QDialog>
 #include "BaseVersion.h"
 #include <BaseInstance.h>
+#include <QDialog>
 
 class BaseInstance;
 

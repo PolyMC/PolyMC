@@ -1,11 +1,11 @@
-#include <QObject>
 #include "ModrinthPackIndex.h"
+#include <QObject>
 
-#include "Json.h"
-#include "net/NetJob.h"
 #include "BaseInstance.h"
+#include "Json.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
+#include "net/NetJob.h"
 
 
 void Modrinth::loadIndexedPack(Modrinth::IndexedPack & pack, QJsonObject & obj)

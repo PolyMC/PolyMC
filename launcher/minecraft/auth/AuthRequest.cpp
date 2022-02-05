@@ -1,8 +1,8 @@
 #include <cassert>
 
+#include <QBuffer>
 #include <QDebug>
 #include <QTimer>
-#include <QBuffer>
 #include <QUrlQuery>
 
 #include "Application.h"

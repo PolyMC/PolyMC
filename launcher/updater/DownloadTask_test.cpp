@@ -1,10 +1,10 @@
-#include <QTest>
 #include <QSignalSpy>
+#include <QTest>
 
 #include "TestUtil.h"
 
-#include "updater/GoUpdate.h"
 #include "updater/DownloadTask.h"
+#include "updater/GoUpdate.h"
 #include "updater/UpdateChecker.h"
 #include <FileSystem.h>
 

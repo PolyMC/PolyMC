@@ -14,14 +14,14 @@
  */
 
 #include "SkinUtils.h"
-#include "net/HttpMetaCache.h"
 #include "Application.h"
+#include "net/HttpMetaCache.h"
 
 #include <QFile>
-#include <QPainter>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
+#include <QPainter>
 
 namespace SkinUtils
 {

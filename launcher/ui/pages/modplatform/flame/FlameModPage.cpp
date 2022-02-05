@@ -4,13 +4,13 @@
 #include <QKeyEvent>
 
 #include "Application.h"
-#include "Json.h"
-#include "ui/dialogs/ModDownloadDialog.h"
-#include "InstanceImportTask.h"
 #include "FlameModModel.h"
+#include "InstanceImportTask.h"
+#include "Json.h"
 #include "ModDownloadTask.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
+#include "ui/dialogs/ModDownloadDialog.h"
 
 FlameModPage::FlameModPage(ModDownloadDialog *dialog, BaseInstance *instance)
     : QWidget(dialog), m_instance(instance), ui(new Ui::FlameModPage), dialog(dialog)

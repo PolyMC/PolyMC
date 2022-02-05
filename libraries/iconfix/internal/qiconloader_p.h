@@ -46,12 +46,12 @@
 // We mean it.
 //
 
+#include <QtCore/QHash>
+#include <QtCore/QTypeInfo>
+#include <QtCore/QVector>
 #include <QtGui/QIcon>
 #include <QtGui/QIconEngine>
 #include <QtGui/QPixmapCache>
-#include <QtCore/QHash>
-#include <QtCore/QVector>
-#include <QtCore/QTypeInfo>
 #include <utility>
 
 

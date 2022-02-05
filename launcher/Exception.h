@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <QString>
 #include <QDebug>
+#include <QString>
 #include <exception>
 
 class Exception : public std::exception

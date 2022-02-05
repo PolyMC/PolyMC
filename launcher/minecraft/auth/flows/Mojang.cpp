@@ -2,10 +2,10 @@
 
 #include <utility>
 
-#include "minecraft/auth/steps/YggdrasilStep.h"
-#include "minecraft/auth/steps/MinecraftProfileStep.h"
-#include "minecraft/auth/steps/MigrationEligibilityStep.h"
 #include "minecraft/auth/steps/GetSkinStep.h"
+#include "minecraft/auth/steps/MigrationEligibilityStep.h"
+#include "minecraft/auth/steps/MinecraftProfileStep.h"
+#include "minecraft/auth/steps/YggdrasilStep.h"
 
 MojangRefresh::MojangRefresh(
     AccountData *data,

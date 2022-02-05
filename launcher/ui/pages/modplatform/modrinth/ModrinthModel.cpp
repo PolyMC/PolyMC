@@ -1,8 +1,8 @@
 #include "ModrinthModel.h"
 #include "Application.h"
+#include "ModrinthPage.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
-#include "ModrinthPage.h"
 #include <Json.h>
 
 #include <MMCStrings.h>

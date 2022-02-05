@@ -14,10 +14,10 @@
  */
 
 #pragma once
-#include <QString>
 #include <QMap>
-#include <qtimer.h>
+#include <QString>
 #include <memory>
+#include <qtimer.h>
 
 class HttpMetaCache;
 

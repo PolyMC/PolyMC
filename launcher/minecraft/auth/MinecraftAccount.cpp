@@ -17,12 +17,12 @@
 
 #include "MinecraftAccount.h"
 
-#include <QUuid>
-#include <QJsonObject>
 #include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRegExp>
 #include <QStringList>
-#include <QJsonDocument>
+#include <QUuid>
 
 #include <QDebug>
 

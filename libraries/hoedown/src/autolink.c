@@ -1,9 +1,9 @@
 #include "hoedown/autolink.h"
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifndef _MSC_VER
 #include <strings.h>

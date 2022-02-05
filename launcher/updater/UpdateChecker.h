@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include "net/NetJob.h"
 #include "GoUpdate.h"
+#include "net/NetJob.h"
 
 class UpdateChecker : public QObject
 {

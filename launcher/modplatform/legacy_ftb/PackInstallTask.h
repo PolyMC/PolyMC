@@ -1,12 +1,12 @@
 #pragma once
 #include "InstanceTask.h"
-#include "net/NetJob.h"
-#include <quazip/quazip.h>
-#include <quazip/quazipdir.h>
+#include "PackHelpers.h"
 #include "meta/Index.h"
 #include "meta/Version.h"
 #include "meta/VersionList.h"
-#include "PackHelpers.h"
+#include "net/NetJob.h"
+#include <quazip/quazip.h>
+#include <quazip/quazipdir.h>
 
 #include "net/NetJob.h"
 

@@ -1,17 +1,17 @@
-#include <QFileInfo>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QPainter>
 
 #include <FileSystem.h>
 
-#include <minecraft/services/SkinUpload.h>
 #include <minecraft/services/CapeChange.h>
+#include <minecraft/services/SkinUpload.h>
 #include <tasks/SequentialTask.h>
 
+#include "CustomMessageBox.h"
+#include "ProgressDialog.h"
 #include "SkinUploadDialog.h"
 #include "ui_SkinUploadDialog.h"
-#include "ProgressDialog.h"
-#include "CustomMessageBox.h"
 
 void SkinUploadDialog::on_buttonBox_rejected()
 {

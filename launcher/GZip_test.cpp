@@ -1,5 +1,5 @@
-#include <QTest>
 #include "TestUtil.h"
+#include <QTest>
 
 #include "GZip.h"
 #include <random>

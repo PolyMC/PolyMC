@@ -20,8 +20,8 @@
 
 #include <QKeyEvent>
 
-#include "ui/dialogs/NewInstanceDialog.h"
 #include "modplatform/modpacksch/FTBPackInstallTask.h"
+#include "ui/dialogs/NewInstanceDialog.h"
 
 #include "HoeDown.h"
 

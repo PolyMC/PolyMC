@@ -23,8 +23,8 @@
 #include <modplatform/atlauncher/ATLPackInstallTask.h>
 
 #include "Application.h"
-#include "ui/pages/BasePage.h"
 #include "tasks/Task.h"
+#include "ui/pages/BasePage.h"
 
 namespace Ui
 {

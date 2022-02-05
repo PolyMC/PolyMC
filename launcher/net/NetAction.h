@@ -15,11 +15,11 @@
 
 #pragma once
 
+#include <QNetworkReply>
 #include <QObject>
+#include <QObjectPtr.h>
 #include <QUrl>
 #include <memory>
-#include <QNetworkReply>
-#include <QObjectPtr.h>
 
 enum JobStatus
 {

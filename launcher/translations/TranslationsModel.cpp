@@ -1,17 +1,17 @@
 #include "TranslationsModel.h"
 
 #include <QCoreApplication>
-#include <QTranslator>
-#include <QLocale>
+#include <QDebug>
 #include <QDir>
 #include <QLibraryInfo>
-#include <QDebug>
+#include <QLocale>
+#include <QTranslator>
 
-#include "FileSystem.h"
-#include "net/NetJob.h"
-#include "net/ChecksumValidator.h"
 #include "BuildConfig.h"
+#include "FileSystem.h"
 #include "Json.h"
+#include "net/ChecksumValidator.h"
+#include "net/NetJob.h"
 
 #include "POTranslator.h"
 

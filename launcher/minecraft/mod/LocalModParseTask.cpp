@@ -1,15 +1,15 @@
 #include "LocalModParseTask.h"
 
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
 #include <QJsonValue>
 #include <quazip/quazip.h>
 #include <quazip/quazipfile.h>
 #include <toml.h>
 
-#include "settings/INIFile.h"
 #include "FileSystem.h"
+#include "settings/INIFile.h"
 
 namespace {
 

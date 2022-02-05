@@ -1,10 +1,10 @@
 #pragma once
 
+#include "QObjectPtr.h"
+#include "tasks/Task.h"
 #include <QFile>
 #include <QtNetwork/QtNetwork>
 #include <memory>
-#include "tasks/Task.h"
-#include "QObjectPtr.h"
 
 class CapeChange : public Task
 {

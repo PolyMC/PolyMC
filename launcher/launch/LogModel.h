@@ -1,8 +1,8 @@
 #pragma once
 
+#include "MessageLevel.h"
 #include <QAbstractListModel>
 #include <QString>
-#include "MessageLevel.h"
 
 class LogModel : public QAbstractListModel
 {

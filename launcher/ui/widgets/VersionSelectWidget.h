@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QSortFilterProxyModel>
 #include "BaseVersionList.h"
+#include <QSortFilterProxyModel>
+#include <QWidget>
 
 class VersionProxyModel;
 class VersionListView;

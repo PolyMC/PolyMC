@@ -3,10 +3,10 @@
 
 #include <QDebug>
 
-#include "minecraft/VersionFile.h"
+#include "ParseUtils.h"
 #include "minecraft/Library.h"
 #include "minecraft/PackProfile.h"
-#include "ParseUtils.h"
+#include "minecraft/VersionFile.h"
 
 #include <Version.h>
 

@@ -1,15 +1,15 @@
-#include <meta/VersionList.h>
-#include <meta/Index.h>
 #include "Component.h"
+#include <meta/Index.h>
+#include <meta/VersionList.h>
 
 #include <QSaveFile>
 
-#include "meta/Version.h"
-#include "VersionFile.h"
-#include "minecraft/PackProfile.h"
+#include "Application.h"
 #include "FileSystem.h"
 #include "OneSixVersionFormat.h"
-#include "Application.h"
+#include "VersionFile.h"
+#include "meta/Version.h"
+#include "minecraft/PackProfile.h"
 
 #include <assert.h>
 

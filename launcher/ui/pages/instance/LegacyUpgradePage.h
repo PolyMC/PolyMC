@@ -18,9 +18,9 @@
 #include <QWidget>
 
 #include "minecraft/legacy/LegacyInstance.h"
+#include "tasks/Task.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "tasks/Task.h"
 
 namespace Ui
 {

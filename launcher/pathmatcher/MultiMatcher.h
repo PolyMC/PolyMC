@@ -1,6 +1,6 @@
 #include "IPathMatcher.h"
-#include <SeparatorPrefixTree.h>
 #include <QRegularExpression>
+#include <SeparatorPrefixTree.h>
 
 class MultiMatcher : public IPathMatcher
 {

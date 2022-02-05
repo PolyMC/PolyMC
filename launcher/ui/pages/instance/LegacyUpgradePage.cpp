@@ -2,10 +2,10 @@
 #include "ui_LegacyUpgradePage.h"
 #include <utility>
 
+#include "Application.h"
 #include "InstanceList.h"
 #include "minecraft/legacy/LegacyInstance.h"
 #include "minecraft/legacy/LegacyUpgradeTask.h"
-#include "Application.h"
 
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ProgressDialog.h"

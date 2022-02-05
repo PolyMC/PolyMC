@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QProcess>
 #include "MessageLevel.h"
+#include <QProcess>
 
 /*
  * This is a basic process.

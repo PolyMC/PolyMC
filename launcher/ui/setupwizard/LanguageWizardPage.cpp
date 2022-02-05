@@ -3,8 +3,8 @@
 #include <translations/TranslationsModel.h>
 
 #include "ui/widgets/LanguageSelectionWidget.h"
-#include <QVBoxLayout>
 #include <BuildConfig.h>
+#include <QVBoxLayout>
 
 LanguageWizardPage::LanguageWizardPage(QWidget *parent)
     : BaseWizardPage(parent)

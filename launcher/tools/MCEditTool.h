@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QString>
 #include "settings/SettingsObject.h"
+#include <QString>
 
 class MCEditTool
 {

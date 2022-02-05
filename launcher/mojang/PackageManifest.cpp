@@ -1,14 +1,14 @@
 #include "PackageManifest.h"
 #include <Json.h>
-#include <QDir>
-#include <QDirIterator>
 #include <QCryptographicHash>
 #include <QDebug>
+#include <QDir>
+#include <QDirIterator>
 
 #ifndef Q_OS_WIN32
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #endif
 
 namespace mojang_files {
@@ -185,9 +185,9 @@ Package Package::fromManifestFile(const QString & filename) {
 
 #ifndef Q_OS_WIN32
 
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace {
 // FIXME: Qt obscures symlink targets by making them absolute. that is useless. this is the workaround - we do it ourselves

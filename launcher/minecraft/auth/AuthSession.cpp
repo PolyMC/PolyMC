@@ -1,7 +1,7 @@
 #include "AuthSession.h"
-#include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QStringList>
 
 QString AuthSession::serializeUserProperties()

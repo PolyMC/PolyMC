@@ -32,17 +32,17 @@
 ****************************************************************************/
 #include "qiconloader_p.h"
 
-#include <QtGui/QIconEnginePlugin>
-#include <QtGui/QPixmapCache>
-#include <QtGui/QIconEngine>
-#include <QtGui/QPalette>
-#include <QtCore/QList>
-#include <QtCore/QHash>
-#include <QtCore/QDir>
-#include <QtCore/QSettings>
-#include <QtGui/QPainter>
 #include <QApplication>
 #include <QLatin1Literal>
+#include <QtCore/QDir>
+#include <QtCore/QHash>
+#include <QtCore/QList>
+#include <QtCore/QSettings>
+#include <QtGui/QIconEngine>
+#include <QtGui/QIconEnginePlugin>
+#include <QtGui/QPainter>
+#include <QtGui/QPalette>
+#include <QtGui/QPixmapCache>
 #include <utility>
 
 #include "qhexstring_p.h"

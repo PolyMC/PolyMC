@@ -1,13 +1,13 @@
 #pragma once
 
 #include <QNetworkAccessManager>
-#include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QPair>
 
+#include "Bits.h"
 #include "Reply.h"
 #include "RequestParameter.h"
-#include "Bits.h"
 
 namespace Katabasis {
 

@@ -29,13 +29,13 @@ SOFTWARE.
 
 #include "distroutils.h"
 
-#include <QStringList>
-#include <QMap>
-#include <QSettings>
-#include <QFile>
-#include <QProcess>
 #include <QDebug>
 #include <QDir>
+#include <QFile>
+#include <QMap>
+#include <QProcess>
+#include <QSettings>
+#include <QStringList>
 
 #include <functional>
 

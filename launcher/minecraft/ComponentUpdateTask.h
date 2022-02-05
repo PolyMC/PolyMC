@@ -1,7 +1,7 @@
 #pragma once
 
-#include "tasks/Task.h"
 #include "net/Mode.h"
+#include "tasks/Task.h"
 
 #include <memory>
 class PackProfile;

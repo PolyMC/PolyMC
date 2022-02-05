@@ -16,25 +16,25 @@
 #include "ModFolderPage.h"
 #include "ui_ModFolderPage.h"
 
-#include <QMessageBox>
+#include <QAbstractItemModel>
 #include <QEvent>
 #include <QKeyEvent>
-#include <QAbstractItemModel>
 #include <QMenu>
+#include <QMessageBox>
 #include <QSortFilterProxyModel>
 
 #include "Application.h"
 
+#include "ui/GuiUtil.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ModDownloadDialog.h"
-#include "ui/GuiUtil.h"
 
 #include "DesktopServices.h"
 
-#include "minecraft/mod/ModFolderModel.h"
-#include "minecraft/mod/Mod.h"
-#include "minecraft/VersionFilterData.h"
 #include "minecraft/PackProfile.h"
+#include "minecraft/VersionFilterData.h"
+#include "minecraft/mod/Mod.h"
+#include "minecraft/mod/ModFolderModel.h"
 
 #include "Version.h"
 #include "ui/dialogs/ProgressDialog.h"

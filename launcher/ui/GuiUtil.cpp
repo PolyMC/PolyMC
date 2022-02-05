@@ -1,17 +1,17 @@
 #include "GuiUtil.h"
 
-#include <QClipboard>
 #include <QApplication>
+#include <QClipboard>
 #include <QFileDialog>
 
-#include "ui/dialogs/ProgressDialog.h"
-#include "ui/dialogs/CustomMessageBox.h"
 #include "net/PasteUpload.h"
+#include "ui/dialogs/CustomMessageBox.h"
+#include "ui/dialogs/ProgressDialog.h"
 
 #include "Application.h"
-#include <settings/SettingsObject.h>
-#include <DesktopServices.h>
 #include <BuildConfig.h>
+#include <DesktopServices.h>
+#include <settings/SettingsObject.h>
 
 QString GuiUtil::uploadPaste(const QString &text, QWidget *parentWidget)
 {

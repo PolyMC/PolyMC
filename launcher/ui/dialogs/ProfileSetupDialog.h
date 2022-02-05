@@ -17,8 +17,8 @@
 
 #include <QDialog>
 #include <QIcon>
-#include <QTimer>
 #include <QNetworkReply>
+#include <QTimer>
 
 #include <memory>
 #include <minecraft/auth/MinecraftAccount.h>

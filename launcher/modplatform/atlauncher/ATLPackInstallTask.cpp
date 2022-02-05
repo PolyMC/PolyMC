@@ -21,21 +21,21 @@
 
 #include <quazip/quazip.h>
 
-#include "MMCZip.h"
-#include "minecraft/OneSixVersionFormat.h"
-#include "Version.h"
-#include "net/ChecksumValidator.h"
 #include "FileSystem.h"
 #include "Json.h"
-#include "minecraft/MinecraftInstance.h"
-#include "minecraft/PackProfile.h"
-#include "settings/INISettingsObject.h"
+#include "MMCZip.h"
+#include "Version.h"
 #include "meta/Index.h"
 #include "meta/Version.h"
 #include "meta/VersionList.h"
+#include "minecraft/MinecraftInstance.h"
+#include "minecraft/OneSixVersionFormat.h"
+#include "minecraft/PackProfile.h"
+#include "net/ChecksumValidator.h"
+#include "settings/INISettingsObject.h"
 
-#include "BuildConfig.h"
 #include "Application.h"
+#include "BuildConfig.h"
 
 namespace ATLauncher {
 

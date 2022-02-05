@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <QMutex>
 #include <QAbstractListModel>
-#include <QFile>
 #include <QDir>
+#include <QFile>
+#include <QMutex>
 #include <QtGui/QIcon>
 #include <memory>
 

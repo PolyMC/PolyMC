@@ -1,6 +1,6 @@
 #pragma once
-#include "tasks/Task.h"
 #include "net/NetJob.h"
+#include "tasks/Task.h"
 class MinecraftInstance;
 
 class LibrariesTask : public Task

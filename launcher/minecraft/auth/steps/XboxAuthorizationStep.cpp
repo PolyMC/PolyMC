@@ -1,8 +1,8 @@
 #include "XboxAuthorizationStep.h"
 
-#include <QNetworkRequest>
-#include <QJsonParseError>
 #include <QJsonDocument>
+#include <QJsonParseError>
+#include <QNetworkRequest>
 #include <utility>
 
 #include "minecraft/auth/AuthRequest.h"

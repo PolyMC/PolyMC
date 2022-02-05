@@ -21,8 +21,8 @@
 #include "ui/GuiUtil.h"
 
 #include "RecursiveFileSystemWatcher.h"
-#include <GZip.h>
 #include <FileSystem.h>
+#include <GZip.h>
 #include <QShortcut>
 #include <utility>
 

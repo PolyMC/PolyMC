@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Task.h"
 #include "QObjectPtr.h"
+#include "Task.h"
 
 #include <QQueue>
 

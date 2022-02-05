@@ -1,7 +1,7 @@
 #include "FileSink.h"
+#include "FileSystem.h"
 #include <QFile>
 #include <QFileInfo>
-#include "FileSystem.h"
 #include <utility>
 
 namespace Net {

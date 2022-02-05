@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QString>
-#include <QMultiMap>
-#include <memory>
 #include "QObjectPtr.h"
+#include <QMultiMap>
+#include <QString>
+#include <memory>
 
 class MinecraftAccount;
 class QNetworkAccessManager;

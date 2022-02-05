@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QSortFilterProxyModel>
 #include <QCollator>
+#include <QSortFilterProxyModel>
 
 class InstanceProxyModel : public QSortFilterProxyModel
 {

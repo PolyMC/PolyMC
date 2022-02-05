@@ -1,9 +1,9 @@
 #pragma once
+#include "javaendian.h"
+#include <exception>
 #include <stdint.h>
 #include <string>
 #include <vector>
-#include <exception>
-#include "javaendian.h"
 
 namespace util
 {

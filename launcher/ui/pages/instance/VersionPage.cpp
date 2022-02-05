@@ -15,14 +15,13 @@
 
 #include "Application.h"
 
-#include <QMessageBox>
-#include <QLabel>
+#include <QAbstractItemModel>
 #include <QEvent>
 #include <QKeyEvent>
-#include <QMenu>
-#include <QAbstractItemModel>
-#include <QMessageBox>
+#include <QLabel>
 #include <QListView>
+#include <QMenu>
+#include <QMessageBox>
 #include <QString>
 #include <QUrl>
 
@@ -30,19 +29,19 @@
 #include "ui_VersionPage.h"
 
 #include "ui/dialogs/CustomMessageBox.h"
-#include "ui/dialogs/VersionSelectDialog.h"
 #include "ui/dialogs/NewComponentDialog.h"
 #include "ui/dialogs/ProgressDialog.h"
+#include "ui/dialogs/VersionSelectDialog.h"
 
 #include "ui/GuiUtil.h"
 
+#include "DesktopServices.h"
+#include "Exception.h"
+#include "Version.h"
+#include "icons/IconList.h"
 #include "minecraft/PackProfile.h"
 #include "minecraft/auth/AccountList.h"
 #include "minecraft/mod/Mod.h"
-#include "icons/IconList.h"
-#include "Exception.h"
-#include "Version.h"
-#include "DesktopServices.h"
 
 #include "meta/Index.h"
 #include "meta/VersionList.h"

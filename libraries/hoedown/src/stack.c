@@ -2,9 +2,9 @@
 
 #include "hoedown/buffer.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 void
 hoedown_stack_init(hoedown_stack *st, size_t initial_size)

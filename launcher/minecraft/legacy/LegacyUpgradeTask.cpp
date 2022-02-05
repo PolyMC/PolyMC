@@ -1,14 +1,14 @@
 #include "LegacyUpgradeTask.h"
-#include "settings/INISettingsObject.h"
 #include "FileSystem.h"
-#include "NullInstance.h"
-#include "pathmatcher/RegexpMatcher.h"
-#include <QtConcurrentRun>
 #include "LegacyInstance.h"
+#include "LegacyModList.h"
+#include "NullInstance.h"
+#include "classparser.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
-#include "LegacyModList.h"
-#include "classparser.h"
+#include "pathmatcher/RegexpMatcher.h"
+#include "settings/INISettingsObject.h"
+#include <QtConcurrentRun>
 
 LegacyUpgradeTask::LegacyUpgradeTask(InstancePtr origInstance)
 {

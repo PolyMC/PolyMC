@@ -14,12 +14,12 @@
  */
 
 #pragma once
-#include <QtNetwork>
-#include "NetAction.h"
 #include "Download.h"
 #include "HttpMetaCache.h"
-#include "tasks/Task.h"
+#include "NetAction.h"
 #include "QObjectPtr.h"
+#include "tasks/Task.h"
+#include <QtNetwork>
 
 class NetJob;
 

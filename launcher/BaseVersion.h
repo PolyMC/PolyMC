@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <memory>
-#include <QString>
 #include <QMetaType>
+#include <QString>
+#include <memory>
 
 /*!
  * An abstract base class for versions.

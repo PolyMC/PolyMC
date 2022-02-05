@@ -19,10 +19,10 @@
 #include "DesktopServices.h"
 #include "minecraft/auth/AccountTask.h"
 
-#include <QtWidgets/QPushButton>
-#include <QUrl>
 #include <QApplication>
 #include <QClipboard>
+#include <QUrl>
+#include <QtWidgets/QPushButton>
 
 MSALoginDialog::MSALoginDialog(QWidget *parent) : QDialog(parent), ui(new Ui::MSALoginDialog)
 {

@@ -2,13 +2,13 @@
 
 #include "distroutils.h"
 
-#include <sys/utsname.h>
 #include <fstream>
 #include <limits>
+#include <sys/utsname.h>
 
+#include <QDebug>
 #include <QString>
 #include <QStringList>
-#include <QDebug>
 
 Sys::KernelInfo Sys::getKernelInfo()
 {

@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <QString>
 #include <QRect>
-#include <QVector>
+#include <QString>
 #include <QStyleOption>
+#include <QVector>
 
 class InstanceView;
 class QPainter;

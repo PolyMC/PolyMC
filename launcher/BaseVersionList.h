@@ -15,13 +15,13 @@
 
 #pragma once
 
+#include <QAbstractListModel>
 #include <QObject>
 #include <QVariant>
-#include <QAbstractListModel>
 
 #include "BaseVersion.h"
-#include "tasks/Task.h"
 #include "QObjectPtr.h"
+#include "tasks/Task.h"
 
 /*!
  * \brief Class that each instance type's version list derives from.

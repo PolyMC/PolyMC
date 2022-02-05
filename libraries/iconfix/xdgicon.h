@@ -27,9 +27,9 @@
 
 #pragma once
 
-#include <QtGui/QIcon>
 #include <QString>
 #include <QStringList>
+#include <QtGui/QIcon>
 
 #include "launcher_iconfix_export.h"
 

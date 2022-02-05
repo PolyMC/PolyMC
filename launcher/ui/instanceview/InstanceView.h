@@ -15,11 +15,11 @@
 
 #pragma once
 
-#include <QListView>
-#include <QLineEdit>
-#include <QScrollBar>
-#include <QCache>
 #include "VisualGroup.h"
+#include <QCache>
+#include <QLineEdit>
+#include <QListView>
+#include <QScrollBar>
 #include <functional>
 
 struct InstanceViewRoles

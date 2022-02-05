@@ -1,14 +1,14 @@
 #include "ImgurUpload.h"
 #include "BuildConfig.h"
 
-#include <QNetworkRequest>
+#include <QDebug>
+#include <QFile>
 #include <QHttpMultiPart>
+#include <QHttpPart>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QHttpPart>
-#include <QFile>
+#include <QNetworkRequest>
 #include <QUrl>
-#include <QDebug>
 #include <utility>
 
 ImgurUpload::ImgurUpload(ScreenShot::Ptr shot) : NetAction(), m_shot(std::move(shot))

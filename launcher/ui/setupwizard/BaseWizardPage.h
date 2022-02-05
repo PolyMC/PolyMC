@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QWizardPage>
 #include <QEvent>
+#include <QWizardPage>
 
 class BaseWizardPage : public QWizardPage
 {

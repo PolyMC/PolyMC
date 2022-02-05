@@ -1,18 +1,18 @@
 #pragma once
-#include <QString>
-#include <net/NetAction.h>
-#include <QPair>
-#include <QList>
-#include <QStringList>
-#include <QMap>
 #include <QDir>
+#include <QList>
+#include <QMap>
+#include <QPair>
+#include <QString>
+#include <QStringList>
 #include <QUrl>
 #include <memory>
+#include <net/NetAction.h>
 
-#include "Rule.h"
-#include "minecraft/OpSys.h"
 #include "GradleSpecifier.h"
 #include "MojangDownloadInfo.h"
+#include "Rule.h"
+#include "minecraft/OpSys.h"
 
 class Library;
 class MinecraftInstance;

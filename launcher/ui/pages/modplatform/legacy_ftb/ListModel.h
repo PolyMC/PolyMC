@@ -1,13 +1,13 @@
 #pragma once
 
-#include <modplatform/legacy_ftb/PackHelpers.h>
 #include <RWStorage.h>
+#include <modplatform/legacy_ftb/PackHelpers.h>
 
 #include <QAbstractListModel>
-#include <QSortFilterProxyModel>
-#include <QThreadPool>
 #include <QIcon>
+#include <QSortFilterProxyModel>
 #include <QStyledItemDelegate>
+#include <QThreadPool>
 
 #include <functional>
 

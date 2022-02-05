@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
+#include <QDir>
 #include <QFileInfo>
 #include <minecraft/launch/LauncherPartLaunch.h>
-#include <QDir>
 #include <settings/Setting.h>
 
 #include "LegacyInstance.h"
 
-#include "minecraft/legacy/LegacyModList.h"
 #include "minecraft/WorldList.h"
-#include <MMCZip.h>
+#include "minecraft/legacy/LegacyModList.h"
 #include <FileSystem.h>
+#include <MMCZip.h>
 
 LegacyInstance::LegacyInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString &rootDir)
     : BaseInstance(globalSettings, settings, rootDir)

@@ -16,15 +16,15 @@
 #include "PastePage.h"
 #include "ui_PastePage.h"
 
-#include <QMessageBox>
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QStandardPaths>
 #include <QTabBar>
 #include <QVariant>
 
+#include "Application.h"
 #include "settings/SettingsObject.h"
 #include "tools/BaseProfiler.h"
-#include "Application.h"
 
 PastePage::PastePage(QWidget *parent) :
     QWidget(parent),

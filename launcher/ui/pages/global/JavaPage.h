@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include <memory>
-#include <QDialog>
-#include "ui/pages/BasePage.h"
 #include "JavaCommon.h"
+#include "ui/pages/BasePage.h"
 #include <Application.h>
+#include <QDialog>
 #include <QObjectPtr.h>
+#include <memory>
 
 class SettingsObject;
 

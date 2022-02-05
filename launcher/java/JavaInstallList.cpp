@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
+#include <QRegExp>
 #include <QtNetwork>
 #include <QtXml>
-#include <QRegExp>
 
 #include <QDebug>
 
-#include "java/JavaInstallList.h"
-#include "java/JavaCheckerJob.h"
-#include "java/JavaUtils.h"
 #include "MMCStrings.h"
+#include "java/JavaCheckerJob.h"
+#include "java/JavaInstallList.h"
+#include "java/JavaUtils.h"
 #include "minecraft/VersionFilterData.h"
 
 JavaInstallList::JavaInstallList(QObject *parent) : BaseVersionList(parent)

@@ -16,8 +16,8 @@
 
 #include "FtbListModel.h"
 
-#include "BuildConfig.h"
 #include "Application.h"
+#include "BuildConfig.h"
 #include "Json.h"
 
 #include <QPainter>

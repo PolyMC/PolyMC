@@ -1,9 +1,9 @@
 #pragma once
-#include <QRunnable>
-#include <QDebug>
-#include <QObject>
 #include "Mod.h"
 #include "ModDetails.h"
+#include <QDebug>
+#include <QObject>
+#include <QRunnable>
 
 class LocalModParseTask : public QObject, public QRunnable
 {

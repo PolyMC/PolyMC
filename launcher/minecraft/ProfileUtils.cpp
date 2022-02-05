@@ -1,11 +1,11 @@
 #include "ProfileUtils.h"
-#include "minecraft/VersionFilterData.h"
-#include "minecraft/OneSixVersionFormat.h"
 #include "Json.h"
+#include "minecraft/OneSixVersionFormat.h"
+#include "minecraft/VersionFilterData.h"
 #include <QDebug>
 
-#include <QJsonDocument>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QRegularExpression>
 #include <QSaveFile>
 

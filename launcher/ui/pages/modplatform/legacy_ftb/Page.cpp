@@ -8,10 +8,10 @@
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/NewInstanceDialog.h"
 
+#include "ListModel.h"
 #include "modplatform/legacy_ftb/PackFetchTask.h"
 #include "modplatform/legacy_ftb/PackInstallTask.h"
 #include "modplatform/legacy_ftb/PrivatePackManager.h"
-#include "ListModel.h"
 
 namespace LegacyFTB {
 

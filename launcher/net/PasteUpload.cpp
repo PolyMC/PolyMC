@@ -1,12 +1,12 @@
 #include "PasteUpload.h"
-#include "BuildConfig.h"
 #include "Application.h"
+#include "BuildConfig.h"
 
 #include <QDebug>
-#include <QJsonObject>
+#include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include <QFile>
+#include <QJsonObject>
 #include <utility>
 
 PasteUpload::PasteUpload(QWidget *window, QString text, QString url) : m_window(window), m_uploadUrl(std::move(url)), m_text(text.toUtf8())

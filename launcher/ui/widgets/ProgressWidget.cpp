@@ -1,10 +1,10 @@
 // Licensed under the Apache-2.0 license. See README.md for details.
 
 #include "ProgressWidget.h"
-#include <QProgressBar>
-#include <QLabel>
-#include <QVBoxLayout>
 #include <QEventLoop>
+#include <QLabel>
+#include <QProgressBar>
+#include <QVBoxLayout>
 
 #include "tasks/Task.h"
 

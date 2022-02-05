@@ -14,18 +14,18 @@
  */
 
 #include "InstanceDelegate.h"
-#include <QPainter>
-#include <QTextOption>
-#include <QTextLayout>
 #include <QApplication>
-#include <QtMath>
 #include <QDebug>
+#include <QPainter>
+#include <QTextLayout>
+#include <QTextOption>
+#include <QtMath>
 
-#include "InstanceView.h"
 #include "BaseInstance.h"
 #include "InstanceList.h"
-#include <xdgicon.h>
+#include "InstanceView.h"
 #include <QTextEdit>
+#include <xdgicon.h>
 
 // Origin: Qt
 static void viewItemTextLayout(QTextLayout &textLayout, int lineWidth, qreal &height,

@@ -1,7 +1,7 @@
 #include "BaseExternalTool.h"
 
-#include <QProcess>
 #include <QDir>
+#include <QProcess>
 #include <utility>
 
 #ifdef Q_OS_WIN

@@ -1,18 +1,18 @@
 #pragma once
 
-#include <QObject>
-#include <QList>
-#include <QVector>
-#include <QSet>
-#include <QNetworkReply>
 #include <QImage>
+#include <QList>
+#include <QNetworkReply>
+#include <QObject>
+#include <QSet>
+#include <QVector>
 
 #include <katabasis/DeviceFlow.h>
 
-#include "minecraft/auth/Yggdrasil.h"
 #include "minecraft/auth/AccountData.h"
 #include "minecraft/auth/AccountTask.h"
 #include "minecraft/auth/AuthStep.h"
+#include "minecraft/auth/Yggdrasil.h"
 
 class AuthFlow : public AccountTask
 {

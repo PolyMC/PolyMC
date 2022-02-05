@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QString>
 #include <QIcon>
+#include <QString>
 #include <memory>
 
 #include "BasePageContainer.h"

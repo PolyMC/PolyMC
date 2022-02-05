@@ -27,14 +27,14 @@
 
 #include "xdgicon.h"
 
-#include <QString>
+#include "internal/qiconloader_p.h"
+#include <QCache>
+#include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
-#include <QStringList>
 #include <QFileInfo>
-#include <QCache>
-#include "internal/qiconloader_p.h"
-#include <QCoreApplication>
+#include <QString>
+#include <QStringList>
 
 /************************************************
 

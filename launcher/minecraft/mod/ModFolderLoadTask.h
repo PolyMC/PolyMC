@@ -1,9 +1,9 @@
 #pragma once
-#include <QRunnable>
-#include <QObject>
+#include "Mod.h"
 #include <QDir>
 #include <QMap>
-#include "Mod.h"
+#include <QObject>
+#include <QRunnable>
 #include <memory>
 
 class ModFolderLoadTask : public QObject, public QRunnable

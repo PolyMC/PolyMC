@@ -2,8 +2,8 @@
 
 #include <QObject>
 
-#include "net/NetJob.h"
 #include "net/Download.h"
+#include "net/NetJob.h"
 
 class NotificationChecker : public QObject
 {

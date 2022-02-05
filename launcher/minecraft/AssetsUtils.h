@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <QString>
-#include <QMap>
 #include "net/NetAction.h"
 #include "net/NetJob.h"
+#include <QMap>
+#include <QString>
 
 struct AssetObject
 {

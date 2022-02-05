@@ -15,12 +15,12 @@
 
 #include "WorldList.h"
 #include <FileSystem.h>
+#include <QDebug>
+#include <QFileSystemWatcher>
 #include <QMimeData>
+#include <QString>
 #include <QUrl>
 #include <QUuid>
-#include <QString>
-#include <QFileSystemWatcher>
-#include <QDebug>
 
 WorldList::WorldList(const QString &dir)
     : QAbstractListModel(), m_dir(dir)

@@ -2,9 +2,9 @@
 
 #include <QDir>
 
-#include "settings/SettingsObject.h"
-#include "launch/LaunchTask.h"
 #include "BaseInstance.h"
+#include "launch/LaunchTask.h"
+#include "settings/SettingsObject.h"
 
 class JProfiler : public BaseProfiler
 {

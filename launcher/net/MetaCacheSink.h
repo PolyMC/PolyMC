@@ -1,6 +1,6 @@
 #pragma once
-#include "FileSink.h"
 #include "ChecksumValidator.h"
+#include "FileSink.h"
 #include "net/HttpMetaCache.h"
 
 namespace Net {

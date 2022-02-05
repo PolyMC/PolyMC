@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <QObject>
 #include <QAbstractListModel>
-#include <QSet>
 #include <QList>
+#include <QObject>
+#include <QSet>
 
 #include "BaseInstance.h"
 

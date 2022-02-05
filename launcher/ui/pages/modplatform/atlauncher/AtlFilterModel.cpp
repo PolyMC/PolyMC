@@ -18,9 +18,9 @@
 
 #include <QDebug>
 
-#include <modplatform/atlauncher/ATLPackIndex.h>
-#include <Version.h>
 #include <MMCStrings.h>
+#include <Version.h>
+#include <modplatform/atlauncher/ATLPackIndex.h>
 
 namespace Atl {
 

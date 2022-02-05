@@ -1,7 +1,7 @@
 #pragma once
-#include <QString>
 #include "Library.h"
 #include <ProblemProvider.h>
+#include <QString>
 
 class LaunchProfile: public ProblemProvider
 {

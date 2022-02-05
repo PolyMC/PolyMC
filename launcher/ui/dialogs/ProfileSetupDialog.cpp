@@ -16,17 +16,17 @@
 #include "ProfileSetupDialog.h"
 #include "ui_ProfileSetupDialog.h"
 
-#include <QPushButton>
 #include <QAction>
-#include <QRegExpValidator>
-#include <QJsonDocument>
 #include <QDebug>
+#include <QJsonDocument>
+#include <QPushButton>
+#include <QRegExpValidator>
 
 #include "ui/dialogs/ProgressDialog.h"
 
-#include <Application.h>
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"
+#include <Application.h>
 
 
 ProfileSetupDialog::ProfileSetupDialog(MinecraftAccountPtr accountToSetup, QWidget *parent)

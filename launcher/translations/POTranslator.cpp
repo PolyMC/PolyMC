@@ -1,7 +1,7 @@
 #include "POTranslator.h"
 
-#include <QDebug>
 #include "FileSystem.h"
+#include <QDebug>
 
 struct POEntry
 {
