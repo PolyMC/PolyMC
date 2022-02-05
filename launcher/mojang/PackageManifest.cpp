@@ -193,7 +193,7 @@ namespace {
 // FIXME: Qt obscures symlink targets by making them absolute. that is useless. this is the workaround - we do it ourselves
 bool actually_read_symlink_target(const QString & filepath, Path & out)
 {
-    struct ::stat st;
+    struct ::stat st{};
     // FIXME: here, we assume the native filesystem encoding. May the Gods have mercy upon our Souls.
     QByteArray nativePath = filepath.toUtf8();
     const char * filepath_cstr = nativePath.data();

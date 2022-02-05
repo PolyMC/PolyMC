@@ -141,13 +141,13 @@ public:
     ;
     bool valid;
     bool is_synthetic;
-    uint32_t magic;
-    uint16_t minor_version;
-    uint16_t major_version;
+    uint32_t magic{};
+    uint16_t minor_version{};
+    uint16_t major_version{};
     constant_pool constants;
-    uint16_t access_flags;
-    uint16_t this_class;
-    uint16_t super_class;
+    uint16_t access_flags{};
+    uint16_t this_class{};
+    uint16_t super_class{};
     // interfaces this class implements ? must be. investigate.
     std::vector<uint16_t> interfaces;
     // FIXME: doesn't free up memory on delete

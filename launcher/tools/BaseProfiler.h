@@ -20,7 +20,7 @@ slots:
     void abortProfiling();
 
 protected:
-    QProcess *m_profilerProcess;
+    QProcess *m_profilerProcess{};
 
     virtual void beginProfilingImpl(shared_qobject_ptr<LaunchTask> process) = 0;
     virtual void abortProfilingImpl();

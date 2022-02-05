@@ -111,7 +111,7 @@ slots:
 
 protected:
     friend class SettingsObject;
-    SettingsObject * m_storage;
+    SettingsObject * m_storage{};
     QStringList m_synonyms;
     QVariant m_defVal;
 };

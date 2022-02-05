@@ -60,11 +60,11 @@ protected:
 
     QNetworkRequest request_;
     QByteArray data_;
-    QNetworkReply *reply_;
+    QNetworkReply *reply_{};
     Status status_;
     QNetworkAccessManager::Operation operation_;
     QUrl url_;
     Katabasis::ReplyList timedReplies_;
 
-    QTimer *timer_;
+    QTimer *timer_{};
 };

@@ -19,7 +19,7 @@ struct JavaCheckResult
     QString outLog;
     QString errorLog;
     bool is_64bit = false;
-    int id;
+    int id{};
     enum class Validity
     {
         Errored,

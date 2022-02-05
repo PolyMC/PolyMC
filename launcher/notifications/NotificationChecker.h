@@ -19,7 +19,7 @@ public:
 
     struct NotificationEntry
     {
-        int id;
+        int id{};
         QString message;
         enum
         {

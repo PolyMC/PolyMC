@@ -219,8 +219,8 @@ struct MojangError{
     }
 
     QString rawError;
-    QJsonParseError parseError;
-    bool fullyParsed;
+    QJsonParseError parseError{};
+    bool fullyParsed{};
 
     QString path;
     QString error;

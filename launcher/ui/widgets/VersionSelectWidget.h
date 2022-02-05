@@ -71,7 +71,7 @@ private:
     BaseVersionList *m_vlist = nullptr;
     VersionProxyModel *m_proxyModel = nullptr;
     int resizeOnColumn = 0;
-    Task * loadTask;
+    Task * loadTask{};
     bool preselectedAlready = false;
 
 private:

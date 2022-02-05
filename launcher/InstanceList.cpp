@@ -650,7 +650,7 @@ void InstanceList::loadGroupList()
         return;
     }
 
-    QJsonParseError error;
+    QJsonParseError error{};
     QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData, &error);
 
     // if the json was bad, fail

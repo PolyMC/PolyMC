@@ -115,7 +115,7 @@ void UpdateChecker::updateCheckFinished(bool notifyNoUpdate)
 {
     qDebug() << "Finished downloading repo index. Checking for new versions.";
 
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     indexJob.reset();
 
     QJsonDocument jsonDoc = QJsonDocument::fromJson(indexData, &jsonError);
@@ -202,7 +202,7 @@ void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
 {
     chanListJob.reset();
 
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QJsonDocument jsonDoc = QJsonDocument::fromJson(chanlistData, &jsonError);
     chanlistData.clear();
     if (jsonError.error != QJsonParseError::NoError)

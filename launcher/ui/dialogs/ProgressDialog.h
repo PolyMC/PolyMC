@@ -67,5 +67,5 @@ private:
 private:
     Ui::ProgressDialog *ui;
 
-    Task *task;
+    Task *task{};
 };

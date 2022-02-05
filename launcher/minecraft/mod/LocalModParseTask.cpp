@@ -59,7 +59,7 @@ std::shared_ptr<ModDetails> ReadMCModInfo(QByteArray contents)
         details->credits = firstObj.value("credits").toString();
         return details;
     };
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QJsonDocument jsonDoc = QJsonDocument::fromJson(contents, &jsonError);
     // this is the very old format that had just the array
     if (jsonDoc.isArray())
@@ -223,7 +223,7 @@ std::shared_ptr<ModDetails> ReadMCModTOML(QByteArray contents)
 // https://fabricmc.net/wiki/documentation:fabric_mod_json
 std::shared_ptr<ModDetails> ReadFabricModInfo(QByteArray contents)
 {
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QJsonDocument jsonDoc = QJsonDocument::fromJson(contents, &jsonError);
     auto object = jsonDoc.object();
     auto schemaVersion = object.contains("schemaVersion") ? object.value("schemaVersion").toInt(0) : 0;
@@ -285,7 +285,7 @@ std::shared_ptr<ModDetails> ReadForgeInfo(QByteArray contents)
 std::shared_ptr<ModDetails> ReadLiteModInfo(QByteArray contents)
 {
     std::shared_ptr<ModDetails> details = std::make_shared<ModDetails>();
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QJsonDocument jsonDoc = QJsonDocument::fromJson(contents, &jsonError);
     auto object = jsonDoc.object();
     if (object.contains("name"))

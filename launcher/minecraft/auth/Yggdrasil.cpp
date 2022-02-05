@@ -263,7 +263,7 @@ void Yggdrasil::processReply() {
 
     // Try to parse the response regardless of the response code.
     // Sometimes the auth server will give more information and an error code.
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QByteArray replyData = m_netReply->readAll();
     QJsonDocument doc = QJsonDocument::fromJson(replyData, &jsonError);
     // Check the response code.

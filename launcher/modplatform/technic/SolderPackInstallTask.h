@@ -55,7 +55,7 @@ namespace Technic
         QString m_minecraftVersion;
         QByteArray m_response;
         QTemporaryDir m_outputDir;
-        int m_modCount;
+        int m_modCount{};
         QFuture<bool> m_extractFuture;
         QFutureWatcher<bool> m_extractFutureWatcher;
     };

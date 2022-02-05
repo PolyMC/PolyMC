@@ -111,7 +111,7 @@ void Technic::ListModel::searchRequestFinished()
 {
     jobPtr.reset();
 
-    QJsonParseError parse_error;
+    QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
     if(parse_error.error != QJsonParseError::NoError)
     {

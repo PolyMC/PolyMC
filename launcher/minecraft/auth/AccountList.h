@@ -97,7 +97,7 @@ protected:
     void endActivity();
 
 private:
-    const char* m_name;
+    const char* m_name{};
     uint32_t m_activityCount = 0;
 signals:
     void listChanged();

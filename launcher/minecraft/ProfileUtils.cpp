@@ -31,7 +31,7 @@ bool readOverrideOrders(QString path, PatchOrder &order)
     }
 
     // and it's valid JSON
-    QJsonParseError error;
+    QJsonParseError error{};
     QJsonDocument doc = QJsonDocument::fromJson(orderFile.readAll(), &error);
     if (error.error != QJsonParseError::NoError)
     {
@@ -96,7 +96,7 @@ VersionFilePtr parseJsonFile(const QFileInfo &fileInfo, const bool requireOrder)
         auto errorStr = QObject::tr("Unable to open the version file %1: %2.").arg(fileInfo.fileName(), file.errorString());
         return createErrorVersionFile(fileInfo.completeBaseName(), fileInfo.absoluteFilePath(), errorStr);
     }
-    QJsonParseError error;
+    QJsonParseError error{};
     auto data = file.readAll();
     QJsonDocument doc = QJsonDocument::fromJson(data, &error);
     file.close();

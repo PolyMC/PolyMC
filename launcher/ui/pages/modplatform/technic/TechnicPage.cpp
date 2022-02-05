@@ -121,7 +121,7 @@ void TechnicPage::suggestCurrent()
         {
             return;
         }
-        QJsonParseError parse_error;
+        QJsonParseError parse_error{};
         QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
         QJsonObject obj = doc.object();
         if(parse_error.error != QJsonParseError::NoError)

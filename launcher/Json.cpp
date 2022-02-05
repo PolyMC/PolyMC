@@ -57,7 +57,7 @@ QJsonDocument requireDocument(const QByteArray &data, const QString &what)
     }
     else
     {
-        QJsonParseError error;
+        QJsonParseError error{};
         QJsonDocument doc = QJsonDocument::fromJson(data, &error);
         if (error.error != QJsonParseError::NoError)
         {

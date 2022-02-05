@@ -96,7 +96,7 @@ bool loadAssetsIndexJson(const QString &assetsId, const QString &path, AssetsInd
     QByteArray jsonData = file.readAll();
     file.close();
 
-    QJsonParseError parseError;
+    QJsonParseError parseError{};
     QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData, &parseError);
 
     // Fail if the JSON is invalid.

@@ -171,7 +171,7 @@ static bool loadPackProfile(PackProfile * parent, const QString & filename, cons
     }
 
     // and it's valid JSON
-    QJsonParseError error;
+    QJsonParseError error{};
     QJsonDocument doc = QJsonDocument::fromJson(componentsFile.readAll(), &error);
     if (error.error != QJsonParseError::NoError)
     {

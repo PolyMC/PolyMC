@@ -142,7 +142,7 @@ struct TranslationsModel::Private
     QString m_nextDownload;
 
     std::unique_ptr<POTranslator> m_po_translator;
-    QFileSystemWatcher *watcher;
+    QFileSystemWatcher *watcher{};
 
     const QString m_system_locale = QLocale::system().name();
     const QString m_system_language = m_system_locale.split('_').front();

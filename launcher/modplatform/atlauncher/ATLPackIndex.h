@@ -33,12 +33,12 @@ struct IndexedVersion
 
 struct IndexedPack
 {
-    int id;
-    int position;
+    int id{};
+    int position{};
     QString name;
     PackType type;
     QVector<IndexedVersion> versions;
-    bool system;
+    bool system{};
     QString description;
 
     QString safeName;

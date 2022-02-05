@@ -101,7 +101,7 @@ bool XboxAuthorizationStep::processSTSError(
     QList<QNetworkReply::RawHeaderPair> headers
 ) {
     if(error == QNetworkReply::AuthenticationRequiredError) {
-        QJsonParseError jsonError;
+        QJsonParseError jsonError{};
         QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
         if(jsonError.error) {
             qWarning() << "Cannot parse error XSTS response as JSON: " << jsonError.errorString();

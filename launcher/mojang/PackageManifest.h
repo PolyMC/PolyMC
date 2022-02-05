@@ -123,7 +123,7 @@ struct FileSource
 struct File
 {
     Hash hash;
-    bool executable;
+    bool executable{};
     std::uint64_t size = 0;
 };
 

@@ -236,7 +236,7 @@ private:
         QString metavar;
         QVariant def;
         // positional
-        bool required;
+        bool required{};
     };
 
     QHash<QString, OptionDef *> m_options;

@@ -81,9 +81,9 @@ private:
     BasePage * m_currentPage = nullptr;
     QSortFilterProxyModel *m_proxyModel;
     PageModel *m_model;
-    QStackedLayout *m_pageStack;
-    QListView *m_pageList;
-    QLabel *m_header;
-    IconLabel *m_iconHeader;
-    QGridLayout *m_layout;
+    QStackedLayout *m_pageStack{};
+    QListView *m_pageList{};
+    QLabel *m_header{};
+    IconLabel *m_iconHeader{};
+    QGridLayout *m_layout{};
 };

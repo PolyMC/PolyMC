@@ -69,7 +69,7 @@ private:
     LogoMap m_logoMap;
 
     NetJob::Ptr jobPtr;
-    int currentPack;
+    int currentPack{};
     QList<int> remainingPacks;
     QByteArray response;
 };

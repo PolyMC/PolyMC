@@ -123,8 +123,8 @@ private:
     // point where the currently active mouse action started in geometry coordinates
     QPoint m_pressedPosition;
     QPersistentModelIndex m_pressedIndex;
-    bool m_pressedAlreadySelected;
-    VisualGroup *m_pressedCategory;
+    bool m_pressedAlreadySelected{};
+    VisualGroup *m_pressedCategory{};
     QItemSelectionModel::SelectionFlag m_ctrlDragSelectionFlag;
     QPoint m_lastDragPosition;
 

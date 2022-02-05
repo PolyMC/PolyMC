@@ -77,7 +77,7 @@ bool parseXTokenResponse(QByteArray & data, Katabasis::Token &output, QString na
 #ifndef NDEBUG
     qDebug() << data;
 #endif
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
     if(jsonError.error) {
         qWarning() << "Failed to parse response from user.auth.xboxlive.com as JSON: " << jsonError.errorString();
@@ -140,7 +140,7 @@ bool parseMinecraftProfile(QByteArray & data, MinecraftProfile &output) {
     qDebug() << data;
 #endif
 
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
     if(jsonError.error) {
         qWarning() << "Failed to parse response from user.auth.xboxlive.com as JSON: " << jsonError.errorString();
@@ -218,7 +218,7 @@ bool parseMinecraftEntitlements(QByteArray & data, MinecraftEntitlement &output)
     qDebug() << data;
 #endif
 
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
     if(jsonError.error) {
         qWarning() << "Failed to parse response from user.auth.xboxlive.com as JSON: " << jsonError.errorString();
@@ -253,7 +253,7 @@ bool parseRolloutResponse(QByteArray & data, bool& result) {
     qDebug() << data;
 #endif
 
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
     if(jsonError.error) {
         qWarning() << "Failed to parse response from https://api.minecraftservices.com/rollout/v1/msamigration as JSON: " << jsonError.errorString();
@@ -278,7 +278,7 @@ bool parseRolloutResponse(QByteArray & data, bool& result) {
 }
 
 bool parseMojangResponse(QByteArray & data, Katabasis::Token &output) {
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     qDebug() << "Parsing Mojang response...";
 #ifndef NDEBUG
     qDebug() << data;

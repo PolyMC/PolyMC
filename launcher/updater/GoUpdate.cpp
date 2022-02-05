@@ -12,7 +12,7 @@ namespace GoUpdate
 
 bool parseVersionInfo(const QByteArray &data, VersionFileList &list, QString &error)
 {
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QJsonDocument jsonDoc = QJsonDocument::fromJson(data, &jsonError);
     if (jsonError.error != QJsonParseError::NoError)
     {

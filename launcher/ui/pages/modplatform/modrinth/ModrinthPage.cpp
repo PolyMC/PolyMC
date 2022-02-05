@@ -105,7 +105,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex first, QModelIndex second)
         QObject::connect(netJob, &NetJob::succeeded, this, [this, response, netJob]
         {
             netJob->deleteLater();
-            QJsonParseError parse_error;
+            QJsonParseError parse_error{};
             QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
             if(parse_error.error != QJsonParseError::NoError) {
                 qWarning() << "Error while parsing JSON response from Modrinth at " << parse_error.offset << " reason: " << parse_error.errorString();

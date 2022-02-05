@@ -13,7 +13,7 @@
 Sys::KernelInfo Sys::getKernelInfo()
 {
     Sys::KernelInfo out;
-    struct utsname buf;
+    struct utsname buf{};
     uname(&buf);
     // NOTE: we assume linux here. this needs further elaboration
     out.kernelType = KernelType::Linux;

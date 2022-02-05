@@ -52,7 +52,7 @@ void ImgurAlbumCreation::downloadFinished()
     {
         QByteArray data = m_reply->readAll();
         m_reply.reset();
-        QJsonParseError jsonError;
+        QJsonParseError jsonError{};
         QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
         if (jsonError.error != QJsonParseError::NoError)
         {

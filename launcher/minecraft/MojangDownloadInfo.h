@@ -16,7 +16,7 @@ struct MojangDownloadInfo
     /// sha-1 checksum of the file
     QString sha1;
     /// size of the file in bytes
-    int size;
+    int size{};
 };
 
 
@@ -74,7 +74,7 @@ struct MojangAssetIndexInfo : public MojangDownloadInfo
     }
 
     // data
-    int totalSize;
+    int totalSize{};
     QString id;
     bool known = true;
 };
