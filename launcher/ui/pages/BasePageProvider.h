@@ -29,7 +29,7 @@ public:
 
 class GenericPageProvider : public BasePageProvider
 {
-    typedef std::function<BasePage *()> PageCreator;
+    using PageCreator = std::function<BasePage *()>;
 public:
     explicit GenericPageProvider(QString dialogTitle)
         : m_dialogTitle(std::move(dialogTitle))

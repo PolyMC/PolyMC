@@ -5,7 +5,7 @@
 class IPathMatcher
 {
 public:
-    typedef std::shared_ptr<IPathMatcher> Ptr;
+    using Ptr = std::shared_ptr<IPathMatcher>;
 
 public:
     virtual ~IPathMatcher() = default;

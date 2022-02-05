@@ -75,7 +75,7 @@ protected:
     bool stale = true;
 };
 
-typedef std::shared_ptr<MetaEntry> MetaEntryPtr;
+using MetaEntryPtr = std::shared_ptr<MetaEntry>;
 
 class HttpMetaCache : public QObject
 {

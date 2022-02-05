@@ -32,7 +32,7 @@ LegacyModList::LegacyModList(const QString &dir, QString list_file)
         QString id;
         bool enabled = false;
     };
-    typedef QList<OrderItem> OrderList;
+    using OrderList = QList<OrderItem>;
 
 static void internalSort(QList<LegacyModList::Mod> &what)
 {

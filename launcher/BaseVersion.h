@@ -54,6 +54,6 @@ public:
     };
 };
 
-typedef std::shared_ptr<BaseVersion> BaseVersionPtr;
+using BaseVersionPtr = std::shared_ptr<BaseVersion>;
 
 Q_DECLARE_METATYPE(BaseVersionPtr)

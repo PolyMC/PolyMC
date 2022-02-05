@@ -156,10 +156,10 @@ template< typename T >
 class optional
 {
 private:
-    typedef void (optional::*safe_bool)() const;
+    using safe_bool = void (optional::*)() const;
 
 public:
-    typedef T value_type;
+    using value_type = T;
 
     optional()
     {}

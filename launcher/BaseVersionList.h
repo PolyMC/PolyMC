@@ -53,7 +53,7 @@ public:
         ArchitectureRole,
         SortRole
     };
-    typedef QList<int> RoleList;
+    using RoleList = QList<int>;
 
     explicit BaseVersionList(QObject *parent = nullptr);
 

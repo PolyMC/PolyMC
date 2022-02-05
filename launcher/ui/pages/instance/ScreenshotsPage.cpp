@@ -29,8 +29,8 @@
 #include <DesktopServices.h>
 #include <FileSystem.h>
 
-typedef RWStorage<QString, QIcon> SharedIconCache;
-typedef std::shared_ptr<SharedIconCache> SharedIconCachePtr;
+using SharedIconCache = RWStorage<QString, QIcon>;
+using SharedIconCachePtr = std::shared_ptr<SharedIconCache>;
 
 class ThumbnailingResult : public QObject
 {

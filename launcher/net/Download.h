@@ -28,7 +28,7 @@ class Download : public NetAction
     Q_OBJECT
 
 public: /* types */
-    typedef shared_qobject_ptr<class Download> Ptr;
+    using Ptr = shared_qobject_ptr<class Download>;
     enum class Option
     {
         NoOptions = 0,

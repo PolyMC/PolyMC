@@ -6,7 +6,7 @@
 struct MojangDownloadInfo
 {
     // types
-    typedef std::shared_ptr<MojangDownloadInfo> Ptr;
+    using Ptr = std::shared_ptr<MojangDownloadInfo>;
 
     // data
     /// Local filesystem path. WARNING: not used, only here so we can pass through mojang files unmolested!
@@ -27,7 +27,7 @@ struct MojangLibraryDownloadInfo
     MojangLibraryDownloadInfo() = default;
 
     // types
-    typedef std::shared_ptr<MojangLibraryDownloadInfo> Ptr;
+    using Ptr = std::shared_ptr<MojangLibraryDownloadInfo>;
 
     // methods
     MojangDownloadInfo *getDownloadInfo(QString classifier)
@@ -50,7 +50,7 @@ struct MojangLibraryDownloadInfo
 struct MojangAssetIndexInfo : public MojangDownloadInfo
 {
     // types
-    typedef std::shared_ptr<MojangAssetIndexInfo> Ptr;
+    using Ptr = std::shared_ptr<MojangAssetIndexInfo>;
 
     // methods
     MojangAssetIndexInfo() = default;

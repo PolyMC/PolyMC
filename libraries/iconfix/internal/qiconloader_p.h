@@ -102,7 +102,7 @@ struct PixmapEntry : public QIconLoaderEngineEntry
     QPixmap basePixmap;
 };
 
-typedef QList<QIconLoaderEngineEntry *> QThemeIconEntries;
+using QThemeIconEntries = QList<QIconLoaderEngineEntry *>;
 
 // class QIconLoaderEngine : public QIconEngine
 class QIconLoaderEngineFixed : public QIconEngine

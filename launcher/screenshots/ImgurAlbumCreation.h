@@ -3,7 +3,7 @@
 #include "Screenshot.h"
 #include "net/NetAction.h"
 
-typedef shared_qobject_ptr<class ImgurAlbumCreation> ImgurAlbumCreationPtr;
+using ImgurAlbumCreationPtr = shared_qobject_ptr<class ImgurAlbumCreation>;
 class ImgurAlbumCreation : public NetAction
 {
 public:

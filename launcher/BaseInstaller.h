@@ -23,7 +23,7 @@ class QString;
 class QObject;
 class Task;
 class BaseVersion;
-typedef std::shared_ptr<BaseVersion> BaseVersionPtr;
+using BaseVersionPtr = std::shared_ptr<BaseVersion>;
 
 class BaseInstaller
 {

@@ -31,8 +31,8 @@ struct Logo {
     bool failed = false;
 };
 
-typedef QMap<QString, Logo> LogoMap;
-typedef std::function<void(QString)> LogoCallback;
+using LogoMap = QMap<QString, Logo>;
+using LogoCallback = std::function<void (QString)>;
 
 class ListModel : public QAbstractListModel
 {

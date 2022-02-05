@@ -62,7 +62,7 @@ public:
 class annotation
 {
 public:
-    typedef std::vector<std::pair<uint16_t, element_value *>> value_list;
+    using value_list = std::vector<std::pair<uint16_t, element_value *>>;
 
 protected:
     /**
@@ -115,7 +115,7 @@ public:
     std::string toString();
     static annotation *read(util::membuffer &input, constant_pool &pool);
 };
-typedef std::vector<annotation *> annotation_table;
+using annotation_table = std::vector<annotation *>;
 
 /// type for simple value annotation elements
 class element_value_simple : public element_value
@@ -244,7 +244,7 @@ public:
 class element_value_array : public element_value
 {
 public:
-    typedef std::vector<element_value *> elem_vec;
+    using elem_vec = std::vector<element_value *>;
 
 protected:
     elem_vec values;

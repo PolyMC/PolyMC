@@ -40,7 +40,7 @@
 
  ************************************************/
 static void qt_cleanup_icon_cache();
-typedef QCache<QString, QIcon> IconCache;
+using IconCache = QCache<QString, QIcon>;
 
 namespace
 {

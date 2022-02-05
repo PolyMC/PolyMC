@@ -22,7 +22,7 @@
 
 namespace Technic {
 
-typedef std::function<void(QString)> LogoCallback;
+using LogoCallback = std::function<void (QString)>;
 
 class ListModel : public QAbstractListModel
 {

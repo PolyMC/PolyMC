@@ -107,4 +107,4 @@ public: /* data */
     bool m_loaded = false;
 };
 
-typedef shared_qobject_ptr<Component> ComponentPtr;
+using ComponentPtr = shared_qobject_ptr<Component>;

@@ -200,7 +200,7 @@ public:
             }
         }
     }
-    typedef std::vector<java::constant> container_type;
+    using container_type = std::vector<java::constant>;
     /**
      * Access constants based on jar file index numbers (index of the first element is 1)
      */

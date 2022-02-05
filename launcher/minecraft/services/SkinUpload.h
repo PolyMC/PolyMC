@@ -5,7 +5,7 @@
 #include <QtNetwork/QtNetwork>
 #include <memory>
 
-typedef shared_qobject_ptr<class SkinUpload> SkinUploadPtr;
+using SkinUploadPtr = class SkinUpload;
 
 class SkinUpload : public Task
 {

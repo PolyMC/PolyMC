@@ -21,7 +21,7 @@ public:
         Path,
         Time
     };
-    typedef QHash<BaseVersionList::ModelRoles, std::shared_ptr<Filter>> FilterMap;
+    using FilterMap = QHash<BaseVersionList::ModelRoles, std::shared_ptr<Filter>>;
 
 public:
     VersionProxyModel ( QObject* parent = nullptr );

@@ -55,4 +55,4 @@ protected:
     bool isOpened = false;
 };
 
-typedef std::shared_ptr<BasePage> BasePagePtr;
+using BasePagePtr = std::shared_ptr<BasePage>;

@@ -21,7 +21,7 @@
 #include <utility>
 
 class JavaCheckerJob;
-typedef shared_qobject_ptr<JavaCheckerJob> JavaCheckerJobPtr;
+using JavaCheckerJobPtr = shared_qobject_ptr<JavaCheckerJob>;
 
 // FIXME: this just seems horribly redundant
 class JavaCheckerJob : public Task

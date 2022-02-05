@@ -21,7 +21,7 @@
 
 class BaseInstance;
 class PackIgnoreProxy;
-typedef std::shared_ptr<BaseInstance> InstancePtr;
+using InstancePtr = std::shared_ptr<BaseInstance>;
 
 namespace Ui
 {
