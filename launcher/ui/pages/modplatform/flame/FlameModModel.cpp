@@ -160,8 +160,8 @@ const char* sorts[6]{"Featured","Popularity","LastUpdated","Name","Author","Tota
 void ListModel::performPaginatedSearch()
 {
 
-    QString mcVersion =  ((MinecraftInstance *)((FlameModPage *)parent())->m_instance)->getPackProfile()->getComponentVersion("net.minecraft");
-    bool hasFabric = !((MinecraftInstance *)((FlameModPage *)parent())->m_instance)->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
+    QString mcVersion =  (dynamic_cast<MinecraftInstance *>((dynamic_cast<FlameModPage *>(parent()))->m_instance))->getPackProfile()->getComponentVersion("net.minecraft");
+    bool hasFabric = !(dynamic_cast<MinecraftInstance *>((dynamic_cast<FlameModPage *>(parent()))->m_instance))->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
     auto netJob = new NetJob("Flame::Search", APPLICATION->network());
     auto searchUrl = QString(
         "https://addons-ecs.forgesvc.net/api/v2/addon/search?"

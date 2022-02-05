@@ -154,8 +154,8 @@ public:
         // FIXME: this is a workaround for a bug in QFileSystemModel, where it doesn't
         // sort after renames
         {
-            ((QFileSystemModel *)model)->setNameFilterDisables(true);
-            ((QFileSystemModel *)model)->setNameFilterDisables(false);
+            (dynamic_cast<QFileSystemModel *>(model))->setNameFilterDisables(true);
+            (dynamic_cast<QFileSystemModel *>(model))->setNameFilterDisables(false);
         }
         return model->setData(mapToSource(index), value.toString() + ".png", role);
     }

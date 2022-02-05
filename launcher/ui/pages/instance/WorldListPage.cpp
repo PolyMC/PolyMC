@@ -210,7 +210,7 @@ QModelIndex WorldListPage::getSelectedWorld()
 {
     auto index = ui->worldTreeView->selectionModel()->currentIndex();
 
-    auto proxy = (QSortFilterProxyModel *) ui->worldTreeView->model();
+    auto proxy = dynamic_cast<QSortFilterProxyModel *>( ui->worldTreeView->model());
     return proxy->mapToSource(index);
 }
 

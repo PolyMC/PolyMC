@@ -1063,7 +1063,7 @@ void MainWindow::updatesAllowedChanged(bool allowed)
  */
 void MainWindow::changeActiveAccount()
 {
-    QAction *sAction = (QAction *)sender();
+    QAction *sAction = dynamic_cast<QAction *>(sender());
 
     // Profile's associated Mojang username
     if (sAction->data().type() != QVariant::Type::Int)

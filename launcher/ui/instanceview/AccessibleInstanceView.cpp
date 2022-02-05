@@ -17,7 +17,7 @@ QAccessibleInterface *groupViewAccessibleFactory(const QString &classname, QObje
     QWidget *widget = static_cast<QWidget*>(object);
 
     if (classname == QLatin1String("InstanceView")) {
-        iface = new AccessibleInstanceView((InstanceView *)widget);
+        iface = new AccessibleInstanceView(dynamic_cast<InstanceView *>(widget));
     }
     return iface;
 }

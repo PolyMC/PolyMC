@@ -160,8 +160,8 @@ const char* sorts[5]{"relevance","downloads","follows","updated","newest"};
 void ListModel::performPaginatedSearch()
 {
 
-    QString mcVersion =  ((MinecraftInstance *)((ModrinthPage *)parent())->m_instance)->getPackProfile()->getComponentVersion("net.minecraft");
-    bool hasFabric = !((MinecraftInstance *)((ModrinthPage *)parent())->m_instance)->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
+    QString mcVersion =  (dynamic_cast<MinecraftInstance *>((dynamic_cast<ModrinthPage *>(parent()))->m_instance))->getPackProfile()->getComponentVersion("net.minecraft");
+    bool hasFabric = !(dynamic_cast<MinecraftInstance *>((dynamic_cast<ModrinthPage *>(parent()))->m_instance))->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
     auto netJob = new NetJob("Modrinth::Search", APPLICATION->network());
     auto searchUrl = QString(
         "https://api.modrinth.com/v2/search?"

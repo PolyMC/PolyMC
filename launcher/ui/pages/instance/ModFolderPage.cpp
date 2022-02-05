@@ -357,8 +357,8 @@ void ModFolderPage::on_actionInstall_mods_triggered()
     if(m_inst->typeName() != "Minecraft"){
         return; //this is a null instance or a legacy instance
     }
-    bool hasFabric = !((MinecraftInstance *)m_inst)->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
-    bool hasForge = !((MinecraftInstance *)m_inst)->getPackProfile()->getComponentVersion("net.minecraftforge").isEmpty();
+    bool hasFabric = !(dynamic_cast<MinecraftInstance *>(m_inst))->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
+    bool hasForge = !(dynamic_cast<MinecraftInstance *>(m_inst))->getPackProfile()->getComponentVersion("net.minecraftforge").isEmpty();
     if (!hasFabric && !hasForge) {
         QMessageBox::critical(this,tr("Error"),tr("Please install a mod loader first!"));
         return;

@@ -137,7 +137,7 @@ void FlameModPage::onSelectionChanged(QModelIndex first, QModelIndex second)
                 qDebug() << *response;
                 qWarning() << "Error while reading Flame mod version: " << e.cause();
             }
-            auto packProfile = ((MinecraftInstance *)m_instance)->getPackProfile();
+            auto packProfile = (dynamic_cast<MinecraftInstance *>(m_instance))->getPackProfile();
             QString mcVersion =  packProfile->getComponentVersion("net.minecraft");
             QString loaderString = (packProfile->getComponentVersion("net.minecraftforge").isEmpty()) ? "fabric" : "forge";
             for(const auto& version : current.versions) {
