@@ -11,7 +11,7 @@
 #include "meta/Version.h"
 #include "minecraft/PackProfile.h"
 
-#include <assert.h>
+#include <cassert>
 
 Component::Component(PackProfile * parent, const QString& uid)
 {

@@ -1,7 +1,7 @@
 #pragma once
 #include "javaendian.h"
+#include <cstdint>
 #include <exception>
-#include <stdint.h>
 #include <string>
 #include <vector>
 

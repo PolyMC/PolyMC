@@ -9,7 +9,7 @@
  */
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
 
-#include <errno.h>
+#include <cerrno>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>

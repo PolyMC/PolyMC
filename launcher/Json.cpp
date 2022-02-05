@@ -5,7 +5,7 @@
 #include <QFile>
 
 #include "FileSystem.h"
-#include <math.h>
+#include <cmath>
 
 namespace Json
 {

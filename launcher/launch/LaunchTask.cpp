@@ -26,7 +26,7 @@
 #include <QEventLoop>
 #include <QRegularExpression>
 #include <QStandardPaths>
-#include <assert.h>
+#include <cassert>
 #include <utility>
 
 void LaunchTask::init()

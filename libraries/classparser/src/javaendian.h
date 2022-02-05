@@ -1,5 +1,5 @@
 #pragma once
-#include <stdint.h>
+#include <cstdint>
 
 /**
  * Swap bytes between big endian and local number representation

@@ -27,7 +27,7 @@
 #include <QImage>
 #include <QtNumeric> // qIsNaN
 
-#include <math.h>
+#include <cmath>
 
 //BEGIN internal helper functions
 
