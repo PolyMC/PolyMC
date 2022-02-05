@@ -30,7 +30,7 @@ public:
         read_be(iface_count);
         while (iface_count)
         {
-            uint16_t iface;
+            uint16_t iface = 0;
             read_be(iface);
             interfaces.push_back(iface);
             iface_count--;

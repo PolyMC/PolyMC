@@ -54,7 +54,7 @@ MinecraftServerTarget MinecraftServerTarget::parse(const QString &fullAddress) {
     quint16 realPort = 25565;
     if (split.size() > 1)
     {
-        bool ok;
+        bool ok = false;
         realPort = split[1].toUInt(&ok);
 
         if (!ok)

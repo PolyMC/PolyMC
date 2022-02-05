@@ -897,7 +897,7 @@ int PackProfile::columnCount(const QModelIndex &parent) const
 
 void PackProfile::move(const int index, const MoveDirection direction)
 {
-    int theirIndex;
+    int theirIndex = 0;
     if (direction == MoveUp)
     {
         theirIndex = index - 1;

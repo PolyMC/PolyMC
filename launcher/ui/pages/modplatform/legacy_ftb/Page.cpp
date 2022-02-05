@@ -327,7 +327,7 @@ void Page::onTabChanged(int tab)
 
 void Page::onAddPackClicked()
 {
-    bool ok;
+    bool ok = false;
     QString text = QInputDialog::getText(
         this,
         tr("Add FTB pack"),

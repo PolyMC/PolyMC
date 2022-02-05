@@ -53,7 +53,7 @@ uint64_t Sys::getSystemRam()
     {
         if(token == "MemTotal:")
         {
-            uint64_t mem;
+            uint64_t mem = 0;
             if(file >> mem)
             {
                 return mem * 1024ull;

@@ -95,7 +95,7 @@ bool LegacyModList::update()
         QFileInfo infoDisabled(m_dir.filePath(item.id + ".disabled"));
         int idxEnabled = folderContents.indexOf(infoEnabled);
         int idxDisabled = folderContents.indexOf(infoDisabled);
-        bool isEnabled;
+        bool isEnabled = false;
         // if both enabled and disabled versions are present, it's a special case...
         if (idxEnabled >= 0 && idxDisabled >= 0)
         {

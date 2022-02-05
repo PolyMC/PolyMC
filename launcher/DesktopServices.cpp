@@ -52,7 +52,7 @@ bool IndirectOpen(T callable, qint64 *pid_forked = nullptr)
     else
     {
         //parent - assume it worked.
-        int status;
+        int status = 0;
         while (waitpid(pid, &status, 0))
         {
             if(WIFEXITED(status))

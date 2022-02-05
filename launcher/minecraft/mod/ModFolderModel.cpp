@@ -417,7 +417,7 @@ bool ModFolderModel::setModStatus(int row, ModFolderModel::ModStatusAction actio
     }
 
     auto &mod = mods[row];
-    bool desiredStatus;
+    bool desiredStatus = false;
     switch(action) {
         case Enable:
             desiredStatus = true;

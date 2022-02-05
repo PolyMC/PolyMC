@@ -25,6 +25,7 @@
 #include "InstanceList.h"
 #include "InstanceView.h"
 #include <QTextEdit>
+#include <math.h>
 #include <xdgicon.h>
 
 // Origin: Qt
@@ -299,7 +300,7 @@ void ListViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     textLayout.setFont(opt.font);
     textLayout.setText(opt.text);
 
-    qreal width, height;
+    qreal width = NAN, height = NAN;
     viewItemTextLayout(textLayout, textRect.width(), height, width);
 
     const int lineCount = textLayout.lineCount();

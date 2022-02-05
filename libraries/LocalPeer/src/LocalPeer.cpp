@@ -214,7 +214,7 @@ void LocalPeer::receiveConnection()
     }
     QDataStream ds(socket);
     QByteArray uMsg;
-    quint32 remaining;
+    quint32 remaining = 0;
     ds >> remaining;
     uMsg.resize(remaining);
     int got = 0;

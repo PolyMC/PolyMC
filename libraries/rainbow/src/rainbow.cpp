@@ -23,6 +23,8 @@
 
 #include "../include/rainbow.h"
 
+#include <math.h>
+
 #include <QColor>
 #include <QImage>
 #include <QtNumeric> // qIsNaN
@@ -117,7 +119,7 @@ public:
         qreal _y = normalize(y);
 
         // calculate some needed variables
-        qreal _hs = _h * 6.0, th, tm;
+        qreal _hs = _h * 6.0, th = NAN, tm = NAN;
         if (_hs < 1.0)
         {
             th = _hs;
@@ -150,7 +152,7 @@ public:
         }
 
         // calculate RGB channels in sorted order
-        qreal tn, to, tp;
+        qreal tn = NAN, to = NAN, tp = NAN;
         if (tm >= _y)
         {
             tp = _y + _y * _c * (1.0 - tm) / tm;
