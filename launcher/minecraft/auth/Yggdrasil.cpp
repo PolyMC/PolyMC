@@ -24,6 +24,7 @@
 #include <QByteArray>
 
 #include <QDebug>
+#include <memory>
 
 #include "Application.h"
 
@@ -315,8 +316,8 @@ void Yggdrasil::processError(QJsonObject responseData) {
     QJsonValue causeVal = responseData.value("cause");
 
     if (errorVal.isString() && errorMessageValue.isString()) {
-        m_error = std::shared_ptr<Error>(
-            new Error {
+        m_error = std::make_shared<Error>(
+            Error {
                 errorVal.toString(""),
                 errorMessageValue.toString(""),
                 causeVal.toString("")
