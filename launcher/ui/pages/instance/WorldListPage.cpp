@@ -142,7 +142,7 @@ bool WorldListPage::eventFilter(QObject *obj, QEvent *ev)
     {
         return QWidget::eventFilter(obj, ev);
     }
-    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(ev);
+    QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(ev);
     if (obj == ui->worldTreeView)
         return worldListFilter(keyEvent);
     return QWidget::eventFilter(obj, ev);

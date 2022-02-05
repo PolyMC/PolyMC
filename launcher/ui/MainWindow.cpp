@@ -1113,7 +1113,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
         if (ev->type() == QEvent::KeyPress)
         {
             secretEventFilter->input(ev);
-            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(ev);
+            QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(ev);
             switch (keyEvent->key())
             {
                 /*

@@ -249,7 +249,7 @@ bool ScreenshotsPage::eventFilter(QObject *obj, QEvent *evt)
     {
         return QWidget::eventFilter(obj, evt);
     }
-    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(evt);
+    QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(evt);
 
     if (keyEvent->matches(QKeySequence::Copy)) {
         on_actionCopy_File_s_triggered();

@@ -363,7 +363,7 @@ public:
         auto eventType = event->type();
         if(eventType == QEvent::KeyPress || eventType == QEvent::KeyRelease)
         {
-            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+            QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(event);
             auto key = keyEvent->key();
             if (key == Qt::Key_Return || key == Qt::Key_Enter)
             {

@@ -45,7 +45,7 @@ protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override
     {
         const QString pattern = filterRegExp().pattern();
-        const auto model = static_cast<PageModel *>(sourceModel());
+        const auto model = dynamic_cast<PageModel *>(sourceModel());
         const auto page = model->pages().at(sourceRow);
         if (!page->shouldDisplay())
             return false;

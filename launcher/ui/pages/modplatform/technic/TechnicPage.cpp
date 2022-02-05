@@ -41,7 +41,7 @@ TechnicPage::TechnicPage(NewInstanceDialog* dialog, QWidget *parent)
 bool TechnicPage::eventFilter(QObject* watched, QEvent* event)
 {
     if (watched == ui->searchEdit && event->type() == QEvent::KeyPress) {
-        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+        QKeyEvent* keyEvent = dynamic_cast<QKeyEvent*>(event);
         if (keyEvent->key() == Qt::Key_Return) {
             triggerSearch();
             keyEvent->accept();

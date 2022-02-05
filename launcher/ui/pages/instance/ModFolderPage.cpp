@@ -295,7 +295,7 @@ bool ModFolderPage::eventFilter(QObject *obj, QEvent *ev)
     {
         return QWidget::eventFilter(obj, ev);
     }
-    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(ev);
+    QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(ev);
     if (obj == ui->modTreeView)
         return modListFilter(keyEvent);
     return QWidget::eventFilter(obj, ev);
