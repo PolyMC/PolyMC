@@ -2,6 +2,7 @@
 
 #include <QProcess>
 #include <QDir>
+#include <utility>
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -10,7 +11,7 @@
 #include "BaseInstance.h"
 
 BaseExternalTool::BaseExternalTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent)
-    : QObject(parent), m_instance(instance), globalSettings(settings)
+    : QObject(parent), m_instance(std::move(instance)), globalSettings(std::move(settings))
 {
 }
 

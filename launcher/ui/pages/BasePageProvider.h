@@ -18,6 +18,7 @@
 #include "ui/pages/BasePage.h"
 #include <memory>
 #include <functional>
+#include <utility>
 
 class BasePageProvider
 {
@@ -30,8 +31,8 @@ class GenericPageProvider : public BasePageProvider
 {
     typedef std::function<BasePage *()> PageCreator;
 public:
-    explicit GenericPageProvider(const QString &dialogTitle)
-        : m_dialogTitle(dialogTitle)
+    explicit GenericPageProvider(QString dialogTitle)
+        : m_dialogTitle(std::move(dialogTitle))
     {
     }
     virtual ~GenericPageProvider() = default;

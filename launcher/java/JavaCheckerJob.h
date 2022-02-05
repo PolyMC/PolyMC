@@ -18,6 +18,7 @@
 #include <QtNetwork>
 #include "JavaChecker.h"
 #include "tasks/Task.h"
+#include <utility>
 
 class JavaCheckerJob;
 typedef shared_qobject_ptr<JavaCheckerJob> JavaCheckerJobPtr;
@@ -27,7 +28,7 @@ class JavaCheckerJob : public Task
 {
     Q_OBJECT
 public:
-    explicit JavaCheckerJob(QString job_name) : Task(), m_job_name(job_name) {};
+    explicit JavaCheckerJob(QString job_name) : Task(), m_job_name(std::move(job_name)) {};
     ~JavaCheckerJob() override = default;
 
     bool addJavaCheckerAction(JavaCheckerPtr base)

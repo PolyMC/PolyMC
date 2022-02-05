@@ -22,6 +22,7 @@
 #include <QPushButton>
 #include <qlayoutitem.h>
 #include <QCloseEvent>
+#include <utility>
 
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ProgressDialog.h"
@@ -32,7 +33,7 @@
 #include "icons/IconList.h"
 
 InstanceWindow::InstanceWindow(InstancePtr instance, QWidget *parent)
-    : QMainWindow(parent), m_instance(instance)
+    : QMainWindow(parent), m_instance(std::move(instance))
 {
     setAttribute(Qt::WA_DeleteOnClose);
 

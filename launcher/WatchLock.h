@@ -3,11 +3,12 @@
 
 #include <QString>
 #include <QFileSystemWatcher>
+#include <utility>
 
 struct WatchLock
 {
-    WatchLock(QFileSystemWatcher * watcher, const QString& directory)
-        : m_watcher(watcher), m_directory(directory)
+    WatchLock(QFileSystemWatcher * watcher, QString directory)
+        : m_watcher(watcher), m_directory(std::move(directory))
     {
         m_watcher->removePath(m_directory);
     }

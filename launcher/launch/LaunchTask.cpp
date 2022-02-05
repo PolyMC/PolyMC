@@ -27,6 +27,7 @@
 #include <QCoreApplication>
 #include <QStandardPaths>
 #include <assert.h>
+#include <utility>
 
 void LaunchTask::init()
 {
@@ -40,7 +41,7 @@ shared_qobject_ptr<LaunchTask> LaunchTask::create(InstancePtr inst)
     return proc;
 }
 
-LaunchTask::LaunchTask(InstancePtr instance): m_instance(instance)
+LaunchTask::LaunchTask(InstancePtr instance): m_instance(std::move(instance))
 {
 }
 

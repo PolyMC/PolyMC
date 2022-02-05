@@ -6,6 +6,7 @@
 #include <QIcon>
 #include <QScrollBar>
 #include <QShortcut>
+#include <utility>
 
 #include "launch/LaunchTask.h"
 #include "settings/Setting.h"
@@ -112,7 +113,7 @@ private:
 };
 
 LogPage::LogPage(InstancePtr instance, QWidget *parent)
-    : QWidget(parent), ui(new Ui::LogPage), m_instance(instance)
+    : QWidget(parent), ui(new Ui::LogPage), m_instance(std::move(instance))
 {
     ui->setupUi(this);
     ui->tabWidget->tabBar()->hide();

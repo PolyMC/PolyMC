@@ -3,6 +3,7 @@
 #include <QNetworkRequest>
 #include <QJsonParseError>
 #include <QJsonDocument>
+#include <utility>
 
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"
@@ -10,8 +11,8 @@
 XboxAuthorizationStep::XboxAuthorizationStep(AccountData* data, Katabasis::Token *token, QString relyingParty, QString authorizationKind):
     AuthStep(data),
     m_token(token),
-    m_relyingParty(relyingParty),
-    m_authorizationKind(authorizationKind)
+    m_relyingParty(std::move(relyingParty)),
+    m_authorizationKind(std::move(authorizationKind))
 {
 }
 

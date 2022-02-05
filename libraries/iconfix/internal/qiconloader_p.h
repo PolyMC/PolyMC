@@ -52,6 +52,7 @@
 #include <QtCore/QHash>
 #include <QtCore/QVector>
 #include <QtCore/QTypeInfo>
+#include <utility>
 
 
 namespace QtXdg
@@ -67,8 +68,8 @@ struct QIconDirInfo
         Scalable,
         Threshold
     };
-    QIconDirInfo(const QString &_path = QString())
-        : path(_path),  type(Threshold)
+    QIconDirInfo(QString _path = QString())
+        : path(std::move(_path)),  type(Threshold)
     {
     }
     QString path;
@@ -107,7 +108,7 @@ typedef QList<QIconLoaderEngineEntry *> QThemeIconEntries;
 class QIconLoaderEngineFixed : public QIconEngine
 {
 public:
-    QIconLoaderEngineFixed(const QString &iconName = QString());
+    QIconLoaderEngineFixed(QString iconName = QString());
     ~QIconLoaderEngineFixed() override;
 
     void paint(QPainter *painter, const QRect &rect, QIcon::Mode mode, QIcon::State state) override;

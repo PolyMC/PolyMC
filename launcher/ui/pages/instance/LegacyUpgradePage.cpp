@@ -1,5 +1,6 @@
 #include "LegacyUpgradePage.h"
 #include "ui_LegacyUpgradePage.h"
+#include <utility>
 
 #include "InstanceList.h"
 #include "minecraft/legacy/LegacyInstance.h"
@@ -10,7 +11,7 @@
 #include "ui/dialogs/ProgressDialog.h"
 
 LegacyUpgradePage::LegacyUpgradePage(InstancePtr inst, QWidget *parent)
-    : QWidget(parent), ui(new Ui::LegacyUpgradePage), m_inst(inst)
+    : QWidget(parent), ui(new Ui::LegacyUpgradePage), m_inst(std::move(inst))
 {
     ui->setupUi(this);
 }

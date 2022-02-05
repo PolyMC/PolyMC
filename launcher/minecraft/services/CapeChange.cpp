@@ -2,11 +2,12 @@
 
 #include <QNetworkRequest>
 #include <QHttpMultiPart>
+#include <utility>
 
 #include "Application.h"
 
 CapeChange::CapeChange(QObject *parent, QString token, QString cape)
-    : Task(parent), m_capeId(cape), m_token(token)
+    : Task(parent), m_capeId(std::move(cape)), m_token(std::move(token))
 {
 }
 

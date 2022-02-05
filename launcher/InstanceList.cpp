@@ -27,6 +27,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QMimeData>
+#include <utility>
 
 #include "InstanceList.h"
 #include "BaseInstance.h"
@@ -42,7 +43,7 @@
 const static int GROUP_FILE_FORMAT_VERSION = 1;
 
 InstanceList::InstanceList(SettingsObjectPtr settings, const QString & instDir, QObject *parent)
-    : QAbstractListModel(parent), m_globalSettings(settings)
+    : QAbstractListModel(parent), m_globalSettings(std::move(settings))
 {
     resumeWatch();
     // Create aand normalize path

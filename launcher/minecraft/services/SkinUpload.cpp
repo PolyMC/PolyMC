@@ -2,6 +2,7 @@
 
 #include <QNetworkRequest>
 #include <QHttpMultiPart>
+#include <utility>
 
 #include "Application.h"
 
@@ -17,7 +18,7 @@ QByteArray getVariant(SkinUpload::Model model) {
 }
 
 SkinUpload::SkinUpload(QObject *parent, QString token, QByteArray skin, SkinUpload::Model model)
-    : Task(parent), m_model(model), m_skin(skin), m_token(token)
+    : Task(parent), m_model(model), m_skin(std::move(skin)), m_token(std::move(token))
 {
 }
 

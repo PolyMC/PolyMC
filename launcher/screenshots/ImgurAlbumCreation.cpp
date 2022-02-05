@@ -6,11 +6,12 @@
 #include <QUrl>
 #include <QStringList>
 #include <QDebug>
+#include <utility>
 
 #include "BuildConfig.h"
 #include "Application.h"
 
-ImgurAlbumCreation::ImgurAlbumCreation(QList<ScreenShot::Ptr> screenshots) : NetAction(), m_screenshots(screenshots)
+ImgurAlbumCreation::ImgurAlbumCreation(QList<ScreenShot::Ptr> screenshots) : NetAction(), m_screenshots(std::move(screenshots))
 {
     m_url = BuildConfig.IMGUR_BASE_URL + "album.json";
     m_status = Job_NotStarted;

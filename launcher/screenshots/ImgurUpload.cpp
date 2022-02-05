@@ -9,8 +9,9 @@
 #include <QFile>
 #include <QUrl>
 #include <QDebug>
+#include <utility>
 
-ImgurUpload::ImgurUpload(ScreenShot::Ptr shot) : NetAction(), m_shot(shot)
+ImgurUpload::ImgurUpload(ScreenShot::Ptr shot) : NetAction(), m_shot(std::move(shot))
 {
     m_url = BuildConfig.IMGUR_BASE_URL + "upload.json";
     m_status = Job_NotStarted;

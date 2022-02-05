@@ -25,7 +25,7 @@ public:
 
     using Mod = QFileInfo;
 
-    LegacyModList(const QString &dir, const QString &list_file = QString());
+    LegacyModList(const QString &dir, QString list_file = QString());
 
     /// Reloads the mod list and returns true if the list changed.
     bool update();

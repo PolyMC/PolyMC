@@ -42,7 +42,7 @@ struct VisualRow
 struct VisualGroup
 {
 /* constructors */
-    VisualGroup(const QString &text, InstanceView *view);
+    VisualGroup(QString text, InstanceView *view);
     VisualGroup(const VisualGroup *other);
 
 /* data */

@@ -16,9 +16,10 @@
 
 #include "AtlOptionalModDialog.h"
 #include "ui_AtlOptionalModDialog.h"
+#include <utility>
 
 AtlOptionalModListModel::AtlOptionalModListModel(QWidget *parent, QVector<ATLauncher::VersionMod> mods)
-    : QAbstractListModel(parent), m_mods(mods) {
+    : QAbstractListModel(parent), m_mods(std::move(mods)) {
 
     // fill mod index
     for (int i = 0; i < m_mods.size(); i++) {

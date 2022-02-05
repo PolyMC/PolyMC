@@ -43,6 +43,7 @@
 #include <QtGui/QPainter>
 #include <QApplication>
 #include <QLatin1Literal>
+#include <utility>
 
 #include "qhexstring_p.h"
 
@@ -406,8 +407,8 @@ QThemeIconEntries QIconLoader::loadIcon(const QString &name) const
 
 // -------- Icon Loader Engine -------- //
 
-QIconLoaderEngineFixed::QIconLoaderEngineFixed(const QString &iconName)
-    : m_iconName(iconName)
+QIconLoaderEngineFixed::QIconLoaderEngineFixed(QString iconName)
+    : m_iconName(std::move(iconName))
 {
 }
 

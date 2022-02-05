@@ -14,7 +14,7 @@ class GameOptions : public QAbstractListModel
 {
     Q_OBJECT
 public:
-    explicit GameOptions(const QString& path);
+    explicit GameOptions(QString  path);
     ~GameOptions() override = default;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;

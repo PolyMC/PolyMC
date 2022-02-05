@@ -20,6 +20,7 @@
 #include <QStringList>
 #include <QVariant>
 #include <memory>
+#include <utility>
 
 class Setting;
 class SettingsObject;
@@ -46,7 +47,7 @@ public:
     {
     public:
         Lock(SettingsObjectPtr locked)
-            :m_locked(locked)
+            :m_locked(std::move(locked))
         {
             m_locked->suspendSave();
         }

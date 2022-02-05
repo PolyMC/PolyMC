@@ -120,6 +120,7 @@ namespace nonstd {
 
 #if ! optional_CONFIG_NO_EXCEPTIONS
 # include <stdexcept>
+#include <utility>
 #endif
 
 namespace nonstd { namespace optional_bare {
@@ -166,9 +167,9 @@ public:
     optional( nullopt_t )
     {}
 
-    optional( T const & arg )
+    optional( T  arg )
     : has_value_( true )
-    , value_    ( arg  )
+    , value_    (std::move( arg  ))
     {}
 
     template< class U >

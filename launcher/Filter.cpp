@@ -1,15 +1,17 @@
 #include "Filter.h"
 
+#include <utility>
+
 Filter::~Filter() = default;
 
-ContainsFilter::ContainsFilter(const QString& pattern) : pattern(pattern){}
+ContainsFilter::ContainsFilter(QString pattern) : pattern(std::move(pattern)){}
 ContainsFilter::~ContainsFilter() = default;
 bool ContainsFilter::accepts(const QString& value)
 {
     return value.contains(pattern);
 }
 
-ExactFilter::ExactFilter(const QString& pattern) : pattern(pattern){}
+ExactFilter::ExactFilter(QString pattern) : pattern(std::move(pattern)){}
 ExactFilter::~ExactFilter() = default;
 bool ExactFilter::accepts(const QString& value)
 {

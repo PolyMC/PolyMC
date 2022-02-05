@@ -25,6 +25,7 @@
 #include <QTreeView>
 #include <QInputDialog>
 #include <QProcess>
+#include <utility>
 
 #include "tools/MCEditTool.h"
 #include "FileSystem.h"
@@ -63,7 +64,7 @@ public:
 
 
 WorldListPage::WorldListPage(BaseInstance *inst, std::shared_ptr<WorldList> worlds, QWidget *parent)
-    : QMainWindow(parent), m_inst(inst), ui(new Ui::WorldListPage), m_worlds(worlds)
+    : QMainWindow(parent), m_inst(inst), ui(new Ui::WorldListPage), m_worlds(std::move(worlds))
 {
     ui->setupUi(this);
 

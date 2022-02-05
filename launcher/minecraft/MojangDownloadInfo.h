@@ -1,7 +1,7 @@
 #pragma once
 #include <QString>
 #include <QMap>
-#include <memory>
+#include <utility>
 
 struct MojangDownloadInfo
 {
@@ -23,7 +23,7 @@ struct MojangDownloadInfo
 
 struct MojangLibraryDownloadInfo
 {
-    MojangLibraryDownloadInfo(MojangDownloadInfo::Ptr artifact): artifact(artifact) {};
+    MojangLibraryDownloadInfo(MojangDownloadInfo::Ptr artifact): artifact(std::move(artifact)) {};
     MojangLibraryDownloadInfo() = default;
 
     // types

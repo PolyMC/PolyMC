@@ -20,6 +20,7 @@
 #include <QJsonObject>
 #include <memory>
 #include "OpSys.h"
+#include <utility>
 
 class Library;
 class Rule;
@@ -68,7 +69,7 @@ protected:
         return (m_system == currentSystem);
     }
     OsRule(RuleAction result, OpSys system, QString version_regexp)
-        : Rule(result), m_system(system), m_version_regexp(version_regexp)
+        : Rule(result), m_system(system), m_version_regexp(std::move(version_regexp))
     {
     }
 

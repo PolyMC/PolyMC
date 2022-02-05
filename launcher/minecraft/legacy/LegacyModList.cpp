@@ -17,9 +17,10 @@
 #include <FileSystem.h>
 #include <QString>
 #include <QDebug>
+#include <utility>
 
-LegacyModList::LegacyModList(const QString &dir, const QString &list_file)
-    : m_dir(dir), m_list_file(list_file)
+LegacyModList::LegacyModList(const QString &dir, QString list_file)
+    : m_dir(dir), m_list_file(std::move(list_file))
 {
     FS::ensureFolderPathExists(m_dir.absolutePath());
     m_dir.setFilter(QDir::Readable | QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);

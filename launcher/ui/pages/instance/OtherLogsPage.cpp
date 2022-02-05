@@ -24,9 +24,10 @@
 #include <GZip.h>
 #include <FileSystem.h>
 #include <QShortcut>
+#include <utility>
 
 OtherLogsPage::OtherLogsPage(QString path, IPathMatcher::Ptr fileFilter, QWidget *parent)
-    : QWidget(parent), ui(new Ui::OtherLogsPage), m_path(path), m_fileFilter(fileFilter),
+    : QWidget(parent), ui(new Ui::OtherLogsPage), m_path(std::move(path)), m_fileFilter(fileFilter),
       m_watcher(new RecursiveFileSystemWatcher(this))
 {
     ui->setupUi(this);

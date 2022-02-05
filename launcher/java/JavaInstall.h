@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "BaseVersion.h"
 #include "JavaVersion.h"
 
@@ -7,7 +9,7 @@ struct JavaInstall : public BaseVersion
 {
     JavaInstall() = default;
     JavaInstall(QString id, QString arch, QString path)
-    : id(id), arch(arch), path(path)
+    : id(id), arch(std::move(arch)), path(std::move(path))
     {
     }
     QString descriptor() override

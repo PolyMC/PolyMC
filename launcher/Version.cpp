@@ -4,8 +4,9 @@
 #include <QUrl>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
+#include <utility>
 
-Version::Version(const QString &str) : m_string(str)
+Version::Version(QString str) : m_string(std::move(str))
 {
     parse();
 }
