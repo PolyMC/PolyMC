@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QUrl>
 #include <QString>
+#include <QUrl>
 
 /**
  * This wraps around QDesktopServices and adds workarounds where needed
@@ -17,12 +17,12 @@ namespace DesktopServices
     /**
      * Open a file in the specified application
      */
-    bool openFile(const QString &application, const QString &path, const QString & workingDirectory = QString(), qint64 *pid = 0);
+    bool openFile(const QString &application, const QString &path, const QString & workingDirectory = QString(), qint64 *pid = nullptr);
 
     /**
      * Run an application
      */
-    bool run(const QString &application,const QStringList &args, const QString & workingDirectory = QString(), qint64 *pid = 0);
+    bool run(const QString &application,const QStringList &args, const QString & workingDirectory = QString(), qint64 *pid = nullptr);
 
     /**
      * Open a directory

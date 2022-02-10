@@ -14,11 +14,11 @@
  */
 
 #include "ModMinecraftJar.h"
-#include "launch/LaunchTask.h"
-#include "MMCZip.h"
-#include "minecraft/OpSys.h"
 #include "FileSystem.h"
+#include "MMCZip.h"
+#include "launch/LaunchTask.h"
 #include "minecraft/MinecraftInstance.h"
+#include "minecraft/OpSys.h"
 #include "minecraft/PackProfile.h"
 
 void ModMinecraftJar::executeTask()

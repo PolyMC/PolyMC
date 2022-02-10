@@ -16,8 +16,8 @@
 #include "ProgressDialog.h"
 #include "ui_ProgressDialog.h"
 
-#include <QKeyEvent>
 #include <QDebug>
+#include <QKeyEvent>
 
 #include "tasks/Task.h"
 

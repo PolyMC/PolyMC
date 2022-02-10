@@ -3,14 +3,14 @@
 //
 
 #pragma once
+#include "BaseInstance.h"
+#include "net/NetJob.h"
 #include <QList>
 #include <QMetaType>
-#include <QString>
-#include <QVector>
 #include <QNetworkAccessManager>
 #include <QObjectPtr.h>
-#include "net/NetJob.h"
-#include "BaseInstance.h"
+#include <QString>
+#include <QVector>
 
 namespace FlameMod {
     struct ModpackAuthor {
@@ -19,8 +19,8 @@ namespace FlameMod {
     };
 
     struct IndexedVersion {
-        int addonId;
-        int fileId;
+        int addonId{};
+        int fileId{};
         QString version;
         QVector<QString> mcVersion;
         QString downloadUrl;
@@ -30,7 +30,7 @@ namespace FlameMod {
 
     struct IndexedPack
     {
-        int addonId;
+        int addonId{};
         QString name;
         QString description;
         QList<ModpackAuthor> authors;

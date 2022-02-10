@@ -1,16 +1,16 @@
 #include "ComponentUpdateTask.h"
 
-#include "PackProfile_p.h"
-#include "PackProfile.h"
 #include "Component.h"
-#include "meta/Index.h"
-#include "meta/VersionList.h"
-#include "meta/Version.h"
 #include "ComponentUpdateTask_p.h"
-#include "cassert"
-#include "Version.h"
-#include "net/Mode.h"
 #include "OneSixVersionFormat.h"
+#include "PackProfile.h"
+#include "PackProfile_p.h"
+#include "Version.h"
+#include "cassert"
+#include "meta/Index.h"
+#include "meta/Version.h"
+#include "meta/VersionList.h"
+#include "net/Mode.h"
 
 #include "Application.h"
 
@@ -41,9 +41,7 @@ ComponentUpdateTask::ComponentUpdateTask(Mode mode, Net::Mode netmode, PackProfi
     d->netmode = netmode;
 }
 
-ComponentUpdateTask::~ComponentUpdateTask()
-{
-}
+ComponentUpdateTask::~ComponentUpdateTask() = default;
 
 void ComponentUpdateTask::executeTask()
 {

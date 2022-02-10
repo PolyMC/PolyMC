@@ -14,10 +14,10 @@
  */
 
 #pragma once
-#include <hoedown/html.h>
-#include <hoedown/document.h>
-#include <QString>
 #include <QByteArray>
+#include <QString>
+#include <hoedown/document.h>
+#include <hoedown/html.h>
 
 /**
  * hoedown wrapper, because dealing with resource lifetime in C is stupid

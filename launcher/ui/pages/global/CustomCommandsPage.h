@@ -15,20 +15,20 @@
 
 #pragma once
 
-#include <memory>
 #include <QDialog>
+#include <memory>
 
 #include "ui/pages/BasePage.h"
-#include <Application.h>
 #include "ui/widgets/CustomCommands.h"
+#include <Application.h>
 
 class CustomCommandsPage : public QWidget, public BasePage
 {
     Q_OBJECT
 
 public:
-    explicit CustomCommandsPage(QWidget *parent = 0);
-    ~CustomCommandsPage();
+    explicit CustomCommandsPage(QWidget *parent = nullptr);
+    ~CustomCommandsPage() override;
 
     QString displayName() const override
     {

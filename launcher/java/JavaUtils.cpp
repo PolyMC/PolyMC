@@ -13,23 +13,20 @@
  * limitations under the License.
  */
 
-#include <QStringList>
-#include <QString>
 #include <QDir>
+#include <QString>
 #include <QStringList>
 
 #include <settings/Setting.h>
 
-#include <QDebug>
-#include "java/JavaUtils.h"
-#include "java/JavaInstallList.h"
 #include "FileSystem.h"
+#include "java/JavaInstallList.h"
+#include "java/JavaUtils.h"
+#include <QDebug>
 
 #define IBUS "@im=ibus"
 
-JavaUtils::JavaUtils()
-{
-}
+JavaUtils::JavaUtils() = default;
 
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
 static QString processLD_LIBRARY_PATH(const QString & LD_LIBRARY_PATH)

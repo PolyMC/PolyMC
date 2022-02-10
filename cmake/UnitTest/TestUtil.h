@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QFile>
 #include <QCoreApplication>
-#include <QTest>
 #include <QDir>
+#include <QFile>
+#include <QTest>
 
 #define expandstr(s) expandstr2(s)
 #define expandstr2(s) #s

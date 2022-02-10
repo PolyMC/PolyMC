@@ -1,10 +1,10 @@
 #pragma once
 
+#include "tasks/Task.h"
 #include <QString>
+#include <QStringList>
 #include <map>
 #include <set>
-#include <QStringList>
-#include "tasks/Task.h"
 
 namespace mojang_files {
 
@@ -123,7 +123,7 @@ struct FileSource
 struct File
 {
     Hash hash;
-    bool executable;
+    bool executable{};
     std::uint64_t size = 0;
 };
 

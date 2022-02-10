@@ -17,8 +17,8 @@
 #include <QString>
 
 #include "Mod.h"
-#include <QDebug>
 #include <FileSystem.h>
+#include <QDebug>
 
 namespace {
 

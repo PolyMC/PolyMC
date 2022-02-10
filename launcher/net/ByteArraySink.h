@@ -15,10 +15,7 @@ public:
         // nil
     };
 
-    virtual ~ByteArraySink()
-    {
-        // nil
-    }
+    ~ByteArraySink() override = default;
 
 public:
     JobStatus init(QNetworkRequest & request) override

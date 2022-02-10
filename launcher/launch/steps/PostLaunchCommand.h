@@ -15,19 +15,19 @@
 
 #pragma once
 
-#include <launch/LaunchStep.h>
 #include <LoggedProcess.h>
+#include <launch/LaunchStep.h>
 
 class PostLaunchCommand: public LaunchStep
 {
     Q_OBJECT
 public:
     explicit PostLaunchCommand(LaunchTask *parent);
-    virtual ~PostLaunchCommand() {};
+    ~PostLaunchCommand() override = default;
 
-    virtual void executeTask();
-    virtual bool abort();
-    virtual bool canAbort() const
+    void executeTask() override;
+    bool abort() override;
+    bool canAbort() const override
     {
         return true;
     }

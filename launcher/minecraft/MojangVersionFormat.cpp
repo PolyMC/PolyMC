@@ -1,6 +1,6 @@
 #include "MojangVersionFormat.h"
-#include "OneSixVersionFormat.h"
 #include "MojangDownloadInfo.h"
+#include "OneSixVersionFormat.h"
 
 #include "Json.h"
 using namespace Json;

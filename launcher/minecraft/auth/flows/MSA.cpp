@@ -1,13 +1,13 @@
 #include "MSA.h"
 
-#include "minecraft/auth/steps/MSAStep.h"
-#include "minecraft/auth/steps/XboxUserStep.h"
-#include "minecraft/auth/steps/XboxAuthorizationStep.h"
-#include "minecraft/auth/steps/LauncherLoginStep.h"
-#include "minecraft/auth/steps/XboxProfileStep.h"
 #include "minecraft/auth/steps/EntitlementsStep.h"
-#include "minecraft/auth/steps/MinecraftProfileStep.h"
 #include "minecraft/auth/steps/GetSkinStep.h"
+#include "minecraft/auth/steps/LauncherLoginStep.h"
+#include "minecraft/auth/steps/MSAStep.h"
+#include "minecraft/auth/steps/MinecraftProfileStep.h"
+#include "minecraft/auth/steps/XboxAuthorizationStep.h"
+#include "minecraft/auth/steps/XboxProfileStep.h"
+#include "minecraft/auth/steps/XboxUserStep.h"
 
 MSASilent::MSASilent(AccountData* data, QObject* parent) : AuthFlow(data, parent) {
     m_steps.append(new MSAStep(m_data, MSAStep::Action::Refresh));

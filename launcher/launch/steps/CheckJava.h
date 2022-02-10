@@ -15,19 +15,19 @@
 
 #pragma once
 
-#include <launch/LaunchStep.h>
 #include <LoggedProcess.h>
 #include <java/JavaChecker.h>
+#include <launch/LaunchStep.h>
 
 class CheckJava: public LaunchStep
 {
     Q_OBJECT
 public:
     explicit CheckJava(LaunchTask *parent) :LaunchStep(parent){};
-    virtual ~CheckJava() {};
+    ~CheckJava() override = default;
 
-    virtual void executeTask();
-    virtual bool canAbort() const
+    void executeTask() override;
+    bool canAbort() const override
     {
         return false;
     }
@@ -40,6 +40,6 @@ private:
 
 private:
     QString m_javaPath;
-    qlonglong m_javaUnixTime;
+    qlonglong m_javaUnixTime{};
     JavaCheckerPtr m_JavaChecker;
 };

@@ -23,8 +23,8 @@
 #include <modplatform/atlauncher/ATLPackInstallTask.h>
 
 #include "Application.h"
-#include "ui/pages/BasePage.h"
 #include "tasks/Task.h"
+#include "ui/pages/BasePage.h"
 
 namespace Ui
 {
@@ -38,25 +38,25 @@ class AtlPage : public QWidget, public BasePage, public ATLauncher::UserInteract
 Q_OBJECT
 
 public:
-    explicit AtlPage(NewInstanceDialog* dialog, QWidget *parent = 0);
-    virtual ~AtlPage();
-    virtual QString displayName() const override
+    explicit AtlPage(NewInstanceDialog* dialog, QWidget *parent = nullptr);
+    ~AtlPage() override;
+    QString displayName() const override
     {
         return tr("ATLauncher");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("atlauncher");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "atl";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "ATL-platform";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
     void openedImpl() override;
 

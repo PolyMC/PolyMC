@@ -35,25 +35,25 @@ class ServersPage : public QMainWindow, public BasePage
     Q_OBJECT
 
 public:
-    explicit ServersPage(InstancePtr inst, QWidget *parent = 0);
-    virtual ~ServersPage();
+    explicit ServersPage(InstancePtr inst, QWidget *parent = nullptr);
+    ~ServersPage() override;
 
     void openedImpl() override;
     void closedImpl() override;
 
-    virtual QString displayName() const override
+    QString displayName() const override
     {
         return tr("Servers");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("unknown_server");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "servers";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "Servers-management";
     }

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <QFileSystemWatcher>
-#include <QDir>
 #include "pathmatcher/IPathMatcher.h"
+#include <QDir>
+#include <QFileSystemWatcher>
 
 class RecursiveFileSystemWatcher : public QObject
 {

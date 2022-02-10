@@ -2,15 +2,15 @@
 
 #include <QObject>
 
-#include "net/NetJob.h"
 #include "net/Download.h"
+#include "net/NetJob.h"
 
 class NotificationChecker : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit NotificationChecker(QObject *parent = 0);
+    explicit NotificationChecker(QObject *parent = nullptr);
 
     void setNotificationsUrl(const QUrl &notificationsUrl);
     void setApplicationPlatform(QString platform);
@@ -19,7 +19,7 @@ public:
 
     struct NotificationEntry
     {
-        int id;
+        int id{};
         QString message;
         enum
         {

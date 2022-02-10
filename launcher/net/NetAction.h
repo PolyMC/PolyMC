@@ -15,11 +15,11 @@
 
 #pragma once
 
+#include <QNetworkReply>
 #include <QObject>
+#include <QObjectPtr.h>
 #include <QUrl>
 #include <memory>
-#include <QNetworkReply>
-#include <QObjectPtr.h>
 
 enum JobStatus
 {
@@ -44,7 +44,7 @@ protected:
 public:
     using Ptr = shared_qobject_ptr<NetAction>;
 
-    virtual ~NetAction() {};
+    ~NetAction() override = default;
 
     bool isRunning() const
     {

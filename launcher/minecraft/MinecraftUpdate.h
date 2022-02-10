@@ -15,13 +15,13 @@
 
 #pragma once
 
-#include <QObject>
 #include <QList>
+#include <QObject>
 #include <QUrl>
 
+#include "minecraft/VersionFilterData.h"
 #include "net/NetJob.h"
 #include "tasks/Task.h"
-#include "minecraft/VersionFilterData.h"
 #include <quazip/quazip.h>
 
 class MinecraftVersion;
@@ -31,8 +31,8 @@ class MinecraftUpdate : public Task
 {
     Q_OBJECT
 public:
-    explicit MinecraftUpdate(MinecraftInstance *inst, QObject *parent = 0);
-    virtual ~MinecraftUpdate() {};
+    explicit MinecraftUpdate(MinecraftInstance *inst, QObject *parent = nullptr);
+    ~MinecraftUpdate() override = default;
 
     void executeTask() override;
     bool canAbort() const override;

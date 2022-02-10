@@ -14,12 +14,12 @@
  */
 
 #pragma once
-#include <QtNetwork>
-#include "NetAction.h"
 #include "Download.h"
 #include "HttpMetaCache.h"
-#include "tasks/Task.h"
+#include "NetAction.h"
 #include "QObjectPtr.h"
+#include "tasks/Task.h"
+#include <QtNetwork>
 
 class NetJob;
 
@@ -33,7 +33,7 @@ public:
     {
         setObjectName(job_name);
     }
-    virtual ~NetJob();
+    ~NetJob() override;
 
     bool addNetAction(NetAction::Ptr action);
 
@@ -63,8 +63,8 @@ private slots:
     void startMoreParts();
 
 public slots:
-    virtual void executeTask() override;
-    virtual bool abort() override;
+    void executeTask() override;
+    bool abort() override;
 
 private slots:
     void partProgress(int index, qint64 bytesReceived, qint64 bytesTotal);

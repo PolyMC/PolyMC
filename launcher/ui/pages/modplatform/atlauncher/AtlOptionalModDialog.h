@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <QDialog>
 #include <QAbstractListModel>
+#include <QDialog>
 
 #include "modplatform/atlauncher/ATLPackIndex.h"
 

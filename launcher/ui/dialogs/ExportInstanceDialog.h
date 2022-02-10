@@ -21,7 +21,7 @@
 
 class BaseInstance;
 class PackIgnoreProxy;
-typedef std::shared_ptr<BaseInstance> InstancePtr;
+using InstancePtr = std::shared_ptr<BaseInstance>;
 
 namespace Ui
 {
@@ -33,10 +33,10 @@ class ExportInstanceDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ExportInstanceDialog(InstancePtr instance, QWidget *parent = 0);
-    ~ExportInstanceDialog();
+    explicit ExportInstanceDialog(InstancePtr instance, QWidget *parent = nullptr);
+    ~ExportInstanceDialog() override;
 
-    virtual void done(int result);
+    void done(int result) override;
 
 private:
     bool doExport();

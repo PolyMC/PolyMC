@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QDialog>
 #include "net/NetJob.h"
+#include <QDialog>
 
 namespace Ui
 {
@@ -40,8 +40,8 @@ class UpdateDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit UpdateDialog(bool hasUpdate = true, QWidget *parent = 0);
-    ~UpdateDialog();
+    explicit UpdateDialog(bool hasUpdate = true, QWidget *parent = nullptr);
+    ~UpdateDialog() override;
 
 public slots:
     void on_btnUpdateNow_clicked();

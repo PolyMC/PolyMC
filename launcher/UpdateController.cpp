@@ -1,12 +1,12 @@
+#include "UpdateController.h"
+#include <FileSystem.h>
+#include <LocalPeer.h>
+#include <QApplication>
 #include <QFile>
 #include <QMessageBox>
-#include <FileSystem.h>
-#include <updater/GoUpdate.h>
-#include "UpdateController.h"
-#include <QApplication>
-#include <thread>
 #include <chrono>
-#include <LocalPeer.h>
+#include <thread>
+#include <updater/GoUpdate.h>
 
 #include "BuildConfig.h"
 

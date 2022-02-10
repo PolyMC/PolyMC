@@ -1,15 +1,15 @@
 #pragma once
 
-#include <QString>
-#include <QStringList>
 #include <QDateTime>
 #include <QSet>
+#include <QString>
+#include <QStringList>
 
-#include <memory>
+#include "Library.h"
+#include "ProblemProvider.h"
 #include "minecraft/OpSys.h"
 #include "minecraft/Rule.h"
-#include "ProblemProvider.h"
-#include "Library.h"
+#include <memory>
 #include <meta/JsonFormat.h>
 
 class PackProfile;

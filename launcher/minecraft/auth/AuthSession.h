@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QString>
-#include <QMultiMap>
-#include <memory>
 #include "QObjectPtr.h"
+#include <QMultiMap>
+#include <QString>
+#include <memory>
 
 class MinecraftAccount;
 class QNetworkAccessManager;
@@ -49,4 +49,4 @@ struct AuthSession
     bool demo = false;
 };
 
-typedef std::shared_ptr<AuthSession> AuthSessionPtr;
+using AuthSessionPtr = std::shared_ptr<AuthSession>;

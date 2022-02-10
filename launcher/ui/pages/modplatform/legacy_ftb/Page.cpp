@@ -8,10 +8,10 @@
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/NewInstanceDialog.h"
 
+#include "ListModel.h"
 #include "modplatform/legacy_ftb/PackFetchTask.h"
 #include "modplatform/legacy_ftb/PackInstallTask.h"
 #include "modplatform/legacy_ftb/PrivatePackManager.h"
-#include "ListModel.h"
 
 namespace LegacyFTB {
 
@@ -327,7 +327,7 @@ void Page::onTabChanged(int tab)
 
 void Page::onAddPackClicked()
 {
-    bool ok;
+    bool ok = false;
     QString text = QInputDialog::getText(
         this,
         tr("Add FTB pack"),

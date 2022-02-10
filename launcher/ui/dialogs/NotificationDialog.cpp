@@ -1,8 +1,8 @@
 #include "NotificationDialog.h"
 #include "ui_NotificationDialog.h"
 
-#include <QTimerEvent>
 #include <QStyle>
+#include <QTimerEvent>
 
 NotificationDialog::NotificationDialog(const NotificationChecker::NotificationEntry &entry, QWidget *parent) :
     QDialog(parent, Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::CustomizeWindowHint),
@@ -24,7 +24,7 @@ NotificationDialog::NotificationDialog(const NotificationChecker::NotificationEn
         icon = QStyle::SP_MessageBoxInformation;
         break;
     }
-    ui->iconLabel->setPixmap(style()->standardPixmap(icon, 0, this));
+    ui->iconLabel->setPixmap(style()->standardPixmap(icon, nullptr, this));
     ui->messageLabel->setText(entry.message);
 
     m_dontShowAgainText = tr("Don't show again");

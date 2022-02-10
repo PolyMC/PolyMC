@@ -28,7 +28,7 @@ class INISettingsObject : public SettingsObject
 {
     Q_OBJECT
 public:
-    explicit INISettingsObject(const QString &path, QObject *parent = 0);
+    explicit INISettingsObject(const QString &path, QObject *parent = nullptr);
 
     /*!
      * \brief Gets the path to the INI file.
@@ -51,11 +51,11 @@ public:
     void resumeSave() override;
 
 protected slots:
-    virtual void changeSetting(const Setting &setting, QVariant value) override;
-    virtual void resetSetting(const Setting &setting) override;
+    void changeSetting(const Setting &setting, QVariant value) override;
+    void resetSetting(const Setting &setting) override;
 
 protected:
-    virtual QVariant retrieveValue(const Setting &setting) override;
+    QVariant retrieveValue(const Setting &setting) override;
     void doSave();
 
 protected:

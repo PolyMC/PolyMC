@@ -17,8 +17,8 @@
 
 #include <tasks/Task.h>
 
-#include <QString>
 #include <QJsonObject>
+#include <QString>
 #include <QTimer>
 #include <qsslerror.h>
 
@@ -45,8 +45,8 @@ class AccountTask : public Task
 {
     Q_OBJECT
 public:
-    explicit AccountTask(AccountData * data, QObject *parent = 0);
-    virtual ~AccountTask() {};
+    explicit AccountTask(AccountData * data, QObject *parent = nullptr);
+    ~AccountTask() override = default;
 
     AccountTaskState m_taskState = AccountTaskState::STATE_CREATED;
 

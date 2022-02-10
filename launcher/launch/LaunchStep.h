@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include "tasks/Task.h"
 #include "MessageLevel.h"
+#include "tasks/Task.h"
 
 #include <QStringList>
 
@@ -29,7 +29,7 @@ public: /* methods */
     {
         bind(parent);
     };
-    virtual ~LaunchStep() {};
+    ~LaunchStep() override = default;
 
 private: /* methods */
     void bind(LaunchTask *parent);

@@ -1,25 +1,25 @@
 #pragma once
 
-#include <QObject>
-#include <QList>
-#include <QVector>
-#include <QSet>
-#include <QNetworkReply>
 #include <QImage>
+#include <QList>
+#include <QNetworkReply>
+#include <QObject>
+#include <QSet>
+#include <QVector>
 
 #include <katabasis/DeviceFlow.h>
 
-#include "minecraft/auth/Yggdrasil.h"
 #include "minecraft/auth/AccountData.h"
 #include "minecraft/auth/AccountTask.h"
 #include "minecraft/auth/AuthStep.h"
+#include "minecraft/auth/Yggdrasil.h"
 
 class AuthFlow : public AccountTask
 {
     Q_OBJECT
 
 public:
-    explicit AuthFlow(AccountData * data, QObject *parent = 0);
+    explicit AuthFlow(AccountData * data, QObject *parent = nullptr);
 
     Katabasis::Validity validity() {
         return m_data->validity_;

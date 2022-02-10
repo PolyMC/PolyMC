@@ -1,36 +1,36 @@
 #include "ScreenshotsPage.h"
 #include "ui_ScreenshotsPage.h"
 
-#include <QModelIndex>
-#include <QMutableListIterator>
-#include <QMap>
-#include <QSet>
+#include <QClipboard>
+#include <QEvent>
 #include <QFileIconProvider>
 #include <QFileSystemModel>
-#include <QStyledItemDelegate>
-#include <QLineEdit>
-#include <QEvent>
-#include <QPainter>
-#include <QClipboard>
 #include <QKeyEvent>
+#include <QLineEdit>
+#include <QMap>
 #include <QMenu>
+#include <QModelIndex>
+#include <QMutableListIterator>
+#include <QPainter>
+#include <QSet>
+#include <QStyledItemDelegate>
 
 #include <Application.h>
 
-#include "ui/dialogs/ProgressDialog.h"
 #include "ui/dialogs/CustomMessageBox.h"
+#include "ui/dialogs/ProgressDialog.h"
 
 #include "net/NetJob.h"
-#include "screenshots/ImgurUpload.h"
 #include "screenshots/ImgurAlbumCreation.h"
+#include "screenshots/ImgurUpload.h"
 #include "tasks/SequentialTask.h"
 
 #include "RWStorage.h"
-#include <FileSystem.h>
 #include <DesktopServices.h>
+#include <FileSystem.h>
 
-typedef RWStorage<QString, QIcon> SharedIconCache;
-typedef std::shared_ptr<SharedIconCache> SharedIconCachePtr;
+using SharedIconCache = RWStorage<QString, QIcon>;
+using SharedIconCachePtr = std::shared_ptr<SharedIconCache>;
 
 class ThumbnailingResult : public QObject
 {
@@ -51,7 +51,7 @@ public:
         m_path = path;
         m_cache = cache;
     }
-    void run()
+    void run() override
     {
         QFileInfo info(m_path);
         if (info.isDir())
@@ -101,7 +101,7 @@ class FilterModel : public QIdentityProxyModel
 {
     Q_OBJECT
 public:
-    explicit FilterModel(QObject *parent = 0) : QIdentityProxyModel(parent)
+    explicit FilterModel(QObject *parent = nullptr) : QIdentityProxyModel(parent)
     {
         m_thumbnailingPool.setMaxThreadCount(4);
         m_thumbnailCache = std::make_shared<SharedIconCache>();
@@ -109,8 +109,8 @@ public:
         connect(&watcher, SIGNAL(fileChanged(QString)), SLOT(fileChanged(QString)));
         // FIXME: the watched file set is not updated when files are removed
     }
-    virtual ~FilterModel() { m_thumbnailingPool.waitForDone(500); }
-    virtual QVariant data(const QModelIndex &proxyIndex, int role = Qt::DisplayRole) const
+    ~FilterModel() override { m_thumbnailingPool.waitForDone(500); }
+    QVariant data(const QModelIndex &proxyIndex, int role = Qt::DisplayRole) const override
     {
         auto model = sourceModel();
         if (!model)
@@ -143,8 +143,8 @@ public:
         }
         return sourceModel()->data(mapToSource(proxyIndex), role);
     }
-    virtual bool setData(const QModelIndex &index, const QVariant &value,
-                         int role = Qt::EditRole)
+    bool setData(const QModelIndex &index, const QVariant &value,
+                         int role = Qt::EditRole) override
     {
         auto model = sourceModel();
         if (!model)
@@ -154,8 +154,8 @@ public:
         // FIXME: this is a workaround for a bug in QFileSystemModel, where it doesn't
         // sort after renames
         {
-            ((QFileSystemModel *)model)->setNameFilterDisables(true);
-            ((QFileSystemModel *)model)->setNameFilterDisables(false);
+            (dynamic_cast<QFileSystemModel *>(model))->setNameFilterDisables(true);
+            (dynamic_cast<QFileSystemModel *>(model))->setNameFilterDisables(false);
         }
         return model->setData(mapToSource(index), value.toString() + ".png", role);
     }
@@ -193,10 +193,10 @@ private:
 class CenteredEditingDelegate : public QStyledItemDelegate
 {
 public:
-    explicit CenteredEditingDelegate(QObject *parent = 0) : QStyledItemDelegate(parent) {}
-    virtual ~CenteredEditingDelegate() {}
-    virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
-                                  const QModelIndex &index) const
+    explicit CenteredEditingDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
+    ~CenteredEditingDelegate() override = default;
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                                  const QModelIndex &index) const override
     {
         auto widget = QStyledItemDelegate::createEditor(parent, option, index);
         auto foo = dynamic_cast<QLineEdit *>(widget);
@@ -234,7 +234,7 @@ ScreenshotsPage::ScreenshotsPage(QString path, QWidget *parent)
     ui->listView->setViewMode(QListView::IconMode);
     ui->listView->setResizeMode(QListView::Adjust);
     ui->listView->installEventFilter(this);
-    ui->listView->setEditTriggers(0);
+    ui->listView->setEditTriggers(nullptr);
     ui->listView->setItemDelegate(new CenteredEditingDelegate(this));
     ui->listView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->listView, &QListView::customContextMenuRequested, this, &ScreenshotsPage::ShowContextMenu);
@@ -249,7 +249,7 @@ bool ScreenshotsPage::eventFilter(QObject *obj, QEvent *evt)
     {
         return QWidget::eventFilter(obj, evt);
     }
-    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(evt);
+    QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(evt);
 
     if (keyEvent->matches(QKeySequence::Copy)) {
         on_actionCopy_File_s_triggered();

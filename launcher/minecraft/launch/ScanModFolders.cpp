@@ -14,11 +14,11 @@
  */
 
 #include "ScanModFolders.h"
-#include "launch/LaunchTask.h"
-#include "MMCZip.h"
-#include "minecraft/OpSys.h"
 #include "FileSystem.h"
+#include "MMCZip.h"
+#include "launch/LaunchTask.h"
 #include "minecraft/MinecraftInstance.h"
+#include "minecraft/OpSys.h"
 #include "minecraft/mod/ModFolderModel.h"
 
 void ScanModFolders::executeTask()

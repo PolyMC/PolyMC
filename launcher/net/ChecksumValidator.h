@@ -2,18 +2,19 @@
 
 #include "Validator.h"
 #include <QCryptographicHash>
-#include <memory>
 #include <QFile>
+#include <memory>
+#include <utility>
 
 namespace Net {
 class ChecksumValidator: public Validator
 {
 public: /* con/des */
     ChecksumValidator(QCryptographicHash::Algorithm algorithm, QByteArray expected = QByteArray())
-        :m_checksum(algorithm), m_expected(expected)
+        :m_checksum(algorithm), m_expected(std::move(expected))
     {
     };
-    virtual ~ChecksumValidator() {};
+    ~ChecksumValidator() override = default;
 
 public: /* methods */
     bool init(QNetworkRequest &) override

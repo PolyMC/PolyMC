@@ -1,6 +1,6 @@
 #pragma once
-#include <QAbstractProxyModel>
 #include "BaseVersionList.h"
+#include <QAbstractProxyModel>
 
 #include <Filter.h>
 
@@ -21,21 +21,21 @@ public:
         Path,
         Time
     };
-    typedef QHash<BaseVersionList::ModelRoles, std::shared_ptr<Filter>> FilterMap;
+    using FilterMap = QHash<BaseVersionList::ModelRoles, std::shared_ptr<Filter>>;
 
 public:
-    VersionProxyModel ( QObject* parent = 0 );
-    virtual ~VersionProxyModel() {};
+    VersionProxyModel ( QObject* parent = nullptr );
+    ~VersionProxyModel() override = default;
 
-    virtual int columnCount(const QModelIndex &parent = QModelIndex()) const override;
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    virtual QModelIndex mapFromSource(const QModelIndex &sourceIndex) const override;
-    virtual QModelIndex mapToSource(const QModelIndex &proxyIndex) const override;
-    virtual QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
-    virtual QModelIndex parent(const QModelIndex &child) const override;
-    virtual void setSourceModel(QAbstractItemModel *sourceModel) override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex mapFromSource(const QModelIndex &sourceIndex) const override;
+    QModelIndex mapToSource(const QModelIndex &proxyIndex) const override;
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    QModelIndex parent(const QModelIndex &child) const override;
+    void setSourceModel(QAbstractItemModel *sourceModel) override;
 
     const FilterMap &filters() const;
     void setFilter(const BaseVersionList::ModelRoles column, Filter * filter);

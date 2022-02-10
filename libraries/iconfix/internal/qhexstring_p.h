@@ -42,8 +42,8 @@
 #include <QtCore/qglobal.h>
 #include <QtCore/qpoint.h>
 #include <QtCore/qstring.h>
-#include <QtGui/qpolygon.h>
 #include <QtCore/qstringbuilder.h>
+#include <QtGui/qpolygon.h>
 
 #pragma once
 
@@ -83,7 +83,7 @@ template <typename T> struct HexString
 // specialization to enable fast concatenating of our string tokens to a string
 template <typename T> struct QConcatenable<HexString<T>>
 {
-    typedef HexString<T> type;
+    using type = HexString<T>;
     enum
     {
         ExactSize = true
@@ -96,5 +96,5 @@ template <typename T> struct QConcatenable<HexString<T>>
     {
         str.write(out);
     }
-    typedef QString ConvertTo;
+    using ConvertTo = QString;
 };

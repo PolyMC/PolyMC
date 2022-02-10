@@ -3,10 +3,10 @@
 #ifndef HOEDOWN_BUFFER_H
 #define HOEDOWN_BUFFER_H
 
-#include <stdio.h>
-#include <stddef.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #ifdef __cplusplus

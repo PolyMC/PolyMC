@@ -2,18 +2,18 @@
 
 #include "distroutils.h"
 
-#include <sys/utsname.h>
 #include <fstream>
 #include <limits>
+#include <sys/utsname.h>
 
+#include <QDebug>
 #include <QString>
 #include <QStringList>
-#include <QDebug>
 
 Sys::KernelInfo Sys::getKernelInfo()
 {
     Sys::KernelInfo out;
-    struct utsname buf;
+    struct utsname buf{};
     uname(&buf);
     // NOTE: we assume linux here. this needs further elaboration
     out.kernelType = KernelType::Linux;
@@ -53,7 +53,7 @@ uint64_t Sys::getSystemRam()
     {
         if(token == "MemTotal:")
         {
-            uint64_t mem;
+            uint64_t mem = 0;
             if(file >> mem)
             {
                 return mem * 1024ull;

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <QObject>
 #include <functional>
 #include <memory>
-#include <QObject>
 
 namespace details
 {
@@ -28,7 +28,7 @@ template <typename T>
 class shared_qobject_ptr
 {
 public:
-    shared_qobject_ptr(){}
+    shared_qobject_ptr() = default;
     shared_qobject_ptr(T * wrap)
     {
         reset(wrap);

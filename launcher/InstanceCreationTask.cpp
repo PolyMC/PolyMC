@@ -1,6 +1,6 @@
 #include "InstanceCreationTask.h"
-#include "settings/INISettingsObject.h"
 #include "FileSystem.h"
+#include "settings/INISettingsObject.h"
 
 //FIXME: remove this
 #include "minecraft/MinecraftInstance.h"

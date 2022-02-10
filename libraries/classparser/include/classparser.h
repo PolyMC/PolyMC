@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 #pragma once
-#include <QString>
 #include "classparser_config.h"
+#include <QString>
 
 namespace classparser
 {

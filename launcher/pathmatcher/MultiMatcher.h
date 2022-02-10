@@ -1,21 +1,19 @@
 #include "IPathMatcher.h"
-#include <SeparatorPrefixTree.h>
 #include <QRegularExpression>
+#include <SeparatorPrefixTree.h>
 
 class MultiMatcher : public IPathMatcher
 {
 public:
-    virtual ~MultiMatcher() {};
-    MultiMatcher()
-    {
-    }
+    ~MultiMatcher() override = default;
+    MultiMatcher() = default;
     MultiMatcher &add(Ptr add)
     {
         m_matchers.append(add);
         return *this;
     }
 
-    virtual bool matches(const QString &string) const override
+    bool matches(const QString &string) const override
     {
         for(auto iter: m_matchers)
         {

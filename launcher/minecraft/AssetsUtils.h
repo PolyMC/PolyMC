@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <QString>
-#include <QMap>
 #include "net/NetAction.h"
 #include "net/NetJob.h"
+#include <QMap>
+#include <QString>
 
 struct AssetObject
 {
@@ -28,7 +28,7 @@ struct AssetObject
     NetAction::Ptr getDownloadAction();
 
     QString hash;
-    qint64 size;
+    qint64 size{};
 };
 
 struct AssetsIndex

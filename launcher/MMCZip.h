@@ -15,14 +15,14 @@
 
 #pragma once
 
-#include <QString>
+#include "minecraft/mod/Mod.h"
 #include <QFileInfo>
 #include <QSet>
-#include "minecraft/mod/Mod.h"
+#include <QString>
 #include <functional>
 
-#include <quazip/JlCompress.h>
 #include <nonstd/optional>
+#include <quazip/JlCompress.h>
 
 namespace MMCZip
 {

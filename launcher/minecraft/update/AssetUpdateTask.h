@@ -1,6 +1,6 @@
 #pragma once
-#include "tasks/Task.h"
 #include "net/NetJob.h"
+#include "tasks/Task.h"
 class MinecraftInstance;
 
 class AssetUpdateTask : public Task
@@ -8,7 +8,7 @@ class AssetUpdateTask : public Task
     Q_OBJECT
 public:
     AssetUpdateTask(MinecraftInstance * inst);
-    virtual ~AssetUpdateTask();
+    ~AssetUpdateTask() override;
 
     void executeTask() override;
 

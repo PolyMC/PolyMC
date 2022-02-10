@@ -1,12 +1,12 @@
 #pragma once
 
-#include <memory>
-#include <QList>
-#include <QJsonDocument>
-#include <QDateTime>
 #include "meta/JsonFormat.h"
 #include "ProblemProvider.h"
 #include "QObjectPtr.h"
+#include <QDateTime>
+#include <QJsonDocument>
+#include <QList>
+#include <memory>
 
 class PackProfile;
 class LaunchProfile;
@@ -27,7 +27,7 @@ public:
     Component(PackProfile * parent, std::shared_ptr<Meta::Version> version);
     Component(PackProfile * parent, const QString & uid, std::shared_ptr<VersionFile> file);
 
-    virtual ~Component(){};
+    ~Component() override = default;
     void applyTo(LaunchProfile *profile);
 
     bool isEnabled();
@@ -107,4 +107,4 @@ public: /* data */
     bool m_loaded = false;
 };
 
-typedef shared_qobject_ptr<Component> ComponentPtr;
+using ComponentPtr = shared_qobject_ptr<Component>;

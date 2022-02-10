@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <memory>
 #include <QDialog>
+#include <memory>
 
 #include "java/JavaChecker.h"
 #include "ui/pages/BasePage.h"
@@ -34,8 +34,8 @@ class MinecraftPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit MinecraftPage(QWidget *parent = 0);
-    ~MinecraftPage();
+    explicit MinecraftPage(QWidget *parent = nullptr);
+    ~MinecraftPage() override;
 
     QString displayName() const override
     {

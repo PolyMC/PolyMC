@@ -16,15 +16,15 @@
 #include "ExternalToolsPage.h"
 #include "ui_ExternalToolsPage.h"
 
-#include <QMessageBox>
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QStandardPaths>
 #include <QTabBar>
 
+#include "Application.h"
 #include "settings/SettingsObject.h"
 #include "tools/BaseProfiler.h"
 #include <FileSystem.h>
-#include "Application.h"
 #include <tools/MCEditTool.h>
 
 ExternalToolsPage::ExternalToolsPage(QWidget *parent) :
@@ -103,7 +103,7 @@ void ExternalToolsPage::on_jprofilerPathBtn_clicked()
             ui->jprofilerPathEdit->setText(cooked_dir);
             break;
         }
-    } while (1);
+    } while (true);
 }
 void ExternalToolsPage::on_jprofilerCheckBtn_clicked()
 {
@@ -140,7 +140,7 @@ void ExternalToolsPage::on_jvisualvmPathBtn_clicked()
             ui->jvisualvmPathEdit->setText(cooked_dir);
             break;
         }
-    } while (1);
+    } while (true);
 }
 void ExternalToolsPage::on_jvisualvmCheckBtn_clicked()
 {
@@ -181,7 +181,7 @@ void ExternalToolsPage::on_mceditPathBtn_clicked()
             ui->mceditPathEdit->setText(cooked_dir);
             break;
         }
-    } while (1);
+    } while (true);
 }
 void ExternalToolsPage::on_mceditCheckBtn_clicked()
 {

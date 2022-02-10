@@ -1,31 +1,31 @@
 #include "Application.h"
 #include "BuildConfig.h"
 
-#include "ui/MainWindow.h"
 #include "ui/InstanceWindow.h"
+#include "ui/MainWindow.h"
 
 #include "ui/instanceview/AccessibleInstanceView.h"
 
 #include "ui/pages/BasePageProvider.h"
-#include "ui/pages/global/LauncherPage.h"
-#include "ui/pages/global/MinecraftPage.h"
+#include "ui/pages/global/AccountListPage.h"
+#include "ui/pages/global/CustomCommandsPage.h"
+#include "ui/pages/global/ExternalToolsPage.h"
 #include "ui/pages/global/JavaPage.h"
 #include "ui/pages/global/LanguagePage.h"
-#include "ui/pages/global/ProxyPage.h"
-#include "ui/pages/global/ExternalToolsPage.h"
-#include "ui/pages/global/AccountListPage.h"
+#include "ui/pages/global/LauncherPage.h"
+#include "ui/pages/global/MinecraftPage.h"
 #include "ui/pages/global/PastePage.h"
-#include "ui/pages/global/CustomCommandsPage.h"
+#include "ui/pages/global/ProxyPage.h"
 
-#include "ui/themes/ITheme.h"
-#include "ui/themes/SystemTheme.h"
-#include "ui/themes/DarkTheme.h"
 #include "ui/themes/BrightTheme.h"
 #include "ui/themes/CustomTheme.h"
+#include "ui/themes/DarkTheme.h"
+#include "ui/themes/ITheme.h"
+#include "ui/themes/SystemTheme.h"
 
-#include "ui/setupwizard/SetupWizard.h"
-#include "ui/setupwizard/LanguageWizardPage.h"
 #include "ui/setupwizard/JavaWizardPage.h"
+#include "ui/setupwizard/LanguageWizardPage.h"
+#include "ui/setupwizard/SetupWizard.h"
 
 #include "ui/dialogs/CustomMessageBox.h"
 
@@ -36,21 +36,21 @@
 #include <iostream>
 
 #include <QAccessible>
+#include <QDebug>
 #include <QDir>
 #include <QFileInfo>
-#include <QNetworkAccessManager>
-#include <QTranslator>
 #include <QLibraryInfo>
 #include <QList>
+#include <QNetworkAccessManager>
 #include <QStringList>
-#include <QDebug>
 #include <QStyleFactory>
+#include <QTranslator>
 
 #include "InstanceList.h"
 
-#include <minecraft/auth/AccountList.h>
 #include "icons/IconList.h"
 #include "net/HttpMetaCache.h"
+#include <minecraft/auth/AccountList.h>
 
 #include "java/JavaUtils.h"
 
@@ -60,16 +60,16 @@
 #include "tools/JVisualVM.h"
 #include "tools/MCEditTool.h"
 
-#include <xdgicon.h>
 #include "settings/INISettingsObject.h"
 #include "settings/Setting.h"
+#include <xdgicon.h>
 
-#include "translations/TranslationsModel.h"
 #include "meta/Index.h"
+#include "translations/TranslationsModel.h"
 
 #include <Commandline.h>
-#include <FileSystem.h>
 #include <DesktopServices.h>
+#include <FileSystem.h>
 #include <LocalPeer.h>
 
 #include <sys.h>

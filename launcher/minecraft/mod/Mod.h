@@ -14,8 +14,8 @@
  */
 
 #pragma once
-#include <QFileInfo>
 #include <QDateTime>
+#include <QFileInfo>
 #include <QList>
 #include <memory>
 

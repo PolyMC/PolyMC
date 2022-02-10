@@ -52,8 +52,8 @@ public:
      * Constructs a new account select dialog with the given parent and message.
      * The message will be shown at the top of the dialog. It is an empty string by default.
      */
-    explicit ProfileSelectDialog(const QString& message="", int flags=0, QWidget *parent = 0);
-    ~ProfileSelectDialog();
+    explicit ProfileSelectDialog(const QString& message="", int flags=0, QWidget *parent = nullptr);
+    ~ProfileSelectDialog() override;
 
     /*!
      * Gets a pointer to the account that the user selected.

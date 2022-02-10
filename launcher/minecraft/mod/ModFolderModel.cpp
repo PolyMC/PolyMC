@@ -14,17 +14,17 @@
  */
 
 #include "ModFolderModel.h"
+#include "LocalModParseTask.h"
+#include "ModFolderLoadTask.h"
 #include <FileSystem.h>
+#include <QDebug>
+#include <QFileSystemWatcher>
 #include <QMimeData>
+#include <QString>
+#include <QThreadPool>
 #include <QUrl>
 #include <QUuid>
-#include <QString>
-#include <QFileSystemWatcher>
-#include <QDebug>
-#include "ModFolderLoadTask.h"
-#include <QThreadPool>
 #include <algorithm>
-#include "LocalModParseTask.h"
 
 ModFolderModel::ModFolderModel(const QString &dir) : QAbstractListModel(), m_dir(dir)
 {
@@ -417,7 +417,7 @@ bool ModFolderModel::setModStatus(int row, ModFolderModel::ModStatusAction actio
     }
 
     auto &mod = mods[row];
-    bool desiredStatus;
+    bool desiredStatus = false;
     switch(action) {
         case Enable:
             desiredStatus = true;

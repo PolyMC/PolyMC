@@ -16,12 +16,12 @@
 #pragma once
 
 #include "InstanceTask.h"
+#include "QObjectPtr.h"
 #include "net/NetJob.h"
-#include <QUrl>
+#include "settings/SettingsObject.h"
 #include <QFuture>
 #include <QFutureWatcher>
-#include "settings/SettingsObject.h"
-#include "QObjectPtr.h"
+#include <QUrl>
 
 #include <nonstd/optional>
 
@@ -39,7 +39,7 @@ public:
 
 protected:
     //! Entry point for tasks.
-    virtual void executeTask() override;
+    void executeTask() override;
 
 private:
     void processZipPack();

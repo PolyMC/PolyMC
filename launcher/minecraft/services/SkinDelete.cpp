@@ -1,12 +1,13 @@
 #include "SkinDelete.h"
 
-#include <QNetworkRequest>
 #include <QHttpMultiPart>
+#include <QNetworkRequest>
+#include <utility>
 
 #include "Application.h"
 
 SkinDelete::SkinDelete(QObject *parent, QString token)
-    : Task(parent), m_token(token)
+    : Task(parent), m_token(std::move(token))
 {
 }
 

@@ -1,14 +1,14 @@
 #pragma once
 
-#include "tasks/Task.h"
+#include "BaseInstance.h"
+#include "BaseVersion.h"
+#include "InstanceTask.h"
 #include "net/NetJob.h"
-#include <QUrl>
+#include "settings/SettingsObject.h"
+#include "tasks/Task.h"
 #include <QFuture>
 #include <QFutureWatcher>
-#include "settings/SettingsObject.h"
-#include "BaseVersion.h"
-#include "BaseInstance.h"
-#include "InstanceTask.h"
+#include <QUrl>
 
 class InstanceCopyTask : public InstanceTask
 {
@@ -18,7 +18,7 @@ public:
 
 protected:
     //! Entry point for tasks.
-    virtual void executeTask() override;
+    void executeTask() override;
     void copyFinished();
     void copyAborted();
 

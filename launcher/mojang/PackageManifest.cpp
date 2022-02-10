@@ -1,14 +1,14 @@
 #include "PackageManifest.h"
 #include <Json.h>
-#include <QDir>
-#include <QDirIterator>
 #include <QCryptographicHash>
 #include <QDebug>
+#include <QDir>
+#include <QDirIterator>
 
 #ifndef Q_OS_WIN32
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #endif
 
 namespace mojang_files {
@@ -185,15 +185,15 @@ Package Package::fromManifestFile(const QString & filename) {
 
 #ifndef Q_OS_WIN32
 
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace {
 // FIXME: Qt obscures symlink targets by making them absolute. that is useless. this is the workaround - we do it ourselves
 bool actually_read_symlink_target(const QString & filepath, Path & out)
 {
-    struct ::stat st;
+    struct ::stat st{};
     // FIXME: here, we assume the native filesystem encoding. May the Gods have mercy upon our Souls.
     QByteArray nativePath = filepath.toUtf8();
     const char * filepath_cstr = nativePath.data();

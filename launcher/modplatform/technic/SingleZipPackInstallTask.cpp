@@ -17,9 +17,9 @@
 
 #include <QtConcurrent>
 
+#include "FileSystem.h"
 #include "MMCZip.h"
 #include "TechnicPackProcessor.h"
-#include "FileSystem.h"
 
 #include "Application.h"
 

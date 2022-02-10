@@ -15,11 +15,12 @@
 
 #include "LegacyModList.h"
 #include <FileSystem.h>
-#include <QString>
 #include <QDebug>
+#include <QString>
+#include <utility>
 
-LegacyModList::LegacyModList(const QString &dir, const QString &list_file)
-    : m_dir(dir), m_list_file(list_file)
+LegacyModList::LegacyModList(const QString &dir, QString list_file)
+    : m_dir(dir), m_list_file(std::move(list_file))
 {
     FS::ensureFolderPathExists(m_dir.absolutePath());
     m_dir.setFilter(QDir::Readable | QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
@@ -31,7 +32,7 @@ LegacyModList::LegacyModList(const QString &dir, const QString &list_file)
         QString id;
         bool enabled = false;
     };
-    typedef QList<OrderItem> OrderList;
+    using OrderList = QList<OrderItem>;
 
 static void internalSort(QList<LegacyModList::Mod> &what)
 {
@@ -94,7 +95,7 @@ bool LegacyModList::update()
         QFileInfo infoDisabled(m_dir.filePath(item.id + ".disabled"));
         int idxEnabled = folderContents.indexOf(infoEnabled);
         int idxDisabled = folderContents.indexOf(infoDisabled);
-        bool isEnabled;
+        bool isEnabled = false;
         // if both enabled and disabled versions are present, it's a special case...
         if (idxEnabled >= 0 && idxDisabled >= 0)
         {

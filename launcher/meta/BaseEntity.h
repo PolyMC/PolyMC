@@ -15,9 +15,9 @@
 
 #pragma once
 
+#include "QObjectPtr.h"
 #include <QJsonObject>
 #include <QObject>
-#include "QObjectPtr.h"
 
 #include "net/Mode.h"
 #include "net/NetJob.h"

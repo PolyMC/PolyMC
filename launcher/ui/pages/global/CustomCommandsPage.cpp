@@ -1,7 +1,7 @@
 #include "CustomCommandsPage.h"
-#include <QVBoxLayout>
-#include <QTabWidget>
 #include <QTabBar>
+#include <QTabWidget>
+#include <QVBoxLayout>
 
 CustomCommandsPage::CustomCommandsPage(QWidget* parent): QWidget(parent)
 {
@@ -20,9 +20,7 @@ CustomCommandsPage::CustomCommandsPage(QWidget* parent): QWidget(parent)
     loadSettings();
 }
 
-CustomCommandsPage::~CustomCommandsPage()
-{
-}
+CustomCommandsPage::~CustomCommandsPage() = default;
 
 bool CustomCommandsPage::apply()
 {

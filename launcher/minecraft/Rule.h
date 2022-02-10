@@ -15,11 +15,12 @@
 
 #pragma once
 
-#include <QString>
-#include <QList>
-#include <QJsonObject>
-#include <memory>
 #include "OpSys.h"
+#include <QJsonObject>
+#include <QList>
+#include <QString>
+#include <memory>
+#include <utility>
 
 class Library;
 class Rule;
@@ -43,7 +44,7 @@ public:
     Rule(RuleAction result) : m_result(result)
     {
     }
-    virtual ~Rule() {};
+    virtual ~Rule() = default;
     virtual QJsonObject toJson() = 0;
     RuleAction apply(const Library *parent)
     {
@@ -63,17 +64,17 @@ private:
     QString m_version_regexp;
 
 protected:
-    virtual bool applies(const Library *)
+    bool applies(const Library *) override
     {
         return (m_system == currentSystem);
     }
     OsRule(RuleAction result, OpSys system, QString version_regexp)
-        : Rule(result), m_system(system), m_version_regexp(version_regexp)
+        : Rule(result), m_system(system), m_version_regexp(std::move(version_regexp))
     {
     }
 
 public:
-    virtual QJsonObject toJson();
+    QJsonObject toJson() override;
     static std::shared_ptr<OsRule> create(RuleAction result, OpSys system,
                                           QString version_regexp)
     {
@@ -84,7 +85,7 @@ public:
 class ImplicitRule : public Rule
 {
 protected:
-    virtual bool applies(const Library *)
+    bool applies(const Library *) override
     {
         return true;
     }
@@ -93,7 +94,7 @@ protected:
     }
 
 public:
-    virtual QJsonObject toJson();
+    QJsonObject toJson() override;
     static std::shared_ptr<ImplicitRule> create(RuleAction result)
     {
         return std::shared_ptr<ImplicitRule>(new ImplicitRule(result));

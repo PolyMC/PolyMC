@@ -16,18 +16,17 @@
 #include "Version.h"
 
 #include <QDateTime>
+#include <utility>
 
 #include "JsonFormat.h"
 #include "minecraft/PackProfile.h"
 
-Meta::Version::Version(const QString &uid, const QString &version)
-    : BaseVersion(), m_uid(uid), m_version(version)
+Meta::Version::Version(QString uid, QString version)
+    : BaseVersion(), m_uid(std::move(uid)), m_version(std::move(version))
 {
 }
 
-Meta::Version::~Version()
-{
-}
+Meta::Version::~Version() = default;
 
 QString Meta::Version::descriptor()
 {

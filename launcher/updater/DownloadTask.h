@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include "tasks/Task.h"
-#include "net/NetJob.h"
 #include "GoUpdate.h"
+#include "net/NetJob.h"
+#include "tasks/Task.h"
 
 namespace GoUpdate
 {
@@ -35,8 +35,8 @@ public:
      *
      * target is a template - XXXXXX at the end will be replaced with a random generated string, ensuring uniqueness
      */
-    explicit DownloadTask(shared_qobject_ptr<QNetworkAccessManager> network, Status status, QString target, QObject* parent = 0);
-    virtual ~DownloadTask() {};
+    explicit DownloadTask(shared_qobject_ptr<QNetworkAccessManager> network, Status status, QString target, QObject* parent = nullptr);
+    ~DownloadTask() override = default;
 
     /// Get the directory that will contain the update files.
     QString updateFilesDir();
@@ -49,7 +49,7 @@ public:
 
 protected:
     //! Entry point for tasks.
-    virtual void executeTask() override;
+    void executeTask() override;
 
     /*!
      * Downloads the version info files from the repository.

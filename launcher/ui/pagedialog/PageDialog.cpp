@@ -16,9 +16,9 @@
 #include "PageDialog.h"
 
 #include <QDialogButtonBox>
+#include <QKeyEvent>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <QKeyEvent>
 
 #include "Application.h"
 #include "settings/SettingsObject.h"

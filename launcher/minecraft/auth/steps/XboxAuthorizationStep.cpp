@@ -1,8 +1,9 @@
 #include "XboxAuthorizationStep.h"
 
-#include <QNetworkRequest>
-#include <QJsonParseError>
 #include <QJsonDocument>
+#include <QJsonParseError>
+#include <QNetworkRequest>
+#include <utility>
 
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"
@@ -10,8 +11,8 @@
 XboxAuthorizationStep::XboxAuthorizationStep(AccountData* data, Katabasis::Token *token, QString relyingParty, QString authorizationKind):
     AuthStep(data),
     m_token(token),
-    m_relyingParty(relyingParty),
-    m_authorizationKind(authorizationKind)
+    m_relyingParty(std::move(relyingParty)),
+    m_authorizationKind(std::move(authorizationKind))
 {
 }
 
@@ -100,7 +101,7 @@ bool XboxAuthorizationStep::processSTSError(
     QList<QNetworkReply::RawHeaderPair> headers
 ) {
     if(error == QNetworkReply::AuthenticationRequiredError) {
-        QJsonParseError jsonError;
+        QJsonParseError jsonError{};
         QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
         if(jsonError.error) {
             qWarning() << "Cannot parse error XSTS response as JSON: " << jsonError.errorString();

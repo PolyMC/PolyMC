@@ -24,8 +24,8 @@
 
 namespace Atl {
 
-typedef QMap<QString, QIcon> LogoMap;
-typedef std::function<void(QString)> LogoCallback;
+using LogoMap = QMap<QString, QIcon>;
+using LogoCallback = std::function<void (QString)>;
 
 class ListModel : public QAbstractListModel
 {
@@ -33,7 +33,7 @@ class ListModel : public QAbstractListModel
 
 public:
     ListModel(QObject *parent);
-    virtual ~ListModel();
+    ~ListModel() override;
 
     int rowCount(const QModelIndex &parent) const override;
     int columnCount(const QModelIndex &parent) const override;

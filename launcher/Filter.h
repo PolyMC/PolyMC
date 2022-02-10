@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QString>
 #include <QRegularExpression>
+#include <QString>
 
 class Filter
 {
@@ -13,8 +13,8 @@ public:
 class ContainsFilter: public Filter
 {
 public:
-    ContainsFilter(const QString &pattern);
-    virtual ~ContainsFilter();
+    ContainsFilter(QString pattern);
+    ~ContainsFilter() override;
     bool accepts(const QString & value) override;
 private:
     QString pattern;
@@ -23,8 +23,8 @@ private:
 class ExactFilter: public Filter
 {
 public:
-    ExactFilter(const QString &pattern);
-    virtual ~ExactFilter();
+    ExactFilter(QString pattern);
+    ~ExactFilter() override;
     bool accepts(const QString & value) override;
 private:
     QString pattern;
@@ -34,7 +34,7 @@ class RegexpFilter: public Filter
 {
 public:
     RegexpFilter(const QString &regexp, bool invert);
-    virtual ~RegexpFilter();
+    ~RegexpFilter() override;
     bool accepts(const QString & value) override;
 private:
     QRegularExpression pattern;

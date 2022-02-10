@@ -16,8 +16,9 @@
 #pragma once
 
 #include "ui/pages/BasePage.h"
-#include <memory>
 #include <functional>
+#include <memory>
+#include <utility>
 
 class BasePageProvider
 {
@@ -28,13 +29,13 @@ public:
 
 class GenericPageProvider : public BasePageProvider
 {
-    typedef std::function<BasePage *()> PageCreator;
+    using PageCreator = std::function<BasePage *()>;
 public:
-    explicit GenericPageProvider(const QString &dialogTitle)
-        : m_dialogTitle(dialogTitle)
+    explicit GenericPageProvider(QString dialogTitle)
+        : m_dialogTitle(std::move(dialogTitle))
     {
     }
-    virtual ~GenericPageProvider() {}
+    virtual ~GenericPageProvider() = default;
 
     QList<BasePage *> getPages() override
     {

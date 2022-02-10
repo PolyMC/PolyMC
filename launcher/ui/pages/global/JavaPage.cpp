@@ -17,19 +17,19 @@
 #include "JavaCommon.h"
 #include "ui_JavaPage.h"
 
+#include <QDir>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QDir>
 #include <QTabBar>
 
 #include "ui/dialogs/VersionSelectDialog.h"
 
-#include "java/JavaUtils.h"
 #include "java/JavaInstallList.h"
+#include "java/JavaUtils.h"
 
+#include "Application.h"
 #include "settings/SettingsObject.h"
 #include <FileSystem.h>
-#include "Application.h"
 #include <sys.h>
 
 JavaPage::JavaPage(QWidget *parent) : QWidget(parent), ui(new Ui::JavaPage)

@@ -1,8 +1,8 @@
 #include "FlameModModel.h"
 #include "Application.h"
+#include "FlameModPage.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
-#include "FlameModPage.h"
 #include <Json.h>
 
 #include <MMCStrings.h>
@@ -17,9 +17,7 @@ ListModel::ListModel(FlameModPage *parent) : QAbstractListModel(parent)
 {
 }
 
-ListModel::~ListModel()
-{
-}
+ListModel::~ListModel() = default;
 
 int ListModel::rowCount(const QModelIndex &parent) const
 {
@@ -162,8 +160,8 @@ const char* sorts[6]{"Featured","Popularity","LastUpdated","Name","Author","Tota
 void ListModel::performPaginatedSearch()
 {
 
-    QString mcVersion =  ((MinecraftInstance *)((FlameModPage *)parent())->m_instance)->getPackProfile()->getComponentVersion("net.minecraft");
-    bool hasFabric = !((MinecraftInstance *)((FlameModPage *)parent())->m_instance)->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
+    QString mcVersion =  (dynamic_cast<MinecraftInstance *>((dynamic_cast<FlameModPage *>(parent()))->m_instance))->getPackProfile()->getComponentVersion("net.minecraft");
+    bool hasFabric = !(dynamic_cast<MinecraftInstance *>((dynamic_cast<FlameModPage *>(parent()))->m_instance))->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
     auto netJob = new NetJob("Flame::Search", APPLICATION->network());
     auto searchUrl = QString(
         "https://addons-ecs.forgesvc.net/api/v2/addon/search?"
@@ -217,7 +215,7 @@ void ListModel::searchRequestFinished()
 {
     jobPtr.reset();
 
-    QJsonParseError parse_error;
+    QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
     if(parse_error.error != QJsonParseError::NoError) {
         qWarning() << "Error while parsing JSON response from Flame at " << parse_error.offset << " reason: " << parse_error.errorString();

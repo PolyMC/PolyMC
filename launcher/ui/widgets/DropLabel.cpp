@@ -1,7 +1,7 @@
 #include "DropLabel.h"
 
-#include <QMimeData>
 #include <QDropEvent>
+#include <QMimeData>
 
 DropLabel::DropLabel(QWidget *parent) : QLabel(parent)
 {

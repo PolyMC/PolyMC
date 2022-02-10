@@ -1,8 +1,8 @@
 #pragma once
 
+#include "DefaultVariable.h"
 #include <QString>
 #include <QStringList>
-#include "DefaultVariable.h"
 
 struct GradleSpecifier
 {

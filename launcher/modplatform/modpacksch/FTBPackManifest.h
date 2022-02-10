@@ -17,11 +17,11 @@
 
 #pragma once
 
-#include <QString>
-#include <QVector>
-#include <QUrl>
 #include <QJsonObject>
 #include <QMetaType>
+#include <QString>
+#include <QUrl>
+#include <QVector>
 
 namespace ModpacksCH
 {
@@ -35,53 +35,53 @@ struct Specs
 
 struct Tag
 {
-    int id;
+    int id{};
     QString name;
 };
 
 struct Art
 {
-    int id;
+    int id{};
     QString url;
     QString type;
-    int width;
-    int height;
-    bool compressed;
+    int width{};
+    int height{};
+    bool compressed{};
     QString sha1;
-    int size;
-    int64_t updated;
+    int size{};
+    int64_t updated{};
 };
 
 struct Author
 {
-    int id;
+    int id{};
     QString name;
     QString type;
     QString website;
-    int64_t updated;
+    int64_t updated{};
 };
 
 struct VersionInfo
 {
-    int id;
+    int id{};
     QString name;
     QString type;
-    int64_t updated;
-    Specs specs;
+    int64_t updated{};
+    Specs specs{};
 };
 
 struct Modpack
 {
-    int id;
+    int id{};
     QString name;
     QString synopsis;
     QString description;
     QString type;
-    bool featured;
-    int installs;
-    int plays;
-    int64_t updated;
-    int64_t refreshed;
+    bool featured{};
+    int installs{};
+    int plays{};
+    int64_t updated{};
+    int64_t refreshed{};
     QVector<Art> art;
     QVector<Author> authors;
     QVector<VersionInfo> versions;
@@ -90,40 +90,40 @@ struct Modpack
 
 struct VersionTarget
 {
-    int id;
+    int id{};
     QString type;
     QString name;
     QString version;
-    int64_t updated;
+    int64_t updated{};
 };
 
 struct VersionFile
 {
-    int id;
+    int id{};
     QString type;
     QString path;
     QString name;
     QString version;
     QString url;
     QString sha1;
-    int size;
-    bool clientOnly;
-    bool serverOnly;
-    bool optional;
-    int64_t updated;
+    int size{};
+    bool clientOnly{};
+    bool serverOnly{};
+    bool optional{};
+    int64_t updated{};
 };
 
 struct Version
 {
-    int id;
-    int parent;
+    int id{};
+    int parent{};
     QString name;
     QString type;
-    int installs;
-    int plays;
-    int64_t updated;
-    int64_t refreshed;
-    Specs specs;
+    int installs{};
+    int plays{};
+    int64_t updated{};
+    int64_t refreshed{};
+    Specs specs{};
     QVector<VersionTarget> targets;
     QVector<VersionFile> files;
 };

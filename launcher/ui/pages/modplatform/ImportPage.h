@@ -17,9 +17,9 @@
 
 #include <QWidget>
 
+#include "tasks/Task.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "tasks/Task.h"
 
 namespace Ui
 {
@@ -33,25 +33,25 @@ class ImportPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit ImportPage(NewInstanceDialog* dialog, QWidget *parent = 0);
-    virtual ~ImportPage();
-    virtual QString displayName() const override
+    explicit ImportPage(NewInstanceDialog* dialog, QWidget *parent = nullptr);
+    ~ImportPage() override;
+    QString displayName() const override
     {
         return tr("Import from zip");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("viewfolder");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "import";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "Zip-import";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
     void setUrl(const QString & url);
     void openedImpl() override;

@@ -1,11 +1,12 @@
 #include "Version.h"
 
-#include <QStringList>
-#include <QUrl>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
+#include <QStringList>
+#include <QUrl>
+#include <utility>
 
-Version::Version(const QString &str) : m_string(str)
+Version::Version(QString str) : m_string(std::move(str))
 {
     parse();
 }

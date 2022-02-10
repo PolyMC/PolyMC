@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <launch/LaunchStep.h>
 #include <LoggedProcess.h>
+#include <launch/LaunchStep.h>
 #include <minecraft/auth/AuthSession.h>
 
 #include "MinecraftServerTarget.h"
@@ -26,12 +26,12 @@ class DirectJavaLaunch: public LaunchStep
     Q_OBJECT
 public:
     explicit DirectJavaLaunch(LaunchTask *parent);
-    virtual ~DirectJavaLaunch() {};
+    ~DirectJavaLaunch() override = default;
 
-    virtual void executeTask();
-    virtual bool abort();
-    virtual void proceed();
-    virtual bool canAbort() const
+    void executeTask() override;
+    bool abort() override;
+    void proceed() override;
+    bool canAbort() const override
     {
         return true;
     }

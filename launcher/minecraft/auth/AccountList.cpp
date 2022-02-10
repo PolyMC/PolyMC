@@ -17,14 +17,14 @@
 #include "AccountData.h"
 #include "AccountTask.h"
 
-#include <QIODevice>
+#include <QDir>
 #include <QFile>
-#include <QTextStream>
-#include <QJsonDocument>
+#include <QIODevice>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
-#include <QDir>
+#include <QTextStream>
 #include <QTimer>
 
 #include <QDebug>
@@ -48,7 +48,7 @@ AccountList::AccountList(QObject *parent) : QAbstractListModel(parent) {
     connect(m_nextTimer, &QTimer::timeout, this, &AccountList::tryNext);
 }
 
-AccountList::~AccountList() noexcept {}
+AccountList::~AccountList() noexcept = default;
 
 int AccountList::findAccountByProfileId(const QString& profileId) const {
     for (int i = 0; i < count(); i++) {
@@ -441,7 +441,7 @@ bool AccountList::loadList()
     QByteArray jsonData = file.readAll();
     file.close();
 
-    QJsonParseError parseError;
+    QJsonParseError parseError{};
     QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData, &parseError);
 
     // Fail if the JSON is invalid.

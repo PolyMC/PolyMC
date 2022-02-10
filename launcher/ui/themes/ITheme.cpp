@@ -1,8 +1,8 @@
 #include "ITheme.h"
-#include "rainbow.h"
-#include <QStyleFactory>
-#include <QDir>
 #include "Application.h"
+#include "rainbow.h"
+#include <QDir>
+#include <QStyleFactory>
 
 void ITheme::apply(bool)
 {

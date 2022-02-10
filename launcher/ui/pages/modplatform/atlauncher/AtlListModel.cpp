@@ -16,8 +16,8 @@
 
 #include "AtlListModel.h"
 
-#include <BuildConfig.h>
 #include <Application.h>
+#include <BuildConfig.h>
 #include <Json.h>
 
 namespace Atl {
@@ -26,9 +26,7 @@ ListModel::ListModel(QObject *parent) : QAbstractListModel(parent)
 {
 }
 
-ListModel::~ListModel()
-{
-}
+ListModel::~ListModel() = default;
 
 int ListModel::rowCount(const QModelIndex &parent) const
 {
@@ -100,7 +98,7 @@ void ListModel::requestFinished()
 {
     jobPtr.reset();
 
-    QJsonParseError parse_error;
+    QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
     if(parse_error.error != QJsonParseError::NoError) {
         qWarning() << "Error while parsing JSON response from ATL at " << parse_error.offset << " reason: " << parse_error.errorString();

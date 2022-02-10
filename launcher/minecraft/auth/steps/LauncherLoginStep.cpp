@@ -2,9 +2,9 @@
 
 #include <QNetworkRequest>
 
+#include "minecraft/auth/AccountTask.h"
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"
-#include "minecraft/auth/AccountTask.h"
 
 LauncherLoginStep::LauncherLoginStep(AccountData* data) : AuthStep(data) {
 

@@ -15,11 +15,11 @@
 
 #pragma once
 
-#include <QWidget>
 #include <QModelIndex>
+#include <QWidget>
 
-#include "ui/pages/BasePageProvider.h"
 #include "ui/pages/BasePageContainer.h"
+#include "ui/pages/BasePageProvider.h"
 
 class QLayout;
 class IconLabel;
@@ -36,8 +36,8 @@ class PageContainer : public QWidget, public BasePageContainer
     Q_OBJECT
 public:
     explicit PageContainer(BasePageProvider *pageProvider, QString defaultId = QString(),
-                        QWidget *parent = 0);
-    virtual ~PageContainer() {}
+                        QWidget *parent = nullptr);
+    ~PageContainer() override = default;
 
     void addButtons(QWidget * buttons);
     void addButtons(QLayout * buttons);
@@ -58,7 +58,7 @@ public:
         return false;
     }
 
-    virtual bool selectPage(QString pageId) override;
+    bool selectPage(QString pageId) override;
 
     void refreshContainer() override;
     virtual void setParentContainer(BasePageContainer * container)
@@ -78,12 +78,12 @@ private slots:
 
 private:
     BasePageContainer * m_container = nullptr;
-    BasePage * m_currentPage = 0;
+    BasePage * m_currentPage = nullptr;
     QSortFilterProxyModel *m_proxyModel;
     PageModel *m_model;
-    QStackedLayout *m_pageStack;
-    QListView *m_pageList;
-    QLabel *m_header;
-    IconLabel *m_iconHeader;
-    QGridLayout *m_layout;
+    QStackedLayout *m_pageStack{};
+    QListView *m_pageList{};
+    QLabel *m_header{};
+    IconLabel *m_iconHeader{};
+    QGridLayout *m_layout{};
 };

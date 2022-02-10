@@ -14,10 +14,10 @@
  */
 
 #include "ReconstructAssets.h"
+#include "launch/LaunchTask.h"
+#include "minecraft/AssetsUtils.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
-#include "minecraft/AssetsUtils.h"
-#include "launch/LaunchTask.h"
 
 void ReconstructAssets::executeTask()
 {

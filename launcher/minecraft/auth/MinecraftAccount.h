@@ -15,26 +15,26 @@
 
 #pragma once
 
-#include <QObject>
-#include <QString>
-#include <QList>
 #include <QJsonObject>
-#include <QPair>
+#include <QList>
 #include <QMap>
+#include <QObject>
+#include <QPair>
 #include <QPixmap>
+#include <QString>
 
 #include <memory>
 
-#include "AuthSession.h"
-#include "Usable.h"
 #include "AccountData.h"
+#include "AuthSession.h"
 #include "QObjectPtr.h"
+#include "Usable.h"
 
 class Task;
 class AccountTask;
 class MinecraftAccount;
 
-typedef shared_qobject_ptr<MinecraftAccount> MinecraftAccountPtr;
+using MinecraftAccountPtr = shared_qobject_ptr<MinecraftAccount>;
 Q_DECLARE_METATYPE(MinecraftAccountPtr)
 
 /**
@@ -67,7 +67,7 @@ public: /* construction */
     explicit MinecraftAccount(const MinecraftAccount &other, QObject *parent) = delete;
 
     //! Default constructor
-    explicit MinecraftAccount(QObject *parent = 0);
+    explicit MinecraftAccount(QObject *parent = nullptr);
 
     static MinecraftAccountPtr createFromUsername(const QString &username);
 

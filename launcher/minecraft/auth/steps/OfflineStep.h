@@ -10,7 +10,7 @@ class OfflineStep : public AuthStep {
     Q_OBJECT
 public:
     explicit OfflineStep(AccountData *data);
-    virtual ~OfflineStep() noexcept;
+    ~OfflineStep() noexcept override;
 
     void perform() override;
     void rehydrate() override;

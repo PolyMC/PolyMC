@@ -14,10 +14,10 @@
  */
 
 #pragma once
-#include <QString>
 #include <QMap>
-#include <qtimer.h>
+#include <QString>
 #include <memory>
+#include <qtimer.h>
 
 class HttpMetaCache;
 
@@ -25,7 +25,7 @@ class MetaEntry
 {
 friend class HttpMetaCache;
 protected:
-    MetaEntry() {}
+    MetaEntry() = default;
 public:
     bool isStale()
     {
@@ -75,7 +75,7 @@ protected:
     bool stale = true;
 };
 
-typedef std::shared_ptr<MetaEntry> MetaEntryPtr;
+using MetaEntryPtr = std::shared_ptr<MetaEntry>;
 
 class HttpMetaCache : public QObject
 {
@@ -83,7 +83,7 @@ class HttpMetaCache : public QObject
 public:
     // supply path to the cache index file
     HttpMetaCache(QString path = QString());
-    ~HttpMetaCache();
+    ~HttpMetaCache() override;
 
     // get the entry solely from the cache
     // you probably don't want this, unless you have some specific caching needs.

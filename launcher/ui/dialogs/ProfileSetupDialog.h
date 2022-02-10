@@ -17,8 +17,8 @@
 
 #include <QDialog>
 #include <QIcon>
-#include <QTimer>
 #include <QNetworkReply>
+#include <QTimer>
 
 #include <memory>
 #include <minecraft/auth/MinecraftAccount.h>
@@ -33,8 +33,8 @@ class ProfileSetupDialog : public QDialog
     Q_OBJECT
 public:
 
-    explicit ProfileSetupDialog(MinecraftAccountPtr accountToSetup, QWidget *parent = 0);
-    ~ProfileSetupDialog();
+    explicit ProfileSetupDialog(MinecraftAccountPtr accountToSetup, QWidget *parent = nullptr);
+    ~ProfileSetupDialog() override;
 
     enum class NameStatus
     {

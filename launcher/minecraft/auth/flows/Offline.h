@@ -7,7 +7,7 @@ class OfflineRefresh : public AuthFlow
 public:
     explicit OfflineRefresh(
         AccountData *data,
-        QObject *parent = 0
+        QObject *parent = nullptr
     );
 };
 
@@ -17,6 +17,6 @@ class OfflineLogin : public AuthFlow
 public:
     explicit OfflineLogin(
         AccountData *data,
-        QObject *parent = 0
+        QObject *parent = nullptr
     );
 };

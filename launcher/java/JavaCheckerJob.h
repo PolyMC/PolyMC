@@ -15,20 +15,21 @@
 
 #pragma once
 
-#include <QtNetwork>
 #include "JavaChecker.h"
 #include "tasks/Task.h"
+#include <QtNetwork>
+#include <utility>
 
 class JavaCheckerJob;
-typedef shared_qobject_ptr<JavaCheckerJob> JavaCheckerJobPtr;
+using JavaCheckerJobPtr = shared_qobject_ptr<JavaCheckerJob>;
 
 // FIXME: this just seems horribly redundant
 class JavaCheckerJob : public Task
 {
     Q_OBJECT
 public:
-    explicit JavaCheckerJob(QString job_name) : Task(), m_job_name(job_name) {};
-    virtual ~JavaCheckerJob() {};
+    explicit JavaCheckerJob(QString job_name) : Task(), m_job_name(std::move(job_name)) {};
+    ~JavaCheckerJob() override = default;
 
     bool addJavaCheckerAction(JavaCheckerPtr base)
     {
@@ -51,7 +52,7 @@ private slots:
     void partFinished(JavaCheckResult result);
 
 protected:
-    virtual void executeTask() override;
+    void executeTask() override;
 
 private:
     QString m_job_name;

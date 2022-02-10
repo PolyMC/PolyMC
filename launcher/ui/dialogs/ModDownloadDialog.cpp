@@ -1,19 +1,19 @@
 #include "ModDownloadDialog.h"
 
 #include <BaseVersion.h>
-#include <icons/IconList.h>
 #include <InstanceList.h>
+#include <icons/IconList.h>
 
 #include "ProgressDialog.h"
 
+#include <QDialogButtonBox>
 #include <QLayout>
 #include <QPushButton>
 #include <QValidator>
-#include <QDialogButtonBox>
 
-#include "ui/widgets/PageContainer.h"
-#include "ui/pages/modplatform/modrinth/ModrinthPage.h"
 #include "ModDownloadTask.h"
+#include "ui/pages/modplatform/modrinth/ModrinthPage.h"
+#include "ui/widgets/PageContainer.h"
 
 
 ModDownloadDialog::ModDownloadDialog(const std::shared_ptr<ModFolderModel> &mods, QWidget *parent,
@@ -89,9 +89,7 @@ void ModDownloadDialog::setSuggestedMod(const QString& name, ModDownloadTask* ta
     m_buttons->button(QDialogButtonBox::Ok)->setEnabled(task);
 }
 
-ModDownloadDialog::~ModDownloadDialog()
-{
-}
+ModDownloadDialog::~ModDownloadDialog() = default;
 
 ModDownloadTask *ModDownloadDialog::getTask() {
     return modTask.release();

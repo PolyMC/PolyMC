@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QString>
 #include <QIcon>
+#include <QString>
 #include <memory>
 
 #include "BasePageContainer.h"
@@ -24,7 +24,7 @@
 class BasePage
 {
 public:
-    virtual ~BasePage() {}
+    virtual ~BasePage() = default;
     virtual QString id() const = 0;
     virtual QString displayName() const = 0;
     virtual QIcon icon() const = 0;
@@ -55,4 +55,4 @@ protected:
     bool isOpened = false;
 };
 
-typedef std::shared_ptr<BasePage> BasePagePtr;
+using BasePagePtr = std::shared_ptr<BasePage>;

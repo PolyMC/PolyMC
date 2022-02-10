@@ -32,8 +32,8 @@ class InstanceWindow : public QMainWindow, public BasePageContainer
     Q_OBJECT
 
 public:
-    explicit InstanceWindow(InstancePtr proc, QWidget *parent = 0);
-    virtual ~InstanceWindow();
+    explicit InstanceWindow(InstancePtr proc, QWidget *parent = nullptr);
+    ~InstanceWindow() override;
 
     bool selectPage(QString pageId) override;
     void refreshContainer() override;

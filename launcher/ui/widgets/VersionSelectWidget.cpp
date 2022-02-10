@@ -1,8 +1,8 @@
 #include "VersionSelectWidget.h"
 
+#include <QHeaderView>
 #include <QProgressBar>
 #include <QVBoxLayout>
-#include <QHeaderView>
 
 #include "VersionListView.h"
 #include "VersionProxyModel.h"
@@ -57,9 +57,7 @@ void VersionSelectWidget::setEmptyErrorString(QString emptyErrorString)
     listView->setEmptyErrorString(emptyErrorString);
 }
 
-VersionSelectWidget::~VersionSelectWidget()
-{
-}
+VersionSelectWidget::~VersionSelectWidget() = default;
 
 void VersionSelectWidget::setResizeOn(int column)
 {

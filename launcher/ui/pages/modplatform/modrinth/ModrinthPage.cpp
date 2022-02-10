@@ -4,13 +4,13 @@
 #include <QKeyEvent>
 
 #include "Application.h"
-#include "Json.h"
-#include "ui/dialogs/ModDownloadDialog.h"
 #include "InstanceImportTask.h"
-#include "ModrinthModel.h"
+#include "Json.h"
 #include "ModDownloadTask.h"
+#include "ModrinthModel.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
+#include "ui/dialogs/ModDownloadDialog.h"
 
 ModrinthPage::ModrinthPage(ModDownloadDialog *dialog, BaseInstance *instance)
     : QWidget(dialog), m_instance(instance), ui(new Ui::ModrinthPage), dialog(dialog)
@@ -44,7 +44,7 @@ ModrinthPage::~ModrinthPage()
 bool ModrinthPage::eventFilter(QObject* watched, QEvent* event)
 {
     if (watched == ui->searchEdit && event->type() == QEvent::KeyPress) {
-        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+        QKeyEvent* keyEvent = dynamic_cast<QKeyEvent*>(event);
         if (keyEvent->key() == Qt::Key_Return) {
             triggerSearch();
             keyEvent->accept();
@@ -105,7 +105,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex first, QModelIndex second)
         QObject::connect(netJob, &NetJob::succeeded, this, [this, response, netJob]
         {
             netJob->deleteLater();
-            QJsonParseError parse_error;
+            QJsonParseError parse_error{};
             QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
             if(parse_error.error != QJsonParseError::NoError) {
                 qWarning() << "Error while parsing JSON response from Modrinth at " << parse_error.offset << " reason: " << parse_error.errorString();
@@ -122,7 +122,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex first, QModelIndex second)
                 qDebug() << *response;
                 qWarning() << "Error while reading Modrinth mod version: " << e.cause();
             }
-            auto packProfile = ((MinecraftInstance *)m_instance)->getPackProfile();
+            auto packProfile = (dynamic_cast<MinecraftInstance *>(m_instance))->getPackProfile();
             QString mcVersion =  packProfile->getComponentVersion("net.minecraft");
             QString loaderString = (packProfile->getComponentVersion("net.minecraftforge").isEmpty()) ? "fabric" : "forge";
             for(const auto& version : current.versions) {

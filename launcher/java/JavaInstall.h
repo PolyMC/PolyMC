@@ -1,26 +1,28 @@
 #pragma once
 
+#include <utility>
+
 #include "BaseVersion.h"
 #include "JavaVersion.h"
 
 struct JavaInstall : public BaseVersion
 {
-    JavaInstall(){}
+    JavaInstall() = default;
     JavaInstall(QString id, QString arch, QString path)
-    : id(id), arch(arch), path(path)
+    : id(id), arch(std::move(arch)), path(std::move(path))
     {
     }
-    virtual QString descriptor()
-    {
-        return id.toString();
-    }
-
-    virtual QString name()
+    QString descriptor() override
     {
         return id.toString();
     }
 
-    virtual QString typeString() const
+    QString name() override
+    {
+        return id.toString();
+    }
+
+    QString typeString() const override
     {
         return arch;
     }
@@ -35,4 +37,4 @@ struct JavaInstall : public BaseVersion
     bool recommended = false;
 };
 
-typedef std::shared_ptr<JavaInstall> JavaInstallPtr;
+using JavaInstallPtr = std::shared_ptr<JavaInstall>;

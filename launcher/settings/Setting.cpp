@@ -15,9 +15,10 @@
 
 #include "Setting.h"
 #include "settings/SettingsObject.h"
+#include <utility>
 
 Setting::Setting(QStringList synonyms, QVariant defVal)
-    : QObject(), m_synonyms(synonyms), m_defVal(defVal)
+    : QObject(), m_synonyms(std::move(synonyms)), m_defVal(std::move(defVal))
 {
 }
 

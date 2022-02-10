@@ -1,16 +1,17 @@
 #include "ImgurUpload.h"
 #include "BuildConfig.h"
 
-#include <QNetworkRequest>
+#include <QDebug>
+#include <QFile>
 #include <QHttpMultiPart>
+#include <QHttpPart>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QHttpPart>
-#include <QFile>
+#include <QNetworkRequest>
 #include <QUrl>
-#include <QDebug>
+#include <utility>
 
-ImgurUpload::ImgurUpload(ScreenShot::Ptr shot) : NetAction(), m_shot(shot)
+ImgurUpload::ImgurUpload(ScreenShot::Ptr shot) : NetAction(), m_shot(std::move(shot))
 {
     m_url = BuildConfig.IMGUR_BASE_URL + "upload.json";
     m_status = Job_NotStarted;
@@ -77,7 +78,7 @@ void ImgurUpload::downloadFinished()
     }
     QByteArray data = m_reply->readAll();
     m_reply.reset();
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
     if (jsonError.error != QJsonParseError::NoError)
     {

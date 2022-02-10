@@ -1,30 +1,31 @@
 #include "MinecraftInstance.h"
+#include "Application.h"
 #include "minecraft/launch/CreateGameFolders.h"
 #include "minecraft/launch/ExtractNatives.h"
 #include "minecraft/launch/PrintInstanceInfo.h"
 #include "settings/Setting.h"
 #include "settings/SettingsObject.h"
-#include "Application.h"
+#include <utility>
 
-#include "MMCStrings.h"
-#include "pathmatcher/RegexpMatcher.h"
-#include "pathmatcher/MultiMatcher.h"
 #include "FileSystem.h"
-#include "java/JavaVersion.h"
+#include "MMCStrings.h"
 #include "MMCTime.h"
+#include "java/JavaVersion.h"
+#include "pathmatcher/MultiMatcher.h"
+#include "pathmatcher/RegexpMatcher.h"
 
 #include "launch/LaunchTask.h"
+#include "launch/steps/CheckJava.h"
 #include "launch/steps/LookupServerAddress.h"
 #include "launch/steps/PostLaunchCommand.h"
-#include "launch/steps/Update.h"
 #include "launch/steps/PreLaunchCommand.h"
 #include "launch/steps/TextPrint.h"
-#include "launch/steps/CheckJava.h"
+#include "launch/steps/Update.h"
 
-#include "minecraft/launch/LauncherPartLaunch.h"
-#include "minecraft/launch/DirectJavaLaunch.h"
-#include "minecraft/launch/ModMinecraftJar.h"
 #include "minecraft/launch/ClaimAccount.h"
+#include "minecraft/launch/DirectJavaLaunch.h"
+#include "minecraft/launch/LauncherPartLaunch.h"
+#include "minecraft/launch/ModMinecraftJar.h"
 #include "minecraft/launch/ReconstructAssets.h"
 #include "minecraft/launch/ScanModFolders.h"
 #include "minecraft/launch/VerifyJavaInstall.h"
@@ -42,10 +43,10 @@
 
 #include "WorldList.h"
 
-#include "PackProfile.h"
 #include "AssetsUtils.h"
-#include "MinecraftUpdate.h"
 #include "MinecraftLoadAndCheck.h"
+#include "MinecraftUpdate.h"
+#include "PackProfile.h"
 #include "minecraft/gameoptions/GameOptions.h"
 #include "minecraft/update/FoldersTask.h"
 
@@ -58,17 +59,17 @@ class OrSetting : public Setting
     Q_OBJECT
 public:
     OrSetting(QString id, std::shared_ptr<Setting> a, std::shared_ptr<Setting> b)
-    :Setting({id}, false), m_a(a), m_b(b)
+    :Setting({id}, false), m_a(std::move(a)), m_b(std::move(b))
     {
     }
-    virtual QVariant get() const
+    QVariant get() const override
     {
         bool a = m_a->get().toBool();
         bool b = m_b->get().toBool();
         return a || b;
     }
-    virtual void reset() {}
-    virtual void set(QVariant value) {}
+    void reset() override {}
+    void set(QVariant value) override {}
 private:
     std::shared_ptr<Setting> m_a;
     std::shared_ptr<Setting> m_b;
@@ -392,7 +393,7 @@ QProcessEnvironment MinecraftInstance::createEnvironment()
 static QString replaceTokensIn(QString text, QMap<QString, QString> with)
 {
     QString result;
-    QRegExp token_regexp("\\$\\{(.+)\\}");
+    QRegExp token_regexp(R"(\$\{(.+)\})");
     token_regexp.setMinimal(true);
     QStringList list;
     int tail = 0;
@@ -713,7 +714,7 @@ QMap<QString, QString> MinecraftInstance::createCensorFilterFromSession(AuthSess
 
 MessageLevel::Enum MinecraftInstance::guessLevel(const QString &line, MessageLevel::Enum level)
 {
-    QRegularExpression re("\\[(?<timestamp>[0-9:]+)\\] \\[[^/]+/(?<level>[^\\]]+)\\]");
+    QRegularExpression re(R"(\[(?<timestamp>[0-9:]+)\] \[[^/]+/(?<level>[^\]]+)\])");
     auto match = re.match(line);
     if(match.hasMatch())
     {
@@ -747,11 +748,11 @@ MessageLevel::Enum MinecraftInstance::guessLevel(const QString &line, MessageLev
     if (line.contains("overwriting existing"))
         return MessageLevel::Fatal;
     //NOTE: this diverges from the real regexp. no unicode, the first section is + instead of *
-    static const QString javaSymbol = "([a-zA-Z_$][a-zA-Z\\d_$]*\\.)+[a-zA-Z_$][a-zA-Z\\d_$]*";
+    static const QString javaSymbol = R"(([a-zA-Z_$][a-zA-Z\d_$]*\.)+[a-zA-Z_$][a-zA-Z\d_$]*)";
     if (line.contains("Exception in thread")
         || line.contains(QRegularExpression("\\s+at " + javaSymbol))
         || line.contains(QRegularExpression("Caused by: " + javaSymbol))
-        || line.contains(QRegularExpression("([a-zA-Z_$][a-zA-Z\\d_$]*\\.)+[a-zA-Z_$]?[a-zA-Z\\d_$]*(Exception|Error|Throwable)"))
+        || line.contains(QRegularExpression(R"(([a-zA-Z_$][a-zA-Z\d_$]*\.)+[a-zA-Z_$]?[a-zA-Z\d_$]*(Exception|Error|Throwable))"))
         || line.contains(QRegularExpression("... \\d+ more$"))
         )
         return MessageLevel::Error;
@@ -761,7 +762,7 @@ MessageLevel::Enum MinecraftInstance::guessLevel(const QString &line, MessageLev
 IPathMatcher::Ptr MinecraftInstance::getLogFileMatcher()
 {
     auto combined = std::make_shared<MultiMatcher>();
-    combined->add(std::make_shared<RegexpMatcher>(".*\\.log(\\.[0-9]*)?(\\.gz)?$"));
+    combined->add(std::make_shared<RegexpMatcher>(R"(.*\.log(\.[0-9]*)?(\.gz)?$)"));
     combined->add(std::make_shared<RegexpMatcher>("crash-.*\\.txt"));
     combined->add(std::make_shared<RegexpMatcher>("IDMap dump.*\\.txt$"));
     combined->add(std::make_shared<RegexpMatcher>("ModLoader\\.txt(\\..*)?$"));

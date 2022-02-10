@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QDateTime>
-#include <QString>
 #include <QFileInfo>
+#include <QString>
 #include <memory>
 
 struct ScreenShot {

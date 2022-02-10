@@ -2,10 +2,10 @@
 
 #include <QWidget>
 
+#include "modplatform/modrinth/ModrinthPackIndex.h"
+#include "tasks/Task.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "tasks/Task.h"
-#include "modplatform/modrinth/ModrinthPackIndex.h"
 
 namespace Ui
 {
@@ -24,24 +24,24 @@ class ModrinthPage : public QWidget, public BasePage
 
 public:
     explicit ModrinthPage(ModDownloadDialog *dialog, BaseInstance *instance);
-    virtual ~ModrinthPage();
-    virtual QString displayName() const override
+    ~ModrinthPage() override;
+    QString displayName() const override
     {
         return tr("Modrinth");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("modrinth");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "modrinth";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "Modrinth-platform";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
     void openedImpl() override;
 

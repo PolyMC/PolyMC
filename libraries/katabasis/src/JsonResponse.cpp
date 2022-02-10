@@ -8,7 +8,7 @@
 namespace Katabasis {
 
 QVariantMap parseJsonResponse(const QByteArray &data) {
-    QJsonParseError err;
+    QJsonParseError err{};
     QJsonDocument doc = QJsonDocument::fromJson(data, &err);
     if (err.error != QJsonParseError::NoError) {
         qWarning() << "parseTokenResponse: Failed to parse token response due to err:" << err.errorString();

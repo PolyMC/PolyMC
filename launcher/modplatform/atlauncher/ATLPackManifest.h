@@ -16,9 +16,9 @@
 
 #pragma once
 
+#include <QJsonObject>
 #include <QString>
 #include <QVector>
-#include <QJsonObject>
 
 namespace ATLauncher
 {
@@ -64,9 +64,9 @@ enum class DownloadType
 struct VersionLoader
 {
     QString type;
-    bool latest;
-    bool recommended;
-    bool choose;
+    bool latest{};
+    bool recommended{};
+    bool choose{};
 
     QString version;
 };
@@ -102,23 +102,23 @@ struct VersionMod
     QString decompFile;
 
     QString description;
-    bool optional;
-    bool recommended;
-    bool selected;
-    bool hidden;
-    bool library;
+    bool optional{};
+    bool recommended{};
+    bool selected{};
+    bool hidden{};
+    bool library{};
     QString group;
     QVector<QString> depends;
 
-    bool client;
+    bool client{};
 
     // computed
-    bool effectively_hidden;
+    bool effectively_hidden{};
 };
 
 struct VersionConfigs
 {
-    int filesize;
+    int filesize{};
     QString sha1;
 };
 
@@ -126,7 +126,7 @@ struct PackVersion
 {
     QString version;
     QString minecraft;
-    bool noConfigs;
+    bool noConfigs{};
     QString mainClass;
     QString extraArguments;
 

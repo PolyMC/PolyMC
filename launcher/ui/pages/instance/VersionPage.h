@@ -31,22 +31,22 @@ class VersionPage : public QMainWindow, public BasePage
     Q_OBJECT
 
 public:
-    explicit VersionPage(MinecraftInstance *inst, QWidget *parent = 0);
-    virtual ~VersionPage();
-    virtual QString displayName() const override
+    explicit VersionPage(MinecraftInstance *inst, QWidget *parent = nullptr);
+    ~VersionPage() override;
+    QString displayName() const override
     {
         return tr("Version");
     }
-    virtual QIcon icon() const override;
-    virtual QString id() const override
+    QIcon icon() const override;
+    QString id() const override
     {
         return "version";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "Instance-Version";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
 private slots:
     void on_actionChange_version_triggered();

@@ -6,7 +6,7 @@ class SystemTheme: public ITheme
 {
 public:
     SystemTheme();
-    virtual ~SystemTheme() {}
+    ~SystemTheme() override = default;
     void apply(bool initial) override;
 
     QString id() override;

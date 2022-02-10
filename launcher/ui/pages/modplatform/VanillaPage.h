@@ -17,9 +17,9 @@
 
 #include <QWidget>
 
+#include "tasks/Task.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "tasks/Task.h"
 
 namespace Ui
 {
@@ -33,25 +33,25 @@ class VanillaPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit VanillaPage(NewInstanceDialog *dialog, QWidget *parent = 0);
-    virtual ~VanillaPage();
-    virtual QString displayName() const override
+    explicit VanillaPage(NewInstanceDialog *dialog, QWidget *parent = nullptr);
+    ~VanillaPage() override;
+    QString displayName() const override
     {
         return tr("Vanilla");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("minecraft");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "vanilla";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "Vanilla-platform";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
     void openedImpl() override;
 
     BaseVersionPtr selectedVersion() const;

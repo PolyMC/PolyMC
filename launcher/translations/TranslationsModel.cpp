@@ -1,17 +1,17 @@
 #include "TranslationsModel.h"
 
 #include <QCoreApplication>
-#include <QTranslator>
-#include <QLocale>
+#include <QDebug>
 #include <QDir>
 #include <QLibraryInfo>
-#include <QDebug>
+#include <QLocale>
+#include <QTranslator>
 
-#include "FileSystem.h"
-#include "net/NetJob.h"
-#include "net/ChecksumValidator.h"
 #include "BuildConfig.h"
+#include "FileSystem.h"
 #include "Json.h"
+#include "net/ChecksumValidator.h"
+#include "net/NetJob.h"
 
 #include "POTranslator.h"
 
@@ -142,7 +142,7 @@ struct TranslationsModel::Private
     QString m_nextDownload;
 
     std::unique_ptr<POTranslator> m_po_translator;
-    QFileSystemWatcher *watcher;
+    QFileSystemWatcher *watcher{};
 
     const QString m_system_locale = QLocale::system().name();
     const QString m_system_language = m_system_locale.split('_').front();
@@ -162,9 +162,7 @@ TranslationsModel::TranslationsModel(QString path, QObject* parent): QAbstractLi
     d->watcher->addPath(d->m_dir.canonicalPath());
 }
 
-TranslationsModel::~TranslationsModel()
-{
-}
+TranslationsModel::~TranslationsModel() = default;
 
 void TranslationsModel::translationDirChanged(const QString& path)
 {

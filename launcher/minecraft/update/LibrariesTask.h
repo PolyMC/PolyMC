@@ -1,6 +1,6 @@
 #pragma once
-#include "tasks/Task.h"
 #include "net/NetJob.h"
+#include "tasks/Task.h"
 class MinecraftInstance;
 
 class LibrariesTask : public Task
@@ -8,7 +8,7 @@ class LibrariesTask : public Task
     Q_OBJECT
 public:
     LibrariesTask(MinecraftInstance * inst);
-    virtual ~LibrariesTask() {};
+    ~LibrariesTask() override = default;
 
     void executeTask() override;
 

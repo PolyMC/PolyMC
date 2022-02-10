@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <memory>
 #include <QDialog>
+#include <memory>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>
@@ -31,8 +31,8 @@ class ProxyPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit ProxyPage(QWidget *parent = 0);
-    ~ProxyPage();
+    explicit ProxyPage(QWidget *parent = nullptr);
+    ~ProxyPage() override;
 
     QString displayName() const override
     {

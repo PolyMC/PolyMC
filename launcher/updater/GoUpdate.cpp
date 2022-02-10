@@ -1,18 +1,18 @@
 #include "GoUpdate.h"
+#include <FileSystem.h>
 #include <QDebug>
 #include <QDomDocument>
 #include <QFile>
-#include <FileSystem.h>
 
-#include "net/Download.h"
 #include "net/ChecksumValidator.h"
+#include "net/Download.h"
 
 namespace GoUpdate
 {
 
 bool parseVersionInfo(const QByteArray &data, VersionFileList &list, QString &error)
 {
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QJsonDocument jsonDoc = QJsonDocument::fromJson(data, &jsonError);
     if (jsonError.error != QJsonParseError::NoError)
     {

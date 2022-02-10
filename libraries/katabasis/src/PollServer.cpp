@@ -1,8 +1,9 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <utility>
 
-#include "katabasis/PollServer.h"
 #include "JsonResponse.h"
+#include "katabasis/PollServer.h"
 
 namespace {
 QMap<QString, QString> toVerificationParams(const QVariantMap &map)
@@ -19,11 +20,11 @@ QMap<QString, QString> toVerificationParams(const QVariantMap &map)
 
 namespace Katabasis {
 
-PollServer::PollServer(QNetworkAccessManager *manager, const QNetworkRequest &request, const QByteArray &payload, int expiresIn, QObject *parent)
+PollServer::PollServer(QNetworkAccessManager *manager, const QNetworkRequest &request, QByteArray payload, int expiresIn, QObject *parent)
     : QObject(parent)
     , manager_(manager)
     , request_(request)
-    , payload_(payload)
+    , payload_(std::move(payload))
     , expiresIn_(expiresIn)
 {
     expirationTimer.setTimerType(Qt::VeryCoarseTimer);

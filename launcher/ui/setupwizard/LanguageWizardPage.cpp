@@ -3,8 +3,8 @@
 #include <translations/TranslationsModel.h>
 
 #include "ui/widgets/LanguageSelectionWidget.h"
-#include <QVBoxLayout>
 #include <BuildConfig.h>
+#include <QVBoxLayout>
 
 LanguageWizardPage::LanguageWizardPage(QWidget *parent)
     : BaseWizardPage(parent)
@@ -18,9 +18,7 @@ LanguageWizardPage::LanguageWizardPage(QWidget *parent)
     retranslate();
 }
 
-LanguageWizardPage::~LanguageWizardPage()
-{
-}
+LanguageWizardPage::~LanguageWizardPage() = default;
 
 bool LanguageWizardPage::wantsRefreshButton()
 {

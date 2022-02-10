@@ -1,11 +1,11 @@
 #pragma once
 
+#include "tasks/Task.h"
 #include <QFile>
 #include <QtNetwork/QtNetwork>
 #include <memory>
-#include "tasks/Task.h"
 
-typedef shared_qobject_ptr<class SkinUpload> SkinUploadPtr;
+using SkinUploadPtr = class SkinUpload;
 
 class SkinUpload : public Task
 {
@@ -19,7 +19,7 @@ public:
 
     // Note this class takes ownership of the file.
     SkinUpload(QObject *parent, QString token, QByteArray skin, Model model = STEVE);
-    virtual ~SkinUpload() {}
+    ~SkinUpload() override = default;
 
 private:
     Model m_model;
@@ -27,7 +27,7 @@ private:
     QString m_token;
     shared_qobject_ptr<QNetworkReply> m_reply;
 protected:
-    virtual void executeTask();
+    void executeTask() override;
 
 public slots:
 

@@ -1,9 +1,9 @@
 #pragma once
-#include <QString>
 #include <QByteArray>
+#include <QJsonObject>
+#include <QString>
 #include <QVector>
 #include <katabasis/Bits.h>
-#include <QJsonObject>
 
 struct Skin {
     QString id;

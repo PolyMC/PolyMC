@@ -14,18 +14,19 @@
  */
 
 #include "InstanceDelegate.h"
-#include <QPainter>
-#include <QTextOption>
-#include <QTextLayout>
 #include <QApplication>
-#include <QtMath>
 #include <QDebug>
+#include <QPainter>
+#include <QTextLayout>
+#include <QTextOption>
+#include <QtMath>
 
-#include "InstanceView.h"
 #include "BaseInstance.h"
 #include "InstanceList.h"
-#include <xdgicon.h>
+#include "InstanceView.h"
 #include <QTextEdit>
+#include <math.h>
+#include <xdgicon.h>
 
 // Origin: Qt
 static void viewItemTextLayout(QTextLayout &textLayout, int lineWidth, qreal &height,
@@ -193,7 +194,7 @@ void ListViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     // const int iconSize =  style->pixelMetric(QStyle::PM_IconViewIconSize);
     const int iconSize = 48;
     QRect iconbox = opt.rect;
-    const int textMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, 0, opt.widget) + 1;
+    const int textMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, opt.widget) + 1;
     QRect textRect = opt.rect;
     QRect textHighlightRect = textRect;
     // clip the decoration on top, remove width padding
@@ -299,7 +300,7 @@ void ListViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     textLayout.setFont(opt.font);
     textLayout.setText(opt.text);
 
-    qreal width, height;
+    qreal width = NAN, height = NAN;
     viewItemTextLayout(textLayout, textRect.width(), height, width);
 
     const int lineCount = textLayout.lineCount();
@@ -362,7 +363,7 @@ public:
         auto eventType = event->type();
         if(eventType == QEvent::KeyPress || eventType == QEvent::KeyRelease)
         {
-            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+            QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(event);
             auto key = keyEvent->key();
             if (key == Qt::Key_Return || key == Qt::Key_Enter)
             {

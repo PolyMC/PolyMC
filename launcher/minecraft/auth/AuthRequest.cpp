@@ -1,8 +1,8 @@
 #include <cassert>
 
+#include <QBuffer>
 #include <QDebug>
 #include <QTimer>
-#include <QBuffer>
 #include <QUrlQuery>
 
 #include "Application.h"
@@ -12,8 +12,7 @@
 AuthRequest::AuthRequest(QObject *parent): QObject(parent) {
 }
 
-AuthRequest::~AuthRequest() {
-}
+AuthRequest::~AuthRequest() = default;
 
 void AuthRequest::get(const QNetworkRequest &req, int timeout/* = 60*1000*/) {
     setup(req, QNetworkAccessManager::GetOperation);

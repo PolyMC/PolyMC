@@ -25,15 +25,15 @@
 
 */
 #define _POSIX_C_SOURCE 200809L
+#include "toml.h"
+#include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
-#include <errno.h>
-#include <stdint.h>
-#include <ctype.h>
 #include <string.h>
-#include <stdbool.h>
-#include "toml.h"
 
 
 static void* (*ppmalloc)(size_t) = malloc;

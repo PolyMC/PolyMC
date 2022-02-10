@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <launch/LaunchStep.h>
 #include <LoggedProcess.h>
+#include <launch/LaunchStep.h>
 #include <minecraft/auth/AuthSession.h>
 
 // Create the main .minecraft for the instance and any other necessary folders
@@ -25,10 +25,10 @@ class CreateGameFolders: public LaunchStep
     Q_OBJECT
 public:
     explicit CreateGameFolders(LaunchTask *parent);
-    virtual ~CreateGameFolders() {};
+    ~CreateGameFolders() override = default;
 
-    virtual void executeTask();
-    virtual bool canAbort() const
+    void executeTask() override;
+    bool canAbort() const override
     {
         return false;
     }

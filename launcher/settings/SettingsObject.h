@@ -15,16 +15,17 @@
 
 #pragma once
 
-#include <QObject>
 #include <QMap>
+#include <QObject>
 #include <QStringList>
 #include <QVariant>
 #include <memory>
+#include <utility>
 
 class Setting;
 class SettingsObject;
 
-typedef std::shared_ptr<SettingsObject> SettingsObjectPtr;
+using SettingsObjectPtr = std::shared_ptr<SettingsObject>;
 
 /*!
  * \brief The SettingsObject handles communicating settings between the application and a
@@ -46,7 +47,7 @@ public:
     {
     public:
         Lock(SettingsObjectPtr locked)
-            :m_locked(locked)
+            :m_locked(std::move(locked))
         {
             m_locked->suspendSave();
         }
@@ -58,8 +59,8 @@ public:
         SettingsObjectPtr m_locked;
     };
 public:
-    explicit SettingsObject(QObject *parent = 0);
-    virtual ~SettingsObject();
+    explicit SettingsObject(QObject *parent = nullptr);
+    ~SettingsObject() override;
     /*!
      * Registers an override setting for the given original setting in this settings object
      * gate decides if the passthrough (true) or the original (false) is used for value

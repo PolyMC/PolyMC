@@ -1,7 +1,7 @@
 #include "KonamiCode.h"
 
-#include <array>
 #include <QDebug>
+#include <array>
 
 namespace {
 const std::array<Qt::Key, 10> konamiCode =
@@ -25,7 +25,7 @@ void KonamiCode::input(QEvent* event)
 {
     if( event->type() == QEvent::KeyPress )
     {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent*>( event );
+        QKeyEvent *keyEvent = dynamic_cast<QKeyEvent*>( event );
         auto key = Qt::Key(keyEvent->key());
         if(key == konamiCode[m_progress])
         {

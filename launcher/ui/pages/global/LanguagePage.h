@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <memory>
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 #include <QWidget>
+#include <memory>
 
 class LanguageSelectionWidget;
 
@@ -27,8 +27,8 @@ class LanguagePage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit LanguagePage(QWidget *parent = 0);
-    virtual ~LanguagePage();
+    explicit LanguagePage(QWidget *parent = nullptr);
+    ~LanguagePage() override;
 
     QString displayName() const override
     {

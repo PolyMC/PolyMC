@@ -1,20 +1,18 @@
 #include "FileSink.h"
+#include "FileSystem.h"
 #include <QFile>
 #include <QFileInfo>
-#include "FileSystem.h"
+#include <utility>
 
 namespace Net {
 
 FileSink::FileSink(QString filename)
-    :m_filename(filename)
+    :m_filename(std::move(filename))
 {
     // nil
 }
 
-FileSink::~FileSink()
-{
-    // nil
-}
+FileSink::~FileSink() = default;
 
 JobStatus FileSink::init(QNetworkRequest& request)
 {

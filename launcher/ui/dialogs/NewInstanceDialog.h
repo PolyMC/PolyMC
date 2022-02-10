@@ -18,8 +18,8 @@
 #include <QDialog>
 
 #include "BaseVersion.h"
-#include "ui/pages/BasePageProvider.h"
 #include "InstanceTask.h"
+#include "ui/pages/BasePageProvider.h"
 
 namespace Ui
 {
@@ -36,8 +36,8 @@ class NewInstanceDialog : public QDialog, public BasePageProvider
     Q_OBJECT
 
 public:
-    explicit NewInstanceDialog(const QString & initialGroup, const QString & url = QString(), QWidget *parent = 0);
-    ~NewInstanceDialog();
+    explicit NewInstanceDialog(const QString & initialGroup, const QString & url = QString(), QWidget *parent = nullptr);
+    ~NewInstanceDialog() override;
 
     void updateDialogState();
 

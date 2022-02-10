@@ -1,9 +1,9 @@
 #include "hoedown/html.h"
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef _MSC_VER
 #define snprintf _snprintf

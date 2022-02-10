@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
+#include "MMCZip.h"
+#include "FileSystem.h"
 #include <quazip/quazip.h>
 #include <quazip/quazipdir.h>
 #include <quazip/quazipfile.h>
-#include "MMCZip.h"
-#include "FileSystem.h"
 
 #include <QDebug>
 

@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <QtWidgets/QDialog>
-#include <QtCore/QEventLoop>
 #include <QTimer>
+#include <QtCore/QEventLoop>
+#include <QtWidgets/QDialog>
 
 #include "minecraft/auth/MinecraftAccount.h"
 
@@ -31,13 +31,13 @@ class MSALoginDialog : public QDialog
     Q_OBJECT
 
 public:
-    ~MSALoginDialog();
+    ~MSALoginDialog() override;
 
     static MinecraftAccountPtr newAccount(QWidget *parent, QString message);
     int exec() override;
 
 private:
-    explicit MSALoginDialog(QWidget *parent = 0);
+    explicit MSALoginDialog(QWidget *parent = nullptr);
 
     void setUserInputsEnabled(bool enable);
 

@@ -1,13 +1,13 @@
 #pragma once
 
+#include "BaseInstance.h"
+#include "BaseVersion.h"
 #include "InstanceTask.h"
 #include "net/NetJob.h"
-#include <QUrl>
+#include "settings/SettingsObject.h"
 #include <QFuture>
 #include <QFutureWatcher>
-#include "settings/SettingsObject.h"
-#include "BaseVersion.h"
-#include "BaseInstance.h"
+#include <QUrl>
 
 
 class LegacyUpgradeTask : public InstanceTask
@@ -18,7 +18,7 @@ public:
 
 protected:
     //! Entry point for tasks.
-    virtual void executeTask() override;
+    void executeTask() override;
     void copyFinished();
     void copyAborted();
 

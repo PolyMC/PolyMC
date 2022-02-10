@@ -1,6 +1,6 @@
 #pragma once
-#include "FileSink.h"
 #include "ChecksumValidator.h"
+#include "FileSink.h"
 #include "net/HttpMetaCache.h"
 
 namespace Net {
@@ -8,7 +8,7 @@ class MetaCacheSink : public FileSink
 {
 public: /* con/des */
     MetaCacheSink(MetaEntryPtr entry, ChecksumValidator * md5sum);
-    virtual ~MetaCacheSink();
+    ~MetaCacheSink() override;
     bool hasLocalData() override;
 
 protected: /* methods */

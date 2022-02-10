@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include "NetAction.h"
 #include "HttpMetaCache.h"
-#include "Validator.h"
+#include "NetAction.h"
 #include "Sink.h"
+#include "Validator.h"
 
 #include "QObjectPtr.h"
 
@@ -28,7 +28,7 @@ class Download : public NetAction
     Q_OBJECT
 
 public: /* types */
-    typedef shared_qobject_ptr<class Download> Ptr;
+    using Ptr = shared_qobject_ptr<class Download>;
     enum class Option
     {
         NoOptions = 0,
@@ -39,7 +39,7 @@ public: /* types */
 protected: /* con/des */
     explicit Download();
 public:
-    virtual ~Download(){};
+    ~Download() override = default;
     static Download::Ptr makeCached(QUrl url, MetaEntryPtr entry, Options options = Option::NoOptions);
     static Download::Ptr makeByteArray(QUrl url, QByteArray *output, Options options = Option::NoOptions);
     static Download::Ptr makeFile(QUrl url, QString path, Options options = Option::NoOptions);

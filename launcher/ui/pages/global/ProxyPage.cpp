@@ -18,9 +18,8 @@
 
 #include <QTabBar>
 
+#include "Application.h"
 #include "settings/SettingsObject.h"
-#include "Application.h"
-#include "Application.h"
 
 ProxyPage::ProxyPage(QWidget *parent) : QWidget(parent), ui(new Ui::ProxyPage)
 {

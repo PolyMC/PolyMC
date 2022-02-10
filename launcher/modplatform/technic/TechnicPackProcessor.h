@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QString>
 #include "settings/SettingsObject.h"
+#include <QString>
 
 namespace Technic
 {

@@ -7,15 +7,15 @@ class ShaderPackPage : public ModFolderPage
 {
     Q_OBJECT
 public:
-    explicit ShaderPackPage(MinecraftInstance *instance, QWidget *parent = 0)
+    explicit ShaderPackPage(MinecraftInstance *instance, QWidget *parent = nullptr)
         : ModFolderPage(instance, instance->shaderPackList(), "shaderpacks",
                         "shaderpacks", tr("Shader packs"), "Resource-packs", parent)
     {
         ui->actionView_configs->setVisible(false);
     }
-    virtual ~ShaderPackPage() {}
+    ~ShaderPackPage() override = default;
 
-    virtual bool shouldDisplay() const override
+    bool shouldDisplay() const override
     {
         return true;
     }

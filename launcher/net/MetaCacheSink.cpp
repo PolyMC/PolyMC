@@ -1,8 +1,8 @@
 #include "MetaCacheSink.h"
+#include "Application.h"
+#include "FileSystem.h"
 #include <QFile>
 #include <QFileInfo>
-#include "FileSystem.h"
-#include "Application.h"
 
 namespace Net {
 
@@ -12,10 +12,7 @@ MetaCacheSink::MetaCacheSink(MetaEntryPtr entry, ChecksumValidator * md5sum)
     addValidator(md5sum);
 }
 
-MetaCacheSink::~MetaCacheSink()
-{
-    // nil
-}
+MetaCacheSink::~MetaCacheSink() = default;
 
 JobStatus MetaCacheSink::initCache(QNetworkRequest& request)
 {

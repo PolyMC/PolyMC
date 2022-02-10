@@ -1,8 +1,8 @@
 #include "InstanceCopyTask.h"
-#include "settings/INISettingsObject.h"
 #include "FileSystem.h"
 #include "NullInstance.h"
 #include "pathmatcher/RegexpMatcher.h"
+#include "settings/INISettingsObject.h"
 #include <QtConcurrentRun>
 
 InstanceCopyTask::InstanceCopyTask(InstancePtr origInstance, bool copySaves, bool keepPlaytime)

@@ -1,8 +1,8 @@
 #pragma once
-#include <QtGui/QColor>
-#include <rainbow.h>
 #include <MessageLevel.h>
 #include <QMap>
+#include <QtGui/QColor>
+#include <rainbow.h>
 
 class ColorCache
 {

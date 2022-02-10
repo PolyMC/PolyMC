@@ -1,7 +1,7 @@
 
-#include <QTest>
-#include <QTemporaryDir>
 #include "TestUtil.h"
+#include <QTemporaryDir>
+#include <QTest>
 
 #include "FileSystem.h"
 #include "minecraft/mod/ModFolderModel.h"

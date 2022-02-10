@@ -1,9 +1,9 @@
 #include "LineSeparator.h"
 
-#include <QStyle>
-#include <QStyleOption>
 #include <QLayout>
 #include <QPainter>
+#include <QStyle>
+#include <QStyleOption>
 
 void LineSeparator::initStyleOption(QStyleOption *option) const
 {

@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-#include <QFileInfo>
+#include <QCryptographicHash>
+#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
-#include <QCryptographicHash>
-#include <QJsonParseError>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonParseError>
 #include <QVariant>
-#include <QDebug>
 
 #include "AssetsUtils.h"
-#include "FileSystem.h"
-#include "net/Download.h"
-#include "net/ChecksumValidator.h"
 #include "BuildConfig.h"
+#include "FileSystem.h"
+#include "net/ChecksumValidator.h"
+#include "net/Download.h"
 
 #include "Application.h"
 
@@ -96,7 +96,7 @@ bool loadAssetsIndexJson(const QString &assetsId, const QString &path, AssetsInd
     QByteArray jsonData = file.readAll();
     file.close();
 
-    QJsonParseError parseError;
+    QJsonParseError parseError{};
     QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData, &parseError);
 
     // Fail if the JSON is invalid.

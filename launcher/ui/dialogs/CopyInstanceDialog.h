@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <QDialog>
 #include "BaseVersion.h"
 #include <BaseInstance.h>
+#include <QDialog>
 
 class BaseInstance;
 
@@ -31,8 +31,8 @@ class CopyInstanceDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit CopyInstanceDialog(InstancePtr original, QWidget *parent = 0);
-    ~CopyInstanceDialog();
+    explicit CopyInstanceDialog(InstancePtr original, QWidget *parent = nullptr);
+    ~CopyInstanceDialog() override;
 
     void updateDialogState();
 

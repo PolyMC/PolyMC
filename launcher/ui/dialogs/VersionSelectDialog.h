@@ -39,8 +39,8 @@ class VersionSelectDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit VersionSelectDialog(BaseVersionList *vlist, QString title, QWidget *parent = 0, bool cancelable = true);
-    virtual ~VersionSelectDialog() {};
+    explicit VersionSelectDialog(BaseVersionList *vlist, QString title, QWidget *parent = nullptr, bool cancelable = true);
+    ~VersionSelectDialog() override = default;
 
     int exec() override;
 

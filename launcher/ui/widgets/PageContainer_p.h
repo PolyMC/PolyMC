@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <QListView>
-#include <QStyledItemDelegate>
 #include <QEvent>
+#include <QListView>
 #include <QScrollBar>
+#include <QStyledItemDelegate>
 
 class BasePage;
 const int pageIconSize = 24;
@@ -29,7 +29,7 @@ public:
     PageViewDelegate(QObject *parent) : QStyledItemDelegate(parent)
     {
     }
-    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override
     {
         QSize size = QStyledItemDelegate::sizeHint(option, index);
         size.setHeight(qMax(size.height(), 32));
@@ -40,19 +40,19 @@ public:
 class PageModel : public QAbstractListModel
 {
 public:
-    PageModel(QObject *parent = 0) : QAbstractListModel(parent)
+    PageModel(QObject *parent = nullptr) : QAbstractListModel(parent)
     {
         QPixmap empty(pageIconSize, pageIconSize);
         empty.fill(Qt::transparent);
         m_emptyIcon = QIcon(empty);
     }
-    virtual ~PageModel() {}
+    ~PageModel() override = default;
 
-    int rowCount(const QModelIndex &parent = QModelIndex()) const
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override
     {
         return parent.isValid() ? 0 : m_pages.size();
     }
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
     {
         switch (role)
         {
@@ -98,14 +98,14 @@ public:
 class PageView : public QListView
 {
 public:
-    PageView(QWidget *parent = 0) : QListView(parent)
+    PageView(QWidget *parent = nullptr) : QListView(parent)
     {
         setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
         setItemDelegate(new PageViewDelegate(this));
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     }
 
-    virtual QSize sizeHint() const
+    QSize sizeHint() const override
     {
         int width = sizeHintForColumn(0) + frameWidth() * 2 + 5;
         if (verticalScrollBar()->isVisible())
@@ -113,7 +113,7 @@ public:
         return QSize(width, 100);
     }
 
-    virtual bool eventFilter(QObject *obj, QEvent *event)
+    bool eventFilter(QObject *obj, QEvent *event) override
     {
         if (obj == verticalScrollBar() &&
             (event->type() == QEvent::Show || event->type() == QEvent::Hide))

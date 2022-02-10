@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
+#include <QFileDialog>
 #include <QKeyEvent>
 #include <QPushButton>
-#include <QFileDialog>
 
 #include "Application.h"
 
@@ -84,7 +84,7 @@ bool IconPickerDialog::eventFilter(QObject *obj, QEvent *evt)
     {
         return QDialog::eventFilter(obj, evt);
     }
-    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(evt);
+    QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(evt);
     switch (keyEvent->key())
     {
     case Qt::Key_Delete:

@@ -3,14 +3,14 @@
 #include <RWStorage.h>
 
 #include <QAbstractListModel>
-#include <QSortFilterProxyModel>
-#include <QThreadPool>
 #include <QIcon>
-#include <QStyledItemDelegate>
 #include <QList>
+#include <QMetaType>
+#include <QSortFilterProxyModel>
 #include <QString>
 #include <QStringList>
-#include <QMetaType>
+#include <QStyledItemDelegate>
+#include <QThreadPool>
 
 #include <functional>
 #include <net/NetJob.h>
@@ -20,8 +20,8 @@
 namespace Flame {
 
 
-typedef QMap<QString, QIcon> LogoMap;
-typedef std::function<void(QString)> LogoCallback;
+using LogoMap = QMap<QString, QIcon>;
+using LogoCallback = std::function<void (QString)>;
 
 class ListModel : public QAbstractListModel
 {
@@ -29,7 +29,7 @@ class ListModel : public QAbstractListModel
 
 public:
     ListModel(QObject *parent);
-    virtual ~ListModel();
+    ~ListModel() override;
 
     int rowCount(const QModelIndex &parent) const override;
     int columnCount(const QModelIndex &parent) const override;

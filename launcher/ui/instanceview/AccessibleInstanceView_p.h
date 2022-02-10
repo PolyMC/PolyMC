@@ -1,9 +1,9 @@
 #pragma once
 
 #include "QtCore/qpointer.h"
-#include <QtGui/qaccessible.h>
-#include <QAccessibleWidget>
 #include <QAbstractItemView>
+#include <QAccessibleWidget>
+#include <QtGui/qaccessible.h>
 #ifndef QT_NO_ACCESSIBILITY
 #include "InstanceView.h"
 // #include <QHeaderView>
@@ -60,10 +60,10 @@ public:
 
 protected:
     // maybe vector
-    typedef QHash<int, QAccessible::Id> ChildCache;
+    using ChildCache = QHash<int, QAccessible::Id>;
     mutable ChildCache childToId;
 
-    virtual ~AccessibleInstanceView();
+    ~AccessibleInstanceView() override;
 
 private:
     inline int logicalIndex(const QModelIndex &index) const;

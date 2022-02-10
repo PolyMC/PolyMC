@@ -1,23 +1,23 @@
 #pragma once
-#include <QString>
-#include <net/NetAction.h>
-#include <QPair>
-#include <QList>
-#include <QStringList>
-#include <QMap>
 #include <QDir>
+#include <QList>
+#include <QMap>
+#include <QPair>
+#include <QString>
+#include <QStringList>
 #include <QUrl>
 #include <memory>
+#include <net/NetAction.h>
 
-#include "Rule.h"
-#include "minecraft/OpSys.h"
 #include "GradleSpecifier.h"
 #include "MojangDownloadInfo.h"
+#include "Rule.h"
+#include "minecraft/OpSys.h"
 
 class Library;
 class MinecraftInstance;
 
-typedef std::shared_ptr<Library> LibraryPtr;
+using LibraryPtr = std::shared_ptr<Library>;
 
 class Library
 {
@@ -25,9 +25,7 @@ class Library
     friend class MojangVersionFormat;
     friend class LibraryTest;
 public:
-    Library()
-    {
-    }
+    Library() = default;
     Library(const QString &name)
     {
         m_name = name;

@@ -42,7 +42,7 @@ protected:
 
 public:
     element_value(element_value_type type, constant_pool &pool) : type(type), pool(pool) {};
-    virtual ~element_value() {}
+    virtual ~element_value() = default;
 
     element_value_type getElementValueType()
     {
@@ -62,7 +62,7 @@ public:
 class annotation
 {
 public:
-    typedef std::vector<std::pair<uint16_t, element_value *>> value_list;
+    using value_list = std::vector<std::pair<uint16_t, element_value *>>;
 
 protected:
     /**
@@ -115,7 +115,7 @@ public:
     std::string toString();
     static annotation *read(util::membuffer &input, constant_pool &pool);
 };
-typedef std::vector<annotation *> annotation_table;
+using annotation_table = std::vector<annotation *>;
 
 /// type for simple value annotation elements
 class element_value_simple : public element_value
@@ -133,7 +133,7 @@ public:
     {
         return index;
     }
-    virtual std::string toString()
+    std::string toString() override
     {
         return pool[index].toString();
     }
@@ -176,7 +176,7 @@ public:
     {
         return typeIndex;
     }
-    virtual std::string toString()
+    std::string toString() override
     {
         return "enum value";
     }
@@ -208,7 +208,7 @@ public:
     {
         return classIndex;
     }
-    virtual std::string toString()
+    std::string toString() override
     {
         return "class";
     }
@@ -225,7 +225,7 @@ public:
     element_value_annotation(element_value_type type, annotation *nestedAnnotation,
                              constant_pool &pool)
         : element_value(type, pool), nestedAnnotation(nestedAnnotation) {};
-    ~element_value_annotation()
+    ~element_value_annotation() override
     {
         if (nestedAnnotation)
         {
@@ -233,7 +233,7 @@ public:
             nestedAnnotation = nullptr;
         }
     }
-    virtual std::string toString()
+    std::string toString() override
     {
         return "nested annotation";
     }
@@ -244,7 +244,7 @@ public:
 class element_value_array : public element_value
 {
 public:
-    typedef std::vector<element_value *> elem_vec;
+    using elem_vec = std::vector<element_value *>;
 
 protected:
     elem_vec values;
@@ -253,7 +253,7 @@ public:
     element_value_array(element_value_type type, std::vector<element_value *> &values,
                         constant_pool &pool)
         : element_value(type, pool), values(values) {};
-    ~element_value_array()
+    ~element_value_array() override
     {
         for (unsigned i = 0; i < values.size(); i++)
         {
@@ -269,7 +269,7 @@ public:
     {
         return values.cend();
     }
-    virtual std::string toString()
+    std::string toString() override
     {
         return "array";
     }

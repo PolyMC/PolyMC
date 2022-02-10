@@ -15,17 +15,17 @@
 
 #include "BaseInstance.h"
 
-#include <QFileInfo>
-#include <QDir>
 #include <QDebug>
+#include <QDir>
+#include <QFileInfo>
 
 #include "settings/INISettingsObject.h"
-#include "settings/Setting.h"
 #include "settings/OverrideSetting.h"
+#include "settings/Setting.h"
 
-#include "FileSystem.h"
-#include "Commandline.h"
 #include "BuildConfig.h"
+#include "Commandline.h"
+#include "FileSystem.h"
 
 BaseInstance::BaseInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString &rootDir)
     : QObject()

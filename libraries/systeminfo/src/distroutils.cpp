@@ -29,13 +29,13 @@ SOFTWARE.
 
 #include "distroutils.h"
 
-#include <QStringList>
-#include <QMap>
-#include <QSettings>
-#include <QFile>
-#include <QProcess>
 #include <QDebug>
 #include <QDir>
+#include <QFile>
+#include <QMap>
+#include <QProcess>
+#include <QSettings>
+#include <QStringList>
 
 #include <functional>
 
@@ -219,7 +219,7 @@ QString Sys::_extract_distribution(const QString & x)
 
 QString Sys::_extract_version(const QString & x)
 {
-    QRegExp versionish_string("\\d+(?:\\.\\d+)*$");
+    QRegExp versionish_string(R"(\d+(?:\.\d+)*$)");
     QStringList list = x.split(QRegExp("\\s+"), QString::SkipEmptyParts);
     for(int i = list.size() - 1; i >= 0; --i)
     {

@@ -14,23 +14,24 @@
  */
 
 #include "WorldListPage.h"
-#include "ui_WorldListPage.h"
 #include "minecraft/WorldList.h"
+#include "ui_WorldListPage.h"
 
-#include <QEvent>
-#include <QMenu>
-#include <QKeyEvent>
 #include <QClipboard>
-#include <QMessageBox>
-#include <QTreeView>
+#include <QEvent>
 #include <QInputDialog>
+#include <QKeyEvent>
+#include <QMenu>
+#include <QMessageBox>
 #include <QProcess>
+#include <QTreeView>
+#include <utility>
 
-#include "tools/MCEditTool.h"
 #include "FileSystem.h"
+#include "tools/MCEditTool.h"
 
-#include "ui/GuiUtil.h"
 #include "DesktopServices.h"
+#include "ui/GuiUtil.h"
 
 #include "Application.h"
 
@@ -42,7 +43,7 @@ class WorldListProxyModel : public QSortFilterProxyModel
 public:
     WorldListProxyModel(QObject *parent) : QSortFilterProxyModel(parent) {}
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
     {
         QModelIndex sourceIndex = mapToSource(index);
 
@@ -63,7 +64,7 @@ public:
 
 
 WorldListPage::WorldListPage(BaseInstance *inst, std::shared_ptr<WorldList> worlds, QWidget *parent)
-    : QMainWindow(parent), m_inst(inst), ui(new Ui::WorldListPage), m_worlds(worlds)
+    : QMainWindow(parent), m_inst(inst), ui(new Ui::WorldListPage), m_worlds(std::move(worlds))
 {
     ui->setupUi(this);
 
@@ -141,7 +142,7 @@ bool WorldListPage::eventFilter(QObject *obj, QEvent *ev)
     {
         return QWidget::eventFilter(obj, ev);
     }
-    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(ev);
+    QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(ev);
     if (obj == ui->worldTreeView)
         return worldListFilter(keyEvent);
     return QWidget::eventFilter(obj, ev);
@@ -209,7 +210,7 @@ QModelIndex WorldListPage::getSelectedWorld()
 {
     auto index = ui->worldTreeView->selectionModel()->currentIndex();
 
-    auto proxy = (QSortFilterProxyModel *) ui->worldTreeView->model();
+    auto proxy = dynamic_cast<QSortFilterProxyModel *>( ui->worldTreeView->model());
     return proxy->mapToSource(index);
 }
 

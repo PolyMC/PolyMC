@@ -16,12 +16,13 @@
 #include "InstanceWindow.h"
 #include "Application.h"
 
-#include <QScrollBar>
-#include <QMessageBox>
-#include <QHBoxLayout>
-#include <QPushButton>
-#include <qlayoutitem.h>
 #include <QCloseEvent>
+#include <QHBoxLayout>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QScrollBar>
+#include <qlayoutitem.h>
+#include <utility>
 
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ProgressDialog.h"
@@ -32,7 +33,7 @@
 #include "icons/IconList.h"
 
 InstanceWindow::InstanceWindow(InstancePtr instance, QWidget *parent)
-    : QMainWindow(parent), m_instance(instance)
+    : QMainWindow(parent), m_instance(std::move(instance))
 {
     setAttribute(Qt::WA_DeleteOnClose);
 
@@ -222,9 +223,7 @@ void InstanceWindow::refreshContainer()
     m_container->refreshContainer();
 }
 
-InstanceWindow::~InstanceWindow()
-{
-}
+InstanceWindow::~InstanceWindow() = default;
 
 bool InstanceWindow::requestClose()
 {

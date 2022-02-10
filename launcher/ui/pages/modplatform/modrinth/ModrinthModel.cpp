@@ -1,8 +1,8 @@
 #include "ModrinthModel.h"
 #include "Application.h"
+#include "ModrinthPage.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
-#include "ModrinthPage.h"
 #include <Json.h>
 
 #include <MMCStrings.h>
@@ -17,9 +17,7 @@ ListModel::ListModel(ModrinthPage *parent) : QAbstractListModel(parent)
 {
 }
 
-ListModel::~ListModel()
-{
-}
+ListModel::~ListModel() = default;
 
 int ListModel::rowCount(const QModelIndex &parent) const
 {
@@ -162,8 +160,8 @@ const char* sorts[5]{"relevance","downloads","follows","updated","newest"};
 void ListModel::performPaginatedSearch()
 {
 
-    QString mcVersion =  ((MinecraftInstance *)((ModrinthPage *)parent())->m_instance)->getPackProfile()->getComponentVersion("net.minecraft");
-    bool hasFabric = !((MinecraftInstance *)((ModrinthPage *)parent())->m_instance)->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
+    QString mcVersion =  (dynamic_cast<MinecraftInstance *>((dynamic_cast<ModrinthPage *>(parent()))->m_instance))->getPackProfile()->getComponentVersion("net.minecraft");
+    bool hasFabric = !(dynamic_cast<MinecraftInstance *>((dynamic_cast<ModrinthPage *>(parent()))->m_instance))->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
     auto netJob = new NetJob("Modrinth::Search", APPLICATION->network());
     auto searchUrl = QString(
         "https://api.modrinth.com/v2/search?"
@@ -212,7 +210,7 @@ void Modrinth::ListModel::searchRequestFinished()
 {
     jobPtr.reset();
 
-    QJsonParseError parse_error;
+    QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
     if(parse_error.error != QJsonParseError::NoError) {
         qWarning() << "Error while parsing JSON response from Modrinth at " << parse_error.offset << " reason: " << parse_error.errorString();

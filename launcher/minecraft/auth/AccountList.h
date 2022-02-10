@@ -17,10 +17,10 @@
 
 #include "MinecraftAccount.h"
 
-#include <QObject>
-#include <QVariant>
 #include <QAbstractListModel>
+#include <QObject>
 #include <QSharedPointer>
+#include <QVariant>
 
 /*!
  * List of available Mojang accounts.
@@ -47,19 +47,19 @@ public:
         NUM_COLUMNS
     };
 
-    explicit AccountList(QObject *parent = 0);
-    virtual ~AccountList() noexcept;
+    explicit AccountList(QObject *parent = nullptr);
+    ~AccountList() noexcept override;
 
     const MinecraftAccountPtr at(int i) const;
     int count() const;
 
     //////// List Model Functions ////////
     QVariant data(const QModelIndex &index, int role) const override;
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-    virtual int rowCount(const QModelIndex &parent) const override;
-    virtual int columnCount(const QModelIndex &parent) const override;
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
-    virtual bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+    int rowCount(const QModelIndex &parent) const override;
+    int columnCount(const QModelIndex &parent) const override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
     void addAccount(const MinecraftAccountPtr account);
     void removeAccount(QModelIndex index);
@@ -97,7 +97,7 @@ protected:
     void endActivity();
 
 private:
-    const char* m_name;
+    const char* m_name{};
     uint32_t m_activityCount = 0;
 signals:
     void listChanged();

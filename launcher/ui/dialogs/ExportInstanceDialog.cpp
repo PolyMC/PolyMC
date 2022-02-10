@@ -21,15 +21,15 @@
 #include <QMessageBox>
 #include <qfilesystemmodel.h>
 
-#include <QSortFilterProxyModel>
-#include <QDebug>
-#include <qstack.h>
-#include <QSaveFile>
+#include "Application.h"
 #include "MMCStrings.h"
 #include "SeparatorPrefixTree.h"
-#include "Application.h"
-#include <icons/IconList.h>
 #include <FileSystem.h>
+#include <QDebug>
+#include <QSaveFile>
+#include <QSortFilterProxyModel>
+#include <icons/IconList.h>
+#include <qstack.h>
 
 class PackIgnoreProxy : public QSortFilterProxyModel
 {
@@ -41,7 +41,7 @@ public:
         m_instance = instance;
     }
     // NOTE: Sadly, we have to do sorting ourselves.
-    bool lessThan(const QModelIndex &left, const QModelIndex &right) const
+    bool lessThan(const QModelIndex &left, const QModelIndex &right) const override
     {
         QFileSystemModel *fsm = qobject_cast<QFileSystemModel *>(sourceModel());
         if (!fsm)
@@ -85,7 +85,7 @@ public:
         return QSortFilterProxyModel::lessThan(left, right);
     }
 
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const
+    Qt::ItemFlags flags(const QModelIndex &index) const override
     {
         if (!index.isValid())
             return Qt::NoItemFlags;
@@ -104,7 +104,7 @@ public:
         return flags;
     }
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
     {
         QModelIndex sourceIndex = mapToSource(index);
 
@@ -130,8 +130,8 @@ public:
         return sourceIndex.data(role);
     }
 
-    virtual bool setData(const QModelIndex &index, const QVariant &value,
-                         int role = Qt::EditRole)
+    bool setData(const QModelIndex &index, const QVariant &value,
+                         int role = Qt::EditRole) override
     {
         if (index.column() == 0 && role == Qt::CheckStateRole)
         {
@@ -188,7 +188,7 @@ public:
                 QModelIndex doing = rootIndex;
                 int row = 0;
                 QStack<QModelIndex> todo;
-                while (1)
+                while (true)
                 {
                     auto node = doing.child(row, 0);
                     if (!node.isValid())
@@ -226,7 +226,7 @@ public:
             emit dataChanged(index, index, {Qt::CheckStateRole});
             // update everything above index
             QModelIndex up = index.parent();
-            while (1)
+            while (true)
             {
                 if (!up.isValid())
                     break;
@@ -237,7 +237,7 @@ public:
             QModelIndex doing = index;
             int row = 0;
             QStack<QModelIndex> todo;
-            while (1)
+            while (true)
             {
                 auto node = doing.child(row, 0);
                 if (!node.isValid())
@@ -293,7 +293,7 @@ public:
     }
 
 protected:
-    bool filterAcceptsColumn(int source_column, const QModelIndex &source_parent) const
+    bool filterAcceptsColumn(int source_column, const QModelIndex &source_parent) const override
     {
         Q_UNUSED(source_parent)
 

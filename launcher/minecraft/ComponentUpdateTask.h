@@ -1,7 +1,7 @@
 #pragma once
 
-#include "tasks/Task.h"
 #include "net/Mode.h"
+#include "tasks/Task.h"
 
 #include <memory>
 class PackProfile;
@@ -18,11 +18,11 @@ public:
     };
 
 public:
-    explicit ComponentUpdateTask(Mode mode, Net::Mode netmode, PackProfile * list, QObject *parent = 0);
-    virtual ~ComponentUpdateTask();
+    explicit ComponentUpdateTask(Mode mode, Net::Mode netmode, PackProfile * list, QObject *parent = nullptr);
+    ~ComponentUpdateTask() override;
 
 protected:
-    void executeTask();
+    void executeTask() override;
 
 private:
     void loadComponents();

@@ -15,16 +15,16 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QTreeView>
 #include <QTextBrowser>
+#include <QTreeView>
+#include <QWidget>
 
+#include "QObjectPtr.h"
+#include "modplatform/legacy_ftb/PackFetchTask.h"
+#include "modplatform/legacy_ftb/PackHelpers.h"
+#include "tasks/Task.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "tasks/Task.h"
-#include "modplatform/legacy_ftb/PackHelpers.h"
-#include "modplatform/legacy_ftb/PackFetchTask.h"
-#include "QObjectPtr.h"
 
 class NewInstanceDialog;
 
@@ -46,8 +46,8 @@ class Page : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit Page(NewInstanceDialog * dialog, QWidget *parent = 0);
-    virtual ~Page();
+    explicit Page(NewInstanceDialog * dialog, QWidget *parent = nullptr);
+    ~Page() override;
     QString displayName() const override
     {
         return tr("FTB Legacy");

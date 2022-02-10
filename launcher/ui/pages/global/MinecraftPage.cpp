@@ -16,12 +16,12 @@
 #include "MinecraftPage.h"
 #include "ui_MinecraftPage.h"
 
-#include <QMessageBox>
 #include <QDir>
+#include <QMessageBox>
 #include <QTabBar>
 
-#include "settings/SettingsObject.h"
 #include "Application.h"
+#include "settings/SettingsObject.h"
 
 MinecraftPage::MinecraftPage(QWidget *parent) : QWidget(parent), ui(new Ui::MinecraftPage)
 {

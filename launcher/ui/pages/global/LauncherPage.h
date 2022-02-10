@@ -15,13 +15,13 @@
 
 #pragma once
 
-#include <memory>
 #include <QDialog>
+#include <memory>
 
 #include "java/JavaChecker.h"
+#include "ui/ColorCache.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "ui/ColorCache.h"
 #include <translations/TranslationsModel.h>
 
 class QTextCharFormat;
@@ -37,8 +37,8 @@ class LauncherPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit LauncherPage(QWidget *parent = 0);
-    ~LauncherPage();
+    explicit LauncherPage(QWidget *parent = nullptr);
+    ~LauncherPage() override;
 
     QString displayName() const override
     {

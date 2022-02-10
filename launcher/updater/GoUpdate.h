@@ -43,7 +43,7 @@ struct FileSource
     QString url;
     QString compressionType;
 };
-typedef QList<FileSource> FileSourceList;
+using FileSourceList = QList<FileSource>;
 
 /**
  * Structure that describes an entry in a GoUpdate version's `Files` list.
@@ -59,7 +59,7 @@ struct VersionFileEntry
         return path == v2.path && mode == v2.mode && sources == v2.sources && md5 == v2.md5;
     }
 };
-typedef QList<VersionFileEntry> VersionFileList;
+using VersionFileList = QList<VersionFileEntry>;
 
 /**
  * Structure that describes an operation to perform when installing updates.
@@ -100,7 +100,7 @@ struct Operation
     //! The mode to change the destination file to.
     int destinationMode;
 };
-typedef QList<Operation> OperationList;
+using OperationList = QList<Operation>;
 
 /**
  * Loads the file list from the given version info JSON object into the given list.

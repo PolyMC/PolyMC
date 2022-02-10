@@ -37,8 +37,8 @@ class Version : public QObject, public BaseVersion, public BaseEntity
     Q_OBJECT
 
 public: /* con/des */
-    explicit Version(const QString &uid, const QString &version);
-    virtual ~Version();
+    explicit Version(QString uid, QString version);
+    ~Version() override;
 
     QString descriptor() override;
     QString name() override;

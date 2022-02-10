@@ -18,10 +18,7 @@
 #include "BaseInstaller.h"
 #include "minecraft/MinecraftInstance.h"
 
-BaseInstaller::BaseInstaller()
-{
-
-}
+BaseInstaller::BaseInstaller() = default;
 
 bool BaseInstaller::isApplied(MinecraftInstance *on)
 {

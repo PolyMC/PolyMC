@@ -1,17 +1,17 @@
 #pragma once
 
+#include "MessageLevel.h"
 #include <QAbstractListModel>
 #include <QString>
-#include "MessageLevel.h"
 
 class LogModel : public QAbstractListModel
 {
     Q_OBJECT
 public:
-    explicit LogModel(QObject *parent = 0);
+    explicit LogModel(QObject *parent = nullptr);
 
-    int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    QVariant data(const QModelIndex &index, int role) const;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
 
     void append(MessageLevel::Enum, QString line);
     void clear();

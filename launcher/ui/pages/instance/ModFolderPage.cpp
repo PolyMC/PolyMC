@@ -16,25 +16,25 @@
 #include "ModFolderPage.h"
 #include "ui_ModFolderPage.h"
 
-#include <QMessageBox>
+#include <QAbstractItemModel>
 #include <QEvent>
 #include <QKeyEvent>
-#include <QAbstractItemModel>
 #include <QMenu>
+#include <QMessageBox>
 #include <QSortFilterProxyModel>
 
 #include "Application.h"
 
+#include "ui/GuiUtil.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ModDownloadDialog.h"
-#include "ui/GuiUtil.h"
 
 #include "DesktopServices.h"
 
-#include "minecraft/mod/ModFolderModel.h"
-#include "minecraft/mod/Mod.h"
-#include "minecraft/VersionFilterData.h"
 #include "minecraft/PackProfile.h"
+#include "minecraft/VersionFilterData.h"
+#include "minecraft/mod/Mod.h"
+#include "minecraft/mod/ModFolderModel.h"
 
 #include "Version.h"
 #include "ui/dialogs/ProgressDialog.h"
@@ -51,7 +51,7 @@ namespace {
 class ModSortProxy : public QSortFilterProxyModel
 {
 public:
-    explicit ModSortProxy(QObject *parent = 0) : QSortFilterProxyModel(parent)
+    explicit ModSortProxy(QObject *parent = nullptr) : QSortFilterProxyModel(parent)
     {
     }
 
@@ -295,7 +295,7 @@ bool ModFolderPage::eventFilter(QObject *obj, QEvent *ev)
     {
         return QWidget::eventFilter(obj, ev);
     }
-    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(ev);
+    QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(ev);
     if (obj == ui->modTreeView)
         return modListFilter(keyEvent);
     return QWidget::eventFilter(obj, ev);
@@ -357,8 +357,8 @@ void ModFolderPage::on_actionInstall_mods_triggered()
     if(m_inst->typeName() != "Minecraft"){
         return; //this is a null instance or a legacy instance
     }
-    bool hasFabric = !((MinecraftInstance *)m_inst)->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
-    bool hasForge = !((MinecraftInstance *)m_inst)->getPackProfile()->getComponentVersion("net.minecraftforge").isEmpty();
+    bool hasFabric = !(dynamic_cast<MinecraftInstance *>(m_inst))->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
+    bool hasForge = !(dynamic_cast<MinecraftInstance *>(m_inst))->getPackProfile()->getComponentVersion("net.minecraftforge").isEmpty();
     if (!hasFabric && !hasForge) {
         QMessageBox::critical(this,tr("Error"),tr("Please install a mod loader first!"));
         return;

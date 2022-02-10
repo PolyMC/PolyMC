@@ -1,12 +1,12 @@
 #pragma once
 #include "InstanceTask.h"
-#include "net/NetJob.h"
-#include <quazip/quazip.h>
-#include <quazip/quazipdir.h>
+#include "PackHelpers.h"
 #include "meta/Index.h"
 #include "meta/Version.h"
 #include "meta/VersionList.h"
-#include "PackHelpers.h"
+#include "net/NetJob.h"
+#include <quazip/quazip.h>
+#include <quazip/quazipdir.h>
 
 #include "net/NetJob.h"
 
@@ -20,14 +20,14 @@ class PackInstallTask : public InstanceTask
 
 public:
     explicit PackInstallTask(shared_qobject_ptr<QNetworkAccessManager> network, Modpack pack, QString version);
-    virtual ~PackInstallTask(){}
+    ~PackInstallTask() override = default;
 
     bool canAbort() const override { return true; }
     bool abort() override;
 
 protected:
     //! Entry point for tasks.
-    virtual void executeTask() override;
+    void executeTask() override;
 
 private:
     void downloadPack();

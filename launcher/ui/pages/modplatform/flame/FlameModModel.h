@@ -3,28 +3,28 @@
 #include <RWStorage.h>
 
 #include <QAbstractListModel>
-#include <QSortFilterProxyModel>
-#include <QThreadPool>
 #include <QIcon>
-#include <QStyledItemDelegate>
 #include <QList>
+#include <QMetaType>
+#include <QSortFilterProxyModel>
 #include <QString>
 #include <QStringList>
-#include <QMetaType>
+#include <QStyledItemDelegate>
+#include <QThreadPool>
 
 #include <functional>
 #include <net/NetJob.h>
 
-#include <modplatform/flame/FlamePackIndex.h>
-#include "modplatform/flame/FlameModIndex.h"
 #include "BaseInstance.h"
 #include "FlameModPage.h"
+#include "modplatform/flame/FlameModIndex.h"
+#include <modplatform/flame/FlamePackIndex.h>
 
 namespace FlameMod {
 
 
-typedef QMap<QString, QIcon> LogoMap;
-typedef std::function<void(QString)> LogoCallback;
+using LogoMap = QMap<QString, QIcon>;
+using LogoCallback = std::function<void (QString)>;
 
 class ListModel : public QAbstractListModel
 {
@@ -32,7 +32,7 @@ class ListModel : public QAbstractListModel
 
 public:
     ListModel(FlameModPage *parent);
-    virtual ~ListModel();
+    ~ListModel() override;
 
     int rowCount(const QModelIndex &parent) const override;
     int columnCount(const QModelIndex &parent) const override;

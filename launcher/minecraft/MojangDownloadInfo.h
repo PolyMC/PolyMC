@@ -1,12 +1,12 @@
 #pragma once
-#include <QString>
 #include <QMap>
-#include <memory>
+#include <QString>
+#include <utility>
 
 struct MojangDownloadInfo
 {
     // types
-    typedef std::shared_ptr<MojangDownloadInfo> Ptr;
+    using Ptr = std::shared_ptr<MojangDownloadInfo>;
 
     // data
     /// Local filesystem path. WARNING: not used, only here so we can pass through mojang files unmolested!
@@ -16,18 +16,18 @@ struct MojangDownloadInfo
     /// sha-1 checksum of the file
     QString sha1;
     /// size of the file in bytes
-    int size;
+    int size{};
 };
 
 
 
 struct MojangLibraryDownloadInfo
 {
-    MojangLibraryDownloadInfo(MojangDownloadInfo::Ptr artifact): artifact(artifact) {};
-    MojangLibraryDownloadInfo() {};
+    MojangLibraryDownloadInfo(MojangDownloadInfo::Ptr artifact): artifact(std::move(artifact)) {};
+    MojangLibraryDownloadInfo() = default;
 
     // types
-    typedef std::shared_ptr<MojangLibraryDownloadInfo> Ptr;
+    using Ptr = std::shared_ptr<MojangLibraryDownloadInfo>;
 
     // methods
     MojangDownloadInfo *getDownloadInfo(QString classifier)
@@ -50,12 +50,10 @@ struct MojangLibraryDownloadInfo
 struct MojangAssetIndexInfo : public MojangDownloadInfo
 {
     // types
-    typedef std::shared_ptr<MojangAssetIndexInfo> Ptr;
+    using Ptr = std::shared_ptr<MojangAssetIndexInfo>;
 
     // methods
-    MojangAssetIndexInfo()
-    {
-    }
+    MojangAssetIndexInfo() = default;
 
     MojangAssetIndexInfo(QString id)
     {
@@ -76,7 +74,7 @@ struct MojangAssetIndexInfo : public MojangDownloadInfo
     }
 
     // data
-    int totalSize;
+    int totalSize{};
     QString id;
     bool known = true;
 };

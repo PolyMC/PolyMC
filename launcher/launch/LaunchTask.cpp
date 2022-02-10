@@ -16,17 +16,18 @@
  */
 
 #include "launch/LaunchTask.h"
-#include "MessageLevel.h"
 #include "MMCStrings.h"
+#include "MessageLevel.h"
 #include "java/JavaChecker.h"
 #include "tasks/Task.h"
+#include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
 #include <QEventLoop>
 #include <QRegularExpression>
-#include <QCoreApplication>
 #include <QStandardPaths>
-#include <assert.h>
+#include <cassert>
+#include <utility>
 
 void LaunchTask::init()
 {
@@ -40,7 +41,7 @@ shared_qobject_ptr<LaunchTask> LaunchTask::create(InstancePtr inst)
     return proc;
 }
 
-LaunchTask::LaunchTask(InstancePtr instance): m_instance(instance)
+LaunchTask::LaunchTask(InstancePtr instance): m_instance(std::move(instance))
 {
 }
 

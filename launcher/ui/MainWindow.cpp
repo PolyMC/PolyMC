@@ -21,10 +21,10 @@
 
 #include "MainWindow.h"
 
-#include <QtCore/QVariant>
-#include <QtCore/QUrl>
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
+#include <QtCore/QUrl>
+#include <QtCore/QVariant>
 
 #include <QtGui/QKeyEvent>
 
@@ -33,62 +33,62 @@
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
-#include <QtWidgets/QMainWindow>
-#include <QtWidgets/QStatusBar>
-#include <QtWidgets/QToolBar>
-#include <QtWidgets/QWidget>
-#include <QtWidgets/QMenu>
-#include <QtWidgets/QMessageBox>
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QWidgetAction>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QMessageBox>
 #include <QtWidgets/QProgressDialog>
 #include <QtWidgets/QShortcut>
+#include <QtWidgets/QStatusBar>
+#include <QtWidgets/QToolBar>
+#include <QtWidgets/QToolButton>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QWidgetAction>
 
+#include "InstancePageProvider.h"
+#include "InstanceWindow.h"
+#include "JavaCommon.h"
+#include "LaunchController.h"
 #include <BaseInstance.h>
+#include <BuildConfig.h>
+#include <DesktopServices.h>
 #include <InstanceList.h>
 #include <MMCZip.h>
+#include <SkinUtils.h>
 #include <icons/IconList.h>
-#include <java/JavaUtils.h>
 #include <java/JavaInstallList.h>
+#include <java/JavaUtils.h>
 #include <launch/LaunchTask.h>
 #include <minecraft/auth/AccountList.h>
-#include <SkinUtils.h>
-#include <BuildConfig.h>
-#include <net/NetJob.h>
 #include <net/Download.h>
+#include <net/NetJob.h>
 #include <notifications/NotificationChecker.h>
 #include <tools/BaseProfiler.h>
 #include <updater/DownloadTask.h>
 #include <updater/UpdateChecker.h>
-#include <DesktopServices.h>
-#include "InstanceWindow.h"
-#include "InstancePageProvider.h"
-#include "JavaCommon.h"
-#include "LaunchController.h"
 
+#include "ui/dialogs/AboutDialog.h"
+#include "ui/dialogs/CopyInstanceDialog.h"
+#include "ui/dialogs/CustomMessageBox.h"
+#include "ui/dialogs/EditAccountDialog.h"
+#include "ui/dialogs/ExportInstanceDialog.h"
+#include "ui/dialogs/IconPickerDialog.h"
+#include "ui/dialogs/NewInstanceDialog.h"
+#include "ui/dialogs/NotificationDialog.h"
+#include "ui/dialogs/ProgressDialog.h"
+#include "ui/dialogs/UpdateDialog.h"
+#include "ui/dialogs/VersionSelectDialog.h"
+#include "ui/instanceview/InstanceDelegate.h"
 #include "ui/instanceview/InstanceProxyModel.h"
 #include "ui/instanceview/InstanceView.h"
-#include "ui/instanceview/InstanceDelegate.h"
 #include "ui/widgets/LabeledToolButton.h"
-#include "ui/dialogs/NewInstanceDialog.h"
-#include "ui/dialogs/ProgressDialog.h"
-#include "ui/dialogs/AboutDialog.h"
-#include "ui/dialogs/VersionSelectDialog.h"
-#include "ui/dialogs/CustomMessageBox.h"
-#include "ui/dialogs/IconPickerDialog.h"
-#include "ui/dialogs/CopyInstanceDialog.h"
-#include "ui/dialogs/UpdateDialog.h"
-#include "ui/dialogs/EditAccountDialog.h"
-#include "ui/dialogs/NotificationDialog.h"
-#include "ui/dialogs/ExportInstanceDialog.h"
 
-#include "UpdateController.h"
 #include "KonamiCode.h"
+#include "UpdateController.h"
 
-#include "InstanceImportTask.h"
 #include "InstanceCopyTask.h"
+#include "InstanceImportTask.h"
 
 #include "MMCTime.h"
 
@@ -111,7 +111,7 @@ template <typename T>
 class Translated
 {
 public:
-    Translated(){}
+    Translated() = default;
     Translated(QWidget *parent)
     {
         m_contained = new T(parent);
@@ -164,7 +164,7 @@ using TranslatedToolButton = Translated<QToolButton>;
 class TranslatedToolbar
 {
 public:
-    TranslatedToolbar(){}
+    TranslatedToolbar() = default;
     TranslatedToolbar(QWidget *parent)
     {
         m_contained = new QToolBar(parent);
@@ -827,9 +827,7 @@ void MainWindow::retranslateUi()
     ui->retranslateUi(this);
 }
 
-MainWindow::~MainWindow()
-{
-}
+MainWindow::~MainWindow() = default;
 
 QMenu * MainWindow::createPopupMenu()
 {
@@ -1065,7 +1063,7 @@ void MainWindow::updatesAllowedChanged(bool allowed)
  */
 void MainWindow::changeActiveAccount()
 {
-    QAction *sAction = (QAction *)sender();
+    QAction *sAction = dynamic_cast<QAction *>(sender());
 
     // Profile's associated Mojang username
     if (sAction->data().type() != QVariant::Type::Int)
@@ -1115,7 +1113,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
         if (ev->type() == QEvent::KeyPress)
         {
             secretEventFilter->input(ev);
-            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(ev);
+            QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(ev);
             switch (keyEvent->key())
             {
                 /*
@@ -1377,7 +1375,7 @@ void MainWindow::addInstance(QString url)
         if(!map.contains("group"))
             break;
         groupName = map["group"].toString();
-    } while(0);
+    } while(false);
 
     if(groupName.isEmpty())
     {
@@ -1758,7 +1756,7 @@ void MainWindow::taskEnd()
 {
     QObject *sender = QObject::sender();
     if (sender == m_versionLoadTask)
-        m_versionLoadTask = NULL;
+        m_versionLoadTask = nullptr;
 
     sender->deleteLater();
 }

@@ -30,8 +30,8 @@ class NewComponentDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit NewComponentDialog(const QString & initialName = QString(), const QString & initialUid = QString(), QWidget *parent = 0);
-    virtual ~NewComponentDialog();
+    explicit NewComponentDialog(const QString & initialName = QString(), const QString & initialUid = QString(), QWidget *parent = nullptr);
+    ~NewComponentDialog() override;
     void setBlacklist(QStringList badUids);
 
     QString name() const;

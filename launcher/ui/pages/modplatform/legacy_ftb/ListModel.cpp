@@ -4,8 +4,8 @@
 #include <MMCStrings.h>
 #include <Version.h>
 
-#include <QtMath>
 #include <QLabel>
+#include <QtMath>
 
 #include <RWStorage.h>
 
@@ -69,9 +69,7 @@ ListModel::ListModel(QObject *parent) : QAbstractListModel(parent)
 {
 }
 
-ListModel::~ListModel()
-{
-}
+ListModel::~ListModel() = default;
 
 QString ListModel::translatePackType(PackType type) const
 {

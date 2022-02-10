@@ -1,12 +1,12 @@
 #pragma once
-#include <QString>
 #include "Library.h"
 #include <ProblemProvider.h>
+#include <QString>
 
 class LaunchProfile: public ProblemProvider
 {
 public:
-    virtual ~LaunchProfile() {};
+    ~LaunchProfile() override = default;
 
 public: /* application of profile variables from patches */
     void applyMinecraftVersion(const QString& id);

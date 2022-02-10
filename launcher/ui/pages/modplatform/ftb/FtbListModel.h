@@ -31,8 +31,8 @@ struct Logo {
     bool failed = false;
 };
 
-typedef QMap<QString, Logo> LogoMap;
-typedef std::function<void(QString)> LogoCallback;
+using LogoMap = QMap<QString, Logo>;
+using LogoCallback = std::function<void (QString)>;
 
 class ListModel : public QAbstractListModel
 {
@@ -40,7 +40,7 @@ class ListModel : public QAbstractListModel
 
 public:
     ListModel(QObject *parent);
-    virtual ~ListModel();
+    ~ListModel() override;
 
     int rowCount(const QModelIndex &parent) const override;
     int columnCount(const QModelIndex &parent) const override;
@@ -69,7 +69,7 @@ private:
     LogoMap m_logoMap;
 
     NetJob::Ptr jobPtr;
-    int currentPack;
+    int currentPack{};
     QList<int> remainingPacks;
     QByteArray response;
 };

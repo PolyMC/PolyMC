@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QFrame>
 #include "minecraft/mod/Mod.h"
+#include <QFrame>
 
 namespace Ui
 {
@@ -28,8 +28,8 @@ class MCModInfoFrame : public QFrame
     Q_OBJECT
 
 public:
-    explicit MCModInfoFrame(QWidget *parent = 0);
-    ~MCModInfoFrame();
+    explicit MCModInfoFrame(QWidget *parent = nullptr);
+    ~MCModInfoFrame() override;
 
     void setModText(QString text);
     void setModDescription(QString text);

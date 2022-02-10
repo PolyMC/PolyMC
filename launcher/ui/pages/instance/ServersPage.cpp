@@ -2,13 +2,13 @@
 #include "ui_ServersPage.h"
 
 #include <FileSystem.h>
-#include <sstream>
 #include <io/stream_reader.h>
-#include <tag_string.h>
-#include <tag_primitive.h>
-#include <tag_list.h>
-#include <tag_compound.h>
 #include <minecraft/MinecraftInstance.h>
+#include <sstream>
+#include <tag_compound.h>
+#include <tag_list.h>
+#include <tag_primitive.h>
+#include <tag_string.h>
 
 #include <QFileSystemWatcher>
 #include <QMenu>
@@ -144,7 +144,7 @@ public:
     {
         ServerPtrRole = Qt::UserRole,
     };
-    explicit ServersModel(const QString &path, QObject *parent = 0)
+    explicit ServersModel(const QString &path, QObject *parent = nullptr)
         : QAbstractListModel(parent)
     {
         m_path = path;
@@ -155,7 +155,7 @@ public:
         m_saveTimer.setInterval(5000);
         connect(&m_saveTimer, &QTimer::timeout, this, &ServersModel::save_internal);
     }
-    virtual ~ServersModel() {};
+    ~ServersModel() override = default;
 
     void observe()
     {
@@ -297,7 +297,7 @@ public:
         return QAbstractListModel::headerData(section, orientation, role);
     }
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
     {
         if (!index.isValid())
             return QVariant();
@@ -354,7 +354,7 @@ public:
         }
     }
 
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override
     {
         return m_servers.size();
     }

@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QObject>
 #include <QList>
+#include <QObject>
 #include <QUrl>
 
 #include "tasks/Task.h"
@@ -31,8 +31,8 @@ class MinecraftLoadAndCheck : public Task
 {
     Q_OBJECT
 public:
-    explicit MinecraftLoadAndCheck(MinecraftInstance *inst, QObject *parent = 0);
-    virtual ~MinecraftLoadAndCheck() {};
+    explicit MinecraftLoadAndCheck(MinecraftInstance *inst, QObject *parent = nullptr);
+    ~MinecraftLoadAndCheck() override = default;
     void executeTask() override;
 
 private slots:

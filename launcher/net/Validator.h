@@ -6,8 +6,8 @@ namespace Net {
 class Validator
 {
 public: /* con/des */
-    Validator() {};
-    virtual ~Validator() {};
+    Validator() = default;
+    virtual ~Validator() = default;
 
 public: /* methods */
     virtual bool init(QNetworkRequest & request) = 0;

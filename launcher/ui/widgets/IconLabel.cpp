@@ -1,13 +1,14 @@
 #include "IconLabel.h"
 
-#include <QStyle>
-#include <QStyleOption>
 #include <QLayout>
 #include <QPainter>
 #include <QRect>
+#include <QStyle>
+#include <QStyleOption>
+#include <utility>
 
 IconLabel::IconLabel(QWidget *parent, QIcon icon, QSize size)
-    : QWidget(parent), m_size(size), m_icon(icon)
+    : QWidget(parent), m_size(size), m_icon(std::move(icon))
 {
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 }

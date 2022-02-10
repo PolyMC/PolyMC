@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Task.h"
 #include "QObjectPtr.h"
+#include "Task.h"
 
 #include <QQueue>
 
@@ -9,13 +9,13 @@ class SequentialTask : public Task
 {
     Q_OBJECT
 public:
-    explicit SequentialTask(QObject *parent = 0);
-    virtual ~SequentialTask() {};
+    explicit SequentialTask(QObject *parent = nullptr);
+    ~SequentialTask() override = default;
 
     void addTask(Task::Ptr task);
 
 protected:
-    void executeTask();
+    void executeTask() override;
 
 private
 slots:
@@ -26,5 +26,5 @@ slots:
 
 private:
     QQueue<Task::Ptr > m_queue;
-    int m_currentIndex;
+    int m_currentIndex{-1};
 };

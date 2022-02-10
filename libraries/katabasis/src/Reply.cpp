@@ -1,5 +1,5 @@
-#include <QTimer>
 #include <QNetworkReply>
+#include <QTimer>
 
 #include "katabasis/Reply.h"
 
@@ -49,7 +49,7 @@ Reply *ReplyList::find(QNetworkReply *reply) {
             return timedReply;
         }
     }
-    return 0;
+    return nullptr;
 }
 
 bool ReplyList::ignoreSslErrors()

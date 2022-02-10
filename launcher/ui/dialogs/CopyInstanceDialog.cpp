@@ -22,11 +22,11 @@
 
 #include "ui/dialogs/IconPickerDialog.h"
 
+#include "BaseInstance.h"
 #include "BaseVersion.h"
+#include "InstanceList.h"
 #include "icons/IconList.h"
 #include "tasks/Task.h"
-#include "BaseInstance.h"
-#include "InstanceList.h"
 
 CopyInstanceDialog::CopyInstanceDialog(InstancePtr original, QWidget *parent)
     :QDialog(parent), ui(new Ui::CopyInstanceDialog), m_original(original)

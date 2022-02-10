@@ -1,7 +1,7 @@
 #pragma once
-#include "tasks/Task.h"
-#include "net/NetJob.h"
 #include "minecraft/VersionFilterData.h"
+#include "net/NetJob.h"
+#include "tasks/Task.h"
 
 class MinecraftInstance;
 
@@ -10,7 +10,7 @@ class FMLLibrariesTask : public Task
     Q_OBJECT
 public:
     FMLLibrariesTask(MinecraftInstance * inst);
-    virtual ~FMLLibrariesTask() {};
+    ~FMLLibrariesTask() override = default;
 
     void executeTask() override;
 

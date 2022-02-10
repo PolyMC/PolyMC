@@ -2,22 +2,22 @@
 #include "AccessibleInstanceView.h"
 #include "AccessibleInstanceView_p.h"
 
-#include <qvariant.h>
 #include <qaccessible.h>
 #include <qheaderview.h>
+#include <qvariant.h>
 
 #ifndef QT_NO_ACCESSIBILITY
 
 QAccessibleInterface *groupViewAccessibleFactory(const QString &classname, QObject *object)
 {
-    QAccessibleInterface *iface = 0;
+    QAccessibleInterface *iface = nullptr;
     if (!object || !object->isWidgetType())
         return iface;
 
-    QWidget *widget = static_cast<QWidget*>(object);
+    QWidget *widget = dynamic_cast<QWidget*>(object);
 
     if (classname == QLatin1String("InstanceView")) {
-        iface = new AccessibleInstanceView((InstanceView *)widget);
+        iface = new AccessibleInstanceView(dynamic_cast<InstanceView *>(widget));
     }
     return iface;
 }
@@ -56,13 +56,13 @@ AccessibleInstanceView::~AccessibleInstanceView()
 QAccessibleInterface *AccessibleInstanceView::cellAt(int row, int column) const
 {
     if (!view()->model()) {
-        return 0;
+        return nullptr;
     }
 
     QModelIndex index = view()->model()->index(row, column, view()->rootIndex());
     if (Q_UNLIKELY(!index.isValid())) {
         qWarning() << "AccessibleInstanceView::cellAt: invalid index: " << index << " for " << view();
-        return 0;
+        return nullptr;
     }
 
     return child(logicalIndex(index));
@@ -70,7 +70,7 @@ QAccessibleInterface *AccessibleInstanceView::cellAt(int row, int column) const
 
 QAccessibleInterface *AccessibleInstanceView::caption() const
 {
-    return 0;
+    return nullptr;
 }
 
 QString AccessibleInstanceView::columnDescription(int column) const
@@ -172,7 +172,7 @@ QList<int> AccessibleInstanceView::selectedRows() const
 
 QAccessibleInterface *AccessibleInstanceView::summary() const
 {
-    return 0;
+    return nullptr;
 }
 
 bool AccessibleInstanceView::isColumnSelected(int column) const
@@ -370,7 +370,7 @@ QAccessibleInterface *AccessibleInstanceView::childAt(int x, int y) const
     if (index.isValid()) {
         return child(logicalIndex(index));
     }
-    return 0;
+    return nullptr;
 }
 
 int AccessibleInstanceView::childCount() const
@@ -391,7 +391,7 @@ int AccessibleInstanceView::indexOfChild(const QAccessibleInterface *iface) cons
 
     Q_ASSERT(iface->role() != QAccessible::TreeItem); // should be handled by tree class
     if (iface->role() == QAccessible::Cell || iface->role() == QAccessible::ListItem) {
-        const AccessibleInstanceViewItem* cell = static_cast<const AccessibleInstanceViewItem*>(iface);
+        const AccessibleInstanceViewItem* cell = dynamic_cast<const AccessibleInstanceViewItem*>(iface);
         return logicalIndex(cell->m_index);
     } else if (iface->role() == QAccessible::Pane) {
         return 0; // corner button
@@ -425,13 +425,13 @@ QAccessibleInterface *AccessibleInstanceView::parent() const
         }
         return QAccessible::queryAccessibleInterface(view()->parent());
     }
-    return 0;
+    return nullptr;
 }
 
 QAccessibleInterface *AccessibleInstanceView::child(int logicalIndex) const
 {
     if (!view()->model())
-        return 0;
+        return nullptr;
 
     auto id = childToId.constFind(logicalIndex);
     if (id != childToId.constEnd())
@@ -442,12 +442,12 @@ QAccessibleInterface *AccessibleInstanceView::child(int logicalIndex) const
     int row = logicalIndex / columns;
     int column = logicalIndex % columns;
 
-    QAccessibleInterface *iface = 0;
+    QAccessibleInterface *iface = nullptr;
 
     QModelIndex index = view()->model()->index(row, column, view()->rootIndex());
     if (Q_UNLIKELY(!index.isValid())) {
         qWarning("AccessibleInstanceView::child: Invalid index at: %d %d", row, column);
-        return 0;
+        return nullptr;
     }
     iface = new AccessibleInstanceViewItem(view(), index);
 
@@ -460,7 +460,7 @@ void *AccessibleInstanceView::interface_cast(QAccessible::InterfaceType t)
 {
     if (t == QAccessible::TableInterface)
        return static_cast<QAccessibleTableInterface*>(this);
-   return 0;
+   return nullptr;
 }
 
 void AccessibleInstanceView::modelChange(QAccessibleTableModelChangeEvent *event)
@@ -511,7 +511,7 @@ void AccessibleInstanceView::modelChange(QAccessibleTableModelChangeEvent *event
                 Q_ASSERT(iface);
                 if (iface->role() == QAccessible::Cell || iface->role() == QAccessible::ListItem) {
                     Q_ASSERT(iface->tableCellInterface());
-                    AccessibleInstanceViewItem *cell = static_cast<AccessibleInstanceViewItem*>(iface->tableCellInterface());
+                    AccessibleInstanceViewItem *cell = dynamic_cast<AccessibleInstanceViewItem*>(iface->tableCellInterface());
                     // Since it is a QPersistentModelIndex, we only need to check if it is valid
                     if (cell->m_index.isValid())
                         newCache.insert(indexOfChild(cell), id);
@@ -545,7 +545,7 @@ void *AccessibleInstanceViewItem::interface_cast(QAccessible::InterfaceType t)
         return static_cast<QAccessibleTableCellInterface*>(this);
     if (t == QAccessible::ActionInterface)
         return static_cast<QAccessibleActionInterface*>(this);
-    return 0;
+    return nullptr;
 }
 
 int AccessibleInstanceViewItem::columnExtent() const { return 1; }
@@ -772,7 +772,7 @@ QAccessibleInterface *AccessibleInstanceViewItem::parent() const
 
 QAccessibleInterface *AccessibleInstanceViewItem::child(int) const
 {
-    return 0;
+    return nullptr;
 }
 
 #endif /* !QT_NO_ACCESSIBILITY */

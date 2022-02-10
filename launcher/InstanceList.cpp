@@ -13,36 +13,37 @@
  * limitations under the License.
  */
 
+#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
-#include <QSet>
 #include <QFile>
-#include <QThread>
-#include <QTextStream>
-#include <QXmlStreamReader>
-#include <QTimer>
-#include <QDebug>
 #include <QFileSystemWatcher>
-#include <QUuid>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QMimeData>
+#include <QSet>
+#include <QTextStream>
+#include <QThread>
+#include <QTimer>
+#include <QUuid>
+#include <QXmlStreamReader>
+#include <utility>
 
-#include "InstanceList.h"
 #include "BaseInstance.h"
-#include "InstanceTask.h"
-#include "settings/INISettingsObject.h"
-#include "minecraft/legacy/LegacyInstance.h"
-#include "NullInstance.h"
-#include "minecraft/MinecraftInstance.h"
-#include "FileSystem.h"
 #include "ExponentialSeries.h"
+#include "FileSystem.h"
+#include "InstanceList.h"
+#include "InstanceTask.h"
+#include "NullInstance.h"
 #include "WatchLock.h"
+#include "minecraft/MinecraftInstance.h"
+#include "minecraft/legacy/LegacyInstance.h"
+#include "settings/INISettingsObject.h"
 
 const static int GROUP_FILE_FORMAT_VERSION = 1;
 
 InstanceList::InstanceList(SettingsObjectPtr settings, const QString & instDir, QObject *parent)
-    : QAbstractListModel(parent), m_globalSettings(settings)
+    : QAbstractListModel(parent), m_globalSettings(std::move(settings))
 {
     resumeWatch();
     // Create aand normalize path
@@ -60,9 +61,7 @@ InstanceList::InstanceList(SettingsObjectPtr settings, const QString & instDir, 
     m_watcher->addPath(m_instDir);
 }
 
-InstanceList::~InstanceList()
-{
-}
+InstanceList::~InstanceList() = default;
 
 Qt::DropActions InstanceList::supportedDragActions() const
 {
@@ -651,7 +650,7 @@ void InstanceList::loadGroupList()
         return;
     }
 
-    QJsonParseError error;
+    QJsonParseError error{};
     QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData, &error);
 
     // if the json was bad, fail
@@ -786,7 +785,7 @@ public:
         connect(&m_backoffTimer, &QTimer::timeout, this, &InstanceStaging::childSucceded);
     }
 
-    virtual ~InstanceStaging() {};
+    ~InstanceStaging() override = default;
 
 
     // FIXME/TODO: add ability to abort during instance commit retries
@@ -808,7 +807,7 @@ public:
     }
 
 protected:
-    virtual void executeTask() override
+    void executeTask() override
     {
         m_child->start();
     }

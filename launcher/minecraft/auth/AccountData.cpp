@@ -1,8 +1,8 @@
 #include "AccountData.h"
+#include <QDebug>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
-#include <QDebug>
 #include <QUuid>
 
 namespace {

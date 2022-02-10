@@ -17,12 +17,12 @@
 
 #include <QWidget>
 
-#include "java/JavaChecker.h"
-#include "BaseInstance.h"
-#include <QObjectPtr.h>
-#include "ui/pages/BasePage.h"
-#include "JavaCommon.h"
 #include "Application.h"
+#include "BaseInstance.h"
+#include "JavaCommon.h"
+#include "java/JavaChecker.h"
+#include "ui/pages/BasePage.h"
+#include <QObjectPtr.h>
 
 class JavaChecker;
 namespace Ui
@@ -35,26 +35,26 @@ class InstanceSettingsPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit InstanceSettingsPage(BaseInstance *inst, QWidget *parent = 0);
-    virtual ~InstanceSettingsPage();
-    virtual QString displayName() const override
+    explicit InstanceSettingsPage(BaseInstance *inst, QWidget *parent = nullptr);
+    ~InstanceSettingsPage() override;
+    QString displayName() const override
     {
         return tr("Settings");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("instance-settings");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "settings";
     }
-    virtual bool apply() override;
-    virtual QString helpPage() const override
+    bool apply() override;
+    QString helpPage() const override
     {
         return "Instance-settings";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
 private slots:
     void on_javaDetectBtn_clicked();

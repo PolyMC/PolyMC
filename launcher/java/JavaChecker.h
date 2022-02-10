@@ -19,7 +19,7 @@ struct JavaCheckResult
     QString outLog;
     QString errorLog;
     bool is_64bit = false;
-    int id;
+    int id{};
     enum class Validity
     {
         Errored,
@@ -28,13 +28,13 @@ struct JavaCheckResult
     } validity = Validity::Errored;
 };
 
-typedef shared_qobject_ptr<QProcess> QProcessPtr;
-typedef shared_qobject_ptr<JavaChecker> JavaCheckerPtr;
+using QProcessPtr = shared_qobject_ptr<QProcess>;
+using JavaCheckerPtr = shared_qobject_ptr<JavaChecker>;
 class JavaChecker : public QObject
 {
     Q_OBJECT
 public:
-    explicit JavaChecker(QObject *parent = 0);
+    explicit JavaChecker(QObject *parent = nullptr);
     void performCheck();
 
     QString m_path;

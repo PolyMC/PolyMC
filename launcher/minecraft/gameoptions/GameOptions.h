@@ -1,8 +1,8 @@
 #pragma once
 
-#include <map>
-#include <QString>
 #include <QAbstractListModel>
+#include <QString>
+#include <map>
 
 struct GameOptionItem
 {
@@ -14,8 +14,8 @@ class GameOptions : public QAbstractListModel
 {
     Q_OBJECT
 public:
-    explicit GameOptions(const QString& path);
-    virtual ~GameOptions() = default;
+    explicit GameOptions(QString  path);
+    ~GameOptions() override = default;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex & parent) const override;

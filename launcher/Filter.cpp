@@ -1,16 +1,18 @@
 #include "Filter.h"
 
-Filter::~Filter(){}
+#include <utility>
 
-ContainsFilter::ContainsFilter(const QString& pattern) : pattern(pattern){}
-ContainsFilter::~ContainsFilter(){}
+Filter::~Filter() = default;
+
+ContainsFilter::ContainsFilter(QString pattern) : pattern(std::move(pattern)){}
+ContainsFilter::~ContainsFilter() = default;
 bool ContainsFilter::accepts(const QString& value)
 {
     return value.contains(pattern);
 }
 
-ExactFilter::ExactFilter(const QString& pattern) : pattern(pattern){}
-ExactFilter::~ExactFilter(){}
+ExactFilter::ExactFilter(QString pattern) : pattern(std::move(pattern)){}
+ExactFilter::~ExactFilter() = default;
 bool ExactFilter::accepts(const QString& value)
 {
     return value == pattern;
@@ -22,7 +24,7 @@ RegexpFilter::RegexpFilter(const QString& regexp, bool invert)
     pattern.setPattern(regexp);
     pattern.optimize();
 }
-RegexpFilter::~RegexpFilter(){}
+RegexpFilter::~RegexpFilter() = default;
 bool RegexpFilter::accepts(const QString& value)
 {
     auto match = pattern.match(value);

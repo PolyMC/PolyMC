@@ -1,8 +1,8 @@
 #pragma once
 #include "QObjectPtr.h"
-#include "tasks/Task.h"
 #include "minecraft/mod/ModFolderModel.h"
 #include "net/NetJob.h"
+#include "tasks/Task.h"
 #include <QUrl>
 
 

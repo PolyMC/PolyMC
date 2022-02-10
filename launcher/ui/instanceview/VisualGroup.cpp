@@ -15,15 +15,16 @@
 
 #include "VisualGroup.h"
 
+#include <QApplication>
+#include <QDebug>
 #include <QModelIndex>
 #include <QPainter>
 #include <QtMath>
-#include <QApplication>
-#include <QDebug>
+#include <utility>
 
 #include "InstanceView.h"
 
-VisualGroup::VisualGroup(const QString &text, InstanceView *view) : view(view), text(text), collapsed(false)
+VisualGroup::VisualGroup(QString text, InstanceView *view) : view(view), text(std::move(text))
 {
 }
 

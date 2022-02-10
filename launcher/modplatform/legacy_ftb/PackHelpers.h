@@ -1,9 +1,9 @@
 #pragma once
 
 #include <QList>
+#include <QMetaType>
 #include <QString>
 #include <QStringList>
-#include <QMetaType>
 
 namespace LegacyFTB {
 
@@ -37,7 +37,7 @@ struct Modpack
     QString packCode;
 };
 
-typedef QList<Modpack> ModpackList;
+using ModpackList = QList<Modpack>;
 
 }
 

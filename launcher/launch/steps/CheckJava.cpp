@@ -14,10 +14,10 @@
  */
 
 #include "CheckJava.h"
-#include <launch/LaunchTask.h>
 #include <FileSystem.h>
-#include <QStandardPaths>
 #include <QFileInfo>
+#include <QStandardPaths>
+#include <launch/LaunchTask.h>
 #include <sys.h>
 
 void CheckJava::executeTask()

@@ -16,17 +16,17 @@
 #include "ProfileSetupDialog.h"
 #include "ui_ProfileSetupDialog.h"
 
-#include <QPushButton>
 #include <QAction>
-#include <QRegExpValidator>
-#include <QJsonDocument>
 #include <QDebug>
+#include <QJsonDocument>
+#include <QPushButton>
+#include <QRegExpValidator>
 
 #include "ui/dialogs/ProgressDialog.h"
 
-#include <Application.h>
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"
+#include <Application.h>
 
 
 ProfileSetupDialog::ProfileSetupDialog(MinecraftAccountPtr accountToSetup, QWidget *parent)
@@ -189,7 +189,7 @@ void ProfileSetupDialog::setupProfile(const QString &profileName) {
     request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Authorization", QString("Bearer %1").arg(token).toUtf8());
 
-    QString payloadTemplate("{\"profileName\":\"%1\"}");
+    QString payloadTemplate(R"({"profileName":"%1"})");
     auto data = payloadTemplate.arg(profileName).toUtf8();
 
     AuthRequest *requestor = new AuthRequest(this);
@@ -219,8 +219,8 @@ struct MojangError{
     }
 
     QString rawError;
-    QJsonParseError parseError;
-    bool fullyParsed;
+    QJsonParseError parseError{};
+    bool fullyParsed{};
 
     QString path;
     QString error;

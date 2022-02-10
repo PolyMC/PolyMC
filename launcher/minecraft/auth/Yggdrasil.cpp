@@ -16,14 +16,15 @@
 #include "Yggdrasil.h"
 #include "AccountData.h"
 
+#include <QByteArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QNetworkReply>
 #include <QObject>
 #include <QString>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QNetworkReply>
-#include <QByteArray>
 
 #include <QDebug>
+#include <memory>
 
 #include "Application.h"
 
@@ -262,7 +263,7 @@ void Yggdrasil::processReply() {
 
     // Try to parse the response regardless of the response code.
     // Sometimes the auth server will give more information and an error code.
-    QJsonParseError jsonError;
+    QJsonParseError jsonError{};
     QByteArray replyData = m_netReply->readAll();
     QJsonDocument doc = QJsonDocument::fromJson(replyData, &jsonError);
     // Check the response code.
@@ -315,8 +316,8 @@ void Yggdrasil::processError(QJsonObject responseData) {
     QJsonValue causeVal = responseData.value("cause");
 
     if (errorVal.isString() && errorMessageValue.isString()) {
-        m_error = std::shared_ptr<Error>(
-            new Error {
+        m_error = std::make_shared<Error>(
+            Error {
                 errorVal.toString(""),
                 errorMessageValue.toString(""),
                 causeVal.toString("")

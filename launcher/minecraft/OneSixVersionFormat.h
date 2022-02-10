@@ -1,10 +1,10 @@
 #pragma once
 
-#include <minecraft/VersionFile.h>
-#include <minecraft/PackProfile.h>
 #include <minecraft/Library.h>
-#include <QJsonDocument>
 #include <ProblemProvider.h>
+#include <QJsonDocument>
+#include <minecraft/PackProfile.h>
+#include <minecraft/VersionFile.h>
 
 class OneSixVersionFormat
 {

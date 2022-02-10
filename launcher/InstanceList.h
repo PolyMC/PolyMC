@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <QObject>
 #include <QAbstractListModel>
-#include <QSet>
 #include <QList>
+#include <QObject>
+#include <QSet>
 
 #include "BaseInstance.h"
 
@@ -52,8 +52,8 @@ class InstanceList : public QAbstractListModel
     Q_OBJECT
 
 public:
-    explicit InstanceList(SettingsObjectPtr settings, const QString & instDir, QObject *parent = 0);
-    virtual ~InstanceList();
+    explicit InstanceList(SettingsObjectPtr settings, const QString & instDir, QObject *parent = nullptr);
+    ~InstanceList() override;
 
 public:
     QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const override;

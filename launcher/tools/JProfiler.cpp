@@ -2,22 +2,22 @@
 
 #include <QDir>
 
-#include "settings/SettingsObject.h"
-#include "launch/LaunchTask.h"
 #include "BaseInstance.h"
+#include "launch/LaunchTask.h"
+#include "settings/SettingsObject.h"
 
 class JProfiler : public BaseProfiler
 {
     Q_OBJECT
 public:
-    JProfiler(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = 0);
+    JProfiler(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = nullptr);
 
 private slots:
     void profilerStarted();
     void profilerFinished(int exit, QProcess::ExitStatus status);
 
 protected:
-    void beginProfilingImpl(shared_qobject_ptr<LaunchTask> process);
+    void beginProfilingImpl(shared_qobject_ptr<LaunchTask> process) override;
 
 private:
     int listeningPort = 0;
@@ -43,7 +43,7 @@ void JProfiler::profilerFinished(int exit, QProcess::ExitStatus status)
     if (m_profilerProcess)
     {
         m_profilerProcess->deleteLater();
-        m_profilerProcess = 0;
+        m_profilerProcess = nullptr;
     }
 }
 

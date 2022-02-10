@@ -13,8 +13,8 @@ struct ModpackAuthor {
 };
 
 struct IndexedVersion {
-    int addonId;
-    int fileId;
+    int addonId{};
+    int fileId{};
     QString version;
     QString mcVersion;
     QString downloadUrl;
@@ -22,7 +22,7 @@ struct IndexedVersion {
 
 struct IndexedPack
 {
-    int addonId;
+    int addonId{};
     QString name;
     QString description;
     QList<ModpackAuthor> authors;

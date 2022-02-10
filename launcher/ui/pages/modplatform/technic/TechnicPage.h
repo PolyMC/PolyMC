@@ -17,10 +17,10 @@
 
 #include <QWidget>
 
+#include "TechnicData.h"
+#include "tasks/Task.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "tasks/Task.h"
-#include "TechnicData.h"
 
 namespace Ui
 {
@@ -38,25 +38,25 @@ class TechnicPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit TechnicPage(NewInstanceDialog* dialog, QWidget *parent = 0);
-    virtual ~TechnicPage();
-    virtual QString displayName() const override
+    explicit TechnicPage(NewInstanceDialog* dialog, QWidget *parent = nullptr);
+    ~TechnicPage() override;
+    QString displayName() const override
     {
         return tr("Technic");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return APPLICATION->getThemedIcon("technic");
     }
-    virtual QString id() const override
+    QString id() const override
     {
         return "technic";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
         return "Technic-platform";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
 
     void openedImpl() override;
 

@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <memory>
-#include <QString>
 #include <QMetaType>
+#include <QString>
+#include <memory>
 
 /*!
  * An abstract base class for versions.
@@ -25,7 +25,7 @@
 class BaseVersion
 {
 public:
-    virtual ~BaseVersion() {}
+    virtual ~BaseVersion() = default;
     /*!
      * A string used to identify this version in config files.
      * This should be unique within the version list or shenanigans will occur.
@@ -54,6 +54,6 @@ public:
     };
 };
 
-typedef std::shared_ptr<BaseVersion> BaseVersionPtr;
+using BaseVersionPtr = std::shared_ptr<BaseVersion>;
 
 Q_DECLARE_METATYPE(BaseVersionPtr)

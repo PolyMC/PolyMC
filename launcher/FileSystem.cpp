@@ -2,14 +2,14 @@
 
 #include "FileSystem.h"
 
+#include <QDebug>
 #include <QDir>
 #include <QFile>
-#include <QSaveFile>
 #include <QFileInfo>
-#include <QDebug>
-#include <QUrl>
+#include <QSaveFile>
 #include <QStandardPaths>
 #include <QTextStream>
+#include <QUrl>
 
 #if defined Q_OS_WIN32
     #include <windows.h>

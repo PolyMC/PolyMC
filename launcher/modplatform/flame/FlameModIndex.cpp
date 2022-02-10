@@ -1,10 +1,10 @@
-#include <QObject>
 #include "FlameModIndex.h"
-#include "Json.h"
-#include "net/NetJob.h"
 #include "BaseInstance.h"
+#include "Json.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
+#include "net/NetJob.h"
+#include <QObject>
 
 
 void FlameMod::loadIndexedPack(FlameMod::IndexedPack & pack, QJsonObject & obj)
@@ -45,8 +45,8 @@ void FlameMod::loadIndexedPack(FlameMod::IndexedPack & pack, QJsonObject & obj)
 void FlameMod::loadIndexedPackVersions(FlameMod::IndexedPack & pack, QJsonArray & arr, const shared_qobject_ptr<QNetworkAccessManager>& network, BaseInstance * inst)
 {
     QVector<FlameMod::IndexedVersion> unsortedVersions;
-    bool hasFabric = !((MinecraftInstance *)inst)->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
-    QString mcVersion = ((MinecraftInstance *)inst)->getPackProfile()->getComponentVersion("net.minecraft");
+    bool hasFabric = !(dynamic_cast<MinecraftInstance *>(inst))->getPackProfile()->getComponentVersion("net.fabricmc.fabric-loader").isEmpty();
+    QString mcVersion = (dynamic_cast<MinecraftInstance *>(inst))->getPackProfile()->getComponentVersion("net.minecraft");
 
     for(auto versionIter: arr) {
         auto obj = versionIter.toObject();

@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include <memory>
-#include <QDialog>
-#include "ui/pages/BasePage.h"
 #include "JavaCommon.h"
+#include "ui/pages/BasePage.h"
 #include <Application.h>
+#include <QDialog>
 #include <QObjectPtr.h>
+#include <memory>
 
 class SettingsObject;
 
@@ -34,8 +34,8 @@ class JavaPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit JavaPage(QWidget *parent = 0);
-    ~JavaPage();
+    explicit JavaPage(QWidget *parent = nullptr);
+    ~JavaPage() override;
 
     QString displayName() const override
     {

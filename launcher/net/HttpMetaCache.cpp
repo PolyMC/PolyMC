@@ -16,15 +16,15 @@
 #include "HttpMetaCache.h"
 #include "FileSystem.h"
 
-#include <QFileInfo>
-#include <QFile>
-#include <QDateTime>
 #include <QCryptographicHash>
+#include <QDateTime>
+#include <QFile>
+#include <QFileInfo>
 
 #include <QDebug>
 
-#include <QJsonDocument>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
 
 QString MetaEntry::getFullPath()

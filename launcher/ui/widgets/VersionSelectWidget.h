@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QSortFilterProxyModel>
 #include "BaseVersionList.h"
+#include <QSortFilterProxyModel>
+#include <QWidget>
 
 class VersionProxyModel;
 class VersionListView;
@@ -29,8 +29,8 @@ class VersionSelectWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit VersionSelectWidget(QWidget *parent = 0);
-    ~VersionSelectWidget();
+    explicit VersionSelectWidget(QWidget *parent = nullptr);
+    ~VersionSelectWidget() override;
 
     //! loads the list if needed.
     void initialize(BaseVersionList *vlist);
@@ -55,7 +55,7 @@ signals:
     void selectedVersionChanged(BaseVersionPtr version);
 
 protected:
-    virtual void closeEvent ( QCloseEvent* );
+    void closeEvent ( QCloseEvent* ) override;
 
 private slots:
     void onTaskSucceeded();
@@ -71,7 +71,7 @@ private:
     BaseVersionList *m_vlist = nullptr;
     VersionProxyModel *m_proxyModel = nullptr;
     int resizeOnColumn = 0;
-    Task * loadTask;
+    Task * loadTask{};
     bool preselectedAlready = false;
 
 private:

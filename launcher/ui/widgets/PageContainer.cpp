@@ -16,36 +16,36 @@
 #include "PageContainer.h"
 #include "PageContainer_p.h"
 
-#include <QStackedLayout>
-#include <QPushButton>
-#include <QSortFilterProxyModel>
-#include <QUrl>
-#include <QStyledItemDelegate>
-#include <QListView>
-#include <QLineEdit>
-#include <QLabel>
 #include <QDialogButtonBox>
 #include <QGridLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QListView>
+#include <QPushButton>
+#include <QSortFilterProxyModel>
+#include <QStackedLayout>
+#include <QStyledItemDelegate>
+#include <QUrl>
 
 #include "settings/SettingsObject.h"
 
 #include "ui/widgets/IconLabel.h"
 
-#include "DesktopServices.h"
 #include "Application.h"
+#include "DesktopServices.h"
 
 class PageEntryFilterModel : public QSortFilterProxyModel
 {
 public:
-    explicit PageEntryFilterModel(QObject *parent = 0) : QSortFilterProxyModel(parent)
+    explicit PageEntryFilterModel(QObject *parent = nullptr) : QSortFilterProxyModel(parent)
     {
     }
 
 protected:
-    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override
     {
         const QString pattern = filterRegExp().pattern();
-        const auto model = static_cast<PageModel *>(sourceModel());
+        const auto model = dynamic_cast<PageModel *>(sourceModel());
         const auto page = model->pages().at(sourceRow);
         if (!page->shouldDisplay())
             return false;

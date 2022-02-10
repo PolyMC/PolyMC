@@ -1,9 +1,9 @@
 #include "PackFetchTask.h"
 #include "PrivatePackManager.h"
 
-#include <QDomDocument>
-#include "BuildConfig.h"
 #include "Application.h"
+#include "BuildConfig.h"
+#include <QDomDocument>
 
 namespace LegacyFTB {
 

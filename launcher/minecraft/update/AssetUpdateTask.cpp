@@ -1,9 +1,9 @@
 #include "AssetUpdateTask.h"
 
+#include "minecraft/AssetsUtils.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "net/ChecksumValidator.h"
-#include "minecraft/AssetsUtils.h"
 
 #include "Application.h"
 
@@ -12,9 +12,7 @@ AssetUpdateTask::AssetUpdateTask(MinecraftInstance * inst)
     m_inst = inst;
 }
 
-AssetUpdateTask::~AssetUpdateTask()
-{
-}
+AssetUpdateTask::~AssetUpdateTask() = default;
 
 void AssetUpdateTask::executeTask()
 {

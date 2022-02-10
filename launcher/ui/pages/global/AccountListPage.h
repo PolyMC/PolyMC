@@ -20,8 +20,8 @@
 
 #include "ui/pages/BasePage.h"
 
-#include "minecraft/auth/AccountList.h"
 #include "Application.h"
+#include "minecraft/auth/AccountList.h"
 
 namespace Ui
 {
@@ -34,8 +34,8 @@ class AccountListPage : public QMainWindow, public BasePage
 {
     Q_OBJECT
 public:
-    explicit AccountListPage(QWidget *parent = 0);
-    ~AccountListPage();
+    explicit AccountListPage(QWidget *parent = nullptr);
+    ~AccountListPage() override;
 
     QString displayName() const override
     {

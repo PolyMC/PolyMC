@@ -1,12 +1,12 @@
 #include "WideBar.h"
-#include <QToolButton>
 #include <QMenu>
+#include <QToolButton>
 
 class ActionButton : public QToolButton
 {
     Q_OBJECT
 public:
-    ActionButton(QAction * action, QWidget * parent = 0) : QToolButton(parent), m_action(action) {
+    ActionButton(QAction * action, QWidget * parent = nullptr) : QToolButton(parent), m_action(action) {
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         connect(action, &QAction::changed, this, &ActionButton::actionChanged);
         connect(this, &ActionButton::clicked, action, &QAction::trigger);

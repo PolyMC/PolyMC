@@ -16,20 +16,20 @@
 #include "MinecraftUpdate.h"
 #include "MinecraftInstance.h"
 
+#include <QDataStream>
 #include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
-#include <QDataStream>
 
 #include "BaseInstance.h"
-#include "minecraft/PackProfile.h"
 #include "minecraft/Library.h"
+#include "minecraft/PackProfile.h"
 #include <FileSystem.h>
 
+#include "update/AssetUpdateTask.h"
+#include "update/FMLLibrariesTask.h"
 #include "update/FoldersTask.h"
 #include "update/LibrariesTask.h"
-#include "update/FMLLibrariesTask.h"
-#include "update/AssetUpdateTask.h"
 
 #include <meta/Index.h>
 #include <meta/Version.h>

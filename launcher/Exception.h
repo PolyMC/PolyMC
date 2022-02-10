@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <QString>
 #include <QDebug>
+#include <QString>
 #include <exception>
 
 class Exception : public std::exception
@@ -17,8 +17,8 @@ public:
         : std::exception(), m_message(other.cause())
     {
     }
-    virtual ~Exception() noexcept {}
-    const char *what() const noexcept
+    ~Exception() noexcept override = default;
+    const char *what() const noexcept override
     {
         return m_message.toLatin1().constData();
     }

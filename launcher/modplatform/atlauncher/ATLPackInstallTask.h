@@ -17,15 +17,15 @@
 
 #pragma once
 
-#include <meta/VersionList.h>
 #include "ATLPackManifest.h"
+#include <meta/VersionList.h>
 
 #include "InstanceTask.h"
-#include "net/NetJob.h"
-#include "settings/INISettingsObject.h"
+#include "meta/Version.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
-#include "meta/Version.h"
+#include "net/NetJob.h"
+#include "settings/INISettingsObject.h"
 
 #include <nonstd/optional>
 
@@ -53,13 +53,13 @@ Q_OBJECT
 
 public:
     explicit PackInstallTask(UserInteractionSupport *support, QString pack, QString version);
-    virtual ~PackInstallTask(){}
+    ~PackInstallTask() override = default;
 
     bool canAbort() const override { return true; }
     bool abort() override;
 
 protected:
-    virtual void executeTask() override;
+    void executeTask() override;
 
 private slots:
     void onDownloadSucceeded();

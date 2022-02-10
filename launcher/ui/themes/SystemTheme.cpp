@@ -1,8 +1,8 @@
 #include "SystemTheme.h"
 #include <QApplication>
+#include <QDebug>
 #include <QStyle>
 #include <QStyleFactory>
-#include <QDebug>
 
 SystemTheme::SystemTheme()
 {

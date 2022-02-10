@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include <QJsonObject>
 #include <QJsonArray>
+#include <QJsonObject>
 
 #include "Rule.h"
 

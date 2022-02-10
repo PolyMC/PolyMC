@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QWizardPage>
 #include <QEvent>
+#include <QWizardPage>
 
 class BaseWizardPage : public QWizardPage
 {
@@ -10,7 +10,7 @@ public:
         : QWizardPage(parent)
     {
     }
-    virtual ~BaseWizardPage() {};
+    ~BaseWizardPage() override = default;
 
     virtual bool wantsRefreshButton()
     {

@@ -1,10 +1,10 @@
 #include "Library.h"
 #include "MinecraftInstance.h"
 
-#include <net/Download.h>
-#include <net/ChecksumValidator.h>
-#include <FileSystem.h>
 #include <BuildConfig.h>
+#include <FileSystem.h>
+#include <net/ChecksumValidator.h>
+#include <net/Download.h>
 
 
 void Library::getApplicableFiles(OpSys system, QStringList& jar, QStringList& native, QStringList& native32,

@@ -30,8 +30,8 @@ class ProgressDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ProgressDialog(QWidget *parent = 0);
-    ~ProgressDialog();
+    explicit ProgressDialog(QWidget *parent = nullptr);
+    ~ProgressDialog() override;
 
     void updateSize();
 
@@ -58,8 +58,8 @@ slots:
     void on_skipButton_clicked(bool checked);
 
 protected:
-    virtual void keyPressEvent(QKeyEvent *e);
-    virtual void closeEvent(QCloseEvent *e);
+    void keyPressEvent(QKeyEvent *e) override;
+    void closeEvent(QCloseEvent *e) override;
 
 private:
     bool handleImmediateResult(QDialog::DialogCode &result);
@@ -67,5 +67,5 @@ private:
 private:
     Ui::ProgressDialog *ui;
 
-    Task *task;
+    Task *task{};
 };

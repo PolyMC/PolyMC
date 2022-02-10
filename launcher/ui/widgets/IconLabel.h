@@ -1,6 +1,6 @@
 #pragma once
-#include <QWidget>
 #include <QIcon>
+#include <QWidget>
 
 class QStyleOption;
 
@@ -15,8 +15,8 @@ public:
     /// Create a line separator. orientation is the orientation of the line.
     explicit IconLabel(QWidget *parent, QIcon icon, QSize size);
 
-    virtual QSize sizeHint() const;
-    virtual void paintEvent(QPaintEvent *);
+    QSize sizeHint() const override;
+    void paintEvent(QPaintEvent *) override;
 
     void setIcon(QIcon icon);
 

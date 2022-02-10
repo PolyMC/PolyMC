@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QProcess>
 #include "MessageLevel.h"
+#include <QProcess>
 
 /*
  * This is a basic process.
@@ -38,8 +38,8 @@ public:
     };
 
 public:
-    explicit LoggedProcess(QObject* parent = 0);
-    virtual ~LoggedProcess();
+    explicit LoggedProcess(QObject* parent = nullptr);
+    ~LoggedProcess() override;
 
     State state() const;
     int exitCode() const;

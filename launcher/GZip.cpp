@@ -1,6 +1,6 @@
 #include "GZip.h"
-#include <zlib.h>
 #include <QByteArray>
+#include <zlib.h>
 
 bool GZip::unzip(const QByteArray &compressedBytes, QByteArray &uncompressedBytes)
 {
@@ -82,7 +82,7 @@ bool GZip::zip(const QByteArray &uncompressedBytes, QByteArray &compressedBytes)
     zs.next_in = (Bytef*)uncompressedBytes.data();
     zs.avail_in = uncompressedBytes.size();
 
-    int ret;
+    int ret = 0;
     compressedBytes.resize(uncompressedBytes.size());
 
     unsigned offset = 0;

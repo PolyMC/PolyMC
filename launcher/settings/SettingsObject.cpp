@@ -14,9 +14,9 @@
  */
 
 #include "settings/SettingsObject.h"
-#include "settings/Setting.h"
-#include "settings/OverrideSetting.h"
 #include "PassthroughSetting.h"
+#include "settings/OverrideSetting.h"
+#include "settings/Setting.h"
 #include <QDebug>
 
 #include <QVariant>
@@ -83,7 +83,7 @@ std::shared_ptr<Setting> SettingsObject::getSetting(const QString &id) const
 {
     // Make sure there is a setting with the given ID.
     if (!m_settings.contains(id))
-        return NULL;
+        return nullptr;
 
     return m_settings[id];
 }

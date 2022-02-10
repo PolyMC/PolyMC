@@ -1,16 +1,17 @@
 #include "ImgurAlbumCreation.h"
 
-#include <QNetworkRequest>
+#include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QUrl>
+#include <QNetworkRequest>
 #include <QStringList>
-#include <QDebug>
+#include <QUrl>
+#include <utility>
 
-#include "BuildConfig.h"
 #include "Application.h"
+#include "BuildConfig.h"
 
-ImgurAlbumCreation::ImgurAlbumCreation(QList<ScreenShot::Ptr> screenshots) : NetAction(), m_screenshots(screenshots)
+ImgurAlbumCreation::ImgurAlbumCreation(QList<ScreenShot::Ptr> screenshots) : NetAction(), m_screenshots(std::move(screenshots))
 {
     m_url = BuildConfig.IMGUR_BASE_URL + "album.json";
     m_status = Job_NotStarted;
@@ -51,7 +52,7 @@ void ImgurAlbumCreation::downloadFinished()
     {
         QByteArray data = m_reply->readAll();
         m_reply.reset();
-        QJsonParseError jsonError;
+        QJsonParseError jsonError{};
         QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
         if (jsonError.error != QJsonParseError::NoError)
         {

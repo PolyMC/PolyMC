@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QObject>
 #include <QAbstractListModel>
+#include <QObject>
 
 #include "BaseVersionList.h"
 #include "tasks/Task.h"
@@ -38,7 +38,7 @@ class JavaInstallList : public BaseVersionList
         Done
     };
 public:
-    explicit JavaInstallList(QObject *parent = 0);
+    explicit JavaInstallList(QObject *parent = nullptr);
 
     Task::Ptr getLoadTask() override;
     bool isLoaded() override;
@@ -68,7 +68,7 @@ class JavaListLoadTask : public Task
 
 public:
     explicit JavaListLoadTask(JavaInstallList *vlist);
-    virtual ~JavaListLoadTask();
+    ~JavaListLoadTask() override;
 
     void executeTask() override;
 public slots:

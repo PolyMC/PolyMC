@@ -1,10 +1,10 @@
 #pragma once
 #include "BaseInstance.h"
-#include <java/JavaVersion.h>
-#include "minecraft/mod/Mod.h"
-#include <QProcess>
-#include <QDir>
 #include "minecraft/launch/MinecraftServerTarget.h"
+#include "minecraft/mod/Mod.h"
+#include <QDir>
+#include <QProcess>
+#include <java/JavaVersion.h>
 
 class ModFolderModel;
 class WorldList;
@@ -17,8 +17,8 @@ class MinecraftInstance: public BaseInstance
     Q_OBJECT
 public:
     MinecraftInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString &rootDir);
-    virtual ~MinecraftInstance() {};
-    virtual void saveNow() override;
+    ~MinecraftInstance() override = default;
+    void saveNow() override;
 
     // FIXME: remove
     QString typeName() const override;
@@ -129,4 +129,4 @@ protected: // data
     mutable std::shared_ptr<GameOptions> m_game_options;
 };
 
-typedef std::shared_ptr<MinecraftInstance> MinecraftInstancePtr;
+using MinecraftInstancePtr = std::shared_ptr<MinecraftInstance>;

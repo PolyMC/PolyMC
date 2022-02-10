@@ -12,7 +12,7 @@ class BaseProfiler : public BaseExternalTool
 {
     Q_OBJECT
 public:
-    explicit BaseProfiler(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = 0);
+    explicit BaseProfiler(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = nullptr);
 
 public
 slots:
@@ -20,7 +20,7 @@ slots:
     void abortProfiling();
 
 protected:
-    QProcess *m_profilerProcess;
+    QProcess *m_profilerProcess{};
 
     virtual void beginProfilingImpl(shared_qobject_ptr<LaunchTask> process) = 0;
     virtual void abortProfilingImpl();
@@ -33,5 +33,5 @@ signals:
 class BaseProfilerFactory : public BaseExternalToolFactory
 {
 public:
-    virtual BaseProfiler *createProfiler(InstancePtr instance, QObject *parent = 0);
+    virtual BaseProfiler *createProfiler(InstancePtr instance, QObject *parent = nullptr);
 };

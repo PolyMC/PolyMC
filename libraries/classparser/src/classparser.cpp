@@ -17,9 +17,9 @@
 #include "classfile.h"
 #include "classparser.h"
 
+#include <QDebug>
 #include <QFile>
 #include <quazip/quazipfile.h>
-#include <QDebug>
 
 namespace classparser
 {

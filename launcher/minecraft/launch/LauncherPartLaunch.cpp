@@ -17,11 +17,11 @@
 
 #include <QStandardPaths>
 
+#include "Application.h"
+#include "Commandline.h"
+#include "FileSystem.h"
 #include "launch/LaunchTask.h"
 #include "minecraft/MinecraftInstance.h"
-#include "FileSystem.h"
-#include "Commandline.h"
-#include "Application.h"
 
 LauncherPartLaunch::LauncherPartLaunch(LaunchTask *parent) : LaunchStep(parent)
 {

@@ -27,13 +27,13 @@ class IconPickerDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit IconPickerDialog(QWidget *parent = 0);
-    ~IconPickerDialog();
+    explicit IconPickerDialog(QWidget *parent = nullptr);
+    ~IconPickerDialog() override;
     int execWithSelection(QString selection);
     QString selectedIconKey;
 
 protected:
-    virtual bool eventFilter(QObject *, QEvent *);
+    bool eventFilter(QObject *, QEvent *) override;
 
 private:
     Ui::IconPickerDialog *ui;

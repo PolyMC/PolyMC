@@ -1,14 +1,14 @@
 #include "SetupWizard.h"
 
-#include "LanguageWizardPage.h"
 #include "JavaWizardPage.h"
+#include "LanguageWizardPage.h"
 
 #include "translations/TranslationsModel.h"
 #include <Application.h>
 #include <FileSystem.h>
 
-#include <QAbstractButton>
 #include <BuildConfig.h>
+#include <QAbstractButton>
 
 SetupWizard::SetupWizard(QWidget *parent) : QWizard(parent)
 {
@@ -82,6 +82,4 @@ void SetupWizard::changeEvent(QEvent *event)
     QWizard::changeEvent(event);
 }
 
-SetupWizard::~SetupWizard()
-{
-}
+SetupWizard::~SetupWizard() = default;

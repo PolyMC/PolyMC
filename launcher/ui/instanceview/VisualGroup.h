@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <QString>
 #include <QRect>
-#include <QVector>
+#include <QString>
 #include <QStyleOption>
+#include <QVector>
 
 class InstanceView;
 class QPainter;
@@ -42,7 +42,7 @@ struct VisualRow
 struct VisualGroup
 {
 /* constructors */
-    VisualGroup(const QString &text, InstanceView *view);
+    VisualGroup(QString text, InstanceView *view);
     VisualGroup(const VisualGroup *other);
 
 /* data */

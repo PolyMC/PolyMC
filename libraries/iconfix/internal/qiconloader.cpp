@@ -32,17 +32,18 @@
 ****************************************************************************/
 #include "qiconloader_p.h"
 
-#include <QtGui/QIconEnginePlugin>
-#include <QtGui/QPixmapCache>
-#include <QtGui/QIconEngine>
-#include <QtGui/QPalette>
-#include <QtCore/QList>
-#include <QtCore/QHash>
-#include <QtCore/QDir>
-#include <QtCore/QSettings>
-#include <QtGui/QPainter>
 #include <QApplication>
 #include <QLatin1Literal>
+#include <QtCore/QDir>
+#include <QtCore/QHash>
+#include <QtCore/QList>
+#include <QtCore/QSettings>
+#include <QtGui/QIconEngine>
+#include <QtGui/QIconEnginePlugin>
+#include <QtGui/QPainter>
+#include <QtGui/QPalette>
+#include <QtGui/QPixmapCache>
+#include <utility>
 
 #include "qhexstring_p.h"
 
@@ -58,7 +59,7 @@ static QString fallbackTheme()
     return QString("hicolor");
 }
 
-QIconLoader::QIconLoader() : m_themeKey(1), m_supportsSvg(false), m_initialized(false)
+QIconLoader::QIconLoader()
 {
 }
 
@@ -139,7 +140,7 @@ QStringList QIconLoader::themeSearchPaths() const
     return m_iconDirs;
 }
 
-QIconTheme::QIconTheme(const QString &themeName) : m_valid(false)
+QIconTheme::QIconTheme(const QString &themeName)
 {
     QFile themeIndex;
 
@@ -406,8 +407,8 @@ QThemeIconEntries QIconLoader::loadIcon(const QString &name) const
 
 // -------- Icon Loader Engine -------- //
 
-QIconLoaderEngineFixed::QIconLoaderEngineFixed(const QString &iconName)
-    : m_iconName(iconName), m_key(0)
+QIconLoaderEngineFixed::QIconLoaderEngineFixed(QString iconName)
+    : m_iconName(std::move(iconName))
 {
 }
 
@@ -417,7 +418,7 @@ QIconLoaderEngineFixed::~QIconLoaderEngineFixed()
 }
 
 QIconLoaderEngineFixed::QIconLoaderEngineFixed(const QIconLoaderEngineFixed &other)
-    : QIconEngine(other), m_iconName(other.m_iconName), m_key(0)
+    : QIconEngine(other), m_iconName(other.m_iconName)
 {
 }
 
@@ -543,7 +544,7 @@ QIconLoaderEngineEntry *QIconLoaderEngineFixed::entryForSize(const QSize &size)
 
     // Find the minimum distance icon
     int minimalSize = INT_MAX;
-    QIconLoaderEngineEntry *closestMatch = 0;
+    QIconLoaderEngineEntry *closestMatch = nullptr;
     for (int i = 0; i < numEntries; ++i)
     {
         QIconLoaderEngineEntry *entry = m_entries.at(i);

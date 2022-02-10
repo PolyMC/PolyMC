@@ -23,16 +23,16 @@
 
 #include "net/NetJob.h"
 
-#include "ui/dialogs/ProgressDialog.h"
-#include "ui/dialogs/OfflineLoginDialog.h"
+#include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/LoginDialog.h"
 #include "ui/dialogs/MSALoginDialog.h"
-#include "ui/dialogs/CustomMessageBox.h"
+#include "ui/dialogs/OfflineLoginDialog.h"
+#include "ui/dialogs/ProgressDialog.h"
 #include "ui/dialogs/SkinUploadDialog.h"
 
-#include "tasks/Task.h"
 #include "minecraft/auth/AccountTask.h"
 #include "minecraft/services/SkinDelete.h"
+#include "tasks/Task.h"
 
 #include "Application.h"
 

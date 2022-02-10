@@ -4,10 +4,10 @@
 #include <QKeyEvent>
 
 #include "Application.h"
+#include "FlameModel.h"
+#include "InstanceImportTask.h"
 #include "Json.h"
 #include "ui/dialogs/NewInstanceDialog.h"
-#include "InstanceImportTask.h"
-#include "FlameModel.h"
 
 FlamePage::FlamePage(NewInstanceDialog* dialog, QWidget *parent)
     : QWidget(parent), ui(new Ui::FlamePage), dialog(dialog)
@@ -42,7 +42,7 @@ FlamePage::~FlamePage()
 bool FlamePage::eventFilter(QObject* watched, QEvent* event)
 {
     if (watched == ui->searchEdit && event->type() == QEvent::KeyPress) {
-        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+        QKeyEvent* keyEvent = dynamic_cast<QKeyEvent*>(event);
         if (keyEvent->key() == Qt::Key_Return) {
             triggerSearch();
             keyEvent->accept();
@@ -116,7 +116,7 @@ void FlamePage::onSelectionChanged(QModelIndex first, QModelIndex second)
 
         QObject::connect(netJob, &NetJob::succeeded, this, [this, response]
         {
-            QJsonParseError parse_error;
+            QJsonParseError parse_error{};
             QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
             if(parse_error.error != QJsonParseError::NoError) {
                 qWarning() << "Error while parsing JSON response from CurseForge at " << parse_error.offset << " reason: " << parse_error.errorString();

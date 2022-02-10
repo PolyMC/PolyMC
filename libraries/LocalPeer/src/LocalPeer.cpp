@@ -40,13 +40,13 @@
 
 
 #include "LocalPeer.h"
+#include "LockedFile.h"
 #include <QCoreApplication>
 #include <QDataStream>
-#include <QTime>
+#include <QDir>
 #include <QLocalServer>
 #include <QLocalSocket>
-#include <QDir>
-#include "LockedFile.h"
+#include <QTime>
 
 #if defined(Q_OS_WIN)
 #include <QLibrary>
@@ -59,9 +59,10 @@ static PProcessIdToSessionId pProcessIdToSessionId = 0;
 #include <unistd.h>
 #endif
 
+#include <QCryptographicHash>
 #include <chrono>
 #include <thread>
-#include <QCryptographicHash>
+#include <utility>
 
 static const char* ack = "ack";
 
@@ -113,8 +114,8 @@ ApplicationId ApplicationId::fromRawString(const QString& id)
     return ApplicationId(id);
 }
 
-LocalPeer::LocalPeer(QObject * parent, const ApplicationId &appId)
-    : QObject(parent), id(appId)
+LocalPeer::LocalPeer(QObject * parent, ApplicationId appId)
+    : QObject(parent), id(std::move(appId))
 {
     socketName = id.toString();
     server.reset(new QLocalServer());
@@ -123,9 +124,7 @@ LocalPeer::LocalPeer(QObject * parent, const ApplicationId &appId)
     lockFile->open(QIODevice::ReadWrite);
 }
 
-LocalPeer::~LocalPeer()
-{
-}
+LocalPeer::~LocalPeer() = default;
 
 ApplicationId LocalPeer::applicationId() const
 {
@@ -215,7 +214,7 @@ void LocalPeer::receiveConnection()
     }
     QDataStream ds(socket);
     QByteArray uMsg;
-    quint32 remaining;
+    quint32 remaining = 0;
     ds >> remaining;
     uMsg.resize(remaining);
     int got = 0;

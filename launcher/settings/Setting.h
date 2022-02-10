@@ -16,8 +16,8 @@
 #pragma once
 
 #include <QObject>
-#include <QVariant>
 #include <QStringList>
+#include <QVariant>
 #include <memory>
 
 class SettingsObject;
@@ -111,7 +111,7 @@ slots:
 
 protected:
     friend class SettingsObject;
-    SettingsObject * m_storage;
+    SettingsObject * m_storage{};
     QStringList m_synonyms;
     QVariant m_defVal;
 };

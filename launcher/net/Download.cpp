@@ -15,14 +15,14 @@
 
 #include "Download.h"
 
-#include <QFileInfo>
 #include <QDateTime>
 #include <QDebug>
+#include <QFileInfo>
 
-#include "FileSystem.h"
-#include "ChecksumValidator.h"
-#include "MetaCacheSink.h"
 #include "ByteArraySink.h"
+#include "ChecksumValidator.h"
+#include "FileSystem.h"
+#include "MetaCacheSink.h"
 
 #include "BuildConfig.h"
 

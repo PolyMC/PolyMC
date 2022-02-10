@@ -1,10 +1,10 @@
 #pragma once
-#include <QObject>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QNetworkAccessManager>
-#include <QUrl>
 #include <QByteArray>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QObject>
+#include <QUrl>
 
 #include "katabasis/Reply.h"
 
@@ -13,8 +13,8 @@ class AuthRequest: public QObject {
     Q_OBJECT
 
 public:
-    explicit AuthRequest(QObject *parent = 0);
-    ~AuthRequest();
+    explicit AuthRequest(QObject *parent = nullptr);
+    ~AuthRequest() override;
 
 public slots:
     void get(const QNetworkRequest &req, int timeout = 60*1000);
@@ -60,11 +60,11 @@ protected:
 
     QNetworkRequest request_;
     QByteArray data_;
-    QNetworkReply *reply_;
+    QNetworkReply *reply_{};
     Status status_;
     QNetworkAccessManager::Operation operation_;
     QUrl url_;
     Katabasis::ReplyList timedReplies_;
 
-    QTimer *timer_;
+    QTimer *timer_{};
 };

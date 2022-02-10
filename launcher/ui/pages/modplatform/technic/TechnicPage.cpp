@@ -20,10 +20,10 @@
 
 #include "ui/dialogs/NewInstanceDialog.h"
 
+#include "Json.h"
 #include "TechnicModel.h"
 #include "modplatform/technic/SingleZipPackInstallTask.h"
 #include "modplatform/technic/SolderPackInstallTask.h"
-#include "Json.h"
 
 #include "Application.h"
 
@@ -41,7 +41,7 @@ TechnicPage::TechnicPage(NewInstanceDialog* dialog, QWidget *parent)
 bool TechnicPage::eventFilter(QObject* watched, QEvent* event)
 {
     if (watched == ui->searchEdit && event->type() == QEvent::KeyPress) {
-        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+        QKeyEvent* keyEvent = dynamic_cast<QKeyEvent*>(event);
         if (keyEvent->key() == Qt::Key_Return) {
             triggerSearch();
             keyEvent->accept();
@@ -121,7 +121,7 @@ void TechnicPage::suggestCurrent()
         {
             return;
         }
-        QJsonParseError parse_error;
+        QJsonParseError parse_error{};
         QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
         QJsonObject obj = doc.object();
         if(parse_error.error != QJsonParseError::NoError)

@@ -1,12 +1,12 @@
 #include "LanguageSelectionWidget.h"
 
-#include <QVBoxLayout>
-#include <QTreeView>
+#include "Application.h"
+#include "settings/Setting.h"
+#include "translations/TranslationsModel.h"
 #include <QHeaderView>
 #include <QLabel>
-#include "Application.h"
-#include "translations/TranslationsModel.h"
-#include "settings/Setting.h"
+#include <QTreeView>
+#include <QVBoxLayout>
 
 LanguageSelectionWidget::LanguageSelectionWidget(QWidget *parent) :
     QWidget(parent)

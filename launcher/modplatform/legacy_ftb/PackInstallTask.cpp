@@ -2,16 +2,16 @@
 
 #include <QtConcurrent>
 
-#include "MMCZip.h"
 #include "BaseInstance.h"
 #include "FileSystem.h"
-#include "settings/INISettingsObject.h"
+#include "MMCZip.h"
+#include "minecraft/GradleSpecifier.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
-#include "minecraft/GradleSpecifier.h"
+#include "settings/INISettingsObject.h"
 
-#include "BuildConfig.h"
 #include "Application.h"
+#include "BuildConfig.h"
 
 namespace LegacyFTB {
 

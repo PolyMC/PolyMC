@@ -1,11 +1,11 @@
 #pragma once
-#include <QObject>
 #include <QList>
 #include <QNetworkReply>
+#include <QObject>
 
+#include "AccountTask.h"
 #include "QObjectPtr.h"
 #include "minecraft/auth/AccountData.h"
-#include "AccountTask.h"
 
 class AuthStep : public QObject {
     Q_OBJECT
@@ -15,7 +15,7 @@ public:
 
 public:
     explicit AuthStep(AccountData *data);
-    virtual ~AuthStep() noexcept;
+    ~AuthStep() noexcept override;
 
     virtual QString describe() = 0;
 

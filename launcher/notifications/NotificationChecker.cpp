@@ -1,9 +1,9 @@
 #include "NotificationChecker.h"
 
+#include <QDebug>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
-#include <QDebug>
 
 #include "net/Download.h"
 

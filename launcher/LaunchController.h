@@ -1,10 +1,10 @@
 #pragma once
-#include <QObject>
 #include <BaseInstance.h>
+#include <QObject>
 #include <tools/BaseProfiler.h>
 
-#include "minecraft/launch/MinecraftServerTarget.h"
 #include "minecraft/auth/MinecraftAccount.h"
+#include "minecraft/launch/MinecraftServerTarget.h"
 
 class InstanceWindow;
 class LaunchController: public Task
@@ -14,7 +14,7 @@ public:
     void executeTask() override;
 
     LaunchController(QObject * parent = nullptr);
-    virtual ~LaunchController(){};
+    ~LaunchController() override = default;
 
     void setInstance(InstancePtr instance) {
         m_instance = instance;

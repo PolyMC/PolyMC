@@ -1,7 +1,8 @@
 #include "BaseExternalTool.h"
 
-#include <QProcess>
 #include <QDir>
+#include <QProcess>
+#include <utility>
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -10,13 +11,11 @@
 #include "BaseInstance.h"
 
 BaseExternalTool::BaseExternalTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent)
-    : QObject(parent), m_instance(instance), globalSettings(settings)
+    : QObject(parent), m_instance(std::move(instance)), globalSettings(std::move(settings))
 {
 }
 
-BaseExternalTool::~BaseExternalTool()
-{
-}
+BaseExternalTool::~BaseExternalTool() = default;
 
 BaseDetachedTool::BaseDetachedTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent)
     : BaseExternalTool(settings, instance, parent)
@@ -30,9 +29,7 @@ void BaseDetachedTool::run()
 }
 
 
-BaseExternalToolFactory::~BaseExternalToolFactory()
-{
-}
+BaseExternalToolFactory::~BaseExternalToolFactory() = default;
 
 BaseDetachedTool *BaseDetachedToolFactory::createDetachedTool(InstancePtr instance,
                                                               QObject *parent)

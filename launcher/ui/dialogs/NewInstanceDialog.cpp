@@ -18,28 +18,28 @@
 #include "ui_NewInstanceDialog.h"
 
 #include <BaseVersion.h>
+#include <InstanceList.h>
 #include <icons/IconList.h>
 #include <tasks/Task.h>
-#include <InstanceList.h>
 
-#include "VersionSelectDialog.h"
-#include "ProgressDialog.h"
 #include "IconPickerDialog.h"
+#include "ProgressDialog.h"
+#include "VersionSelectDialog.h"
 
+#include <QDialogButtonBox>
+#include <QFileDialog>
 #include <QLayout>
 #include <QPushButton>
-#include <QFileDialog>
 #include <QValidator>
-#include <QDialogButtonBox>
 
-#include "ui/widgets/PageContainer.h"
+#include "ui/pages/modplatform/ImportPage.h"
 #include "ui/pages/modplatform/VanillaPage.h"
 #include "ui/pages/modplatform/atlauncher/AtlPage.h"
+#include "ui/pages/modplatform/flame/FlamePage.h"
 #include "ui/pages/modplatform/ftb/FtbPage.h"
 #include "ui/pages/modplatform/legacy_ftb/Page.h"
-#include "ui/pages/modplatform/flame/FlamePage.h"
-#include "ui/pages/modplatform/ImportPage.h"
 #include "ui/pages/modplatform/technic/TechnicPage.h"
+#include "ui/widgets/PageContainer.h"
 
 
 

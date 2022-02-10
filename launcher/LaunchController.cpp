@@ -1,28 +1,28 @@
 #include "LaunchController.h"
-#include "minecraft/auth/AccountList.h"
 #include "Application.h"
+#include "minecraft/auth/AccountList.h"
 
-#include "ui/MainWindow.h"
 #include "ui/InstanceWindow.h"
+#include "ui/MainWindow.h"
 #include "ui/dialogs/CustomMessageBox.h"
-#include "ui/dialogs/ProfileSelectDialog.h"
-#include "ui/dialogs/ProgressDialog.h"
 #include "ui/dialogs/EditAccountDialog.h"
+#include "ui/dialogs/ProfileSelectDialog.h"
 #include "ui/dialogs/ProfileSetupDialog.h"
+#include "ui/dialogs/ProgressDialog.h"
 
-#include <QLineEdit>
-#include <QInputDialog>
-#include <QStringList>
-#include <QHostInfo>
-#include <QList>
 #include <QHostAddress>
+#include <QHostInfo>
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QList>
 #include <QPushButton>
+#include <QStringList>
 
 #include "BuildConfig.h"
 #include "JavaCommon.h"
-#include "tasks/Task.h"
-#include "minecraft/auth/AccountTask.h"
 #include "launch/steps/TextPrint.h"
+#include "minecraft/auth/AccountTask.h"
+#include "tasks/Task.h"
 
 LaunchController::LaunchController(QObject *parent) : Task(parent)
 {
@@ -247,7 +247,7 @@ void LaunchController::login() {
 
 void LaunchController::launchInstance()
 {
-    Q_ASSERT_X(m_instance != NULL, "launchInstance", "instance is NULL");
+    Q_ASSERT_X(m_instance != nullptr, "launchInstance", "instance is NULL");
     Q_ASSERT_X(m_session.get() != nullptr, "launchInstance", "session is NULL");
 
     if(!m_instance->reloadSettings())

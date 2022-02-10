@@ -1,11 +1,11 @@
 #pragma once
 
-#include <QList>
-#include <QTimer>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QNetworkAccessManager>
 #include <QByteArray>
+#include <QList>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QTimer>
 
 namespace Katabasis {
 
@@ -16,7 +16,7 @@ class Reply: public QTimer {
     Q_OBJECT
 
 public:
-    Reply(QNetworkReply *reply, int timeOut = defaultTimeout, QObject *parent = 0);
+    Reply(QNetworkReply *reply, int timeOut = defaultTimeout, QObject *parent = nullptr);
 
 signals:
     void error(QNetworkReply::NetworkError);

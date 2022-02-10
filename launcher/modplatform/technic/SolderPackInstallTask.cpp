@@ -15,11 +15,11 @@
 
 #include "SolderPackInstallTask.h"
 
+#include "TechnicPackProcessor.h"
 #include <FileSystem.h>
 #include <Json.h>
-#include <QtConcurrentRun>
 #include <MMCZip.h>
-#include "TechnicPackProcessor.h"
+#include <QtConcurrentRun>
 
 Technic::SolderPackInstallTask::SolderPackInstallTask(
     shared_qobject_ptr<QNetworkAccessManager> network,

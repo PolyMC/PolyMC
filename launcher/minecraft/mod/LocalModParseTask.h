@@ -1,9 +1,9 @@
 #pragma once
-#include <QRunnable>
-#include <QDebug>
-#include <QObject>
 #include "Mod.h"
 #include "ModDetails.h"
+#include <QDebug>
+#include <QObject>
+#include <QRunnable>
 
 class LocalModParseTask : public QObject, public QRunnable
 {
@@ -19,7 +19,7 @@ public:
     }
 
     LocalModParseTask(int token, Mod::ModType type, const QFileInfo & modFile);
-    void run();
+    void run() override;
 
 signals:
     void finished(int token);

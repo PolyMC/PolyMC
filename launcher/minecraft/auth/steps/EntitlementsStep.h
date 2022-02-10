@@ -10,7 +10,7 @@ class EntitlementsStep : public AuthStep {
 
 public:
     explicit EntitlementsStep(AccountData *data);
-    virtual ~EntitlementsStep() noexcept;
+    ~EntitlementsStep() noexcept override;
 
     void perform() override;
     void rehydrate() override;

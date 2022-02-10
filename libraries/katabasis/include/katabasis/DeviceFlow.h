@@ -1,13 +1,13 @@
 #pragma once
 
 #include <QNetworkAccessManager>
-#include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QPair>
 
+#include "Bits.h"
 #include "Reply.h"
 #include "RequestParameter.h"
-#include "Bits.h"
 
 namespace Katabasis {
 
@@ -57,7 +57,7 @@ public:
 public:
     /// Constructor.
     /// @param  parent  Parent object.
-    explicit DeviceFlow(Options & opts, Token & token, QObject *parent = 0, QNetworkAccessManager *manager = 0);
+    explicit DeviceFlow(Options & opts, Token & token, QObject *parent = nullptr, QNetworkAccessManager *manager = nullptr);
 
     /// Get refresh token.
     QString refreshToken();

@@ -15,17 +15,17 @@
 
 #pragma once
 
+#include <QAbstractListModel>
+#include <QDir>
 #include <QList>
 #include <QMap>
 #include <QSet>
 #include <QString>
-#include <QDir>
-#include <QAbstractListModel>
 
 #include "Mod.h"
 
-#include "ModFolderLoadTask.h"
 #include "LocalModParseTask.h"
+#include "ModFolderLoadTask.h"
 
 class LegacyInstance;
 class BaseInstance;
@@ -54,22 +54,22 @@ public:
     };
     ModFolderModel(const QString &dir);
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
     Qt::DropActions supportedDropActions() const override;
 
     /// flags, mostly to support drag&drop
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
     QStringList mimeTypes() const override;
     bool dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent) override;
 
-    virtual int rowCount(const QModelIndex &) const override
+    int rowCount(const QModelIndex &) const override
     {
         return size();
     }
 
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
-    virtual int columnCount(const QModelIndex &parent) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    int columnCount(const QModelIndex &parent) const override;
 
     size_t size() const
     {

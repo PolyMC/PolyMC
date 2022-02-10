@@ -1,14 +1,14 @@
 #pragma once
 
-#include "tasks/Task.h"
 #include "settings/SettingsObject.h"
+#include "tasks/Task.h"
 
 class InstanceTask : public Task
 {
     Q_OBJECT
 public:
     explicit InstanceTask();
-    virtual ~InstanceTask();
+    ~InstanceTask() override;
 
     void setParentSettings(SettingsObjectPtr settings)
     {

@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <launch/LaunchStep.h>
-#include <QObjectPtr.h>
 #include <LoggedProcess.h>
+#include <QObjectPtr.h>
 #include <java/JavaChecker.h>
+#include <launch/LaunchStep.h>
 #include <net/Mode.h>
 
 // FIXME: stupid. should be defined by the instance type? or even completely abstracted away...
@@ -27,7 +27,7 @@ class Update: public LaunchStep
     Q_OBJECT
 public:
     explicit Update(LaunchTask *parent, Net::Mode mode):LaunchStep(parent), m_mode(mode) {};
-    virtual ~Update() {};
+    ~Update() override = default;
 
     void executeTask() override;
     bool canAbort() const override;

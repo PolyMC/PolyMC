@@ -29,8 +29,8 @@ class ExternalToolsPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit ExternalToolsPage(QWidget *parent = 0);
-    ~ExternalToolsPage();
+    explicit ExternalToolsPage(QWidget *parent = nullptr);
+    ~ExternalToolsPage() override;
 
     QString displayName() const override
     {
@@ -53,7 +53,7 @@ public:
     {
         return "Tools";
     }
-    virtual bool apply() override;
+    bool apply() override;
 
 private:
     void loadSettings();

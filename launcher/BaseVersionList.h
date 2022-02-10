@@ -15,13 +15,13 @@
 
 #pragma once
 
+#include <QAbstractListModel>
 #include <QObject>
 #include <QVariant>
-#include <QAbstractListModel>
 
 #include "BaseVersion.h"
-#include "tasks/Task.h"
 #include "QObjectPtr.h"
+#include "tasks/Task.h"
 
 /*!
  * \brief Class that each instance type's version list derives from.
@@ -53,9 +53,9 @@ public:
         ArchitectureRole,
         SortRole
     };
-    typedef QList<int> RoleList;
+    using RoleList = QList<int>;
 
-    explicit BaseVersionList(QObject *parent = 0);
+    explicit BaseVersionList(QObject *parent = nullptr);
 
     /*!
      * \brief Gets a task that will reload the version list.

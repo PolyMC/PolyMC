@@ -2,6 +2,7 @@
 #include "FileSystem.h"
 #include <QDebug>
 #include <QSaveFile>
+#include <utility>
 
 namespace {
 bool load(const QString& path, std::vector<GameOptionItem> &contents, int & version)
@@ -64,8 +65,8 @@ bool save(const QString& path, std::vector<GameOptionItem> &mapping, int version
 }
 }
 
-GameOptions::GameOptions(const QString& path):
-    path(path)
+GameOptions::GameOptions(QString  path):
+    path(std::move(path))
 {
     reload();
 }

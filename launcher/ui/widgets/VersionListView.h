@@ -21,9 +21,9 @@ class VersionListView : public QTreeView
     Q_OBJECT
 public:
 
-    explicit VersionListView(QWidget *parent = 0);
-    virtual void paintEvent(QPaintEvent *event) override;
-    virtual void setModel(QAbstractItemModel* model) override;
+    explicit VersionListView(QWidget *parent = nullptr);
+    void paintEvent(QPaintEvent *event) override;
+    void setModel(QAbstractItemModel* model) override;
 
     enum EmptyMode
     {
@@ -37,11 +37,11 @@ public:
     void setEmptyMode(EmptyMode mode);
 
 public slots:
-    virtual void reset() override;
+    void reset() override;
 
 protected slots:
-    virtual void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end) override;
-    virtual void rowsInserted(const QModelIndex &parent, int start, int end) override;
+    void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end) override;
+    void rowsInserted(const QModelIndex &parent, int start, int end) override;
 
 private: /* methods */
     void paintInfoLabel(QPaintEvent *event) const;

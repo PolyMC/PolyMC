@@ -15,12 +15,12 @@
 
 #include "WorldList.h"
 #include <FileSystem.h>
+#include <QDebug>
+#include <QFileSystemWatcher>
 #include <QMimeData>
+#include <QString>
 #include <QUrl>
 #include <QUuid>
-#include <QString>
-#include <QFileSystemWatcher>
-#include <QDebug>
 
 WorldList::WorldList(const QString &dir)
     : QAbstractListModel(), m_dir(dir)
@@ -268,13 +268,13 @@ public:
         m_worlds = worlds;
 
     }
-    QStringList formats() const
+    QStringList formats() const override
     {
         return QMimeData::formats() << "text/uri-list";
     }
 
 protected:
-    QVariant retrieveData(const QString &mimetype, QVariant::Type type) const
+    QVariant retrieveData(const QString &mimetype, QVariant::Type type) const override
     {
         QList<QUrl> urls;
         for(auto &world: m_worlds)

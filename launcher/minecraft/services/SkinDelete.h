@@ -1,24 +1,24 @@
 #pragma once
 
+#include "tasks/Task.h"
 #include <QFile>
 #include <QtNetwork/QtNetwork>
-#include "tasks/Task.h"
 
-typedef shared_qobject_ptr<class SkinDelete> SkinDeletePtr;
+using SkinDeletePtr = class SkinDelete;
 
 class SkinDelete : public Task
 {
     Q_OBJECT
 public:
     SkinDelete(QObject *parent, QString token);
-    virtual ~SkinDelete() = default;
+    ~SkinDelete() override = default;
 
 private:
     QString m_token;
     shared_qobject_ptr<QNetworkReply> m_reply;
 
 protected:
-    virtual void executeTask();
+    void executeTask() override;
 
 public slots:
     void downloadError(QNetworkReply::NetworkError);

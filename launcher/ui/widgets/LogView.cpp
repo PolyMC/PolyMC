@@ -1,6 +1,6 @@
 #include "LogView.h"
-#include <QTextBlock>
 #include <QScrollBar>
+#include <QTextBlock>
 
 LogView::LogView(QWidget* parent) : QPlainTextEdit(parent)
 {

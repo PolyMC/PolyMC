@@ -27,20 +27,20 @@
 
 #include "xdgicon.h"
 
-#include <QString>
+#include "internal/qiconloader_p.h"
+#include <QCache>
+#include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
-#include <QStringList>
 #include <QFileInfo>
-#include <QCache>
-#include "internal/qiconloader_p.h"
-#include <QCoreApplication>
+#include <QString>
+#include <QStringList>
 
 /************************************************
 
  ************************************************/
 static void qt_cleanup_icon_cache();
-typedef QCache<QString, QIcon> IconCache;
+using IconCache = QCache<QString, QIcon>;
 
 namespace
 {
@@ -62,16 +62,12 @@ static void qt_cleanup_icon_cache()
 /************************************************
 
  ************************************************/
-XdgIcon::XdgIcon()
-{
-}
+XdgIcon::XdgIcon() = default;
 
 /************************************************
 
  ************************************************/
-XdgIcon::~XdgIcon()
-{
-}
+XdgIcon::~XdgIcon() = default;
 
 /************************************************
  Returns the name of the current icon theme.
@@ -117,7 +113,7 @@ QIcon XdgIcon::fromTheme(const QString &iconName, const QIcon &fallback)
     }
     else
     {
-        QIcon *cachedIcon;
+        QIcon *cachedIcon = nullptr;
         if (!isAbsolute)
             cachedIcon = new QIcon(new QtXdg::QIconLoaderEngineFixed(name));
         else

@@ -1,5 +1,5 @@
-#include <QTest>
 #include "TestUtil.h"
+#include <QTest>
 
 #include "meta/Index.h"
 #include "meta/VersionList.h"
@@ -23,11 +23,11 @@ slots:
     {
         Meta::Index windex({std::make_shared<Meta::VersionList>("list1"), std::make_shared<Meta::VersionList>("list2"), std::make_shared<Meta::VersionList>("list3")});
         QCOMPARE(windex.lists().size(), 3);
-        windex.merge(std::shared_ptr<Meta::Index>(new Meta::Index({std::make_shared<Meta::VersionList>("list1"), std::make_shared<Meta::VersionList>("list2"), std::make_shared<Meta::VersionList>("list3")})));
+        windex.merge(std::make_shared<Meta::Index>(new Meta::Index({std::make_shared<Meta::VersionList>("list1"), std::make_shared<Meta::VersionList>("list2"), std::make_shared<Meta::VersionList>("list3")})));
         QCOMPARE(windex.lists().size(), 3);
-        windex.merge(std::shared_ptr<Meta::Index>(new Meta::Index({std::make_shared<Meta::VersionList>("list4"), std::make_shared<Meta::VersionList>("list2"), std::make_shared<Meta::VersionList>("list5")})));
+        windex.merge(std::make_shared<Meta::Index>(new Meta::Index({std::make_shared<Meta::VersionList>("list4"), std::make_shared<Meta::VersionList>("list2"), std::make_shared<Meta::VersionList>("list5")})));
         QCOMPARE(windex.lists().size(), 5);
-        windex.merge(std::shared_ptr<Meta::Index>(new Meta::Index({std::make_shared<Meta::VersionList>("list6")})));
+        windex.merge(std::make_shared<Meta::Index>(new Meta::Index({std::make_shared<Meta::VersionList>("list6")})));
         QCOMPARE(windex.lists().size(), 6);
     }
 };

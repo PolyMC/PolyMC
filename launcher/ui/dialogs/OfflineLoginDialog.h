@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QtWidgets/QDialog>
 #include <QtCore/QEventLoop>
+#include <QtWidgets/QDialog>
 
 #include "minecraft/auth/MinecraftAccount.h"
 #include "tasks/Task.h"
@@ -16,18 +16,18 @@ class OfflineLoginDialog : public QDialog
     Q_OBJECT
 
 public:
-    ~OfflineLoginDialog();
+    ~OfflineLoginDialog() override;
 
     static MinecraftAccountPtr newAccount(QWidget *parent, QString message);
 
 private:
-    explicit OfflineLoginDialog(QWidget *parent = 0);
+    explicit OfflineLoginDialog(QWidget *parent = nullptr);
 
     void setUserInputsEnabled(bool enable);
 
 protected
 slots:
-    void accept();
+    void accept() override;
 
     void onTaskFailed(const QString &reason);
     void onTaskSucceeded();

@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include <QList>
-#include <QString>
-#include <QDir>
-#include <QAbstractListModel>
-#include <QMimeData>
 #include "minecraft/World.h"
+#include <QAbstractListModel>
+#include <QDir>
+#include <QList>
+#include <QMimeData>
+#include <QString>
 
 class QFileSystemWatcher;
 
@@ -48,15 +48,15 @@ public:
 
     WorldList(const QString &dir);
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override
     {
         return size();
     };
-    virtual QVariant headerData(int section, Qt::Orientation orientation,
-                                int role = Qt::DisplayRole) const;
-    virtual int columnCount(const QModelIndex &parent) const;
+    QVariant headerData(int section, Qt::Orientation orientation,
+                                int role = Qt::DisplayRole) const override;
+    int columnCount(const QModelIndex &parent) const override;
 
     size_t size() const
     {
@@ -87,18 +87,18 @@ public:
     virtual bool deleteWorlds(int first, int last);
 
     /// flags, mostly to support drag&drop
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
     /// get data for drag action
-    virtual QMimeData *mimeData(const QModelIndexList &indexes) const;
+    QMimeData *mimeData(const QModelIndexList &indexes) const override;
     /// get the supported mime types
-    virtual QStringList mimeTypes() const;
+    QStringList mimeTypes() const override;
     /// process data from drop action
-    virtual bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
+    bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
     /// what drag actions do we support?
-    virtual Qt::DropActions supportedDragActions() const;
+    Qt::DropActions supportedDragActions() const override;
 
     /// what drop actions do we support?
-    virtual Qt::DropActions supportedDropActions() const;
+    Qt::DropActions supportedDropActions() const override;
 
     void startWatching();
     void stopWatching();

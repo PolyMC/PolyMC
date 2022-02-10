@@ -1,10 +1,10 @@
 #pragma once
 #include <QWidget>
 
-#include <java/JavaChecker.h>
 #include <BaseVersion.h>
-#include <QObjectPtr.h>
 #include <QIcon>
+#include <QObjectPtr.h>
+#include <java/JavaChecker.h>
 
 class QLineEdit;
 class VersionSelectWidget;
@@ -26,7 +26,7 @@ class JavaSettingsWidget : public QWidget
 
 public:
     explicit JavaSettingsWidget(QWidget *parent);
-    virtual ~JavaSettingsWidget() {};
+    ~JavaSettingsWidget() override = default;
 
     enum class JavaStatus
     {
