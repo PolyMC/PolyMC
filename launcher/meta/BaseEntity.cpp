@@ -23,9 +23,6 @@
 #include "BuildConfig.h"
 #include "Application.h"
 #ifdef Q_OS_MACOS
-#include <stdio.h>
-#include <stdint.h>
-#include <sys/types.h>
 #include <sys/sysctl.h>
 #endif
 
