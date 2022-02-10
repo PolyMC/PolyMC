@@ -22,6 +22,13 @@
 
 #include "BuildConfig.h"
 #include "Application.h"
+#ifdef Q_OS_MACOS
+#include <stdio.h>
+#include <stdint.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
+
 
 class ParsingValidator : public Net::Validator
 {
@@ -73,9 +80,42 @@ Meta::BaseEntity::~BaseEntity()
 {
 }
 
+
+
+// returns 1 for m1, and 0 for others
+// if building natively for macos arm, we know it will be running on M1
+#if defined(Q_OS_MACOS) && defined(Q_PROCESSOR_ARM)
+int isRunningOnM1() {
+    return 1;
+}
+// if building for macos x86, use the detection function from apple website
+#elif defined(Q_OS_MACOS)
+int isRunningOnM1() {
+   int ret = 0;
+   size_t size = sizeof(ret);
+   if (sysctlbyname("sysctl.proc_translated", &ret, &size, NULL, 0) == -1) 
+   {
+      return 0;
+   }
+   return ret;
+}
+// on other os, its not m1
+#else
+int isRunningOnM1() {
+    return 0;
+}
+#endif
+
 QUrl Meta::BaseEntity::url() const
-{
-    return QUrl(BuildConfig.META_URL).resolved(localFilename());
+{   
+    if(isRunningOnM1() == 1)
+    {
+        return QUrl(BuildConfig.META_M1_URL).resolved(localFilename());
+    }
+    else
+    {
+        return QUrl(BuildConfig.META_URL).resolved(localFilename());
+    }
 }
 
 bool Meta::BaseEntity::loadLocalFile()

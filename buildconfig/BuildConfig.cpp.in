@@ -45,6 +45,7 @@ Config::Config()
     IMGUR_CLIENT_ID = "@Launcher_IMGUR_CLIENT_ID@";
     MSA_CLIENT_ID = "@Launcher_MSA_CLIENT_ID@";
     META_URL = "@Launcher_META_URL@";
+    META_M1_URL = "@Launcher_M1_META_URL@";
 
     BUG_TRACKER_URL = "@Launcher_BUG_TRACKER_URL@";
     DISCORD_URL = "@Launcher_DISCORD_URL@";

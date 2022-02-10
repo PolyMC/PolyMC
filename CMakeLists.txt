@@ -63,7 +63,8 @@ set(Launcher_UPDATER_BASE "" CACHE STRING "Base URL for the updater.")
 set(Launcher_NOTIFICATION_URL "" CACHE STRING "URL for checking for notifications.")
 
 # The metadata server
-set(Launcher_META_URL "https://meta.polymc.org/v1/" CACHE STRING "URL to fetch Launcher's meta files from.")
+set(Launcher_META_URL "https://meta.polymc.org/v1/" CACHE STRING "URL to fetch PolyMC's meta files from.")
+set(Launcher_M1_META_URL "https://minecraftmachina.github.io/meta-multimc-arm64/" CACHE STRING "URL to fetch PolyMC's meta files from when using M1 hardware.")
 
 # Imgur API Client ID
 set(Launcher_IMGUR_CLIENT_ID "5b97b0713fba4a3" CACHE STRING "Client ID you can get from Imgur when you register an application")

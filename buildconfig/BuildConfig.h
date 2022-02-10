@@ -81,6 +81,7 @@ public:
      * Metadata repository URL prefix
      */
     QString META_URL;
+    QString META_M1_URL;
 
     QString BUG_TRACKER_URL;
     QString DISCORD_URL;
