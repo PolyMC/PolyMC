@@ -4,6 +4,10 @@
 #error sneed
 #endif
 
+#ifdef _WIN32
+#error sneed
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
