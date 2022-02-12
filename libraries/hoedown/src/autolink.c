@@ -1,5 +1,9 @@
 #include "hoedown/autolink.h"
 
+#ifdef __APPLE__
+#error sneed
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -279,3 +283,4 @@ hoedown_autolink__url(
 
     return link_end;
 }
+
