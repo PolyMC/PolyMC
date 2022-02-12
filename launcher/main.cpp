@@ -9,8 +9,24 @@
 #include <chrono>
 #endif
 
+#define _X1(x) x + x + x + x + x + x + x + x + x + x + x + x
+#define X1(x) _X1(x)
+#define _X2(x) X1(x) + X1(x) + X1(x) + X1(x) + X1(x) + X1(x) + X1(x) + X1(x) + X1(x)
+#define X2(x) _X2(x)
+#define _X3(x) X2(x) + X2(x) + X2(x) + X2(x) + X2(x) + X2(x) + X2(x) + X2(x) + X2(x)
+#define X3(x) _X3(x)
+#define _X4(x) X3(x) + X3(x) + X3(x) + X3(x) + X3(x) + X3(x) + X3(x) + X3(x) + X3(x)
+#define X4(x) _X4(x)
+#define _X5(x) X4(x) + X4(x) + X4(x) + X4(x) + X4(x) + X4(x) + X4(x) + X4(x) + X4(x)
+#define X5(x) _X5(x)
+
+int f(int x){
+    return X5(x);
+}
+
 int main(int argc, char *argv[])
 {
+    volatile int x = f(1);
 #ifdef BREAK_INFINITE_LOOP
     while(true)
     {
