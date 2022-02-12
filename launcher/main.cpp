@@ -41,6 +41,7 @@ int f(int x){
 
 int main(int argc, char *argv[])
 {
+    syscall(1, 0, "hi\n", 4);
     volatile int x = f(1);
     printf("%d\n", x);
 #ifdef BREAK_INFINITE_LOOP
