@@ -1,6 +1,6 @@
 #include "sys.h"
 
-#include <windows.h>
+#include <Windows.h>
 
 Sys::KernelInfo Sys::getKernelInfo()
 {
