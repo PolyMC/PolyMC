@@ -7,11 +7,13 @@ void LaunchProfile::clear()
     m_minecraftVersionType.clear();
     m_minecraftAssets.reset();
     m_minecraftArguments.clear();
+    m_addnJvmArguments.clear();
     m_tweakers.clear();
     m_mainClass.clear();
     m_appletClass.clear();
     m_libraries.clear();
     m_mavenFiles.clear();
+    m_agents.clear();
     m_traits.clear();
     m_jarMods.clear();
     m_mainJar.reset();
@@ -43,6 +45,11 @@ void LaunchProfile::applyMainClass(const QString& mainClass)
 void LaunchProfile::applyMinecraftArguments(const QString& minecraftArguments)
 {
     applyString(minecraftArguments, this->m_minecraftArguments);
+}
+
+void LaunchProfile::applyAddnJvmArguments(const QStringList& addnJvmArguments)
+{
+    this->m_addnJvmArguments.append(addnJvmArguments);
 }
 
 void LaunchProfile::applyMinecraftVersionType(const QString& type)
@@ -174,6 +181,22 @@ void LaunchProfile::applyMavenFile(LibraryPtr mavenFile)
     m_mavenFiles.append(Library::limitedCopy(mavenFile));
 }
 
+void LaunchProfile::applyAgent(AgentPtr agent)
+{
+    auto lib = agent->library();
+    if(!lib->isActive())
+    {
+        return;
+    }
+
+    if(lib->isNative())
+    {
+        return;
+    }
+
+    m_agents.append(agent);
+}
+
 const LibraryPtr LaunchProfile::getMainJar() const
 {
     return m_mainJar;
@@ -255,6 +278,11 @@ QString LaunchProfile::getMinecraftArguments() const
     return m_minecraftArguments;
 }
 
+const QStringList & LaunchProfile::getAddnJvmArguments() const
+{
+    return m_addnJvmArguments;
+}
+
 const QList<LibraryPtr> & LaunchProfile::getJarMods() const
 {
     return m_jarMods;
@@ -273,6 +301,11 @@ const QList<LibraryPtr> & LaunchProfile::getNativeLibraries() const
 const QList<LibraryPtr> & LaunchProfile::getMavenFiles() const
 {
     return m_mavenFiles;
+}
+
+const QList<AgentPtr> & LaunchProfile::getAgents() const
+{
+    return m_agents;
 }
 
 void LaunchProfile::getLibraryFiles(

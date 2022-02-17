@@ -32,6 +32,7 @@ void VersionFile::applyTo(LaunchProfile *profile)
     profile->applyMainClass(mainClass);
     profile->applyAppletClass(appletClass);
     profile->applyMinecraftArguments(minecraftArguments);
+    profile->applyAddnJvmArguments(addnJvmArguments);
     profile->applyTweakers(addTweakers);
     profile->applyJarMods(jarMods);
     profile->applyMods(mods);
@@ -44,6 +45,10 @@ void VersionFile::applyTo(LaunchProfile *profile)
     for (auto mavenFile : mavenFiles)
     {
         profile->applyMavenFile(mavenFile);
+    }
+    for (auto agent : agents)
+    {
+        profile->applyAgent(agent);
     }
     profile->applyProblemSeverity(getProblemSeverity());
 }
