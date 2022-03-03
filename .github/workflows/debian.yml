@@ -1,0 +1,66 @@
+name: Build
+
+on:
+  workflow_call:
+    secrets:
+      gpg_private_key:
+        required: true
+      gpg_key_id:
+        required: true
+      ssh_private_key:
+        required: true
+jobs:
+  debian-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Grab and store version
+        run: |
+          tag_name=$(echo ${{ github.ref }} | grep -oE "[^/]+$")
+          echo "VERSION=$tag_name" >> $GITHUB_ENV
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.ssh_private_key }}
+          known_hosts: unnecessary
+      - name: Add known hosts
+        run: |
+          ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+          ssh-keyscan -t rsa mpr.makedeb.org >> ~/.ssh/known_hosts
+      - name: Install makedeb
+        run: |
+          wget -qO - 'https://proget.hunterwittenborn.com/debian-feeds/makedeb.pub' | \
+          gpg --dearmor | \
+          sudo tee /usr/share/keyrings/makedeb-archive-keyring.gpg &> /dev/null
+          echo 'deb [signed-by=/usr/share/keyrings/makedeb-archive-keyring.gpg arch=all] https://proget.hunterwittenborn.com/ makedeb main' | \
+          sudo tee /etc/apt/sources.list.d/makedeb.list
+          sudo apt update
+          sudo apt install makedeb
+      - name: Clone MPR Repo
+        run: git clone ssh://mpr@mpr.makedeb.org/polymc.git packages/debian
+      - name: Update Version
+        run: |
+          sed -i 's/pkgver=.*/pkgver=${{ env.VERSION }}/' packages/debian/PKGBUILD
+          sed -i 's/pkgrel=.*/pkgrel=1/' packages/debian/PKGBUILD
+      - name: Build Package
+        run: cd packages/debian && makedeb -s
+      - name: Install apt packaging dependencies
+        run: sudo apt install gnupg gzip dpkg-dev
+      - name: Update apt repository
+        run: |
+          mkdir apt
+          cd apt
+          git init
+          mv ../packages/debian/polymc_*_amd64.deb ./polymc.deb
+          git config user.name polymcbot
+          git config user.email polymcbot@users.noreply.github.com
+          echo "${{ secrets.gpg_private_key }}" | gpg --import
+          gpg --armor --export ${{ secrets.gpg_key_id }} > KEY.gpg
+          dpkg-scanpackages --multiversion . > Packages
+          gzip -k -f Packages
+          apt-ftparchive release . > Release
+          gpg --default-key ${{ secrets.gpg_key_id }} -abs -o - Release > Release.gpg
+          gpg --default-key ${{ secrets.gpg_key_id }} --clearsign -o - Release > InRelease
+          git add .
+          git commit -m "Upload Packages - ${{ env.VERSION }}"
+          git remote add origin "git@github.com:PolyMC/apt-repo.git"
+          git push --force --set-upstream origin master

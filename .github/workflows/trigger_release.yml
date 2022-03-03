@@ -3,10 +3,9 @@ name: Build Application and Make Release
 on:
   push:
     tags:
-      - '*'
+      - "*"
 
 jobs:
-
   build_release:
     name: Build Release
     uses: ./.github/workflows/build.yml
@@ -38,7 +37,6 @@ jobs:
     needs: create_release
     runs-on: ubuntu-latest
     steps:
-
       - name: Download artifacts
         uses: actions/download-artifact@v2
 
@@ -97,3 +95,11 @@ jobs:
           asset_name: PolyMC-macOS-${{ env.VERSION }}.tar.gz
           asset_path: PolyMC-macOS-${{ env.VERSION }}.tar.gz
           asset_content_type: application/gzip
+
+  debian_repo:
+    name: Build Debian packages
+    uses: ./.github/workflows/debian.yml
+    secrets:
+      gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+      gpg_key_id: ${{ secrets.GPG_KEY_ID }}
+      ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
