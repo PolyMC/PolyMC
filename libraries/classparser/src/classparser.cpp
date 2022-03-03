@@ -1,4 +1,5 @@
 /* Copyright 2013-2021 MultiMC Contributors
+ * Copyright 2021-2022 PolyMC Contributors
  *
  * Authors: Orochimarufan <orochimarufan.x3@gmail.com>
  *
