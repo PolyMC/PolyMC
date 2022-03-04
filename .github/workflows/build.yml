@@ -55,7 +55,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          submodules: "true"
+          submodules: 'true'
 
       # We need to do this here because it inexplicably fails if we split the step
       - name: Download and install OpenSSL libs on Windows
@@ -77,7 +77,7 @@ jobs:
       - name: Install OpenJDK
         uses: AdoptOpenJDK/install-jdk@v1
         with:
-          version: "17"
+          version: '17'
 
       - name: Cache Qt
         id: cache-qt

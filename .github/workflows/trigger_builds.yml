@@ -3,18 +3,18 @@ name: Build Application
 on:
   push:
     branches-ignore:
-      - "stable"
+      - 'stable'
     paths-ignore:
-      - "**.md"
-      - "**/LICENSE"
-      - "flake.lock"
-      - "**.nix"
+      - '**.md'
+      - '**/LICENSE'
+      - 'flake.lock'
+      - '**.nix'
   pull_request:
     paths-ignore:
-      - "**.md"
-      - "**/LICENSE"
-      - "flake.lock"
-      - "**.nix"
+      - '**.md'
+      - '**/LICENSE'
+      - 'flake.lock'
+      - '**.nix'
   workflow_dispatch:
 
 jobs:

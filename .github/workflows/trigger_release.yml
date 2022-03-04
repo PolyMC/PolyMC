@@ -3,7 +3,7 @@ name: Build Application and Make Release
 on:
   push:
     tags:
-      - "*"
+      - '*'
 
 jobs:
   build_release:
