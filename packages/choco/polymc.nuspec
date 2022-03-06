@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <!-- == PACKAGE SPECIFIC SECTION == -->
+    <id>polymc</id>
+    <version>1.1.0</version>
+    <!-- Change to stable -->
+    <packageSourceUrl>https://github.com/txtsd/PolyMC/tree/choco/packages/choco/</packageSourceUrl>
+    <owners>txtsd</owners>
+    <!-- ============================== -->
+
+    <!-- == SOFTWARE SPECIFIC SECTION == -->
+    <title>PolyMC</title>
+    <authors>https://github.com/PolyMC/PolyMC/graphs/contributors</authors>
+    <projectUrl>https://polymc.org</projectUrl>
+    <!-- Change to stable -->
+    <iconUrl>https://rawcdn.githack.com/txtsd/PolyMC/6437270ef22ea46e152bb3739ecf6864a23d5f6f/packages/choco/images/polymc.png</iconUrl>
+    <licenseUrl>https://github.com/PolyMC/PolyMC/blob/stable/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/PolyMC/PolyMC</projectSourceUrl>
+    <docsUrl>https://polymc.org/wiki/</docsUrl>
+    <bugTrackerUrl>https://github.com/PolyMC/PolyMC/issues</bugTrackerUrl>
+    <tags>polymc minecraft launcher mod fabric forge pack</tags>
+    <summary>PolyMC is a custom launcher for Minecraft that focuses on predictability, long term stability and simplicity.</summary>
+    <description>PolyMC is a custom launcher for Minecraft that focuses on predictability, long term stability and simplicity.</description>
+    <releaseNotes>
+      ### Added
+      - New option to close PolyMC after launch
+      - Now detects Java from environment
+      - New `Open page &amp; copy code` button in MSA login dialog
+      - Added StartupWMClass to .desktop file so DEs can behave
+      - Added PolyMC news
+      - Added CurseForge and Modrinth mod downloader#221
+      - New CC BY-NC-SA 4.0 license for PolyMC logos and branding
+      - Added MSA-Client-ID override in UI
+      - Added missing tooltip for instance export in #176
+      - Added MSA Client ID change detection and prompt
+      - Added Matrix space link
+
+      ### Changed
+      - Default to the system locale on first startup
+      - Replaced `paste.ee` with `0x0.st` and `paste.polymc.org`
+      - Updated information in the About dialog
+      - Migrated to upstream QuaZip 1.2
+      - QuaZip is now linked statically
+      - Internal libraries are now linked statically
+      - PolyMC specific translations now hosted on weblate
+      - Update metadata
+      - Version string now shows the branch that PolyMC was built from
+      - New MSA Client ID
+      - Replace old build layout system with new `Launcher_PORTABLE` cmake flag
+      - Reorganized icon themes
+      - [Windows] Now runs on WSL
+      - [macOS] Move app data to `Application Support`
+
+      ### Fixed
+      - Add some logging to profile fetching failures in #96
+      - Ignore invalid lines altogether in java checker in #96
+      - Correctly set http status code in auth reply in #96
+      - Log server response when failing to fetch profile in #96
+      - Fix error message in #96
+      - Fixed inconsistent behavior of icons when exiting the settings screen
+      - Fixed freedesktop icons
+      - [macOS] Fixed GUI identifier
+
+      ### Removed
+      - Removed MultiMC news
+      - Removed legacy instance support
+</releaseNotes>
+    <!-- =============================== -->
+
+    <dependencies>
+      <dependency id="vcredist2010" version="10.0.40219.32503"></dependency>
+      <!-- Not required but it's convenient for users -->
+      <dependency id="temurin8jre" version="8.322.6"/>
+      <dependency id="temurin17jre" version="17.0.2.8"/>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools"/>
+  </files>
+</package>

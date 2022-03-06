@@ -9,12 +9,14 @@ on:
       - '**/LICENSE'
       - 'flake.lock'
       - '**.nix'
+      - 'packages/**'
   pull_request:
     paths-ignore:
       - '**.md'
       - '**/LICENSE'
       - 'flake.lock'
       - '**.nix'
+      - 'packages/**'
   workflow_dispatch:
 
 jobs:
