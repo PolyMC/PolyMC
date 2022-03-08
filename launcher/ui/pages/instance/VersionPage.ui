@@ -105,8 +105,8 @@
    <addaction name="actionEdit"/>
    <addaction name="actionRevert"/>
    <addaction name="separator"/>
-   <addaction name="actionInstall_Forge"/>
    <addaction name="actionInstall_Fabric"/>
+   <addaction name="actionInstall_Forge"/>
    <addaction name="actionInstall_LiteLoader"/>
    <addaction name="actionInstall_mods"/>
    <addaction name="separator"/>
