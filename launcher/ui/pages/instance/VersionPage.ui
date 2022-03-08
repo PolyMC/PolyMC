@@ -192,7 +192,6 @@
     <string>Install the Minecraft Forge package.</string>
    </property>
   </action>
-  
   <action name="actionInstall_LiteLoader">
    <property name="text">
     <string>Install LiteLoader</string>
