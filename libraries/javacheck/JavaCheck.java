@@ -1,11 +1,9 @@
-import java.lang.Integer;
-
 public class JavaCheck
 {
     private static final String[] keys = {"os.arch", "java.version", "java.vendor"};
     public static void main (String [] args)
     {
-        int ret = 0;
+        boolean error = false;
         for(String key : keys)
         {
             String property = System.getProperty(key);
@@ -15,10 +13,13 @@ public class JavaCheck
             }
             else
             {
-                ret = 1;
+                error = true;
+                break;
             }
         }
         
-        System.exit(ret);
+        if (error) {
+            System.exit(1);
+        }
     }
 }
