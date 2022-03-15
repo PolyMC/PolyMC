@@ -161,10 +161,9 @@ void MSALoginDialog::onTaskProgress(qint64 current, qint64 total)
 }
 
 // Public interface
-MinecraftAccountPtr MSALoginDialog::newAccount(QWidget *parent, QString msg)
+MinecraftAccountPtr MSALoginDialog::newAccount(QWidget *parent)
 {
     MSALoginDialog dlg(parent);
-    dlg.ui->label->setText(msg);
     if (dlg.exec() == QDialog::Accepted)
     {
         return dlg.m_account;
