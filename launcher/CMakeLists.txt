@@ -773,8 +773,6 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/ExportInstanceDialog.h
     ui/dialogs/IconPickerDialog.cpp
     ui/dialogs/IconPickerDialog.h
-    ui/dialogs/LoginDialog.cpp
-    ui/dialogs/LoginDialog.h
     ui/dialogs/MSALoginDialog.cpp
     ui/dialogs/MSALoginDialog.h
     ui/dialogs/OfflineLoginDialog.cpp

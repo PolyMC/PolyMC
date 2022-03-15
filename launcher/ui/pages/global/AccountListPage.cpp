@@ -46,7 +46,6 @@
 
 #include "ui/dialogs/ProgressDialog.h"
 #include "ui/dialogs/OfflineLoginDialog.h"
-#include "ui/dialogs/LoginDialog.h"
 #include "ui/dialogs/MSALoginDialog.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/SkinUploadDialog.h"
@@ -65,7 +64,7 @@ AccountListPage::AccountListPage(QWidget *parent)
     ui->setupUi(this);
     ui->listView->setEmptyString(tr(
         "Welcome!\n"
-        "If you're new here, you can click the \"Add\" button to add your Mojang or Minecraft account."
+        "If you're new here, you can click the \"Add\" button to add your Microsoft account."
     ));
     ui->listView->setEmptyMode(VersionListView::String);
     ui->listView->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -139,22 +138,6 @@ void AccountListPage::listChanged()
     updateButtonStates();
 }
 
-void AccountListPage::on_actionAddMojang_triggered()
-{
-    MinecraftAccountPtr account = LoginDialog::newAccount(
-        this,
-        tr("Please enter your Mojang account email and password to add your account.")
-    );
-
-    if (account)
-    {
-        m_accounts->addAccount(account);
-        if (m_accounts->count() == 1) {
-            m_accounts->setDefaultAccount(account);
-        }
-    }
-}
-
 void AccountListPage::on_actionAddMicrosoft_triggered()
 {
     if(BuildConfig.BUILD_PLATFORM == "osx64") {
@@ -190,7 +173,7 @@ void AccountListPage::on_actionAddOffline_triggered()
             this,
             tr("Error"),
             tr(
-                "You must add a Microsoft or Mojang account that owns Minecraft before you can add an offline account."
+                "You must add a Microsoft account that owns Minecraft before you can add an offline account."
                 "<br><br>"
                 "If you have lost your account you can contact Microsoft for support."
             )
