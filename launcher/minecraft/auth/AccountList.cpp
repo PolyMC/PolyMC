@@ -324,18 +324,6 @@ QVariant AccountList::data(const QModelIndex &index, int role) const
                 }
             }
 
-            case MigrationColumn: {
-                if(account->isMSA() || account->isOffline()) {
-                    return tr("N/A", "Can Migrate?");
-                }
-                if (account->canMigrate()) {
-                    return tr("Yes", "Can Migrate?");
-                }
-                else {
-                    return tr("No", "Can Migrate?");
-                }
-            }
-
             default:
                 return QVariant();
             }
@@ -373,8 +361,6 @@ QVariant AccountList::headerData(int section, Qt::Orientation orientation, int r
             return tr("Type");
         case StatusColumn:
             return tr("Status");
-        case MigrationColumn:
-            return tr("Can Migrate?");
         default:
             return QVariant();
         }
@@ -390,8 +376,6 @@ QVariant AccountList::headerData(int section, Qt::Orientation orientation, int r
             return tr("Type of the account - Mojang or MSA.");
         case StatusColumn:
             return tr("Current status of the account.");
-        case MigrationColumn:
-            return tr("Can this account migrate to a Microsoft account?");
         default:
             return QVariant();
         }
