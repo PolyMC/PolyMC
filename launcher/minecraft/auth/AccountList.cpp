@@ -290,6 +290,8 @@ QVariant AccountList::data(const QModelIndex &index, int role) const
                 return account->accountDisplayString();
 
             case TypeColumn: {
+                if (account->isMSA())  // Format MSA accounts as "MSA"
+                    return account->typeString().toUpper();
                 auto typeStr = account->typeString();
                 typeStr[0] = typeStr[0].toUpper();
                 return typeStr;
