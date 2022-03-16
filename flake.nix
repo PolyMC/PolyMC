@@ -31,18 +31,20 @@
     } // flake-utils.lib.eachSystem systems (system:
       let pkgs = import nixpkgs { inherit system; };
       in {
-        packages = {
+        packages = rec {
           polymc = pkgs.libsForQt5.callPackage ./packages/nix/polymc {
             inherit self;
             submoduleQuazip = quazip;
             submoduleNbt = libnbtplusplus;
           };
+          default = polymc;
         };
-        apps = {
+        apps = rec {
           polymc = flake-utils.lib.mkApp {
             name = "polymc";
             drv = self.packages.${system}.polymc;
           };
+          default = polymc;
         };
         defaultPackage = self.packages.${system}.polymc;
         defaultApp = self.apps.${system}.polymc;
