@@ -168,19 +168,24 @@ void LauncherPartLaunch::on_state(LoggedProcess::State state)
         }
         case LoggedProcess::Finished:
         {
-            if (APPLICATION->settings()->get("CloseAfterLaunch").toBool())
-                APPLICATION->showMainWindow();
             m_parent->setPid(-1);
             // if the exit code wasn't 0, report this as a crash
             auto exitCode = m_process.exitCode();
             if(exitCode != 0)
             {
+                if (APPLICATION->settings()->get("OpenAfterMinecraftCrashes").toBool())
+                    APPLICATION->showMainWindow();
+
                 emitFailed(tr("Game crashed."));
                 return;
             }
             //FIXME: make this work again
             // m_postlaunchprocess.processEnvironment().insert("INST_EXITCODE", QString(exitCode));
             // run post-exit
+            
+            if (APPLICATION->settings()->get("OpenAfterMinecraftCloses").toBool())
+                APPLICATION->showMainWindow();
+            
             emitSucceeded();
             break;
         }

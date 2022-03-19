@@ -63,6 +63,7 @@ private:
 private
 slots:
     void on_maximizedCheckBox_clicked(bool checked);
+    void closeAfterLaunchToggle(bool checked);
 
 private:
     Ui::MinecraftPage *ui;

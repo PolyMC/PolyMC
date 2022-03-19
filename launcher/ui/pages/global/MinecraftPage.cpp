@@ -16,6 +16,7 @@
 #include "MinecraftPage.h"
 #include "ui_MinecraftPage.h"
 
+#include <QCheckBox>
 #include <QMessageBox>
 #include <QDir>
 #include <QTabBar>
@@ -29,6 +30,8 @@ MinecraftPage::MinecraftPage(QWidget *parent) : QWidget(parent), ui(new Ui::Mine
     ui->tabWidget->tabBar()->hide();
     loadSettings();
     updateCheckboxStuff();
+
+    connect(ui->closeAfterLaunchCheck, &QCheckBox::stateChanged, this, &MinecraftPage::closeAfterLaunchToggle);
 }
 
 MinecraftPage::~MinecraftPage()
@@ -46,12 +49,26 @@ void MinecraftPage::updateCheckboxStuff()
 {
     ui->windowWidthSpinBox->setEnabled(!ui->maximizedCheckBox->isChecked());
     ui->windowHeightSpinBox->setEnabled(!ui->maximizedCheckBox->isChecked());
+
+    ui->openAfterMinecraftClosesCheck->setEnabled(ui->closeAfterLaunchCheck->isChecked());
+    ui->openAfterMinecraftCrashesCheck->setEnabled(ui->closeAfterLaunchCheck->isChecked());
 }
 
 void MinecraftPage::on_maximizedCheckBox_clicked(bool checked)
 {
     Q_UNUSED(checked);
     updateCheckboxStuff();
+}
+
+void MinecraftPage::closeAfterLaunchToggle(bool checked)
+{
+    ui->openAfterMinecraftClosesCheck->setEnabled(checked);
+    ui->openAfterMinecraftCrashesCheck->setEnabled(checked);
+    if(!checked){
+        // Don't open PolyMC if it's already open (or not programatically closed to be precise)
+        ui->openAfterMinecraftClosesCheck->setChecked(false);
+        ui->openAfterMinecraftCrashesCheck->setChecked(false);
+    }
 }
 
 void MinecraftPage::applySettings()
@@ -74,6 +91,8 @@ void MinecraftPage::applySettings()
 
     // Miscellaneous
     s->set("CloseAfterLaunch", ui->closeAfterLaunchCheck->isChecked());
+    s->set("OpenAfterMinecraftCloses", ui->openAfterMinecraftClosesCheck->isChecked());
+    s->set("OpenAfterMinecraftCrashes", ui->openAfterMinecraftCrashesCheck->isChecked());
 }
 
 void MinecraftPage::loadSettings()
@@ -93,4 +112,6 @@ void MinecraftPage::loadSettings()
     ui->recordGameTime->setChecked(s->get("RecordGameTime").toBool());
 
     ui->closeAfterLaunchCheck->setChecked(s->get("CloseAfterLaunch").toBool());
+    ui->openAfterMinecraftClosesCheck->setChecked(s->get("OpenAfterMinecraftCloses").toBool());
+    ui->openAfterMinecraftCrashesCheck->setChecked(s->get("OpenAfterMinecraftCrashes").toBool());
 }

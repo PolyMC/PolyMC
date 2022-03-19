@@ -173,13 +173,34 @@
           <item>
            <widget class="QCheckBox" name="closeAfterLaunchCheck">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PolyMC will automatically reopen when the game crashes or exits.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If set, PolyMC will automatically close when the game starts running.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>Close PolyMC after game window opens</string>
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="openAfterMinecraftClosesCheck">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If set, PolyMC will automatically reopen when the game exits normally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Reopen PolyMC when the game closes normally</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="openAfterMinecraftCrashesCheck">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If set, PolyMC will automatically reopen when the game crashes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Reopen PolyMC when the game crashes</string>
+            </property>
+           </widget>
+          </item>
+
          </layout>
         </widget>
        </item>
