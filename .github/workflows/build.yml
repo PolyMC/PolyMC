@@ -175,6 +175,14 @@ jobs:
         run: |
           cd ${{ env.INSTALL_DIR }}
           macdeployqt "PolyMC.app" -executable="PolyMC.app/Contents/MacOS/polymc" -always-overwrite
+    
+
+      - name: Fix webp on MacOS
+        if: runner.os == 'macOS'
+        run: |
+          cd ${{ env.INSTALL_DIR }}
+          cp /Users/runner/work/PolyMC/PolyMC/Qt/Qt/5.12.12/clang_64/plugins/imageformats/libqwebp.dylib PolyMC.app/Contents/MacOS/imageformats/
+          
 
       - name: chmod binary on macOS
         if: runner.os == 'macOS'
