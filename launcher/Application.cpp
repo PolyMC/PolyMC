@@ -216,6 +216,10 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         parser.addOption("launch");
         parser.addShortOpt("launch", 'l');
         parser.addDocumentation("launch", "Launch the specified instance (by instance ID)");
+        // --hidedialogs
+        parser.addSwitch("hidedialogs");
+        parser.addShortOpt("hidedialogs", 'H');
+        parser.addDocumentation("hidedialogs", "Disable NON-ERROR dialogs from showing up (only valid in combination with --launch)");
         // --server
         parser.addOption("server");
         parser.addShortOpt("server", 's');
@@ -269,12 +273,13 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
     m_serverToJoin = args["server"].toString();
     m_profileToUse = args["profile"].toString();
     m_liveCheck = args["alive"].toBool();
+    m_hideDialogs = args["hidedialogs"].toBool();
     m_zipToImport = args["import"].toUrl();
 
     // error if --launch is missing with --server or --profile
-    if((!m_serverToJoin.isEmpty() || !m_profileToUse.isEmpty()) && m_instanceIdToLaunch.isEmpty())
+    if((!m_serverToJoin.isEmpty() || !m_profileToUse.isEmpty() || m_hideDialogs) && m_instanceIdToLaunch.isEmpty())
     {
-        std::cerr << "--server and --profile can only be used in combination with --launch!" << std::endl;
+        std::cerr << "--server, --profile and --hidedialogs can only be used in combination with --launch!" << std::endl;
         m_status = Application::Failed;
         return;
     }
@@ -455,6 +460,9 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
                 {
                     launch.args["profile"] = m_profileToUse;
                 }
+
+                launch.args["hidedialogs"] = m_hideDialogs ? "true" : "false";
+
                 m_peerInstance->sendMessage(launch.serialize(), timeout);
             }
             m_status = Application::Succeeded;
@@ -535,6 +543,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         }
         qDebug() << "Binary path                : " << binPath;
         qDebug() << "Application root path      : " << m_rootPath;
+
         if(!m_instanceIdToLaunch.isEmpty())
         {
             qDebug() << "ID of instance to launch   : " << m_instanceIdToLaunch;
@@ -543,6 +552,11 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         {
             qDebug() << "Address of server to join  :" << m_serverToJoin;
         }
+        if(m_hideDialogs)
+        {
+            qDebug() << "Will hide non-error dialogs.";
+        }
+
         qDebug() << "<> Paths set.";
     }
 
@@ -964,8 +978,12 @@ void Application::performMainStartupAction()
                 }
                 qDebug() << "   Launching with account" << m_profileToUse;
             }
+            if(m_hideDialogs)
+            {
+                qDebug() << "Non-error dialogs are hidden.";
+            }
 
-            launch(inst, true, nullptr, serverToJoin, accountToUse);
+            launch(inst, true,nullptr, serverToJoin, accountToUse, m_hideDialogs);
             return;
         }
     }
@@ -1038,6 +1056,7 @@ void Application::messageReceived(const QByteArray& message)
         QString id = received.args["id"];
         QString server = received.args["server"];
         QString profile = received.args["profile"];
+        bool hideDialogs = received.args["hidedialogs"] == "true";
 
         InstancePtr instance;
         if(!id.isEmpty()) {
@@ -1071,7 +1090,8 @@ void Application::messageReceived(const QByteArray& message)
             true,
             nullptr,
             serverObject,
-            accountObject
+            accountObject,
+            hideDialogs
         );
     }
     else
@@ -1153,7 +1173,8 @@ bool Application::launch(
         bool online,
         BaseProfilerFactory *profiler,
         MinecraftServerTargetPtr serverToJoin,
-        MinecraftAccountPtr accountToUse
+        MinecraftAccountPtr accountToUse,
+        bool hideDialogs
 ) {
     if(m_updateRunning)
     {
@@ -1174,6 +1195,7 @@ bool Application::launch(
         controller.reset(new LaunchController());
         controller->setInstance(instance);
         controller->setOnline(online);
+        controller->setHideDialogs(hideDialogs);
         controller->setProfiler(profiler);
         controller->setServerToJoin(serverToJoin);
         controller->setAccountToUse(accountToUse);

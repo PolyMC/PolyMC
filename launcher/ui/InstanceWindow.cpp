@@ -149,7 +149,7 @@ void InstanceWindow::updateLaunchButtons()
 
 void InstanceWindow::on_btnLaunchMinecraftOffline_clicked()
 {
-    APPLICATION->launch(m_instance, false, nullptr);
+    APPLICATION->launch(m_instance, false);
 }
 
 void InstanceWindow::on_InstanceLaunchTask_changed(shared_qobject_ptr<LaunchTask> proc)
@@ -203,7 +203,7 @@ void InstanceWindow::on_btnKillMinecraft_clicked()
     }
     else
     {
-        APPLICATION->launch(m_instance, true, nullptr);
+        APPLICATION->launch(m_instance, true);
     }
 }
 

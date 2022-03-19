@@ -149,7 +149,8 @@ public slots:
         bool online = true,
         BaseProfilerFactory *profiler = nullptr,
         MinecraftServerTargetPtr serverToJoin = nullptr,
-        MinecraftAccountPtr accountToUse = nullptr
+        MinecraftAccountPtr accountToUse = nullptr,
+        bool hideDialogs = false
     );
     bool kill(InstancePtr instance);
 
@@ -228,6 +229,7 @@ public:
     QString m_serverToJoin;
     QString m_profileToUse;
     bool m_liveCheck = false;
+    bool m_hideDialogs = false;
     QUrl m_zipToImport;
     std::unique_ptr<QFile> logFile;
 };

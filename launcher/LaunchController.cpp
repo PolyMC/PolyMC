@@ -201,13 +201,24 @@ void LaunchController::login() {
             }
             case AccountState::Working: {
                 // refresh is in progress, we need to wait for it to finish to proceed.
-                ProgressDialog progDialog(m_parentWidget);
-                if (m_online)
-                {
-                    progDialog.setSkipButton(true, tr("Play Offline"));
-                }
+                
                 auto task = m_accountToUse->currentTask();
-                progDialog.execWithTask(task.get());
+                if(m_showDialogs) {
+                    ProgressDialog progDialog(m_parentWidget);
+                    if (m_online) {
+                        progDialog.setSkipButton(true, tr("Play Offline"));
+                    }
+                    progDialog.execWithTask(task.get());
+                }
+                else {
+                    QEventLoop loop;
+                    connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
+
+                    if(!task->isRunning()){
+                        task->start();
+                    }
+                    loop.exec();
+                }
                 continue;
             }
             // FIXME: this is missing - the meaning is that the account is queued for refresh and we should wait for that

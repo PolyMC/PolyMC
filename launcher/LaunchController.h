@@ -28,6 +28,10 @@ public:
         m_online = online;
     }
 
+    void setHideDialogs(bool hideDialogs) {
+        m_showDialogs = !hideDialogs;
+    }
+
     void setProfiler(BaseProfilerFactory *profiler) {
         m_profiler = profiler;
     }
@@ -66,6 +70,7 @@ private slots:
 private:
     BaseProfilerFactory *m_profiler = nullptr;
     bool m_online = true;
+    bool m_showDialogs = true;
     InstancePtr m_instance;
     QWidget * m_parentWidget = nullptr;
     InstanceWindow *m_console = nullptr;
