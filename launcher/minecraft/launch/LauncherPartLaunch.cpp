@@ -162,6 +162,8 @@ void LauncherPartLaunch::on_state(LoggedProcess::State state)
         case LoggedProcess::Aborted:
         case LoggedProcess::Crashed:
         {
+            if (APPLICATION->settings()->get("OpenAfterMinecraftCrashes").toBool())
+                APPLICATION->showMainWindow();
             m_parent->setPid(-1);
             emitFailed(tr("Game crashed."));
             return;

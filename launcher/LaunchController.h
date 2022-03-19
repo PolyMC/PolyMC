@@ -56,6 +56,7 @@ public:
     bool abort() override;
 
 private:
+    void execWithDialog(Task* task, QString btn);
     void login();
     void launchInstance();
     void decideAccount();
