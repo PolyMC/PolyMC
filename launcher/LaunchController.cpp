@@ -288,7 +288,7 @@ void LaunchController::launchInstance()
 
     auto console = qobject_cast<InstanceWindow *>(m_parentWidget);
     auto showConsole = m_instance->settings()->get("ShowConsole").toBool();
-    if(!console && showConsole)
+    if(!console && showConsole && m_showDialogs)
     {
         APPLICATION->showInstanceWindow(m_instance);
     }
@@ -387,7 +387,11 @@ void LaunchController::onSucceeded()
 
 void LaunchController::onFailed(QString reason)
 {
-    if(m_instance->settings()->get("ShowConsoleOnError").toBool())
+    auto show_console_on_error = m_instance->settings()->get("ShowConsoleOnError").toBool();
+    auto close_after_launch = APPLICATION->settings()->get("CloseAfterLaunch").toBool();
+    auto open_when_crashed = APPLICATION->settings()->get("OpenAfterMinecraftCrashes").toBool();
+
+    if(show_console_on_error && (open_when_crashed || !close_after_launch))  
     {
         APPLICATION->showInstanceWindow(m_instance, "console");
     }
