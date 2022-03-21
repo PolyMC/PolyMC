@@ -6,3 +6,6 @@
 [submodule "libraries/quazip"]
 	path = libraries/quazip
 	url = https://github.com/stachenov/quazip.git
+[submodule "Translations"]
+	path = Translations
+	url = https://github.com/PolyMC/Translations.git
