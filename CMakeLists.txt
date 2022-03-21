@@ -191,6 +191,7 @@ if(UNIX AND APPLE)
     # Add translation directories
     file(GLOB TRANSLATIONS RELATIVE "${CMAKE_SOURCE_DIR}/Translations" "${CMAKE_SOURCE_DIR}/Translations/*.ts")
     list(REMOVE_ITEM TRANSLATIONS ".template.ts")
+    list(APPEND TRANSLATIONS "en_US.ts")
     list(TRANSFORM TRANSLATIONS REPLACE "\.ts" ".lproj")
     list(TRANSFORM TRANSLATIONS PREPEND "${CMAKE_INSTALL_PREFIX}/${RESOURCES_DEST_DIR}/")
     file(MAKE_DIRECTORY ${TRANSLATIONS})
