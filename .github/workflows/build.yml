@@ -235,10 +235,17 @@ jobs:
           tar -czf ../PolyMC.tar.gz *
 
       - name: Upload Linux tar.gz
-        if: runner.os == 'Linux' && matrix.app_image != true
+        if: runner.os == 'Linux' && matrix.app_image != true && matrix.portable != true
         uses: actions/upload-artifact@v3
         with:
           name: PolyMC-${{ runner.os }}-${{ env.VERSION }}-${{ inputs.build_type }}
+          path: PolyMC.tar.gz
+
+      - name: Upload Linux Portable tar.gz 
+        if: runner.os == 'Linux' && matrix.app_image != true && matrix.portable == true
+        uses: actions/upload-artifact@v3
+        with:
+          name: PolyMC-${{ runner.os }}-${{ env.VERSION }}-${{ inputs.build_type }}-portable
           path: PolyMC.tar.gz
 
       - name: Upload AppImage for Linux
