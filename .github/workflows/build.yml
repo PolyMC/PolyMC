@@ -238,7 +238,7 @@ jobs:
         if: runner.os == 'Linux' && matrix.app_image != true && matrix.portable == true
         run: |
           cd ${{ env.INSTALL_DIR }}
-          tar -czf ../PolyMC-Portable.tar.gz **
+          tar -czf ../PolyMC-Portable.tar.gz *
 
       - name: Upload Linux tar.gz
         if: runner.os == 'Linux' && matrix.app_image != true && matrix.portable != true
