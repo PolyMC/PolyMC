@@ -233,12 +233,6 @@ jobs:
         run: |
           cd ${{ env.INSTALL_DIR }}
           tar -czf ../PolyMC.tar.gz *
-          
-      - name: tar on Linux Portable
-        if: runner.os == 'Linux' && matrix.app_image != true && matrix.portable == true
-        run: |
-          cd ${{ env.INSTALL_DIR }}
-          tar -czf ../PolyMC-Portable.tar.gz *
 
       - name: Upload Linux tar.gz
         if: runner.os == 'Linux' && matrix.app_image != true && matrix.portable != true
@@ -252,7 +246,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: PolyMC-${{ runner.os }}-Portable-${{ env.VERSION }}-${{ inputs.build_type }}
-          path: PolyMC-Portable.tar.gz
+          path: ${{ env.INSTALL_DIR }}/**
 
       - name: Upload AppImage for Linux
         if: matrix.app_image == true
