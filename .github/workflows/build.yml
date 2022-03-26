@@ -185,9 +185,14 @@ jobs:
           cmake --install ${{ env.BUILD_DIR }}
 
       - name: Install on Linux
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.portable != true
         run: |
           DESTDIR=${{ env.INSTALL_DIR }} cmake --install ${{ env.BUILD_DIR }}
+
+      - name: Install on Linux portable
+        if: runner.os == 'Linux' && matrix.portable == true
+        run: |
+          cmake --install ${{ env.BUILD_DIR }}
 
       - name: Bundle AppImage
         if: matrix.app_image == true
