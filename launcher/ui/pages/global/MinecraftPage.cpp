@@ -113,6 +113,7 @@ void MinecraftPage::applySettings()
     s->set("CloseAfterLaunch", ui->closeAfterLaunchCheck->isChecked());
     s->set("OpenAfterMinecraftCloses", ui->openAfterMinecraftClosesCheck->isChecked());
     s->set("OpenAfterMinecraftCrashes", ui->openAfterMinecraftCrashesCheck->isChecked());
+    s->set("QuitAfterGameStop", ui->quitAfterGameStopCheck->isChecked());
 }
 
 void MinecraftPage::loadSettings()
@@ -134,6 +135,7 @@ void MinecraftPage::loadSettings()
     ui->closeAfterLaunchCheck->setChecked(s->get("CloseAfterLaunch").toBool());
     ui->openAfterMinecraftClosesCheck->setChecked(s->get("OpenAfterMinecraftCloses").toBool());
     ui->openAfterMinecraftCrashesCheck->setChecked(s->get("OpenAfterMinecraftCrashes").toBool());
+    ui->quitAfterGameStopCheck->setChecked(s->get("QuitAfterGameStop").toBool());
 }
 
 void MinecraftPage::retranslate()

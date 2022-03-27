@@ -743,6 +743,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("CloseAfterLaunch", false);
         m_settings->registerSetting("OpenAfterMinecraftCloses", false);
         m_settings->registerSetting("OpenAfterMinecraftCrashes", false);
+        m_settings->registerSetting("QuitAfterGameStop", false);
 
         // Custom MSA credentials
         m_settings->registerSetting("MSAClientIDOverride", "");
