@@ -73,7 +73,6 @@ struct MinecraftProfile {
 
 enum class AccountType {
     MSA,
-    Mojang,
     Offline
 };
 
@@ -90,20 +89,13 @@ enum class AccountState {
 
 struct AccountData {
     QJsonObject saveState() const;
-    bool resumeStateFromV2(QJsonObject data);
     bool resumeStateFromV3(QJsonObject data);
 
-    //! userName for Mojang accounts, gamertag for MSA
+    //! userName for Offline accounts, gamertag for MSA
     QString accountDisplayString() const;
 
-    //! Only valid for Mojang accounts. MSA does not preserve this information
+    //! Only valid for Offline accounts. MSA does not preserve this information
     QString userName() const;
-
-    //! Only valid for Mojang accounts.
-    QString clientToken() const;
-    void setClientToken(QString clientToken);
-    void invalidateClientToken();
-    void generateClientTokenIfMissing();
 
     //! Yggdrasil access token, as passed to the game.
     QString accessToken() const;
@@ -114,8 +106,6 @@ struct AccountData {
     QString lastError() const;
 
     AccountType type = AccountType::MSA;
-    bool legacy = false;
-    bool canMigrateToMSA = false;
 
     QString msaClientID;
     Katabasis::Token msaToken;

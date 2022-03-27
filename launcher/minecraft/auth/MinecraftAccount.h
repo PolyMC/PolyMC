@@ -58,21 +58,7 @@ typedef shared_qobject_ptr<MinecraftAccount> MinecraftAccountPtr;
 Q_DECLARE_METATYPE(MinecraftAccountPtr)
 
 /**
- * A profile within someone's Mojang account.
- *
- * Currently, the profile system has not been implemented by Mojang yet,
- * but we might as well add some things for it in PolyMC right now so
- * we don't have to rip the code to pieces to add it later.
- */
-struct AccountProfile
-{
-    QString id;
-    QString name;
-    bool legacy;
-};
-
-/**
- * Object that stores information about a certain Mojang account.
+ * Object that stores information about a certain account.
  *
  * Said information may include things such as that account's username, client token, and access
  * token if the user chose to stay logged in.
@@ -89,25 +75,16 @@ public: /* construction */
     //! Default constructor
     explicit MinecraftAccount(QObject *parent = 0);
 
-    static MinecraftAccountPtr createFromUsername(const QString &username);
-
     static MinecraftAccountPtr createBlankMSA();
 
     static MinecraftAccountPtr createOffline(const QString &username);
 
-    static MinecraftAccountPtr loadFromJsonV2(const QJsonObject &json);
     static MinecraftAccountPtr loadFromJsonV3(const QJsonObject &json);
 
     //! Saves a MinecraftAccount to a JSON object and returns it.
     QJsonObject saveToJson() const;
 
 public: /* manipulation */
-
-    /**
-     * Attempt to login. Empty password means we use the token.
-     * If the attempt fails because we already are performing some task, it returns false.
-     */
-    shared_qobject_ptr<AccountTask> login(QString password);
 
     shared_qobject_ptr<AccountTask> loginMSA();
 
@@ -126,10 +103,6 @@ public: /* queries */
         return data.accountDisplayString();
     }
 
-    QString mojangUserName() const {
-        return data.userName();
-    }
-
     QString accessToken() const {
         return data.accessToken();
     }
@@ -143,10 +116,6 @@ public: /* queries */
     }
 
     bool isActive() const;
-
-    bool canMigrate() const {
-        return data.canMigrateToMSA;
-    }
 
     bool isMSA() const {
         return data.type == AccountType::MSA;
@@ -166,13 +135,6 @@ public: /* queries */
 
     QString typeString() const {
         switch(data.type) {
-            case AccountType::Mojang: {
-                if(data.legacy) {
-                    return "legacy";
-                }
-                return "mojang";
-            }
-            break;
             case AccountType::MSA: {
                 return "msa";
             }

@@ -43,7 +43,7 @@
 #include <QSharedPointer>
 
 /*!
- * List of available Mojang accounts.
+ * List of available accounts.
  * This should be loaded in the background by PolyMC on startup.
  */
 class AccountList : public QAbstractListModel
@@ -101,7 +101,6 @@ public:
     void setListFilePath(QString path, bool autosave = false);
 
     bool loadList();
-    bool loadV2(QJsonObject &root);
     bool loadV3(QJsonObject &root);
     bool saveList();
 

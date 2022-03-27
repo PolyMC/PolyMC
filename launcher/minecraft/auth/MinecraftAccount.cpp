@@ -49,20 +49,10 @@
 #include <QPainter>
 
 #include "flows/MSA.h"
-#include "flows/Mojang.h"
 #include "flows/Offline.h"
 
 MinecraftAccount::MinecraftAccount(QObject* parent) : QObject(parent) {
     data.internalId = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
-}
-
-
-MinecraftAccountPtr MinecraftAccount::loadFromJsonV2(const QJsonObject& json) {
-    MinecraftAccountPtr account(new MinecraftAccount());
-    if(account->data.resumeStateFromV2(json)) {
-        return account;
-    }
-    return nullptr;
 }
 
 MinecraftAccountPtr MinecraftAccount::loadFromJsonV3(const QJsonObject& json) {
@@ -71,15 +61,6 @@ MinecraftAccountPtr MinecraftAccount::loadFromJsonV3(const QJsonObject& json) {
         return account;
     }
     return nullptr;
-}
-
-MinecraftAccountPtr MinecraftAccount::createFromUsername(const QString &username)
-{
-    MinecraftAccountPtr account = new MinecraftAccount();
-    account->data.type = AccountType::Mojang;
-    account->data.yggdrasilToken.extra["userName"] = username;
-    account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
-    return account;
 }
 
 MinecraftAccountPtr MinecraftAccount::createBlankMSA()
@@ -128,18 +109,6 @@ QPixmap MinecraftAccount::getFace() const {
     return skin.scaled(64, 64, Qt::KeepAspectRatio);
 }
 
-
-shared_qobject_ptr<AccountTask> MinecraftAccount::login(QString password) {
-    Q_ASSERT(m_currentTask.get() == nullptr);
-
-    m_currentTask.reset(new MojangLogin(&data, password));
-    connect(m_currentTask.get(), SIGNAL(succeeded()), SLOT(authSucceeded()));
-    connect(m_currentTask.get(), SIGNAL(failed(QString)), SLOT(authFailed(QString)));
-    connect(m_currentTask.get(), &Task::aborted, this, [this]{ authFailed(tr("Aborted")); });
-    emit activityChanged(true);
-    return m_currentTask;
-}
-
 shared_qobject_ptr<AccountTask> MinecraftAccount::loginMSA() {
     Q_ASSERT(m_currentTask.get() == nullptr);
 
@@ -170,11 +139,8 @@ shared_qobject_ptr<AccountTask> MinecraftAccount::refresh() {
     if(data.type == AccountType::MSA) {
         m_currentTask.reset(new MSASilent(&data));
     }
-    else if(data.type == AccountType::Offline) {
-        m_currentTask.reset(new OfflineRefresh(&data));
-    }
     else {
-        m_currentTask.reset(new MojangRefresh(&data));
+        m_currentTask.reset(new OfflineRefresh(&data));
     }
 
     connect(m_currentTask.get(), SIGNAL(succeeded()), SLOT(authSucceeded()));
@@ -294,8 +260,6 @@ void MinecraftAccount::fillSession(AuthSessionPtr session)
     session->username = data.userName();
     // volatile auth token
     session->access_token = data.accessToken();
-    // the semi-permanent client token
-    session->client_token = data.clientToken();
     // profile name
     session->player_name = data.profileName();
     // profile ID

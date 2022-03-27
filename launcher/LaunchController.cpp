@@ -93,8 +93,7 @@ void LaunchController::decideAccount()
         auto reply = CustomMessageBox::selectable(
             m_parentWidget,
             tr("No Accounts"),
-            tr("In order to play Minecraft, you must have at least one Mojang or Microsoft "
-               "account logged in. "
+            tr("In order to play Minecraft, you must login with an account that owns Minecraft. "
                "Would you like to open the account manager to add an account now?"),
             QMessageBox::Information,
             QMessageBox::Yes | QMessageBox::No
@@ -198,7 +197,7 @@ void LaunchController::login() {
                     // offline flavored game from here :3
                 }
                 if(m_accountToUse->ownsMinecraft()) {
-                    if(!m_accountToUse->hasProfile()) {
+                    if(!m_accountToUse->hasProfile()) {  // TODO: is this still needed in a post Mojang auth world?
                         // Now handle setting up a profile name here...
                         ProfileSetupDialog dialog(m_accountToUse, m_parentWidget);
                         if (dialog.exec() == QDialog::Accepted)
