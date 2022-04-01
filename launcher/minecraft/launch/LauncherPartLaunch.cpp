@@ -154,7 +154,7 @@ void LauncherPartLaunch::on_state(LoggedProcess::State state)
         case LoggedProcess::FailedToStart:
         {
             //: Error message displayed if instace can't start
-            const char *reason = QT_TR_NOOP("Could not launch minecraft!");
+            const char *reason = QT_TR_NOOP("Could not launch Minecraft!");
             emit logLine(reason, MessageLevel::Fatal);
             emitFailed(tr(reason));
             return;
@@ -170,6 +170,7 @@ void LauncherPartLaunch::on_state(LoggedProcess::State state)
         {
             if (APPLICATION->settings()->get("CloseAfterLaunch").toBool())
                 APPLICATION->showMainWindow();
+
             m_parent->setPid(-1);
             // if the exit code wasn't 0, report this as a crash
             auto exitCode = m_process.exitCode();

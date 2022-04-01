@@ -1,16 +1,36 @@
-/* Copyright 2013-2021 MultiMC Contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (c) 2022 Jamie Mansfield <jmansfield@cadixdev.org>
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2013-2021 MultiMC Contributors
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
  */
 
 #include "ModFolderPage.h"
@@ -143,11 +163,19 @@ ModFolderPage::ModFolderPage(
     ui(new Ui::ModFolderPage)
 {
     ui->setupUi(this);
+
+    // This is structured like that so that these changes
+    // do not affect the Resouce pack and Shader pack tabs
     if(id == "mods") {
-        auto act = new QAction(tr("Install Mods"), this);
-        ui->actionsToolbar->insertActionBefore(ui->actionView_configs,act);
+        auto act = new QAction(tr("Download mods"), this);
+        act->setToolTip(tr("Download mods from online mod platforms"));
+        ui->actionsToolbar->insertActionBefore(ui->actionAdd, act);
         connect(act, &QAction::triggered, this, &ModFolderPage::on_actionInstall_mods_triggered);
+
+        ui->actionAdd->setText(tr("Add .jar"));
+        ui->actionAdd->setToolTip(tr("Add mods via local file"));
     }
+
     ui->actionsToolbar->insertSpacer(ui->actionView_configs);
 
     m_inst = inst;
@@ -236,15 +264,17 @@ void ModFolderPage::on_RunningState_changed(bool running)
         return;
     }
     m_controlsEnabled = !running;
-    ui->actionAdd->setEnabled(m_controlsEnabled);
-    ui->actionDisable->setEnabled(m_controlsEnabled);
-    ui->actionEnable->setEnabled(m_controlsEnabled);
-    ui->actionRemove->setEnabled(m_controlsEnabled);
+    ui->actionsToolbar->setEnabled(m_controlsEnabled);
 }
 
 bool ModFolderPage::shouldDisplay() const
 {
     return true;
+}
+
+void ModFolderPage::retranslate()
+{
+    ui->retranslateUi(this);
 }
 
 bool CoreModFolderPage::shouldDisplay() const
@@ -365,8 +395,7 @@ void ModFolderPage::on_actionInstall_mods_triggered()
     }
     ModDownloadDialog mdownload(m_mods, this, m_inst);
     if(mdownload.exec()) {
-        ModDownloadTask *task = mdownload.getTask();
-        if (task) {
+        for(auto task : mdownload.getTasks()){
             connect(task, &Task::failed, [this, task](QString reason) {
                 task->deleteLater();
                 CustomMessageBox::selectable(this, tr("Error"), reason, QMessageBox::Critical)->show();

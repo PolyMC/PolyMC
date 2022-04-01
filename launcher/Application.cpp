@@ -1,3 +1,38 @@
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2013-2021 MultiMC Contributors
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
+ */
+
 #include "Application.h"
 #include "BuildConfig.h"
 
@@ -192,27 +227,6 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
     #endif
     startTime = QDateTime::currentDateTime();
 
-#ifdef Q_OS_LINUX
-    {
-        QFile osrelease("/proc/sys/kernel/osrelease");
-        if (osrelease.open(QFile::ReadOnly | QFile::Text)) {
-            QTextStream in(&osrelease);
-            auto contents = in.readAll();
-            if(
-                contents.contains("WSL", Qt::CaseInsensitive) ||
-                contents.contains("Microsoft", Qt::CaseInsensitive)
-            ) {
-                showFatalErrorMessage(
-                    "Unsupported system detected!",
-                    "Linux-on-Windows distributions are not supported.\n\n"
-                    "Please use the Windows binary when playing on Windows."
-                );
-                return;
-            }
-        }
-    }
-#endif
-
     // Don't quit on hiding the last window
     this->setQuitOnLastWindowClosed(false);
 
@@ -285,11 +299,20 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
             return;
         }
     }
+
     m_instanceIdToLaunch = args["launch"].toString();
     m_serverToJoin = args["server"].toString();
     m_profileToUse = args["profile"].toString();
     m_liveCheck = args["alive"].toBool();
     m_zipToImport = args["import"].toUrl();
+
+    // error if --launch is missing with --server or --profile
+    if((!m_serverToJoin.isEmpty() || !m_profileToUse.isEmpty()) && m_instanceIdToLaunch.isEmpty())
+    {
+        std::cerr << "--server and --profile can only be used in combination with --launch!" << std::endl;
+        m_status = Application::Failed;
+        return;
+    }
 
     QString origcwdPath = QDir::currentPath();
     QString binPath = applicationDirPath();
@@ -306,16 +329,20 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
     }
     else
     {
-#ifdef LAUNCHER_LINUX_DATADIR
-        QString xdgDataHome = QFile::decodeName(qgetenv("XDG_DATA_HOME"));
-        if (xdgDataHome.isEmpty())
-            xdgDataHome = QDir::homePath() + QLatin1String("/.local/share");
-        dataPath = xdgDataHome + "/polymc";
-        adjustedBy += "XDG standard " + dataPath;
-#elif defined(Q_OS_MAC)
+#if !defined(LAUNCHER_PORTABLE) || defined(Q_OS_MAC)
         QDir foo(FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), ".."));
         dataPath = foo.absolutePath();
-        adjustedBy += "Fallback to special Mac location " + dataPath;
+        adjustedBy += dataPath;
+
+#ifdef Q_OS_LINUX
+        // TODO: this should be removed in a future version
+        // TODO: provide a migration path similar to macOS migration
+        QDir bar(FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation), "polymc"));
+        if (bar.exists()) {
+            dataPath = bar.absolutePath();
+            adjustedBy += "Legacy data path " + dataPath;
+        }
+#endif
 #else
         dataPath = applicationDirPath();
         adjustedBy += "Fallback to binary path " + dataPath;
@@ -356,20 +383,6 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
                 "The launcher cannot continue until you fix this problem."
             ).arg(dataPath)
         );
-        return;
-    }
-
-    if(m_instanceIdToLaunch.isEmpty() && !m_serverToJoin.isEmpty())
-    {
-        std::cerr << "--server can only be used in combination with --launch!" << std::endl;
-        m_status = Application::Failed;
-        return;
-    }
-
-    if(m_instanceIdToLaunch.isEmpty() && !m_profileToUse.isEmpty())
-    {
-        std::cerr << "--account can only be used in combination with --launch!" << std::endl;
-        m_status = Application::Failed;
         return;
     }
 
@@ -531,12 +544,14 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
 #elif defined(Q_OS_WIN32)
         m_rootPath = binPath;
 #elif defined(Q_OS_MAC)
-        QDir foo(FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), ".."));
+        QDir foo(FS::PathCombine(binPath, "../.."));
         m_rootPath = foo.absolutePath();
+        // on macOS, touch the root to force Finder to reload the .app metadata (and fix any icon change issues)
+        FS::updateTimestamp(m_rootPath);
 #endif
 
-#ifdef MULTIMC_JARS_LOCATION
-        m_jarsPath = TOSTRING(MULTIMC_JARS_LOCATION);
+#ifdef LAUNCHER_JARS_LOCATION
+        m_jarsPath = TOSTRING(LAUNCHER_JARS_LOCATION);
 #endif
 
         qDebug() << BuildConfig.LAUNCHER_DISPLAYNAME << ", (c) 2013-2021 " << BuildConfig.LAUNCHER_COPYRIGHT;
@@ -566,26 +581,23 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         qDebug() << "<> Paths set.";
     }
 
-    do // once
+    if(m_liveCheck)
     {
-        if(m_liveCheck)
+        QFile check(liveCheckFile);
+        if(check.open(QIODevice::WriteOnly | QIODevice::Truncate))
         {
-            QFile check(liveCheckFile);
-            if(!check.open(QIODevice::WriteOnly | QIODevice::Truncate))
-            {
-                qWarning() << "Could not open" << liveCheckFile << "for writing!";
-                break;
-            }
             auto payload = appID.toString().toUtf8();
-            if(check.write(payload) != payload.size())
+            if(check.write(payload) == payload.size())
             {
+                check.close();
+            } else {
                 qWarning() << "Could not write into" << liveCheckFile << "!";
-                check.remove();
-                break;
+                check.remove();  // also closes file!
             }
-            check.close();
+        } else {
+            qWarning() << "Could not open" << liveCheckFile << "for writing!";
         }
-    } while(false);
+    }
 
     // Initialize application settings
     {
@@ -597,9 +609,6 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         // Theming
         m_settings->registerSetting("IconTheme", QString("pe_colored"));
         m_settings->registerSetting("ApplicationTheme", QString("system"));
-
-        // Notifications
-        m_settings->registerSetting("ShownNotifications", QString());
 
         // Remembered state
         m_settings->registerSetting("LastUsedGroupForNewInstance", QString());
@@ -718,6 +727,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("PastebinURL", "https://0x0.st");
 
         m_settings->registerSetting("CloseAfterLaunch", false);
+        m_settings->registerSetting("QuitAfterGameStop", false);
 
         // Custom MSA credentials
         m_settings->registerSetting("MSAClientIDOverride", "");
@@ -1130,6 +1140,15 @@ std::vector<ITheme *> Application::getValidApplicationThemes()
     return ret;
 }
 
+bool Application::isFlatpak()
+{
+    #ifdef Q_OS_LINUX
+    return QFile::exists("/.flatpak-info");
+    #else
+    return false;
+    #endif
+}
+
 void Application::setApplicationTheme(const QString& name, bool initial)
 {
     auto systemPalette = qApp->palette();
@@ -1517,10 +1536,10 @@ QString Application::getJarsPath()
     {
         return FS::PathCombine(QCoreApplication::applicationDirPath(), "jars");
     }
-    return m_jarsPath;
+    return FS::PathCombine(m_rootPath, m_jarsPath);
 }
 
-QString Application::getMSAClientID() 
+QString Application::getMSAClientID()
 {
     QString clientIDOverride = m_settings->get("MSAClientIDOverride").toString();
     if (!clientIDOverride.isEmpty()) {

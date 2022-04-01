@@ -59,7 +59,6 @@
 #include <net/NetJob.h>
 #include <net/Download.h>
 #include <news/NewsChecker.h>
-#include <notifications/NotificationChecker.h>
 #include <tools/BaseProfiler.h>
 #include <updater/DownloadTask.h>
 #include <updater/UpdateChecker.h>
@@ -82,7 +81,6 @@
 #include "ui/dialogs/CopyInstanceDialog.h"
 #include "ui/dialogs/UpdateDialog.h"
 #include "ui/dialogs/EditAccountDialog.h"
-#include "ui/dialogs/NotificationDialog.h"
 #include "ui/dialogs/ExportInstanceDialog.h"
 
 #include "UpdateController.h"
@@ -235,6 +233,7 @@ public:
     TranslatedToolButton helpMenuButton;
     TranslatedAction actionReportBug;
     TranslatedAction actionDISCORD;
+    TranslatedAction actionMATRIX;
     TranslatedAction actionREDDIT;
     TranslatedAction actionAbout;
 
@@ -274,8 +273,8 @@ public:
     {
         mainToolBar = TranslatedToolbar(MainWindow);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
-        mainToolBar->setMovable(false);
-        mainToolBar->setAllowedAreas(Qt::TopToolBarArea);
+        mainToolBar->setMovable(true);
+        mainToolBar->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
         mainToolBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         mainToolBar->setFloatable(false);
         mainToolBar.setWindowTitleId(QT_TRANSLATE_NOOP("MainWindow", "Main Toolbar"));
@@ -343,13 +342,23 @@ public:
             all_actions.append(&actionReportBug);
             helpMenu->addAction(actionReportBug);
         }
+        
+        if(!BuildConfig.MATRIX_URL.isEmpty()) {
+            actionMATRIX = TranslatedAction(MainWindow);
+            actionMATRIX->setObjectName(QStringLiteral("actionMATRIX"));
+            actionMATRIX->setIcon(APPLICATION->getThemedIcon("matrix"));
+            actionMATRIX.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Matrix space"));
+            actionMATRIX.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Open %1 Matrix space"));
+            all_actions.append(&actionMATRIX);
+            helpMenu->addAction(actionMATRIX);
+        }
 
         if (!BuildConfig.DISCORD_URL.isEmpty()) {
             actionDISCORD = TranslatedAction(MainWindow);
             actionDISCORD->setObjectName(QStringLiteral("actionDISCORD"));
             actionDISCORD->setIcon(APPLICATION->getThemedIcon("discord"));
-            actionDISCORD.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Discord"));
-            actionDISCORD.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Open %1 discord voice chat."));
+            actionDISCORD.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Discord guild"));
+            actionDISCORD.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Open %1 Discord guild."));
             all_actions.append(&actionDISCORD);
             helpMenu->addAction(actionDISCORD);
         }
@@ -358,7 +367,7 @@ public:
             actionREDDIT = TranslatedAction(MainWindow);
             actionREDDIT->setObjectName(QStringLiteral("actionREDDIT"));
             actionREDDIT->setIcon(APPLICATION->getThemedIcon("reddit-alien"));
-            actionREDDIT.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Reddit"));
+            actionREDDIT.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Subreddit"));
             actionREDDIT.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Open %1 subreddit."));
             all_actions.append(&actionREDDIT);
             helpMenu->addAction(actionREDDIT);
@@ -433,8 +442,8 @@ public:
     {
         newsToolBar = TranslatedToolbar(MainWindow);
         newsToolBar->setObjectName(QStringLiteral("newsToolBar"));
-        newsToolBar->setMovable(false);
-        newsToolBar->setAllowedAreas(Qt::BottomToolBarArea);
+        newsToolBar->setMovable(true);
+        newsToolBar->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
         newsToolBar->setIconSize(QSize(16, 16));
         newsToolBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         newsToolBar->setFloatable(false);
@@ -458,6 +467,7 @@ public:
         instanceToolBar->setObjectName(QStringLiteral("instanceToolBar"));
         // disabled until we have an instance selected
         instanceToolBar->setEnabled(false);
+        instanceToolBar->setMovable(true);
         instanceToolBar->setAllowedAreas(Qt::LeftToolBarArea | Qt::RightToolBarArea);
         instanceToolBar->setToolButtonStyle(Qt::ToolButtonTextOnly);
         instanceToolBar->setFloatable(false);
@@ -556,7 +566,7 @@ public:
         actionViewSelectedMCFolder = TranslatedAction(MainWindow);
         actionViewSelectedMCFolder->setObjectName(QStringLiteral("actionViewSelectedMCFolder"));
         actionViewSelectedMCFolder.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Minecraft Folder"));
-        actionViewSelectedMCFolder.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Open the selected instance's minecraft folder in a file browser."));
+        actionViewSelectedMCFolder.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Open the selected instance's Minecraft folder in a file browser."));
         all_actions.append(&actionViewSelectedMCFolder);
         instanceToolBar->addAction(actionViewSelectedMCFolder);
 
@@ -588,13 +598,13 @@ public:
         actionExportInstance = TranslatedAction(MainWindow);
         actionExportInstance->setObjectName(QStringLiteral("actionExportInstance"));
         actionExportInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Export Instance"));
-        // FIXME: missing tooltip
+        actionExportInstance.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Export the selected instance as a zip file."));
         all_actions.append(&actionExportInstance);
         instanceToolBar->addAction(actionExportInstance);
 
         actionDeleteInstance = TranslatedAction(MainWindow);
         actionDeleteInstance->setObjectName(QStringLiteral("actionDeleteInstance"));
-        actionDeleteInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Delete"));
+        actionDeleteInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Delete Instance"));
         actionDeleteInstance.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Delete the selected instance."));
         all_actions.append(&actionDeleteInstance);
         instanceToolBar->addAction(actionDeleteInstance);
@@ -833,17 +843,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
         {
             updater->checkForUpdate(APPLICATION->settings()->get("UpdateChannel").toString(), false);
         }
-    }
-
-    {
-        auto checker = new NotificationChecker();
-        checker->setNotificationsUrl(QUrl(BuildConfig.NOTIFICATION_URL));
-        checker->setApplicationChannel(BuildConfig.VERSION_CHANNEL);
-        checker->setApplicationPlatform(BuildConfig.BUILD_PLATFORM);
-        checker->setApplicationFullVersion(BuildConfig.FULL_VERSION_STR);
-        m_notificationChecker.reset(checker);
-        connect(m_notificationChecker.get(), &NotificationChecker::notificationCheckFinished, this, &MainWindow::notificationsChanged);
-        checker->checkForNotifications();
     }
 
     setSelectedInstanceById(APPLICATION->settings()->get("SelectedInstance").toString());
@@ -1257,24 +1256,6 @@ QString intListToString(const QList<int> &list)
     }
     return slist.join(',');
 }
-void MainWindow::notificationsChanged()
-{
-    QList<NotificationChecker::NotificationEntry> entries = m_notificationChecker->notificationEntries();
-    QList<int> shownNotifications = stringToIntList(APPLICATION->settings()->get("ShownNotifications").toString());
-    for (auto it = entries.begin(); it != entries.end(); ++it)
-    {
-        NotificationChecker::NotificationEntry entry = *it;
-        if (!shownNotifications.contains(entry.id))
-        {
-            NotificationDialog dialog(entry, this);
-            if (dialog.exec() == NotificationDialog::DontShowAgain)
-            {
-                shownNotifications.append(entry.id);
-            }
-        }
-    }
-    APPLICATION->settings()->set("ShownNotifications", intListToString(shownNotifications));
-}
 
 void MainWindow::downloadUpdates(GoUpdate::Status status)
 {
@@ -1500,6 +1481,11 @@ void MainWindow::on_actionDISCORD_triggered()
     DesktopServices::openUrl(QUrl(BuildConfig.DISCORD_URL));
 }
 
+void MainWindow::on_actionMATRIX_triggered()
+{
+    DesktopServices::openUrl(QUrl(BuildConfig.MATRIX_URL));
+}
+
 void MainWindow::on_actionChangeInstIcon_triggered()
 {
     if (!m_selectedInstance)
@@ -1582,7 +1568,7 @@ void MainWindow::deleteGroup()
     QString groupName = map["group"].toString();
     if(!groupName.isEmpty())
     {
-        auto reply = QMessageBox::question(this, tr("Delete group"), tr("Are you sure you want to delete the group %1")
+        auto reply = QMessageBox::question(this, tr("Delete group"), tr("Are you sure you want to delete the group %1?")
             .arg(groupName), QMessageBox::Yes | QMessageBox::No);
         if(reply == QMessageBox::Yes)
         {

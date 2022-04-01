@@ -114,7 +114,7 @@ void PackInstallTask::install()
         //ok, found minecraft dir, move contents to instance dir
         if(!QDir().rename(m_stagingPath + "/unzip/minecraft", m_stagingPath + "/.minecraft"))
         {
-            emitFailed(tr("Failed to move unzipped minecraft!"));
+            emitFailed(tr("Failed to move unzipped Minecraft!"));
             return;
         }
     }
@@ -122,8 +122,6 @@ void PackInstallTask::install()
     QString instanceConfigPath = FS::PathCombine(m_stagingPath, "instance.cfg");
     auto instanceSettings = std::make_shared<INISettingsObject>(instanceConfigPath);
     instanceSettings->suspendSave();
-    instanceSettings->registerSetting("InstanceType", "Legacy");
-    instanceSettings->set("InstanceType", "OneSix");
 
     MinecraftInstance instance(m_globalSettings, instanceSettings, m_stagingPath);
     auto components = instance.getPackProfile();

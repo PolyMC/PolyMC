@@ -144,6 +144,8 @@ set(LAUNCH_SOURCES
     launch/steps/TextPrint.h
     launch/steps/Update.cpp
     launch/steps/Update.h
+    launch/steps/QuitAfterGameStop.cpp
+    launch/steps/QuitAfterGameStop.h
     launch/LaunchStep.cpp
     launch/LaunchStep.h
     launch/LaunchTask.cpp
@@ -173,13 +175,6 @@ add_unit_test(DownloadTask
     LIBS Launcher_logic
     DATA updater/testdata
     )
-
-# Rarely used notifications
-set(NOTIFICATIONS_SOURCES
-    # Notifications - short warning messages
-    notifications/NotificationChecker.h
-    notifications/NotificationChecker.cpp
-)
 
 # Backend for the news bar... there's usually no news.
 set(NEWS_SOURCES
@@ -286,13 +281,6 @@ set(MINECRAFT_SOURCES
     minecraft/launch/VerifyJavaInstall.cpp
     minecraft/launch/VerifyJavaInstall.h
 
-    minecraft/legacy/LegacyModList.h
-    minecraft/legacy/LegacyModList.cpp
-    minecraft/legacy/LegacyInstance.h
-    minecraft/legacy/LegacyInstance.cpp
-    minecraft/legacy/LegacyUpgradeTask.h
-    minecraft/legacy/LegacyUpgradeTask.cpp
-
     minecraft/GradleSpecifier.h
     minecraft/MinecraftInstance.cpp
     minecraft/MinecraftInstance.h
@@ -367,21 +355,23 @@ add_unit_test(GradleSpecifier
     LIBS Launcher_logic
     )
 
-add_executable(PackageManifest
-    mojang/PackageManifest_test.cpp
-)
-target_link_libraries(PackageManifest
-    Launcher_logic
-    Qt5::Test
-)
-target_include_directories(PackageManifest
-    PRIVATE ../cmake/UnitTest/
-)
-add_test(
-    NAME PackageManifest
-    COMMAND PackageManifest
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
+if(BUILD_TESTING)
+    add_executable(PackageManifest
+        mojang/PackageManifest_test.cpp
+    )
+    target_link_libraries(PackageManifest
+        Launcher_logic
+        Qt5::Test
+    )
+    target_include_directories(PackageManifest
+        PRIVATE ../cmake/UnitTest/
+    )
+    add_test(
+        NAME PackageManifest
+        COMMAND PackageManifest
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+endif()
 
 add_unit_test(MojangVersionFormat
     SOURCES minecraft/MojangVersionFormat_test.cpp
@@ -499,6 +489,16 @@ set(META_SOURCES
     meta/Index.h
 )
 
+set(API_SOURCES
+    modplatform/ModAPI.h
+
+    modplatform/flame/FlameAPI.h
+    modplatform/modrinth/ModrinthAPI.h
+    
+    modplatform/helpers/NetworkModAPI.h
+    modplatform/helpers/NetworkModAPI.cpp
+)
+
 set(FTB_SOURCES
     modplatform/legacy_ftb/PackFetchTask.h
     modplatform/legacy_ftb/PackFetchTask.cpp
@@ -568,7 +568,6 @@ set(LOGIC_SOURCES
     ${NET_SOURCES}
     ${LAUNCH_SOURCES}
     ${UPDATE_SOURCES}
-    ${NOTIFICATIONS_SOURCES}
     ${NEWS_SOURCES}
     ${MINECRAFT_SOURCES}
     ${SCREENSHOTS_SOURCES}
@@ -579,6 +578,7 @@ set(LOGIC_SOURCES
     ${TOOLS_SOURCES}
     ${META_SOURCES}
     ${ICONS_SOURCES}
+    ${API_SOURCES}
     ${FTB_SOURCES}
     ${FLAME_SOURCES}
     ${MODRINTH_SOURCES}
@@ -701,8 +701,6 @@ SET(LAUNCHER_SOURCES
     ui/pages/instance/OtherLogsPage.h
     ui/pages/instance/ServersPage.cpp
     ui/pages/instance/ServersPage.h
-    ui/pages/instance/LegacyUpgradePage.cpp
-    ui/pages/instance/LegacyUpgradePage.h
     ui/pages/instance/WorldListPage.cpp
     ui/pages/instance/WorldListPage.h
 
@@ -729,6 +727,11 @@ SET(LAUNCHER_SOURCES
     # GUI - platform pages
     ui/pages/modplatform/VanillaPage.cpp
     ui/pages/modplatform/VanillaPage.h
+
+    ui/pages/modplatform/ModPage.cpp
+    ui/pages/modplatform/ModPage.h
+    ui/pages/modplatform/ModModel.cpp
+    ui/pages/modplatform/ModModel.h
 
     ui/pages/modplatform/atlauncher/AtlFilterModel.cpp
     ui/pages/modplatform/atlauncher/AtlFilterModel.h
@@ -800,12 +803,12 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/NewComponentDialog.h
     ui/dialogs/NewInstanceDialog.cpp
     ui/dialogs/NewInstanceDialog.h
-    ui/dialogs/NotificationDialog.cpp
-    ui/dialogs/NotificationDialog.h
     ui/pagedialog/PageDialog.cpp
     ui/pagedialog/PageDialog.h
     ui/dialogs/ProgressDialog.cpp
     ui/dialogs/ProgressDialog.h
+    ui/dialogs/ReviewMessageBox.cpp
+    ui/dialogs/ReviewMessageBox.h
     ui/dialogs/UpdateDialog.cpp
     ui/dialogs/UpdateDialog.h
     ui/dialogs/VersionSelectDialog.cpp
@@ -884,18 +887,16 @@ qt5_wrap_ui(LAUNCHER_UI
     ui/pages/instance/InstanceSettingsPage.ui
     ui/pages/instance/VersionPage.ui
     ui/pages/instance/WorldListPage.ui
-    ui/pages/instance/LegacyUpgradePage.ui
     ui/pages/instance/ScreenshotsPage.ui
     ui/pages/modplatform/atlauncher/AtlOptionalModDialog.ui
     ui/pages/modplatform/atlauncher/AtlPage.ui
     ui/pages/modplatform/VanillaPage.ui
+    ui/pages/modplatform/ModPage.ui
     ui/pages/modplatform/flame/FlamePage.ui
-    ui/pages/modplatform/flame/FlameModPage.ui
     ui/pages/modplatform/legacy_ftb/Page.ui
     ui/pages/modplatform/ImportPage.ui
     ui/pages/modplatform/ftb/FtbPage.ui
     ui/pages/modplatform/technic/TechnicPage.ui
-    ui/pages/modplatform/modrinth/ModrinthPage.ui
     ui/widgets/InstanceCardWidget.ui
     ui/widgets/CustomCommands.ui
     ui/widgets/MCModInfoFrame.ui
@@ -903,7 +904,6 @@ qt5_wrap_ui(LAUNCHER_UI
     ui/dialogs/ProfileSetupDialog.ui
     ui/dialogs/ProgressDialog.ui
     ui/dialogs/NewInstanceDialog.ui
-    ui/dialogs/NotificationDialog.ui
     ui/dialogs/UpdateDialog.ui
     ui/dialogs/NewComponentDialog.ui
     ui/dialogs/ProfileSelectDialog.ui
@@ -915,6 +915,7 @@ qt5_wrap_ui(LAUNCHER_UI
     ui/dialogs/AboutDialog.ui
     ui/dialogs/LoginDialog.ui
     ui/dialogs/EditAccountDialog.ui
+    ui/dialogs/ReviewMessageBox.ui
 )
 
 qt5_add_resources(LAUNCHER_RESOURCES
@@ -959,8 +960,8 @@ target_link_libraries(Launcher_logic
     Launcher_iconfix
     QuaZip::QuaZip
     hoedown
-    PolyMC_rainbow
     LocalPeer
+    Launcher_rainbow
 )
 
 target_link_libraries(Launcher_logic)
@@ -1002,7 +1003,7 @@ if(INSTALL_BUNDLE STREQUAL "full")
             DIRECTORY "${QT_PLUGINS_DIR}/imageformats"
             DESTINATION ${PLUGIN_DEST_DIR}
             COMPONENT Runtime
-            REGEX "tga|tiff|mng|webp" EXCLUDE
+            REGEX "tga|tiff|mng" EXCLUDE
         )
         # Icon engines
         install(
@@ -1032,7 +1033,7 @@ if(INSTALL_BUNDLE STREQUAL "full")
             DIRECTORY "${QT_PLUGINS_DIR}/imageformats"
             DESTINATION ${PLUGIN_DEST_DIR}
             COMPONENT Runtime
-            REGEX "tga|tiff|mng|webp" EXCLUDE
+            REGEX "tga|tiff|mng" EXCLUDE
             REGEX "d\\." EXCLUDE
             REGEX "_debug\\." EXCLUDE
             REGEX "\\.dSYM" EXCLUDE

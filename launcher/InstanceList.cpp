@@ -32,7 +32,6 @@
 #include "BaseInstance.h"
 #include "InstanceTask.h"
 #include "settings/INISettingsObject.h"
-#include "minecraft/legacy/LegacyInstance.h"
 #include "NullInstance.h"
 #include "minecraft/MinecraftInstance.h"
 #include "FileSystem.h"
@@ -544,23 +543,8 @@ InstancePtr InstanceList::loadInstance(const InstanceId& id)
     auto instanceRoot = FS::PathCombine(m_instDir, id);
     auto instanceSettings = std::make_shared<INISettingsObject>(FS::PathCombine(instanceRoot, "instance.cfg"));
     InstancePtr inst;
-
-    instanceSettings->registerSetting("InstanceType", "Legacy");
-
-    QString inst_type = instanceSettings->get("InstanceType").toString();
-
-    if (inst_type == "OneSix" || inst_type == "Nostalgia")
-    {
-        inst.reset(new MinecraftInstance(m_globalSettings, instanceSettings, instanceRoot));
-    }
-    else if (inst_type == "Legacy")
-    {
-        inst.reset(new LegacyInstance(m_globalSettings, instanceSettings, instanceRoot));
-    }
-    else
-    {
-        inst.reset(new NullInstance(m_globalSettings, instanceSettings, instanceRoot));
-    }
+    // TODO: Handle incompatible instances
+    inst.reset(new MinecraftInstance(m_globalSettings, instanceSettings, instanceRoot));
     qDebug() << "Loaded instance " << inst->name() << " from " << inst->instanceRoot();
     return inst;
 }

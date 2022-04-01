@@ -1,0 +1,70 @@
+name: Build Application and Make Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+
+  build_release:
+    name: Build Release
+    uses: ./.github/workflows/build.yml
+    with:
+      build_type: Release
+
+  create_release:
+    needs: build_release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: 'true'
+          path: 'PolyMC-source'
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+      - name: Grab and store version
+        run: |
+          tag_name=$(echo ${{ github.ref }} | grep -oE "[^/]+$")
+          echo "VERSION=$tag_name" >> $GITHUB_ENV
+      - name: Package artifacts properly
+        run: |
+          mv ${{ github.workspace }}/PolyMC-source PolyMC-${{ env.VERSION }}
+          mv PolyMC-Linux*/PolyMC.tar.gz PolyMC-Linux-${{ env.VERSION }}.tar.gz
+          mv PolyMC-*.AppImage/PolyMC-*.AppImage PolyMC-Linux-${{ env.VERSION }}-x86_64.AppImage
+          mv PolyMC-macOS*/PolyMC.tar.gz PolyMC-macOS-${{ env.VERSION }}.tar.gz
+
+          tar -czf PolyMC-${{ env.VERSION }}.tar.gz PolyMC-${{ env.VERSION }}
+
+          for d in PolyMC-Windows-*; do
+            cd "${d}" || continue
+            ARCH="$(echo -n ${d} | cut -d '-' -f 3)"
+            PORT="$(echo -n ${d} | grep -o portable || true)"
+            NAME="PolyMC-Windows-${ARCH}"
+            test -z "${PORT}" || NAME="${NAME}-portable"
+            zip -r -9 "../${NAME}-${{ env.VERSION }}.zip" *
+            cd ..
+          done
+
+      - name: Create release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          name: PolyMC ${{ env.VERSION }}
+          draft: true
+          prerelease: false
+          files: |
+            PolyMC-Linux-${{ env.VERSION }}.tar.gz
+            PolyMC-Linux-${{ env.VERSION }}-x86_64.AppImage
+            PolyMC-Windows-i686-${{ env.VERSION }}.zip
+            PolyMC-Windows-i686-portable-${{ env.VERSION }}.zip
+            PolyMC-Windows-x86_64-${{ env.VERSION }}.zip
+            PolyMC-Windows-x86_64-portable-${{ env.VERSION }}.zip
+            PolyMC-macOS-${{ env.VERSION }}.tar.gz
+            PolyMC-${{ env.VERSION }}.tar.gz

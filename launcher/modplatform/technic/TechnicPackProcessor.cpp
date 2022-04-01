@@ -31,8 +31,6 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings, const 
     QString minecraftPath = FS::PathCombine(stagingPath, ".minecraft");
     QString configPath = FS::PathCombine(stagingPath, "instance.cfg");
     auto instanceSettings = std::make_shared<INISettingsObject>(configPath);
-    instanceSettings->registerSetting("InstanceType", "Legacy");
-    instanceSettings->set("InstanceType", "OneSix");
     MinecraftInstance instance(globalSettings, instanceSettings, stagingPath);
 
     instance.setName(instName);
@@ -90,7 +88,7 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings, const 
         else
         {
             if (minecraftVersion.isEmpty())
-                emit failed(tr("Could not find \"version.json\" inside \"bin/modpack.jar\", but minecraft version is unknown"));
+                emit failed(tr("Could not find \"version.json\" inside \"bin/modpack.jar\", but Minecraft version is unknown"));
             components->setComponentVersion("net.minecraft", minecraftVersion, true);
             components->installJarMods({modpackJar});
 

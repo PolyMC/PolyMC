@@ -1,3 +1,38 @@
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2013-2021 MultiMC Contributors
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
+ */
+
 #include "MSAStep.h"
 
 #include <QNetworkRequest>
@@ -12,9 +47,10 @@ using OAuth2 = Katabasis::DeviceFlow;
 using Activity = Katabasis::Activity;
 
 MSAStep::MSAStep(AccountData* data, Action action) : AuthStep(data), m_action(action) {
+    m_clientId = APPLICATION->getMSAClientID();
     OAuth2::Options opts;
     opts.scope = "XboxLive.signin offline_access";
-    opts.clientIdentifier = APPLICATION->getMSAClientID();
+    opts.clientIdentifier = m_clientId;
     opts.authorizationUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode";
     opts.accessTokenUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
 
@@ -48,6 +84,10 @@ void MSAStep::rehydrate() {
 void MSAStep::perform() {
     switch(m_action) {
         case Refresh: {
+            if (m_data->msaClientID != m_clientId) {
+                emit hideVerificationUriAndCode();
+                emit finished(AccountTaskState::STATE_DISABLED, tr("Microsoft user authentication failed - client identification has changed."));
+            }
             m_oauth2->refresh();
             return;
         }
@@ -57,6 +97,7 @@ void MSAStep::perform() {
             m_oauth2->setExtraRequestParams(extraOpts);
 
             *m_data = AccountData();
+            m_data->msaClientID = m_clientId;
             m_oauth2->login();
             return;
         }

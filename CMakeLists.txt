@@ -6,7 +6,7 @@ if(WIN32)
 endif()
 
 project(Launcher)
-enable_testing()
+include(CTest)
 
 string(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_BUILD_DIR}" IS_IN_SOURCE_BUILD)
 if(IS_IN_SOURCE_BUILD)
@@ -46,25 +46,23 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DQT_NO_DEPRECATED_WARNINGS=Y")
 ##################################### Set Application options #####################################
 
 ######## Set URLs ########
-set(Launcher_NEWS_RSS_URL "https://polymc.github.io/feed/feed.xml" CACHE STRING "URL to fetch PolyMC's news RSS feed from.")
-set(Launcher_NEWS_OPEN_URL "https://polymc.github.io/news/" CACHE STRING "URL that gets opened when the user clicks 'More News'")
+set(Launcher_NEWS_RSS_URL "https://polymc.org/feed/feed.xml" CACHE STRING "URL to fetch PolyMC's news RSS feed from.")
+set(Launcher_NEWS_OPEN_URL "https://polymc.org/news" CACHE STRING "URL that gets opened when the user clicks 'More News'")
+set(Launcher_HELP_URL "https://polymc.org/wiki/%1" CACHE STRING "URL (with arg %1 to be substituted with page-id) that gets opened when the user requests help")
 
 ######## Set version numbers ########
 set(Launcher_VERSION_MAJOR    1)
-set(Launcher_VERSION_MINOR    0)
-set(Launcher_VERSION_HOTFIX   6)
+set(Launcher_VERSION_MINOR    1)
+set(Launcher_VERSION_HOTFIX   1)
 
 # Build number
 set(Launcher_VERSION_BUILD -1 CACHE STRING "Build number. -1 for no build number.")
 
 # Build platform.
-set(Launcher_BUILD_PLATFORM "" CACHE STRING "A short string identifying the platform that this build was built for. Only used by the notification system and to display in the about dialog.")
+set(Launcher_BUILD_PLATFORM "" CACHE STRING "A short string identifying the platform that this build was built for. Only used to display in the about dialog.")
 
 # Channel list URL
 set(Launcher_UPDATER_BASE "" CACHE STRING "Base URL for the updater.")
-
-# Notification URL
-set(Launcher_NOTIFICATION_URL "" CACHE STRING "URL for checking for notifications.")
 
 # The metadata server
 set(Launcher_META_URL "https://meta.polymc.org/v1/" CACHE STRING "URL to fetch Launcher's meta files from.")
@@ -73,7 +71,7 @@ set(Launcher_META_URL "https://meta.polymc.org/v1/" CACHE STRING "URL to fetch L
 set(Launcher_IMGUR_CLIENT_ID "5b97b0713fba4a3" CACHE STRING "Client ID you can get from Imgur when you register an application")
 
 # MSA Client ID
-set(Launcher_MSA_CLIENT_ID "17b47edd-c884-4997-926d-9e7f9a6b4647" CACHE STRING "Client ID you can get from Microsoft Identity Platform when you register an application")
+set(Launcher_MSA_CLIENT_ID "549033b2-1532-4d4e-ae77-1bbaa46f9d74" CACHE STRING "Client ID you can get from Microsoft Identity Platform when you register an application")
 
 # Bug tracker URL
 set(Launcher_BUG_TRACKER_URL "https://github.com/PolyMC/PolyMC/issues" CACHE STRING "URL for the bug tracker.")
@@ -81,8 +79,13 @@ set(Launcher_BUG_TRACKER_URL "https://github.com/PolyMC/PolyMC/issues" CACHE STR
 # Translations Platform URL
 set(Launcher_TRANSLATIONS_URL "https://hosted.weblate.org/projects/polymc/polymc/" CACHE STRING "URL for the translations platform.")
 
+# Matrix Space
+set(Launcher_MATRIX_URL "https://matrix.to/#/#polymc:polymc.org" CACHE STRING "URL to the Matrix Space")
+
 # Discord URL
 set(Launcher_DISCORD_URL "https://discord.gg/Z52pwxWCHP" CACHE STRING "URL for the Discord guild.")
+
+
 
 # Subreddit URL
 set(Launcher_SUBREDDIT_URL "" CACHE STRING "URL for the subreddit.")
@@ -146,25 +149,15 @@ add_subdirectory(program_info)
 
 ####################################### Install layout #######################################
 
-# How to install the build results
-set(Launcher_LAYOUT "auto" CACHE STRING "The layout for the launcher installation (auto, win-bundle, lin-nodeps, lin-system, mac-bundle)")
-set_property(CACHE Launcher_LAYOUT PROPERTY STRINGS auto win-bundle lin-nodeps lin-system mac-bundle)
+# Install the build results according to platform
+set(Launcher_PORTABLE 1 CACHE BOOL "The type of installation (Portable or System)")
 
-if(Launcher_LAYOUT STREQUAL "auto")
-    if(UNIX AND APPLE)
-        set(Launcher_LAYOUT_REAL "mac-bundle")
-    elseif(UNIX)
-        set(Launcher_LAYOUT_REAL "lin-nodeps")
-    elseif(WIN32)
-        set(Launcher_LAYOUT_REAL "win-bundle")
-    else()
-        message(FATAL_ERROR "Cannot choose a sensible install layout for your platform.")
-    endif()
-else()
-    set(Launcher_LAYOUT_REAL ${Launcher_LAYOUT})
+if (Launcher_PORTABLE)
+    # launcher/Application.cpp will use this value
+    set(Launcher_APP_BINARY_DEFS "-DLAUNCHER_PORTABLE")
 endif()
 
-if(Launcher_LAYOUT_REAL STREQUAL "mac-bundle")
+if(UNIX AND APPLE)
     set(BINARY_DEST_DIR "${Launcher_Name}.app/Contents/MacOS")
     set(LIBRARY_DEST_DIR "${Launcher_Name}.app/Contents/MacOS")
     set(PLUGIN_DEST_DIR "${Launcher_Name}.app/Contents/MacOS")
@@ -178,13 +171,13 @@ if(Launcher_LAYOUT_REAL STREQUAL "mac-bundle")
 
     # Mac bundle settings
     set(MACOSX_BUNDLE_BUNDLE_NAME "${Launcher_Name}")
-    set(MACOSX_BUNDLE_INFO_STRING "${Launcher_Name}:  Minecraft launcher and management utility.")
+    set(MACOSX_BUNDLE_INFO_STRING "${Launcher_Name}: A custom launcher for Minecraft that allows you to easily manage multiple installations of Minecraft at once.")
     set(MACOSX_BUNDLE_GUI_IDENTIFIER "org.polymc.${Launcher_Name}")
     set(MACOSX_BUNDLE_BUNDLE_VERSION "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.${Launcher_VERSION_HOTFIX}.${Launcher_VERSION_BUILD}")
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.${Launcher_VERSION_HOTFIX}.${Launcher_VERSION_BUILD}")
     set(MACOSX_BUNDLE_LONG_VERSION_STRING "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.${Launcher_VERSION_HOTFIX}.${Launcher_VERSION_BUILD}")
     set(MACOSX_BUNDLE_ICON_FILE ${Launcher_Name}.icns)
-    set(MACOSX_BUNDLE_COPYRIGHT "Copyright 2015-2021 ${Launcher_Copyright}")
+    set(MACOSX_BUNDLE_COPYRIGHT "Copyright 2021-2022 ${Launcher_Copyright}")
 
     # directories to look for dependencies
     set(DIRS ${QT_LIBS_DIR} ${QT_LIBEXECS_DIR} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -195,13 +188,30 @@ if(Launcher_LAYOUT_REAL STREQUAL "mac-bundle")
     # Add the icon
     install(FILES ${Launcher_Branding_ICNS} DESTINATION ${RESOURCES_DEST_DIR} RENAME ${Launcher_Name}.icns)
 
-elseif(Launcher_LAYOUT_REAL STREQUAL "lin-nodeps")
+elseif(UNIX)
     set(BINARY_DEST_DIR "bin")
-    set(LIBRARY_DEST_DIR "bin")
-    set(PLUGIN_DEST_DIR "plugins")
-    set(BUNDLE_DEST_DIR ".")
-    set(RESOURCES_DEST_DIR ".")
-    set(JARS_DEST_DIR "bin/jars")
+    if(Launcher_PORTABLE)
+        set(LIBRARY_DEST_DIR "bin")
+        set(BUNDLE_DEST_DIR ".")
+        set(JARS_DEST_DIR "bin/jars")
+
+        # Install basic runner script
+        configure_file(launcher/Launcher.in "${CMAKE_CURRENT_BINARY_DIR}/LauncherScript" @ONLY)
+        install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/LauncherScript" DESTINATION ${BUNDLE_DEST_DIR} RENAME ${Launcher_Name})
+    else()
+        set(LIBRARY_DEST_DIR "lib${LIB_SUFFIX}")
+        set(JARS_DEST_DIR "share/jars")
+        set(LAUNCHER_DESKTOP_DEST_DIR "share/applications" CACHE STRING "Path to the desktop file directory")
+        set(LAUNCHER_METAINFO_DEST_DIR "share/metainfo" CACHE STRING "Path to the metainfo directory")
+        set(LAUNCHER_ICON_DEST_DIR "share/icons/hicolor/scalable/apps" CACHE STRING "Path to the scalable icon directory")
+
+        # jars path is determined on runtime, relative to "Application root path", generally /usr for Launcher_PORTABLE=0
+        set(Launcher_APP_BINARY_DEFS "-DLAUNCHER_JARS_LOCATION=${JARS_DEST_DIR}")
+
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${Launcher_Desktop} DESTINATION ${LAUNCHER_DESKTOP_DEST_DIR})
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${Launcher_MetaInfo} DESTINATION ${LAUNCHER_METAINFO_DEST_DIR})
+        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${Launcher_SVG} DESTINATION ${LAUNCHER_ICON_DEST_DIR})
+    endif()
 
     # install as bundle with no dependencies included
     set(INSTALL_BUNDLE "nodeps")
@@ -209,33 +219,7 @@ elseif(Launcher_LAYOUT_REAL STREQUAL "lin-nodeps")
     # Set RPATH
     SET(Launcher_BINARY_RPATH "$ORIGIN/")
 
-    # Install basic runner script
-    configure_file(launcher/Launcher.in "${CMAKE_CURRENT_BINARY_DIR}/LauncherScript" @ONLY)
-    install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/LauncherScript" DESTINATION ${BUNDLE_DEST_DIR} RENAME ${Launcher_Name})
-
-elseif(Launcher_LAYOUT_REAL STREQUAL "lin-system")
-    set(Launcher_BINARY_DEST_DIR "bin" CACHE STRING "Path to the binary directory")
-    set(Launcher_LIBRARY_DEST_DIR "lib${LIB_SUFFIX}" CACHE STRING "Path to the library directory")
-    set(Launcher_SHARE_DEST_DIR "share/polymc" CACHE STRING "Path to the shared data directory")
-    set(JARS_DEST_DIR "${Launcher_SHARE_DEST_DIR}/jars")
-    set(Launcher_DESKTOP_DEST_DIR "share/applications" CACHE STRING "Path to the desktop file directory")
-    set(Launcher_METAINFO_DEST_DIR "share/metainfo" CACHE STRING "Path to the metainfo directory")
-    set(Launcher_ICON_DEST_DIR "share/icons/hicolor/scalable/apps" CACHE STRING "Path to the scalable icon directory")
-
-    set(BINARY_DEST_DIR ${Launcher_BINARY_DEST_DIR})
-    set(LIBRARY_DEST_DIR ${Launcher_LIBRARY_DEST_DIR})
-
-    MESSAGE(STATUS "Compiling for linux system with ${Launcher_SHARE_DEST_DIR} and LAUNCHER_LINUX_DATADIR")
-    SET(Launcher_APP_BINARY_DEFS "-DMULTIMC_JARS_LOCATION=${CMAKE_INSTALL_PREFIX}/${JARS_DEST_DIR}" "-DLAUNCHER_LINUX_DATADIR")
-
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${Launcher_Desktop} DESTINATION ${Launcher_DESKTOP_DEST_DIR})
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${Launcher_MetaInfo} DESTINATION ${Launcher_METAINFO_DEST_DIR})
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${Launcher_SVG} DESTINATION ${Launcher_ICON_DEST_DIR})
-
-    # install as bundle with no dependencies included
-    set(INSTALL_BUNDLE "nodeps")
-
-elseif(Launcher_LAYOUT_REAL STREQUAL "win-bundle")
+elseif(WIN32)
     set(BINARY_DEST_DIR ".")
     set(LIBRARY_DEST_DIR ".")
     set(PLUGIN_DEST_DIR ".")
@@ -252,7 +236,7 @@ elseif(Launcher_LAYOUT_REAL STREQUAL "win-bundle")
     # install as bundle
     set(INSTALL_BUNDLE "full")
 else()
-    message(FATAL_ERROR "No sensible install layout set.")
+    message(FATAL_ERROR "Platform not supported")
 endif()
 
 ################################ Included Libs ################################
