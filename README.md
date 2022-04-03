@@ -33,14 +33,22 @@ Feel free to create an issue if you need help. However, you might find it easier
 
 For people who don't want to use Discord, we have a Matrix Space which is bridged to the Discord server:
 
-[![PolyMC Space](https://img.shields.io/matrix/polymc:polymc.org?label=PolyMC%20Space&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#polymc:polymc.org)
+![PolyMC Space](https://img.shields.io/matrix/polymc:matrix.org?label=PolyMC%20space)
 
 If there are any issues with the space or you are using a client that does not support the feature here are the individual rooms:
 
-[![Support](https://img.shields.io/matrix/support:polymc.org?label=%23support&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#support:polymc.org)
-[![Discussion](https://img.shields.io/matrix/discussion:polymc.org?label=%23discussion&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#discussion:polymc.org)
-[![Development](https://img.shields.io/matrix/development:polymc.org?label=%23development&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#development:polymc.org)
-[![News](https://img.shields.io/matrix/news:polymc.org?label=%23news&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#news:polymc.org)
+![Development](https://img.shields.io/matrix/polymc-development:matrix.org?label=PolyMC%20Development)
+![Discussion](https://img.shields.io/matrix/polymc-discussion:matrix.org?label=PolyMC%20Discussion)
+![Github](https://img.shields.io/matrix/polymc-github:matrix.org?label=PolyMC%20Github)
+![Maintainers](https://img.shields.io/matrix/polymc-maintainers:matrix.org?label=PolyMC%20Maintainers)
+![News](https://img.shields.io/matrix/polymc-news:matrix.org?label=PolyMC%20News)
+![Offtopic](https://img.shields.io/matrix/polymc-offtopic:matrix.org?label=PolyMC%20Offtopic)
+![Support](https://img.shields.io/matrix/polymc-support:matrix.org?label=PolyMC%20Support)
+![Voice](https://img.shields.io/matrix/polymc-voice:matrix.org?label=PolyMC%20Voice)
+
+We also have a subreddit that you can post your questions or issues to:
+
+[r/PolyMCLauncher](https://www.reddit.com/r/PolyMCLauncher/)
 
 # Development
 
