@@ -11,6 +11,7 @@
 #include <QPushButton>
 #include <QValidator>
 #include <QDialogButtonBox>
+#include <QDesktopWidget>
 
 #include "ui/widgets/PageContainer.h"
 #include "ui/pages/modplatform/modrinth/ModrinthPage.h"
@@ -22,7 +23,12 @@ ModDownloadDialog::ModDownloadDialog(const std::shared_ptr<ModFolderModel> &mods
     : QDialog(parent), mods(mods), m_instance(instance)
 {
     setObjectName(QStringLiteral("ModDownloadDialog"));
-    resize(400, 347);
+
+    QRect screenDimentions = QApplication::desktop()->screenGeometry();
+    int screenWidth = screenDimentions.width();
+    int screenHeight = screenDimentions.height();
+
+    resize(screenWidth / 2, screenHeight / 2);
     m_verticalLayout = new QVBoxLayout(this);
     m_verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
 
