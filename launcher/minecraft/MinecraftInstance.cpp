@@ -214,7 +214,7 @@ QString MinecraftInstance::binRoot() const
 QString MinecraftInstance::getNativePath() const
 {
 #ifdef Q_OS_FREEBSD
-    if(m_version > 1.12.2)
+    if(instance.getPackProfile()->getComponentVersion("net.minecraft") > 1.12.2)
     {
         QDir natives_dir("/tmp/lwjgl3-pmc/");
     }
