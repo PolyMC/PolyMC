@@ -69,6 +69,8 @@ VanillaPage::VanillaPage(NewInstanceDialog *dialog, QWidget *parent)
     connect(ui->liteLoaderFilter, &QRadioButton::toggled, this, &VanillaPage::loaderFilterChanged);
     connect(ui->loaderRefreshBtn, &QPushButton::clicked, this, &VanillaPage::loaderRefresh);
 
+    // FIXME: hotfix for issue #468
+    ui->oldSnapshotFilter->setEnabled(false);
 }
 
 void VanillaPage::openedImpl()
