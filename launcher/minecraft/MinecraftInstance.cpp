@@ -222,6 +222,7 @@ QString MinecraftInstance::getNativePath() const
     {
         QDir natives_dir("/usr/local/lib/lwjgl/");
     }
+    return natives_dir.absolutePath();
 #else
     QDir natives_dir(FS::PathCombine(instanceRoot(), "natives/"));
     return natives_dir.absolutePath();
