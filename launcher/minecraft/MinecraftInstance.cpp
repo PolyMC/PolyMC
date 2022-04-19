@@ -216,7 +216,7 @@ QString MinecraftInstance::getNativePath() const
 #ifdef Q_OS_FREEBSD
     if(!instance.getPackProfile()->getComponentVersion("org.lwjgl3").isEmpty())
     {
-        QDir natives_dir("/tmp/lwjgl3-pmc/");
+        QDir natives_dir("/usr/local/lib/lwjgl3/");
     }
     else
     {
