@@ -914,8 +914,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
         ui->horizontalLayout->addWidget(view);
     }
     // The cat background
-    // NOTE: calling the operator like that is an ugly hack to appease ancient gcc...
-    connect(ui->actionCAT.operator->(), SIGNAL(toggled(bool)), SLOT(onCatToggled(bool)));
+    connect(ui->actionCAT, SIGNAL(toggled(bool)), SLOT(onCatToggled(bool)));
 
     // start instance when double-clicked
     connect(view, &InstanceView::activated, this, &MainWindow::instanceActivated);
