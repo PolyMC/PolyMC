@@ -914,13 +914,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
         ui->horizontalLayout->addWidget(view);
     }
     // The cat background
-    {
-        bool cat_enable = APPLICATION->settings()->get("TheCat").toBool();
-        ui->actionCAT->setChecked(cat_enable);
-        // NOTE: calling the operator like that is an ugly hack to appease ancient gcc...
-        connect(ui->actionCAT.operator->(), SIGNAL(toggled(bool)), SLOT(onCatToggled(bool)));
-        setCatBackground(cat_enable);
-    }
+    // NOTE: calling the operator like that is an ugly hack to appease ancient gcc...
+    connect(ui->actionCAT.operator->(), SIGNAL(toggled(bool)), SLOT(onCatToggled(bool)));
+
     // start instance when double-clicked
     connect(view, &InstanceView::activated, this, &MainWindow::instanceActivated);
 
@@ -1510,7 +1506,6 @@ void MainWindow::downloadUpdates(GoUpdate::Status status)
 void MainWindow::onCatToggled(bool state)
 {
     setCatBackground(state);
-    APPLICATION->settings()->set("TheCat", state);
 }
 
 namespace {
@@ -1538,7 +1533,17 @@ void MainWindow::setCatBackground(bool enabled)
             cat = "cattiversary";
         }
         else {
-            cat = "kitteh";
+            time_t t;
+            srand((unsigned) time(&t));
+            auto rng = rand() % 10;
+            if(rng == 2)
+            {
+                cat = "polykitty";
+            }
+            else
+            {
+                cat = "kitteh";
+            }
         }
         view->setStyleSheet(QString(R"(
 InstanceView
