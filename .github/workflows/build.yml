@@ -143,6 +143,7 @@ jobs:
 
           cd ${{ env.INSTALL_DIR }}
           chmod +x "PolyMC.app/Contents/MacOS/polymc"
+          ${{ github.workspace }}/.github/scripts/macos_fix_qt_structure.sh PolyMC.app
           sudo codesign --sign - --deep --force --entitlements "../program_info/App.entitlements" --options runtime "PolyMC.app/Contents/MacOS/polymc"
           tar -czf ../PolyMC.tar.gz *
 
