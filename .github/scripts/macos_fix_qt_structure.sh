@@ -20,7 +20,10 @@ for CURRENT_FRAMEWORK in Qt*; do
 
     CURRENT_FRAMEWORK_NAME="${CURRENT_FRAMEWORK%.*}"
 
-    mkdir -p "${CURRENT_FRAMEWORK}/Versions/${QT_MAJOR_VERSION}"
+    if [ ! -d "${CURRENT_FRAMEWORK}/Versions/${QT_MAJOR_VERSION}" ]; then
+        echo "The Qt framework does not seem to contain version ${QT_MAJOR_VERSION}. Are you sure the version is correct?"
+        exit 1
+    fi
 
     mv "${CURRENT_FRAMEWORK}/Resources" "${CURRENT_FRAMEWORK}/Versions/${QT_MAJOR_VERSION}/Resources"
 
