@@ -40,9 +40,8 @@
 /**
  * \brief The Config class holds all the build-time information passed from the build system.
  */
-class Config
-{
-public:
+class Config {
+   public:
     Config();
     QString LAUNCHER_NAME;
     QString LAUNCHER_DISPLAYNAME;
@@ -74,7 +73,6 @@ public:
 
     /// URL for the updater's channel
     QString UPDATER_BASE;
-
 
     /// User-Agent to use.
     QString USER_AGENT;
@@ -135,6 +133,10 @@ public:
     QString FMLLIBS_BASE_URL = "https://files.polymc.org/fmllibs/";
     QString TRANSLATIONS_BASE_URL = "https://i18n.polymc.org/";
 
+    /**
+     *  URL to the CurseForge API proxy
+     */
+    QString CFPROXY_URL = "https://polymc-cfproxy.fly.dev";
     QString MODPACKSCH_API_BASE_URL = "https://api.modpacks.ch/";
 
     QString LEGACY_FTB_CDN_BASE_URL = "https://dist.creeper.host/FTB2/";
@@ -156,4 +158,3 @@ public:
 };
 
 extern const Config BuildConfig;
-

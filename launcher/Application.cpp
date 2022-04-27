@@ -744,6 +744,9 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         // Custom MSA credentials
         m_settings->registerSetting("MSAClientIDOverride", "");
 
+        // Custom CFProxy URL
+        m_settings->registerSetting("CFProxyURLOverride", "");
+
         // Init page provider
         {
             m_globalSettingsProvider = std::make_shared<GenericPageProvider>(tr("Settings"));
@@ -1565,4 +1568,14 @@ QString Application::getMSAClientID()
     }
 
     return BuildConfig.MSA_CLIENT_ID;
+}
+
+QString Application::getCFProxyURL()
+{
+    QString clientIDOverride = m_settings->get("CFProxyURLOverride").toString();
+    if (!clientIDOverride.isEmpty()) {
+        return clientIDOverride;
+    }
+
+    return BuildConfig.CFPROXY_URL;
 }

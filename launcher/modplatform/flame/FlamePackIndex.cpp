@@ -9,22 +9,10 @@ void Flame::loadIndexedPack(Flame::IndexedPack & pack, QJsonObject & obj)
     pack.websiteUrl = Json::ensureString(obj, "websiteUrl", "");
     pack.description = Json::ensureString(obj, "summary", "");
 
-    bool thumbnailFound = false;
-    auto attachments = Json::requireArray(obj, "attachments");
-    for(auto attachmentRaw: attachments) {
-        auto attachmentObj = Json::requireObject(attachmentRaw);
-        bool isDefault = attachmentObj.value("isDefault").toBool(false);
-        if(isDefault) {
-            thumbnailFound = true;
-            pack.logoName = Json::requireString(attachmentObj, "title");
-            pack.logoUrl = Json::requireString(attachmentObj, "thumbnailUrl");
-            break;
-        }
-    }
+    auto logo = Json::requireObject(obj, "logo");
 
-    if(!thumbnailFound) {
-        throw JSONValidationError(QString("Pack without an icon, skipping: %1").arg(pack.name));
-    }
+    pack.logoName = Json::requireString(logo, "title");
+    pack.logoUrl = Json::requireString(logo, "thumbnailUrl");
 
     auto authors = Json::requireArray(obj, "authors");
     for(auto authorIter: authors) {
@@ -34,12 +22,14 @@ void Flame::loadIndexedPack(Flame::IndexedPack & pack, QJsonObject & obj)
         packAuthor.url = Json::requireString(author, "url");
         pack.authors.append(packAuthor);
     }
-    int defaultFileId = Json::requireInteger(obj, "defaultFileId");
+
+    int defaultFileId = Json::requireInteger(obj, "mainFileId");
 
     bool found = false;
     // check if there are some files before adding the pack
     auto files = Json::requireArray(obj, "latestFiles");
-    for(auto fileIter: files) {
+
+    for (auto fileIter: files) {
         auto file = Json::requireObject(fileIter);
         int id = Json::requireInteger(file, "id");
 
@@ -48,14 +38,15 @@ void Flame::loadIndexedPack(Flame::IndexedPack & pack, QJsonObject & obj)
             continue;
         }
 
-        auto versionArray = Json::requireArray(file, "gameVersion");
-        if(versionArray.size() < 1) {
+        auto versionArray = Json::requireArray(file, "gameVersions");
+        if (versionArray.size() < 1) {
             continue;
         }
 
         found = true;
         break;
     }
+
     if(!found) {
         throw JSONValidationError(QString("Pack with no good file, skipping: %1").arg(pack.name));
     }
@@ -70,7 +61,8 @@ void Flame::loadIndexedPackVersions(Flame::IndexedPack & pack, QJsonArray & arr)
 
         file.addonId = pack.addonId;
         file.fileId = Json::requireInteger(version, "id");
-        auto versionArray = Json::requireArray(version, "gameVersion");
+        auto versionArray = Json::requireArray(version, "gameVersions");
+
         if(versionArray.size() < 1) {
             continue;
         }

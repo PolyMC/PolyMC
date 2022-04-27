@@ -61,6 +61,8 @@ FlameModPage::FlameModPage(ModDownloadDialog* dialog, BaseInstance* instance)
     connect(ui->modSelectionButton, &QPushButton::clicked, this, &FlameModPage::onModSelected);
 }
 
+// This might not be needed if the `gameVersion` query parameter has been added
+// But let's keep it for good measure
 auto FlameModPage::validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderType loader) const -> bool
 {
     Q_UNUSED(loader);

@@ -1,33 +1,28 @@
 #pragma once
 
-#include "tasks/Task.h"
-#include "net/NetJob.h"
 #include "PackManifest.h"
+#include "net/NetJob.h"
+#include "tasks/Task.h"
 
-namespace Flame
-{
-class FileResolvingTask : public Task
-{
+namespace Flame {
+class FileResolvingTask : public Task {
     Q_OBJECT
-public:
-    explicit FileResolvingTask(shared_qobject_ptr<QNetworkAccessManager> network, Flame::Manifest &toProcess);
-    virtual ~FileResolvingTask() {};
+   public:
+    explicit FileResolvingTask(shared_qobject_ptr<QNetworkAccessManager> network, Flame::Manifest& toProcess);
+    virtual ~FileResolvingTask(){};
 
-    const Flame::Manifest &getResults() const
-    {
-        return m_toProcess;
-    }
+    const Flame::Manifest& getResults() const { return m_toProcess; }
 
-protected:
+   protected:
     virtual void executeTask() override;
 
-protected slots:
+   protected slots:
     void netJobFinished();
 
-private: /* data */
+   private: /* data */
     shared_qobject_ptr<QNetworkAccessManager> m_network;
     Flame::Manifest m_toProcess;
     QVector<QByteArray> results;
     NetJob::Ptr m_dljob;
 };
-}
+}  // namespace Flame

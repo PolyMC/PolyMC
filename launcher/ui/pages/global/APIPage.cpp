@@ -70,6 +70,8 @@ void APIPage::loadSettings()
     ui->urlChoices->setCurrentText(pastebinURL);
     QString msaClientID = s->get("MSAClientIDOverride").toString();
     ui->msaClientID->setText(msaClientID);
+    QString cfProxyURL = s->get("CFProxyURLOverride").toString();
+    ui->cfProxyURL->setText(cfProxyURL);
 }
 
 void APIPage::applySettings()
@@ -79,6 +81,8 @@ void APIPage::applySettings()
     s->set("PastebinURL", pastebinURL);
     QString msaClientID = ui->msaClientID->text();
     s->set("MSAClientIDOverride", msaClientID);
+    QString cfProxyURL = ui->cfProxyURL->text();
+    s->set("CFProxyURLOverride", cfProxyURL);
 }
 
 bool APIPage::apply()

@@ -1,35 +1,57 @@
 #pragma once
 
+#include "Application.h"
 #include "modplatform/helpers/NetworkModAPI.h"
 
 class FlameAPI : public NetworkModAPI {
+   private:
+    inline auto getSortFieldInt(QString sortString) const -> int
+    {
+        return sortString == "Featured"         ? 1
+               : sortString == "Popularity"     ? 2
+               : sortString == "LastUpdated"    ? 3
+               : sortString == "Name"           ? 4
+               : sortString == "Author"         ? 5
+               : sortString == "TotalDownloads" ? 6
+               : sortString == "Category"       ? 7
+               : sortString == "GameVersion"    ? 8
+                                                : 1;
+    }
+
    private:
     inline auto getModSearchURL(SearchArgs& args) const -> QString override
     {
         auto gameVersionStr = args.versions.size() != 0 ? QString("gameVersion=%1").arg(args.versions.front().toString()) : QString();
 
         return QString(
-                   "https://addons-ecs.forgesvc.net/api/v2/addon/search?"
+                   "%1/v1/mods/search?"
                    "gameId=432&"
-                   "categoryId=0&"
-                   "sectionId=6&"
-
-                   "index=%1&"
+                   "classId=6&"
+                   "index=%2&"
                    "pageSize=25&"
-                   "searchFilter=%2&"
-                   "sort=%3&"
-                   "modLoaderType=%4&"
-                   "%5")
+                   "searchFilter=%3&"
+                   "sortField=%4&"
+                   "sortOrder=desc&"
+                   "modLoaderType=%5&"
+                   "%6")
+            .arg(APPLICATION->getCFProxyURL())
             .arg(args.offset)
             .arg(args.search)
-            .arg(args.sorting)
+            .arg(getSortFieldInt(args.sorting))
             .arg(getMappedModLoader(args.mod_loader))
             .arg(gameVersionStr);
     };
 
     inline auto getVersionsURL(VersionSearchArgs& args) const -> QString override
     {
-        return QString("https://addons-ecs.forgesvc.net/api/v2/addon/%1/files").arg(args.addonId);
+        QString gameVersionQuery = args.mcVersions.size() == 1 ? QString("gameVersion=%1&").arg(args.mcVersions.front().toString()) : "";
+        QString modLoaderQuery = QString("modLoaderType=%1&").arg(getMappedModLoader(args.loader));
+
+        return QString("%1/v1/mods/%2/files?pageSize=10000&%3%4")
+            .arg(APPLICATION->getCFProxyURL())
+            .arg(args.addonId)
+            .arg(gameVersionQuery)
+            .arg(modLoaderQuery);
     };
 
    public:

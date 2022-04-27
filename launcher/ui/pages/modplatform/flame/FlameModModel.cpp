@@ -1,6 +1,7 @@
 #include "FlameModModel.h"
 
 #include "modplatform/flame/FlameModIndex.h"
+#include "Json.h"
 
 namespace FlameMod {
 
@@ -19,7 +20,7 @@ void ListModel::loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray&
 
 auto ListModel::documentToArray(QJsonDocument& obj) const -> QJsonArray
 {
-    return obj.array();
+    return Json::ensureArray(obj.object(), "data");
 }
 
 }  // namespace FlameMod

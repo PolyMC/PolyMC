@@ -1,15 +1,13 @@
 #pragma once
 
 #include <QString>
-#include <QVector>
 #include <QUrl>
+#include <QVector>
 
-namespace Flame
-{
-struct File
-{
+namespace Flame {
+struct File {
     // NOTE: throws JSONValidationError
-    bool parseFromBytes(const QByteArray &bytes);
+    bool parseFromBytes(const QByteArray& fileData);
 
     int projectId = 0;
     int fileId = 0;
@@ -21,33 +19,21 @@ struct File
     QString fileName;
     QUrl url;
     QString targetFolder = QLatin1Literal("mods");
-    enum class Type
-    {
-        Unknown,
-        Folder,
-        Ctoc,
-        SingleFile,
-        Cmod2,
-        Modpack,
-        Mod
-    } type = Type::Mod;
+    enum class Type { Unknown, Folder, Ctoc, SingleFile, Cmod2, Modpack, Mod } type = Type::Mod;
 };
 
-struct Modloader
-{
+struct Modloader {
     QString id;
     bool primary = false;
 };
 
-struct Minecraft
-{
+struct Minecraft {
     QString version;
     QString libraries;
     QVector<Flame::Modloader> modLoaders;
 };
 
-struct Manifest
-{
+struct Manifest {
     QString manifestType;
     int manifestVersion = 0;
     Flame::Minecraft minecraft;
@@ -58,5 +44,5 @@ struct Manifest
     QString overrides;
 };
 
-void loadManifest(Flame::Manifest & m, const QString &filepath);
-}
+void loadManifest(Flame::Manifest& m, const QString& filepath);
+}  // namespace Flame
