@@ -58,26 +58,57 @@ class OsRule : public Rule
 {
 private:
     // the OS
-    OpSys m_system;
-    // the OS version regexp
-    QString m_version_regexp;
+    QString m_system;
+    // arch
+    QString m_arch;
+
+    QStringList x86_arches = { "x86_64", "i386" };
+    QStringList arm_arches = { "arm64", "arm", "armhf" };
 
 protected:
     virtual bool applies(const Library *)
     {
-        return (m_system == currentSystem);
+        bool systemCorrect;
+        if(m_system.isEmpty())
+        {
+            systemCorrect = true;
+        }
+        else
+        {
+            auto sys = OpSys_fromString(m_system);
+            systemCorrect = sys == currentSystem;
+        }
+        auto cpuArch = QSysInfo::currentCpuArchitecture();
+        bool archCorrect;
+        if(m_arch == "arm_generic")
+        {
+            archCorrect = arm_arches.contains(cpuArch);
+        }
+        else if(m_arch == "x86_generic")
+        {
+            archCorrect = x86_arches.contains(cpuArch);
+        }
+        else if(!m_arch.isEmpty()){
+            archCorrect = m_arch == cpuArch;
+        }
+        // if m_arch is empty, don't compare, or it will break
+        else
+        {
+            archCorrect = true;
+        }
+        qDebug() << "Os rule with OS required" << m_system << "and arch required" << m_arch << "with" << systemCorrect << archCorrect;
+        return systemCorrect && archCorrect;
     }
-    OsRule(RuleAction result, OpSys system, QString version_regexp)
-        : Rule(result), m_system(system), m_version_regexp(version_regexp)
+OsRule(RuleAction result, QString system, QString arch)
+        : Rule(result), m_system(system), m_arch(arch)
     {
     }
 
 public:
     virtual QJsonObject toJson();
-    static std::shared_ptr<OsRule> create(RuleAction result, OpSys system,
-                                          QString version_regexp)
+    static std::shared_ptr<OsRule> create(RuleAction result, QString system, QString arch)
     {
-        return std::shared_ptr<OsRule>(new OsRule(result, system, version_regexp));
+        return std::shared_ptr<OsRule>(new OsRule(result, system, arch));
     }
 };
 
