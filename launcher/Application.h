@@ -110,6 +110,9 @@ public:
 
     std::vector<ITheme *> getValidApplicationThemes();
 
+    QStringList displayIconNames { "Simple (Colored Icons)", "Simple (Light Icons)", "Simple (Dark Icons)", "Simple (Blue Icons)", "OSX", "iOS", "Flat", "Legacy", "Custom"};
+    QStringList validIconThemes { "pe_colored", "pe_light", "pe_dark", "pe_blue", "OSX", "iOS", "flat", "multimc", "custom"};
+
     void setApplicationTheme(const QString& name, bool initial);
 
     shared_qobject_ptr<UpdateChecker> updateChecker() {
