@@ -366,7 +366,7 @@ void LaunchProfile::getLibraryFiles(
     nativeJars.clear();
     for (auto lib : getLibraries())
     {
-        lib->getApplicableFiles(currentSystem, jars, nativeJars, native32, native64, overridePath);
+        lib->getApplicableFiles(SysInfo::currentSystem(), jars, nativeJars, native32, native64, overridePath);
     }
     // NOTE: order is important here, add main jar last to the lists
     if(m_mainJar)
@@ -379,12 +379,12 @@ void LaunchProfile::getLibraryFiles(
         }
         else
         {
-            m_mainJar->getApplicableFiles(currentSystem, jars, nativeJars, native32, native64, overridePath);
+            m_mainJar->getApplicableFiles(SysInfo::currentSystem(), jars, nativeJars, native32, native64, overridePath);
         }
     }
     for (auto lib : getNativeLibraries())
     {
-        lib->getApplicableFiles(currentSystem, jars, nativeJars, native32, native64, overridePath);
+        lib->getApplicableFiles(SysInfo::currentSystem(), jars, nativeJars, native32, native64, overridePath);
     }
     if(architecture == "32")
     {

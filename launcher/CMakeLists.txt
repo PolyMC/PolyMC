@@ -304,9 +304,7 @@ set(MINECRAFT_SOURCES
     minecraft/Rule.h
     minecraft/OneSixVersionFormat.cpp
     minecraft/OneSixVersionFormat.h
-    minecraft/OpSys.cpp
-    minecraft/OpSys.h
-    minecraft/ParseUtils.cpp
+        minecraft/ParseUtils.cpp
     minecraft/ParseUtils.h
     minecraft/ProfileUtils.cpp
     minecraft/ProfileUtils.h
@@ -606,6 +604,8 @@ SET(LAUNCHER_SOURCES
     UpdateController.h
     ApplicationMessage.h
     ApplicationMessage.cpp
+    SysInfo.h
+        SysInfo.cpp
 
     # GUI - general utilities
     DesktopServices.h

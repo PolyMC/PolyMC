@@ -36,6 +36,7 @@
 #include "ComponentUpdateTask.h"
 
 #include "Application.h"
+#include "SysInfo.h"
 
 PackProfile::PackProfile(MinecraftInstance * instance)
     : QAbstractListModel()
@@ -752,7 +753,7 @@ bool PackProfile::removeComponent_internal(ComponentPtr patch)
             return true;
         }
         QStringList jar, temp1, temp2, temp3;
-        jarMod->getApplicableFiles(currentSystem, jar, temp1, temp2, temp3, d->m_instance->jarmodsPath().absolutePath());
+        jarMod->getApplicableFiles(SysInfo::currentSystem(), jar, temp1, temp2, temp3, d->m_instance->jarmodsPath().absolutePath());
         QFileInfo finfo (jar[0]);
         if(finfo.exists())
         {

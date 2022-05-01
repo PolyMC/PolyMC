@@ -338,7 +338,7 @@ QStringList MinecraftInstance::extraArguments() const
     for (auto agent : agents)
     {
         QStringList jar, temp1, temp2, temp3;
-        agent->library()->getApplicableFiles(currentSystem, jar, temp1, temp2, temp3, getLocalLibraryPath());
+        agent->library()->getApplicableFiles(SysInfo::currentSystem(), jar, temp1, temp2, temp3, getLocalLibraryPath());
         list.append("-javaagent:"+jar[0]+(agent->argument().isEmpty() ? "" : "="+agent->argument()));
     }
     return list;
@@ -687,8 +687,8 @@ QStringList MinecraftInstance::verboseDescription(AuthSessionPtr session, Minecr
         out << "Jar Mods:";
         for(auto & jarmod: jarMods)
         {
-            auto displayname = jarmod->displayName(currentSystem);
-            auto realname = jarmod->filename(currentSystem);
+            auto displayname = jarmod->displayName(SysInfo::currentSystem());
+            auto realname = jarmod->filename(SysInfo::currentSystem());
             if(displayname != realname)
             {
                 out << "  " + displayname + " (" + realname + ")";
@@ -1084,7 +1084,7 @@ QList< Mod > MinecraftInstance::getJarMods() const
     for (auto jarmod : profile->getJarMods())
     {
         QStringList jar, temp1, temp2, temp3;
-        jarmod->getApplicableFiles(currentSystem, jar, temp1, temp2, temp3, jarmodsPath().absolutePath());
+        jarmod->getApplicableFiles(SysInfo::currentSystem(), jar, temp1, temp2, temp3, jarmodsPath().absolutePath());
         // QString filePath = jarmodsPath().absoluteFilePath(jarmod->filename(currentSystem));
         mods.push_back(Mod(QFileInfo(jar[0])));
     }

@@ -64,7 +64,7 @@
 #include <QList>
 #include <QJsonObject>
 #include <memory>
-#include "OpSys.h"
+#include "SysInfo.h"
 
 class Library;
 class Rule;
@@ -120,8 +120,7 @@ protected:
         }
         else
         {
-            auto sys = OpSys_fromString(m_system);
-            systemCorrect = sys == currentSystem;
+            systemCorrect = m_system == SysInfo::currentSystem();
         }
         auto cpuArch = QSysInfo::currentCpuArchitecture();
         bool archCorrect;

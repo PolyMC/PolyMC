@@ -41,7 +41,6 @@
 #include <QSet>
 
 #include <memory>
-#include "minecraft/OpSys.h"
 #include "minecraft/Rule.h"
 #include "ProblemProvider.h"
 #include "Library.h"
