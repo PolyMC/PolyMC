@@ -13,6 +13,51 @@
  * limitations under the License.
  */
 
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (C) 2022 dada513 <dada513@protonmail.com>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/*
+ * The Rule System - a part of the meta system
+ * Rules are used to specify whether a library should be downloaded on a specific operating system or processor architecture.
+ * By default, if a rules Array is present in a library inside meta, download will be disallowed.
+ * Currently, there are two types of rules: OsRule and ImplicitRule.
+ *
+ * - OsRule
+ *      Allows to specify an operating system and architecture required. Example json, which will disallow the download of a library on M1 Macs:
+ *      {
+ *          "action": "disallow",
+ *          "os": {
+ *              "name": "osx",
+ *              "arch": "arm64"
+ *          }
+ *      }
+ *   The name and arch properties can be specified separately, or together.
+ *   Additionally, special architectures "x86_generic" and "arm_generic" were added.
+ *   The former will match any x86 processor, no matter if 32 or 64 bit, and the latter will match any ARM flavour, like arm64 and armhf.
+ *
+ *  - ImplicitRule
+ *      Used for changing the default behavior of a library being disallowed. It's added when there's action without any other specific fields.
+ *      {
+ *          "action": "allow"
+ *      }
+ *      will make the default allow, and the next rules will decide whether it should actually be allowed.
+ */
+
 #pragma once
 
 #include <QString>
