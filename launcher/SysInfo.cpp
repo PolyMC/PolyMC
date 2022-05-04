@@ -25,15 +25,15 @@ bool rosettaDetect() {
 
 namespace SysInfo {
     QString currentSystem() {
-#ifdef Q_OS_LINUX
+#if defined(Q_OS_LINUX)
         return "linux";
-#elif Q_OS_MACOS
+#elif defined(Q_OS_MACOS)
         return "osx";
-#elif Q_OS_WINDOWS
+#elif defined(Q_OS_WINDOWS)
         return "windows";
-#elif Q_OS_FREEBSD
+#elif defined(Q_OS_FREEBSD)
         return "freebsd";
-#elif Q_OS_OPENBSD
+#elif defined(Q_OS_OPENBSD)
         return "openbsd";
 #else
         return "unknown";
