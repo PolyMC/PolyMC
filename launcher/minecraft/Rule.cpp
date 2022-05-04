@@ -76,11 +76,10 @@ QList<std::shared_ptr<Rule>> rulesFromJsonV4(const QJsonObject &objectWithRules)
 
         auto osObj = osVal.toObject();
         auto osNameVal = osObj.value("name");
-        auto osArchVal = osObj.value("arch");
-        if (!osNameVal.isString() && !osArchVal.isString())
+        if (!osNameVal.isString())
             continue;
         // add a new OS rule
-        rules.append(OsRule::create(action, osNameVal.toString(), osArchVal.toString()));
+        rules.append(OsRule::create(action, osNameVal.toString()));
     }
     return rules;
 }
@@ -99,10 +98,6 @@ QJsonObject OsRule::toJson()
     QJsonObject osObj;
     if(!m_system.isEmpty()) {
         osObj.insert("name", m_system);
-    }
-    if(!m_arch.isEmpty())
-    {
-        osObj.insert("arch", m_arch);
     }
 
     ruleObj.insert("os", osObj);

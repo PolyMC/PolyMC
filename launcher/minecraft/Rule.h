@@ -30,34 +30,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-/*
- * The Rule System - a part of the meta system
- * Rules are used to specify whether a library should be downloaded on a specific operating system or processor architecture.
- * By default, if a rules Array is present in a library inside meta, download will be disallowed.
- * Currently, there are two types of rules: OsRule and ImplicitRule.
- *
- * - OsRule
- *      Allows to specify an operating system and architecture required. Example json, which will disallow the download of a library on M1 Macs:
- *      {
- *          "action": "disallow",
- *          "os": {
- *              "name": "osx",
- *              "arch": "arm64"
- *          }
- *      }
- *   The name and arch properties can be specified separately, or together.
- *   Additionally, special architectures "x86_generic" and "arm_generic" were added.
- *   The former will match any x86 processor, no matter if 32 or 64 bit, and the latter will match any ARM flavour, like arm64 and armhf.
- *
- *  - ImplicitRule
- *      Used for changing the default behavior of a library being disallowed. It's added when there's action without any other specific fields.
- *      {
- *          "action": "allow"
- *      }
- *      will make the default allow, and the next rules will decide whether it should actually be allowed.
- */
-
 #pragma once
 
 #include <QString>
@@ -102,57 +74,43 @@ public:
 class OsRule : public Rule
 {
 private:
-    // the OS
     QString m_system;
-    // arch
-    QString m_arch;
-
-    QStringList x86_arches = { "x86_64", "i386" };
-    QStringList arm_arches = { "arm64", "arm", "armhf" };
 
 protected:
     virtual bool applies(const Library *)
     {
+        QString sys;
+        QString arch;
+        if(m_system.contains("-"))
+        {
+            auto parts = m_system.split("-");
+            sys = parts[0];
+            arch = parts[1];
+        }
+        else
+        {
+            sys = m_system;
+        }
         bool systemCorrect;
-        if(m_system.isEmpty())
+        bool archCorrect = true;
+        systemCorrect = sys == SysInfo::currentSystem();
+        if(!arch.isEmpty())
         {
-            systemCorrect = true;
+            archCorrect = arch == SysInfo::currentArch();
         }
-        else
-        {
-            systemCorrect = m_system == SysInfo::currentSystem();
-        }
-        auto cpuArch = QSysInfo::currentCpuArchitecture();
-        bool archCorrect;
-        if(m_arch == "arm_generic")
-        {
-            archCorrect = arm_arches.contains(cpuArch);
-        }
-        else if(m_arch == "x86_generic")
-        {
-            archCorrect = x86_arches.contains(cpuArch);
-        }
-        else if(!m_arch.isEmpty()){
-            archCorrect = m_arch == cpuArch;
-        }
-        // if m_arch is empty, don't compare, or it will break
-        else
-        {
-            archCorrect = true;
-        }
-        qDebug() << "Os rule with OS required" << m_system << "and arch required" << m_arch << "with" << systemCorrect << archCorrect;
+        qDebug() << "Os rule with OS required" << m_system << systemCorrect << "Arch required" << arch << archCorrect;
         return systemCorrect && archCorrect;
     }
-OsRule(RuleAction result, QString system, QString arch)
-        : Rule(result), m_system(system), m_arch(arch)
+OsRule(RuleAction result, QString system)
+        : Rule(result), m_system(system)
     {
     }
 
 public:
     virtual QJsonObject toJson();
-    static std::shared_ptr<OsRule> create(RuleAction result, QString system, QString arch)
+    static std::shared_ptr<OsRule> create(RuleAction result, QString system)
     {
-        return std::shared_ptr<OsRule>(new OsRule(result, system, arch));
+        return std::shared_ptr<OsRule>(new OsRule(result, system));
     }
 };
 
