@@ -41,24 +41,18 @@ namespace SysInfo {
     };
 
     QString currentArch() {
-#ifdef Q_PROCESSOR_X86_64
-    #ifdef Q_OS_MACOS
+        auto qtArch = QSysInfo::currentCpuArchitecture();
+#ifdef Q_OS_MACOS
         if(rosettaDetect())
         {
           return "arm64";
         }
         else
         {
-          return "amd64";
+          return "x86_64";
         }
-    #else
-        return "amd64";
-    #endif
-#elif Q_PROCESSOR_X86_32
-        return "i386";
-#elif Q_PROCESSOR_ARM
-        return "arm64";
 #endif
+        return qtArch;
     };
 }
 
