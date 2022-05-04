@@ -38,7 +38,7 @@ namespace SysInfo {
 #else
         return "unknown";
 #endif
-    };
+    }
 
     QString currentArch() {
         auto qtArch = QSysInfo::currentCpuArchitecture();
@@ -53,6 +53,6 @@ namespace SysInfo {
         }
 #endif
         return qtArch;
-    };
+    }
 }
 
