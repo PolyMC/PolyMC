@@ -42,7 +42,7 @@ namespace SysInfo {
 
     QString currentArch() {
         auto qtArch = QSysInfo::currentCpuArchitecture();
-#ifdef Q_OS_MACOS
+#if defined(Q_OS_MACOS) && !defined(Q_PROCESSOR_ARM)
         if(rosettaDetect())
         {
           return "arm64";
