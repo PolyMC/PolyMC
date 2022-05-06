@@ -37,24 +37,22 @@
 #include "APIPage.h"
 #include "ui_APIPage.h"
 
-#include <QMessageBox>
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QStandardPaths>
 #include <QTabBar>
 #include <QVariant>
 
+#include "Application.h"
 #include "settings/SettingsObject.h"
 #include "tools/BaseProfiler.h"
-#include "Application.h"
 
-APIPage::APIPage(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::APIPage)
+APIPage::APIPage(QWidget* parent) : QWidget(parent), ui(new Ui::APIPage)
 {
     static QRegularExpression validUrlRegExp("https?://.+");
     ui->setupUi(this);
     ui->urlChoices->setValidator(new QRegularExpressionValidator(validUrlRegExp, ui->urlChoices));
-    ui->tabWidget->tabBar()->hide();\
+    ui->tabWidget->tabBar()->hide();
     loadSettings();
 }
 
@@ -70,8 +68,6 @@ void APIPage::loadSettings()
     ui->urlChoices->setCurrentText(pastebinURL);
     QString msaClientID = s->get("MSAClientIDOverride").toString();
     ui->msaClientID->setText(msaClientID);
-    QString cfProxyURL = s->get("CFProxyURLOverride").toString();
-    ui->cfProxyURL->setText(cfProxyURL);
 }
 
 void APIPage::applySettings()
@@ -81,8 +77,6 @@ void APIPage::applySettings()
     s->set("PastebinURL", pastebinURL);
     QString msaClientID = ui->msaClientID->text();
     s->set("MSAClientIDOverride", msaClientID);
-    QString cfProxyURL = ui->cfProxyURL->text();
-    s->set("CFProxyURLOverride", cfProxyURL);
 }
 
 bool APIPage::apply()

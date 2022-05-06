@@ -16,7 +16,7 @@ void Flame::FileResolvingTask::executeTask()
     for (auto& file : m_toProcess.files) {
         auto projectIdStr = QString::number(file.projectId);
         auto fileIdStr = QString::number(file.fileId);
-        QString metaurl = QString("%1/v1/mods/%2/files/%3").arg(APPLICATION->getCFProxyURL(), projectIdStr, fileIdStr);
+        QString metaurl = QString("https://api.curseforge.com/v1/mods/%1/files/%2").arg(projectIdStr, fileIdStr);
         auto dl = Net::Download::makeByteArray(QUrl(metaurl), &results[index]);
         m_dljob->addNetAction(dl);
         index++;

@@ -1512,13 +1512,3 @@ QString Application::getMSAClientID()
 
     return BuildConfig.MSA_CLIENT_ID;
 }
-
-QString Application::getCFProxyURL()
-{
-    QString clientIDOverride = m_settings->get("CFProxyURLOverride").toString();
-    if (!clientIDOverride.isEmpty()) {
-        return clientIDOverride;
-    }
-
-    return BuildConfig.CFPROXY_URL;
-}

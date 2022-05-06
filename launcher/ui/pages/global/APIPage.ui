@@ -147,58 +147,6 @@
          </layout>
         </widget>
        </item>
-      <item>
-        <widget class="QGroupBox" name="groupBox_cfproxy">
-         <property name="title">
-          <string>&amp;CurseForge API</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_41">
-          <item>
-           <widget class="Line" name="line_21">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_31">
-            <property name="text">
-             <string>Note: you probably don't need to set this if Curseforge mod downloading already works. Using the Curseforge API directly is unsupported, as it would require an API key to work.</string>
-            </property>
-            <property name="textFormat">
-             <enum>Qt::RichText</enum>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="cfProxyURL">
-            <property name="placeholderText">
-             <string>(Default)</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_4_1">
-            <property name="text">
-             <string>Enter the base URL for your Curseforge Core API proxy here.</string>
-            </property>
-            <property name="textFormat">
-             <enum>Qt::RichText</enum>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-            <property name="openExternalLinks">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
        <item>
         <spacer name="verticalSpacer">
          <property name="orientation">

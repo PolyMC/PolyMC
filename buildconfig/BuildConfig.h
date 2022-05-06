@@ -111,6 +111,11 @@ class Config {
     QString IMGUR_CLIENT_ID;
 
     /**
+     * Client API key for CurseForge
+     */
+    QString CURSEFORGE_API_KEY;
+
+    /**
      * Client ID you can get from Microsoft Identity Platform when you register an application
      */
     QString MSA_CLIENT_ID;
@@ -133,10 +138,6 @@ class Config {
     QString FMLLIBS_BASE_URL = "https://files.polymc.org/fmllibs/";
     QString TRANSLATIONS_BASE_URL = "https://i18n.polymc.org/";
 
-    /**
-     *  URL to the CurseForge API proxy
-     */
-    QString CFPROXY_URL = "https://polymc-cfproxy.fly.dev";
     QString MODPACKSCH_API_BASE_URL = "https://api.modpacks.ch/";
 
     QString LEGACY_FTB_CDN_BASE_URL = "https://dist.creeper.host/FTB2/";
