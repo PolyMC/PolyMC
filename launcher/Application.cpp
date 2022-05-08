@@ -553,6 +553,9 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("IconTheme", QString("pe_colored"));
         m_settings->registerSetting("ApplicationTheme", QString("system"));
 
+        // Notifications
+        m_settings->registerSetting("ShownNotifications", QString());
+
         // Remembered state
         m_settings->registerSetting("LastUsedGroupForNewInstance", QString());
 
@@ -1500,7 +1503,7 @@ QString Application::getJarsPath()
     return FS::PathCombine(m_rootPath, m_jarsPath);
 }
 
-QString Application::getMSAClientID()
+QString Application::getMSAClientID() 
 {
     QString clientIDOverride = m_settings->get("MSAClientIDOverride").toString();
     if (!clientIDOverride.isEmpty()) {

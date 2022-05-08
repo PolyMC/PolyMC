@@ -60,6 +60,7 @@
 #include <net/NetJob.h>
 #include <net/Download.h>
 #include <news/NewsChecker.h>
+#include <notifications/NotificationChecker.h>
 #include <tools/BaseProfiler.h>
 #include <updater/DownloadTask.h>
 #include <updater/UpdateChecker.h>
@@ -82,6 +83,7 @@
 #include "ui/dialogs/CopyInstanceDialog.h"
 #include "ui/dialogs/UpdateDialog.h"
 #include "ui/dialogs/EditAccountDialog.h"
+#include "ui/dialogs/NotificationDialog.h"
 #include "ui/dialogs/ExportInstanceDialog.h"
 
 #include "UpdateController.h"
@@ -1015,6 +1017,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
         }
     }
 
+    {
+        auto checker = new NotificationChecker();
+        checker->setNotificationsUrl(QUrl(BuildConfig.NOTIFICATION_URL));
+        checker->setApplicationChannel(BuildConfig.VERSION_CHANNEL);
+        checker->setApplicationPlatform(BuildConfig.BUILD_PLATFORM);
+        checker->setApplicationFullVersion(BuildConfig.FULL_VERSION_STR);
+        m_notificationChecker.reset(checker);
+        connect(m_notificationChecker.get(), &NotificationChecker::notificationCheckFinished, this, &MainWindow::notificationsChanged);
+        checker->checkForNotifications();
+    }
+
     setSelectedInstanceById(APPLICATION->settings()->get("SelectedInstance").toString());
 
     // removing this looks stupid
@@ -1471,6 +1484,24 @@ QString intListToString(const QList<int> &list)
         slist.append(QString::number(list.at(i)));
     }
     return slist.join(',');
+}
+void MainWindow::notificationsChanged()
+{
+    QList<NotificationChecker::NotificationEntry> entries = m_notificationChecker->notificationEntries();
+    QList<int> shownNotifications = stringToIntList(APPLICATION->settings()->get("ShownNotifications").toString());
+    for (auto it = entries.begin(); it != entries.end(); ++it)
+    {
+        NotificationChecker::NotificationEntry entry = *it;
+        if (!shownNotifications.contains(entry.id))
+        {
+            NotificationDialog dialog(entry, this);
+            if (dialog.exec() == NotificationDialog::DontShowAgain)
+            {
+                shownNotifications.append(entry.id);
+            }
+        }
+    }
+    APPLICATION->settings()->set("ShownNotifications", intListToString(shownNotifications));
 }
 
 void MainWindow::downloadUpdates(GoUpdate::Status status)
