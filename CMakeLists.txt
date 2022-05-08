@@ -81,7 +81,7 @@ set(Launcher_BUILD_PLATFORM "" CACHE STRING "A short string identifying the plat
 set(Launcher_UPDATER_BASE "" CACHE STRING "Base URL for the updater.")
 
 # Notification URL
-set(Launcher_NOTIFICATION_URL "" CACHE STRING "URL for checking for notifications.")
+set(Launcher_NOTIFICATION_URL "https://files.polymc.org/notifications.json" CACHE STRING "URL for checking for notifications.")
 
 # The metadata server
 set(Launcher_META_URL "https://meta.polymc.org/v1/" CACHE STRING "URL to fetch Launcher's meta files from.")
