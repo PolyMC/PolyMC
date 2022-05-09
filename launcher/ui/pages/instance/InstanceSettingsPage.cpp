@@ -104,86 +104,44 @@ void InstanceSettingsPage::applySettings()
     // Console
     bool console = ui->consoleSettingsBox->isChecked();
     m_settings->set("OverrideConsole", console);
-    if (console)
-    {
-        m_settings->set("ShowConsole", ui->showConsoleCheck->isChecked());
-        m_settings->set("AutoCloseConsole", ui->autoCloseConsoleCheck->isChecked());
-        m_settings->set("ShowConsoleOnError", ui->showConsoleErrorCheck->isChecked());
-    }
-    else
-    {
-        m_settings->reset("ShowConsole");
-        m_settings->reset("AutoCloseConsole");
-        m_settings->reset("ShowConsoleOnError");
-    }
+    m_settings->set("ShowConsole", ui->showConsoleCheck->isChecked());
+    m_settings->set("AutoCloseConsole", ui->autoCloseConsoleCheck->isChecked());
+    m_settings->set("ShowConsoleOnError", ui->showConsoleErrorCheck->isChecked());
 
     // Window Size
     bool window = ui->windowSizeGroupBox->isChecked();
     m_settings->set("OverrideWindow", window);
-    if (window)
-    {
-        m_settings->set("LaunchMaximized", ui->maximizedCheckBox->isChecked());
-        m_settings->set("MinecraftWinWidth", ui->windowWidthSpinBox->value());
-        m_settings->set("MinecraftWinHeight", ui->windowHeightSpinBox->value());
-    }
-    else
-    {
-        m_settings->reset("LaunchMaximized");
-        m_settings->reset("MinecraftWinWidth");
-        m_settings->reset("MinecraftWinHeight");
-    }
+    m_settings->set("LaunchMaximized", ui->maximizedCheckBox->isChecked());
+    m_settings->set("MinecraftWinWidth", ui->windowWidthSpinBox->value());
+    m_settings->set("MinecraftWinHeight", ui->windowHeightSpinBox->value());
 
     // Memory
     bool memory = ui->memoryGroupBox->isChecked();
     m_settings->set("OverrideMemory", memory);
-    if (memory)
+    int min = ui->minMemSpinBox->value();
+    int max = ui->maxMemSpinBox->value();
+    if(min < max)
     {
-        int min = ui->minMemSpinBox->value();
-        int max = ui->maxMemSpinBox->value();
-        if(min < max)
-        {
-            m_settings->set("MinMemAlloc", min);
-            m_settings->set("MaxMemAlloc", max);
-        }
-        else
-        {
-            m_settings->set("MinMemAlloc", max);
-            m_settings->set("MaxMemAlloc", min);
-        }
-        m_settings->set("PermGen", ui->permGenSpinBox->value());
+        m_settings->set("MinMemAlloc", min);
+        m_settings->set("MaxMemAlloc", max);
     }
     else
     {
-        m_settings->reset("MinMemAlloc");
-        m_settings->reset("MaxMemAlloc");
-        m_settings->reset("PermGen");
+        m_settings->set("MinMemAlloc", max);
+        m_settings->set("MaxMemAlloc", min);
     }
+    m_settings->set("PermGen", ui->permGenSpinBox->value());
 
     // Java Install Settings
     bool javaInstall = ui->javaSettingsGroupBox->isChecked();
     m_settings->set("OverrideJavaLocation", javaInstall);
-    if (javaInstall)
-    {
-        m_settings->set("JavaPath", ui->javaPathTextBox->text());
-        m_settings->set("IgnoreJavaCompatibility", ui->skipCompatibilityCheckbox->isChecked());
-    }
-    else
-    {
-        m_settings->reset("JavaPath");
-        m_settings->reset("IgnoreJavaCompatibility");
-    }
+    m_settings->set("JavaPath", ui->javaPathTextBox->text());
+    m_settings->set("IgnoreJavaCompatibility", ui->skipCompatibilityCheckbox->isChecked());
 
     // Java arguments
     bool javaArgs = ui->javaArgumentsGroupBox->isChecked();
     m_settings->set("OverrideJavaArgs", javaArgs);
-    if(javaArgs)
-    {
-        m_settings->set("JvmArgs", ui->jvmArgsTextBox->toPlainText().replace("\n", " "));
-    }
-    else
-    {
-        m_settings->reset("JvmArgs");
-    }
+    m_settings->set("JvmArgs", ui->jvmArgsTextBox->toPlainText().replace("\n", " "));
 
     // old generic 'override both' is removed.
     m_settings->reset("OverrideJava");
@@ -191,78 +149,46 @@ void InstanceSettingsPage::applySettings()
     // Custom Commands
     bool custcmd = ui->customCommands->checked();
     m_settings->set("OverrideCommands", custcmd);
-    if (custcmd)
-    {
-        m_settings->set("PreLaunchCommand", ui->customCommands->prelaunchCommand());
-        m_settings->set("WrapperCommand", ui->customCommands->wrapperCommand());
-        m_settings->set("PostExitCommand", ui->customCommands->postexitCommand());
-    }
-    else
-    {
-        m_settings->reset("PreLaunchCommand");
-        m_settings->reset("WrapperCommand");
-        m_settings->reset("PostExitCommand");
-    }
+    m_settings->set("PreLaunchCommand", ui->customCommands->prelaunchCommand());
+    m_settings->set("WrapperCommand", ui->customCommands->wrapperCommand());
+    m_settings->set("PostExitCommand", ui->customCommands->postexitCommand());
 
     // Workarounds
     bool workarounds = ui->nativeWorkaroundsGroupBox->isChecked();
     m_settings->set("OverrideNativeWorkarounds", workarounds);
-    if(workarounds)
-    {
-        m_settings->set("UseNativeOpenAL", ui->useNativeOpenALCheck->isChecked());
-        m_settings->set("UseNativeGLFW", ui->useNativeGLFWCheck->isChecked());
-    }
-    else
-    {
-        m_settings->reset("UseNativeOpenAL");
-        m_settings->reset("UseNativeGLFW");
-    }
+    m_settings->set("UseNativeOpenAL", ui->useNativeOpenALCheck->isChecked());
+    m_settings->set("UseNativeGLFW", ui->useNativeGLFWCheck->isChecked());
 
     // Game time
     bool gameTime = ui->gameTimeGroupBox->isChecked();
     m_settings->set("OverrideGameTime", gameTime);
-    if (gameTime)
-    {
-        m_settings->set("ShowGameTime", ui->showGameTime->isChecked());
-        m_settings->set("RecordGameTime", ui->recordGameTime->isChecked());
-    }
-    else
-    {
-        m_settings->reset("ShowGameTime");
-        m_settings->reset("RecordGameTime");
-    }
+    m_settings->set("ShowGameTime", ui->showGameTime->isChecked());
+    m_settings->set("RecordGameTime", ui->recordGameTime->isChecked());
 
     // Join server on launch
     bool joinServerOnLaunch = ui->serverJoinGroupBox->isChecked();
     m_settings->set("JoinServerOnLaunch", joinServerOnLaunch);
-    if (joinServerOnLaunch)
-    {
-        m_settings->set("JoinServerOnLaunchAddress", ui->serverJoinAddress->text());
-    }
-    else
-    {
-        m_settings->reset("JoinServerOnLaunchAddress");
-    }
+    m_settings->set("JoinServerOnLaunchAddress", ui->serverJoinAddress->text());
 }
 
 void InstanceSettingsPage::loadSettings()
 {
     // Console
-    ui->consoleSettingsBox->setChecked(m_settings->get("OverrideConsole").toBool());
-    ui->showConsoleCheck->setChecked(m_settings->get("ShowConsole").toBool());
-    ui->autoCloseConsoleCheck->setChecked(m_settings->get("AutoCloseConsole").toBool());
-    ui->showConsoleErrorCheck->setChecked(m_settings->get("ShowConsoleOnError").toBool());
+    ui->consoleSettingsBox->setChecked(m_settings->getStored("OverrideConsole").toBool());
+    ui->showConsoleCheck->setChecked(m_settings->getStored("ShowConsole").toBool());
+    ui->autoCloseConsoleCheck->setChecked(m_settings->getStored("AutoCloseConsole").toBool());
+    ui->showConsoleErrorCheck->setChecked(m_settings->getStored("ShowConsoleOnError").toBool());
 
     // Window Size
-    ui->windowSizeGroupBox->setChecked(m_settings->get("OverrideWindow").toBool());
-    ui->maximizedCheckBox->setChecked(m_settings->get("LaunchMaximized").toBool());
-    ui->windowWidthSpinBox->setValue(m_settings->get("MinecraftWinWidth").toInt());
-    ui->windowHeightSpinBox->setValue(m_settings->get("MinecraftWinHeight").toInt());
+    ui->windowSizeGroupBox->setChecked(m_settings->getStored("OverrideWindow").toBool());
+    ui->maximizedCheckBox->setChecked(m_settings->getStored("LaunchMaximized").toBool());
+    ui->windowWidthSpinBox->setValue(m_settings->getStored("MinecraftWinWidth").toInt());
+    ui->windowHeightSpinBox->setValue(m_settings->getStored("MinecraftWinHeight").toInt());
 
     // Memory
-    ui->memoryGroupBox->setChecked(m_settings->get("OverrideMemory").toBool());
-    int min = m_settings->get("MinMemAlloc").toInt();
-    int max = m_settings->get("MaxMemAlloc").toInt();
+    ui->memoryGroupBox->setChecked(m_settings->getStored("OverrideMemory").toBool());
+    int min = m_settings->getStored("MinMemAlloc").toInt();
+    int max = m_settings->getStored("MaxMemAlloc").toInt();
     if(min < max)
     {
         ui->minMemSpinBox->setValue(min);
@@ -273,46 +199,46 @@ void InstanceSettingsPage::loadSettings()
         ui->minMemSpinBox->setValue(max);
         ui->maxMemSpinBox->setValue(min);
     }
-    ui->permGenSpinBox->setValue(m_settings->get("PermGen").toInt());
-    bool permGenVisible = m_settings->get("PermGenVisible").toBool();
+    ui->permGenSpinBox->setValue(m_settings->getStored("PermGen").toInt());
+    bool permGenVisible = m_settings->getStored("PermGenVisible").toBool();
     ui->permGenSpinBox->setVisible(permGenVisible);
     ui->labelPermGen->setVisible(permGenVisible);
     ui->labelPermgenNote->setVisible(permGenVisible);
 
 
     // Java Settings
-    bool overrideJava = m_settings->get("OverrideJava").toBool();
-    bool overrideLocation = m_settings->get("OverrideJavaLocation").toBool() || overrideJava;
-    bool overrideArgs = m_settings->get("OverrideJavaArgs").toBool() || overrideJava;
+    bool overrideJava = m_settings->getStored("OverrideJava").toBool();
+    bool overrideLocation = m_settings->getStored("OverrideJavaLocation").toBool() || overrideJava;
+    bool overrideArgs = m_settings->getStored("OverrideJavaArgs").toBool() || overrideJava;
 
     ui->javaSettingsGroupBox->setChecked(overrideLocation);
-    ui->javaPathTextBox->setText(m_settings->get("JavaPath").toString());
-    ui->skipCompatibilityCheckbox->setChecked(m_settings->get("IgnoreJavaCompatibility").toBool());
+    ui->javaPathTextBox->setText(m_settings->getStored("JavaPath").toString());
+    ui->skipCompatibilityCheckbox->setChecked(m_settings->getStored("IgnoreJavaCompatibility").toBool());
 
     ui->javaArgumentsGroupBox->setChecked(overrideArgs);
-    ui->jvmArgsTextBox->setPlainText(m_settings->get("JvmArgs").toString());
+    ui->jvmArgsTextBox->setPlainText(m_settings->getStored("JvmArgs").toString());
 
     // Custom commands
     ui->customCommands->initialize(
         true,
-        m_settings->get("OverrideCommands").toBool(),
-        m_settings->get("PreLaunchCommand").toString(),
-        m_settings->get("WrapperCommand").toString(),
-        m_settings->get("PostExitCommand").toString()
+        m_settings->getStored("OverrideCommands").toBool(),
+        m_settings->getStored("PreLaunchCommand").toString(),
+        m_settings->getStored("WrapperCommand").toString(),
+        m_settings->getStored("PostExitCommand").toString()
     );
 
     // Workarounds
-    ui->nativeWorkaroundsGroupBox->setChecked(m_settings->get("OverrideNativeWorkarounds").toBool());
-    ui->useNativeGLFWCheck->setChecked(m_settings->get("UseNativeGLFW").toBool());
-    ui->useNativeOpenALCheck->setChecked(m_settings->get("UseNativeOpenAL").toBool());
+    ui->nativeWorkaroundsGroupBox->setChecked(m_settings->getStored("OverrideNativeWorkarounds").toBool());
+    ui->useNativeGLFWCheck->setChecked(m_settings->getStored("UseNativeGLFW").toBool());
+    ui->useNativeOpenALCheck->setChecked(m_settings->getStored("UseNativeOpenAL").toBool());
 
     // Miscellanous
-    ui->gameTimeGroupBox->setChecked(m_settings->get("OverrideGameTime").toBool());
-    ui->showGameTime->setChecked(m_settings->get("ShowGameTime").toBool());
-    ui->recordGameTime->setChecked(m_settings->get("RecordGameTime").toBool());
+    ui->gameTimeGroupBox->setChecked(m_settings->getStored("OverrideGameTime").toBool());
+    ui->showGameTime->setChecked(m_settings->getStored("ShowGameTime").toBool());
+    ui->recordGameTime->setChecked(m_settings->getStored("RecordGameTime").toBool());
 
-    ui->serverJoinGroupBox->setChecked(m_settings->get("JoinServerOnLaunch").toBool());
-    ui->serverJoinAddress->setText(m_settings->get("JoinServerOnLaunchAddress").toString());
+    ui->serverJoinGroupBox->setChecked(m_settings->getStored("JoinServerOnLaunch").toBool());
+    ui->serverJoinAddress->setText(m_settings->getStored("JoinServerOnLaunchAddress").toString());
 }
 
 void InstanceSettingsPage::on_javaDetectBtn_clicked()
@@ -327,7 +253,7 @@ void InstanceSettingsPage::on_javaDetectBtn_clicked()
     {
         java = std::dynamic_pointer_cast<JavaInstall>(vselect.selectedVersion());
         ui->javaPathTextBox->setText(java->path);
-        bool visible = java->id.requiresPermGen() && m_settings->get("OverrideMemory").toBool();
+        bool visible = java->id.requiresPermGen() && m_settings->getStored("OverrideMemory").toBool();
         ui->permGenSpinBox->setVisible(visible);
         ui->labelPermGen->setVisible(visible);
         ui->labelPermgenNote->setVisible(visible);
