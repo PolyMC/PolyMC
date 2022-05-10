@@ -123,6 +123,7 @@ private slots:
     void on_actionDeleteInstance_triggered();
 
     void deleteGroup();
+    void undoTrashInstance();
 
     void on_actionExportInstance_triggered();
 

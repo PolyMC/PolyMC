@@ -19,6 +19,8 @@
 #include <QAbstractListModel>
 #include <QSet>
 #include <QList>
+#include <QStack>
+#include <QPair>
 
 #include "BaseInstance.h"
 
@@ -102,6 +104,8 @@ public:
     void setInstanceGroup(const InstanceId & id, const GroupId& name);
 
     void deleteGroup(const GroupId & name);
+    bool trashInstance(const InstanceId &id);
+    void undoTrashInstance();
     void deleteInstance(const InstanceId & id);
 
     // Wrap an instance creation task in some more task machinery and make it ready to be used
@@ -180,4 +184,6 @@ private:
     QSet<InstanceId> instanceSet;
     bool m_groupsLoaded = false;
     bool m_instancesProbed = false;
+
+    QStack<QPair<QString, QString> > trashStack;
 };

@@ -220,6 +220,7 @@ public:
     TranslatedAction actionLaunchInstanceOffline;
     TranslatedAction actionScreenshots;
     TranslatedAction actionExportInstance;
+    TranslatedAction actionUndoTrashInstance;
     QVector<TranslatedAction *> all_actions;
 
     LabeledToolButton *renameButton = nullptr;
@@ -871,6 +872,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
         connect(secretEventFilter, &KonamiCode::triggered, this, &MainWindow::konamiTriggered);
     }
 
+    // Undo trash instance shortcut
+    {
+        auto q1 = new QShortcut(tr("Ctrl+Z"), this);
+        connect(q1, SIGNAL(activated()), this, SLOT(undoTrashInstance()));
+    }
+
     // Add the news label to the news toolbar.
     {
         m_newsChecker.reset(new NewsChecker(APPLICATION->network(), BuildConfig.NEWS_RSS_URL));
@@ -1126,6 +1133,10 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
             connect(actionDeleteGroup, SIGNAL(triggered(bool)), SLOT(deleteGroup()));
             actions.append(actionDeleteGroup);
         }
+
+        QAction *actionUndoTrashInstance = new QAction("Undo last trash instance", this);
+        connect(actionUndoTrashInstance, SIGNAL(triggered(bool)), SLOT(undoTrashInstance()));
+        actions.append(actionUndoTrashInstance);
     }
     QMenu myMenu;
     myMenu.addActions(actions);
@@ -1793,6 +1804,12 @@ void MainWindow::deleteGroup()
     }
 }
 
+void MainWindow::undoTrashInstance()
+{
+    qDebug() << "undoTrashInstance";
+    APPLICATION->instances()->undoTrashInstance();
+}
+
 void MainWindow::on_actionViewInstanceFolder_triggered()
 {
     QString str = APPLICATION->settings()->get("InstanceDir").toString();
@@ -1924,6 +1941,8 @@ void MainWindow::on_actionDeleteInstance_triggered()
         return;
     }
     auto id = m_selectedInstance->id();
+    if (APPLICATION->instances()->trashInstance(id)) return;
+    
     auto response = CustomMessageBox::selectable(
         this,
         tr("CAREFUL!"),

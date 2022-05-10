@@ -8,29 +8,27 @@
 #include <QDir>
 #include <QFlags>
 
-namespace FS
-{
+namespace FS {
 
-class FileSystemException : public ::Exception
-{
-public:
-    FileSystemException(const QString &message) : Exception(message) {}
+class FileSystemException : public ::Exception {
+   public:
+    FileSystemException(const QString& message) : Exception(message) {}
 };
 
 /**
  * write data to a file safely
  */
-void write(const QString &filename, const QByteArray &data);
+void write(const QString& filename, const QByteArray& data);
 
 /**
  * read data from a file safely\
  */
-QByteArray read(const QString &filename);
+QByteArray read(const QString& filename);
 
 /**
  * Update the last changed timestamp of an existing file
  */
-bool updateTimestamp(const QString & filename);
+bool updateTimestamp(const QString& filename);
 
 /**
  * Creates all the folders in a path for the specified path
@@ -44,35 +42,31 @@ bool ensureFilePathExists(QString filenamepath);
  */
 bool ensureFolderPathExists(QString filenamepath);
 
-class copy
-{
-public:
-    copy(const QString & src, const QString & dst)
+class copy {
+   public:
+    copy(const QString& src, const QString& dst)
     {
         m_src = src;
         m_dst = dst;
     }
-    copy & followSymlinks(const bool follow)
+    copy& followSymlinks(const bool follow)
     {
         m_followSymlinks = follow;
         return *this;
     }
-    copy & blacklist(const IPathMatcher * filter)
+    copy& blacklist(const IPathMatcher* filter)
     {
         m_blacklist = filter;
         return *this;
     }
-    bool operator()()
-    {
-        return operator()(QString());
-    }
+    bool operator()() { return operator()(QString()); }
 
-private:
-    bool operator()(const QString &offset);
+   private:
+    bool operator()(const QString& offset);
 
-private:
+   private:
     bool m_followSymlinks = true;
-    const IPathMatcher * m_blacklist = nullptr;
+    const IPathMatcher* m_blacklist = nullptr;
     QDir m_src;
     QDir m_dst;
 };
@@ -82,9 +76,14 @@ private:
  */
 bool deletePath(QString path);
 
-QString PathCombine(const QString &path1, const QString &path2);
-QString PathCombine(const QString &path1, const QString &path2, const QString &path3);
-QString PathCombine(const QString &path1, const QString &path2, const QString &path3, const QString &path4);
+/**
+ * Trash a folder / file
+ */
+bool trash(QString path, QString *pathInTrash);
+
+QString PathCombine(const QString& path1, const QString& path2);
+QString PathCombine(const QString& path1, const QString& path2, const QString& path3);
+QString PathCombine(const QString& path1, const QString& path2, const QString& path3, const QString& path4);
 
 QString AbsolutePath(QString path);
 
@@ -124,4 +123,4 @@ QString getDesktopDir();
 // call it *name* and assign it the icon *icon*
 // return true if operation succeeded
 bool createShortCut(QString location, QString dest, QStringList args, QString name, QString iconLocation);
-}
+}  // namespace FS

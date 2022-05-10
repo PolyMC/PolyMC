@@ -2,76 +2,64 @@
 
 #include "FileSystem.h"
 
+#include <QDebug>
 #include <QDir>
 #include <QFile>
-#include <QSaveFile>
 #include <QFileInfo>
-#include <QDebug>
-#include <QUrl>
+#include <QSaveFile>
 #include <QStandardPaths>
 #include <QTextStream>
+#include <QUrl>
 
 #if defined Q_OS_WIN32
-    #include <windows.h>
-    #include <string>
-    #include <sys/utime.h>
-    #include <winnls.h>
-    #include <shobjidl.h>
-    #include <objbase.h>
-    #include <objidl.h>
-    #include <shlguid.h>
-    #include <shlobj.h>
+#include <objbase.h>
+#include <objidl.h>
+#include <shlguid.h>
+#include <shlobj.h>
+#include <shobjidl.h>
+#include <sys/utime.h>
+#include <windows.h>
+#include <winnls.h>
+#include <string>
 #else
-    #include <utime.h>
+#include <utime.h>
 #endif
 
 namespace FS {
 
-void ensureExists(const QDir &dir)
+void ensureExists(const QDir& dir)
 {
-    if (!QDir().mkpath(dir.absolutePath()))
-    {
-        throw FileSystemException("Unable to create folder " + dir.dirName() + " (" +
-                                      dir.absolutePath() + ")");
+    if (!QDir().mkpath(dir.absolutePath())) {
+        throw FileSystemException("Unable to create folder " + dir.dirName() + " (" + dir.absolutePath() + ")");
     }
 }
 
-void write(const QString &filename, const QByteArray &data)
+void write(const QString& filename, const QByteArray& data)
 {
     ensureExists(QFileInfo(filename).dir());
     QSaveFile file(filename);
-    if (!file.open(QSaveFile::WriteOnly))
-    {
-        throw FileSystemException("Couldn't open " + filename + " for writing: " +
-                                  file.errorString());
+    if (!file.open(QSaveFile::WriteOnly)) {
+        throw FileSystemException("Couldn't open " + filename + " for writing: " + file.errorString());
     }
-    if (data.size() != file.write(data))
-    {
-        throw FileSystemException("Error writing data to " + filename + ": " +
-                                  file.errorString());
+    if (data.size() != file.write(data)) {
+        throw FileSystemException("Error writing data to " + filename + ": " + file.errorString());
     }
-    if (!file.commit())
-    {
-        throw FileSystemException("Error while committing data to " + filename + ": " +
-                                  file.errorString());
+    if (!file.commit()) {
+        throw FileSystemException("Error while committing data to " + filename + ": " + file.errorString());
     }
 }
 
-QByteArray read(const QString &filename)
+QByteArray read(const QString& filename)
 {
     QFile file(filename);
-    if (!file.open(QFile::ReadOnly))
-    {
-        throw FileSystemException("Unable to open " + filename + " for reading: " +
-                                  file.errorString());
+    if (!file.open(QFile::ReadOnly)) {
+        throw FileSystemException("Unable to open " + filename + " for reading: " + file.errorString());
     }
     const qint64 size = file.size();
     QByteArray data(int(size), 0);
     const qint64 ret = file.read(data.data(), size);
-    if (ret == -1 || ret != size)
-    {
-        throw FileSystemException("Error reading data from " + filename + ": " +
-                                  file.errorString());
+    if (ret == -1 || ret != size) {
+        throw FileSystemException("Error reading data from " + filename + ": " + file.errorString());
     }
     return data;
 }
@@ -105,12 +93,12 @@ bool ensureFolderPathExists(QString foldernamepath)
     return success;
 }
 
-bool copy::operator()(const QString &offset)
+bool copy::operator()(const QString& offset)
 {
-    //NOTE always deep copy on windows. the alternatives are too messy.
-    #if defined Q_OS_WIN32
+// NOTE always deep copy on windows. the alternatives are too messy.
+#if defined Q_OS_WIN32
     m_followSymlinks = true;
-    #endif
+#endif
 
     auto src = PathCombine(m_src.absolutePath(), offset);
     auto dst = PathCombine(m_dst.absolutePath(), offset);
@@ -119,52 +107,39 @@ bool copy::operator()(const QString &offset)
     if (!currentSrc.exists())
         return false;
 
-    if(!m_followSymlinks && currentSrc.isSymLink())
-    {
+    if (!m_followSymlinks && currentSrc.isSymLink()) {
         qDebug() << "creating symlink" << src << " - " << dst;
-        if (!ensureFilePathExists(dst))
-        {
+        if (!ensureFilePathExists(dst)) {
             qWarning() << "Cannot create path!";
             return false;
         }
         return QFile::link(currentSrc.symLinkTarget(), dst);
-    }
-    else if(currentSrc.isFile())
-    {
+    } else if (currentSrc.isFile()) {
         qDebug() << "copying file" << src << " - " << dst;
-        if (!ensureFilePathExists(dst))
-        {
+        if (!ensureFilePathExists(dst)) {
             qWarning() << "Cannot create path!";
             return false;
         }
         return QFile::copy(src, dst);
-    }
-    else if(currentSrc.isDir())
-    {
+    } else if (currentSrc.isDir()) {
         qDebug() << "recursing" << offset;
-        if (!ensureFolderPathExists(dst))
-        {
+        if (!ensureFolderPathExists(dst)) {
             qWarning() << "Cannot create path!";
             return false;
         }
         QDir currentDir(src);
-        for(auto & f : currentDir.entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
-        {
+        for (auto& f : currentDir.entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System)) {
             auto inner_offset = PathCombine(offset, f);
             // ignore and skip stuff that matches the blacklist.
-            if(m_blacklist && m_blacklist->matches(inner_offset))
-            {
+            if (m_blacklist && m_blacklist->matches(inner_offset)) {
                 continue;
             }
-            if(!operator()(inner_offset))
-            {
+            if (!operator()(inner_offset)) {
                 qWarning() << "Failed to copy" << inner_offset;
                 return false;
             }
         }
-    }
-    else
-    {
+    } else {
         qCritical() << "Copy ERROR: Unknown filesystem object:" << src;
         return false;
     }
@@ -175,55 +150,41 @@ bool deletePath(QString path)
 {
     bool OK = true;
     QFileInfo finfo(path);
-    if(finfo.isFile()) {
+    if (finfo.isFile()) {
         return QFile::remove(path);
     }
 
     QDir dir(path);
 
-    if (!dir.exists())
-    {
+    if (!dir.exists()) {
         return OK;
     }
-    auto allEntries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden |
-                                        QDir::AllDirs | QDir::Files,
-                                        QDir::DirsFirst);
+    auto allEntries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden | QDir::AllDirs | QDir::Files, QDir::DirsFirst);
 
-    for(auto & info: allEntries)
-    {
+    for (auto& info : allEntries) {
 #if defined Q_OS_WIN32
         QString nativePath = QDir::toNativeSeparators(info.absoluteFilePath());
         auto wString = nativePath.toStdWString();
         DWORD dwAttrs = GetFileAttributesW(wString.c_str());
         // Windows: check for junctions, reparse points and other nasty things of that sort
-        if(dwAttrs & FILE_ATTRIBUTE_REPARSE_POINT)
-        {
-            if (info.isFile())
-            {
+        if (dwAttrs & FILE_ATTRIBUTE_REPARSE_POINT) {
+            if (info.isFile()) {
                 OK &= QFile::remove(info.absoluteFilePath());
-            }
-            else if (info.isDir())
-            {
+            } else if (info.isDir()) {
                 OK &= dir.rmdir(info.absoluteFilePath());
             }
         }
 #else
         // We do not trust Qt with reparse points, but do trust it with unix symlinks.
-        if(info.isSymLink())
-        {
+        if (info.isSymLink()) {
             OK &= QFile::remove(info.absoluteFilePath());
         }
 #endif
-        else if (info.isDir())
-        {
+        else if (info.isDir()) {
             OK &= deletePath(info.absoluteFilePath());
-        }
-        else if (info.isFile())
-        {
+        } else if (info.isFile()) {
             OK &= QFile::remove(info.absoluteFilePath());
-        }
-        else
-        {
+        } else {
             OK = false;
             qCritical() << "Delete ERROR: Unknown filesystem object:" << info.absoluteFilePath();
         }
@@ -232,22 +193,30 @@ bool deletePath(QString path)
     return OK;
 }
 
-
-QString PathCombine(const QString & path1, const QString & path2)
+bool trash(QString path, QString *pathInTrash = nullptr)
 {
-    if(!path1.size())
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+    return false;
+#else
+    return QFile::moveToTrash(path, pathInTrash);
+#endif
+}
+
+QString PathCombine(const QString& path1, const QString& path2)
+{
+    if (!path1.size())
         return path2;
-    if(!path2.size())
+    if (!path2.size())
         return path1;
     return QDir::cleanPath(path1 + QDir::separator() + path2);
 }
 
-QString PathCombine(const QString & path1, const QString & path2, const QString & path3)
+QString PathCombine(const QString& path1, const QString& path2, const QString& path3)
 {
     return PathCombine(PathCombine(path1, path2), path3);
 }
 
-QString PathCombine(const QString & path1, const QString & path2, const QString & path3, const QString & path4)
+QString PathCombine(const QString& path1, const QString& path2, const QString& path3, const QString& path4)
 {
     return PathCombine(PathCombine(path1, path2, path3), path4);
 }
@@ -259,17 +228,14 @@ QString AbsolutePath(QString path)
 
 QString ResolveExecutable(QString path)
 {
-    if (path.isEmpty())
-    {
+    if (path.isEmpty()) {
         return QString();
     }
-    if(!path.contains('/'))
-    {
+    if (!path.contains('/')) {
         path = QStandardPaths::findExecutable(path);
     }
     QFileInfo pathInfo(path);
-    if(!pathInfo.exists() || !pathInfo.isExecutable())
-    {
+    if (!pathInfo.exists() || !pathInfo.isExecutable()) {
         return QString();
     }
     return pathInfo.absoluteFilePath();
@@ -289,12 +255,9 @@ QString NormalizePath(QString path)
     QDir b(path);
     QString newAbsolute = b.absolutePath();
 
-    if (newAbsolute.startsWith(currentAbsolute))
-    {
+    if (newAbsolute.startsWith(currentAbsolute)) {
         return a.relativeFilePath(newAbsolute);
-    }
-    else
-    {
+    } else {
         return newAbsolute;
     }
 }
@@ -303,10 +266,8 @@ QString badFilenameChars = "\"\\/?<>:;*|!+\r\n";
 
 QString RemoveInvalidFilenameChars(QString string, QChar replaceWith)
 {
-    for (int i = 0; i < string.length(); i++)
-    {
-        if (badFilenameChars.contains(string[i]))
-        {
+    for (int i = 0; i < string.length(); i++) {
+        if (badFilenameChars.contains(string[i])) {
             string[i] = replaceWith;
         }
     }
@@ -318,15 +279,12 @@ QString DirNameFromString(QString string, QString inDir)
     int num = 0;
     QString baseName = RemoveInvalidFilenameChars(string, '-');
     QString dirName;
-    do
-    {
-        if(num == 0)
-        {
+    do {
+        if (num == 0) {
             dirName = baseName;
-        }
-        else
-        {
-            dirName = baseName + QString::number(num);;
+        } else {
+            dirName = baseName + QString::number(num);
+            ;
         }
 
         // If it's over 9000
@@ -354,32 +312,27 @@ HRESULT CreateLink(LPCSTR linkPath, LPCSTR targetPath, LPCSTR args)
 {
     HRESULT hres;
 
-    if (!called_coinit)
-    {
+    if (!called_coinit) {
         hres = CoInitialize(NULL);
         called_coinit = true;
 
-        if (!SUCCEEDED(hres))
-        {
+        if (!SUCCEEDED(hres)) {
             qWarning("Failed to initialize COM. Error 0x%08lX", hres);
             return hres;
         }
     }
 
-    IShellLink *link;
-    hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink,
-                            (LPVOID *)&link);
+    IShellLink* link;
+    hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&link);
 
-    if (SUCCEEDED(hres))
-    {
-        IPersistFile *persistFile;
+    if (SUCCEEDED(hres)) {
+        IPersistFile* persistFile;
 
         link->SetPath(targetPath);
         link->SetArguments(args);
 
-        hres = link->QueryInterface(IID_IPersistFile, (LPVOID *)&persistFile);
-        if (SUCCEEDED(hres))
-        {
+        hres = link->QueryInterface(IID_IPersistFile, (LPVOID*)&persistFile);
+        if (SUCCEEDED(hres)) {
             WCHAR wstr[MAX_PATH];
 
             MultiByteToWideChar(CP_ACP, 0, linkPath, -1, wstr, MAX_PATH);
@@ -400,8 +353,7 @@ QString getDesktopDir()
 }
 
 // Cross-platform Shortcut creation
-bool createShortCut(QString location, QString dest, QStringList args, QString name,
-                          QString icon)
+bool createShortCut(QString location, QString dest, QStringList args, QString name, QString icon)
 {
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
     location = PathCombine(location, name + ".desktop");
@@ -426,8 +378,7 @@ bool createShortCut(QString location, QString dest, QStringList args, QString na
     stream.flush();
     f.close();
 
-    f.setPermissions(f.permissions() | QFileDevice::ExeOwner | QFileDevice::ExeGroup |
-                     QFileDevice::ExeOther);
+    f.setPermissions(f.permissions() | QFileDevice::ExeOwner | QFileDevice::ExeGroup | QFileDevice::ExeOther);
 
     return true;
 #elif defined Q_OS_WIN
@@ -454,4 +405,4 @@ bool createShortCut(QString location, QString dest, QStringList args, QString na
     return false;
 #endif
 }
-}
+}  // namespace FS
