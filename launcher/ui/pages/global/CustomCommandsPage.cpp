@@ -49,7 +49,12 @@ CustomCommandsPage::CustomCommandsPage(QWidget* parent): QWidget(parent)
     auto tabWidget = new QTabWidget(this);
     tabWidget->setObjectName(QStringLiteral("tabWidget"));
     commands = new CustomCommands(this);
+    // Qt on macOS has different margin behavior, for some reason.
+#ifdef Q_OS_MAC
+    commands->setContentsMargins(20, 0, 20, 0);
+#else
     commands->setContentsMargins(6, 6, 6, 6);
+#endif
     tabWidget->addTab(commands, "Foo");
     tabWidget->tabBar()->hide();
     verticalLayout->addWidget(tabWidget);
