@@ -886,6 +886,7 @@ qt5_wrap_ui(LAUNCHER_UI
     ui/pages/global/AccountListPage.ui
     ui/pages/global/JavaPage.ui
     ui/pages/global/LauncherPage.ui
+    ui/pages/global/CustomCommandsPage.ui
     ui/pages/global/APIPage.ui
     ui/pages/global/ProxyPage.ui
     ui/pages/global/MinecraftPage.ui

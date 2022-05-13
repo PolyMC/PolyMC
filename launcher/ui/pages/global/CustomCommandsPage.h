@@ -35,19 +35,21 @@
 
 #pragma once
 
-#include <memory>
-#include <QDialog>
+#include <QTabWidget>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "ui/widgets/CustomCommands.h"
+
+namespace Ui {
+class CustomCommandsPage;
+}
 
 class CustomCommandsPage : public QWidget, public BasePage
 {
     Q_OBJECT
 
 public:
-    explicit CustomCommandsPage(QWidget *parent = 0);
+    explicit CustomCommandsPage(QWidget *parent = nullptr);
     ~CustomCommandsPage();
 
     QString displayName() const override
@@ -72,5 +74,7 @@ public:
 private:
     void applySettings();
     void loadSettings();
-    CustomCommands * commands;
+
+private:
+    Ui::CustomCommandsPage *ui;
 };

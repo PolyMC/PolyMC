@@ -35,34 +35,22 @@
  */
 
 #include "CustomCommandsPage.h"
-#include <QVBoxLayout>
-#include <QTabWidget>
+#include "ui_CustomCommandsPage.h"
+
 #include <QTabBar>
 
-CustomCommandsPage::CustomCommandsPage(QWidget* parent): QWidget(parent)
+CustomCommandsPage::CustomCommandsPage(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::CustomCommandsPage)
 {
-
-    auto verticalLayout = new QVBoxLayout(this);
-    verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
-    verticalLayout->setContentsMargins(0, 0, 0, 0);
-
-    auto tabWidget = new QTabWidget(this);
-    tabWidget->setObjectName(QStringLiteral("tabWidget"));
-    commands = new CustomCommands(this);
-    // Qt on macOS has different margin behavior, for some reason.
-#ifdef Q_OS_MAC
-    commands->setContentsMargins(20, 0, 20, 0);
-#else
-    commands->setContentsMargins(6, 6, 6, 6);
-#endif
-    tabWidget->addTab(commands, "Foo");
-    tabWidget->tabBar()->hide();
-    verticalLayout->addWidget(tabWidget);
+    ui->setupUi(this);
+    ui->tabWidget->tabBar()->hide();
     loadSettings();
 }
 
 CustomCommandsPage::~CustomCommandsPage()
 {
+    delete ui;
 }
 
 bool CustomCommandsPage::apply()
@@ -74,15 +62,15 @@ bool CustomCommandsPage::apply()
 void CustomCommandsPage::applySettings()
 {
     auto s = APPLICATION->settings();
-    s->set("PreLaunchCommand", commands->prelaunchCommand());
-    s->set("WrapperCommand", commands->wrapperCommand());
-    s->set("PostExitCommand", commands->postexitCommand());
+    s->set("PreLaunchCommand", ui->commands->prelaunchCommand());
+    s->set("WrapperCommand", ui->commands->wrapperCommand());
+    s->set("PostExitCommand", ui->commands->postexitCommand());
 }
 
 void CustomCommandsPage::loadSettings()
 {
     auto s = APPLICATION->settings();
-    commands->initialize(
+    ui->commands->initialize(
         false,
         true,
         s->get("PreLaunchCommand").toString(),
@@ -93,5 +81,5 @@ void CustomCommandsPage::loadSettings()
 
 void CustomCommandsPage::retranslate()
 {
-    commands->retranslate();
+    ui->retranslateUi(this);
 }
