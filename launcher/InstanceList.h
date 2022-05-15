@@ -48,6 +48,12 @@ enum class GroupsState
     Dirty
 };
 
+struct TrashHistoryItem {
+    QString id;
+    QString polyPath;
+    QString trashPath;
+    QString groupName;
+};
 
 class InstanceList : public QAbstractListModel
 {
@@ -185,5 +191,5 @@ private:
     bool m_groupsLoaded = false;
     bool m_instancesProbed = false;
 
-    QStack<QPair<QString, QString> > trashStack;
+    QStack<TrashHistoryItem> m_trashHistory;
 };

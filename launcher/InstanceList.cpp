@@ -263,6 +263,8 @@ bool InstanceList::trashInstance(const InstanceId& id)
         return false;
     }
 
+    auto cachedGroupId = m_instanceGroupIndex[id];
+
     if (m_instanceGroupIndex.remove(id)) {
         saveGroupList();
     }
@@ -275,20 +277,27 @@ bool InstanceList::trashInstance(const InstanceId& id)
     }
 
     qDebug() << "Instance" << id << "has been trashed by the launcher.";
-    trashStack.push(QPair<QString, QString>(inst->instanceRoot(), trashedLoc));
+    m_trashHistory.push({id, inst->instanceRoot(), trashedLoc, cachedGroupId});
+    
     return true;
 }
 
 void InstanceList::undoTrashInstance() {
-    if (trashStack.empty()) {
+    if (m_trashHistory.empty()) {
         qWarning() << "Nothing to trash.";
         return;
     }
 
-    auto top = trashStack.pop();
+    auto top = m_trashHistory.pop();
 
-    qDebug() << "Moving" << top.second << "to" << top.first;
-    QFile(top.second).rename(top.first);
+    qDebug() << "Moving" << top.trashPath << "back to" << top.polyPath;
+    QFile(top.trashPath).rename(top.polyPath);
+
+    m_instanceGroupIndex[top.id] = top.groupName;
+    m_groupNameCache.insert(top.groupName);
+
+    saveGroupList();
+    emit instancesChanged();
 }
 
 void InstanceList::deleteInstance(const InstanceId& id)
