@@ -40,6 +40,10 @@
 #include "minecraft/MinecraftInstance.h"
 #include "settings/INISettingsObject.h"
 
+#ifdef Q_OS_WIN32
+#include <Windows.h>
+#endif
+
 const static int GROUP_FILE_FORMAT_VERSION = 1;
 
 InstanceList::InstanceList(SettingsObjectPtr settings, const QString& instDir, QObject* parent)
@@ -799,12 +803,17 @@ Task* InstanceList::wrapInstanceTask(InstanceTask* task)
 QString InstanceList::getStagedInstancePath()
 {
     QString key = QUuid::createUuid().toString();
-    QString relPath = FS::PathCombine("_LAUNCHER_TEMP/", key);
+    QString tempDir = ".LAUNCHER_TEMP/";
+    QString relPath = FS::PathCombine(tempDir, key);
     QDir rootPath(m_instDir);
     auto path = FS::PathCombine(m_instDir, relPath);
     if (!rootPath.mkpath(relPath)) {
         return QString();
     }
+#ifdef Q_OS_WIN32
+    auto tempPath = FS::PathCombine(m_instDir, tempDir);
+    SetFileAttributesA(tempPath.toStdString().c_str(), FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_NOT_CONTENT_INDEXED);
+#endif
     return path;
 }
 
