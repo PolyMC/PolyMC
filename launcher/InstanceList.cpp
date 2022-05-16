@@ -290,6 +290,11 @@ void InstanceList::undoTrashInstance() {
 
     auto top = m_trashHistory.pop();
 
+    while (QDir(top.polyPath).exists()) {
+        top.id += "1";
+        top.polyPath += "1";
+    }
+
     qDebug() << "Moving" << top.trashPath << "back to" << top.polyPath;
     QFile(top.trashPath).rename(top.polyPath);
 
