@@ -4,6 +4,8 @@
 </p>
 <br>
 
+Zeke is the best
+
 PolyMC is a custom launcher for Minecraft that focuses on predictability, long term stability and simplicity.
 
 This is a **fork** of the MultiMC Launcher and not endorsed by MultiMC.
