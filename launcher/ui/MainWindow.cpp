@@ -727,9 +727,10 @@ public:
 
         actionDeleteInstance = TranslatedAction(MainWindow);
         actionDeleteInstance->setObjectName(QStringLiteral("actionDeleteInstance"));
-        actionDeleteInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Dele&te Instance..."));
+        actionDeleteInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Dele&te Instance"));
         actionDeleteInstance.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Delete the selected instance."));
         actionDeleteInstance->setShortcuts({QKeySequence(tr("Backspace")), QKeySequence::Delete});
+        actionDeleteInstance->setAutoRepeat(false);
         all_actions.append(&actionDeleteInstance);
 
         actionCopyInstance = TranslatedAction(MainWindow);
@@ -1147,6 +1148,7 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
 
         QAction *actionUndoTrashInstance = new QAction("Undo last trash instance", this);
         connect(actionUndoTrashInstance, SIGNAL(triggered(bool)), SLOT(undoTrashInstance()));
+        actionUndoTrashInstance->setEnabled(false);
         actions.append(actionUndoTrashInstance);
     }
     QMenu myMenu;
@@ -1826,7 +1828,6 @@ void MainWindow::deleteGroup()
 
 void MainWindow::undoTrashInstance()
 {
-    qDebug() << "undoTrashInstance";
     APPLICATION->instances()->undoTrashInstance();
 }
 
@@ -1960,8 +1961,12 @@ void MainWindow::on_actionDeleteInstance_triggered()
     {
         return;
     }
+
     auto id = m_selectedInstance->id();
-    if (APPLICATION->instances()->trashInstance(id)) return;
+    if (APPLICATION->instances()->trashInstance(id)) {
+        ui->actionUndoTrashInstance->setEnabled(true);
+        return;
+    }
     
     auto response = CustomMessageBox::selectable(
         this,
@@ -1974,6 +1979,7 @@ void MainWindow::on_actionDeleteInstance_triggered()
     if (response == QMessageBox::Yes)
     {
         APPLICATION->instances()->deleteInstance(id);
+        ui->actionUndoTrashInstance->setEnabled(true);
     }
 }
 
