@@ -10,7 +10,6 @@
 
 namespace Net {
 
-
     void Upload::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
         setProgress(bytesReceived, bytesTotal);
     }
@@ -158,7 +157,7 @@ namespace Net {
         m_state = m_sink->init(request);
         switch (m_state) {
             case State::Succeeded:
-                emit succeeded();
+                emitSucceeded();
                 qDebug() << "Upload cache hit " << m_url.toString();
                 return;
             case State::Running:
@@ -166,9 +165,10 @@ namespace Net {
                 break;
             case State::Inactive:
             case State::Failed:
-                emit failed("");
+                emitFailed("");
                 return;
             case State::AbortedByUser:
+                emitAborted();
                 return;
         }
 

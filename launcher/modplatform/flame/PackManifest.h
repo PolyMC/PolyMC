@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QString>
-#include <QVector>
+#include <QMap>
 #include <QUrl>
 #include <QJsonObject>
 
@@ -55,7 +55,7 @@ struct Manifest
     QString name;
     QString version;
     QString author;
-    //Project id -> File
+    //File id -> File
     QMap<int,Flame::File> files;
     QString overrides;
 };
