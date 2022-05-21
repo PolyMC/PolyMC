@@ -3,13 +3,14 @@
 #include <QString>
 #include <QVector>
 #include <QUrl>
+#include <QJsonObject>
 
 namespace Flame
 {
 struct File
 {
     // NOTE: throws JSONValidationError
-    bool parseFromBytes(const QByteArray &bytes);
+    bool parseFromObject(const QJsonObject& object);
 
     int projectId = 0;
     int fileId = 0;
@@ -54,7 +55,8 @@ struct Manifest
     QString name;
     QString version;
     QString author;
-    QVector<Flame::File> files;
+    //Project id -> File
+    QMap<int,Flame::File> files;
     QString overrides;
 };
 

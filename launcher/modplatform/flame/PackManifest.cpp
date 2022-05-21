@@ -41,7 +41,7 @@ static void loadManifestV1(Flame::Manifest& m, QJsonObject& manifest)
         auto obj = Json::requireObject(item);
         Flame::File file;
         loadFileV1(file, obj);
-        m.files.append(file);
+        m.files.insert(file.fileId,file);
     }
     m.overrides = Json::ensureString(manifest, "overrides", "overrides");
 }
@@ -61,14 +61,8 @@ void Flame::loadManifest(Flame::Manifest& m, const QString& filepath)
     loadManifestV1(m, obj);
 }
 
-bool Flame::File::parseFromBytes(const QByteArray& bytes)
+bool Flame::File::parseFromObject(const QJsonObject& obj)
 {
-    auto doc = Json::requireDocument(bytes);
-    if (!doc.isObject()) {
-        throw JSONValidationError(QString("data is not an object? that's not supposed to happen"));
-    }
-    auto obj = Json::ensureObject(doc.object(), "data");
-
     fileName = Json::requireString(obj, "fileName");
 
     // This is a piece of a Flame project JSON pulled out into the file metadata (here) for convenience

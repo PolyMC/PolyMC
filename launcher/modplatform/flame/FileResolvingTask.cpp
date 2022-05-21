@@ -1,5 +1,6 @@
 #include "FileResolvingTask.h"
 #include "Json.h"
+#include "net/Upload.h"
 
 Flame::FileResolvingTask::FileResolvingTask(shared_qobject_ptr<QNetworkAccessManager> network, Flame::Manifest& toProcess)
     : m_network(network), m_toProcess(toProcess)
@@ -10,16 +11,17 @@ void Flame::FileResolvingTask::executeTask()
     setStatus(tr("Resolving mod IDs..."));
     setProgress(0, m_toProcess.files.size());
     m_dljob = new NetJob("Mod id resolver", m_network);
-    results.resize(m_toProcess.files.size());
-    int index = 0;
-    for (auto& file : m_toProcess.files) {
-        auto projectIdStr = QString::number(file.projectId);
-        auto fileIdStr = QString::number(file.fileId);
-        QString metaurl = QString("https://api.curseforge.com/v1/mods/%1/files/%2").arg(projectIdStr, fileIdStr);
-        auto dl = Net::Download::makeByteArray(QUrl(metaurl), &results[index]);
-        m_dljob->addNetAction(dl);
-        index++;
-    }
+    result.reset(new QByteArray());
+    //build json data to send
+    QJsonObject object;
+
+    object["fileIds"] = QJsonArray::fromVariantList(std::accumulate(m_toProcess.files.begin(), m_toProcess.files.end(), QVariantList(), [](QVariantList& l, const File& s) {
+        l.push_back(s.fileId);
+        return l;
+    }));
+    QByteArray data = QJsonDocument(object).toJson();
+    auto dl = Net::Upload::makeByteArray(QUrl("https://api.curseforge.com/v1/mods/files"), result.get(), data);
+    m_dljob->addNetAction(dl);
     connect(m_dljob.get(), &NetJob::finished, this, &Flame::FileResolvingTask::netJobFinished);
     m_dljob->start();
 }
@@ -28,13 +30,14 @@ void Flame::FileResolvingTask::netJobFinished()
 {
     bool failed = false;
     int index = 0;
-    for (auto& bytes : results) {
-        auto& out = m_toProcess.files[index];
+    auto doc = Json::requireDocument(*result);
+    auto array = doc.object()["data"].toArray();
+    for (QJsonValueRef file : array) {
+        auto& out = m_toProcess.files[file.toObject()["id"].toInt()];
         try {
-            bool fail = (!out.parseFromBytes(bytes));
+            bool fail = (!out.parseFromObject(file.toObject()));
             if(fail){
                 //failed :( probably disabled mod, try to add to the list
-                auto doc = Json::requireDocument(bytes);
                 if (!doc.isObject()) {
                     throw JSONValidationError(QString("data is not an object? that's not supposed to happen"));
                 }
@@ -47,10 +50,10 @@ void Flame::FileResolvingTask::netJobFinished()
             }
             failed &= fail;
         } catch (const JSONValidationError& e) {
-            qCritical() << "Resolving of" << out.projectId << out.fileId << "failed because of a parsing error:";
+            qCritical() << "Resolving failed because of a parsing error:";
             qCritical() << e.cause();
             qCritical() << "JSON:";
-            qCritical() << bytes;
+            qCritical() << file;
             failed = true;
         }
         index++;

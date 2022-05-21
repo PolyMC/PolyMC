@@ -386,7 +386,8 @@ void InstanceImportTask::processFlame()
     {
         auto results = m_modIdResolver->getResults();
         m_filesNetJob = new NetJob(tr("Mod download"), APPLICATION->network());
-        for(auto result: results.files)
+        QVector<Flame::File> failedFiles;
+        for(const auto& result: results.files.values())
         {
             QString filename = result.fileName;
             if(!result.required)
@@ -409,6 +410,15 @@ void InstanceImportTask::processFlame()
                 {
                     qDebug() << "Will download" << result.url << "to" << path;
                     auto dl = Net::Download::makeFile(result.url, path);
+                    //early signal to catch failures
+                    connect(dl.get(), &Net::Download::failed, this,[&result, &failedFiles](){
+                        //Broken file
+
+                        if(result.url.host() == "media.forgecdn.net"){
+                            //Was using the workaround, let's assume the workaround somehow stopped working
+                            failedFiles.push_back(result);
+                        }
+                    });
                     m_filesNetJob->addNetAction(dl);
                     break;
                 }

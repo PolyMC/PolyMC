@@ -128,7 +128,7 @@ set(NET_SOURCES
     net/PasteUpload.h
     net/Sink.h
     net/Validator.h
-)
+        net/Upload.cpp net/Upload.h)
 
 # Game launch logic
 set(LAUNCH_SOURCES
