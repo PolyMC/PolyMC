@@ -269,12 +269,13 @@ bool InstanceList::trashInstance(const InstanceId& id)
 
     auto cachedGroupId = m_instanceGroupIndex[id];
 
+    qDebug() << "Will trash instance" << id;
+    QString trashedLoc;
+
     if (m_instanceGroupIndex.remove(id)) {
         saveGroupList();
     }
 
-    qDebug() << "Will trash instance" << id;
-    QString trashedLoc;
     if (!FS::trash(inst->instanceRoot(), &trashedLoc)) {
         qWarning() << "Trash of instance" << id << "has not been completely successful ...";
         return false;
@@ -284,6 +285,10 @@ bool InstanceList::trashInstance(const InstanceId& id)
     m_trashHistory.push({id, inst->instanceRoot(), trashedLoc, cachedGroupId});
     
     return true;
+}
+
+bool InstanceList::trashedSomething() {
+    return !m_trashHistory.empty();
 }
 
 void InstanceList::undoTrashInstance() {

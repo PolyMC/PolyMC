@@ -111,6 +111,7 @@ public:
 
     void deleteGroup(const GroupId & name);
     bool trashInstance(const InstanceId &id);
+    bool trashedSomething();
     void undoTrashInstance();
     void deleteInstance(const InstanceId & id);
 

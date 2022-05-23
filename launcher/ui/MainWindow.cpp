@@ -220,7 +220,6 @@ public:
     TranslatedAction actionLaunchInstanceOffline;
     TranslatedAction actionScreenshots;
     TranslatedAction actionExportInstance;
-    TranslatedAction actionUndoTrashInstance;
     QVector<TranslatedAction *> all_actions;
 
     LabeledToolButton *renameButton = nullptr;
@@ -230,6 +229,9 @@ public:
     TranslatedToolButton foldersMenuButton;
     TranslatedAction actionViewInstanceFolder;
     TranslatedAction actionViewCentralModsFolder;
+
+    QMenu * editMenu = nullptr;
+    TranslatedAction actionUndoTrashInstance;
 
     QMenu * helpMenu = nullptr;
     TranslatedToolButton helpMenuButton;
@@ -504,6 +506,17 @@ public:
         fileMenu->addAction(actionCopyInstance);
         fileMenu->addSeparator();
         fileMenu->addAction(actionSettings);
+
+        actionUndoTrashInstance = TranslatedAction(MainWindow);
+        connect(actionUndoTrashInstance, SIGNAL(triggered(bool)), MainWindow, SLOT(undoTrashInstance()));
+        actionUndoTrashInstance->setObjectName(QStringLiteral("actionUndoTrashInstance"));
+        actionUndoTrashInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "&Undo last instance deletion"));
+        actionUndoTrashInstance->setEnabled(true);
+        actionUndoTrashInstance->setShortcut(QKeySequence("Ctrl+Z"));
+        all_actions.append(&actionUndoTrashInstance);
+
+        editMenu = menuBar->addMenu(tr("&Edit"));
+        editMenu->addAction(actionUndoTrashInstance);
 
         viewMenu = menuBar->addMenu(tr("&View"));
         viewMenu->addAction(actionCAT);
@@ -882,12 +895,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
         connect(secretEventFilter, &KonamiCode::triggered, this, &MainWindow::konamiTriggered);
     }
 
-    // Undo trash instance shortcut
-    {
-        auto q1 = new QShortcut(tr("Ctrl+Z"), this);
-        connect(q1, SIGNAL(activated()), this, SLOT(undoTrashInstance()));
-    }
-
     // Add the news label to the news toolbar.
     {
         m_newsChecker.reset(new NewsChecker(APPLICATION->network(), BuildConfig.NEWS_RSS_URL));
@@ -1148,7 +1155,7 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
 
         QAction *actionUndoTrashInstance = new QAction("Undo last trash instance", this);
         connect(actionUndoTrashInstance, SIGNAL(triggered(bool)), SLOT(undoTrashInstance()));
-        actionUndoTrashInstance->setEnabled(false);
+        actionUndoTrashInstance->setEnabled(APPLICATION->instances()->trashedSomething());
         actions.append(actionUndoTrashInstance);
     }
     QMenu myMenu;
@@ -1964,7 +1971,6 @@ void MainWindow::on_actionDeleteInstance_triggered()
 
     auto id = m_selectedInstance->id();
     if (APPLICATION->instances()->trashInstance(id)) {
-        ui->actionUndoTrashInstance->setEnabled(true);
         return;
     }
     
@@ -1979,7 +1985,6 @@ void MainWindow::on_actionDeleteInstance_triggered()
     if (response == QMessageBox::Yes)
     {
         APPLICATION->instances()->deleteInstance(id);
-        ui->actionUndoTrashInstance->setEnabled(true);
     }
 }
 
