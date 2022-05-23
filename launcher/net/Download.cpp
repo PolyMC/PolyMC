@@ -101,7 +101,7 @@ void Download::executeTask()
     m_state = m_sink->init(request);
     switch (m_state) {
         case State::Succeeded:
-            emitSucceeded();
+            emit succeeded();
             qDebug() << "Download cache hit " << m_url.toString();
             return;
         case State::Running:

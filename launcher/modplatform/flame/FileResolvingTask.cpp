@@ -35,7 +35,7 @@ void Flame::FileResolvingTask::netJobFinished()
     for (QJsonValueRef file : array) {
         auto& out = m_toProcess.files[file.toObject()["id"].toInt()];
         try {
-            failed &= (!out.parseFromBytes(bytes));
+            failed &= (!out.parseFromObject(file.toObject()));
         } catch (const JSONValidationError& e) {
             qCritical() << "Resolving failed because of a parsing error:";
             qCritical() << e.cause();
