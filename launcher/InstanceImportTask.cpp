@@ -413,11 +413,7 @@ void InstanceImportTask::processFlame()
                     //early signal to catch failures
                     connect(dl.get(), &Net::Download::failed, this,[&result, &failedFiles](){
                         //Broken file
-
-                        if(result.url.host() == "media.forgecdn.net"){
-                            //Was using the workaround, let's assume the workaround somehow stopped working
-                            failedFiles.push_back(result);
-                        }
+                        failedFiles.push_back(result);
                     });
                     m_filesNetJob->addNetAction(dl);
                     break;
@@ -441,6 +437,7 @@ void InstanceImportTask::processFlame()
         );
         connect(m_filesNetJob.get(), &NetJob::failed, [&](QString reason)
         {
+            //TODO use failedFiles to display a manual download message
             m_filesNetJob.reset();
             emitFailed(reason);
         });
