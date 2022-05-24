@@ -29,5 +29,9 @@ private: /* data */
     Flame::Manifest m_toProcess;
     std::shared_ptr<QByteArray> result;
     NetJob::Ptr m_dljob;
+
+    void modrinthCheckFinished();
+
+    QMap<File *, QByteArray *> blockedProjects;
 };
 }

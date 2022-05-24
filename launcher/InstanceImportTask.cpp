@@ -386,8 +386,7 @@ void InstanceImportTask::processFlame()
     {
         auto results = m_modIdResolver->getResults();
         m_filesNetJob = new NetJob(tr("Mod download"), APPLICATION->network());
-        QVector<Flame::File> failedFiles;
-        for(const auto& result: results.files.values())
+        for(const auto& result: results.files)
         {
             QString filename = result.fileName;
             if(!result.required)
@@ -408,13 +407,16 @@ void InstanceImportTask::processFlame()
                 case Flame::File::Type::SingleFile:
                 case Flame::File::Type::Mod:
                 {
+                    if(result.url.isEmpty())
+                    {
+                        // Blocked AND no modrinth version found
+                        // Save in a list to display for user later
+                        qDebug() << "Blocked" << result.fileName;
+                        m_blockedMods.push_back(result);
+                        continue;
+                    }
                     qDebug() << "Will download" << result.url << "to" << path;
                     auto dl = Net::Download::makeFile(result.url, path);
-                    //early signal to catch failures
-                    connect(dl.get(), &Net::Download::failed, this,[&result, &failedFiles](){
-                        //Broken file
-                        failedFiles.push_back(result);
-                    });
                     m_filesNetJob->addNetAction(dl);
                     break;
                 }
@@ -431,13 +433,56 @@ void InstanceImportTask::processFlame()
         m_modIdResolver.reset();
         connect(m_filesNetJob.get(), &NetJob::succeeded, this, [&]()
         {
+            qDebug() << "Finished with blocked mods : " << m_blockedMods.size();
             m_filesNetJob.reset();
-            emitSucceeded();
+            if(!m_blockedMods.empty())
+            {
+                //blocked mods found, we need the slug for displaying.... we need another job :D !
+                auto slugJob = new NetJob("Slug Job", APPLICATION->network());
+                auto slugs = QVector<QByteArray>(m_blockedMods.size());
+                auto index = 0;
+                for(const auto& result: m_blockedMods)
+                {
+                    auto projectId = result.projectId;
+                    slugs[index] = QByteArray();
+                    auto url = QString("https://api.curseforge.com/v1/mods/%1").arg(projectId);
+                    auto dl = Net::Download::makeByteArray(url, &slugs[index]);
+                    slugJob->addNetAction(dl);
+                    index++;
+                }
+                connect(slugJob, &NetJob::succeeded, this, [slugs,this,slugJob]()
+                {
+                    slugJob->deleteLater();
+                    QString text;
+                    auto index = 0;
+                    for(const auto& result: slugs)
+                    {
+                        auto json = QJsonDocument::fromJson(result);
+                        auto slug = json.object().value("data").toObject().value("slug").toString();
+                        auto mod = m_blockedMods[index];
+                        auto link = QString("https://www.curseforge.com/minecraft/mc-mods/%1/download/%2").arg(slug,QString::number(mod.fileId));
+                        text += QString("%1: <a href='%2'>%2</a><br/>").arg(mod.fileName,link);
+                        index++;
+                    }
+                    qWarning() << "Blocked mods found, displaying mod list";
+                    auto message = CustomMessageBox::selectable(nullptr, tr("Blocked mods found"),
+                                                                tr("The following mods were blocked on third party launchers<br/>"
+                                                                   "You will need to manually download them and add them to the modpack")
+                                                                + "<br/><br/>" + text,
+                                                                QMessageBox::Warning, QMessageBox::Ok, QMessageBox::Ok);
+                    message->setTextFormat(Qt::RichText);
+                    message->exec();
+                    m_blockedMods.clear();
+                    emitSucceeded();
+                });
+                slugJob->start();
+            }else {
+                emitSucceeded();
+            }
         }
         );
         connect(m_filesNetJob.get(), &NetJob::failed, [&](QString reason)
         {
-            //TODO use failedFiles to display a manual download message
             m_filesNetJob.reset();
             emitFailed(reason);
         });
@@ -522,11 +567,11 @@ void InstanceImportTask::processModrinth()
 
             auto jsonFiles = Json::requireIsArrayOf<QJsonObject>(obj, "files", "modrinth.index.json");
             bool had_optional = false;
-            for (auto& obj : jsonFiles) {
+            for (auto& modInfo : jsonFiles) {
                 Modrinth::File file;
-                file.path = Json::requireString(obj, "path");
+                file.path = Json::requireString(modInfo, "path");
 
-                auto env = Json::ensureObject(obj, "env");
+                auto env = Json::ensureObject(modInfo, "env");
                 QString support = Json::ensureString(env, "client", "unsupported");
                 if (support == "unsupported") {
                     continue;
@@ -544,7 +589,7 @@ void InstanceImportTask::processModrinth()
                         file.path += ".disabled";
                 }
 
-                QJsonObject hashes = Json::requireObject(obj, "hashes");
+                QJsonObject hashes = Json::requireObject(modInfo, "hashes");
                 QString hash;
                 QCryptographicHash::Algorithm hashAlgorithm;
                 hash = Json::ensureString(hashes, "sha1");
@@ -564,7 +609,7 @@ void InstanceImportTask::processModrinth()
                 file.hashAlgorithm = hashAlgorithm;
                 // Do not use requireUrl, which uses StrictMode, instead use QUrl's default TolerantMode
                 // (as Modrinth seems to incorrectly handle spaces)
-                file.download = Json::requireString(Json::ensureArray(obj, "downloads").first(), "Download URL for " + file.path);
+                file.download = Json::requireString(Json::ensureArray(modInfo, "downloads").first(), "Download URL for " + file.path);
                 if (!file.download.isValid() || !Modrinth::validateDownloadUrl(file.download)) {
                     throw JSONValidationError("Download URL for " + file.path + " is not a correctly formatted URL");
                 }
