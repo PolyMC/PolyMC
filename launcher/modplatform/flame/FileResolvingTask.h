@@ -29,5 +29,9 @@ private: /* data */
     Flame::Manifest m_toProcess;
     QVector<QByteArray> results;
     NetJob::Ptr m_dljob;
+
+    void modrinthCheckFinished();
+
+    QMap<File *, QByteArray *> blockedProjects;
 };
 }

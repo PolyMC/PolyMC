@@ -26,24 +26,56 @@ void Flame::FileResolvingTask::executeTask()
 
 void Flame::FileResolvingTask::netJobFinished()
 {
-    bool failed = false;
     int index = 0;
+    // job to check modrinth for blocked projects
+    auto job = new NetJob("Modrinth check", m_network);
+    blockedProjects = QMap<File *,QByteArray *>();
     for (auto& bytes : results) {
         auto& out = m_toProcess.files[index];
         try {
-            failed &= (!out.parseFromBytes(bytes));
+           out.parseFromBytes(bytes);
         } catch (const JSONValidationError& e) {
-            qCritical() << "Resolving of" << out.projectId << out.fileId << "failed because of a parsing error:";
-            qCritical() << e.cause();
-            qCritical() << "JSON:";
-            qCritical() << bytes;
-            failed = true;
+            qDebug() << "Blocked mod on curseforge" << out.fileName;
+            auto hash = out.hash;
+            if(!hash.isEmpty()) {
+                auto url = QString("https://api.modrinth.com/v2/version_file/%1?algorithm=sha1").arg(hash);
+                auto output = new QByteArray();
+                auto dl = Net::Download::makeByteArray(QUrl(url), output);
+                QObject::connect(dl.get(), &Net::Download::succeeded, [&out]() {
+                    out.resolved = true;
+                });
+
+                job->addNetAction(dl);
+                blockedProjects.insert(&out, output);
+            }
         }
         index++;
     }
-    if (!failed) {
-        emitSucceeded();
-    } else {
-        emitFailed(tr("Some mod ID resolving tasks failed."));
+    connect(job, &NetJob::finished, this, &Flame::FileResolvingTask::modrinthCheckFinished);
+
+    job->start();
+}
+
+void Flame::FileResolvingTask::modrinthCheckFinished() {
+    for(auto out : blockedProjects.keys()) {
+        auto bytes = blockedProjects[out];
+        if(!out->resolved){
+            delete bytes;
+            continue;
+        }
+        QJsonDocument doc = QJsonDocument::fromJson(*bytes);
+        auto obj = doc.object();
+        auto array = obj["files"].toArray();
+        for(auto file : array) {
+            auto fileObj = file.toObject();
+            auto primary = fileObj["primary"].toBool();
+            if(primary) {
+                out->url = fileObj["url"].toString();
+                qDebug() << "Found alternative on modrinth " << out->fileName;
+                break;
+            }
+        }
+        delete bytes;
     }
+    emitSucceeded();
 }

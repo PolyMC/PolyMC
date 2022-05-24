@@ -15,6 +15,7 @@ struct File
     int fileId = 0;
     // NOTE: the opposite to 'optional'. This is at the time of writing unused.
     bool required = true;
+    QString hash;
 
     // our
     bool resolved = false;
