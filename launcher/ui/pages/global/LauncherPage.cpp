@@ -338,7 +338,10 @@ void LauncherPage::applySettings()
         s->set("InstSortMode", "Name");
         break;
     }
+
+    s->set("HidePolyCat", ui->hidePolyCatCheckBox->isChecked());
 }
+
 void LauncherPage::loadSettings()
 {
     auto s = APPLICATION->settings();
@@ -440,6 +443,8 @@ void LauncherPage::loadSettings()
     {
         ui->sortByNameBtn->setChecked(true);
     }
+
+    ui->hidePolyCatCheckBox->setChecked(s->get("HidePolyCat").toBool());
 }
 
 void LauncherPage::refreshFontPreview()

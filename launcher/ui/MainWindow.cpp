@@ -215,6 +215,7 @@ public:
     TranslatedAction actionViewSelectedModsFolder;
     TranslatedAction actionDeleteInstance;
     TranslatedAction actionConfig_Folder;
+    QAction* actionCATSeparator;
     TranslatedAction actionCAT;
     TranslatedAction actionCopyInstance;
     TranslatedAction actionLaunchInstanceOffline;
@@ -468,9 +469,10 @@ public:
             mainToolBar->addAction(actionCheckUpdate);
         }
 
-        mainToolBar->addSeparator();
-
+        actionCATSeparator = mainToolBar->addSeparator();
         mainToolBar->addAction(actionCAT);
+        actionCAT->setVisible(!APPLICATION->settings()->get("HidePolyCat").toBool());
+        actionCATSeparator->setVisible(!APPLICATION->settings()->get("HidePolyCat").toBool());
 
         all_toolbars.append(&mainToolBar);
         MainWindow->addToolBar(Qt::TopToolBarArea, mainToolBar);
@@ -1154,6 +1156,8 @@ void MainWindow::updateMainToolBar()
 {
     ui->menuBar->setVisible(APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
     ui->mainToolBar->setVisible(ui->menuBar->isNativeMenuBar() || !APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
+    ui->actionCAT->setVisible(!APPLICATION->settings()->get("HidePolyCat").toBool());
+    ui->actionCATSeparator->setVisible(!APPLICATION->settings()->get("HidePolyCat").toBool());
 }
 
 void MainWindow::updateToolsMenu()

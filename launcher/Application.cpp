@@ -640,6 +640,9 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("ShowGlobalGameTime", true);
         m_settings->registerSetting("RecordGameTime", true);
 
+        // Cat
+        m_settings->registerSetting("HidePolyCat", false);
+
         // Minecraft launch method
         m_settings->registerSetting("MCLaunchMethod", "LauncherPart");
 

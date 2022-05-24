@@ -38,7 +38,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="featuresTab">
       <attribute name="title">
@@ -335,6 +335,22 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="polyCatBox">
+         <property name="title">
+          <string>PolyCat</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QCheckBox" name="hidePolyCatCheckBox">
+            <property name="text">
+             <string>Hide PolyCat icon button</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="generalTabSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -489,7 +505,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>tabWidget</tabstop>
   <tabstop>autoUpdateCheckBox</tabstop>
   <tabstop>updateChannelComboBox</tabstop>
   <tabstop>instDirTextBox</tabstop>
