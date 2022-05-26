@@ -18,6 +18,8 @@ struct File
     // NOTE: the opposite to 'optional'. This is at the time of writing unused.
     bool required = true;
     QString hash;
+    // NOTE: only set on blocked files ! Empty otherwise.
+    QString websiteUrl;
 
     // our
     bool resolved = false;

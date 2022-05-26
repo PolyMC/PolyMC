@@ -10,7 +10,7 @@ class FileResolvingTask : public Task
 {
     Q_OBJECT
 public:
-    explicit FileResolvingTask(shared_qobject_ptr<QNetworkAccessManager> network, Flame::Manifest &toProcess);
+    explicit FileResolvingTask(const shared_qobject_ptr<QNetworkAccessManager>& network, Flame::Manifest &toProcess);
     virtual ~FileResolvingTask() {};
 
     const Flame::Manifest &getResults() const
