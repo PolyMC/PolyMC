@@ -103,5 +103,4 @@ private: /* data */
 
     //FIXME: nuke
     QWidget* m_parent;
-    bool m_blocked;
 };

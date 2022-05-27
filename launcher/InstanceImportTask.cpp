@@ -72,9 +72,6 @@ InstanceImportTask::InstanceImportTask(const QUrl sourceUrl, QWidget* parent)
 
 bool InstanceImportTask::abort()
 {
-    if(m_blocked){
-        return true;
-    }
     m_filesNetJob->abort();
     m_extractFuture.cancel();
 
@@ -398,21 +395,17 @@ void InstanceImportTask::processFlame()
         }
         qWarning() << "Blocked mods found, displaying mod list";
 
-        auto message_dialog = new ScrollMessageBox(nullptr,
+        auto message_dialog = new ScrollMessageBox(m_parent,
                                                        tr("Blocked mods found") ,
                                                        tr("The following mods were blocked on third party launchers.<br/>"
                                                           "You will need to manually download them and add them to the modpack"), text);
-        m_blocked = true;
-        message_dialog->open();
-        message_dialog->activateWindow();
-        message_dialog->raise();
+        message_dialog->setModal(true);
+        message_dialog->show();
         connect(message_dialog, &QDialog::rejected, [&](){
-            m_blocked = false;
             m_modIdResolver.reset();
             emitFailed("Canceled");
         });
         connect(message_dialog, &QDialog::accepted, [&]() {
-            m_blocked = false;
             m_filesNetJob = new NetJob(tr("Mod download"), APPLICATION->network());
             for (const auto &result: m_modIdResolver->getResults().files) {
                 QString filename = result.fileName;
@@ -555,9 +548,7 @@ void InstanceImportTask::processModrinth()
                         auto info = CustomMessageBox::selectable(
                             m_parent, tr("Optional mod detected!"),
                             tr("One or more mods from this modpack are optional. They will be downloaded, but disabled by default!"), QMessageBox::Information);
-                        m_blocked = true;
                         info->exec();
-                        m_blocked = false;
                     }
 
                     if (file.path.endsWith(".jar"))
