@@ -358,40 +358,61 @@ void LaunchProfile::getLibraryFiles(
     QStringList& jars,
     QStringList& nativeJars,
     const QString& overridePath,
-    const QString& tempPath
+    const QString& tempPath,
+    const bool& shouldWalk
 ) const
 {
     QStringList native32, native64;
     jars.clear();
     nativeJars.clear();
-    for (auto lib : getLibraries())
-    {
-        lib->getApplicableFiles(currentSystem, jars, nativeJars, native32, native64, overridePath);
-    }
-    // NOTE: order is important here, add main jar last to the lists
-    if(m_mainJar)
-    {
-        // FIXME: HACK!! jar modding is weird and unsystematic!
-        if(m_jarMods.size())
+    if(!shouldWalk) {
+        for (auto lib : getLibraries())
         {
-            QDir tempDir(tempPath);
-            jars.append(tempDir.absoluteFilePath("minecraft.jar"));
+            lib->getApplicableFiles(currentSystem, jars, nativeJars, native32, native64, overridePath);
         }
-        else
+        // NOTE: order is important here, add main jar last to the lists
+        if(m_mainJar)
         {
-            m_mainJar->getApplicableFiles(currentSystem, jars, nativeJars, native32, native64, overridePath);
+            // FIXME: HACK!! jar modding is weird and unsystematic!
+            if(m_jarMods.size())
+            {
+                QDir tempDir(tempPath);
+                jars.append(tempDir.absoluteFilePath("minecraft.jar"));
+            }
+            else
+            {
+                m_mainJar->getApplicableFiles(currentSystem, jars, nativeJars, native32, native64, overridePath);
+            }
         }
-    }
-    for (auto lib : getNativeLibraries())
-    {
-        lib->getApplicableFiles(currentSystem, jars, nativeJars, native32, native64, overridePath);
-    }
-    if(architecture == "32")
-    {
-        nativeJars.append(native32);
-    }
-    else if(architecture == "64")
-    {
-        nativeJars.append(native64);
+        for (auto lib : getNativeLibraries())
+        {
+            lib->getApplicableFiles(currentSystem, jars, nativeJars, native32, native64, overridePath);
+        }
+        if(architecture == "32")
+        {
+            nativeJars.append(native32);
+        }
+        else if(architecture == "64")
+        {
+            nativeJars.append(native64);
+        }
+    } else {
+        QDirIterator libraryIt(overridePath, QDirIterator::Subdirectories);
+        while(libraryIt.hasNext()){
+            jars.append(libraryIt.next());
+        }
+        if(m_mainJar)
+        {
+            // FIXME: HACK!! jar modding is weird and unsystematic!
+            if(m_jarMods.size())
+            {
+                QDir tempDir(tempPath);
+                jars.append(tempDir.absoluteFilePath("minecraft.jar"));
+            }
+            else
+            {
+                m_mainJar->getApplicableFiles(currentSystem, jars, nativeJars, native32, native64, overridePath);
+            }
+        }
     }
 }

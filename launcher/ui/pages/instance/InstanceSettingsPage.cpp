@@ -232,6 +232,12 @@ void InstanceSettingsPage::applySettings()
         m_settings->reset("UseNativeGLFW");
     }
 
+    // Native and Jar Overrides
+    m_settings->set("OverrideNativesLocation", ui->nativeLibGroupBox->isChecked());
+    m_settings->set("NativesLocation", ui->nativeLibTextBox->text());
+    m_settings->set("OverrideJarsLocation", ui->jarLibGroupBox->isChecked());
+    m_settings->set("JarsLocation", ui->jarLibTextBox->text());
+
     // Game time
     bool gameTime = ui->gameTimeGroupBox->isChecked();
     m_settings->set("OverrideGameTime", gameTime);
@@ -325,6 +331,12 @@ void InstanceSettingsPage::loadSettings()
     ui->useNativeGLFWCheck->setChecked(m_settings->get("UseNativeGLFW").toBool());
     ui->useNativeOpenALCheck->setChecked(m_settings->get("UseNativeOpenAL").toBool());
 
+    // Native and Jar Overrides
+    ui->nativeLibGroupBox->setChecked(m_settings->get("OverrideNativesLocation").toBool());
+    ui->nativeLibTextBox->setText(m_settings->get("NativesLocation").toString());
+    ui->jarLibGroupBox->setChecked(m_settings->get("OverrideJarsLocation").toBool());
+    ui->jarLibTextBox->setText(m_settings->get("JarsLocation").toString());
+
     // Miscellanous
     ui->gameTimeGroupBox->setChecked(m_settings->get("OverrideGameTime").toBool());
     ui->showGameTime->setChecked(m_settings->get("ShowGameTime").toBool());
@@ -390,6 +402,34 @@ void InstanceSettingsPage::on_javaTestBtn_clicked()
         ui->minMemSpinBox->value(), ui->maxMemSpinBox->value(), ui->permGenSpinBox->value()));
     connect(checker.get(), SIGNAL(finished()), SLOT(checkerFinished()));
     checker->run();
+}
+
+void InstanceSettingsPage::on_nativeLibBtn_clicked()
+{
+    QString raw_path = QFileDialog::getExistingDirectory(this, tr("Select native library location"), QDir::currentPath());
+
+    // do not allow current dir - it's dirty. Do not allow dirs that don't exist
+    if(raw_path.isEmpty())
+    {
+        return;
+    }
+    QString cooked_path = FS::NormalizePath(raw_path);
+
+    ui->nativeLibTextBox->setText(cooked_path);
+}
+
+void InstanceSettingsPage::on_jarLibBtn_clicked()
+{
+    QString raw_path = QFileDialog::getExistingDirectory(this, tr("Select jar library location"), QDir::currentPath());
+
+    // do not allow current dir - it's dirty. Do not allow dirs that don't exist
+    if(raw_path.isEmpty())
+    {
+        return;
+    }
+    QString cooked_path = FS::NormalizePath(raw_path);
+
+    ui->jarLibTextBox->setText(cooked_path);
 }
 
 void InstanceSettingsPage::checkerFinished()

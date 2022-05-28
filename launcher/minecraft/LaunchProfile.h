@@ -35,6 +35,7 @@
 
 #pragma once
 #include <QString>
+#include <QDirIterator>
 #include "Library.h"
 #include "Agent.h"
 #include <ProblemProvider.h>
@@ -87,7 +88,8 @@ public: /* getters for profile variables */
         QStringList & jars,
         QStringList & nativeJars,
         const QString & overridePath,
-        const QString & tempPath
+        const QString & tempPath,
+        const bool & shouldWalk
     ) const;
     bool hasTrait(const QString & trait) const;
     ProblemSeverity getProblemSeverity() const override;

@@ -60,8 +60,14 @@ public:
     // where to put the natives during/before launch
     QString getNativePath() const;
 
+    // should it extract natives or should it leave the natives dir as is
+    bool shouldExtractNatives() const;
+
     // where the instance-local libraries should be
     QString getLocalLibraryPath() const;
+
+    // should it look in the libraries cache for classpath or should it walk the jars dir for classpath
+    bool shouldWalkClasspath() const;
 
 
     //////  Profile management //////

@@ -82,6 +82,9 @@ private slots:
     void on_javaTestBtn_clicked();
     void on_javaBrowseBtn_clicked();
 
+    void on_nativeLibBtn_clicked();
+    void on_jarLibBtn_clicked();
+
     void applySettings();
     void loadSettings();
 

@@ -119,6 +119,12 @@ MinecraftInstance::MinecraftInstance(SettingsObjectPtr globalSettings, SettingsO
     auto javaOverride = m_settings->registerSetting("OverrideJava", false);
     auto locationOverride = m_settings->registerSetting("OverrideJavaLocation", false);
     auto argsOverride = m_settings->registerSetting("OverrideJavaArgs", false);
+    
+    // Natives and Jars Override
+    auto nativesOverride = m_settings->registerSetting("OverrideNativesLocation", false);
+    auto nativesLocation = m_settings->registerSetting("NativesLocation", FS::PathCombine(instanceRoot(), "natives/"));
+    auto jarsOverride = m_settings->registerSetting("OverrideJarsLocation");
+    auto jarsLocation = m_settings->registerSetting("JarsLocation", FS::PathCombine(instanceRoot(), "libraries/"));
 
     // combinations
     auto javaOrLocation = std::make_shared<OrSetting>("JavaOrLocationOverride", javaOverride, locationOverride);
@@ -219,14 +225,25 @@ QString MinecraftInstance::binRoot() const
 
 QString MinecraftInstance::getNativePath() const
 {
-    QDir natives_dir(FS::PathCombine(instanceRoot(), "natives/"));
+    QDir natives_dir(m_settings->getSetting("NativesLocation")->get().toString());
     return natives_dir.absolutePath();
 }
 
+bool MinecraftInstance::shouldExtractNatives() const
+{
+    return m_settings->getSetting("OverrideNativesLocation")->get().toBool();
+}
+
+
 QString MinecraftInstance::getLocalLibraryPath() const
 {
-    QDir libraries_dir(FS::PathCombine(instanceRoot(), "libraries/"));
+    QDir libraries_dir(m_settings->getSetting("JarsLocation")->get().toString());
     return libraries_dir.absolutePath();
+}
+
+bool MinecraftInstance::shouldWalkClasspath() const
+{
+    return m_settings->getSetting("OverrideJarsLocation")->get().toBool();
 }
 
 QString MinecraftInstance::jarModsDir() const
@@ -305,7 +322,7 @@ QStringList MinecraftInstance::getClassPath() const
     QStringList jars, nativeJars;
     auto javaArchitecture = settings()->get("JavaArchitecture").toString();
     auto profile = m_components->getProfile();
-    profile->getLibraryFiles(javaArchitecture, jars, nativeJars, getLocalLibraryPath(), binRoot());
+    profile->getLibraryFiles(javaArchitecture, jars, nativeJars, getLocalLibraryPath(), binRoot(), this->shouldWalkClasspath());
     return jars;
 }
 
@@ -320,7 +337,7 @@ QStringList MinecraftInstance::getNativeJars() const
     QStringList jars, nativeJars;
     auto javaArchitecture = settings()->get("JavaArchitecture").toString();
     auto profile = m_components->getProfile();
-    profile->getLibraryFiles(javaArchitecture, jars, nativeJars, getLocalLibraryPath(), binRoot());
+    profile->getLibraryFiles(javaArchitecture, jars, nativeJars, getLocalLibraryPath(), binRoot(), this->shouldWalkClasspath());
     return nativeJars;
 }
 
@@ -570,7 +587,7 @@ QString MinecraftInstance::createLaunchScript(AuthSessionPtr session, MinecraftS
     {
         QStringList jars, nativeJars;
         auto javaArchitecture = settings()->get("JavaArchitecture").toString();
-        profile->getLibraryFiles(javaArchitecture, jars, nativeJars, getLocalLibraryPath(), binRoot());
+        profile->getLibraryFiles(javaArchitecture, jars, nativeJars, getLocalLibraryPath(), binRoot(), this->shouldWalkClasspath());
         for(auto file: jars)
         {
             launchScript += "cp " + file + "\n";
@@ -627,7 +644,7 @@ QStringList MinecraftInstance::verboseDescription(AuthSessionPtr session, Minecr
         out << "Libraries:";
         QStringList jars, nativeJars;
         auto javaArchitecture = settings->get("JavaArchitecture").toString();
-        profile->getLibraryFiles(javaArchitecture, jars, nativeJars, getLocalLibraryPath(), binRoot());
+        profile->getLibraryFiles(javaArchitecture, jars, nativeJars, getLocalLibraryPath(), binRoot(), this->shouldWalkClasspath());
         auto printLibFile = [&](const QString & path)
         {
             QFileInfo info(path);

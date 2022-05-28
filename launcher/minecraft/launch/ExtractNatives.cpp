@@ -84,27 +84,31 @@ void ExtractNatives::executeTask()
 {
     auto instance = m_parent->instance();
     std::shared_ptr<MinecraftInstance> minecraftInstance = std::dynamic_pointer_cast<MinecraftInstance>(instance);
-    auto toExtract = minecraftInstance->getNativeJars();
-    if(toExtract.isEmpty())
-    {
-        emitSucceeded();
-        return;
-    }
-    auto settings = minecraftInstance->settings();
-    bool nativeOpenAL = settings->get("UseNativeOpenAL").toBool();
-    bool nativeGLFW = settings->get("UseNativeGLFW").toBool();
-
-    auto outputPath  = minecraftInstance->getNativePath();
-    auto javaVersion = minecraftInstance->getJavaVersion();
-    bool jniHackEnabled = javaVersion.major() >= 8;
-    for(const auto &source: toExtract)
-    {
-        if(!unzipNatives(source, outputPath, jniHackEnabled, nativeOpenAL, nativeGLFW))
+    if(minecraftInstance->shouldExtractNatives()) {
+        auto toExtract = minecraftInstance->getNativeJars();
+        if(toExtract.isEmpty())
         {
-            const char *reason = QT_TR_NOOP("Couldn't extract native jar '%1' to destination '%2'");
-            emit logLine(QString(reason).arg(source, outputPath), MessageLevel::Fatal);
-            emitFailed(tr(reason).arg(source, outputPath));
+            emitSucceeded();
+            return;
         }
+        auto settings = minecraftInstance->settings();
+        bool nativeOpenAL = settings->get("UseNativeOpenAL").toBool();
+        bool nativeGLFW = settings->get("UseNativeGLFW").toBool();
+
+        auto outputPath  = minecraftInstance->getNativePath();
+        auto javaVersion = minecraftInstance->getJavaVersion();
+        bool jniHackEnabled = javaVersion.major() >= 8;
+        for(const auto &source: toExtract)
+        {
+            if(!unzipNatives(source, outputPath, jniHackEnabled, nativeOpenAL, nativeGLFW))
+            {
+                const char *reason = QT_TR_NOOP("Couldn't extract native jar '%1' to destination '%2'");
+                emit logLine(QString(reason).arg(source, outputPath), MessageLevel::Fatal);
+                emitFailed(tr(reason).arg(source, outputPath));
+            }
+        }
+    } else {
+        emitSucceeded();
     }
     emitSucceeded();
 }

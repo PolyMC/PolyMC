@@ -39,7 +39,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="minecraftTab">
       <attribute name="title">
@@ -441,6 +441,62 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="nativeLibGroupBox">
+         <property name="title">
+          <string>Native library location</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="topMargin">
+           <number>1</number>
+          </property>
+          <item>
+           <widget class="QLineEdit" name="nativeLibTextBox"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="nativeLibBtn">
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="jarLibGroupBox">
+         <property name="title">
+          <string>Jar file location</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <property name="topMargin">
+           <number>1</number>
+          </property>
+          <item>
+           <widget class="QLineEdit" name="jarLibTextBox"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="jarLibBtn">
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -556,7 +612,6 @@
  </customwidgets>
  <tabstops>
   <tabstop>openGlobalJavaSettingsButton</tabstop>
-  <tabstop>settingsTabs</tabstop>
   <tabstop>javaSettingsGroupBox</tabstop>
   <tabstop>javaPathTextBox</tabstop>
   <tabstop>javaDetectBtn</tabstop>
