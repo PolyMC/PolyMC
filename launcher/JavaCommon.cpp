@@ -8,9 +8,20 @@ bool JavaCommon::checkJVMArgs(QString jvmargs, QWidget *parent)
         || jvmargs.contains("-XX-MaxHeapSize") || jvmargs.contains("-XX:InitialHeapSize"))
     {
         auto warnStr = QObject::tr(
-            "You tried to manually set a JVM memory option (using \"-XX:PermSize\", \"-XX-MaxHeapSize\", \"-XX:InitialHeapSize\",  \"-Xmx\" or \"-Xms\").\n"
+            "You tried to manually set a JVM memory option (using \"-XX:PermSize\", \"-XX-MaxHeapSize\", \"-XX:InitialHeapSize\", \"-Xmx\" or \"-Xms\").\n"
             "There are dedicated boxes for these in the settings (Java tab, in the Memory group at the top).\n"
             "This message will be displayed until you remove them from the JVM arguments.");
+        CustomMessageBox::selectable(
+            parent, QObject::tr("JVM arguments warning"),
+            warnStr,
+            QMessageBox::Warning)->exec();
+        return false;
+    }
+    // block lunacy with passing required version to the JVM
+    if (jvmargs.contains(QRegExp("-version:.*"))) {
+        auto warnStr = QObject::tr(
+            "You tried to pass required Java version argument to the JVM (using \"-version:xxx\"). This is not safe and will not be allowed.\n"
+            "This message will be displayed until you remove this from the JVM arguments.");
         CustomMessageBox::selectable(
             parent, QObject::tr("JVM arguments warning"),
             warnStr,
@@ -40,7 +51,7 @@ void JavaCommon::javaArgsWereBad(QWidget *parent, JavaCheckResult result)
     auto htmlError = result.errorLog;
     QString text;
     htmlError.replace('\n', "<br />");
-    text += QObject::tr("The specified java binary didn't work with the arguments you provided:<br />");
+    text += QObject::tr("The specified Java binary didn't work with the arguments you provided:<br />");
     text += QString("<font color=\"red\">%1</font>").arg(htmlError);
     CustomMessageBox::selectable(parent, QObject::tr("Java test failure"), text, QMessageBox::Warning)->show();
 }
@@ -49,8 +60,8 @@ void JavaCommon::javaBinaryWasBad(QWidget *parent, JavaCheckResult result)
 {
     QString text;
     text += QObject::tr(
-        "The specified java binary didn't work.<br />You should use the auto-detect feature, "
-        "or set the path to the java executable.<br />");
+        "The specified Java binary didn't work.<br />You should use the auto-detect feature, "
+        "or set the path to the Java executable.<br />");
     CustomMessageBox::selectable(parent, QObject::tr("Java test failure"), text, QMessageBox::Warning)->show();
 }
 

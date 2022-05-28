@@ -1,30 +1,59 @@
+// SPDX-License-Identifier: GPL-3.0-only
 /*
- * Copyright 2021 Jamie Mansfield <jmansfield@cadixdev.org>
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (c) 2022 Jamie Mansfield <jmansfield@cadixdev.org>
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2021 Jamie Mansfield <jmansfield@cadixdev.org>
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
  */
 
 #include "AtlOptionalModDialog.h"
 #include "ui_AtlOptionalModDialog.h"
 
-AtlOptionalModListModel::AtlOptionalModListModel(QWidget *parent, QVector<ATLauncher::VersionMod> mods)
-    : QAbstractListModel(parent), m_mods(mods) {
+#include <QInputDialog>
+#include <QMessageBox>
+#include "BuildConfig.h"
+#include "Json.h"
+#include "modplatform/atlauncher/ATLShareCode.h"
+#include "Application.h"
 
+AtlOptionalModListModel::AtlOptionalModListModel(QWidget* parent, ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods)
+    : QAbstractListModel(parent)
+    , m_version(version)
+    , m_mods(mods)
+{
     // fill mod index
     for (int i = 0; i < m_mods.size(); i++) {
         auto mod = m_mods.at(i);
         m_index[mod.name] = i;
     }
+
     // set initial state
     for (int i = 0; i < m_mods.size(); i++) {
         auto mod = m_mods.at(i);
@@ -71,13 +100,18 @@ QVariant AtlOptionalModListModel::data(const QModelIndex &index, int role) const
             return mod.description;
         }
     }
+    else if (role == Qt::ForegroundRole) {
+        if (!mod.colour.isEmpty() && m_version.colours.contains(mod.colour)) {
+            return QColor(QString("#%1").arg(m_version.colours[mod.colour]));
+        }
+    }
     else if (role == Qt::CheckStateRole) {
         if (index.column() == EnabledColumn) {
             return m_selection[mod.name] ? Qt::Checked : Qt::Unchecked;
         }
     }
 
-    return QVariant();
+    return {};
 }
 
 bool AtlOptionalModListModel::setData(const QModelIndex &index, const QVariant &value, int role) {
@@ -104,7 +138,7 @@ QVariant AtlOptionalModListModel::headerData(int section, Qt::Orientation orient
         }
     }
 
-    return QVariant();
+    return {};
 }
 
 Qt::ItemFlags AtlOptionalModListModel::flags(const QModelIndex &index) const {
@@ -113,6 +147,69 @@ Qt::ItemFlags AtlOptionalModListModel::flags(const QModelIndex &index) const {
         flags |= Qt::ItemIsUserCheckable;
     }
     return flags;
+}
+
+void AtlOptionalModListModel::useShareCode(const QString& code) {
+    m_jobPtr.reset(new NetJob("Atl::Request", APPLICATION->network()));
+    auto url = QString(BuildConfig.ATL_API_BASE_URL + "share-codes/" + code);
+    m_jobPtr->addNetAction(Net::Download::makeByteArray(QUrl(url), &m_response));
+
+    connect(m_jobPtr.get(), &NetJob::succeeded,
+            this, &AtlOptionalModListModel::shareCodeSuccess);
+    connect(m_jobPtr.get(), &NetJob::failed,
+            this, &AtlOptionalModListModel::shareCodeFailure);
+
+    m_jobPtr->start();
+}
+
+void AtlOptionalModListModel::shareCodeSuccess() {
+    m_jobPtr.reset();
+
+    QJsonParseError parse_error {};
+    auto doc = QJsonDocument::fromJson(m_response, &parse_error);
+    if (parse_error.error != QJsonParseError::NoError) {
+        qWarning() << "Error while parsing JSON response from ATL at " << parse_error.offset << " reason: " << parse_error.errorString();
+        qWarning() << m_response;
+        return;
+    }
+    auto obj = doc.object();
+
+    ATLauncher::ShareCodeResponse response;
+    try {
+        ATLauncher::loadShareCodeResponse(response, obj);
+    }
+    catch (const JSONValidationError& e) {
+        qDebug() << QString::fromUtf8(m_response);
+        qWarning() << "Error while reading response from ATLauncher: " << e.cause();
+        return;
+    }
+
+    if (response.error) {
+        // fixme: plumb in an error message
+        qWarning() << "ATLauncher API Response Error" << response.message;
+        return;
+    }
+
+    // FIXME: verify pack and version, error if not matching.
+
+    // Clear the current selection
+    for (const auto& mod : m_mods) {
+        m_selection[mod.name] = false;
+    }
+
+    // Make the selections, as per the share code.
+    for (const auto& mod : response.data.mods) {
+        m_selection[mod.name] = mod.selected;
+    }
+
+    emit dataChanged(AtlOptionalModListModel::index(0, EnabledColumn),
+                     AtlOptionalModListModel::index(m_mods.size() - 1, EnabledColumn));
+}
+
+void AtlOptionalModListModel::shareCodeFailure(const QString& reason) {
+    m_jobPtr.reset();
+
+    // fixme: plumb in an error message
 }
 
 void AtlOptionalModListModel::selectRecommended() {
@@ -134,7 +231,21 @@ void AtlOptionalModListModel::clearAll() {
 }
 
 void AtlOptionalModListModel::toggleMod(ATLauncher::VersionMod mod, int index) {
-    setMod(mod, index, !m_selection[mod.name]);
+    auto enable = !m_selection[mod.name];
+
+    // If there is a warning for the mod, display that first (if we would be enabling the mod)
+    if (enable && !mod.warning.isEmpty() && m_version.warnings.contains(mod.warning)) {
+        auto message = QString("%1<br><br>%2")
+                           .arg(m_version.warnings[mod.warning], tr("Are you sure that you want to enable this mod?"));
+
+        // fixme: avoid casting here
+        auto result = QMessageBox::warning((QWidget*) this->parent(), tr("Warning"), message, QMessageBox::Yes | QMessageBox::No);
+        if (result != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    setMod(mod, index, enable);
 }
 
 void AtlOptionalModListModel::setMod(ATLauncher::VersionMod mod, int index, bool enable, bool shouldEmit) {
@@ -198,12 +309,13 @@ void AtlOptionalModListModel::setMod(ATLauncher::VersionMod mod, int index, bool
     }
 }
 
-
-AtlOptionalModDialog::AtlOptionalModDialog(QWidget *parent, QVector<ATLauncher::VersionMod> mods)
-    : QDialog(parent), ui(new Ui::AtlOptionalModDialog) {
+AtlOptionalModDialog::AtlOptionalModDialog(QWidget* parent, ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods)
+    : QDialog(parent)
+    , ui(new Ui::AtlOptionalModDialog)
+{
     ui->setupUi(this);
 
-    listModel = new AtlOptionalModListModel(this, mods);
+    listModel = new AtlOptionalModListModel(this, version, mods);
     ui->treeView->setModel(listModel);
 
     ui->treeView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -212,14 +324,43 @@ AtlOptionalModDialog::AtlOptionalModDialog(QWidget *parent, QVector<ATLauncher::
     ui->treeView->header()->setSectionResizeMode(
             AtlOptionalModListModel::DescriptionColumn, QHeaderView::Stretch);
 
-    connect(ui->selectRecommendedButton, &QPushButton::pressed,
+    connect(ui->shareCodeButton, &QPushButton::clicked,
+            this, &AtlOptionalModDialog::useShareCode);
+    connect(ui->selectRecommendedButton, &QPushButton::clicked,
             listModel, &AtlOptionalModListModel::selectRecommended);
-    connect(ui->clearAllButton, &QPushButton::pressed,
+    connect(ui->clearAllButton, &QPushButton::clicked,
             listModel, &AtlOptionalModListModel::clearAll);
-    connect(ui->installButton, &QPushButton::pressed,
+    connect(ui->installButton, &QPushButton::clicked,
             this, &QDialog::close);
 }
 
 AtlOptionalModDialog::~AtlOptionalModDialog() {
     delete ui;
+}
+
+void AtlOptionalModDialog::useShareCode() {
+    bool ok;
+    auto shareCode = QInputDialog::getText(
+            this,
+            tr("Select a share code"),
+            tr("Share code:"),
+            QLineEdit::Normal,
+            "",
+            &ok
+            );
+
+    if (!ok) {
+        // If the user cancels the dialog, we don't need to show any error dialogs.
+        return;
+    }
+
+    if (shareCode.isEmpty()) {
+        QMessageBox box;
+        box.setIcon(QMessageBox::Warning);
+        box.setText(tr("No share code specified!"));
+        box.exec();
+        return;
+    }
+
+    listModel->useShareCode(shareCode);
 }

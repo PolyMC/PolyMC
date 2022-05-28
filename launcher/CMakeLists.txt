@@ -144,6 +144,8 @@ set(LAUNCH_SOURCES
     launch/steps/TextPrint.h
     launch/steps/Update.cpp
     launch/steps/Update.h
+    launch/steps/QuitAfterGameStop.cpp
+    launch/steps/QuitAfterGameStop.h
     launch/LaunchStep.cpp
     launch/LaunchStep.h
     launch/LaunchTask.cpp
@@ -233,6 +235,8 @@ set(MINECRAFT_SOURCES
     minecraft/auth/steps/MigrationEligibilityStep.h
     minecraft/auth/steps/MinecraftProfileStep.cpp
     minecraft/auth/steps/MinecraftProfileStep.h
+    minecraft/auth/steps/MinecraftProfileStepMojang.cpp
+    minecraft/auth/steps/MinecraftProfileStepMojang.h
     minecraft/auth/steps/MSAStep.cpp
     minecraft/auth/steps/MSAStep.h
     minecraft/auth/steps/XboxAuthorizationStep.cpp
@@ -346,28 +350,30 @@ set(MINECRAFT_SOURCES
 
     mojang/PackageManifest.h
     mojang/PackageManifest.cpp
-    )
+    minecraft/Agent.h)
 
 add_unit_test(GradleSpecifier
     SOURCES minecraft/GradleSpecifier_test.cpp
     LIBS Launcher_logic
     )
 
-add_executable(PackageManifest
-    mojang/PackageManifest_test.cpp
-)
-target_link_libraries(PackageManifest
-    Launcher_logic
-    Qt5::Test
-)
-target_include_directories(PackageManifest
-    PRIVATE ../cmake/UnitTest/
-)
-add_test(
-    NAME PackageManifest
-    COMMAND PackageManifest
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
+if(BUILD_TESTING)
+    add_executable(PackageManifest
+        mojang/PackageManifest_test.cpp
+    )
+    target_link_libraries(PackageManifest
+        Launcher_logic
+        Qt5::Test
+    )
+    target_include_directories(PackageManifest
+        PRIVATE ../cmake/UnitTest/
+    )
+    add_test(
+        NAME PackageManifest
+        COMMAND PackageManifest
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+endif()
 
 add_unit_test(MojangVersionFormat
     SOURCES minecraft/MojangVersionFormat_test.cpp
@@ -408,6 +414,11 @@ set(TASKS_SOURCES
     tasks/SequentialTask.h
     tasks/SequentialTask.cpp
 )
+
+add_unit_test(Task
+    SOURCES tasks/Task_test.cpp
+    LIBS Launcher_logic
+    )
 
 set(SETTINGS_SOURCES
     # Settings
@@ -485,6 +496,16 @@ set(META_SOURCES
     meta/Index.h
 )
 
+set(API_SOURCES
+    modplatform/ModAPI.h
+
+    modplatform/flame/FlameAPI.h
+    modplatform/modrinth/ModrinthAPI.h
+    
+    modplatform/helpers/NetworkModAPI.h
+    modplatform/helpers/NetworkModAPI.cpp
+)
+
 set(FTB_SOURCES
     modplatform/legacy_ftb/PackFetchTask.h
     modplatform/legacy_ftb/PackFetchTask.cpp
@@ -511,6 +532,8 @@ set(FLAME_SOURCES
 set(MODRINTH_SOURCES
     modplatform/modrinth/ModrinthPackIndex.cpp
     modplatform/modrinth/ModrinthPackIndex.h
+    modplatform/modrinth/ModrinthPackManifest.cpp
+    modplatform/modrinth/ModrinthPackManifest.h
 )
 
 set(MODPACKSCH_SOURCES
@@ -525,6 +548,8 @@ set(TECHNIC_SOURCES
     modplatform/technic/SingleZipPackInstallTask.cpp
     modplatform/technic/SolderPackInstallTask.h
     modplatform/technic/SolderPackInstallTask.cpp
+    modplatform/technic/SolderPackManifest.h
+    modplatform/technic/SolderPackManifest.cpp
     modplatform/technic/TechnicPackProcessor.h
     modplatform/technic/TechnicPackProcessor.cpp
 )
@@ -536,6 +561,8 @@ set(ATLAUNCHER_SOURCES
     modplatform/atlauncher/ATLPackInstallTask.h
     modplatform/atlauncher/ATLPackManifest.cpp
     modplatform/atlauncher/ATLPackManifest.h
+    modplatform/atlauncher/ATLShareCode.cpp
+    modplatform/atlauncher/ATLShareCode.h
 )
 
 add_unit_test(Index
@@ -564,6 +591,7 @@ set(LOGIC_SOURCES
     ${TOOLS_SOURCES}
     ${META_SOURCES}
     ${ICONS_SOURCES}
+    ${API_SOURCES}
     ${FTB_SOURCES}
     ${FLAME_SOURCES}
     ${MODRINTH_SOURCES}
@@ -633,6 +661,8 @@ SET(LAUNCHER_SOURCES
     ui/setupwizard/JavaWizardPage.h
     ui/setupwizard/LanguageWizardPage.cpp
     ui/setupwizard/LanguageWizardPage.h
+    ui/setupwizard/PasteWizardPage.cpp
+    ui/setupwizard/PasteWizardPage.h
 
     # GUI - themes
     ui/themes/FusionTheme.cpp
@@ -713,6 +743,11 @@ SET(LAUNCHER_SOURCES
     ui/pages/modplatform/VanillaPage.cpp
     ui/pages/modplatform/VanillaPage.h
 
+    ui/pages/modplatform/ModPage.cpp
+    ui/pages/modplatform/ModPage.h
+    ui/pages/modplatform/ModModel.cpp
+    ui/pages/modplatform/ModModel.h
+
     ui/pages/modplatform/atlauncher/AtlFilterModel.cpp
     ui/pages/modplatform/atlauncher/AtlFilterModel.h
     ui/pages/modplatform/atlauncher/AtlListModel.cpp
@@ -743,6 +778,11 @@ SET(LAUNCHER_SOURCES
     ui/pages/modplatform/flame/FlameModPage.cpp
     ui/pages/modplatform/flame/FlameModPage.h
 
+    ui/pages/modplatform/modrinth/ModrinthPage.cpp
+    ui/pages/modplatform/modrinth/ModrinthPage.h
+    ui/pages/modplatform/modrinth/ModrinthModel.cpp
+    ui/pages/modplatform/modrinth/ModrinthModel.h
+
     ui/pages/modplatform/technic/TechnicModel.cpp
     ui/pages/modplatform/technic/TechnicModel.h
     ui/pages/modplatform/technic/TechnicPage.cpp
@@ -751,10 +791,10 @@ SET(LAUNCHER_SOURCES
     ui/pages/modplatform/ImportPage.cpp
     ui/pages/modplatform/ImportPage.h
 
-    ui/pages/modplatform/modrinth/ModrinthModel.cpp
-    ui/pages/modplatform/modrinth/ModrinthModel.h
-    ui/pages/modplatform/modrinth/ModrinthPage.cpp
-    ui/pages/modplatform/modrinth/ModrinthPage.h
+    ui/pages/modplatform/modrinth/ModrinthModModel.cpp
+    ui/pages/modplatform/modrinth/ModrinthModModel.h
+    ui/pages/modplatform/modrinth/ModrinthModPage.cpp
+    ui/pages/modplatform/modrinth/ModrinthModPage.h
 
     # GUI - dialogs
     ui/dialogs/AboutDialog.cpp
@@ -798,7 +838,6 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/ModDownloadDialog.cpp
     ui/dialogs/ModDownloadDialog.h
 
-
     # GUI - widgets
     ui/widgets/Common.cpp
     ui/widgets/Common.h
@@ -822,6 +861,8 @@ SET(LAUNCHER_SOURCES
     ui/widgets/LogView.h
     ui/widgets/MCModInfoFrame.cpp
     ui/widgets/MCModInfoFrame.h
+    ui/widgets/ModFilterWidget.cpp
+    ui/widgets/ModFilterWidget.h
     ui/widgets/ModListView.cpp
     ui/widgets/ModListView.h
     ui/widgets/PageContainer.cpp
@@ -851,6 +892,7 @@ SET(LAUNCHER_SOURCES
 )
 
 qt5_wrap_ui(LAUNCHER_UI
+    ui/setupwizard/PasteWizardPage.ui
     ui/pages/global/AccountListPage.ui
     ui/pages/global/JavaPage.ui
     ui/pages/global/LauncherPage.ui
@@ -871,16 +913,17 @@ qt5_wrap_ui(LAUNCHER_UI
     ui/pages/modplatform/atlauncher/AtlOptionalModDialog.ui
     ui/pages/modplatform/atlauncher/AtlPage.ui
     ui/pages/modplatform/VanillaPage.ui
+    ui/pages/modplatform/ModPage.ui
     ui/pages/modplatform/flame/FlamePage.ui
-    ui/pages/modplatform/flame/FlameModPage.ui
     ui/pages/modplatform/legacy_ftb/Page.ui
     ui/pages/modplatform/ImportPage.ui
     ui/pages/modplatform/ftb/FtbPage.ui
-    ui/pages/modplatform/technic/TechnicPage.ui
     ui/pages/modplatform/modrinth/ModrinthPage.ui
+    ui/pages/modplatform/technic/TechnicPage.ui
     ui/widgets/InstanceCardWidget.ui
     ui/widgets/CustomCommands.ui
     ui/widgets/MCModInfoFrame.ui
+    ui/widgets/ModFilterWidget.ui
     ui/dialogs/CopyInstanceDialog.ui
     ui/dialogs/ProfileSetupDialog.ui
     ui/dialogs/ProgressDialog.ui
@@ -941,8 +984,8 @@ target_link_libraries(Launcher_logic
     Launcher_iconfix
     QuaZip::QuaZip
     hoedown
-    PolyMC_rainbow
     LocalPeer
+    Launcher_rainbow
 )
 
 target_link_libraries(Launcher_logic)
@@ -963,7 +1006,7 @@ if(DEFINED Launcher_APP_BINARY_DEFS)
 endif()
 
 install(TARGETS ${Launcher_Name}
-    BUNDLE DESTINATION ${BUNDLE_DEST_DIR} COMPONENT Runtime
+    BUNDLE DESTINATION "." COMPONENT Runtime
     LIBRARY DESTINATION ${LIBRARY_DEST_DIR} COMPONENT Runtime
     RUNTIME DESTINATION ${BINARY_DEST_DIR} COMPONENT Runtime
 )
@@ -984,7 +1027,7 @@ if(INSTALL_BUNDLE STREQUAL "full")
             DIRECTORY "${QT_PLUGINS_DIR}/imageformats"
             DESTINATION ${PLUGIN_DEST_DIR}
             COMPONENT Runtime
-            REGEX "tga|tiff|mng|webp" EXCLUDE
+            REGEX "tga|tiff|mng" EXCLUDE
         )
         # Icon engines
         install(
@@ -1014,7 +1057,7 @@ if(INSTALL_BUNDLE STREQUAL "full")
             DIRECTORY "${QT_PLUGINS_DIR}/imageformats"
             DESTINATION ${PLUGIN_DEST_DIR}
             COMPONENT Runtime
-            REGEX "tga|tiff|mng|webp" EXCLUDE
+            REGEX "tga|tiff|mng" EXCLUDE
             REGEX "d\\." EXCLUDE
             REGEX "_debug\\." EXCLUDE
             REGEX "\\.dSYM" EXCLUDE

@@ -1,3 +1,38 @@
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (c) 2022 Jamie Mansfield <jmansfield@cadixdev.org>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2013-2021 MultiMC Contributors
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
+ */
+
 #include "ScreenshotsPage.h"
 #include "ui_ScreenshotsPage.h"
 
@@ -216,7 +251,7 @@ ScreenshotsPage::ScreenshotsPage(QString path, QWidget *parent)
     m_model.reset(new QFileSystemModel());
     m_filterModel.reset(new FilterModel());
     m_filterModel->setSourceModel(m_model.get());
-    m_model->setFilter(QDir::Files | QDir::Writable | QDir::Readable);
+    m_model->setFilter(QDir::Files);
     m_model->setReadOnly(false);
     m_model->setNameFilters({"*.png"});
     m_model->setNameFilterDisables(false);
@@ -270,6 +305,11 @@ bool ScreenshotsPage::eventFilter(QObject *obj, QEvent *evt)
     return QWidget::eventFilter(obj, evt);
 }
 
+void ScreenshotsPage::retranslate()
+{
+    ui->retranslateUi(this);
+}
+
 ScreenshotsPage::~ScreenshotsPage()
 {
     delete ui;
@@ -301,6 +341,29 @@ void ScreenshotsPage::onItemActivated(QModelIndex index)
     auto info = m_model->fileInfo(index);
     QString fileName = info.absoluteFilePath();
     DesktopServices::openFile(info.absoluteFilePath());
+}
+
+void ScreenshotsPage::onCurrentSelectionChanged(const QItemSelection &selected)
+{
+    bool allReadable = !selected.isEmpty();
+    bool allWritable = !selected.isEmpty();
+
+    for (auto index : selected.indexes())
+    {
+        if (!index.isValid())
+            break;
+        auto info = m_model->fileInfo(index);
+        if (!info.isReadable())
+            allReadable = false;
+        if (!info.isWritable())
+            allWritable = false;
+    }
+
+    ui->actionUpload->setEnabled(allReadable);
+    ui->actionCopy_Image->setEnabled(allReadable);
+    ui->actionCopy_File_s->setEnabled(allReadable);
+    ui->actionDelete->setEnabled(allWritable);
+    ui->actionRename->setEnabled(allWritable);
 }
 
 void ScreenshotsPage::on_actionView_Folder_triggered()
@@ -463,6 +526,8 @@ void ScreenshotsPage::openedImpl()
         if(idx.isValid())
         {
             ui->listView->setModel(m_filterModel.get());
+            connect(ui->listView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &ScreenshotsPage::onCurrentSelectionChanged);
+            onCurrentSelectionChanged(ui->listView->selectionModel()->selection()); // set initial button enable states
             ui->listView->setRootIndex(m_filterModel->mapFromSource(idx));
         }
         else

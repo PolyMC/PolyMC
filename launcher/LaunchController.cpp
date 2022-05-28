@@ -1,3 +1,38 @@
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2013-2021 MultiMC Contributors
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
+ */
+
 #include "LaunchController.h"
 #include "minecraft/auth/AccountList.h"
 #include "Application.h"
@@ -36,7 +71,10 @@ void LaunchController::executeTask()
         return;
     }
 
-    JavaCommon::checkJVMArgs(m_instance->settings()->get("JvmArgs").toString(), m_parentWidget);
+    if(!JavaCommon::checkJVMArgs(m_instance->settings()->get("JvmArgs").toString(), m_parentWidget)) {
+        emitFailed(tr("Invalid Java arguments specified. Please fix this first."));
+        return;
+    }
 
     login();
 }
@@ -55,7 +93,7 @@ void LaunchController::decideAccount()
         auto reply = CustomMessageBox::selectable(
             m_parentWidget,
             tr("No Accounts"),
-            tr("In order to play Minecraft, you must have at least one Mojang or Minecraft "
+            tr("In order to play Minecraft, you must have at least one Mojang or Microsoft "
                "account logged in. "
                "Would you like to open the account manager to add an account now?"),
             QMessageBox::Information,
@@ -131,13 +169,14 @@ void LaunchController::login() {
                 if(!m_session->wants_online) {
                     // we ask the user for a player name
                     bool ok = false;
-                    QString usedname = m_session->player_name;
+                    QString lastOfflinePlayerName = APPLICATION->settings()->get("LastOfflinePlayerName").toString();
+                    QString usedname = lastOfflinePlayerName.isEmpty() ? m_session->player_name : lastOfflinePlayerName;
                     QString name = QInputDialog::getText(
                         m_parentWidget,
                         tr("Player name"),
                         tr("Choose your offline mode player name."),
                         QLineEdit::Normal,
-                        m_session->player_name,
+                        usedname,
                         &ok
                     );
                     if (!ok)
@@ -148,6 +187,7 @@ void LaunchController::login() {
                     if (name.length())
                     {
                         usedname = name;
+                        APPLICATION->settings()->set("LastOfflinePlayerName", usedname);
                     }
                     m_session->MakeOffline(usedname);
                     // offline flavored game from here :3

@@ -16,7 +16,8 @@
 
 package org.multimc;
 
-public interface Launcher
-{
-    abstract int launch(ParamBucket params);
+public interface Launcher {
+
+    void launch() throws Exception;
+
 }

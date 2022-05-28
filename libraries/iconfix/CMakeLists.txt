@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.9.4)
 project(iconfix)
 
 find_package(Qt5Core REQUIRED QUIET)
@@ -12,7 +12,7 @@ internal/qiconloader.cpp
 internal/qiconloader_p.h
 )
 
-add_library(Launcher_iconfix ${ICONFIX_SOURCES})
+add_library(Launcher_iconfix STATIC ${ICONFIX_SOURCES})
 target_include_directories(Launcher_iconfix PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_BINARY_DIR}" )
 
 target_link_libraries(Launcher_iconfix Qt5::Core Qt5::Widgets)

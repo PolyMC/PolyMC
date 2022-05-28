@@ -6,8 +6,7 @@
         <!-- REDDIT logo icon, needs reddit license! -->
         <file>scalable/reddit-alien.svg</file>
 
-        <!-- Icon for CurseForge. Unknown license? -->
-        <file alias="32x32/flame.png">32x32/instances/flame.png</file>
+        <!-- Icon for CurseForge. CC0 -->
         <file alias="128x128/flame.png">128x128/instances/flame.png</file>
 
         <!-- launcher settings page -->
@@ -19,6 +18,9 @@
         <!-- ATLauncher logo icon (and related bits) -->
         <file>scalable/atlauncher.svg</file>
         <file>scalable/atlauncher-placeholder.png</file>
+
+        <!-- Modrinth logo icon -->
+        <file>scalable/instances/modrinth.svg</file>
 
         <!-- A proxy icon. Our own. SSSsss -->
         <file>scalable/proxy.svg</file>
@@ -269,11 +271,7 @@
         <file>32x32/instances/ftb_logo.png</file>
         <file>128x128/instances/ftb_logo.png</file>
 
-        <file>32x32/instances/flame.png</file>
         <file>128x128/instances/flame.png</file>
-
-        <file>32x32/instances/modrinth.png</file>
-        <file>128x128/instances/modrinth.png</file>
 
         <file>32x32/instances/gear.png</file>
         <file>128x128/instances/gear.png</file>
@@ -313,5 +311,6 @@
 
         <file>scalable/instances/fox.svg</file>
         <file>scalable/instances/bee.svg</file>
+        <file>scalable/instances/polymc.svg</file>
     </qresource>
 </RCC>

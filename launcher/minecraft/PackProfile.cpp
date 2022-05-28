@@ -36,6 +36,13 @@
 #include "ComponentUpdateTask.h"
 
 #include "Application.h"
+#include "modplatform/ModAPI.h"
+
+static const QMap<QString, ModAPI::ModLoaderType> modloaderMapping{
+    {"net.minecraftforge", ModAPI::Forge},
+    {"net.fabricmc.fabric-loader", ModAPI::Fabric},
+    {"org.quiltmc.quilt-loader", ModAPI::Quilt}
+};
 
 PackProfile::PackProfile(MinecraftInstance * instance)
     : QAbstractListModel()
@@ -969,4 +976,21 @@ void PackProfile::disableInteraction(bool disable)
             emit dataChanged(index(0), index(size - 1));
         }
     }
+}
+
+ModAPI::ModLoaderTypes PackProfile::getModLoaders()
+{
+    ModAPI::ModLoaderTypes result = ModAPI::Unspecified;
+
+    QMapIterator<QString, ModAPI::ModLoaderType> i(modloaderMapping);
+
+    while (i.hasNext())
+    {
+        i.next();
+        Component* c = getComponent(i.key());
+        if (c != nullptr && c->isEnabled()) {
+            result |= i.value();
+        }
+    }
+    return result;
 }

@@ -1,3 +1,38 @@
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2013-2021 MultiMC Contributors
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
+ */
+
 #include "LaunchProfile.h"
 #include <Version.h>
 
@@ -7,11 +42,13 @@ void LaunchProfile::clear()
     m_minecraftVersionType.clear();
     m_minecraftAssets.reset();
     m_minecraftArguments.clear();
+    m_addnJvmArguments.clear();
     m_tweakers.clear();
     m_mainClass.clear();
     m_appletClass.clear();
     m_libraries.clear();
     m_mavenFiles.clear();
+    m_agents.clear();
     m_traits.clear();
     m_jarMods.clear();
     m_mainJar.reset();
@@ -43,6 +80,11 @@ void LaunchProfile::applyMainClass(const QString& mainClass)
 void LaunchProfile::applyMinecraftArguments(const QString& minecraftArguments)
 {
     applyString(minecraftArguments, this->m_minecraftArguments);
+}
+
+void LaunchProfile::applyAddnJvmArguments(const QStringList& addnJvmArguments)
+{
+    this->m_addnJvmArguments.append(addnJvmArguments);
 }
 
 void LaunchProfile::applyMinecraftVersionType(const QString& type)
@@ -126,6 +168,11 @@ void LaunchProfile::applyMods(const QList<LibraryPtr>& mods)
     }
 }
 
+void LaunchProfile::applyCompatibleJavaMajors(QList<int>& javaMajor)
+{
+    m_compatibleJavaMajors.append(javaMajor);
+}
+
 void LaunchProfile::applyLibrary(LibraryPtr library)
 {
     if(!library->isActive())
@@ -172,6 +219,22 @@ void LaunchProfile::applyMavenFile(LibraryPtr mavenFile)
 
     // unlike libraries, we do not keep only one version or try to dedupe them
     m_mavenFiles.append(Library::limitedCopy(mavenFile));
+}
+
+void LaunchProfile::applyAgent(AgentPtr agent)
+{
+    auto lib = agent->library();
+    if(!lib->isActive())
+    {
+        return;
+    }
+
+    if(lib->isNative())
+    {
+        return;
+    }
+
+    m_agents.append(agent);
 }
 
 const LibraryPtr LaunchProfile::getMainJar() const
@@ -255,6 +318,11 @@ QString LaunchProfile::getMinecraftArguments() const
     return m_minecraftArguments;
 }
 
+const QStringList & LaunchProfile::getAddnJvmArguments() const
+{
+    return m_addnJvmArguments;
+}
+
 const QList<LibraryPtr> & LaunchProfile::getJarMods() const
 {
     return m_jarMods;
@@ -273,6 +341,16 @@ const QList<LibraryPtr> & LaunchProfile::getNativeLibraries() const
 const QList<LibraryPtr> & LaunchProfile::getMavenFiles() const
 {
     return m_mavenFiles;
+}
+
+const QList<AgentPtr> & LaunchProfile::getAgents() const
+{
+    return m_agents;
+}
+
+const QList<int> & LaunchProfile::getCompatibleJavaMajors() const
+{
+    return m_compatibleJavaMajors;
 }
 
 void LaunchProfile::getLibraryFiles(

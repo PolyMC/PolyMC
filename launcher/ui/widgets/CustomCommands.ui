@@ -29,7 +29,7 @@
       <bool>true</bool>
      </property>
      <property name="title">
-      <string>Cus&amp;tom Commands</string>
+      <string>&amp;Custom Commands</string>
      </property>
      <property name="checkable">
       <bool>true</bool>
@@ -41,7 +41,10 @@
       <item row="2" column="0">
        <widget class="QLabel" name="labelPostExitCmd">
         <property name="text">
-         <string>Post-exit command:</string>
+         <string>P&amp;ost-exit command:</string>
+        </property>
+        <property name="buddy">
+         <cstring>postExitCmdTextBox</cstring>
         </property>
        </widget>
       </item>
@@ -51,7 +54,10 @@
       <item row="0" column="0">
        <widget class="QLabel" name="labelPreLaunchCmd">
         <property name="text">
-         <string>Pre-launch command:</string>
+         <string>&amp;Pre-launch command:</string>
+        </property>
+        <property name="buddy">
+         <cstring>preLaunchCmdTextBox</cstring>
         </property>
        </widget>
       </item>
@@ -61,7 +67,10 @@
       <item row="1" column="0">
        <widget class="QLabel" name="labelWrapperCmd">
         <property name="text">
-         <string>Wrapper command:</string>
+         <string>&amp;Wrapper command:</string>
+        </property>
+        <property name="buddy">
+         <cstring>wrapperCmdTextBox</cstring>
         </property>
        </widget>
       </item>
@@ -74,7 +83,7 @@
    <item>
     <widget class="QLabel" name="labelCustomCmdsDescription">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Pre-launch command runs before the instance launches and post-exit command runs after it exits.&lt;/p&gt;&lt;p&gt;Both will be run in the launcher's working folder with extra environment variables:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;$INST_NAME - Name of the instance&lt;/li&gt;&lt;li&gt;$INST_ID - ID of the instance (its folder name)&lt;/li&gt;&lt;li&gt;$INST_DIR - absolute path of the instance&lt;/li&gt;&lt;li&gt;$INST_MC_DIR - absolute path of minecraft&lt;/li&gt;&lt;li&gt;$INST_JAVA - java binary used for launch&lt;/li&gt;&lt;li&gt;$INST_JAVA_ARGS - command-line parameters used for launch&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Wrapper command allows launching using an extra wrapper program (like 'optirun' on Linux)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Pre-launch command runs before the instance launches and post-exit command runs after it exits.&lt;/p&gt;&lt;p&gt;Both will be run in the launcher's working folder with extra environment variables:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;$INST_NAME - Name of the instance&lt;/li&gt;&lt;li&gt;$INST_ID - ID of the instance (its folder name)&lt;/li&gt;&lt;li&gt;$INST_DIR - absolute path of the instance&lt;/li&gt;&lt;li&gt;$INST_MC_DIR - absolute path of Minecraft&lt;/li&gt;&lt;li&gt;$INST_JAVA - Java binary used for launch&lt;/li&gt;&lt;li&gt;$INST_JAVA_ARGS - command-line parameters used for launch (warning: will not work correctly if arguments contain spaces)&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Wrapper command allows launching using an extra wrapper program (like 'optirun' on Linux)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>

@@ -1,151 +1,147 @@
-package org.multimc;/*
- * Copyright 2012-2021 MultiMC Contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (C) 2022 icelimetea, <fr3shtea@outlook.com>
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2013-2021 MultiMC Contributors
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
  */
 
-import org.multimc.onesix.OneSixLauncher;
+package org.multimc;
 
-import java.io.*;
-import java.nio.charset.Charset;
+import org.multimc.exception.ParseException;
+import org.multimc.utils.Parameters;
 
-public class EntryPoint
-{
-    private enum Action
-    {
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public final class EntryPoint {
+
+    private static final Logger LOGGER = Logger.getLogger("EntryPoint");
+
+    private final Parameters params = new Parameters();
+
+    public static void main(String[] args) {
+        EntryPoint listener = new EntryPoint();
+
+        int retCode = listener.listen();
+
+        if (retCode != 0) {
+            LOGGER.info("Exiting with " + retCode);
+
+            System.exit(retCode);
+        }
+    }
+
+    private Action parseLine(String inData) throws ParseException {
+        String[] tokens = inData.split("\\s+", 2);
+
+        if (tokens.length == 0)
+            throw new ParseException("Unexpected empty string!");
+
+        switch (tokens[0]) {
+            case "launch": {
+                return Action.Launch;
+            }
+
+            case "abort": {
+                return Action.Abort;
+            }
+
+            default: {
+                if (tokens.length != 2)
+                    throw new ParseException("Error while parsing:" + inData);
+
+                params.add(tokens[0], tokens[1]);
+
+                return Action.Proceed;
+            }
+        }
+    }
+
+    public int listen() {
+        Action action = Action.Proceed;
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                System.in,
+                StandardCharsets.UTF_8
+        ))) {
+            String line;
+
+            while (action == Action.Proceed) {
+                if ((line = reader.readLine()) != null) {
+                    action = parseLine(line);
+                } else {
+                    action = Action.Abort;
+                }
+            }
+        } catch (IOException | ParseException e) {
+            LOGGER.log(Level.SEVERE, "Launcher ABORT due to exception:", e);
+
+            return 1;
+        }
+
+        // Main loop
+        if (action == Action.Abort) {
+            LOGGER.info("Launch aborted by the launcher.");
+
+            return 1;
+        }
+
+        try {
+            Launcher launcher =
+                    LauncherFactory
+                            .getInstance()
+                            .createLauncher(params);
+
+            launcher.launch();
+
+            return 0;
+        } catch (IllegalArgumentException e) {
+            LOGGER.log(Level.SEVERE, "Wrong argument.", e);
+
+            return 1;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Exception caught from launcher.", e);
+
+            return 1;
+        }
+    }
+
+    private enum Action {
         Proceed,
         Launch,
         Abort
     }
 
-    public static void main(String[] args)
-    {
-        EntryPoint listener = new EntryPoint();
-        int retCode = listener.listen();
-        if (retCode != 0)
-        {
-            System.out.println("Exiting with " + retCode);
-            System.exit(retCode);
-        }
-    }
-
-    private Action parseLine(String inData) throws ParseException
-    {
-        String[] pair = inData.split(" ", 2);
-
-        if(pair.length == 1)
-        {
-            String command = pair[0];
-            if (pair[0].equals("launch"))
-                return Action.Launch;
-
-            else if (pair[0].equals("abort"))
-                return Action.Abort;
-
-            else throw new ParseException("Error while parsing:" + pair[0]);
-        }
-
-        if(pair.length != 2)
-            throw new ParseException("Pair length is not 2.");
-
-        String command = pair[0];
-        String param = pair[1];
-
-        if(command.equals("launcher"))
-        {
-            if(param.equals("onesix"))
-            {
-                m_launcher = new OneSixLauncher();
-                Utils.log("Using onesix launcher.");
-                Utils.log();
-                return Action.Proceed;
-            }
-            else
-                throw new ParseException("Invalid launcher type: " + param);
-        }
-
-        m_params.add(command, param);
-        //System.out.println(command + " : " + param);
-        return Action.Proceed;
-    }
-
-    public int listen()
-    {
-        BufferedReader buffer;
-        try
-        {
-            buffer = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
-        } catch (UnsupportedEncodingException e)
-        {
-            System.err.println("For some reason, your java does not support UTF-8. Consider living in the current century.");
-            e.printStackTrace();
-            return 1;
-        }
-        boolean isListening = true;
-        boolean isAborted = false;
-        // Main loop
-        while (isListening)
-        {
-            String inData;
-            try
-            {
-                // Read from the pipe one line at a time
-                inData = buffer.readLine();
-                if (inData != null)
-                {
-                    Action a = parseLine(inData);
-                    if(a == Action.Abort)
-                    {
-                        isListening = false;
-                        isAborted = true;
-                    }
-                    if(a == Action.Launch)
-                    {
-                        isListening = false;
-                    }
-                }
-                else
-                {
-                    isListening = false;
-                    isAborted = true;
-                }
-            }
-            catch (IOException e)
-            {
-                System.err.println("Launcher ABORT due to IO exception:");
-                e.printStackTrace();
-                return 1;
-            }
-            catch (ParseException e)
-            {
-                System.err.println("Launcher ABORT due to PARSE exception:");
-                e.printStackTrace();
-                return 1;
-            }
-        }
-        if(isAborted)
-        {
-            System.err.println("Launch aborted by the launcher.");
-            return 1;
-        }
-        if(m_launcher != null)
-        {
-            return m_launcher.launch(m_params);
-        }
-        System.err.println("No valid launcher implementation specified.");
-        return 1;
-    }
-
-    private ParamBucket m_params = new ParamBucket();
-    private org.multimc.Launcher m_launcher;
 }

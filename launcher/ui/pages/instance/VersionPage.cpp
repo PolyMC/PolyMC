@@ -1,16 +1,37 @@
-/* Copyright 2013-2021 MultiMC Contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (c) 2022 Jamie Mansfield <jmansfield@cadixdev.org>
+ *  Copyright (c) 2022 Sefa Eyeoglu <contact@scrumplex.net>
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2013-2021 MultiMC Contributors
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
  */
 
 #include "Application.h"
@@ -97,6 +118,11 @@ QIcon VersionPage::icon() const
 bool VersionPage::shouldDisplay() const
 {
     return true;
+}
+
+void VersionPage::retranslate()
+{
+    ui->retranslateUi(this);
 }
 
 QMenu * VersionPage::createPopupMenu()
@@ -212,8 +238,13 @@ void VersionPage::updateVersionControls()
     // FIXME: this is a dirty hack
     auto minecraftVersion = Version(m_profile->getComponentVersion("net.minecraft"));
 
+    ui->actionInstall_Forge->setEnabled(controlsEnabled);
+
     bool supportsFabric = minecraftVersion >= Version("1.14");
     ui->actionInstall_Fabric->setEnabled(controlsEnabled && supportsFabric);
+
+    bool supportsQuilt = minecraftVersion >= Version("1.14");
+    ui->actionInstall_Quilt->setEnabled(controlsEnabled && supportsQuilt);
 
     bool supportsLiteLoader = minecraftVersion <= Version("1.12.2");
     ui->actionInstall_LiteLoader->setEnabled(controlsEnabled && supportsLiteLoader);
@@ -364,7 +395,7 @@ void VersionPage::on_actionChange_version_triggered()
         return;
     }
     VersionSelectDialog vselect(list.get(), tr("Change %1 version").arg(name), this);
-    if (uid == "net.fabricmc.intermediary")
+    if (uid == "net.fabricmc.intermediary" || uid == "org.quiltmc.hashed")
     {
         vselect.setEmptyString(tr("No intermediary mappings versions are currently available."));
         vselect.setEmptyErrorString(tr("Couldn't load or download the intermediary mappings version lists!"));
@@ -395,7 +426,7 @@ void VersionPage::on_actionDownload_All_triggered()
     {
         CustomMessageBox::selectable(
             this, tr("Error"),
-            tr("PolyMC cannot download Minecraft or update instances unless you have at least "
+            tr("Cannot download Minecraft or update instances unless you have at least "
                "one account added.\nPlease add your Mojang or Minecraft account."),
             QMessageBox::Warning)->show();
         return;
@@ -464,6 +495,33 @@ void VersionPage::on_actionInstall_Fabric_triggered()
     {
         auto vsn = vselect.selectedVersion();
         m_profile->setComponentVersion("net.fabricmc.fabric-loader", vsn->descriptor());
+        m_profile->resolve(Net::Mode::Online);
+        preselect(m_profile->rowCount(QModelIndex())-1);
+        m_container->refreshContainer();
+    }
+}
+
+void VersionPage::on_actionInstall_Quilt_triggered()
+{
+    auto vlist = APPLICATION->metadataIndex()->get("org.quiltmc.quilt-loader");
+    if(!vlist)
+    {
+        return;
+    }
+    VersionSelectDialog vselect(vlist.get(), tr("Select Quilt Loader version"), this);
+    vselect.setEmptyString(tr("No Quilt Loader versions are currently available."));
+    vselect.setEmptyErrorString(tr("Couldn't load or download the Quilt Loader version lists!"));
+
+    auto currentVersion = m_profile->getComponentVersion("org.quiltmc.quilt-loader");
+    if(!currentVersion.isEmpty())
+    {
+        vselect.setCurrentVersion(currentVersion);
+    }
+
+    if (vselect.exec() && vselect.selectedVersion())
+    {
+        auto vsn = vselect.selectedVersion();
+        m_profile->setComponentVersion("org.quiltmc.quilt-loader", vsn->descriptor());
         m_profile->resolve(Net::Mode::Online);
         preselect(m_profile->rowCount(QModelIndex())-1);
         m_container->refreshContainer();

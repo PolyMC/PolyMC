@@ -158,13 +158,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="migrateDataFolderMacBtn">
-         <property name="text">
-          <string>Move the data to new location (will restart the launcher)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -196,7 +189,7 @@
           <item>
            <widget class="QRadioButton" name="sortLastLaunchedBtn">
             <property name="text">
-             <string>By &amp;last launched</string>
+             <string>&amp;By last launched</string>
             </property>
             <attribute name="buttonGroup">
              <string notr="true">sortingModeGroup</string>
@@ -290,6 +283,16 @@
             </item>
            </widget>
           </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>&amp;Colors</string>
+            </property>
+            <property name="buddy">
+             <cstring>themeComboBoxColors</cstring>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="1">
            <widget class="QComboBox" name="themeComboBoxColors">
             <property name="sizePolicy">
@@ -303,13 +306,28 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Colors</string>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="toolsBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Tools</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QCheckBox" name="preferMenuBarCheckBox">
+            <property name="toolTip">
+             <string>The menubar is more friendly for keyboard-driven interaction.</string>
             </property>
-            <property name="buddy">
-             <cstring>themeComboBoxColors</cstring>
+            <property name="text">
+             <string>&amp;Replace toolbar with menubar</string>
             </property>
            </widget>
           </item>
@@ -345,21 +363,21 @@
           <item>
            <widget class="QCheckBox" name="showConsoleCheck">
             <property name="text">
-             <string>Show console while the game is running?</string>
+             <string>Show console while the game is &amp;running?</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QCheckBox" name="autoCloseConsoleCheck">
             <property name="text">
-             <string>Automatically close console when the game quits?</string>
+             <string>&amp;Automatically close console when the game quits?</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QCheckBox" name="showConsoleErrorCheck">
             <property name="text">
-             <string>Show console when the game crashes?</string>
+             <string>Show console when the game &amp;crashes?</string>
             </property>
            </widget>
           </item>
@@ -369,13 +387,13 @@
        <item>
         <widget class="QGroupBox" name="groupBox_4">
          <property name="title">
-          <string>History limit</string>
+          <string>&amp;History limit</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
           <item row="1" column="0">
            <widget class="QCheckBox" name="checkStopLogging">
             <property name="text">
-             <string>Stop logging when log overflows</string>
+             <string>&amp;Stop logging when log overflows</string>
             </property>
            </widget>
           </item>
@@ -416,7 +434,7 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>Console font</string>
+          <string>Console &amp;font</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="1" column="0" colspan="2">

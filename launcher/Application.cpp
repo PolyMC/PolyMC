@@ -1,6 +1,43 @@
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+ *  Copyright (C) 2022 Lenny McLennington <lenny@sneed.church>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2013-2021 MultiMC Contributors
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
+ */
+
 #include "Application.h"
 #include "BuildConfig.h"
 
+#include "net/PasteUpload.h"
 #include "ui/MainWindow.h"
 #include "ui/InstanceWindow.h"
 
@@ -26,6 +63,7 @@
 #include "ui/setupwizard/SetupWizard.h"
 #include "ui/setupwizard/LanguageWizardPage.h"
 #include "ui/setupwizard/JavaWizardPage.h"
+#include "ui/setupwizard/PasteWizardPage.h"
 
 #include "ui/dialogs/CustomMessageBox.h"
 
@@ -45,6 +83,7 @@
 #include <QStringList>
 #include <QDebug>
 #include <QStyleFactory>
+#include <QWindow>
 
 #include "InstanceList.h"
 
@@ -187,9 +226,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
     setApplicationName(BuildConfig.LAUNCHER_NAME);
     setApplicationDisplayName(BuildConfig.LAUNCHER_DISPLAYNAME);
     setApplicationVersion(BuildConfig.printableVersionString());
-    #if (QT_VERSION >= QT_VERSION_CHECK(5,7,0))
-        setDesktopFileName(BuildConfig.LAUNCHER_DESKTOPFILENAME);
-    #endif
+    setDesktopFileName(BuildConfig.LAUNCHER_DESKTOPFILENAME);
     startTime = QDateTime::currentDateTime();
 
     // Don't quit on hiding the last window
@@ -281,6 +318,26 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
 
     QString origcwdPath = QDir::currentPath();
     QString binPath = applicationDirPath();
+
+    {
+        // Root path is used for updates and portable data
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
+        QDir foo(FS::PathCombine(binPath, "..")); // typically portable-root or /usr
+        m_rootPath = foo.absolutePath();
+#elif defined(Q_OS_WIN32)
+        m_rootPath = binPath;
+#elif defined(Q_OS_MAC)
+        QDir foo(FS::PathCombine(binPath, "../.."));
+        m_rootPath = foo.absolutePath();
+        // on macOS, touch the root to force Finder to reload the .app metadata (and fix any icon change issues)
+        FS::updateTimestamp(m_rootPath);
+#endif
+
+#ifdef LAUNCHER_JARS_LOCATION
+        m_jarsPath = TOSTRING(LAUNCHER_JARS_LOCATION);
+#endif
+    }
+
     QString adjustedBy;
     QString dataPath;
     // change folder
@@ -289,15 +346,14 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
     {
         // the dir param. it makes multimc data path point to whatever the user specified
         // on command line
-        adjustedBy += "Command line " + dirParam;
+        adjustedBy = "Command line";
         dataPath = dirParam;
     }
     else
     {
-#if !defined(LAUNCHER_PORTABLE) || defined(Q_OS_MAC)
         QDir foo(FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), ".."));
         dataPath = foo.absolutePath();
-        adjustedBy += dataPath;
+        adjustedBy = "Persistent data path";
 
 #ifdef Q_OS_LINUX
         // TODO: this should be removed in a future version
@@ -305,12 +361,15 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         QDir bar(FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation), "polymc"));
         if (bar.exists()) {
             dataPath = bar.absolutePath();
-            adjustedBy += "Legacy data path " + dataPath;
+            adjustedBy = "Legacy data path";
         }
 #endif
-#else
-        dataPath = applicationDirPath();
-        adjustedBy += "Fallback to binary path " + dataPath;
+
+#ifndef Q_OS_MACOS
+        if (QFile::exists(FS::PathCombine(m_rootPath, "portable.txt"))) {
+            dataPath = m_rootPath;
+            adjustedBy = "Portable data path";
+        }
 #endif
     }
 
@@ -350,69 +409,6 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         );
         return;
     }
-
-#if defined(Q_OS_MAC)
-    // move user data to new location if on macOS and it still exists in Contents/MacOS
-    QDir fi(applicationDirPath());
-    QString originalData = fi.absolutePath();
-    // if the config file exists in Contents/MacOS, then user data is still there and needs to moved
-    if (QFileInfo::exists(FS::PathCombine(originalData, BuildConfig.LAUNCHER_CONFIGFILE)))
-    {
-        if (!QFileInfo::exists(FS::PathCombine(originalData, "dontmovemacdata")))
-        {
-            QMessageBox::StandardButton askMoveDialogue;
-            askMoveDialogue = QMessageBox::question(
-                nullptr,
-                BuildConfig.LAUNCHER_DISPLAYNAME,
-                "Would you like to move application data to a new data location? It will improve the launcher's performance, but if you switch to older versions it will look like instances have disappeared. If you select no, you can migrate later in settings. You should select yes unless you're commonly switching between different versions (eg. develop and stable).",
-                QMessageBox::Yes | QMessageBox::No,
-                QMessageBox::Yes
-            );
-            if (askMoveDialogue == QMessageBox::Yes)
-            {
-                qDebug() << "On macOS and found config file in old location, moving user data...";
-                QDir dir;
-                QStringList dataFiles {
-                    "*.log", // Launcher log files: ${Launcher_Name}-@.log
-                    "accounts.json",
-                    "accounts",
-                    "assets",
-                    "cache",
-                    "icons",
-                    "instances",
-                    "libraries",
-                    "meta",
-                    "metacache",
-                    "mods",
-                    BuildConfig.LAUNCHER_CONFIGFILE,
-                    "themes",
-                    "translations"
-                };
-                QDirIterator files(originalData, dataFiles);
-                while (files.hasNext()) {
-                    QString filePath(files.next());
-                    QString fileName(files.fileName());
-                    if (!dir.rename(filePath, FS::PathCombine(dataPath, fileName)))
-                    {
-                        qWarning() << "Failed to move " << fileName;
-                    }
-                }
-            }
-            else
-            {
-                dataPath = originalData;
-                QDir::setCurrent(dataPath);
-                QFile file(originalData + "/dontmovemacdata");
-                file.open(QIODevice::WriteOnly);
-            }
-        }
-        else
-        {
-            dataPath = originalData;
-            QDir::setCurrent(dataPath);
-        }
-    }
-#endif
 
     /*
      * Establish the mechanism for communication with an already running PolyMC that uses the same data path.
@@ -500,24 +496,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         qDebug() << "<> Log initialized.";
     }
 
-    // Set up paths
     {
-        // Root path is used for updates.
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-        QDir foo(FS::PathCombine(binPath, ".."));
-        m_rootPath = foo.absolutePath();
-#elif defined(Q_OS_WIN32)
-        m_rootPath = binPath;
-#elif defined(Q_OS_MAC)
-        QDir foo(FS::PathCombine(binPath, "../.."));
-        m_rootPath = foo.absolutePath();
-        // on macOS, touch the root to force Finder to reload the .app metadata (and fix any icon change issues)
-        FS::updateTimestamp(m_rootPath);
-#endif
-
-#ifdef LAUNCHER_JARS_LOCATION
-        m_jarsPath = TOSTRING(LAUNCHER_JARS_LOCATION);
-#endif
 
         qDebug() << BuildConfig.LAUNCHER_DISPLAYNAME << ", (c) 2013-2021 " << BuildConfig.LAUNCHER_COPYRIGHT;
         qDebug() << "Version                    : " << BuildConfig.printableVersionString();
@@ -577,6 +556,8 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
 
         // Remembered state
         m_settings->registerSetting("LastUsedGroupForNewInstance", QString());
+
+        m_settings->registerSetting("MenuBarInsteadOfToolBar", false);
 
         QString defaultMonospace;
         int defaultSize = 11;
@@ -647,6 +628,8 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("JavaVendor", "");
         m_settings->registerSetting("LastHostname", "");
         m_settings->registerSetting("JvmArgs", "");
+        m_settings->registerSetting("IgnoreJavaCompatibility", false);
+        m_settings->registerSetting("IgnoreJavaWizard", false);
 
         // Native library workarounds
         m_settings->registerSetting("UseNativeOpenAL", false);
@@ -659,6 +642,9 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
 
         // Minecraft launch method
         m_settings->registerSetting("MCLaunchMethod", "LauncherPart");
+
+        // Minecraft offline player name
+        m_settings->registerSetting("LastOfflinePlayerName", "");
 
         // Wrapper command for launch
         m_settings->registerSetting("WrapperCommand", "");
@@ -688,13 +674,40 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
 
         m_settings->registerSetting("UpdateDialogGeometry", "");
 
-        // pastebin URL
-        m_settings->registerSetting("PastebinURL", "https://0x0.st");
+        // HACK: This code feels so stupid is there a less stupid way of doing this?
+        {
+            m_settings->registerSetting("PastebinURL", "");
+            m_settings->registerSetting("PastebinType", PasteUpload::PasteType::Mclogs);
+            m_settings->registerSetting("PastebinCustomAPIBase", "");
+
+            QString pastebinURL = m_settings->get("PastebinURL").toString();
+
+            bool userHadDefaultPastebin = pastebinURL == "https://0x0.st";
+            if (!pastebinURL.isEmpty() && !userHadDefaultPastebin)
+            {
+                m_settings->set("PastebinType", PasteUpload::PasteType::NullPointer);
+                m_settings->set("PastebinCustomAPIBase", pastebinURL);
+                m_settings->reset("PastebinURL");
+            }
+
+            bool ok;
+            int pasteType = m_settings->get("PastebinType").toInt(&ok);
+            // If PastebinType is invalid then reset the related settings.
+            if (!ok || !(PasteUpload::PasteType::First <= pasteType && pasteType <= PasteUpload::PasteType::Last))
+            {
+                m_settings->reset("PastebinType");
+                m_settings->reset("PastebinCustomAPIBase");
+            }
+        }
+        // meta URL
+        m_settings->registerSetting("MetaURLOverride", "");
 
         m_settings->registerSetting("CloseAfterLaunch", false);
+        m_settings->registerSetting("QuitAfterGameStop", false);
 
         // Custom MSA credentials
         m_settings->registerSetting("MSAClientIDOverride", "");
+        m_settings->registerSetting("CFKeyOverride", "");
 
         // Init page provider
         {
@@ -833,6 +846,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_metacache->addBase("ModpacksCHPacks", QDir("cache/ModpacksCHPacks").absolutePath());
         m_metacache->addBase("TechnicPacks", QDir("cache/TechnicPacks").absolutePath());
         m_metacache->addBase("FlamePacks", QDir("cache/FlamePacks").absolutePath());
+        m_metacache->addBase("ModrinthPacks", QDir("cache/ModrinthPacks").absolutePath());
         m_metacache->addBase("root", QDir::currentPath());
         m_metacache->addBase("translations", QDir("translations").absolutePath());
         m_metacache->addBase("icons", QDir("cache/icons").absolutePath());
@@ -888,6 +902,10 @@ bool Application::createSetupWizard()
 {
     bool javaRequired = [&]()
     {
+        bool ignoreJavaWizard = m_settings->get("IgnoreJavaWizard").toBool();
+        if(ignoreJavaWizard) {
+            return false;
+        }
         QString currentHostName = QHostInfo::localHostName();
         QString oldHostName = settings()->get("LastHostname").toString();
         if (currentHostName != oldHostName)
@@ -909,7 +927,8 @@ bool Application::createSetupWizard()
             return true;
         return false;
     }();
-    bool wizardRequired = javaRequired || languageRequired;
+    bool pasteInterventionRequired = settings()->get("PastebinURL") != "";
+    bool wizardRequired = javaRequired || languageRequired || pasteInterventionRequired;
 
     if(wizardRequired)
     {
@@ -918,9 +937,15 @@ bool Application::createSetupWizard()
         {
             m_setupWizard->addPage(new LanguageWizardPage(m_setupWizard));
         }
+
         if (javaRequired)
         {
             m_setupWizard->addPage(new JavaWizardPage(m_setupWizard));
+        }
+
+        if (pasteInterventionRequired)
+        {
+            m_setupWizard->addPage(new PasteWizardPage(m_setupWizard));
         }
         connect(m_setupWizard, &QDialog::finished, this, &Application::setupWizardFinished);
         m_setupWizard->show();
@@ -1104,6 +1129,15 @@ std::vector<ITheme *> Application::getValidApplicationThemes()
     return ret;
 }
 
+bool Application::isFlatpak()
+{
+    #ifdef Q_OS_LINUX
+    return QFile::exists("/.flatpak-info");
+    #else
+    return false;
+    #endif
+}
+
 void Application::setApplicationTheme(const QString& name, bool initial)
 {
     auto systemPalette = qApp->palette();
@@ -1217,6 +1251,12 @@ bool Application::kill(InstancePtr instance)
         return controller->abort();
     }
     return true;
+}
+
+void Application::closeCurrentWindow()
+{
+    if (focusWindow())
+        focusWindow()->close();
 }
 
 void Application::addRunningInstance()
@@ -1502,4 +1542,14 @@ QString Application::getMSAClientID()
     }
 
     return BuildConfig.MSA_CLIENT_ID;
+}
+
+QString Application::getCurseKey()
+{
+    QString keyOverride = m_settings->get("CFKeyOverride").toString();
+    if (!keyOverride.isEmpty()) {
+        return keyOverride;
+    }
+
+    return BuildConfig.CURSEFORGE_API_KEY;
 }

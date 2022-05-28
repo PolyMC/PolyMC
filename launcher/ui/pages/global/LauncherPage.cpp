@@ -1,16 +1,37 @@
-/* Copyright 2013-2021 MultiMC Contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (c) 2022 Jamie Mansfield <jmansfield@cadixdev.org>
+ *  Copyright (c) 2022 dada513 <dada513@protonmail.com>
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2013-2021 MultiMC Contributors
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
  */
 
 #include "LauncherPage.h"
@@ -20,6 +41,7 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QTextCharFormat>
+#include <QMenuBar>
 
 #include "updater/UpdateChecker.h"
 
@@ -75,13 +97,6 @@ LauncherPage::LauncherPage(QWidget *parent) : QWidget(parent), ui(new Ui::Launch
     }
     connect(ui->fontSizeBox, SIGNAL(valueChanged(int)), SLOT(refreshFontPreview()));
     connect(ui->consoleFont, SIGNAL(currentFontChanged(QFont)), SLOT(refreshFontPreview()));
-
-    //move mac data button
-    QFile file(QDir::current().absolutePath() + "/dontmovemacdata");
-    if (!file.exists())
-    {
-        ui->migrateDataFolderMacBtn->setVisible(false);
-    }
 }
 
 LauncherPage::~LauncherPage()
@@ -114,13 +129,31 @@ void LauncherPage::on_instDirBrowseBtn_clicked()
             warning.setInformativeText(
                 tr("Do you really want to use this path? "
                    "Selecting \"No\" will close this and not alter your instance path."));
-            warning.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+            warning.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
             int result = warning.exec();
-            if (result == QMessageBox::Yes)
+            if (result == QMessageBox::Ok)
             {
                 ui->instDirTextBox->setText(cooked_dir);
             }
         }
+        else if(APPLICATION->isFlatpak() && raw_dir.startsWith("/run/user"))
+        {
+            QMessageBox warning;
+            warning.setText(tr("You're trying to specify an instance folder "
+                            "which was granted temporaily via Flatpak.\n"
+                            "This is known to cause problems. "
+                            "After a restart the launcher might break, "
+                            "because it will no longer have access to that directory.\n\n"
+                            "Granting PolyMC access to it via Flatseal is recommended."));
+            warning.setInformativeText(
+             tr("Do you want to proceed anyway?"));
+            warning.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+            int result = warning.exec();
+            if (result == QMessageBox::Ok)
+            {
+                ui->instDirTextBox->setText(cooked_dir);
+            } 
+        } 
         else
         {
             ui->instDirTextBox->setText(cooked_dir);
@@ -149,13 +182,6 @@ void LauncherPage::on_modsDirBrowseBtn_clicked()
         QString cooked_dir = FS::NormalizePath(raw_dir);
         ui->modsDirTextBox->setText(cooked_dir);
     }
-}
-void LauncherPage::on_migrateDataFolderMacBtn_clicked()
-{
-    QFile file(QDir::current().absolutePath() + "/dontmovemacdata");
-    file.remove();
-    QProcess::startDetached(qApp->arguments()[0]);
-    qApp->quit();
 }
 
 void LauncherPage::refreshUpdateChannelList()
@@ -283,6 +309,8 @@ void LauncherPage::applySettings()
         APPLICATION->setApplicationTheme(newAppTheme, false);
     }
 
+    s->set("MenuBarInsteadOfToolBar", ui->preferMenuBarCheckBox->isChecked());
+
     // Console settings
     s->set("ShowConsole", ui->showConsoleCheck->isChecked());
     s->set("AutoCloseConsole", ui->autoCloseConsoleCheck->isChecked());
@@ -371,6 +399,13 @@ void LauncherPage::loadSettings()
         }
     }
 
+    // Toolbar/menu bar settings (not applicable if native menu bar is present)
+    ui->toolsBox->setEnabled(!QMenuBar().isNativeMenuBar());
+#ifdef Q_OS_MACOS
+    ui->toolsBox->setVisible(!QMenuBar().isNativeMenuBar());
+#endif
+    ui->preferMenuBarCheckBox->setChecked(s->get("MenuBarInsteadOfToolBar").toBool());
+
     // Console settings
     ui->showConsoleCheck->setChecked(s->get("ShowConsole").toBool());
     ui->autoCloseConsoleCheck->setChecked(s->get("AutoCloseConsole").toBool());
@@ -440,4 +475,9 @@ void LauncherPage::refreshFontPreview()
         workCursor.insertText(tr("[Something/WARN] A not so spooky warning."), format);
         workCursor.insertBlock();
     }
+}
+
+void LauncherPage::retranslate()
+{
+    ui->retranslateUi(this);
 }

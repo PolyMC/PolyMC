@@ -364,7 +364,7 @@ public:
         {
             QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
             auto key = keyEvent->key();
-            if (key == Qt::Key_Return || key == Qt::Key_Enter)
+            if ((key == Qt::Key_Return || key == Qt::Key_Enter) && eventType == QEvent::KeyPress)
             {
                 emit editingDone();
                 return true;
@@ -405,6 +405,8 @@ void ListViewDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, 
     QString text = realeditor->toPlainText();
     text.replace(QChar('\n'), QChar(' '));
     text = text.trimmed();
+    // Prevent instance names longer than 128 chars
+    text.truncate(128);
     if(text.size() != 0)
     {
         model->setData(index, text);

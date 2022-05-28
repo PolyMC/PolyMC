@@ -6,7 +6,8 @@
 
 PolyMC is a custom launcher for Minecraft that focuses on predictability, long term stability and simplicity.
 
-This is a **fork** of the MultiMC Launcher and not endorsed by MultiMC. The PolyMC community felt that the maintainer was not acting in the spirit of Free Software so this fork was made.
+This is a **fork** of the MultiMC Launcher and not endorsed by MultiMC.
+If you want to read about why this fork was created, check out [our FAQ page](https://polymc.org/wiki/overview/faq/).
 <br>
 
 # Installation
@@ -33,14 +34,22 @@ Feel free to create an issue if you need help. However, you might find it easier
 
 For people who don't want to use Discord, we have a Matrix Space which is bridged to the Discord server:
 
-[![PolyMC Space](https://img.shields.io/matrix/polymc:polymc.org?label=PolyMC%20Space&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#polymc:polymc.org)
+[![PolyMC Space](https://img.shields.io/matrix/polymc:matrix.org?label=PolyMC%20space)](https://matrix.to/#/#polymc:matrix.org)
 
 If there are any issues with the space or you are using a client that does not support the feature here are the individual rooms:
 
-[![Support](https://img.shields.io/matrix/support:polymc.org?label=%23support&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#support:polymc.org)
-[![Discussion](https://img.shields.io/matrix/discussion:polymc.org?label=%23discussion&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#discussion:polymc.org)
-[![Development](https://img.shields.io/matrix/development:polymc.org?label=%23development&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#development:polymc.org)
-[![News](https://img.shields.io/matrix/news:polymc.org?label=%23news&server_fqdn=matrix.polymc.org)](https://matrix.to/#/#news:polymc.org)
+[![Development](https://img.shields.io/matrix/polymc-development:matrix.org?label=PolyMC%20Development)](https://matrix.to/#/#polymc-development:matrix.org)
+[![Discussion](https://img.shields.io/matrix/polymc-discussion:matrix.org?label=PolyMC%20Discussion)](https://matrix.to/#/#polymc-discussion:matrix.org)
+[![Github](https://img.shields.io/matrix/polymc-github:matrix.org?label=PolyMC%20Github)](https://matrix.to/#/#polymc-github:matrix.org)
+[![Maintainers](https://img.shields.io/matrix/polymc-maintainers:matrix.org?label=PolyMC%20Maintainers)](https://matrix.to/#/#polymc-maintainers:matrix.org)
+[![News](https://img.shields.io/matrix/polymc-news:matrix.org?label=PolyMC%20News)](https://matrix.to/#/#polymc-news:matrix.org)
+[![Offtopic](https://img.shields.io/matrix/polymc-offtopic:matrix.org?label=PolyMC%20Offtopic)](https://matrix.to/#/#polymc-offtopic:matrix.org)
+[![Support](https://img.shields.io/matrix/polymc-support:matrix.org?label=PolyMC%20Support)](https://matrix.to/#/#polymc-support:matrix.org)
+[![Voice](https://img.shields.io/matrix/polymc-voice:matrix.org?label=PolyMC%20Voice)](https://matrix.to/#/#polymc-voice:matrix.org)
+
+we also have a subreddit you can post your issues and suggestions on:
+
+[r/PolyMCLauncher](https://www.reddit.com/r/PolyMCLauncher/)
 
 # Development
 
@@ -73,8 +82,8 @@ To modify download information or change packaging information send a pull reque
 
 Do whatever you want, we don't care. Just follow the license. If you have any questions about this feel free to ask in an issue.
 
-All launcher code is available under the GPL-3 license.
+All launcher code is available under the GPL-3.0-only license.
   
-[Source for the website](https://github.com/PolyMC/polymc.github.io) is hosted under the AGPL-3 License.
+[Source for the website](https://github.com/PolyMC/polymc.github.io) is hosted under the AGPL-3.0-or-later License.
 
-The logo and related assets are under the CC BY-NC-SA 4.0 license.
+The logo and related assets are under the CC BY-SA 4.0 license.
