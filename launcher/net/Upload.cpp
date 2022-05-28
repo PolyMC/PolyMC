@@ -7,6 +7,7 @@
 #include <utility>
 #include "ByteArraySink.h"
 #include "BuildConfig.h"
+#include "Application.h"
 
 namespace Net {
 
@@ -174,7 +175,7 @@ namespace Net {
 
         request.setHeader(QNetworkRequest::UserAgentHeader, BuildConfig.USER_AGENT);
         if (request.url().host().contains("api.curseforge.com")) {
-            request.setRawHeader("x-api-key", BuildConfig.CURSEFORGE_API_KEY.toUtf8());
+            request.setRawHeader("x-api-key", APPLICATION->getCurseKey().toUtf8());
         }
         //TODO other types of post requests ?
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");

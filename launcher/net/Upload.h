@@ -1,7 +1,3 @@
-//
-// Created by timoreo on 20/05/22.
-//
-
 #pragma once
 
 #include "NetAction.h"

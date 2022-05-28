@@ -386,26 +386,83 @@ void InstanceImportTask::processFlame()
     {
         auto results = m_modIdResolver->getResults();
         //first check for blocked mods
-
         QString text;
+        auto anyBlocked = false;
         for(const auto& result: results.files.values()) {
             if (!result.resolved || result.url.isEmpty()) {
                 text += QString("%1: <a href='%2'>%2</a><br/>").arg(result.fileName, result.websiteUrl);
+                anyBlocked = true;
             }
         }
-        qWarning() << "Blocked mods found, displaying mod list";
+        if(anyBlocked) {
+            qWarning() << "Blocked mods found, displaying mod list";
 
-        auto message_dialog = new ScrollMessageBox(m_parent,
-                                                       tr("Blocked mods found") ,
+            auto message_dialog = new ScrollMessageBox(m_parent,
+                                                       tr("Blocked mods found"),
                                                        tr("The following mods were blocked on third party launchers.<br/>"
-                                                          "You will need to manually download them and add them to the modpack"), text);
-        message_dialog->setModal(true);
-        message_dialog->show();
-        connect(message_dialog, &QDialog::rejected, [&](){
-            m_modIdResolver.reset();
-            emitFailed("Canceled");
-        });
-        connect(message_dialog, &QDialog::accepted, [&]() {
+                                                          "You will need to manually download them and add them to the modpack"),
+                                                       text);
+            message_dialog->setModal(true);
+            message_dialog->show();
+            connect(message_dialog, &QDialog::rejected, [&]() {
+                m_modIdResolver.reset();
+                emitFailed("Canceled");
+            });
+            connect(message_dialog, &QDialog::accepted, [&]() {
+                m_filesNetJob = new NetJob(tr("Mod download"), APPLICATION->network());
+                for (const auto &result: m_modIdResolver->getResults().files) {
+                    QString filename = result.fileName;
+                    if (!result.required) {
+                        filename += ".disabled";
+                    }
+
+                    auto relpath = FS::PathCombine("minecraft", result.targetFolder, filename);
+                    auto path = FS::PathCombine(m_stagingPath, relpath);
+
+                    switch (result.type) {
+                        case Flame::File::Type::Folder: {
+                            logWarning(tr("This 'Folder' may need extracting: %1").arg(relpath));
+                            // fall-through intentional, we treat these as plain old mods and dump them wherever.
+                        }
+                        case Flame::File::Type::SingleFile:
+                        case Flame::File::Type::Mod: {
+                            if (!result.url.isEmpty()) {
+                                qDebug() << "Will download" << result.url << "to" << path;
+                                auto dl = Net::Download::makeFile(result.url, path);
+                                m_filesNetJob->addNetAction(dl);
+                            }
+                            break;
+                        }
+                        case Flame::File::Type::Modpack:
+                            logWarning(
+                                    tr("Nesting modpacks in modpacks is not implemented, nothing was downloaded: %1").arg(
+                                            relpath));
+                            break;
+                        case Flame::File::Type::Cmod2:
+                        case Flame::File::Type::Ctoc:
+                        case Flame::File::Type::Unknown:
+                            logWarning(tr("Unrecognized/unhandled PackageType for: %1").arg(relpath));
+                            break;
+                    }
+                }
+                m_modIdResolver.reset();
+                connect(m_filesNetJob.get(), &NetJob::succeeded, this, [&]() {
+                            m_filesNetJob.reset();
+                            emitSucceeded();
+                        }
+                );
+                connect(m_filesNetJob.get(), &NetJob::failed, [&](QString reason) {
+                    m_filesNetJob.reset();
+                    emitFailed(reason);
+                });
+                connect(m_filesNetJob.get(), &NetJob::progress, [&](qint64 current, qint64 total) {
+                    setProgress(current, total);
+                });
+                setStatus(tr("Downloading mods..."));
+                m_filesNetJob->start();
+            });
+        }else{
+            //TODO extract to function ?
             m_filesNetJob = new NetJob(tr("Mod download"), APPLICATION->network());
             for (const auto &result: m_modIdResolver->getResults().files) {
                 QString filename = result.fileName;
@@ -457,7 +514,7 @@ void InstanceImportTask::processFlame()
             });
             setStatus(tr("Downloading mods..."));
             m_filesNetJob->start();
-        });
+        }
     }
     );
     connect(m_modIdResolver.get(), &Flame::FileResolvingTask::failed, [&](QString reason)

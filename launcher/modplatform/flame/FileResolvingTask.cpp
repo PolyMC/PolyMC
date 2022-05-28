@@ -20,7 +20,7 @@ void Flame::FileResolvingTask::executeTask()
         l.push_back(s.fileId);
         return l;
     }));
-    QByteArray data = QJsonDocument(object).toJson();
+    QByteArray data = Json::toText(object);
     auto dl = Net::Upload::makeByteArray(QUrl("https://api.curseforge.com/v1/mods/files"), result.get(), data);
     m_dljob->addNetAction(dl);
     connect(m_dljob.get(), &NetJob::finished, this, &Flame::FileResolvingTask::netJobFinished);
@@ -34,11 +34,12 @@ void Flame::FileResolvingTask::netJobFinished()
     auto job = new NetJob("Modrinth check", m_network);
     blockedProjects = QMap<File *,QByteArray *>();
     auto doc = Json::requireDocument(*result);
-    auto array = doc.object()["data"].toArray();
+    auto array = Json::requireArray(doc.object()["data"]);
     for (QJsonValueRef file : array) {
-        auto& out = m_toProcess.files[file.toObject()["id"].toInt()];
+        auto fileid = Json::requireInteger(Json::requireObject(file)["id"]);
+        auto& out = m_toProcess.files[fileid];
         try {
-           out.parseFromObject(file.toObject());
+           out.parseFromObject(Json::requireObject(file));
         } catch (const JSONValidationError& e) {
             qDebug() << "Blocked mod on curseforge" << out.fileName;
             auto hash = out.hash;
@@ -73,12 +74,12 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
         }
         QJsonDocument doc = QJsonDocument::fromJson(*bytes);
         auto obj = doc.object();
-        auto array = obj["files"].toArray();
+        auto array = Json::requireArray(obj,"files");
         for (auto file: array) {
-            auto fileObj = file.toObject();
-            auto primary = fileObj["primary"].toBool();
+            auto fileObj = Json::requireObject(file);
+            auto primary = Json::requireBoolean(fileObj,"primary");
             if (primary) {
-                out->url = fileObj["url"].toString();
+                out->url = Json::requireUrl(fileObj,"url");
                 qDebug() << "Found alternative on modrinth " << out->fileName;
                 break;
             }
@@ -110,8 +111,8 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
             auto index = 0;
             for (const auto &slugResult: slugs) {
                 auto json = QJsonDocument::fromJson(slugResult);
-                auto base = json.object().value("data").toObject().value("links").toObject().value(
-                        "websiteUrl").toString();
+                auto base = Json::requireString(Json::requireObject(Json::requireObject(Json::requireObject(json),"data"),"links"),
+                        "websiteUrl");
                 auto mod = block->at(index);
                 auto link = QString("%1/download/%2").arg(base, QString::number(mod->fileId));
                 mod->websiteUrl = link;
