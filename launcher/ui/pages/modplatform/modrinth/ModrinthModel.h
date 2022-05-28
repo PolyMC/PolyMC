@@ -77,17 +77,17 @@ class ModpackListModel : public QAbstractListModel {
 
    public slots:
     void searchRequestFinished(QJsonDocument& doc_all);
-    void searchRequestFailed(QString reason);
+    void searchRequestFailed(const QString& reason);
 
    protected slots:
 
-    void logoFailed(QString logo);
-    void logoLoaded(QString logo, QIcon out);
+    void logoFailed(const QString& logo);
+    void logoLoaded(const QString& logo, const QIcon& out);
 
     void performPaginatedSearch();
 
    protected:
-    void requestLogo(QString file, QString url);
+    void requestLogo(const QString& file, const QString& url);
 
     inline auto getMineVersions() const -> std::list<Version>;
 

@@ -101,7 +101,7 @@ bool ModrinthPage::eventFilter(QObject* watched, QEvent* event)
     return QObject::eventFilter(watched, event);
 }
 
-void ModrinthPage::onSelectionChanged(QModelIndex first, QModelIndex second)
+void ModrinthPage::onSelectionChanged(const QModelIndex& first, const QModelIndex& second)
 {
     ui->versionSelectionBox->clear();
 
@@ -260,7 +260,7 @@ void ModrinthPage::triggerSearch()
     m_model->searchWithTerm(ui->searchEdit->text(), ui->sortByBox->currentIndex());
 }
 
-void ModrinthPage::onVersionSelectionChanged(QString data)
+void ModrinthPage::onVersionSelectionChanged(const QString& data)
 {
     if (data.isNull() || data.isEmpty()) {
         selectedVersion = "";

@@ -81,7 +81,7 @@ signals:
 class ThumbnailRunnable : public QRunnable
 {
 public:
-    ThumbnailRunnable(QString path, SharedIconCachePtr cache)
+    ThumbnailRunnable(const QString& path, SharedIconCachePtr cache)
     {
         m_path = path;
         m_cache = cache;
@@ -245,7 +245,7 @@ public:
     }
 };
 
-ScreenshotsPage::ScreenshotsPage(QString path, QWidget *parent)
+ScreenshotsPage::ScreenshotsPage(const QString& path, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::ScreenshotsPage)
 {
     m_model.reset(new QFileSystemModel());

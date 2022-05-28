@@ -142,7 +142,7 @@ void ListModel::requestFinished()
     }
 }
 
-void ListModel::requestFailed(QString reason)
+void ListModel::requestFailed(const QString& reason)
 {
     jobPtr.reset();
     remainingPacks.clear();
@@ -207,13 +207,13 @@ void ListModel::packRequestFinished()
     }
 }
 
-void ListModel::packRequestFailed(QString reason)
+void ListModel::packRequestFailed(const QString& reason)
 {
     jobPtr.reset();
     remainingPacks.removeOne(currentPack);
 }
 
-void ListModel::logoLoaded(QString logo, bool stale)
+void ListModel::logoLoaded(const QString& logo, bool stale)
 {
     auto & logoObj = m_logoMap[logo];
     logoObj.downloadJob.reset();
@@ -254,13 +254,13 @@ void ListModel::logoLoaded(QString logo, bool stale)
     }
 }
 
-void ListModel::logoFailed(QString logo)
+void ListModel::logoFailed(const QString& logo)
 {
     m_logoMap[logo].failed = true;
     m_logoMap[logo].downloadJob.reset();
 }
 
-void ListModel::requestLogo(QString logo, QString url)
+void ListModel::requestLogo(const QString& logo, const QString& url)
 {
     if(m_logoMap.contains(logo)) {
         return;

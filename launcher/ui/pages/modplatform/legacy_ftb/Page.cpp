@@ -211,23 +211,23 @@ void Page::suggestCurrent()
     }
 }
 
-void Page::ftbPackDataDownloadSuccessfully(ModpackList publicPacks, ModpackList thirdPartyPacks)
+void Page::ftbPackDataDownloadSuccessfully(const ModpackList& publicPacks, const ModpackList& thirdPartyPacks)
 {
     publicListModel->fill(publicPacks);
     thirdPartyModel->fill(thirdPartyPacks);
 }
 
-void Page::ftbPackDataDownloadFailed(QString reason)
+void Page::ftbPackDataDownloadFailed(const QString& /*reason*/)
 {
     //TODO: Display the error
 }
 
-void Page::ftbPrivatePackDataDownloadSuccessfully(Modpack pack)
+void Page::ftbPrivatePackDataDownloadSuccessfully(const Modpack& pack)
 {
     privateListModel->addPack(pack);
 }
 
-void Page::ftbPrivatePackDataDownloadFailed(QString reason, QString packCode)
+void Page::ftbPrivatePackDataDownloadFailed(const QString& reason, const QString& packCode)
 {
     auto reply = QMessageBox::question(
         this,
@@ -240,7 +240,7 @@ void Page::ftbPrivatePackDataDownloadFailed(QString reason, QString packCode)
     }
 }
 
-void Page::onPublicPackSelectionChanged(QModelIndex now, QModelIndex prev)
+void Page::onPublicPackSelectionChanged(const QModelIndex& now, const QModelIndex& prev)
 {
     if(!now.isValid())
     {
@@ -251,7 +251,7 @@ void Page::onPublicPackSelectionChanged(QModelIndex now, QModelIndex prev)
     onPackSelectionChanged(&selectedPack);
 }
 
-void Page::onThirdPartyPackSelectionChanged(QModelIndex now, QModelIndex prev)
+void Page::onThirdPartyPackSelectionChanged(const QModelIndex& now, const QModelIndex& prev)
 {
     if(!now.isValid())
     {
@@ -262,7 +262,7 @@ void Page::onThirdPartyPackSelectionChanged(QModelIndex now, QModelIndex prev)
     onPackSelectionChanged(&selectedPack);
 }
 
-void Page::onPrivatePackSelectionChanged(QModelIndex now, QModelIndex prev)
+void Page::onPrivatePackSelectionChanged(const QModelIndex& now, const QModelIndex& prev)
 {
     if(!now.isValid())
     {
@@ -311,7 +311,7 @@ void Page::onPackSelectionChanged(Modpack* pack)
     suggestCurrent();
 }
 
-void Page::onVersionSelectionItemChanged(QString data)
+void Page::onVersionSelectionItemChanged(const QString& data)
 {
     if(data.isNull() || data.isEmpty())
     {
@@ -323,7 +323,7 @@ void Page::onVersionSelectionItemChanged(QString data)
     suggestCurrent();
 }
 
-void Page::onSortingSelectionChanged(QString data)
+void Page::onSortingSelectionChanged(const QString& data)
 {
     FilterModel::Sorting toSet = publicFilterModel->getAvailableSortings().value(data);
     publicFilterModel->setSorting(toSet);

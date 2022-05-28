@@ -495,7 +495,7 @@ void InstanceList::providerUpdated()
     }
 }
 
-InstancePtr InstanceList::getInstanceById(QString instId) const
+InstancePtr InstanceList::getInstanceById(const QString& instId) const
 {
     if(instId.isEmpty())
         return InstancePtr();

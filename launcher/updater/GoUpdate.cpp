@@ -74,7 +74,7 @@ bool processFileLists
 {
     // First, if we've loaded the current version's file list, we need to iterate through it and
     // delete anything in the current one version's list that isn't in the new version's list.
-    for (VersionFileEntry entry : currentVersion)
+    for (const auto& entry : currentVersion)
     {
         QFileInfo toDelete(FS::PathCombine(rootPath, entry.path));
         if (!toDelete.exists())
@@ -85,7 +85,7 @@ bool processFileLists
         bool keep = false;
 
         //
-        for (VersionFileEntry newEntry : newVersion)
+        for (const auto& newEntry : newVersion)
         {
             if (newEntry.path == entry.path)
             {
@@ -105,7 +105,7 @@ bool processFileLists
     }
 
     // Next, check each file in PolyMC's folder and see if we need to update them.
-    for (VersionFileEntry entry : newVersion)
+    for (const auto& entry : newVersion)
     {
         // TODO: Let's not MD5sum a ton of files on the GUI thread. We should probably find a
         // way to do this in the background.
@@ -173,7 +173,7 @@ bool processFileLists
         // Go through the sources list and find one to use.
         // TODO: Make a NetAction that takes a source list and tries each of them until one
         // works. For now, we'll just use the first http one.
-        for (FileSource source : entry.sources)
+        for (const auto& source : entry.sources)
         {
             if (source.type != "http")
                 continue;

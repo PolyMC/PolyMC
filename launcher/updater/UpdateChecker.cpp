@@ -26,7 +26,7 @@
 #include "BuildConfig.h"
 #include "sys.h"
 
-UpdateChecker::UpdateChecker(shared_qobject_ptr<QNetworkAccessManager> nam, QString channelUrl, QString currentChannel, int currentBuild)
+UpdateChecker::UpdateChecker(shared_qobject_ptr<QNetworkAccessManager> nam, const QString& channelUrl, const QString& currentChannel, int currentBuild)
 {
     m_network = nam;
     m_channelUrl = channelUrl;
@@ -44,7 +44,7 @@ bool UpdateChecker::hasChannels() const
     return !m_channels.isEmpty();
 }
 
-void UpdateChecker::checkForUpdate(QString updateChannel, bool notifyNoUpdate)
+void UpdateChecker::checkForUpdate(const QString& updateChannel, bool notifyNoUpdate)
 {
     qDebug() << "Checking for updates.";
 
@@ -69,7 +69,7 @@ void UpdateChecker::checkForUpdate(QString updateChannel, bool notifyNoUpdate)
     // found, error.
     QString stableUrl;
     m_newRepoUrl = "";
-    for (ChannelListEntry entry : m_channels)
+    for (const auto& entry : m_channels)
     {
         qDebug() << "channelEntry = " << entry.id;
         if(entry.id == "stable") {
@@ -143,7 +143,7 @@ void UpdateChecker::updateCheckFinished(bool notifyNoUpdate)
     qDebug() << "Processing repository version list.";
     QJsonObject newestVersion;
     QJsonArray versions = object.value("Versions").toArray();
-    for (QJsonValue versionVal : versions)
+    for (const auto& versionVal : versions)
     {
         QJsonObject version = versionVal.toObject();
         if (newestVersion.value("Id").toVariant().toInt() <
@@ -229,7 +229,7 @@ void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
     // Load channels into a temporary array.
     QList<ChannelListEntry> loadedChannels;
     QJsonArray channelArray = object.value("channels").toArray();
-    for (QJsonValue chanVal : channelArray)
+    for (const auto& chanVal : channelArray)
     {
         QJsonObject channelObj = chanVal.toObject();
         ChannelListEntry entry {
@@ -261,7 +261,7 @@ void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
     emit channelListLoaded();
 }
 
-void UpdateChecker::chanListDownloadFailed(QString reason)
+void UpdateChecker::chanListDownloadFailed(const QString& reason)
 {
     m_chanListLoading = false;
     qCritical() << QString("Failed to download channel list: %1").arg(reason);

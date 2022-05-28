@@ -132,8 +132,8 @@ slots:
 class CoreModFolderPage : public ModFolderPage
 {
 public:
-    explicit CoreModFolderPage(BaseInstance *inst, std::shared_ptr<ModFolderModel> mods, QString id,
-                               QString iconName, QString displayName, QString helpPage = "",
+    explicit CoreModFolderPage(BaseInstance *inst, std::shared_ptr<ModFolderModel> mods, const QString& id,
+                               const QString& iconName, const QString& displayName, const QString& helpPage = "",
                                QWidget *parent = 0);
     virtual ~CoreModFolderPage()
     {

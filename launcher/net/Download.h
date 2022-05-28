@@ -57,9 +57,9 @@ class Download : public NetAction {
    public:
     ~Download() override = default;
 
-    static auto makeCached(QUrl url, MetaEntryPtr entry, Options options = Option::NoOptions) -> Download::Ptr;
-    static auto makeByteArray(QUrl url, QByteArray* output, Options options = Option::NoOptions) -> Download::Ptr;
-    static auto makeFile(QUrl url, QString path, Options options = Option::NoOptions) -> Download::Ptr;
+    static auto makeCached(const QUrl& url, MetaEntryPtr entry, Options options = Option::NoOptions) -> Download::Ptr;
+    static auto makeByteArray(const QUrl& url, QByteArray* output, Options options = Option::NoOptions) -> Download::Ptr;
+    static auto makeFile(const QUrl& url, const QString& path, Options options = Option::NoOptions) -> Download::Ptr;
 
    public:
     void addValidator(Validator* v);

@@ -83,17 +83,17 @@ public:
 private:
     void suggestCurrent();
 
-    QString chooseVersion(Meta::VersionListPtr vlist, QString minecraftVersion) override;
-    QVector<QString> chooseOptionalMods(ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods) override;
-    void displayMessage(QString message) override;
+    QString chooseVersion(Meta::VersionListPtr vlist, const QString& minecraftVersion) override;
+    QVector<QString> chooseOptionalMods(const ATLauncher::PackVersion& version, const QVector<ATLauncher::VersionMod>& mods) override;
+    void displayMessage(const QString& message) override;
 
 private slots:
     void triggerSearch();
 
-    void onSortingSelectionChanged(QString data);
+    void onSortingSelectionChanged(const QString& data);
 
     void onSelectionChanged(QModelIndex first, QModelIndex second);
-    void onVersionSelectionChanged(QString data);
+    void onVersionSelectionChanged(const QString& data);
 
 private:
     Ui::AtlPage *ui = nullptr;

@@ -100,7 +100,7 @@ void TechnicPage::triggerSearch() {
     model->searchWithTerm(ui->searchEdit->text());
 }
 
-void TechnicPage::onSelectionChanged(QModelIndex first, QModelIndex second)
+void TechnicPage::onSelectionChanged(const QModelIndex& first, const QModelIndex& second)
 {
     ui->versionSelectionBox->clear();
 
@@ -320,7 +320,7 @@ void TechnicPage::onSolderLoaded() {
     metadataLoaded();
 }
 
-void TechnicPage::onVersionSelectionChanged(QString data) {
+void TechnicPage::onVersionSelectionChanged(const QString& data) {
     if (data.isNull() || data.isEmpty()) {
         selectedVersion = "";
         return;

@@ -2,7 +2,7 @@
 #include "ui/dialogs/CustomMessageBox.h"
 #include <MMCStrings.h>
 
-bool JavaCommon::checkJVMArgs(QString jvmargs, QWidget *parent)
+bool JavaCommon::checkJVMArgs(const QString& jvmargs, QWidget *parent)
 {
     if (jvmargs.contains("-XX:PermSize=") || jvmargs.contains(QRegExp("-Xm[sx]"))
         || jvmargs.contains("-XX-MaxHeapSize") || jvmargs.contains("-XX:InitialHeapSize"))

@@ -1653,7 +1653,7 @@ void MainWindow::finalizeInstance(InstancePtr inst)
     }
 }
 
-void MainWindow::addInstance(QString url)
+void MainWindow::addInstance(const QString& url)
 {
     QString groupName;
     do
@@ -1693,7 +1693,7 @@ void MainWindow::on_actionAddInstance_triggered()
     addInstance();
 }
 
-void MainWindow::droppedURLs(QList<QUrl> urls)
+void MainWindow::droppedURLs(const QList<QUrl>& urls)
 {
     for(auto & url:urls)
     {
@@ -1741,7 +1741,7 @@ void MainWindow::on_actionChangeInstIcon_triggered()
     }
 }
 
-void MainWindow::iconUpdated(QString icon)
+void MainWindow::iconUpdated(const QString& icon)
 {
     if (icon == m_currentInstIcon)
     {
@@ -1751,7 +1751,7 @@ void MainWindow::iconUpdated(QString icon)
     }
 }
 
-void MainWindow::updateInstanceToolIcon(QString new_icon)
+void MainWindow::updateInstanceToolIcon(const QString& new_icon)
 {
     m_currentInstIcon = new_icon;
     auto icon = APPLICATION->icons()->getIcon(m_currentInstIcon);
@@ -2138,7 +2138,7 @@ void MainWindow::instanceChanged(const QModelIndex &current, const QModelIndex &
     }
 }
 
-void MainWindow::instanceSelectRequest(QString id)
+void MainWindow::instanceSelectRequest(const QString& id)
 {
     setSelectedInstanceById(id);
 }

@@ -119,7 +119,7 @@ public slots:
 
 private slots:
     void updateRunningStatus(bool running);
-    void onGameUpdateError(QString error);
+    void onGameUpdateError(const QString& error);
     void packageCurrent(const QModelIndex &current, const QModelIndex &previous);
     void showContextMenu(const QPoint &pos);
     void onFilterTextChanged(const QString & newContents);

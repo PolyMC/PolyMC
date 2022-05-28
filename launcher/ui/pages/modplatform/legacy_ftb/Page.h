@@ -93,18 +93,18 @@ private:
     void onPackSelectionChanged(Modpack *pack = nullptr);
 
 private slots:
-    void ftbPackDataDownloadSuccessfully(ModpackList publicPacks, ModpackList thirdPartyPacks);
-    void ftbPackDataDownloadFailed(QString reason);
+    void ftbPackDataDownloadSuccessfully(const ModpackList& publicPacks, const ModpackList& thirdPartyPacks);
+    void ftbPackDataDownloadFailed(const QString& reason);
 
-    void ftbPrivatePackDataDownloadSuccessfully(Modpack pack);
-    void ftbPrivatePackDataDownloadFailed(QString reason, QString packCode);
+    void ftbPrivatePackDataDownloadSuccessfully(const Modpack& pack);
+    void ftbPrivatePackDataDownloadFailed(const QString& reason, const QString& packCode);
 
-    void onSortingSelectionChanged(QString data);
-    void onVersionSelectionItemChanged(QString data);
+    void onSortingSelectionChanged(const QString& data);
+    void onVersionSelectionItemChanged(const QString& data);
 
-    void onPublicPackSelectionChanged(QModelIndex first, QModelIndex second);
-    void onThirdPartyPackSelectionChanged(QModelIndex first, QModelIndex second);
-    void onPrivatePackSelectionChanged(QModelIndex first, QModelIndex second);
+    void onPublicPackSelectionChanged(const QModelIndex& first, const QModelIndex& second);
+    void onThirdPartyPackSelectionChanged(const QModelIndex& first, const QModelIndex& second);
+    void onPrivatePackSelectionChanged(const QModelIndex& first, const QModelIndex& second);
 
     void onTabChanged(int tab);
 

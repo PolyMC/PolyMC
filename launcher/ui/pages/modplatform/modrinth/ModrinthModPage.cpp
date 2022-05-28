@@ -61,7 +61,7 @@ ModrinthModPage::ModrinthModPage(ModDownloadDialog* dialog, BaseInstance* instan
     connect(ui->modSelectionButton, &QPushButton::clicked, this, &ModrinthModPage::onModSelected);
 }
 
-auto ModrinthModPage::validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders) const -> bool
+auto ModrinthModPage::validateVersion(const ModPlatform::IndexedVersion& ver, const QString& mineVer, ModAPI::ModLoaderTypes loaders) const -> bool
 {
     auto loaderStrings = ModrinthAPI::getModLoaderStrings(loaders);
 

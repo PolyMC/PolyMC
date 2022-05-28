@@ -124,16 +124,16 @@ public:
     virtual QString modsRoot() const = 0;
 
     QString name() const;
-    void setName(QString val);
+    void setName(const QString& val);
 
     /// Value used for instance window titles
     QString windowTitle() const;
 
     QString iconKey() const;
-    void setIconKey(QString val);
+    void setIconKey(const QString& val);
 
     QString notes() const;
-    void setNotes(QString val);
+    void setNotes(const QString& val);
 
     QString getPreLaunchCommand();
     QString getPostExitCommand();
@@ -271,7 +271,7 @@ signals:
     void statusChanged(Status from, Status to);
 
 protected slots:
-    void iconUpdated(QString key);
+    void iconUpdated(const QString& key);
 
 protected: /* data */
     QString m_rootDir;

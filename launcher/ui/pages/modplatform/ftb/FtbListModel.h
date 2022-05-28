@@ -52,17 +52,17 @@ public:
 
 private slots:
     void requestFinished();
-    void requestFailed(QString reason);
+    void requestFailed(const QString& reason);
 
     void requestPack();
     void packRequestFinished();
-    void packRequestFailed(QString reason);
+    void packRequestFailed(const QString& reason);
 
-    void logoFailed(QString logo);
-    void logoLoaded(QString logo, bool stale);
+    void logoFailed(const QString& logo);
+    void logoLoaded(const QString& logo, bool stale);
 
 private:
-    void requestLogo(QString file, QString url);
+    void requestLogo(const QString& file, const QString& url);
 
 private:
     QList<ModpacksCH::Modpack> modpacks;

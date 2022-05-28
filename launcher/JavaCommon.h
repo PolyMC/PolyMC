@@ -8,7 +8,7 @@ class QWidget;
  */
 namespace JavaCommon
 {
-    bool checkJVMArgs(QString args, QWidget *parent);
+    bool checkJVMArgs(const QString& args, QWidget *parent);
 
     // Show a dialog saying that the Java binary was not usable
     void javaBinaryWasBad(QWidget *parent, JavaCheckResult result);
@@ -21,7 +21,7 @@ namespace JavaCommon
     {
         Q_OBJECT
     public:
-        TestCheck(QWidget *parent, QString path, QString args, int minMem, int maxMem, int permGen)
+        TestCheck(QWidget *parent, const QString& path, const QString& args, int minMem, int maxMem, int permGen)
             :m_parent(parent), m_path(path), m_args(args), m_minMem(minMem), m_maxMem(maxMem), m_permGen(permGen)
         {
         }

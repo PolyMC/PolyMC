@@ -45,7 +45,7 @@
 #include <FileSystem.h>
 #include <QShortcut>
 
-OtherLogsPage::OtherLogsPage(QString path, IPathMatcher::Ptr fileFilter, QWidget *parent)
+OtherLogsPage::OtherLogsPage(const QString& path, IPathMatcher::Ptr fileFilter, QWidget *parent)
     : QWidget(parent), ui(new Ui::OtherLogsPage), m_path(path), m_fileFilter(fileFilter),
       m_watcher(new RecursiveFileSystemWatcher(this))
 {

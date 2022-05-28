@@ -93,7 +93,7 @@ public:
     InstListError loadList();
     void saveNow();
 
-    InstancePtr getInstanceById(QString id) const;
+    InstancePtr getInstanceById(const QString& id) const;
     QModelIndex getInstanceIndexById(const QString &id) const;
     QStringList getGroups();
     bool isGroupCollapsed(const QString &groupName);
@@ -141,7 +141,7 @@ public:
 signals:
     void dataIsInvalid();
     void instancesChanged();
-    void instanceSelectRequest(QString instanceId);
+    void instanceSelectRequest(const QString& instanceId);
     void groupsChanged(QSet<QString> groups);
 
 public slots:

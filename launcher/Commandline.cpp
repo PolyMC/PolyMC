@@ -25,7 +25,7 @@ namespace Commandline
 {
 
 // commandline splitter
-QStringList splitArgs(QString args)
+QStringList splitArgs(const QString& args)
 {
     QStringList argv;
     QString current;
@@ -99,7 +99,7 @@ FlagStyle::Enum Parser::flagStyle()
 }
 
 // setup methods
-void Parser::addSwitch(QString name, bool def)
+void Parser::addSwitch(const QString& name, bool def)
 {
     if (m_params.contains(name))
         throw "Name not unique";
@@ -115,7 +115,7 @@ void Parser::addSwitch(QString name, bool def)
     m_optionList.append(param);
 }
 
-void Parser::addOption(QString name, QVariant def)
+void Parser::addOption(const QString& name, const QVariant& def)
 {
     if (m_params.contains(name))
         throw "Name not unique";
@@ -131,7 +131,7 @@ void Parser::addOption(QString name, QVariant def)
     m_optionList.append(param);
 }
 
-void Parser::addArgument(QString name, bool required, QVariant def)
+void Parser::addArgument(const QString& name, bool required, const QVariant& def)
 {
     if (m_params.contains(name))
         throw "Name not unique";
@@ -146,7 +146,7 @@ void Parser::addArgument(QString name, bool required, QVariant def)
     m_params[name] = (CommonDef *)param;
 }
 
-void Parser::addDocumentation(QString name, QString doc, QString metavar)
+void Parser::addDocumentation(const QString& name, const QString& doc, const QString& metavar)
 {
     if (!m_params.contains(name))
         throw "Name does not exist";
@@ -157,7 +157,7 @@ void Parser::addDocumentation(QString name, QString doc, QString metavar)
         param->metavar = metavar;
 }
 
-void Parser::addShortOpt(QString name, QChar flag)
+void Parser::addShortOpt(const QString& name, QChar flag)
 {
     if (!m_params.contains(name))
         throw "Name does not exist";
@@ -170,7 +170,7 @@ void Parser::addShortOpt(QString name, QChar flag)
 }
 
 // help methods
-QString Parser::compileHelp(QString progName, int helpIndent, bool useFlags)
+QString Parser::compileHelp(const QString& progName, int helpIndent, bool useFlags)
 {
     QStringList help;
     help << compileUsage(progName, useFlags) << "\r\n";
@@ -225,7 +225,7 @@ QString Parser::compileHelp(QString progName, int helpIndent, bool useFlags)
     return help.join("");
 }
 
-QString Parser::compileUsage(QString progName, bool useFlags)
+QString Parser::compileUsage(const QString& progName, bool useFlags)
 {
     QStringList usage;
     usage << "Usage: " << progName;
@@ -262,7 +262,7 @@ QString Parser::compileUsage(QString progName, bool useFlags)
 }
 
 // parsing
-QHash<QString, QVariant> Parser::parse(QStringList argv)
+QHash<QString, QVariant> Parser::parse(const QStringList& argv)
 {
     QHash<QString, QVariant> map;
 

@@ -77,8 +77,8 @@ class ModrinthPage : public QWidget, public BasePage {
     bool eventFilter(QObject* watched, QEvent* event) override;
 
    private slots:
-    void onSelectionChanged(QModelIndex first, QModelIndex second);
-    void onVersionSelectionChanged(QString data);
+    void onSelectionChanged(const QModelIndex& first, const QModelIndex& second);
+    void onVersionSelectionChanged(const QString& data);
     void triggerSearch();
 
    private:

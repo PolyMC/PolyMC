@@ -171,7 +171,7 @@ void ModPage::updateModVersions(int prev_count)
     QString mcVersion = packProfile->getComponentVersion("net.minecraft");
 
     for (int i = 0; i < current.versions.size(); i++) {
-        auto version = current.versions[i];
+        const auto& version = current.versions[i];
         bool valid = false;
         for(auto& mcVer : m_filter->versions){
             //NOTE: Flame doesn't care about loader, so passing it changes nothing.

@@ -26,7 +26,7 @@
 #include "ui/widgets/IconLabel.h"
 #include "ui/widgets/PageContainer.h"
 
-PageDialog::PageDialog(BasePageProvider *pageProvider, QString defaultId, QWidget *parent)
+PageDialog::PageDialog(BasePageProvider *pageProvider, const QString& defaultId, QWidget *parent)
     : QDialog(parent)
 {
     setWindowTitle(pageProvider->dialogTitle());

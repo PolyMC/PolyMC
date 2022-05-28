@@ -83,13 +83,13 @@ void GuiUtil::setClipboardText(const QString &text)
     QApplication::clipboard()->setText(text);
 }
 
-static QStringList BrowseForFileInternal(QString context, QString caption, QString filter, QString defaultPath, QWidget *parentWidget, bool single)
+static QStringList BrowseForFileInternal(const QString& context, const QString& caption, const QString& filter, const QString& defaultPath, QWidget *parentWidget, bool single)
 {
     static QMap<QString, QString> savedPaths;
 
     QFileDialog w(parentWidget, caption);
     QSet<QString> locations;
-    auto f = [&](QStandardPaths::StandardLocation l)
+    auto f = [&locations](QStandardPaths::StandardLocation l)
     {
         QString location = QStandardPaths::writableLocation(l);
         QFileInfo finfo(location);
@@ -142,7 +142,7 @@ static QStringList BrowseForFileInternal(QString context, QString caption, QStri
     return {};
 }
 
-QString GuiUtil::BrowseForFile(QString context, QString caption, QString filter, QString defaultPath, QWidget *parentWidget)
+QString GuiUtil::BrowseForFile(const QString& context, const QString& caption, const QString& filter, const QString& defaultPath, QWidget *parentWidget)
 {
     auto resultList = BrowseForFileInternal(context, caption, filter, defaultPath, parentWidget, true);
     if(resultList.size())
@@ -153,7 +153,7 @@ QString GuiUtil::BrowseForFile(QString context, QString caption, QString filter,
 }
 
 
-QStringList GuiUtil::BrowseForFiles(QString context, QString caption, QString filter, QString defaultPath, QWidget *parentWidget)
+QStringList GuiUtil::BrowseForFiles(const QString& context, const QString& caption, const QString& filter, const QString& defaultPath, QWidget *parentWidget)
 {
     return BrowseForFileInternal(context, caption, filter, defaultPath, parentWidget, false);
 }

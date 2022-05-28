@@ -38,7 +38,7 @@ namespace Commandline
  * @param args the argument string
  * @return a QStringList containing all arguments
  */
-QStringList splitArgs(QString args);
+QStringList splitArgs(const QString& args);
 
 /**
  * @brief The FlagStyle enum
@@ -130,14 +130,14 @@ public:
      * @param name the parameter name
      * @param def the default value
      */
-    void addSwitch(QString name, bool def = false);
+    void addSwitch(const QString& name, bool def = false);
 
     /**
      * @brief define an option that takes an additional argument
      * @param name the parameter name
      * @param def the default value
      */
-    void addOption(QString name, QVariant def = QVariant());
+    void addOption(const QString& name, const QVariant& def = QVariant());
 
     /**
      * @brief define a positional argument
@@ -145,7 +145,7 @@ public:
      * @param required wether this argument is required
      * @param def the default value
      */
-    void addArgument(QString name, bool required = true, QVariant def = QVariant());
+    void addArgument(const QString& name, bool required = true, const QVariant& def = QVariant());
 
     /**
      * @brief adds a flag to an existing parameter
@@ -154,7 +154,7 @@ public:
      * @see addSwitch addArgument addOption
      * Note: any one parameter can only have one flag
      */
-    void addShortOpt(QString name, QChar flag);
+    void addShortOpt(const QString& name, QChar flag);
 
     /**
      * @brief adds documentation to a Parameter
@@ -164,7 +164,7 @@ public:
      * Note: on positional arguments, metavar replaces the name as displayed.
      *       on options , metavar replaces the value placeholder
      */
-    void addDocumentation(QString name, QString doc, QString metavar = QString());
+    void addDocumentation(const QString& name, const QString& doc, const QString& metavar = QString());
 
     /**
      * @brief generate a help message
@@ -173,7 +173,7 @@ public:
      * @param flagsInUsage whether we should use flags instead of options in the usage
      * @return a help message
      */
-    QString compileHelp(QString progName, int helpIndent = 22, bool flagsInUsage = true);
+    QString compileHelp(const QString& progName, int helpIndent = 22, bool flagsInUsage = true);
 
     /**
      * @brief generate a short usage message
@@ -181,14 +181,14 @@ public:
      * @param useFlags whether we should use flags instead of options
      * @return a usage message
      */
-    QString compileUsage(QString progName, bool useFlags = true);
+    QString compileUsage(const QString& progName, bool useFlags = true);
 
     /**
      * @brief parse
      * @param argv a QStringList containing the program ARGV
      * @return a QHash mapping argument names to their values
      */
-    QHash<QString, QVariant> parse(QStringList argv);
+    QHash<QString, QVariant> parse(const QStringList& argv);
 
     /**
      * @brief clear all definitions

@@ -202,7 +202,7 @@ void ModpackListModel::getLogo(const QString& logo, const QString& logoUrl, Logo
     }
 }
 
-void ModpackListModel::requestLogo(QString logo, QString url)
+void ModpackListModel::requestLogo(const QString& logo, const QString& url)
 {
     if (m_loadingLogos.contains(logo) || m_failedLogos.contains(logo)) {
         return;
@@ -233,7 +233,7 @@ void ModpackListModel::requestLogo(QString logo, QString url)
 
 /******** Request callbacks ********/
 
-void ModpackListModel::logoLoaded(QString logo, QIcon out)
+void ModpackListModel::logoLoaded(const QString& logo, const QIcon& out)
 {
     m_loadingLogos.removeAll(logo);
     m_logoMap.insert(logo, out);
@@ -244,7 +244,7 @@ void ModpackListModel::logoLoaded(QString logo, QIcon out)
     }
 }
 
-void ModpackListModel::logoFailed(QString logo)
+void ModpackListModel::logoFailed(const QString& logo)
 {
     m_failedLogos.append(logo);
     m_loadingLogos.removeAll(logo);
@@ -282,7 +282,7 @@ void ModpackListModel::searchRequestFinished(QJsonDocument& doc_all)
     endInsertRows();
 }
 
-void ModpackListModel::searchRequestFailed(QString reason)
+void ModpackListModel::searchRequestFailed(const QString& reason)
 {
     if (!jobPtr->first()->m_reply) {
         // Network error

@@ -157,14 +157,14 @@ QVariant ListModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void ListModel::fill(ModpackList modpacks)
+void ListModel::fill(const ModpackList& modpacks)
 {
     beginResetModel();
     this->modpacks = modpacks;
     endResetModel();
 }
 
-void ListModel::addPack(Modpack modpack)
+void ListModel::addPack(const Modpack& modpack)
 {
     beginResetModel();
     this->modpacks.append(modpack);
@@ -195,20 +195,20 @@ void ListModel::remove(int row)
     endRemoveRows();
 }
 
-void ListModel::logoLoaded(QString logo, QIcon out)
+void ListModel::logoLoaded(const QString& logo, const QIcon& out)
 {
     m_loadingLogos.removeAll(logo);
     m_logoMap.insert(logo, out);
     emit dataChanged(createIndex(0, 0), createIndex(1, 0));
 }
 
-void ListModel::logoFailed(QString logo)
+void ListModel::logoFailed(const QString& logo)
 {
     m_failedLogos.append(logo);
     m_loadingLogos.removeAll(logo);
 }
 
-void ListModel::requestLogo(QString file)
+void ListModel::requestLogo(const QString& file)
 {
     if(m_loadingLogos.contains(file) || m_failedLogos.contains(file))
     {

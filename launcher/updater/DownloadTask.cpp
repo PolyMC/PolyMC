@@ -28,8 +28,8 @@ namespace GoUpdate
 
 DownloadTask::DownloadTask(
     shared_qobject_ptr<QNetworkAccessManager> network,
-    Status status,
-    QString target,
+    const Status& status,
+    const QString& target,
     QObject *parent
 ) : Task(parent), m_updateFilesDir(target), m_network(network)
 {
@@ -153,7 +153,7 @@ void DownloadTask::fileDownloadFinished()
     emitSucceeded();
 }
 
-void DownloadTask::fileDownloadFailed(QString reason)
+void DownloadTask::fileDownloadFailed(const QString& reason)
 {
     qCritical() << "Failed to download update files:" << reason;
     emitFailed(tr("Failed to download update files: %1").arg(reason));

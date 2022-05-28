@@ -61,7 +61,7 @@ FlameModPage::FlameModPage(ModDownloadDialog* dialog, BaseInstance* instance)
     connect(ui->modSelectionButton, &QPushButton::clicked, this, &FlameModPage::onModSelected);
 }
 
-auto FlameModPage::validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders) const -> bool
+auto FlameModPage::validateVersion(const ModPlatform::IndexedVersion& ver, const QString& mineVer, ModAPI::ModLoaderTypes loaders) const -> bool
 {
     Q_UNUSED(loaders);
     return ver.mcVersion.contains(mineVer);

@@ -28,7 +28,7 @@ namespace SkinUtils
 /*
  * Given a username, return a pixmap of the cached skin (if it exists), QPixmap() otherwise
  */
-QPixmap getFaceFromCache(QString username, int height, int width)
+QPixmap getFaceFromCache(const QString& username, int height, int width)
 {
     QFile fskin(APPLICATION->metacache()->resolveEntry("skins", username + ".png")->getFullPath());
 

@@ -27,7 +27,7 @@ struct Status
  */
 struct FileSource
 {
-    FileSource(QString type, QString url, QString compression="")
+    FileSource(const QString& type, const QString& url, const QString& compression="")
     {
         this->type = type;
         this->url = url;
@@ -66,11 +66,11 @@ typedef QList<VersionFileEntry> VersionFileList;
  */
 struct Operation
 {
-    static Operation CopyOp(QString from, QString to, int fmode=0644)
+    static Operation CopyOp(const QString& from, const QString& to, int fmode=0644)
     {
         return Operation{OP_REPLACE, from, to, fmode};
     }
-    static Operation DeleteOp(QString file)
+    static Operation DeleteOp(const QString& file)
     {
         return Operation{OP_DELETE, QString(), file, 0644};
     }

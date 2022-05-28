@@ -53,7 +53,7 @@ Download::Download() : NetAction()
     m_state = State::Inactive;
 }
 
-auto Download::makeCached(QUrl url, MetaEntryPtr entry, Options options) -> Download::Ptr
+auto Download::makeCached(const QUrl& url, MetaEntryPtr entry, Options options) -> Download::Ptr
 {
     auto* dl = new Download();
     dl->m_url = url;
@@ -64,7 +64,7 @@ auto Download::makeCached(QUrl url, MetaEntryPtr entry, Options options) -> Down
     return dl;
 }
 
-auto Download::makeByteArray(QUrl url, QByteArray* output, Options options) -> Download::Ptr
+auto Download::makeByteArray(const QUrl& url, QByteArray* output, Options options) -> Download::Ptr
 {
     auto* dl = new Download();
     dl->m_url = url;
@@ -73,7 +73,7 @@ auto Download::makeByteArray(QUrl url, QByteArray* output, Options options) -> D
     return dl;
 }
 
-auto Download::makeFile(QUrl url, QString path, Options options) -> Download::Ptr
+auto Download::makeFile(const QUrl& url, const QString& path, Options options) -> Download::Ptr
 {
     auto* dl = new Download();
     dl->m_url = url;

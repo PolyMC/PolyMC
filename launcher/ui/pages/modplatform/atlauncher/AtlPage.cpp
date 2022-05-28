@@ -131,7 +131,7 @@ void AtlPage::triggerSearch()
     filterModel->setSearchTerm(ui->searchEdit->text());
 }
 
-void AtlPage::onSortingSelectionChanged(QString data)
+void AtlPage::onSortingSelectionChanged(const QString& data)
 {
     auto toSet = filterModel->getAvailableSortings().value(data);
     filterModel->setSorting(toSet);
@@ -161,7 +161,7 @@ void AtlPage::onSelectionChanged(QModelIndex first, QModelIndex second)
     suggestCurrent();
 }
 
-void AtlPage::onVersionSelectionChanged(QString data)
+void AtlPage::onVersionSelectionChanged(const QString& data)
 {
     if(data.isNull() || data.isEmpty())
     {
@@ -173,14 +173,14 @@ void AtlPage::onVersionSelectionChanged(QString data)
     suggestCurrent();
 }
 
-QVector<QString> AtlPage::chooseOptionalMods(ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods)
+QVector<QString> AtlPage::chooseOptionalMods(const ATLauncher::PackVersion& version, const QVector<ATLauncher::VersionMod>& mods)
 {
     AtlOptionalModDialog optionalModDialog(this, version, mods);
     optionalModDialog.exec();
     return optionalModDialog.getResult();
 }
 
-QString AtlPage::chooseVersion(Meta::VersionListPtr vlist, QString minecraftVersion) {
+QString AtlPage::chooseVersion(Meta::VersionListPtr vlist, const QString& minecraftVersion) {
     VersionSelectDialog vselect(vlist.get(), "Choose Version", APPLICATION->activeWindow(), false);
     if (minecraftVersion != Q_NULLPTR) {
         vselect.setExactFilter(BaseVersionList::ParentVersionRole, minecraftVersion);
@@ -216,7 +216,7 @@ QString AtlPage::chooseVersion(Meta::VersionListPtr vlist, QString minecraftVers
     return vselect.selectedVersion()->descriptor();
 }
 
-void AtlPage::displayMessage(QString message)
+void AtlPage::displayMessage(const QString& message)
 {
     QMessageBox::information(this, tr("Installing"), message);
 }

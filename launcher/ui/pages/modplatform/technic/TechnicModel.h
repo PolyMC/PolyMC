@@ -63,12 +63,12 @@ private slots:
     void searchRequestFinished();
     void searchRequestFailed();
 
-    void logoFailed(QString logo);
-    void logoLoaded(QString logo, QString out);
+    void logoFailed(const QString& logo);
+    void logoLoaded(const QString& logo, const QString& out);
 
 private:
     void performSearch();
-    void requestLogo(QString logo, QString url);
+    void requestLogo(const QString& logo, const QString& url);
 
 private:
     QList<Modpack> modpacks;

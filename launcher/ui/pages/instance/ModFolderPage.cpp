@@ -249,8 +249,8 @@ void ModFolderPage::on_filterTextChanged(const QString& newContents)
 
 
 CoreModFolderPage::CoreModFolderPage(BaseInstance *inst, std::shared_ptr<ModFolderModel> mods,
-                                     QString id, QString iconName, QString displayName,
-                                     QString helpPage, QWidget *parent)
+                                     const QString& id, const QString& iconName, const QString& displayName,
+                                     const QString& helpPage, QWidget *parent)
     : ModFolderPage(inst, mods, id, iconName, displayName, helpPage, parent)
 {
 }

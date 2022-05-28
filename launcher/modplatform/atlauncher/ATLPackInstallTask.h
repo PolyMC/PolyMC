@@ -56,18 +56,18 @@ public:
     /**
      * Requests a user interaction to select which optional mods should be installed.
      */
-    virtual QVector<QString> chooseOptionalMods(PackVersion version, QVector<ATLauncher::VersionMod> mods) = 0;
+    virtual QVector<QString> chooseOptionalMods(const PackVersion& version, const QVector<ATLauncher::VersionMod>& mods) = 0;
 
     /**
      * Requests a user interaction to select a component version from a given version list
      * and constrained to a given Minecraft version.
      */
-    virtual QString chooseVersion(Meta::VersionListPtr vlist, QString minecraftVersion) = 0;
+    virtual QString chooseVersion(Meta::VersionListPtr vlist, const QString& minecraftVersion) = 0;
 
     /**
      * Requests a user interaction to display a message.
      */
-    virtual void displayMessage(QString message) = 0;
+    virtual void displayMessage(const QString& message) = 0;
 };
 
 class PackInstallTask : public InstanceTask

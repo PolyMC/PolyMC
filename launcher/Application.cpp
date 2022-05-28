@@ -1346,7 +1346,7 @@ void Application::controllerFailed(const QString& error)
     }
 }
 
-void Application::ShowGlobalSettings(class QWidget* parent, QString open_page)
+void Application::ShowGlobalSettings(class QWidget* parent, const QString& open_page)
 {
     if(!m_globalSettingsProvider) {
         return;
@@ -1390,7 +1390,7 @@ MainWindow* Application::showMainWindow(bool minimized)
     return m_mainWindow;
 }
 
-InstanceWindow *Application::showInstanceWindow(InstancePtr instance, QString page)
+InstanceWindow *Application::showInstanceWindow(InstancePtr instance, const QString& page)
 {
     if(!instance)
         return nullptr;
@@ -1445,7 +1445,7 @@ void Application::on_windowClose()
     }
 }
 
-void Application::updateProxySettings(QString proxyTypeStr, QString addr, int port, QString user, QString password)
+void Application::updateProxySettings(const QString& proxyTypeStr, const QString& addr, int port, const QString& user, const QString& password)
 {
     // Set the application proxy settings.
     if (proxyTypeStr == "SOCKS5")

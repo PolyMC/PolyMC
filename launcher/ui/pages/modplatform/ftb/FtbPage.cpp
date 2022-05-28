@@ -145,13 +145,13 @@ void FtbPage::triggerSearch()
     filterModel->setSearchTerm(ui->searchEdit->text());
 }
 
-void FtbPage::onSortingSelectionChanged(QString data)
+void FtbPage::onSortingSelectionChanged(const QString& data)
 {
     auto toSet = filterModel->getAvailableSortings().value(data);
     filterModel->setSorting(toSet);
 }
 
-void FtbPage::onSelectionChanged(QModelIndex first, QModelIndex second)
+void FtbPage::onSelectionChanged(const QModelIndex& first, const QModelIndex& second)
 {
     ui->versionSelectionBox->clear();
 
@@ -178,7 +178,7 @@ void FtbPage::onSelectionChanged(QModelIndex first, QModelIndex second)
     suggestCurrent();
 }
 
-void FtbPage::onVersionSelectionChanged(QString data)
+void FtbPage::onVersionSelectionChanged(const QString& data)
 {
     if(data.isNull() || data.isEmpty())
     {

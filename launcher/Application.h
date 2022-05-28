@@ -144,7 +144,7 @@ public:
         return m_profilers;
     }
 
-    void updateProxySettings(QString proxyTypeStr, QString addr, int port, QString user, QString password);
+    void updateProxySettings(const QString& proxyTypeStr, const QString& addr, int port, const QString& user, const QString& password);
 
     shared_qobject_ptr<QNetworkAccessManager> network();
 
@@ -168,13 +168,13 @@ public:
      */
     bool openJsonEditor(const QString &filename);
 
-    InstanceWindow *showInstanceWindow(InstancePtr instance, QString page = QString());
+    InstanceWindow *showInstanceWindow(InstancePtr instance, const QString& page = QString());
     MainWindow *showMainWindow(bool minimized = false);
 
     void updateIsRunning(bool running);
     bool updatesAreAllowed();
 
-    void ShowGlobalSettings(class QWidget * parent, QString open_page = QString());
+    void ShowGlobalSettings(class QWidget * parent, const QString& open_page = QString());
 
 signals:
     void updateAllowedChanged(bool status);

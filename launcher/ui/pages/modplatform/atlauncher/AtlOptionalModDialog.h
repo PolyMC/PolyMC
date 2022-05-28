@@ -79,8 +79,8 @@ public slots:
     void clearAll();
 
 private:
-    void toggleMod(ATLauncher::VersionMod mod, int index);
-    void setMod(ATLauncher::VersionMod mod, int index, bool enable, bool shouldEmit = true);
+    void toggleMod(const ATLauncher::VersionMod& mod, int index);
+    void setMod(const ATLauncher::VersionMod& mod, int index, bool enable, bool shouldEmit = true);
 
 private:
     NetJob::Ptr m_jobPtr;
@@ -98,7 +98,7 @@ class AtlOptionalModDialog : public QDialog {
     Q_OBJECT
 
 public:
-    AtlOptionalModDialog(QWidget *parent, ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods);
+    AtlOptionalModDialog(QWidget *parent, const ATLauncher::PackVersion& version, const QVector<ATLauncher::VersionMod>& mods);
     ~AtlOptionalModDialog() override;
 
     QVector<QString> getResult() {
