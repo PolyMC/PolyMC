@@ -471,7 +471,7 @@
        <item>
         <widget class="QGroupBox" name="jarLibGroupBox">
          <property name="title">
-          <string>Jar file location</string>
+          <string>Library location</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
