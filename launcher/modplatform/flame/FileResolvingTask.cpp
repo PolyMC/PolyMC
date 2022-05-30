@@ -1,63 +1,127 @@
 #include "FileResolvingTask.h"
+
 #include "Json.h"
+#include "net/Upload.h"
 
-namespace {
-    const char * metabase = "https://cursemeta.dries007.net";
-}
-
-Flame::FileResolvingTask::FileResolvingTask(shared_qobject_ptr<QNetworkAccessManager> network, Flame::Manifest& toProcess)
+Flame::FileResolvingTask::FileResolvingTask(const shared_qobject_ptr<QNetworkAccessManager>& network, Flame::Manifest& toProcess)
     : m_network(network), m_toProcess(toProcess)
-{
-}
+{}
 
 void Flame::FileResolvingTask::executeTask()
 {
     setStatus(tr("Resolving mod IDs..."));
     setProgress(0, m_toProcess.files.size());
     m_dljob = new NetJob("Mod id resolver", m_network);
-    results.resize(m_toProcess.files.size());
-    int index = 0;
-    for(auto & file: m_toProcess.files)
-    {
-        auto projectIdStr = QString::number(file.projectId);
-        auto fileIdStr = QString::number(file.fileId);
-        QString metaurl = QString("%1/%2/%3.json").arg(metabase, projectIdStr, fileIdStr);
-        auto dl = Net::Download::makeByteArray(QUrl(metaurl), &results[index]);
-        m_dljob->addNetAction(dl);
-        index ++;
-    }
+    result.reset(new QByteArray());
+    //build json data to send
+    QJsonObject object;
+
+    object["fileIds"] = QJsonArray::fromVariantList(std::accumulate(m_toProcess.files.begin(), m_toProcess.files.end(), QVariantList(), [](QVariantList& l, const File& s) {
+        l.push_back(s.fileId);
+        return l;
+    }));
+    QByteArray data = Json::toText(object);
+    auto dl = Net::Upload::makeByteArray(QUrl("https://api.curseforge.com/v1/mods/files"), result.get(), data);
+    m_dljob->addNetAction(dl);
     connect(m_dljob.get(), &NetJob::finished, this, &Flame::FileResolvingTask::netJobFinished);
     m_dljob->start();
 }
 
 void Flame::FileResolvingTask::netJobFinished()
 {
-    bool failed = false;
     int index = 0;
-    for(auto & bytes: results)
-    {
-        auto & out = m_toProcess.files[index];
-        try
-        {
-            failed &= (!out.parseFromBytes(bytes));
-        }
-        catch (const JSONValidationError &e)
-        {
+    // job to check modrinth for blocked projects
+    auto job = new NetJob("Modrinth check", m_network);
+    blockedProjects = QMap<File *,QByteArray *>();
+    auto doc = Json::requireDocument(*result);
+    auto array = Json::requireArray(doc.object()["data"]);
+    for (QJsonValueRef file : array) {
+        auto fileid = Json::requireInteger(Json::requireObject(file)["id"]);
+        auto& out = m_toProcess.files[fileid];
+        try {
+           out.parseFromObject(Json::requireObject(file));
+        } catch (const JSONValidationError& e) {
+            qDebug() << "Blocked mod on curseforge" << out.fileName;
+            auto hash = out.hash;
+            if(!hash.isEmpty()) {
+                auto url = QString("https://api.modrinth.com/v2/version_file/%1?algorithm=sha1").arg(hash);
+                auto output = new QByteArray();
+                auto dl = Net::Download::makeByteArray(QUrl(url), output);
+                QObject::connect(dl.get(), &Net::Download::succeeded, [&out]() {
+                    out.resolved = true;
+                });
 
-            qCritical() << "Resolving of" << out.projectId << out.fileId << "failed because of a parsing error:";
-            qCritical() << e.cause();
-            qCritical() << "JSON:";
-            qCritical() << bytes;
-            failed = true;
+                job->addNetAction(dl);
+                blockedProjects.insert(&out, output);
+            }
         }
         index++;
     }
-    if(!failed)
-    {
-        emitSucceeded();
+    connect(job, &NetJob::finished, this, &Flame::FileResolvingTask::modrinthCheckFinished);
+
+    job->start();
+}
+
+void Flame::FileResolvingTask::modrinthCheckFinished() {
+    qDebug() << "Finished with blocked mods : " << blockedProjects.size();
+
+    for (auto it = blockedProjects.keyBegin(); it != blockedProjects.keyEnd(); it++) {
+        auto &out = *it;
+        auto bytes = blockedProjects[out];
+        if (!out->resolved) {
+            delete bytes;
+            continue;
+        }
+        QJsonDocument doc = QJsonDocument::fromJson(*bytes);
+        auto obj = doc.object();
+        auto array = Json::requireArray(obj,"files");
+        for (auto file: array) {
+            auto fileObj = Json::requireObject(file);
+            auto primary = Json::requireBoolean(fileObj,"primary");
+            if (primary) {
+                out->url = Json::requireUrl(fileObj,"url");
+                qDebug() << "Found alternative on modrinth " << out->fileName;
+                break;
+            }
+        }
+        delete bytes;
     }
-    else
-    {
-        emitFailed(tr("Some mod ID resolving tasks failed."));
+    //copy to an output list and filter out projects found on modrinth
+    auto block = new QList<File *>();
+    auto it = blockedProjects.keys();
+    std::copy_if(it.begin(), it.end(), std::back_inserter(*block), [](File *f) {
+        return !f->resolved;
+    });
+    //Display not found mods early
+    if (!block->empty()) {
+        //blocked mods found, we need the slug for displaying.... we need another job :D !
+        auto slugJob = new NetJob("Slug Job", m_network);
+        auto slugs = QVector<QByteArray>(block->size());
+        auto index = 0;
+        for (auto fileInfo: *block) {
+            auto projectId = fileInfo->projectId;
+            slugs[index] = QByteArray();
+            auto url = QString("https://api.curseforge.com/v1/mods/%1").arg(projectId);
+            auto dl = Net::Download::makeByteArray(url, &slugs[index]);
+            slugJob->addNetAction(dl);
+            index++;
+        }
+        connect(slugJob, &NetJob::succeeded, this, [slugs, this, slugJob, block]() {
+            slugJob->deleteLater();
+            auto index = 0;
+            for (const auto &slugResult: slugs) {
+                auto json = QJsonDocument::fromJson(slugResult);
+                auto base = Json::requireString(Json::requireObject(Json::requireObject(Json::requireObject(json),"data"),"links"),
+                        "websiteUrl");
+                auto mod = block->at(index);
+                auto link = QString("%1/download/%2").arg(base, QString::number(mod->fileId));
+                mod->websiteUrl = link;
+                index++;
+            }
+            emitSucceeded();
+        });
+        slugJob->start();
+    } else {
+        emitSucceeded();
     }
 }

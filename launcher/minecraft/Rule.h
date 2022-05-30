@@ -13,13 +13,30 @@
  * limitations under the License.
  */
 
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (C) 2022 dada513 <dada513@protonmail.com>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 #pragma once
 
 #include <QString>
 #include <QList>
 #include <QJsonObject>
 #include <memory>
-#include "OpSys.h"
+#include "SysInfo.h"
 
 class Library;
 class Rule;
@@ -57,27 +74,43 @@ public:
 class OsRule : public Rule
 {
 private:
-    // the OS
-    OpSys m_system;
-    // the OS version regexp
-    QString m_version_regexp;
+    QString m_system;
 
 protected:
     virtual bool applies(const Library *)
     {
-        return (m_system == currentSystem);
+        QString sys;
+        QString arch;
+        if(m_system.contains("-"))
+        {
+            auto parts = m_system.split("-");
+            sys = parts[0];
+            arch = parts[1];
+        }
+        else
+        {
+            sys = m_system;
+        }
+        bool systemCorrect;
+        bool archCorrect = true;
+        systemCorrect = sys == SysInfo::currentSystem();
+        if(!arch.isEmpty())
+        {
+            archCorrect = arch == SysInfo::currentArch();
+        }
+        //qDebug() << "Os rule with OS required" << m_system << systemCorrect << "Arch required" << arch << archCorrect;
+        return systemCorrect && archCorrect;
     }
-    OsRule(RuleAction result, OpSys system, QString version_regexp)
-        : Rule(result), m_system(system), m_version_regexp(version_regexp)
+OsRule(RuleAction result, QString system)
+        : Rule(result), m_system(system)
     {
     }
 
 public:
     virtual QJsonObject toJson();
-    static std::shared_ptr<OsRule> create(RuleAction result, OpSys system,
-                                          QString version_regexp)
+    static std::shared_ptr<OsRule> create(RuleAction result, QString system)
     {
-        return std::shared_ptr<OsRule>(new OsRule(result, system, version_regexp));
+        return std::shared_ptr<OsRule>(new OsRule(result, system));
     }
 };
 

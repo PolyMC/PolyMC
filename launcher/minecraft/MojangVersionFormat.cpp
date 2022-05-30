@@ -41,6 +41,7 @@
 using namespace Json;
 #include "ParseUtils.h"
 #include <BuildConfig.h>
+#include "SysInfo.h"
 
 static const int CURRENT_MINIMUM_LAUNCHER_VERSION = 18;
 
@@ -362,10 +363,10 @@ LibraryPtr MojangVersionFormat::libraryFromJson(ProblemContainer & problems, con
             {
                 qWarning() << filename << "contains an invalid native (skipping)";
             }
-            OpSys opSys = OpSys_fromString(it.key());
-            if (opSys != Os_Other)
+            auto sys = it.key();
+            if (sys != "unknown")
             {
-                out->m_nativeClassifiers[opSys] = it.value().toString();
+                out->m_nativeClassifiers[sys] = it.value().toString();
             }
         }
     }
@@ -395,7 +396,7 @@ QJsonObject MojangVersionFormat::libraryToJson(Library *library)
         auto iter = library->m_nativeClassifiers.begin();
         while (iter != library->m_nativeClassifiers.end())
         {
-            nativeList.insert(OpSys_toString(iter.key()), iter.value());
+            nativeList.insert(iter.key(), iter.value());
             iter++;
         }
         libRoot.insert("natives", nativeList);

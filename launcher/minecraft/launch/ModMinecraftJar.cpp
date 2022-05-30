@@ -16,10 +16,10 @@
 #include "ModMinecraftJar.h"
 #include "launch/LaunchTask.h"
 #include "MMCZip.h"
-#include "minecraft/OpSys.h"
 #include "FileSystem.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
+#include "SysInfo.h"
 
 void ModMinecraftJar::executeTask()
 {
@@ -50,7 +50,7 @@ void ModMinecraftJar::executeTask()
     {
         auto mainJar = profile->getMainJar();
         QStringList jars, temp1, temp2, temp3, temp4;
-        mainJar->getApplicableFiles(currentSystem, jars, temp1, temp2, temp3, m_inst->getLocalLibraryPath());
+        mainJar->getApplicableFiles(SysInfo::currentSystem(), jars, temp1, temp2, temp3, m_inst->getLocalLibraryPath());
         auto sourceJarPath = jars[0];
         if(!MMCZip::createModdedJar(sourceJarPath, finalJarPath, jarMods))
         {

@@ -2,6 +2,7 @@
 /*
  *  PolyMC - Minecraft Launcher
  *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+ *  Copyright (C) 2022 Jamie Mansfield <jmansfield@cadixdev.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -161,6 +162,11 @@ MinecraftInstance::MinecraftInstance(SettingsObjectPtr globalSettings, SettingsO
     // Join server on launch, this does not have a global override
     m_settings->registerSetting("JoinServerOnLaunch", false);
     m_settings->registerSetting("JoinServerOnLaunchAddress", "");
+
+    // Miscellaneous
+    auto miscellaneousOverride = m_settings->registerSetting("OverrideMiscellaneous", false);
+    m_settings->registerOverride(globalSettings->getSetting("CloseAfterLaunch"), miscellaneousOverride);
+    m_settings->registerOverride(globalSettings->getSetting("QuitAfterGameStop"), miscellaneousOverride);
 
     m_components.reset(new PackProfile(this));
 }
@@ -338,7 +344,7 @@ QStringList MinecraftInstance::extraArguments() const
     for (auto agent : agents)
     {
         QStringList jar, temp1, temp2, temp3;
-        agent->library()->getApplicableFiles(currentSystem, jar, temp1, temp2, temp3, getLocalLibraryPath());
+        agent->library()->getApplicableFiles(SysInfo::currentSystem(), jar, temp1, temp2, temp3, getLocalLibraryPath());
         list.append("-javaagent:"+jar[0]+(agent->argument().isEmpty() ? "" : "="+agent->argument()));
     }
     return list;
@@ -482,9 +488,8 @@ QStringList MinecraftInstance::processMinecraftArgs(
         }
     }
 
-    // blatant self-promotion.
-    token_mapping["profile_name"] = token_mapping["version_name"] = BuildConfig.LAUNCHER_NAME;
-
+    token_mapping["profile_name"] = name();
+    token_mapping["version_name"] = profile->getMinecraftVersion();
     token_mapping["version_type"] = profile->getMinecraftVersionType();
 
     QString absRootDir = QDir(gameRoot()).absolutePath();
@@ -687,8 +692,8 @@ QStringList MinecraftInstance::verboseDescription(AuthSessionPtr session, Minecr
         out << "Jar Mods:";
         for(auto & jarmod: jarMods)
         {
-            auto displayname = jarmod->displayName(currentSystem);
-            auto realname = jarmod->filename(currentSystem);
+            auto displayname = jarmod->displayName(SysInfo::currentSystem());
+            auto realname = jarmod->filename(SysInfo::currentSystem());
             if(displayname != realname)
             {
                 out << "  " + displayname + " (" + realname + ")";
@@ -984,7 +989,7 @@ shared_qobject_ptr<LaunchTask> MinecraftInstance::createLaunchTask(AuthSessionPt
     {
         process->setCensorFilter(createCensorFilterFromSession(session));
     }
-    if(APPLICATION->settings()->get("QuitAfterGameStop").toBool())
+    if(m_settings->get("QuitAfterGameStop").toBool())
     {
         auto step = new QuitAfterGameStop(pptr);
         process->appendStep(step);
@@ -1084,7 +1089,7 @@ QList< Mod > MinecraftInstance::getJarMods() const
     for (auto jarmod : profile->getJarMods())
     {
         QStringList jar, temp1, temp2, temp3;
-        jarmod->getApplicableFiles(currentSystem, jar, temp1, temp2, temp3, jarmodsPath().absolutePath());
+        jarmod->getApplicableFiles(SysInfo::currentSystem(), jar, temp1, temp2, temp3, jarmodsPath().absolutePath());
         // QString filePath = jarmodsPath().absoluteFilePath(jarmod->filename(currentSystem));
         mods.push_back(Mod(QFileInfo(jar[0])));
     }

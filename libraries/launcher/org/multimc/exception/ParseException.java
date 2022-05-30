@@ -1,4 +1,5 @@
-/* Copyright 2013-2021 MultiMC Contributors
+/*
+ * Copyright 2012-2021 MultiMC Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +14,12 @@
  * limitations under the License.
  */
 
-#pragma once
-#include <QString>
-enum OpSys
-{
-    Os_Windows,
-    Os_FreeBSD,
-    Os_Linux,
-    Os_OSX,
-    Os_Other
-};
+package org.multimc.exception;
 
-OpSys OpSys_fromString(QString);
-QString OpSys_toString(OpSys);
+public final class ParseException extends IllegalArgumentException {
 
-#ifdef Q_OS_WIN32
-    #define currentSystem Os_Windows
-#elif defined Q_OS_MAC
-    #define currentSystem Os_OSX
-#elif defined Q_OS_FREEBSD
-    #define currentSystem Os_FreeBSD
-#else
-    #define currentSystem Os_Linux
-#endif
+    public ParseException(String message) {
+        super(message);
+    }
+
+}

@@ -13,6 +13,24 @@
  * limitations under the License.
  */
 
+// SPDX-License-Identifier: GPL-3.0-only
+/*
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (C) 2022 dada513 <dada513@protonmail.com>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <QJsonObject>
 #include <QJsonArray>
 
@@ -60,10 +78,8 @@ QList<std::shared_ptr<Rule>> rulesFromJsonV4(const QJsonObject &objectWithRules)
         auto osNameVal = osObj.value("name");
         if (!osNameVal.isString())
             continue;
-        OpSys requiredOs = OpSys_fromString(osNameVal.toString());
-        QString versionRegex = osObj.value("version").toString();
         // add a new OS rule
-        rules.append(OsRule::create(action, requiredOs, versionRegex));
+        rules.append(OsRule::create(action, osNameVal.toString()));
     }
     return rules;
 }
@@ -80,13 +96,10 @@ QJsonObject OsRule::toJson()
     QJsonObject ruleObj;
     ruleObj.insert("action", m_result == Allow ? QString("allow") : QString("disallow"));
     QJsonObject osObj;
-    {
-        osObj.insert("name", OpSys_toString(m_system));
-        if(!m_version_regexp.isEmpty())
-        {
-            osObj.insert("version", m_version_regexp);
-        }
+    if(!m_system.isEmpty()) {
+        osObj.insert("name", m_system);
     }
+
     ruleObj.insert("os", osObj);
     return ruleObj;
 }

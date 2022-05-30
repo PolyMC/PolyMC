@@ -4,6 +4,7 @@
 #include "minecraft/PackProfile.h"
 
 #include "Application.h"
+#include "SysInfo.h"
 
 LibrariesTask::LibrariesTask(MinecraftInstance * inst)
 {
@@ -34,7 +35,7 @@ void LibrariesTask::executeTask()
                 emitFailed(tr("Null jar is specified in the metadata, aborting."));
                 return false;
             }
-            auto dls = lib->getDownloads(currentSystem, metacache.get(), errors, localPath);
+            auto dls = lib->getDownloads(SysInfo::currentSystem(), metacache.get(), errors, localPath);
             for(auto dl : dls)
             {
                 downloadJob->addNetAction(dl);

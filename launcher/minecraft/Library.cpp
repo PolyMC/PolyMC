@@ -5,9 +5,10 @@
 #include <net/ChecksumValidator.h>
 #include <FileSystem.h>
 #include <BuildConfig.h>
+#include "SysInfo.h"
 
 
-void Library::getApplicableFiles(OpSys system, QStringList& jar, QStringList& native, QStringList& native32,
+void Library::getApplicableFiles(QString system, QStringList& jar, QStringList& native, QStringList& native32,
                                  QStringList& native64, const QString &overridePath) const
 {
     bool local = isLocal();
@@ -45,7 +46,7 @@ void Library::getApplicableFiles(OpSys system, QStringList& jar, QStringList& na
 }
 
 QList<NetAction::Ptr> Library::getDownloads(
-    OpSys system,
+    QString system,
     class HttpMetaCache* cache,
     QStringList& failedLocalFiles,
     const QString & overridePath
@@ -220,7 +221,7 @@ bool Library::isActive() const
     }
     if (isNative())
     {
-        result = result && m_nativeClassifiers.contains(currentSystem);
+        result = result && m_nativeClassifiers.contains(SysInfo::currentSystem());
     }
     return result;
 }
@@ -254,7 +255,7 @@ QString Library::storagePrefix() const
     return m_storagePrefix;
 }
 
-QString Library::filename(OpSys system) const
+QString Library::filename(QString system) const
 {
     if(!m_filename.isEmpty())
     {
@@ -279,14 +280,14 @@ QString Library::filename(OpSys system) const
     return nativeSpec.getFileName();
 }
 
-QString Library::displayName(OpSys system) const
+QString Library::displayName(QString system) const
 {
     if(!m_displayname.isEmpty())
         return m_displayname;
     return filename(system);
 }
 
-QString Library::storageSuffix(OpSys system) const
+QString Library::storageSuffix(QString system) const
 {
     // non-native? use only the gradle specifier
     if (!isNative())

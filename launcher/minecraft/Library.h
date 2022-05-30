@@ -10,7 +10,6 @@
 #include <memory>
 
 #include "Rule.h"
-#include "minecraft/OpSys.h"
 #include "GradleSpecifier.h"
 #include "MojangDownloadInfo.h"
 
@@ -98,7 +97,7 @@ public: /* methods */
         m_repositoryURL = base_url;
     }
 
-    void getApplicableFiles(OpSys system, QStringList & jar, QStringList & native,
+    void getApplicableFiles(QString system, QStringList & jar, QStringList & native,
                             QStringList & native32, QStringList & native64, const QString & overridePath) const;
 
     void setAbsoluteUrl(const QString &absolute_url)
@@ -112,7 +111,7 @@ public: /* methods */
     }
 
     /// Get the file name of the library
-    QString filename(OpSys system) const;
+    QString filename(QString system) const;
 
     // DEPRECATED: set a display name, used by jar mods only
     void setDisplayName(const QString & displayName)
@@ -121,7 +120,7 @@ public: /* methods */
     }
 
     /// Get the file name of the library
-    QString displayName(OpSys system) const;
+    QString displayName(QString system) const;
 
     void setMojangDownloadInfo(MojangLibraryDownloadInfo::Ptr info)
     {
@@ -152,7 +151,7 @@ public: /* methods */
     bool isForge() const;
 
     // Get a list of downloads for this library
-    QList<NetAction::Ptr> getDownloads(OpSys system, class HttpMetaCache * cache,
+    QList<NetAction::Ptr> getDownloads(QString system, class HttpMetaCache * cache,
                                      QStringList & failedLocalFiles, const QString & overridePath) const;
 
 private: /* methods */
@@ -163,7 +162,7 @@ private: /* methods */
     QString storagePrefix() const;
 
     /// Get the relative file path where the library should be saved
-    QString storageSuffix(OpSys system) const;
+    QString storageSuffix(QString system) const;
 
     QString hint() const
     {
@@ -204,7 +203,7 @@ protected: /* data */
     QStringList m_extractExcludes;
 
     /// native suffixes per OS
-    QMap<OpSys, QString> m_nativeClassifiers;
+    QMap<QString, QString> m_nativeClassifiers;
 
     /// true if the library had a rules section (even empty)
     bool applyRules = false;
