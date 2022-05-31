@@ -13,7 +13,7 @@
 #include <QDialogButtonBox>
 
 #include "ui/widgets/PageContainer.h"
-#include "ui/pages/modplatform/modrinth/ModrinthPage.h"
+#include "ui/pages/modplatform/modrinth/ModrinthModPage.h"
 #include "ModDownloadTask.h"
 
 
@@ -77,18 +77,20 @@ void ModDownloadDialog::confirm()
     auto keys = modTask.keys();
     keys.sort(Qt::CaseInsensitive);
 
-    auto confirm_dialog = ReviewMessageBox::create(
-        this,
-        tr("Confirm mods to download")
-    );
+    auto confirm_dialog = ReviewMessageBox::create(this, tr("Confirm mods to download"));
 
-    for(auto& task : keys){
-        confirm_dialog->appendMod(task, modTask.find(task).value()->getFilename());
+    for (auto& task : keys) {
+        confirm_dialog->appendMod({ task, modTask.find(task).value()->getFilename() });
     }
 
-    connect(confirm_dialog, &QDialog::accepted, this, &ModDownloadDialog::accept);
+    if (confirm_dialog->exec()) {
+        auto deselected = confirm_dialog->deselectedMods();
+        for (auto name : deselected) {
+            modTask.remove(name);
+        }
 
-    confirm_dialog->open();
+        this->accept();
+    }
 }
 
 void ModDownloadDialog::accept()
@@ -98,7 +100,7 @@ void ModDownloadDialog::accept()
 
 QList<BasePage *> ModDownloadDialog::getPages()
 {
-    modrinthPage = new ModrinthPage(this, m_instance);
+    modrinthPage = new ModrinthModPage(this, m_instance);
     flameModPage = new FlameModPage(this, m_instance);
     return
     {
@@ -130,6 +132,12 @@ bool ModDownloadDialog::isModSelected(const QString &name, const QString& filena
     //        as a heuristic, other than adding such info to ModDownloadTask itself?
     auto iter = modTask.find(name);
     return iter != modTask.end() && (iter.value()->getFilename() == filename);
+}
+
+bool ModDownloadDialog::isModSelected(const QString &name) const
+{
+    auto iter = modTask.find(name);
+    return iter != modTask.end();
 }
 
 ModDownloadDialog::~ModDownloadDialog()

@@ -16,7 +16,7 @@ class ModDownloadDialog;
 
 class PageContainer;
 class QDialogButtonBox;
-class ModrinthPage;
+class ModrinthModPage;
 
 class ModDownloadDialog : public QDialog, public BasePageProvider
 {
@@ -32,6 +32,7 @@ public:
     void addSelectedMod(const QString & name = QString(), ModDownloadTask * task = nullptr);
     void removeSelectedMod(const QString & name = QString());
     bool isModSelected(const QString & name, const QString & filename) const;
+    bool isModSelected(const QString & name) const;
 
     const QList<ModDownloadTask*> getTasks();
     const std::shared_ptr<ModFolderModel> &mods;
@@ -41,8 +42,6 @@ public slots:
     void accept() override;
     void reject() override;
 
-//private slots:
-
 private:
     Ui::ModDownloadDialog *ui = nullptr;
     PageContainer * m_container = nullptr;
@@ -50,7 +49,7 @@ private:
     QVBoxLayout *m_verticalLayout = nullptr;
 
 
-    ModrinthPage *modrinthPage = nullptr;
+    ModrinthModPage *modrinthPage = nullptr;
     FlameModPage *flameModPage = nullptr;
     QHash<QString, ModDownloadTask*> modTask;
     BaseInstance *m_instance;

@@ -391,7 +391,7 @@ void ModFolderPage::on_actionInstall_mods_triggered()
         return; //this is a null instance or a legacy instance
     }
     auto profile = ((MinecraftInstance *)m_inst)->getPackProfile();
-    if (profile->getModLoader() == ModAPI::Unspecified) {
+    if (profile->getModLoaders() == ModAPI::Unspecified) {
         QMessageBox::critical(this,tr("Error"),tr("Please install a mod loader first!"));
         return;
     }
@@ -400,6 +400,10 @@ void ModFolderPage::on_actionInstall_mods_triggered()
         SequentialTask* tasks = new SequentialTask(this);
         connect(tasks, &Task::failed, [this, tasks](QString reason) {
             CustomMessageBox::selectable(this, tr("Error"), reason, QMessageBox::Critical)->show();
+            tasks->deleteLater();
+        });
+        connect(tasks, &Task::aborted, [this, tasks]() {
+            CustomMessageBox::selectable(this, tr("Aborted"), tr("Download stopped by user."), QMessageBox::Information)->show();
             tasks->deleteLater();
         });
         connect(tasks, &Task::succeeded, [this, tasks]() {
@@ -411,6 +415,7 @@ void ModFolderPage::on_actionInstall_mods_triggered()
         for (auto task : mdownload.getTasks()) {
             tasks->addTask(task);
         }
+
         ProgressDialog loadDialog(this);
         loadDialog.setSkipButton(true, tr("Abort"));
         loadDialog.execWithTask(tasks);

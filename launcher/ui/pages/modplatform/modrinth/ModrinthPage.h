@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 /*
  *  PolyMC - Minecraft Launcher
- *  Copyright (c) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+ *  Copyright (c) 2022 flowln <flowlnlnln@gmail.com>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
  * permission notice:
  *
  *      Copyright 2013-2021 MultiMC Contributors
+ *      Copyright 2021-2022 kb1000
  *
  *      Licensed under the Apache License, Version 2.0 (the "License");
  *      you may not use this file except in compliance with the License.
@@ -35,27 +36,56 @@
 
 #pragma once
 
-#include "modplatform/ModAPI.h"
-#include "ui/pages/modplatform/ModPage.h"
+#include "Application.h"
+#include "ui/dialogs/NewInstanceDialog.h"
+#include "ui/pages/BasePage.h"
 
-#include "modplatform/modrinth/ModrinthAPI.h"
+#include "modplatform/modrinth/ModrinthPackManifest.h"
 
-class ModrinthPage : public ModPage {
+#include <QWidget>
+
+namespace Ui {
+class ModrinthPage;
+}
+
+namespace Modrinth {
+class ModpackListModel;
+}
+
+class ModrinthPage : public QWidget, public BasePage {
     Q_OBJECT
 
    public:
-    explicit ModrinthPage(ModDownloadDialog* dialog, BaseInstance* instance);
-    ~ModrinthPage() override = default;
+    explicit ModrinthPage(NewInstanceDialog* dialog, QWidget* parent = nullptr);
+    ~ModrinthPage() override;
 
-    inline auto displayName() const -> QString override { return "Modrinth"; }
-    inline auto icon() const -> QIcon override { return APPLICATION->getThemedIcon("modrinth"); }
-    inline auto id() const -> QString override { return "modrinth"; }
-    inline auto helpPage() const -> QString override { return "Mod-platform"; }
+    QString displayName() const override { return tr("Modrinth"); }
+    QIcon icon() const override { return APPLICATION->getThemedIcon("modrinth"); }
+    QString id() const override { return "modrinth"; }
+    QString helpPage() const override { return "Modrinth-platform"; }
 
-    inline auto debugName() const -> QString override { return "Modrinth"; }
-    inline auto metaEntryBase() const -> QString override { return "ModrinthPacks"; };
+    inline auto debugName() const -> QString { return "Modrinth"; }
+    inline auto metaEntryBase() const -> QString { return "ModrinthModpacks"; };
 
-    auto validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderType loader = ModAPI::Unspecified) const -> bool override;
+    auto getCurrent() -> Modrinth::Modpack& { return current; }
+    void suggestCurrent();
 
-    auto shouldDisplay() const -> bool override;
+    void updateUI();
+
+    void retranslate() override;
+    void openedImpl() override;
+    bool eventFilter(QObject* watched, QEvent* event) override;
+
+   private slots:
+    void onSelectionChanged(QModelIndex first, QModelIndex second);
+    void onVersionSelectionChanged(QString data);
+    void triggerSearch();
+
+   private:
+    Ui::ModrinthPage* ui;
+    NewInstanceDialog* dialog;
+    Modrinth::ModpackListModel* m_model;
+
+    Modrinth::Modpack current;
+    QString selectedVersion;
 };
