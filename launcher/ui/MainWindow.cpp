@@ -337,6 +337,14 @@ public:
         actionSettings->setShortcut(QKeySequence::Preferences);
         all_actions.append(&actionSettings);
 
+        actionUndoTrashInstance = TranslatedAction(MainWindow);
+        connect(actionUndoTrashInstance, SIGNAL(triggered(bool)), MainWindow, SLOT(undoTrashInstance()));
+        actionUndoTrashInstance->setObjectName(QStringLiteral("actionUndoTrashInstance"));
+        actionUndoTrashInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "&Undo last instance deletion"));
+        actionUndoTrashInstance->setEnabled(true);
+        actionUndoTrashInstance->setShortcut(QKeySequence("Ctrl+Z"));
+        all_actions.append(&actionUndoTrashInstance);
+
         if (!BuildConfig.BUG_TRACKER_URL.isEmpty()) {
             actionReportBug = TranslatedAction(MainWindow);
             actionReportBug->setObjectName(QStringLiteral("actionReportBug"));
@@ -506,14 +514,6 @@ public:
         fileMenu->addAction(actionCopyInstance);
         fileMenu->addSeparator();
         fileMenu->addAction(actionSettings);
-
-        actionUndoTrashInstance = TranslatedAction(MainWindow);
-        connect(actionUndoTrashInstance, SIGNAL(triggered(bool)), MainWindow, SLOT(undoTrashInstance()));
-        actionUndoTrashInstance->setObjectName(QStringLiteral("actionUndoTrashInstance"));
-        actionUndoTrashInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "&Undo last instance deletion"));
-        actionUndoTrashInstance->setEnabled(true);
-        actionUndoTrashInstance->setShortcut(QKeySequence("Ctrl+Z"));
-        all_actions.append(&actionUndoTrashInstance);
 
         editMenu = menuBar->addMenu(tr("&Edit"));
         editMenu->addAction(actionUndoTrashInstance);
