@@ -22,7 +22,7 @@
       pkgs = forAllSystems (system: nixpkgs.legacyPackages.${system});
     in
     {
-      packages = forAllSystems (system: {
+      packages = forAllSystems (system: rec {
         polymc = pkgs.${system}.libsForQt5.callPackage ./nix { inherit version self libnbtplusplus; };
         polymc-qt6 = pkgs.${system}.qt6Packages.callPackage ./nix { inherit version self libnbtplusplus; };
         
