@@ -1,20 +1,23 @@
 #include "ModFolderLoadTask.h"
-#include <QDebug>
 
-ModFolderLoadTask::ModFolderLoadTask(QDir dir) :
-    m_dir(dir), m_result(new Result())
-{
-}
+#include <QDebug>
+#include <QMimeDatabase>
+
+ModFolderLoadTask::ModFolderLoadTask(QDir dir) : m_dir(dir), m_result(new Result()) {}
 
 void ModFolderLoadTask::run()
 {
     m_dir.refresh();
-    for (auto entry : m_dir.entryInfoList())
-    {
-        if (entry.fileName().endsWith("txt")) continue;
+
+    QMimeDatabase db;
+    for (auto entry : m_dir.entryInfoList()) {
+        QMimeType type = db.mimeTypeForFile(entry.fileName());
+        if (type.name() == "text/plain")
+            continue;
 
         Mod m(entry);
         m_result->mods[m.mmc_id()] = m;
     }
+
     emit succeeded();
 }
