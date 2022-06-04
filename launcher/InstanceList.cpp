@@ -293,7 +293,7 @@ bool InstanceList::trashedSomething() {
 
 void InstanceList::undoTrashInstance() {
     if (m_trashHistory.empty()) {
-        qWarning() << "Nothing to trash.";
+        qWarning() << "Nothing to recover from trash.";
         return;
     }
 
