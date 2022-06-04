@@ -80,9 +80,7 @@
 #include <QTranslator>
 #include <QLibraryInfo>
 #include <QList>
-#include <QStringList>
 #include <QDebug>
-#include <QStyleFactory>
 #include <QWindow>
 
 #include "InstanceList.h"

@@ -80,6 +80,7 @@ public:
     void retranslate() override;
 
 private:
+    void applyThemeSettings();
     void applySettings();
     void loadSettings();
 
@@ -88,6 +89,8 @@ slots:
     void on_instDirBrowseBtn_clicked();
     void on_modsDirBrowseBtn_clicked();
     void on_iconsDirBrowseBtn_clicked();
+    void on_themeComboBox_currentIndexChanged();
+    void on_themeComboBoxColors_currentIndexChanged();
 
     /*!
      * Updates the list of update channels in the combo box.

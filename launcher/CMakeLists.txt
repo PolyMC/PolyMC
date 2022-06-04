@@ -680,7 +680,7 @@ SET(LAUNCHER_SOURCES
     ui/themes/SystemTheme.cpp
     ui/themes/SystemTheme.h
 
-    # Processes
+        # Processes
     LaunchController.h
     LaunchController.cpp
 
@@ -892,8 +892,7 @@ SET(LAUNCHER_SOURCES
     ui/instanceview/InstanceDelegate.cpp
     ui/instanceview/InstanceDelegate.h
     ui/instanceview/VisualGroup.cpp
-    ui/instanceview/VisualGroup.h
-)
+    ui/instanceview/VisualGroup.h)
 
 qt5_wrap_ui(LAUNCHER_UI
     ui/setupwizard/PasteWizardPage.ui
