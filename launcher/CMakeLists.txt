@@ -306,7 +306,7 @@ set(MINECRAFT_SOURCES
     minecraft/Rule.h
     minecraft/OneSixVersionFormat.cpp
     minecraft/OneSixVersionFormat.h
-        minecraft/ParseUtils.cpp
+    minecraft/ParseUtils.cpp
     minecraft/ParseUtils.h
     minecraft/ProfileUtils.cpp
     minecraft/ProfileUtils.h
