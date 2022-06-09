@@ -627,7 +627,7 @@ SET(LAUNCHER_SOURCES
     ApplicationMessage.h
     ApplicationMessage.cpp
     SysInfo.h
-        SysInfo.cpp
+    SysInfo.cpp
 
     # GUI - general utilities
     DesktopServices.h
