@@ -28,6 +28,8 @@
 
 #include <QtGui/QKeyEvent>
 
+#include <QtMultimedia/QSound>
+
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
@@ -929,6 +931,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
     {
         bool cat_enable = APPLICATION->settings()->get("TheCat").toBool();
         ui->actionCAT->setChecked(cat_enable);
+        ctaMeow = new QSound(":/sounds/meow.wav");
         // NOTE: calling the operator like that is an ugly hack to appease ancient gcc...
         connect(ui->actionCAT.operator->(), SIGNAL(toggled(bool)), SLOT(onCatToggled(bool)));
         setCatBackground(cat_enable);
@@ -1533,6 +1536,7 @@ void MainWindow::downloadUpdates(GoUpdate::Status status)
 void MainWindow::onCatToggled(bool state)
 {
     setCatBackground(state);
+    ctaMeow->play();
     APPLICATION->settings()->set("TheCat", state);
 }
 

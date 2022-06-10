@@ -32,6 +32,7 @@ class QToolButton;
 class InstanceProxyModel;
 class LabeledToolButton;
 class QLabel;
+class QSound;
 class MinecraftLauncher;
 class BaseProfilerFactory;
 class InstanceView;
@@ -217,6 +218,7 @@ private:
     QLabel *m_statusCenter = nullptr;
     QMenu *accountMenu = nullptr;
     QToolButton *accountMenuButton = nullptr;
+    QSound *ctaMeow = nullptr;
     KonamiCode * secretEventFilter = nullptr;
 
     unique_qobject_ptr<NewsChecker> m_newsChecker;

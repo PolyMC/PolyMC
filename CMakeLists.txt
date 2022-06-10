@@ -151,7 +151,7 @@ add_custom_target(tcversion echo "\\#\\#teamcity[setParameter name=\\'env.LAUNCH
 # Find the required Qt parts
 if(Launcher_QT_VERSION_MAJOR EQUAL 5)
     set(QT_VERSION_MAJOR 5)
-    find_package(Qt5 REQUIRED COMPONENTS Core Widgets Concurrent Network Test Xml)
+    find_package(Qt5 REQUIRED COMPONENTS Core Widgets Concurrent Multimedia Network Test Xml)
 
     if(NOT Launcher_FORCE_BUNDLED_LIBS)
         find_package(QuaZip-Qt5 1.3 QUIET)
