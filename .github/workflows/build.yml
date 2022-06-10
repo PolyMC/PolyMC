@@ -121,7 +121,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5core5a libqt5network5 libqt5gui5 ninja-build qt5-image-formats-plugins
+          sudo apt-get -y install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5core5a libqt5network5 qtmultimedia5-dev libqt5gui5 ninja-build qt5-image-formats-plugins
 
       - name: Prepare AppImage (Linux)
         if: runner.os == 'Linux' && matrix.appimage == true
