@@ -643,6 +643,9 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         // Minecraft launch method
         m_settings->registerSetting("MCLaunchMethod", "LauncherPart");
 
+        // Minecraft mods
+        m_settings->registerSetting("ModMetadataDisabled", false);
+
         // Minecraft offline player name
         m_settings->registerSetting("LastOfflinePlayerName", "");
 
@@ -708,6 +711,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         // Custom MSA credentials
         m_settings->registerSetting("MSAClientIDOverride", "");
         m_settings->registerSetting("CFKeyOverride", "");
+        m_settings->registerSetting("UserAgentOverride", "");
 
         // Init page provider
         {
@@ -871,6 +875,12 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_mcedit.reset(new MCEditTool(m_settings));
     }
 
+#ifdef Q_OS_MACOS
+    connect(this, &Application::clickedOnDock, [this]() {
+        this->showMainWindow();
+    });
+#endif
+
     connect(this, &Application::aboutToQuit, [this](){
         if(m_instances)
         {
@@ -952,6 +962,21 @@ bool Application::createSetupWizard()
         return true;
     }
     return false;
+}
+
+bool Application::event(QEvent* event) {
+#ifdef Q_OS_MACOS
+    if (event->type() == QEvent::ApplicationStateChange) {
+        auto ev = static_cast<QApplicationStateChangeEvent*>(event);
+
+        if (m_prevAppState == Qt::ApplicationActive
+                && ev->applicationState() == Qt::ApplicationActive) {
+            emit clickedOnDock();
+        }
+        m_prevAppState = ev->applicationState();
+    }
+#endif
+    return QApplication::event(event);
 }
 
 void Application::setupWizardFinished(int status)
@@ -1552,4 +1577,25 @@ QString Application::getCurseKey()
     }
 
     return BuildConfig.CURSEFORGE_API_KEY;
+}
+
+QString Application::getUserAgent()
+{
+    QString uaOverride = m_settings->get("UserAgentOverride").toString();
+    if (!uaOverride.isEmpty()) {
+        return uaOverride.replace("$LAUNCHER_VER", BuildConfig.printableVersionString());
+    }
+
+    return BuildConfig.USER_AGENT;
+}
+
+QString Application::getUserAgentUncached()
+{
+    QString uaOverride = m_settings->get("UserAgentOverride").toString();
+    if (!uaOverride.isEmpty()) {
+        uaOverride += " (Uncached)";
+        return uaOverride.replace("$LAUNCHER_VER", BuildConfig.printableVersionString());
+    }
+
+    return BuildConfig.USER_AGENT_UNCACHED;
 }

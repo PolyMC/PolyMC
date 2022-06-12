@@ -94,6 +94,8 @@ public:
     Application(int &argc, char **argv);
     virtual ~Application();
 
+    bool event(QEvent* event) override;
+
     std::shared_ptr<SettingsObject> settings() const {
         return m_settings;
     }
@@ -156,6 +158,8 @@ public:
 
     QString getMSAClientID();
     QString getCurseKey();
+    QString getUserAgent();
+    QString getUserAgentUncached();
 
     /// this is the root of the 'installation'. Used for automatic updates
     const QString &root() {
@@ -180,6 +184,10 @@ signals:
     void updateAllowedChanged(bool status);
     void globalSettingsAboutToOpen();
     void globalSettingsClosed();
+
+#ifdef Q_OS_MACOS
+    void clickedOnDock();
+#endif
 
 public slots:
     bool launch(
@@ -237,6 +245,10 @@ private:
 
     QString m_rootPath;
     Status m_status = Application::StartingUp;
+
+#ifdef Q_OS_MACOS
+    Qt::ApplicationState m_prevAppState = Qt::ApplicationInactive;
+#endif
 
 #if defined Q_OS_WIN32
     // used on Windows to attach the standard IO streams
