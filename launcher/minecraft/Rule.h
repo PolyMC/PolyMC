@@ -115,7 +115,7 @@ protected:
         {
             archCorrect = arch == SysInfo::currentArch(settingsObjJavaArch);
         }
-        qDebug() << "Os rule with OS required" << m_system << systemCorrect << "Arch required" << arch << archCorrect;
+        // qDebug() << "Os rule with OS required" << m_system << systemCorrect << "Arch required" << arch << archCorrect;
         return systemCorrect && archCorrect;
     }
 OsRule(RuleAction result, QString system)
