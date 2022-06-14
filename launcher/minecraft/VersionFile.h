@@ -59,7 +59,7 @@ class VersionFile : public ProblemContainer
     friend class MojangVersionFormat;
     friend class OneSixVersionFormat;
 public: /* methods */
-    void applyTo(LaunchProfile* profile);
+    void applyTo(LaunchProfile* profile, const SettingsObjectPtr& settingsObjJavaArch);
 
 public: /* data */
     /// PolyMC: order hint for this version file if no explicit order is set

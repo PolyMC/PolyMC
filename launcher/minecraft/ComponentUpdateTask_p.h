@@ -29,4 +29,5 @@ struct ComponentUpdateTaskData
     size_t remoteTasksInProgress = 0;
     ComponentUpdateTask::Mode mode;
     Net::Mode netmode;
+    QString realArchitecture;
 };

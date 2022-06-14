@@ -44,13 +44,13 @@ void ModMinecraftJar::executeTask()
 
     // create temporary modded jar, if needed
     auto components = m_inst->getPackProfile();
-    auto profile = components->getProfile();
+    auto profile = components->getProfile(m_inst->settings());
     auto jarMods = m_inst->getJarMods();
     if(jarMods.size())
     {
         auto mainJar = profile->getMainJar();
         QStringList jars, temp1, temp2, temp3, temp4;
-        mainJar->getApplicableFiles(SysInfo::currentSystem(), jars, temp1, temp2, temp3, m_inst->getLocalLibraryPath());
+        mainJar->getApplicableFiles(SysInfo::currentSystem(), SysInfo::currentArch(m_inst->settings()), jars, temp1, temp2, temp3, m_inst->getLocalLibraryPath());
         auto sourceJarPath = jars[0];
         if(!MMCZip::createModdedJar(sourceJarPath, finalJarPath, jarMods))
         {

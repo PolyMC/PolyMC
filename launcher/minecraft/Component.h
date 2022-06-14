@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <QDateTime>
 #include "meta/JsonFormat.h"
+#include "settings/SettingsObject.h"
 #include "ProblemProvider.h"
 #include "QObjectPtr.h"
 
@@ -28,7 +29,7 @@ public:
     Component(PackProfile * parent, const QString & uid, std::shared_ptr<VersionFile> file);
 
     virtual ~Component(){};
-    void applyTo(LaunchProfile *profile);
+    void applyTo(LaunchProfile *profile, const SettingsObjectPtr& settingsObjJavaArch);
 
     bool isEnabled();
     bool setEnabled (bool state);

@@ -173,9 +173,9 @@ void LaunchProfile::applyCompatibleJavaMajors(QList<int>& javaMajor)
     m_compatibleJavaMajors.append(javaMajor);
 }
 
-void LaunchProfile::applyLibrary(LibraryPtr library)
+void LaunchProfile::applyLibrary(LibraryPtr library, const SettingsObjectPtr& settingsObjJavaArch)
 {
-    if(!library->isActive())
+    if(!library->isActive(settingsObjJavaArch))
     {
         return;
     }
@@ -205,9 +205,9 @@ void LaunchProfile::applyLibrary(LibraryPtr library)
     }
 }
 
-void LaunchProfile::applyMavenFile(LibraryPtr mavenFile)
+void LaunchProfile::applyMavenFile(LibraryPtr mavenFile, const SettingsObjectPtr& settingsObjJavaArch)
 {
-    if(!mavenFile->isActive())
+    if(!mavenFile->isActive(settingsObjJavaArch))
     {
         return;
     }
@@ -221,10 +221,10 @@ void LaunchProfile::applyMavenFile(LibraryPtr mavenFile)
     m_mavenFiles.append(Library::limitedCopy(mavenFile));
 }
 
-void LaunchProfile::applyAgent(AgentPtr agent)
+void LaunchProfile::applyAgent(AgentPtr agent, const SettingsObjectPtr& settingsObjJavaArch)
 {
     auto lib = agent->library();
-    if(!lib->isActive())
+    if(!lib->isActive(settingsObjJavaArch))
     {
         return;
     }
@@ -355,6 +355,7 @@ const QList<int> & LaunchProfile::getCompatibleJavaMajors() const
 
 void LaunchProfile::getLibraryFiles(
     const QString& architecture,
+    const QString& realArchitecture,
     QStringList& jars,
     QStringList& nativeJars,
     const QString& overridePath,
@@ -366,7 +367,7 @@ void LaunchProfile::getLibraryFiles(
     nativeJars.clear();
     for (auto lib : getLibraries())
     {
-        lib->getApplicableFiles(SysInfo::currentSystem(), jars, nativeJars, native32, native64, overridePath);
+        lib->getApplicableFiles(SysInfo::currentSystem(), realArchitecture, jars, nativeJars, native32, native64, overridePath);
     }
     // NOTE: order is important here, add main jar last to the lists
     if(m_mainJar)
@@ -379,12 +380,12 @@ void LaunchProfile::getLibraryFiles(
         }
         else
         {
-            m_mainJar->getApplicableFiles(SysInfo::currentSystem(), jars, nativeJars, native32, native64, overridePath);
+            m_mainJar->getApplicableFiles(SysInfo::currentSystem(), realArchitecture, jars, nativeJars, native32, native64, overridePath);
         }
     }
     for (auto lib : getNativeLibraries())
     {
-        lib->getApplicableFiles(SysInfo::currentSystem(), jars, nativeJars, native32, native64, overridePath);
+        lib->getApplicableFiles(SysInfo::currentSystem(), realArchitecture, jars, nativeJars, native32, native64, overridePath);
     }
     if(architecture == "32")
     {

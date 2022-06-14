@@ -58,7 +58,7 @@ struct GradleSpecifier
         }
         return retval;
     }
-    QString getFileName() const
+    QString getFileName(const QString arch) const
     {
         if(!m_valid) {
             return QString();
@@ -68,10 +68,11 @@ struct GradleSpecifier
         {
             filename += "-" + m_classifier;
         }
+        filename += "-" + arch;
         filename += "." + m_extension;
         return filename;
     }
-    QString toPath(const QString & filenameOverride = QString()) const
+    QString toPath(const QString & filenameOverride = QString(), const QString arch = QString() ) const
     {
         if(!m_valid) {
             return QString();
@@ -79,7 +80,7 @@ struct GradleSpecifier
         QString filename;
         if(filenameOverride.isEmpty())
         {
-            filename = getFileName();
+            filename = getFileName(arch);
         }
         else
         {

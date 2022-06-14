@@ -127,6 +127,7 @@ MinecraftInstance::MinecraftInstance(SettingsObjectPtr globalSettings, SettingsO
     m_settings->registerOverride(globalSettings->getSetting("JavaPath"), javaOrLocation);
     m_settings->registerOverride(globalSettings->getSetting("JvmArgs"), javaOrArgs);
     m_settings->registerOverride(globalSettings->getSetting("IgnoreJavaCompatibility"), javaOrLocation);
+    m_settings->registerSetting("JavaRealArchitecture");
 
     // special!
     m_settings->registerPassthrough(globalSettings->getSetting("JavaTimestamp"), javaOrLocation);
@@ -193,7 +194,7 @@ QSet<QString> MinecraftInstance::traits() const
     {
         return {"version-incomplete"};
     }
-    auto profile = components->getProfile();
+    auto profile = components->getProfile(settings());
     if (!profile)
     {
         return {"version-incomplete"};
@@ -304,14 +305,14 @@ QStringList MinecraftInstance::getClassPath() const
 {
     QStringList jars, nativeJars;
     auto javaArchitecture = settings()->get("JavaArchitecture").toString();
-    auto profile = m_components->getProfile();
-    profile->getLibraryFiles(javaArchitecture, jars, nativeJars, getLocalLibraryPath(), binRoot());
+    auto profile = m_components->getProfile(settings());
+    profile->getLibraryFiles(javaArchitecture, SysInfo::currentArch(settings()), jars, nativeJars, getLocalLibraryPath(), binRoot());
     return jars;
 }
 
 QString MinecraftInstance::getMainClass() const
 {
-    auto profile = m_components->getProfile();
+    auto profile = m_components->getProfile(settings());
     return profile->getMainClass();
 }
 
@@ -319,8 +320,8 @@ QStringList MinecraftInstance::getNativeJars() const
 {
     QStringList jars, nativeJars;
     auto javaArchitecture = settings()->get("JavaArchitecture").toString();
-    auto profile = m_components->getProfile();
-    profile->getLibraryFiles(javaArchitecture, jars, nativeJars, getLocalLibraryPath(), binRoot());
+    auto profile = m_components->getProfile(settings());
+    profile->getLibraryFiles(javaArchitecture, SysInfo::currentArch(settings()), jars, nativeJars, getLocalLibraryPath(), binRoot());
     return nativeJars;
 }
 
@@ -336,15 +337,15 @@ QStringList MinecraftInstance::extraArguments() const
         list.append({"-Dfml.ignoreInvalidMinecraftCertificates=true",
                      "-Dfml.ignorePatchDiscrepancies=true"});
     }
-    auto addn = m_components->getProfile()->getAddnJvmArguments();
+    auto addn = m_components->getProfile(settings())->getAddnJvmArguments();
     if (!addn.isEmpty()) {
         list.append(addn);
     }
-    auto agents = m_components->getProfile()->getAgents();
+    auto agents = m_components->getProfile(settings())->getAgents();
     for (auto agent : agents)
     {
         QStringList jar, temp1, temp2, temp3;
-        agent->library()->getApplicableFiles(SysInfo::currentSystem(), jar, temp1, temp2, temp3, getLocalLibraryPath());
+        agent->library()->getApplicableFiles(SysInfo::currentSystem(), SysInfo::currentArch(settings()), jar, temp1, temp2, temp3, getLocalLibraryPath());
         list.append("-javaagent:"+jar[0]+(agent->argument().isEmpty() ? "" : "="+agent->argument()));
     }
     return list;
@@ -460,7 +461,7 @@ static QString replaceTokensIn(QString text, QMap<QString, QString> with)
 QStringList MinecraftInstance::processMinecraftArgs(
         AuthSessionPtr session, MinecraftServerTargetPtr serverToJoin) const
 {
-    auto profile = m_components->getProfile();
+    auto profile = m_components->getProfile(settings());
     QString args_pattern = profile->getMinecraftArguments();
     for (auto tweaker : profile->getTweakers())
     {
@@ -516,7 +517,7 @@ QString MinecraftInstance::createLaunchScript(AuthSessionPtr session, MinecraftS
 
     if (!m_components)
         return QString();
-    auto profile = m_components->getProfile();
+    auto profile = m_components->getProfile(settings());
     if(!profile)
         return QString();
 
@@ -570,7 +571,7 @@ QString MinecraftInstance::createLaunchScript(AuthSessionPtr session, MinecraftS
     {
         QStringList jars, nativeJars;
         auto javaArchitecture = settings()->get("JavaArchitecture").toString();
-        profile->getLibraryFiles(javaArchitecture, jars, nativeJars, getLocalLibraryPath(), binRoot());
+        profile->getLibraryFiles(javaArchitecture, SysInfo::currentArch(settings()), jars, nativeJars, getLocalLibraryPath(), binRoot());
         for(auto file: jars)
         {
             launchScript += "cp " + file + "\n";
@@ -597,7 +598,7 @@ QStringList MinecraftInstance::verboseDescription(AuthSessionPtr session, Minecr
     out << "Main Class:" << "  " + getMainClass() << "";
     out << "Native path:" << "  " + getNativePath() << "";
 
-    auto profile = m_components->getProfile();
+    auto profile = m_components->getProfile(settings());
 
     auto alltraits = traits();
     if(alltraits.size())
@@ -627,7 +628,7 @@ QStringList MinecraftInstance::verboseDescription(AuthSessionPtr session, Minecr
         out << "Libraries:";
         QStringList jars, nativeJars;
         auto javaArchitecture = settings->get("JavaArchitecture").toString();
-        profile->getLibraryFiles(javaArchitecture, jars, nativeJars, getLocalLibraryPath(), binRoot());
+        profile->getLibraryFiles(javaArchitecture, SysInfo::currentArch(settings), jars, nativeJars, getLocalLibraryPath(), binRoot());
         auto printLibFile = [&](const QString & path)
         {
             QFileInfo info(path);
@@ -692,8 +693,8 @@ QStringList MinecraftInstance::verboseDescription(AuthSessionPtr session, Minecr
         out << "Jar Mods:";
         for(auto & jarmod: jarMods)
         {
-            auto displayname = jarmod->displayName(SysInfo::currentSystem());
-            auto realname = jarmod->filename(SysInfo::currentSystem());
+            auto displayname = jarmod->displayName(SysInfo::currentSystem(), SysInfo::currentArch(settings));
+            auto realname = jarmod->filename(SysInfo::currentSystem(), SysInfo::currentArch(settings));
             if(displayname != realname)
             {
                 out << "  " + displayname + " (" + realname + ")";
@@ -1084,12 +1085,12 @@ std::shared_ptr<GameOptions> MinecraftInstance::gameOptionsModel() const
 
 QList< Mod > MinecraftInstance::getJarMods() const
 {
-    auto profile = m_components->getProfile();
+    auto profile = m_components->getProfile(settings());
     QList<Mod> mods;
     for (auto jarmod : profile->getJarMods())
     {
         QStringList jar, temp1, temp2, temp3;
-        jarmod->getApplicableFiles(SysInfo::currentSystem(), jar, temp1, temp2, temp3, jarmodsPath().absolutePath());
+        jarmod->getApplicableFiles(SysInfo::currentSystem(), SysInfo::currentArch(settings()), jar, temp1, temp2, temp3, jarmodsPath().absolutePath());
         // QString filePath = jarmodsPath().absoluteFilePath(jarmod->filename(currentSystem));
         mods.push_back(Mod(QFileInfo(jar[0])));
     }

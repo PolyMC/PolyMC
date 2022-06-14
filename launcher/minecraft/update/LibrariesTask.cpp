@@ -19,7 +19,7 @@ void LibrariesTask::executeTask()
 
     // Build a list of URLs that will need to be downloaded.
     auto components = inst->getPackProfile();
-    auto profile = components->getProfile();
+    auto profile = components->getProfile(inst->settings());
 
     auto job = new NetJob(tr("Libraries for instance %1").arg(inst->name()), APPLICATION->network());
     downloadJob.reset(job);
@@ -35,7 +35,7 @@ void LibrariesTask::executeTask()
                 emitFailed(tr("Null jar is specified in the metadata, aborting."));
                 return false;
             }
-            auto dls = lib->getDownloads(SysInfo::currentSystem(), metacache.get(), errors, localPath);
+            auto dls = lib->getDownloads(SysInfo::currentSystem(), SysInfo::currentArch(inst->settings()), metacache.get(), errors, localPath);
             for(auto dl : dls)
             {
                 downloadJob->addNetAction(dl);

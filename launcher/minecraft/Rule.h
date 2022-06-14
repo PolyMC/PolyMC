@@ -71,7 +71,7 @@ class Rule
 {
 protected:
     RuleAction m_result;
-    virtual bool applies(const Library *parent) = 0;
+    virtual bool applies(const Library *parent, const SettingsObjectPtr& settingsObjJavaArch) = 0;
 
 public:
     Rule(RuleAction result) : m_result(result)
@@ -79,9 +79,9 @@ public:
     }
     virtual ~Rule() {};
     virtual QJsonObject toJson() = 0;
-    RuleAction apply(const Library *parent)
+    RuleAction apply(const Library *parent, const SettingsObjectPtr& settingsObjJavaArch)
     {
-        if (applies(parent))
+        if (applies(parent, settingsObjJavaArch))
             return m_result;
         else
             return Defer;
@@ -94,7 +94,7 @@ private:
     QString m_system;
 
 protected:
-    virtual bool applies(const Library *)
+    virtual bool applies(const Library *, const SettingsObjectPtr& settingsObjJavaArch)
     {
         QString sys;
         QString arch;
@@ -113,9 +113,9 @@ protected:
         systemCorrect = sys == SysInfo::currentSystem();
         if(!arch.isEmpty())
         {
-            archCorrect = arch == SysInfo::currentArch();
+            archCorrect = arch == SysInfo::currentArch(settingsObjJavaArch);
         }
-        //qDebug() << "Os rule with OS required" << m_system << systemCorrect << "Arch required" << arch << archCorrect;
+        qDebug() << "Os rule with OS required" << m_system << systemCorrect << "Arch required" << arch << archCorrect;
         return systemCorrect && archCorrect;
     }
 OsRule(RuleAction result, QString system)
@@ -134,7 +134,7 @@ public:
 class ImplicitRule : public Rule
 {
 protected:
-    virtual bool applies(const Library *)
+    virtual bool applies(const Library *, const SettingsObjectPtr& settingsObjJavaArch)
     {
         return true;
     }

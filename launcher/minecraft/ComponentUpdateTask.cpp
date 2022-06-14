@@ -32,13 +32,14 @@
  * If the component list changes, start over.
  */
 
-ComponentUpdateTask::ComponentUpdateTask(Mode mode, Net::Mode netmode, PackProfile* list, QObject* parent)
+ComponentUpdateTask::ComponentUpdateTask(Mode mode, Net::Mode netmode, PackProfile* list, QObject* parent, QString realArchitecture)
     : Task(parent)
 {
     d.reset(new ComponentUpdateTaskData);
     d->m_list = list;
     d->mode = mode;
     d->netmode = netmode;
+    d->realArchitecture = realArchitecture;
 }
 
 ComponentUpdateTask::~ComponentUpdateTask()
@@ -533,7 +534,7 @@ void ComponentUpdateTask::resolveDependencies(bool checkOnly)
             for(auto & remove : toRemove)
             {
                 qDebug() << "Removing" << remove;
-                d->m_list->remove(remove);
+                d->m_list->remove(remove, d->realArchitecture);
             }
         }
     } while (!toRemove.isEmpty());

@@ -304,7 +304,7 @@ void VersionPage::on_actionRemove_triggered()
     if (ui->packageView->currentIndex().isValid())
     {
         // FIXME: use actual model, not reloading.
-        if (!m_profile->remove(ui->packageView->currentIndex().row()))
+        if (!m_profile->remove(ui->packageView->currentIndex().row(),SysInfo::currentArch(m_inst->settings())))
         {
             QMessageBox::critical(this, tr("Error"), tr("Couldn't remove file"));
         }

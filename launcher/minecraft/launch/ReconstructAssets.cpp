@@ -24,7 +24,7 @@ void ReconstructAssets::executeTask()
     auto instance = m_parent->instance();
     std::shared_ptr<MinecraftInstance> minecraftInstance = std::dynamic_pointer_cast<MinecraftInstance>(instance);
     auto components = minecraftInstance->getPackProfile();
-    auto profile = components->getProfile();
+    auto profile = components->getProfile(minecraftInstance->settings());
     auto assets = profile->getMinecraftAssets();
 
     if(!AssetsUtils::reconstructAssets(assets->id, minecraftInstance->resourcesDir()))

@@ -8,7 +8,7 @@
 #include "SysInfo.h"
 
 
-void Library::getApplicableFiles(QString system, QStringList& jar, QStringList& native, QStringList& native32,
+void Library::getApplicableFiles(QString system, QString arch, QStringList& jar, QStringList& native, QStringList& native32,
                                  QStringList& native64, const QString &overridePath) const
 {
     bool local = isLocal();
@@ -22,7 +22,7 @@ void Library::getApplicableFiles(QString system, QStringList& jar, QStringList& 
         }
         return out.absoluteFilePath();
     };
-    QString raw_storage = storageSuffix(system);
+    QString raw_storage = storageSuffix(system, arch);
     if(isNative())
     {
         if (raw_storage.contains("${arch}"))
@@ -47,6 +47,7 @@ void Library::getApplicableFiles(QString system, QStringList& jar, QStringList& 
 
 QList<NetAction::Ptr> Library::getDownloads(
     QString system,
+    QString arch,
     class HttpMetaCache* cache,
     QStringList& failedLocalFiles,
     const QString & overridePath
@@ -105,7 +106,7 @@ QList<NetAction::Ptr> Library::getDownloads(
         return true;
     };
 
-    QString raw_storage = storageSuffix(system);
+    QString raw_storage = storageSuffix(system, arch);
     if(m_mojangDownloads)
     {
         if(isNative())
@@ -201,7 +202,7 @@ QList<NetAction::Ptr> Library::getDownloads(
     return out;
 }
 
-bool Library::isActive() const
+bool Library::isActive(const SettingsObjectPtr& settingsObjJavaArch) const
 {
     bool result = true;
     if (m_rules.empty())
@@ -213,7 +214,7 @@ bool Library::isActive() const
         RuleAction ruleResult = Disallow;
         for (auto rule : m_rules)
         {
-            RuleAction temp = rule->apply(this);
+            RuleAction temp = rule->apply(this, settingsObjJavaArch);
             if (temp != Defer)
                 ruleResult = temp;
         }
@@ -255,7 +256,7 @@ QString Library::storagePrefix() const
     return m_storagePrefix;
 }
 
-QString Library::filename(QString system) const
+QString Library::filename(QString system, QString arch) const
 {
     if(!m_filename.isEmpty())
     {
@@ -264,7 +265,7 @@ QString Library::filename(QString system) const
     // non-native? use only the gradle specifier
     if (!isNative())
     {
-        return m_name.getFileName();
+        return m_name.getFileName(arch);
     }
 
     // otherwise native, override classifiers. Mojang HACK!
@@ -277,22 +278,22 @@ QString Library::filename(QString system) const
     {
         nativeSpec.setClassifier("INVALID");
     }
-    return nativeSpec.getFileName();
+    return nativeSpec.getFileName(arch);
 }
 
-QString Library::displayName(QString system) const
+QString Library::displayName(QString system, QString arch) const
 {
     if(!m_displayname.isEmpty())
         return m_displayname;
-    return filename(system);
+    return filename(system, arch);
 }
 
-QString Library::storageSuffix(QString system) const
+QString Library::storageSuffix(QString system, QString arch) const
 {
     // non-native? use only the gradle specifier
     if (!isNative())
     {
-        return m_name.toPath(m_filename);
+        return m_name.toPath(m_filename, arch);
     }
 
     // otherwise native, override classifiers. Mojang HACK!
@@ -305,5 +306,5 @@ QString Library::storageSuffix(QString system) const
     {
         nativeSpec.setClassifier("INVALID");
     }
-    return nativeSpec.toPath(m_filename);
+    return nativeSpec.toPath(m_filename, arch);
 }
