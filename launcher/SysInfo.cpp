@@ -89,23 +89,23 @@ namespace SysInfo {
             return useQTForArch();
         } else {
             // yay we can use the java arch
-            QString stdout;
-            QString stderr;
+            QString stdout_javaChecker;
+            QString stderr_javaChecker;
 
             // process stdout
             QByteArray data = process->readAllStandardOutput();
             QString added = QString::fromLocal8Bit(data);
             added.remove('\r');
-            stdout += added;
+            stdout_javaChecker += added;
 
             // process stderr
             data = process->readAllStandardError();
             added = QString::fromLocal8Bit(data);
             added.remove('\r');
-            stderr += added;
+            stderr_javaChecker += added;
 
             QMap<QString, QString> results;
-            QStringList lines = stdout.split("\n", QString::SkipEmptyParts);
+            QStringList lines = stdout_javaChecker.split("\n", QString::SkipEmptyParts);
             for(QString line : lines)
             {
                 line = line.trimmed();
