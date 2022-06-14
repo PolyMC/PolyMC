@@ -68,7 +68,9 @@ struct GradleSpecifier
         {
             filename += "-" + m_classifier;
         }
-        filename += "-" + arch;
+        // FIXME: forge hack
+        if(m_groupId == "org.lwjgl" || m_groupId == "ca.weblite")
+            filename += "-" + arch;
         filename += "." + m_extension;
         return filename;
     }
