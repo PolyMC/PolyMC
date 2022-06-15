@@ -340,7 +340,7 @@ public:
         actionUndoTrashInstance = TranslatedAction(MainWindow);
         connect(actionUndoTrashInstance, SIGNAL(triggered(bool)), MainWindow, SLOT(undoTrashInstance()));
         actionUndoTrashInstance->setObjectName(QStringLiteral("actionUndoTrashInstance"));
-        actionUndoTrashInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "&Undo last instance deletion"));
+        actionUndoTrashInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "&Undo Last Instance Deletion"));
         actionUndoTrashInstance->setEnabled(true);
         actionUndoTrashInstance->setShortcut(QKeySequence("Ctrl+Z"));
         all_actions.append(&actionUndoTrashInstance);
