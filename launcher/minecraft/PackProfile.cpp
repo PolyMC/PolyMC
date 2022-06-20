@@ -864,7 +864,7 @@ bool PackProfile::installCustomJar_internal(QString filepath)
 
     auto specifier = GradleSpecifier("org.multimc:customjar:1");
     QFileInfo sourceInfo(filepath);
-    QString target_filename = specifier.getFileName(QString()); //FIXME: actual arch here?
+    QString target_filename = specifier.getFileName(QString(), false);
     QString target_id = specifier.artifactId();
     QString target_name = sourceInfo.completeBaseName() + " (custom jar)";
     QString finalPath = FS::PathCombine(libDir, target_filename);

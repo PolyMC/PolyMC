@@ -45,6 +45,7 @@ public:
         newlib->m_storagePrefix = base->m_storagePrefix;
         newlib->m_mojangDownloads = base->m_mojangDownloads;
         newlib->m_filename = base->m_filename;
+        newlib->m_archDependent = base->m_archDependent;
         return newlib;
     }
 
@@ -152,7 +153,7 @@ public: /* methods */
 
     // Get a list of downloads for this library
     QList<NetAction::Ptr> getDownloads(QString system, QString arch, class HttpMetaCache * cache,
-                                     QStringList & failedLocalFiles, const QString & overridePath) const;
+                                     QStringList & failedLocalFiles, const QString & overridePath);
 
 private: /* methods */
     /// the default storage prefix used by PolyMC
@@ -213,5 +214,8 @@ protected: /* data */
 
     /// MOJANG: container with Mojang style download info
     MojangLibraryDownloadInfo::Ptr m_mojangDownloads;
+
+    /// PolyMC: do we need to append architecture to the filename?
+    bool m_archDependent;
 };
 

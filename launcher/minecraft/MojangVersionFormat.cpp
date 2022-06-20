@@ -379,6 +379,17 @@ LibraryPtr MojangVersionFormat::libraryFromJson(ProblemContainer & problems, con
     {
         out->m_mojangDownloads = libDownloadInfoFromJson(libObj);
     }
+    if (libObj.contains("traits"))
+    {
+        QJsonArray traits = requireArray(libObj.value("traits"));
+        if (traits.contains("ArchDependent"))
+            out->m_archDependent = true;
+        else
+            out->m_archDependent = false;
+        // qDebug() << "MojangVersionFormat: out->m_archDependent = " << out->m_archDependent;
+    } else {
+        out->m_archDependent = false;
+    }
     return out;
 }
 

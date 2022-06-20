@@ -51,7 +51,7 @@ QList<NetAction::Ptr> Library::getDownloads(
     class HttpMetaCache* cache,
     QStringList& failedLocalFiles,
     const QString & overridePath
-) const
+)
 {
     QList<NetAction::Ptr> out;
     bool stale = isAlwaysStale();
@@ -164,6 +164,7 @@ QList<NetAction::Ptr> Library::getDownloads(
     }
     else
     {
+        // qDebug() << "no m_mojangDownloads for " << m_name.serialize() << "m_absoluteURL m_repositoryURL" << m_absoluteURL << "," << m_repositoryURL;
         auto raw_dl = [&]()
         {
             if (!m_absoluteURL.isEmpty())
@@ -265,7 +266,7 @@ QString Library::filename(QString system, QString arch) const
     // non-native? use only the gradle specifier
     if (!isNative())
     {
-        return m_name.getFileName(arch);
+        return m_name.getFileName(arch, m_archDependent);
     }
 
     // otherwise native, override classifiers. Mojang HACK!
@@ -278,7 +279,7 @@ QString Library::filename(QString system, QString arch) const
     {
         nativeSpec.setClassifier("INVALID");
     }
-    return nativeSpec.getFileName(arch);
+    return nativeSpec.getFileName(arch, m_archDependent);
 }
 
 QString Library::displayName(QString system, QString arch) const
@@ -290,10 +291,12 @@ QString Library::displayName(QString system, QString arch) const
 
 QString Library::storageSuffix(QString system, QString arch) const
 {
+    // qDebug() << "storageSuffix called" << m_archDependent;
     // non-native? use only the gradle specifier
     if (!isNative())
     {
-        return m_name.toPath(m_filename, arch);
+        // qDebug() << "storageSuffix: non-native filename:" << m_filename << "arch: " << arch;
+        return m_name.toPath(m_filename, arch, m_archDependent);
     }
 
     // otherwise native, override classifiers. Mojang HACK!
@@ -306,5 +309,5 @@ QString Library::storageSuffix(QString system, QString arch) const
     {
         nativeSpec.setClassifier("INVALID");
     }
-    return nativeSpec.toPath(m_filename, arch);
+    return nativeSpec.toPath(m_filename, arch, m_archDependent);
 }
