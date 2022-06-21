@@ -68,7 +68,8 @@ QProcessEnvironment CleanEnviroment()
         "JAVA_OPTIONS",
         "JAVA_TOOL_OPTIONS"
     };
-    for(auto key: rawenv.keys())
+    auto keys = rawenv.keys();
+    for(auto key: keys)
     {
         auto value = rawenv.value(key);
         // filter out dangerous java crap
@@ -84,8 +85,8 @@ QProcessEnvironment CleanEnviroment()
             continue;
         }
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-        // Do not pass LD_* variables to java. They were intended for PolyMC
-        if(key.startsWith("LD_"))
+        // Do not pass LD_* variables to java unless GAME_* variables aren't defined. They were intended for PolyMC
+        if((keys.contains("GAME_PRELOAD") || keys.contains("GAME_LIBRARY_PATH")) && key.startsWith("LD_"))
         {
             qDebug() << "Env: ignoring" << key << value;
             continue;
@@ -103,7 +104,7 @@ QProcessEnvironment CleanEnviroment()
             env.insert("LD_PRELOAD", value);
             continue;
         }
-        if(key == "GAME_LIBRARY_PATH")
+        if(key == "GAME_LIBRARY_PATH" || key == "LD_LIBRARY_PATH")
         {
             env.insert("LD_LIBRARY_PATH", processLD_LIBRARY_PATH(value));
             continue;
