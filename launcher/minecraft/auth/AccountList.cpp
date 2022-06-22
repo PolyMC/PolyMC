@@ -652,7 +652,7 @@ bool AccountList::anyAccountIsValid()
 {
     for(auto account: m_accounts)
     {
-        if(account->ownsMinecraft()) {
+        if(account->ownsMinecraft() && !account->isOffline()) {
             return true;
         }
     }

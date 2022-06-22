@@ -97,11 +97,8 @@ MinecraftAccountPtr MinecraftAccount::createOffline(const QString &username)
     account->data.yggdrasilToken.issueInstant = QDateTime::currentDateTimeUtc();
     account->data.yggdrasilToken.extra["userName"] = username;
     account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegExp("[{}-]"));
-    account->data.minecraftEntitlement.ownsMinecraft = true;
-    account->data.minecraftEntitlement.canPlayMinecraft = true;
     account->data.minecraftProfile.id = QUuid::createUuid().toString().remove(QRegExp("[{}-]"));
     account->data.minecraftProfile.name = username;
-    account->data.minecraftProfile.validity = Katabasis::Validity::Certain;
     return account;
 }
 
@@ -207,13 +204,12 @@ void MinecraftAccount::authFailed(QString reason)
                 data.msaToken.token = QString();
                 data.msaToken.refresh_token = QString();
                 data.msaToken.validity = Katabasis::Validity::None;
-                data.validity_ = Katabasis::Validity::None;
             }
             else {
                 data.yggdrasilToken.token = QString();
                 data.yggdrasilToken.validity = Katabasis::Validity::None;
-                data.validity_ = Katabasis::Validity::None;
             }
+            data.validity_ = Katabasis::Validity::None;
             emit changed();
         }
         break;
