@@ -242,6 +242,10 @@ bool MinecraftAccount::shouldRefresh() const {
     if(isInUse()) {
         return false;
     }
+    // Offline accounts should be refreshed once they are actually needed
+    if (isOffline()) {
+        return false;
+    }
     switch(data.validity_) {
         case Katabasis::Validity::Certain: {
             break;

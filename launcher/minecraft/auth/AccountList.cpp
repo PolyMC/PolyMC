@@ -673,6 +673,7 @@ void AccountList::fillQueue() {
             continue;
         }
 
+        // NOTE: this also skips offline accounts
         if(account->shouldRefresh()) {
             auto idToRefresh = account->internalId();
             queueRefresh(idToRefresh);
