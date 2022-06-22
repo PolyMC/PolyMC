@@ -649,9 +649,6 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         // Minecraft mods
         m_settings->registerSetting("ModMetadataDisabled", false);
 
-        // Minecraft offline player name
-        m_settings->registerSetting("LastOfflinePlayerName", "");
-
         // Wrapper command for launch
         m_settings->registerSetting("WrapperCommand", "");
 
@@ -1018,7 +1015,7 @@ void Application::performMainStartupAction()
                 qDebug() << "   Launching with account" << m_profileToUse;
             }
 
-            launch(inst, true, nullptr, serverToJoin, accountToUse);
+            launch(inst, nullptr, serverToJoin, accountToUse);
             return;
         }
     }
@@ -1121,7 +1118,6 @@ void Application::messageReceived(const QByteArray& message)
 
         launch(
             instance,
-            true,
             nullptr,
             serverObject,
             accountObject
@@ -1212,7 +1208,6 @@ bool Application::openJsonEditor(const QString &filename)
 
 bool Application::launch(
         InstancePtr instance,
-        bool online,
         BaseProfilerFactory *profiler,
         MinecraftServerTargetPtr serverToJoin,
         MinecraftAccountPtr accountToUse
@@ -1235,7 +1230,6 @@ bool Application::launch(
         auto & controller = extras.controller;
         controller.reset(new LaunchController());
         controller->setInstance(instance);
-        controller->setOnline(online);
         controller->setProfiler(profiler);
         controller->setServerToJoin(serverToJoin);
         controller->setAccountToUse(accountToUse);

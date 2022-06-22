@@ -149,48 +149,16 @@ void LaunchController::login() {
     QString password;
     // we loop until the user succeeds in logging in or gives up
     bool tryagain = true;
-    // the failure. the default failure.
-    const QString needLoginAgain = tr("Your account is currently not logged in. Please enter your password to log in again. <br /> <br /> This could be caused by a password change.");
-    QString failReason = needLoginAgain;
 
     while (tryagain)
     {
         m_session = std::make_shared<AuthSession>();
-        m_session->wants_online = m_online;
         m_accountToUse->fillSession(m_session);
 
         switch(m_accountToUse->accountState()) {
-            case AccountState::Offline: {
-                m_session->wants_online = false;
+            case AccountState::Offline:
                 // NOTE: fallthrough is intentional
-            }
             case AccountState::Online: {
-                if(!m_session->wants_online) {
-                    // we ask the user for a player name
-                    bool ok = false;
-                    QString lastOfflinePlayerName = APPLICATION->settings()->get("LastOfflinePlayerName").toString();
-                    QString usedname = lastOfflinePlayerName.isEmpty() ? m_session->player_name : lastOfflinePlayerName;
-                    QString name = QInputDialog::getText(
-                        m_parentWidget,
-                        tr("Player name"),
-                        tr("Choose your offline mode player name."),
-                        QLineEdit::Normal,
-                        usedname,
-                        &ok
-                    );
-                    if (!ok)
-                    {
-                        tryagain = false;
-                        break;
-                    }
-                    if (name.length())
-                    {
-                        usedname = name;
-                        APPLICATION->settings()->set("LastOfflinePlayerName", usedname);
-                    }
-                    m_session->MakeOffline(usedname);
-                    // offline flavored game from here :3
-                }
                 if(m_accountToUse->ownsMinecraft()) {
                     if(!m_accountToUse->hasProfile()) {
                         // Now handle setting up a profile name here...
@@ -241,10 +209,6 @@ void LaunchController::login() {
             case AccountState::Working: {
                 // refresh is in progress, we need to wait for it to finish to proceed.
                 ProgressDialog progDialog(m_parentWidget);
-                if (m_online)
-                {
-                    progDialog.setSkipButton(true, tr("Play Offline"));
-                }
                 auto task = m_accountToUse->currentTask();
                 progDialog.execWithTask(task.get());
                 continue;
@@ -327,8 +291,8 @@ void LaunchController::launchInstance()
     connect(m_launcher.get(), &LaunchTask::requestProgress, this, &LaunchController::onProgressRequested);
 
     // Prepend Online and Auth Status
-    QString online_mode;
-    if(m_session->wants_online) {
+    QString online_mode = "offline";
+    if(!m_accountToUse->isOffline()) {
         online_mode = "online";
 
         // Prepend Server Status
@@ -352,8 +316,6 @@ void LaunchController::launchInstance()
             resolved_servers = resolved_servers + "]\n\n";
         }
         m_launcher->prependStep(new TextPrint(m_launcher.get(), resolved_servers, MessageLevel::Launcher));
-    } else {
-        online_mode = "offline";
     }
 
     m_launcher->prependStep(new TextPrint(m_launcher.get(), "Launched instance in " + online_mode + " mode\n", MessageLevel::Launcher));

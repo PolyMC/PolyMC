@@ -72,11 +72,7 @@ InstanceWindow::InstanceWindow(InstancePtr instance, QWidget *parent)
         horizontalLayout->addWidget(m_killButton);
         connect(m_killButton, SIGNAL(clicked(bool)), SLOT(on_btnKillMinecraft_clicked()));
 
-        m_launchOfflineButton = new QPushButton();
-        horizontalLayout->addWidget(m_launchOfflineButton);
-        m_launchOfflineButton->setText(tr("Launch Offline"));
         updateLaunchButtons();
-        connect(m_launchOfflineButton, SIGNAL(clicked(bool)), SLOT(on_btnLaunchMinecraftOffline_clicked()));
 
         m_closeButton = new QPushButton();
         m_closeButton->setText(tr("Close"));
@@ -122,14 +118,12 @@ void InstanceWindow::updateLaunchButtons()
 {
     if(m_instance->isRunning())
     {
-        m_launchOfflineButton->setEnabled(false);
         m_killButton->setText(tr("Kill"));
         m_killButton->setObjectName("killButton");
         m_killButton->setToolTip(tr("Kill the running instance"));
     }
     else if(!m_instance->canLaunch())
     {
-        m_launchOfflineButton->setEnabled(false);
         m_killButton->setText(tr("Launch"));
         m_killButton->setObjectName("launchButton");
         m_killButton->setToolTip(tr("Launch the instance"));
@@ -137,7 +131,6 @@ void InstanceWindow::updateLaunchButtons()
     }
     else
     {
-        m_launchOfflineButton->setEnabled(true);
         m_killButton->setText(tr("Launch"));
         m_killButton->setObjectName("launchButton");
         m_killButton->setToolTip(tr("Launch the instance"));
@@ -145,11 +138,6 @@ void InstanceWindow::updateLaunchButtons()
     // NOTE: this is a hack to force the button to recalculate its style
     m_killButton->setStyleSheet("/* */");
     m_killButton->setStyleSheet(QString());
-}
-
-void InstanceWindow::on_btnLaunchMinecraftOffline_clicked()
-{
-    APPLICATION->launch(m_instance, false, nullptr);
 }
 
 void InstanceWindow::on_InstanceLaunchTask_changed(shared_qobject_ptr<LaunchTask> proc)
@@ -203,7 +191,7 @@ void InstanceWindow::on_btnKillMinecraft_clicked()
     }
     else
     {
-        APPLICATION->launch(m_instance, true, nullptr);
+        APPLICATION->launch(m_instance, nullptr);
     }
 }
 

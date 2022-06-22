@@ -195,7 +195,6 @@ signals:
 public slots:
     bool launch(
         InstancePtr instance,
-        bool online = true,
         BaseProfilerFactory *profiler = nullptr,
         MinecraftServerTargetPtr serverToJoin = nullptr,
         MinecraftAccountPtr accountToUse = nullptr

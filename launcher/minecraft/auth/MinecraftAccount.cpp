@@ -275,12 +275,7 @@ void MinecraftAccount::fillSession(AuthSessionPtr session)
         session->status = AuthSession::PlayableOffline;
     }
     else {
-        if(session->wants_online) {
-            session->status = AuthSession::PlayableOnline;
-        }
-        else {
-            session->status = AuthSession::PlayableOffline;
-        }
+        session->status = AuthSession::PlayableOnline;
     }
 
     // the user name. you have to have an user name

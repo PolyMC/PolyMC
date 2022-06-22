@@ -146,8 +146,6 @@ private slots:
 
     void on_actionLaunchInstance_triggered();
 
-    void on_actionLaunchInstanceOffline_triggered();
-
     void on_actionDeleteInstance_triggered();
 
     void deleteGroup();
