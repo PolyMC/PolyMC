@@ -93,7 +93,6 @@ MinecraftAccountPtr MinecraftAccount::createOffline(const QString &username)
 {
     MinecraftAccountPtr account = new MinecraftAccount();
     account->data.type = AccountType::Offline;
-    account->data.yggdrasilToken.token = "offline";
     account->data.yggdrasilToken.validity = Katabasis::Validity::Certain;
     account->data.yggdrasilToken.issueInstant = QDateTime::currentDateTimeUtc();
     account->data.yggdrasilToken.extra["userName"] = username;
