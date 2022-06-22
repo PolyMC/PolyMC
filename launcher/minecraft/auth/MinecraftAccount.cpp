@@ -271,6 +271,9 @@ void MinecraftAccount::fillSession(AuthSessionPtr session)
     if(ownsMinecraft() && !hasProfile()) {
         session->status = AuthSession::RequiresProfileSetup;
     }
+    else if (isOffline()) {
+        session->status = AuthSession::PlayableOffline;
+    }
     else {
         if(session->wants_online) {
             session->status = AuthSession::PlayableOnline;
