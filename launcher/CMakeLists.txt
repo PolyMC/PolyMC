@@ -927,6 +927,8 @@ SET(LAUNCHER_SOURCES
     ui/instanceview/InstanceDelegate.h
     ui/instanceview/VisualGroup.cpp
     ui/instanceview/VisualGroup.h
+    JavaDownloader.cpp
+    JavaDownloader.h
 )
 
 qt_wrap_ui(LAUNCHER_UI
