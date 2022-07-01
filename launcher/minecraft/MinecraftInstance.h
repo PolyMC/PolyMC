@@ -1,6 +1,7 @@
 #pragma once
 #include "BaseInstance.h"
 #include <java/JavaVersion.h>
+#include "minecraft/LaunchContext.h"
 #include "minecraft/mod/Mod.h"
 #include <QProcess>
 #include <QDir>
@@ -113,6 +114,11 @@ public:
 
     virtual JavaVersion getJavaVersion() const;
 
+    LaunchContext launchContext()
+    {
+        return m_launchContext;
+    }
+
 protected:
     QMap<QString, QString> createCensorFilterFromSession(AuthSessionPtr session);
     QStringList validLaunchMethods();
@@ -127,6 +133,7 @@ protected: // data
     mutable std::shared_ptr<ModFolderModel> m_texture_pack_list;
     mutable std::shared_ptr<WorldList> m_world_list;
     mutable std::shared_ptr<GameOptions> m_game_options;
+    mutable LaunchContext m_launchContext = LaunchContext(m_settings);
 };
 
 typedef std::shared_ptr<MinecraftInstance> MinecraftInstancePtr;

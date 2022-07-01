@@ -1,6 +1,6 @@
 #include <QString>
 #include <QDebug>
-#include "settings/SettingsObject.h"
+#include "minecraft/LaunchContext.h"
 #ifdef Q_OS_MACOS
 #include <sys/sysctl.h>
 #endif
@@ -68,7 +68,7 @@ namespace SysInfo {
         return qtArch;
     }
 
-    QString runCheckerForArch(const SettingsObjectPtr& settingsObj){
+    QString runCheckerForArch(LaunchContext launchContext){
         QString checkerJar = FS::PathCombine(APPLICATION->getJarsPath(), "JavaCheck.jar");
 
         QStringList args;
@@ -76,10 +76,10 @@ namespace SysInfo {
         QProcessPtr process = new QProcess();
         args.append({"-jar", checkerJar});
         process->setArguments(args);
-        process->setProgram(settingsObj->get("JavaPath").toString());
+        process->setProgram(launchContext.getJavaPath().toString());
         process->setProcessChannelMode(QProcess::SeparateChannels);
         process->setProcessEnvironment(CleanEnviroment());
-        qDebug() << "Running java checker: " + settingsObj->get("JavaPath").toString() + args.join(" ");;
+        qDebug() << "Running java checker: " + launchContext.getJavaPath().toString() + args.join(" ");;
 
         process->start();
         if(!process->waitForFinished(15000)){
@@ -136,13 +136,13 @@ namespace SysInfo {
         }
     }
 
-    QString currentArch(const SettingsObjectPtr& settingsObj) {
-        auto realJavaArchitecture = settingsObj->get("JavaRealArchitecture").toString();
+    QString currentArch(LaunchContext launchContext) {
+        auto realJavaArchitecture = launchContext.getRealJavaArch().toString();
         if(realJavaArchitecture == ""){
             //BRO WHY NOW I HAVE TO USE A JAVA CHECKER >:(
             qDebug() << "SysInfo: BRO I HAVE TO USE A JAVA CHECKER WHY IS JAVA ARCH BORKED";
-            settingsObj->set("JavaRealArchitecture", runCheckerForArch(settingsObj));
-            realJavaArchitecture = settingsObj->get("JavaRealArchitecture").toString();
+            launchContext.setRealJavaArch(runCheckerForArch(launchContext));
+            realJavaArchitecture = launchContext.getRealJavaArch().toString();
         }
         //qDebug() << "SysInfo: realJavaArch = " << realJavaArchitecture;
         if(realJavaArchitecture == "aarch64"){
