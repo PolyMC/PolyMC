@@ -203,7 +203,7 @@ QList<NetAction::Ptr> Library::getDownloads(
     return out;
 }
 
-bool Library::isActive(const SettingsObjectPtr& settingsObjJavaArch) const
+bool Library::isActive(const SettingsObjectPtr& settingsObjJavaArch)
 {
     bool result = true;
     if (m_rules.empty())

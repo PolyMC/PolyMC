@@ -54,9 +54,10 @@
 #include <QJsonObject>
 #include <memory>
 #include "SysInfo.h"
+#include "Library.h"
 
-class Library;
 class Rule;
+class Library;
 
 enum RuleAction
 {
@@ -71,7 +72,7 @@ class Rule
 {
 protected:
     RuleAction m_result;
-    virtual bool applies(const Library *parent, const SettingsObjectPtr& settingsObjJavaArch) = 0;
+    virtual bool applies(Library *parent, const SettingsObjectPtr& settingsObjJavaArch) = 0;
 
 public:
     Rule(RuleAction result) : m_result(result)
@@ -79,7 +80,7 @@ public:
     }
     virtual ~Rule() {};
     virtual QJsonObject toJson() = 0;
-    RuleAction apply(const Library *parent, const SettingsObjectPtr& settingsObjJavaArch)
+    RuleAction apply(Library *parent, const SettingsObjectPtr& settingsObjJavaArch)
     {
         if (applies(parent, settingsObjJavaArch))
             return m_result;
@@ -94,30 +95,7 @@ private:
     QString m_system;
 
 protected:
-    virtual bool applies(const Library *, const SettingsObjectPtr& settingsObjJavaArch)
-    {
-        QString sys;
-        QString arch;
-        if(m_system.contains("-"))
-        {
-            auto parts = m_system.split("-");
-            sys = parts[0];
-            arch = parts[1];
-        }
-        else
-        {
-            sys = m_system;
-        }
-        bool systemCorrect;
-        bool archCorrect = true;
-        systemCorrect = sys == SysInfo::currentSystem();
-        if(!arch.isEmpty())
-        {
-            archCorrect = arch == SysInfo::currentArch(settingsObjJavaArch);
-        }
-        // qDebug() << "Os rule with OS required" << m_system << systemCorrect << "Arch required" << arch << archCorrect;
-        return systemCorrect && archCorrect;
-    }
+    virtual bool applies(Library *parent, const SettingsObjectPtr& settingsObjJavaArch);
 OsRule(RuleAction result, QString system)
         : Rule(result), m_system(system)
     {
@@ -134,7 +112,7 @@ public:
 class ImplicitRule : public Rule
 {
 protected:
-    virtual bool applies(const Library *, const SettingsObjectPtr& settingsObjJavaArch)
+    virtual bool applies(Library *, const SettingsObjectPtr& settingsObjJavaArch)
     {
         return true;
     }

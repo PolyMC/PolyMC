@@ -121,3 +121,30 @@ QJsonObject OsRule::toJson()
     return ruleObj;
 }
 
+bool OsRule::applies(Library *parent, const SettingsObjectPtr& settingsObjJavaArch)
+{
+    QString sys;
+    QString arch;
+    if(m_system.contains("-"))
+    {
+        auto parts = m_system.split("-");
+        sys = parts[0];
+        arch = parts[1];
+    }
+    else
+    {
+        sys = m_system;
+    }
+    bool systemCorrect;
+    bool archCorrect = true;
+    systemCorrect = sys == SysInfo::currentSystem();
+    if(!arch.isEmpty())
+    {
+        // if the arch isn't empty then it has to be archDependent right?
+        parent->setArchDependent(true);
+        archCorrect = arch == SysInfo::currentArch(settingsObjJavaArch);
+    }
+    qDebug() << "Os rule with OS required" << m_system << systemCorrect << "Arch required" << arch << archCorrect;
+    return systemCorrect && archCorrect;
+}
+

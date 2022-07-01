@@ -14,6 +14,7 @@
 #include "MojangDownloadInfo.h"
 
 class Library;
+class Rule;
 class MinecraftInstance;
 
 typedef std::shared_ptr<Library> LibraryPtr;
@@ -139,8 +140,14 @@ public: /* methods */
         m_rules = rules;
     }
 
+    /// Set archDependent
+    void setArchDependent(bool archDependent)
+    {
+        m_archDependent = archDependent;
+    }
+
     /// Returns true if the library should be loaded (or extracted, in case of natives)
-    bool isActive(const SettingsObjectPtr& settingsObjJavaArch) const;
+    bool isActive(const SettingsObjectPtr& settingsObjJavaArch);
 
     /// Returns true if the library is contained in an instance and false if it is shared
     bool isLocal() const;
@@ -216,6 +223,6 @@ protected: /* data */
     MojangLibraryDownloadInfo::Ptr m_mojangDownloads;
 
     /// PolyMC: do we need to append architecture to the filename?
-    bool m_archDependent;
+    bool m_archDependent = false;
 };
 

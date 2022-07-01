@@ -379,6 +379,8 @@ LibraryPtr MojangVersionFormat::libraryFromJson(ProblemContainer & problems, con
     {
         out->m_mojangDownloads = libDownloadInfoFromJson(libObj);
     }
+    /// This traits system can be used later, so just commenting it out for now
+    /*
     if (libObj.contains("traits"))
     {
         QJsonArray traits = requireArray(libObj.value("traits"));
@@ -390,6 +392,7 @@ LibraryPtr MojangVersionFormat::libraryFromJson(ProblemContainer & problems, con
     } else {
         out->m_archDependent = false;
     }
+    */
     return out;
 }
 
