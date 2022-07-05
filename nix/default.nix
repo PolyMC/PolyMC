@@ -14,6 +14,8 @@
 , quazip
 , libGL
 , msaClientID ? ""
+, extraJDKs ? [ ]
+, extra-cmake-modules
 
   # flake
 , self
@@ -36,6 +38,8 @@ let
 
   # This variable will be passed to Minecraft by PolyMC
   gameLibraryPath = libpath + ":/run/opengl-driver/lib";
+
+  javaPaths = lib.makeSearchPath "bin/java" ([ jdk jdk8 ] ++ extraJDKs);
 in
 
 stdenv.mkDerivation rec {
@@ -44,7 +48,7 @@ stdenv.mkDerivation rec {
 
   src = lib.cleanSource self;
 
-  nativeBuildInputs = [ cmake ninja jdk file wrapQtAppsHook ];
+  nativeBuildInputs = [ cmake extra-cmake-modules ninja jdk file wrapQtAppsHook ];
   buildInputs = [ qtbase quazip zlib ];
 
   dontWrapQtApps = true;
@@ -67,7 +71,7 @@ stdenv.mkDerivation rec {
     # xorg.xrandr needed for LWJGL [2.9.2, 3) https://github.com/LWJGL/lwjgl/issues/128
     wrapQtApp $out/bin/polymc \
       --set GAME_LIBRARY_PATH ${gameLibraryPath} \
-      --prefix POLYMC_JAVA_PATHS : ${jdk}/lib/openjdk/bin/java:${jdk8}/lib/openjdk/bin/java \
+      --prefix POLYMC_JAVA_PATHS : ${javaPaths} \
       --prefix PATH : ${lib.makeBinPath [ xorg.xrandr ]}
   '';
 

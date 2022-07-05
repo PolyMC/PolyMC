@@ -6,13 +6,11 @@ if(WIN32)
 endif()
 
 project(Launcher)
-include(CTest)
 
 string(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_BUILD_DIR}" IS_IN_SOURCE_BUILD)
 if(IS_IN_SOURCE_BUILD)
     message(FATAL_ERROR "You are building the Launcher in-source. Please separate the build tree from the source tree.")
 endif()
-
 
 ##################################### Set CMake options #####################################
 set(CMAKE_AUTOMOC ON)
@@ -45,8 +43,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DQT_NO_DEPRECATED_WARNINGS=Y")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DQT_DISABLE_DEPRECATED_BEFORE=0x050C00")
 
 # set CXXFLAGS for build targets
-set(CMAKE_CXX_FLAGS_DEBUG "-O2 -D_FORTIFY_SOURCE=2 ${CMAKE_CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -D_FORTIFY_SOURCE=2 ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -D_FORTIFY_SOURCE=2 ${CMAKE_CXX_FLAGS_RELEASE}")
 
 option(ENABLE_LTO "Enable Link Time Optimization" off)
 
@@ -64,6 +61,16 @@ if(ENABLE_LTO)
     endif()
 endif()
 
+option(BUILD_TESTING "Build the testing tree." ON)
+
+find_package(ECM REQUIRED NO_MODULE)
+set(CMAKE_MODULE_PATH "${ECM_MODULE_PATH};${CMAKE_MODULE_PATH}")
+include(CTest)
+include(ECMAddTests)
+if (BUILD_TESTING)
+    enable_testing()
+endif()
+
 ##################################### Set Application options #####################################
 
 ######## Set URLs ########
@@ -73,8 +80,8 @@ set(Launcher_HELP_URL "https://polymc.org/wiki/help-pages/%1" CACHE STRING "URL 
 
 ######## Set version numbers ########
 set(Launcher_VERSION_MAJOR    1)
-set(Launcher_VERSION_MINOR    3)
-set(Launcher_VERSION_HOTFIX   1)
+set(Launcher_VERSION_MINOR    4)
+set(Launcher_VERSION_HOTFIX   0)
 
 # Build number
 set(Launcher_VERSION_BUILD -1 CACHE STRING "Build number. -1 for no build number.")
@@ -102,8 +109,6 @@ set(Launcher_MATRIX_URL "https://matrix.to/#/#polymc:matrix.org" CACHE STRING "U
 
 # Discord URL
 set(Launcher_DISCORD_URL "https://discord.gg/Z52pwxWCHP" CACHE STRING "URL for the Discord guild.")
-
-
 
 # Subreddit URL
 set(Launcher_SUBREDDIT_URL "https://www.reddit.com/r/PolyMCLauncher/" CACHE STRING "URL for the subreddit.")

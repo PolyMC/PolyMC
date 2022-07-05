@@ -20,6 +20,7 @@
 
 #include "BuildConfig.h"
 #include "modplatform/ModAPI.h"
+#include "modplatform/ModIndex.h"
 #include "modplatform/helpers/NetworkModAPI.h"
 
 #include <QDebug>
@@ -73,6 +74,11 @@ class ModrinthAPI : public NetworkModAPI {
             .arg(args.sorting)
             .arg(getModLoaderFilters(args.loaders))
             .arg(getGameVersionsArray(args.versions));
+    };
+
+    inline auto getModInfoURL(QString& id) const -> QString override
+    {
+        return BuildConfig.MODRINTH_PROD_URL + "/project/" + id;
     };
 
     inline auto getVersionsURL(VersionSearchArgs& args) const -> QString override

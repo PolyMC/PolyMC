@@ -4,8 +4,6 @@ project(application)
 
 ######## Sources and headers ########
 
-include (UnitTest)
-
 set(CORE_SOURCES
     # LOGIC - Base classes and infrastructure
     BaseInstaller.h
@@ -90,16 +88,11 @@ set(CORE_SOURCES
     MMCTime.cpp
 )
 
-add_unit_test(FileSystem
-    SOURCES FileSystem_test.cpp
-    LIBS Launcher_logic
-    DATA testdata
-    )
+ecm_add_test(FileSystem_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+    TEST_NAME FileSystem)  # TODO: needs testdata
 
-add_unit_test(GZip
-    SOURCES GZip_test.cpp
-    LIBS Launcher_logic
-    )
+ecm_add_test(GZip_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+    TEST_NAME GZip)
 
 set(PATHMATCHER_SOURCES
     # Path matchers
@@ -156,27 +149,23 @@ set(LAUNCH_SOURCES
     launch/LogModel.h
 )
 
-# Old update system
-set(UPDATE_SOURCES
-    updater/GoUpdate.h
-    updater/GoUpdate.cpp
-    updater/UpdateChecker.h
-    updater/UpdateChecker.cpp
-    updater/DownloadTask.h
-    updater/DownloadTask.cpp
-)
-
-add_unit_test(UpdateChecker
-    SOURCES updater/UpdateChecker_test.cpp
-    LIBS Launcher_logic
-    DATA updater/testdata
+if (Launcher_UPDATER_BASE)
+    set(Launcher_APP_BINARY_DEFS "-DLAUNCHER_WITH_UPDATER ${Launcher_APP_BINARY_DEFS}")
+    # Old update system
+    set(UPDATE_SOURCES
+        updater/GoUpdate.h
+        updater/GoUpdate.cpp
+        updater/UpdateChecker.h
+        updater/UpdateChecker.cpp
+        updater/DownloadTask.h
+        updater/DownloadTask.cpp
     )
 
-add_unit_test(DownloadTask
-    SOURCES updater/DownloadTask_test.cpp
-    LIBS Launcher_logic
-    DATA updater/testdata
-    )
+    ecm_add_test(updater/UpdateChecker_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+        TEST_NAME UpdateChecker)
+    ecm_add_test(updater/DownloadTask_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+        TEST_NAME DownloadTask)
+endif()
 
 # Backend for the news bar... there's usually no news.
 set(NEWS_SOURCES
@@ -324,19 +313,22 @@ set(MINECRAFT_SOURCES
     minecraft/WorldList.h
     minecraft/WorldList.cpp
 
+    minecraft/mod/MetadataHandler.h
     minecraft/mod/Mod.h
     minecraft/mod/Mod.cpp
     minecraft/mod/ModDetails.h
     minecraft/mod/ModFolderModel.h
     minecraft/mod/ModFolderModel.cpp
-    minecraft/mod/ModFolderLoadTask.h
-    minecraft/mod/ModFolderLoadTask.cpp
-    minecraft/mod/LocalModParseTask.h
-    minecraft/mod/LocalModParseTask.cpp
     minecraft/mod/ResourcePackFolderModel.h
     minecraft/mod/ResourcePackFolderModel.cpp
     minecraft/mod/TexturePackFolderModel.h
     minecraft/mod/TexturePackFolderModel.cpp
+    minecraft/mod/tasks/ModFolderLoadTask.h
+    minecraft/mod/tasks/ModFolderLoadTask.cpp
+    minecraft/mod/tasks/LocalModParseTask.h
+    minecraft/mod/tasks/LocalModParseTask.cpp
+    minecraft/mod/tasks/LocalModUpdateTask.h
+    minecraft/mod/tasks/LocalModUpdateTask.cpp
 
     # Assets
     minecraft/AssetsUtils.h
@@ -354,10 +346,8 @@ set(MINECRAFT_SOURCES
     mojang/PackageManifest.cpp
     minecraft/Agent.h)
 
-add_unit_test(GradleSpecifier
-    SOURCES minecraft/GradleSpecifier_test.cpp
-    LIBS Launcher_logic
-    )
+ecm_add_test(minecraft/GradleSpecifier_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+    TEST_NAME GradleSpecifier)
 
 if(BUILD_TESTING)
     add_executable(PackageManifest
@@ -377,28 +367,20 @@ if(BUILD_TESTING)
     )
 endif()
 
-add_unit_test(MojangVersionFormat
-    SOURCES minecraft/MojangVersionFormat_test.cpp
-    LIBS Launcher_logic
-    DATA minecraft/testdata
-    )
+# TODO: needs minecraft/testdata
+ecm_add_test(minecraft/MojangVersionFormat_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+    TEST_NAME MojangVersionFormat)
 
-add_unit_test(Library
-    SOURCES minecraft/Library_test.cpp
-    LIBS Launcher_logic
-    )
+ecm_add_test(minecraft/Library_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+    TEST_NAME Library)
 
 # FIXME: shares data with FileSystem test
-add_unit_test(ModFolderModel
-    SOURCES minecraft/mod/ModFolderModel_test.cpp
-    DATA testdata
-    LIBS Launcher_logic
-    )
+# TODO: needs testdata
+ecm_add_test(minecraft/mod/ModFolderModel_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+    TEST_NAME ModFolderModel)
 
-add_unit_test(ParseUtils
-    SOURCES minecraft/ParseUtils_test.cpp
-    LIBS Launcher_logic
-    )
+ecm_add_test(minecraft/ParseUtils_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+    TEST_NAME ParseUtils)
 
 # the screenshots feature
 set(SCREENSHOTS_SOURCES
@@ -413,14 +395,14 @@ set(TASKS_SOURCES
     # Tasks
     tasks/Task.h
     tasks/Task.cpp
+    tasks/ConcurrentTask.h
+    tasks/ConcurrentTask.cpp
     tasks/SequentialTask.h
     tasks/SequentialTask.cpp
 )
 
-add_unit_test(Task
-    SOURCES tasks/Task_test.cpp
-    LIBS Launcher_logic
-    )
+ecm_add_test(tasks/Task_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+    TEST_NAME Task)
 
 set(SETTINGS_SOURCES
     # Settings
@@ -438,10 +420,8 @@ set(SETTINGS_SOURCES
     settings/SettingsObject.h
 )
 
-add_unit_test(INIFile
-    SOURCES settings/INIFile_test.cpp
-    LIBS Launcher_logic
-    )
+ecm_add_test(settings/INIFile_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+    TEST_NAME INIFile)
 
 set(JAVA_SOURCES
     java/JavaChecker.h
@@ -458,10 +438,8 @@ set(JAVA_SOURCES
     java/JavaVersion.cpp
 )
 
-add_unit_test(JavaVersion
-    SOURCES java/JavaVersion_test.cpp
-    LIBS Launcher_logic
-    )
+ecm_add_test(java/JavaVersion_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+    TEST_NAME JavaVersion)
 
 set(TRANSLATIONS_SOURCES
     translations/TranslationsModel.h
@@ -499,6 +477,9 @@ set(META_SOURCES
 )
 
 set(API_SOURCES
+    modplatform/ModIndex.h
+    modplatform/ModIndex.cpp
+
     modplatform/ModAPI.h
 
     modplatform/flame/FlameAPI.h
@@ -545,6 +526,15 @@ set(MODPACKSCH_SOURCES
     modplatform/modpacksch/FTBPackManifest.cpp
 )
 
+set(PACKWIZ_SOURCES
+    modplatform/packwiz/Packwiz.h
+    modplatform/packwiz/Packwiz.cpp
+)
+
+# TODO: needs modplatform/packwiz/testdata
+ecm_add_test(modplatform/packwiz/Packwiz_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+    TEST_NAME Packwiz)
+
 set(TECHNIC_SOURCES
     modplatform/technic/SingleZipPackInstallTask.h
     modplatform/technic/SingleZipPackInstallTask.cpp
@@ -567,10 +557,8 @@ set(ATLAUNCHER_SOURCES
     modplatform/atlauncher/ATLShareCode.h
 )
 
-add_unit_test(Index
-    SOURCES meta/Index_test.cpp
-    LIBS Launcher_logic
-    )
+ecm_add_test(meta/Index_test.cpp LINK_LIBRARIES Launcher_logic Qt5::Test
+    TEST_NAME Index)
 
 ################################ COMPILE ################################
 
@@ -598,6 +586,7 @@ set(LOGIC_SOURCES
     ${FLAME_SOURCES}
     ${MODRINTH_SOURCES}
     ${MODPACKSCH_SOURCES}
+    ${PACKWIZ_SOURCES}
     ${TECHNIC_SOURCES}
     ${ATLAUNCHER_SOURCES}
 )
@@ -697,6 +686,8 @@ SET(LAUNCHER_SOURCES
     ui/pages/BasePageProvider.h
 
     # GUI - instance pages
+    ui/pages/instance/ExternalResourcesPage.cpp
+    ui/pages/instance/ExternalResourcesPage.h
     ui/pages/instance/GameOptionsPage.cpp
     ui/pages/instance/GameOptionsPage.h
     ui/pages/instance/VersionPage.cpp
@@ -825,6 +816,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/NewComponentDialog.h
     ui/dialogs/NewInstanceDialog.cpp
     ui/dialogs/NewInstanceDialog.h
+    ui/dialogs/NewsDialog.cpp
+    ui/dialogs/NewsDialog.h
     ui/pagedialog/PageDialog.cpp
     ui/pagedialog/PageDialog.h
     ui/dialogs/ProgressDialog.cpp
@@ -904,7 +897,7 @@ qt5_wrap_ui(LAUNCHER_UI
     ui/pages/global/ProxyPage.ui
     ui/pages/global/MinecraftPage.ui
     ui/pages/global/ExternalToolsPage.ui
-    ui/pages/instance/ModFolderPage.ui
+    ui/pages/instance/ExternalResourcesPage.ui
     ui/pages/instance/NotesPage.ui
     ui/pages/instance/LogPage.ui
     ui/pages/instance/ServersPage.ui
@@ -934,6 +927,7 @@ qt5_wrap_ui(LAUNCHER_UI
     ui/dialogs/NewInstanceDialog.ui
     ui/dialogs/UpdateDialog.ui
     ui/dialogs/NewComponentDialog.ui
+    ui/dialogs/NewsDialog.ui
     ui/dialogs/ProfileSelectDialog.ui
     ui/dialogs/SkinUploadDialog.ui
     ui/dialogs/ExportInstanceDialog.ui

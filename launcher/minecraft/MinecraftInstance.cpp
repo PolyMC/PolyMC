@@ -168,6 +168,8 @@ MinecraftInstance::MinecraftInstance(SettingsObjectPtr globalSettings, SettingsO
     m_settings->registerOverride(globalSettings->getSetting("CloseAfterLaunch"), miscellaneousOverride);
     m_settings->registerOverride(globalSettings->getSetting("QuitAfterGameStop"), miscellaneousOverride);
 
+    m_settings->set("InstanceType", "OneSix");
+
     m_components.reset(new PackProfile(this));
 }
 
@@ -659,23 +661,23 @@ QStringList MinecraftInstance::verboseDescription(AuthSessionPtr session, Minecr
             out << QString("%1:").arg(label);
             auto modList = model.allMods();
             std::sort(modList.begin(), modList.end(), [](Mod &a, Mod &b) {
-                auto aName = a.filename().completeBaseName();
-                auto bName = b.filename().completeBaseName();
+                auto aName = a.fileinfo().completeBaseName();
+                auto bName = b.fileinfo().completeBaseName();
                 return aName.localeAwareCompare(bName) < 0;
             });
             for(auto & mod: modList)
             {
                 if(mod.type() == Mod::MOD_FOLDER)
                 {
-                    out << u8"  [📁] " + mod.filename().completeBaseName() + " (folder)";
+                    out << u8"  [📁] " + mod.fileinfo().completeBaseName() + " (folder)";
                     continue;
                 }
 
                 if(mod.enabled()) {
-                    out << u8"  [✔️] " + mod.filename().completeBaseName();
+                    out << u8"  [✔️] " + mod.fileinfo().completeBaseName();
                 }
                 else {
-                    out << u8"  [❌] " + mod.filename().completeBaseName() + " (disabled)";
+                    out << u8"  [❌] " + mod.fileinfo().completeBaseName() + " (disabled)";
                 }
 
             }
@@ -745,7 +747,9 @@ QMap<QString, QString> MinecraftInstance::createCensorFilterFromSession(AuthSess
     {
         addToFilter(sessionRef.session, tr("<SESSION ID>"));
     }
-    addToFilter(sessionRef.access_token, tr("<ACCESS TOKEN>"));
+    if (sessionRef.access_token != "offline") {
+        addToFilter(sessionRef.access_token, tr("<ACCESS TOKEN>"));
+    }
     if(sessionRef.client_token.size()) {
         addToFilter(sessionRef.client_token, tr("<CLIENT TOKEN>"));
     }
@@ -824,8 +828,16 @@ QString MinecraftInstance::getStatusbarDescription()
         traits.append(tr("broken"));
     }
 
+    QString mcVersion = m_components->getComponentVersion("net.minecraft");
+    if (mcVersion.isEmpty())
+    {
+        // Load component info if needed
+        m_components->reload(Net::Mode::Offline);
+        mcVersion = m_components->getComponentVersion("net.minecraft");
+    }
+
     QString description;
-    description.append(tr("Minecraft %1 (%2)").arg(m_components->getComponentVersion("net.minecraft")).arg(typeName()));
+    description.append(tr("Minecraft %1").arg(mcVersion));
     if(m_settings->get("ShowGameTime").toBool())
     {
         if (lastTimePlayed() > 0) {
@@ -1013,7 +1025,8 @@ std::shared_ptr<ModFolderModel> MinecraftInstance::loaderModList() const
 {
     if (!m_loader_mod_list)
     {
-        m_loader_mod_list.reset(new ModFolderModel(modsRoot()));
+        bool is_indexed = !APPLICATION->settings()->get("ModMetadataDisabled").toBool();
+        m_loader_mod_list.reset(new ModFolderModel(modsRoot(), is_indexed));
         m_loader_mod_list->disableInteraction(isRunning());
         connect(this, &BaseInstance::runningStatusChanged, m_loader_mod_list.get(), &ModFolderModel::disableInteraction);
     }
@@ -1024,7 +1037,8 @@ std::shared_ptr<ModFolderModel> MinecraftInstance::coreModList() const
 {
     if (!m_core_mod_list)
     {
-        m_core_mod_list.reset(new ModFolderModel(coreModsDir()));
+        bool is_indexed = !APPLICATION->settings()->get("ModMetadataDisabled").toBool();
+        m_core_mod_list.reset(new ModFolderModel(coreModsDir(), is_indexed));
         m_core_mod_list->disableInteraction(isRunning());
         connect(this, &BaseInstance::runningStatusChanged, m_core_mod_list.get(), &ModFolderModel::disableInteraction);
     }

@@ -154,6 +154,7 @@ void appDebugOutput(QtMsgType type, const QMessageLogContext &context, const QSt
     fflush(stderr);
 }
 
+#ifdef LAUNCHER_WITH_UPDATER
 QString getIdealPlatform(QString currentPlatform) {
     auto info = Sys::getKernelInfo();
     switch(info.kernelType) {
@@ -192,6 +193,7 @@ QString getIdealPlatform(QString currentPlatform) {
     }
     return currentPlatform;
 }
+#endif
 
 }
 
@@ -224,7 +226,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
     setOrganizationName(BuildConfig.LAUNCHER_NAME);
     setOrganizationDomain(BuildConfig.LAUNCHER_DOMAIN);
     setApplicationName(BuildConfig.LAUNCHER_NAME);
-    setApplicationDisplayName(BuildConfig.LAUNCHER_DISPLAYNAME);
+    setApplicationDisplayName(QString("%1 %2").arg(BuildConfig.LAUNCHER_DISPLAYNAME, BuildConfig.printableVersionString()));
     setApplicationVersion(BuildConfig.printableVersionString());
     setDesktopFileName(BuildConfig.LAUNCHER_DESKTOPFILENAME);
     startTime = QDateTime::currentDateTime();
@@ -624,6 +626,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("JavaPath", "");
         m_settings->registerSetting("JavaTimestamp", 0);
         m_settings->registerSetting("JavaArchitecture", "");
+        m_settings->registerSetting("JavaRealArchitecture", "");
         m_settings->registerSetting("JavaVersion", "");
         m_settings->registerSetting("JavaVendor", "");
         m_settings->registerSetting("LastHostname", "");
@@ -642,6 +645,9 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
 
         // Minecraft launch method
         m_settings->registerSetting("MCLaunchMethod", "LauncherPart");
+
+        // Minecraft mods
+        m_settings->registerSetting("ModMetadataDisabled", false);
 
         // Minecraft offline player name
         m_settings->registerSetting("LastOfflinePlayerName", "");
@@ -708,6 +714,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         // Custom MSA credentials
         m_settings->registerSetting("MSAClientIDOverride", "");
         m_settings->registerSetting("CFKeyOverride", "");
+        m_settings->registerSetting("UserAgentOverride", "");
 
         // Init page provider
         {
@@ -750,6 +757,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         qDebug() << "<> Translations loaded.";
     }
 
+#ifdef LAUNCHER_WITH_UPDATER
     // initialize the updater
     if(BuildConfig.UPDATER_ENABLED)
     {
@@ -759,6 +767,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_updateChecker.reset(new UpdateChecker(m_network, channelUrl, BuildConfig.VERSION_CHANNEL, BuildConfig.VERSION_BUILD));
         qDebug() << "<> Updater started.";
     }
+#endif
 
     // Instance icons
     {
@@ -871,6 +880,12 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_mcedit.reset(new MCEditTool(m_settings));
     }
 
+#ifdef Q_OS_MACOS
+    connect(this, &Application::clickedOnDock, [this]() {
+        this->showMainWindow();
+    });
+#endif
+
     connect(this, &Application::aboutToQuit, [this](){
         if(m_instances)
         {
@@ -952,6 +967,21 @@ bool Application::createSetupWizard()
         return true;
     }
     return false;
+}
+
+bool Application::event(QEvent* event) {
+#ifdef Q_OS_MACOS
+    if (event->type() == QEvent::ApplicationStateChange) {
+        auto ev = static_cast<QApplicationStateChangeEvent*>(event);
+
+        if (m_prevAppState == Qt::ApplicationActive
+                && ev->applicationState() == Qt::ApplicationActive) {
+            emit clickedOnDock();
+        }
+        m_prevAppState = ev->applicationState();
+    }
+#endif
+    return QApplication::event(event);
 }
 
 void Application::setupWizardFinished(int status)
@@ -1383,7 +1413,9 @@ MainWindow* Application::showMainWindow(bool minimized)
         }
 
         m_mainWindow->checkInstancePathForProblems();
+#ifdef LAUNCHER_WITH_UPDATER
         connect(this, &Application::updateAllowedChanged, m_mainWindow, &MainWindow::updatesAllowedChanged);
+#endif
         connect(m_mainWindow, &MainWindow::isClosing, this, &Application::on_windowClose);
         m_openWindows++;
     }
@@ -1552,4 +1584,25 @@ QString Application::getCurseKey()
     }
 
     return BuildConfig.CURSEFORGE_API_KEY;
+}
+
+QString Application::getUserAgent()
+{
+    QString uaOverride = m_settings->get("UserAgentOverride").toString();
+    if (!uaOverride.isEmpty()) {
+        return uaOverride.replace("$LAUNCHER_VER", BuildConfig.printableVersionString());
+    }
+
+    return BuildConfig.USER_AGENT;
+}
+
+QString Application::getUserAgentUncached()
+{
+    QString uaOverride = m_settings->get("UserAgentOverride").toString();
+    if (!uaOverride.isEmpty()) {
+        uaOverride += " (Uncached)";
+        return uaOverride.replace("$LAUNCHER_VER", BuildConfig.printableVersionString());
+    }
+
+    return BuildConfig.USER_AGENT_UNCACHED;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modplatform/ModIndex.h"
 #include "modplatform/helpers/NetworkModAPI.h"
 
 class FlameAPI : public NetworkModAPI {
@@ -39,6 +40,11 @@ class FlameAPI : public NetworkModAPI {
             .arg(getSortFieldInt(args.sorting))
             .arg(getMappedModLoader(args.loaders))
             .arg(gameVersionStr);
+    };
+
+    inline auto getModInfoURL(QString& id) const -> QString override
+    {
+        return QString("https://api.curseforge.com/v1/mods/%1").arg(id);
     };
 
     inline auto getVersionsURL(VersionSearchArgs& args) const -> QString override
