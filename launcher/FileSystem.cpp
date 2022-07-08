@@ -499,7 +499,7 @@ QStringList listFolderPaths(QDir root)
         entries.append(createAbsPath(entry));
     }
 
-    for (auto entry : root.entryInfoList(QDir::Filter::AllDirs | QDir::Filter::NoDotAndDotDot)) {
+    for (auto entry : root.entryInfoList(QDir::Filter::AllDirs | QDir::Filter::NoDotAndDotDot | QDir::Filter::Hidden)) {
         entries.append(listFolderPaths(createAbsPath(entry)));
     }
 
@@ -518,6 +518,8 @@ bool overrideFolder(QString overwritten_path, QString override_path)
         destination.replace(override_path, overwritten_path);
 
         qDebug() << QString("Applying override %1 in %2").arg(file, destination);
+
+        FS::ensureFilePathExists(destination);
 
         if (QFile::exists(destination))
             QFile::remove(destination);

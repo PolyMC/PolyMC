@@ -93,7 +93,10 @@ public:
     InstListError loadList();
     void saveNow();
 
+    /* O(n) */
     InstancePtr getInstanceById(QString id) const;
+    /* O(n) */
+    InstancePtr getInstanceByManagedName(QString managed_name) const;
     QModelIndex getInstanceIndexById(const QString &id) const;
     QStringList getGroups();
     bool isGroupCollapsed(const QString &groupName);
@@ -116,8 +119,10 @@ public:
     /**
      * Commit the staging area given by @keyPath to the provider - used when creation succeeds.
      * Used by instance manipulation tasks.
+     * should_override is used when another similar instance already exists, and we want to override it
+     * - for instance, when updating it.
      */
-    bool commitStagedInstance(const QString & keyPath, const QString& instanceName, const QString & groupName);
+    bool commitStagedInstance(const QString & keyPath, const QString& instanceName, const QString & groupName, bool should_override);
 
     /**
      * Destroy a previously created staging area given by @keyPath - used when creation fails.
