@@ -39,6 +39,7 @@
 
 #include "modplatform/modrinth/ModrinthPackManifest.h"
 #include "ui/pages/modplatform/modrinth/ModrinthPage.h"
+#include "net/NetJob.h"
 
 class ModPage;
 class Version;
@@ -63,6 +64,7 @@ class ModpackListModel : public QAbstractListModel {
 
     /* Retrieve information from the model at a given index with the given role */
     auto data(const QModelIndex& index, int role) const -> QVariant override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
     inline void setActiveJob(NetJob::Ptr ptr) { jobPtr = ptr; }
 

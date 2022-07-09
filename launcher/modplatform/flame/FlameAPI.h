@@ -42,6 +42,11 @@ class FlameAPI : public NetworkModAPI {
             .arg(gameVersionStr);
     };
 
+    inline auto getModInfoURL(QString& id) const -> QString override
+    {
+        return QString("https://api.curseforge.com/v1/mods/%1").arg(id);
+    };
+
     inline auto getVersionsURL(VersionSearchArgs& args) const -> QString override
     {
         QString gameVersionQuery = args.mcVersions.size() == 1 ? QString("gameVersion=%1&").arg(args.mcVersions.front().toString()) : "";
@@ -54,7 +59,7 @@ class FlameAPI : public NetworkModAPI {
     };
 
    public:
-    static auto getMappedModLoader(const ModLoaderTypes loaders) -> const int
+    static auto getMappedModLoader(const ModLoaderTypes loaders) -> int
     {
         // https://docs.curseforge.com/?http#tocS_ModLoaderType
         if (loaders & Forge)

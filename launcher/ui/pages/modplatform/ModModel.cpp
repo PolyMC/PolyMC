@@ -53,7 +53,11 @@ auto ListModel::data(const QModelIndex& index, int role) const -> QVariant
         }
         case Qt::DecorationRole: {
             if (m_logoMap.contains(pack.logoName)) {
-                return (m_logoMap.value(pack.logoName));
+                auto icon = m_logoMap.value(pack.logoName);
+                // FIXME: This doesn't really belong here, but Qt doesn't offer a good way right now ;(
+                auto icon_scaled = QIcon(icon.pixmap(48, 48).scaledToWidth(48));
+
+                return icon_scaled;
             }
             QIcon icon = APPLICATION->getThemedIcon("screenshot-placeholder");
             // un-const-ify this
@@ -94,6 +98,11 @@ void ListModel::performPaginatedSearch()
 
     m_parent->apiProvider()->searchMods(
         this, { nextSearchOffset, currentSearchTerm, getSorts()[currentSort], profile->getModLoaders(), getMineVersions() });
+}
+
+void ListModel::requestModInfo(ModPlatform::IndexedPack& current)
+{
+    m_parent->apiProvider()->getModInfo(this, current);
 }
 
 void ListModel::refresh()
@@ -210,6 +219,10 @@ void ListModel::searchRequestFinished(QJsonDocument& doc)
         searchState = CanPossiblyFetchMore;
     }
 
+    // When you have a Qt build with assertions turned on, proceeding here will abort the application
+    if (newList.size() == 0)
+        return;
+
     beginInsertRows(QModelIndex(), modpacks.size(), modpacks.size() + newList.size() - 1);
     modpacks.append(newList);
     endInsertRows();
@@ -240,6 +253,21 @@ void ListModel::searchRequestFailed(QString reason)
     } else {
         searchState = Finished;
     }
+}
+
+void ListModel::infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack& pack)
+{
+    qDebug() << "Loading mod info";
+
+    try {
+        auto obj = Json::requireObject(doc);
+        loadExtraPackInfo(pack, obj);
+    } catch (const JSONValidationError& e) {
+        qDebug() << doc;
+        qWarning() << "Error while reading " << debugName() << " mod info: " << e.cause();
+    }
+
+    m_parent->updateUi();
 }
 
 void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId)
