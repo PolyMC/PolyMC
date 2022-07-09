@@ -69,7 +69,13 @@ namespace SysInfo {
     }
 
     QString runCheckerForArch(LaunchContext launchContext){
-        QString checkerJar = FS::PathCombine(APPLICATION->getJarsPath(), "JavaCheck.jar");
+        QString checkerJar = JavaUtils::getJavaCheckPath();
+
+        if (checkerJar.isEmpty())
+        {
+            qDebug() << "Java checker library could not be found. Please check your installation.";
+            return useQTForArch();
+        }
 
         QStringList args;
 
