@@ -81,7 +81,7 @@ set(Launcher_HELP_URL "https://polymc.org/wiki/help-pages/%1" CACHE STRING "URL 
 ######## Set version numbers ########
 set(Launcher_VERSION_MAJOR    1)
 set(Launcher_VERSION_MINOR    4)
-set(Launcher_VERSION_HOTFIX   0)
+set(Launcher_VERSION_HOTFIX   1)
 
 # Build number
 set(Launcher_VERSION_BUILD -1 CACHE STRING "Build number. -1 for no build number.")
@@ -131,7 +131,7 @@ set(Launcher_MSA_CLIENT_ID "549033b2-1532-4d4e-ae77-1bbaa46f9d74" CACHE STRING "
 # By using this key in your builds you accept the terms and conditions laid down in
 # https://support.curseforge.com/en/support/solutions/articles/9000207405-curse-forge-3rd-party-api-terms-and-conditions
 # NOTE: CurseForge requires you to change this if you make any kind of derivative work.
-set(Launcher_CURSEFORGE_API_KEY "$2a$10$1Oqr2MX3O4n/ilhFGc597u8tfI3L2Hyr9/rtWDAMRjghSQV2QUuxq" CACHE STRING "CurseForge API Key")
+set(Launcher_CURSEFORGE_API_KEY "$2a$10$5nTFauX8BoGnCIVsmE5nC.dlceZDIsE01ht2vL6eBixfqkSnyXYPe" CACHE STRING "CurseForge API Key")
 
 
 #### Check the current Git commit and branch
