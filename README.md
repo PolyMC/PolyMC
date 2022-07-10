@@ -11,8 +11,8 @@ If you want to read about why this fork was created, check out [our FAQ page](ht
 
 # Installation
 
-- All downloads and instructions for PolyMC can be found [here](https://polymc.org/download/)
-- Last build status: https://github.com/PolyMC/PolyMC/actions
+- Download last release [here](https://github.com/EvilToasterDBU/PolyMC-Offline/releases/latest)
+- Last build status: https://github.com/EvilToasterDBU/PolyMC-Offline/actions
 
 
 ## Development Builds
@@ -20,10 +20,6 @@ If you want to read about why this fork was created, check out [our FAQ page](ht
 There are per-commit development builds available [here](https://github.com/PolyMC/PolyMC/actions). These have debug information in the binaries, so their file sizes are relatively larger.
 Portable builds are provided for AppImage on Linux, Windows, and macOS.
 
-For Debian and Arch, you can use these packages for the latest development versions:  
-[![polymc-git](https://img.shields.io/badge/aur-polymc--git-blue)](https://aur.archlinux.org/packages/polymc-git/)
-[![polymc-git](https://img.shields.io/badge/mpr-polymc--git-orange)](https://mpr.makedeb.org/packages/polymc-git)  
-For flatpak, you can use [flathub-beta](https://discourse.flathub.org/t/how-to-use-flathub-beta/2111)
 
 # Help & Support
 
@@ -58,12 +54,23 @@ If you want to contribute to PolyMC you might find it useful to join our Discord
 
 If you want to build PolyMC yourself, check [Build Instructions](https://polymc.org/wiki/development/build-instructions/) for build instructions.
 
+## Code formatting
+
+Just follow the existing formatting.
+
+In general, in order of importance:
+
+- Make sure your IDE is not messing up line endings or whitespace and avoid using linters.
+- Prefer readability over dogma.
+- Keep to the existing formatting.
+- Indent with 4 space unless it's in a submodule.
+- Keep lists (of arguments, parameters, initializers...) as lists, not paragraphs. It should either read from top to bottom, or left to right. Not both.
+
 ## Translations
 
 The translation effort for PolyMC is hosted on [Weblate](https://hosted.weblate.org/projects/polymc/polymc/) and information about translating PolyMC is available at https://github.com/PolyMC/Translations
 
 ## Download information
-
 To modify download information or change packaging information send a pull request or issue to the website [Here](https://github.com/PolyMC/polymc.github.io/blob/master/src/download.md)
 
 ## Forking/Redistributing/Custom builds policy
@@ -96,3 +103,4 @@ Also, thanks to JetBrains for providing us a few licenses for all their products
 Additionally, thanks to the awesome people over at [MacStadium](https://www.macstadium.com/), for providing M1-Macs for development purposes!
 
 <a href="https://www.macstadium.com"><img src="https://uploads-ssl.webflow.com/5ac3c046c82724970fc60918/5c019d917bba312af7553b49_MacStadium-developerlogo.png" alt="Powered by MacStadium" width="300"></a>
+
