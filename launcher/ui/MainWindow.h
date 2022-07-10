@@ -78,9 +78,7 @@ public:
 
     void checkInstancePathForProblems();
 
-#ifdef LAUNCHER_WITH_UPDATER
     void updatesAllowedChanged(bool allowed);
-#endif
 
     void droppedURLs(QList<QUrl> urls);
 signals:
@@ -120,19 +118,13 @@ private slots:
 
     void on_actionViewSelectedMCFolder_triggered();
 
-    void on_actionViewSelectedModsFolder_triggered();
-
     void refreshInstances();
 
     void on_actionViewCentralModsFolder_triggered();
 
-#ifdef LAUNCHER_WITH_UPDATER
     void checkForUpdates();
-#endif
 
     void on_actionSettings_triggered();
-
-    void on_actionInstanceSettings_triggered();
 
     void on_actionManageAccounts_triggered();
 
@@ -197,11 +189,9 @@ private slots:
 
     void startTask(Task *task);
 
-#ifdef LAUNCHER_WITH_UPDATER
     void updateAvailable(GoUpdate::Status status);
 
     void updateNotAvailable();
-#endif
 
     void defaultAccountChanged();
 
@@ -211,12 +201,10 @@ private slots:
 
     void updateNewsLabel();
 
-#ifdef LAUNCHER_WITH_UPDATER
     /*!
      * Runs the DownloadTask and installs updates.
      */
     void downloadUpdates(GoUpdate::Status status);
-#endif
 
     void konamiTriggered();
 

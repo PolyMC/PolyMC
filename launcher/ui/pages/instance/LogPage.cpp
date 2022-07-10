@@ -40,7 +40,6 @@
 #include "Application.h"
 
 #include <QIcon>
-#include <QIdentityProxyModel>
 #include <QScrollBar>
 #include <QShortcut>
 
@@ -64,7 +63,7 @@ public:
         {
             case Qt::FontRole:
                 return m_font;
-            case Qt::TextColorRole:
+            case Qt::ForegroundRole:
             {
                 MessageLevel::Enum level = (MessageLevel::Enum) QIdentityProxyModel::data(index, LogModel::LevelRole).toInt();
                 return m_colors->getFront(level);

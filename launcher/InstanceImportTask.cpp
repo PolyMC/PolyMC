@@ -325,7 +325,7 @@ void InstanceImportTask::processFlame()
     // Hack to correct some 'special sauce'...
     if(mcVersion.endsWith('.'))
     {
-        mcVersion.remove(QRegExp("[.]+$"));
+        mcVersion.remove(QRegularExpression("[.]+$"));
         logWarning(tr("Mysterious trailing dots removed from Minecraft version while importing pack."));
     }
     auto components = instance.getPackProfile();
@@ -722,11 +722,11 @@ void InstanceImportTask::processModrinth()
     components->buildingFromScratch();
     components->setComponentVersion("net.minecraft", minecraftVersion, true);
     if (!fabricVersion.isEmpty())
-        components->setComponentVersion("net.fabricmc.fabric-loader", fabricVersion, true);
+        components->setComponentVersion("net.fabricmc.fabric-loader", fabricVersion);
     if (!quiltVersion.isEmpty())
-        components->setComponentVersion("org.quiltmc.quilt-loader", quiltVersion, true);
+        components->setComponentVersion("org.quiltmc.quilt-loader", quiltVersion);
     if (!forgeVersion.isEmpty())
-        components->setComponentVersion("net.minecraftforge", forgeVersion, true);
+        components->setComponentVersion("net.minecraftforge", forgeVersion);
     if (m_instIcon != "default")
     {
         instance.setIconKey(m_instIcon);
