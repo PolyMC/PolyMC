@@ -116,9 +116,17 @@ bool ModFolderModel::update()
 
 void ModFolderModel::finishUpdate()
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    auto currentList = modsIndex.keys();
+    QSet<QString> currentSet(currentList.begin(), currentList.end());
+    auto & newMods = m_update->mods;
+    auto newList = newMods.keys();
+    QSet<QString> newSet(newList.begin(), newList.end());
+#else
     QSet<QString> currentSet = modsIndex.keys().toSet();
     auto & newMods = m_update->mods;
     QSet<QString> newSet = newMods.keys().toSet();
+#endif
 
     // see if the kept mods changed in some way
     {
@@ -167,12 +175,16 @@ void ModFolderModel::finishUpdate()
     {
         QSet<QString> added = newSet;
         added.subtract(currentSet);
-        beginInsertRows(QModelIndex(), mods.size(), mods.size() + added.size() - 1);
-        for(auto & addedMod: added) {
-            mods.append(newMods[addedMod]);
-            resolveMod(mods.last());
+
+        // When you have a Qt build with assertions turned on, proceeding here will abort the application
+        if (added.size() > 0) {
+            beginInsertRows(QModelIndex(), mods.size(), mods.size() + added.size() - 1);
+            for (auto& addedMod : added) {
+                mods.append(newMods[addedMod]);
+                resolveMod(mods.last());
+            }
+            endInsertRows();
         }
-        endInsertRows();
     }
 
     // update index
@@ -305,7 +317,8 @@ bool ModFolderModel::installMod(const QString &filename)
             return false;
         }
         FS::updateTimestamp(newpath);
-        installedMod.repath(newpath);
+        QFileInfo newpathInfo(newpath);
+        installedMod.repath(newpathInfo);
         update();
         return true;
     }
@@ -323,7 +336,8 @@ bool ModFolderModel::installMod(const QString &filename)
             qWarning() << "Copy of folder from" << originalPath << "to" << newpath << "has (potentially partially) failed.";
             return false;
         }
-        installedMod.repath(newpath);
+        QFileInfo newpathInfo(newpath);
+        installedMod.repath(newpathInfo);
         update();
         return true;
     }

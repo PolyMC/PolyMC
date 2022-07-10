@@ -46,8 +46,6 @@
 
 #include <BuildConfig.h>
 
-#include <net/NetJob.h>
-
 namespace LegacyFTB {
 
 FilterModel::FilterModel(QObject *parent) : QSortFilterProxyModel(parent)
@@ -170,7 +168,7 @@ QVariant ListModel::data(const QModelIndex &index, int role) const
         ((ListModel *)this)->requestLogo(pack.logo);
         return icon;
     }
-    else if(role == Qt::TextColorRole)
+    else if(role == Qt::ForegroundRole)
     {
         if(pack.broken)
         {

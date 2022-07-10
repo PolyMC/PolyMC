@@ -40,7 +40,7 @@
 #include <QUuid>
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QStringList>
 #include <QJsonDocument>
 
@@ -54,7 +54,7 @@
 #include "flows/Demo.h"
 
 MinecraftAccount::MinecraftAccount(QObject* parent) : QObject(parent) {
-    data.internalId = QUuid::createUuid().toString().remove(QRegExp("[{}-]"));
+    data.internalId = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
 }
 
 
@@ -79,7 +79,7 @@ MinecraftAccountPtr MinecraftAccount::createFromUsername(const QString &username
     MinecraftAccountPtr account = new MinecraftAccount();
     account->data.type = AccountType::Mojang;
     account->data.yggdrasilToken.extra["userName"] = username;
-    account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegExp("[{}-]"));
+    account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
     return account;
 }
 
@@ -98,10 +98,10 @@ MinecraftAccountPtr MinecraftAccount::createOffline(const QString &username)
     account->data.yggdrasilToken.validity = Katabasis::Validity::Certain;
     account->data.yggdrasilToken.issueInstant = QDateTime::currentDateTimeUtc();
     account->data.yggdrasilToken.extra["userName"] = username;
-    account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegExp("[{}-]"));
+    account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
     account->data.minecraftEntitlement.ownsMinecraft = true;
     account->data.minecraftEntitlement.canPlayMinecraft = true;
-    account->data.minecraftProfile.id = QUuid::createUuid().toString().remove(QRegExp("[{}-]"));
+    account->data.minecraftProfile.id = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
     account->data.minecraftProfile.name = username;
     account->data.minecraftProfile.validity = Katabasis::Validity::Certain;
     return account;
