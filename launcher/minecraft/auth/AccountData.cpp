@@ -351,7 +351,9 @@ bool AccountData::resumeStateFromV3(QJsonObject data) {
         type = AccountType::Mojang;
     } else if (typeS == "Offline") {
         type = AccountType::Offline;
-    } else {
+    } else if (typeS == "Demo") {
+        type = AccountType::Demo;
+    }else {
         qWarning() << "Failed to parse account data: type is not recognized.";
         return false;
     }
@@ -407,6 +409,9 @@ QJsonObject AccountData::saveState() const {
     }
     else if (type == AccountType::Offline) {
         output["type"] = "Offline";
+    }
+    else if (type == AccountType::Demo) {
+        output["type"] = "Demo";
     }
 
     tokenToJSONV3(output, yggdrasilToken, "ygg");
@@ -474,6 +479,9 @@ QString AccountData::accountDisplayString() const {
         }
         case AccountType::Offline: {
             return QObject::tr("<Offline>");
+        }
+        case AccountType::Demo: {
+            return QObject::tr("<Demo>");
         }
         case AccountType::MSA: {
             if(xboxApiToken.extra.contains("gtg")) {

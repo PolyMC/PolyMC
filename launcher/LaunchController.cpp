@@ -165,6 +165,12 @@ void LaunchController::login() {
             return;
         }
 
+        // Launch immediately in demo mode
+        if(m_accountToUse->isDemo()) {
+            launchInstance();
+            return;
+        }
+
         switch(m_accountToUse->accountState()) {
             case AccountState::Offline: {
                 m_session->wants_online = false;

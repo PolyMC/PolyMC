@@ -213,9 +213,13 @@ set(MINECRAFT_SOURCES
     minecraft/auth/flows/MSA.h
     minecraft/auth/flows/Offline.cpp
     minecraft/auth/flows/Offline.h
+    minecraft/auth/flows/Demo.cpp
+    minecraft/auth/flows/Demo.h
 
     minecraft/auth/steps/OfflineStep.cpp
     minecraft/auth/steps/OfflineStep.h
+    minecraft/auth/steps/DemoStep.cpp
+    minecraft/auth/steps/DemoStep.h
     minecraft/auth/steps/EntitlementsStep.cpp
     minecraft/auth/steps/EntitlementsStep.h
     minecraft/auth/steps/GetSkinStep.cpp
@@ -812,6 +816,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/MSALoginDialog.h
     ui/dialogs/OfflineLoginDialog.cpp
     ui/dialogs/OfflineLoginDialog.h
+    ui/dialogs/DemoLoginDialog.cpp
+    ui/dialogs/DemoLoginDialog.h
     ui/dialogs/NewComponentDialog.cpp
     ui/dialogs/NewComponentDialog.h
     ui/dialogs/NewInstanceDialog.cpp
@@ -934,6 +940,7 @@ qt5_wrap_ui(LAUNCHER_UI
     ui/dialogs/IconPickerDialog.ui
     ui/dialogs/MSALoginDialog.ui
     ui/dialogs/OfflineLoginDialog.ui
+    ui/dialogs/DemoLoginDialog.ui
     ui/dialogs/AboutDialog.ui
     ui/dialogs/LoginDialog.ui
     ui/dialogs/EditAccountDialog.ui

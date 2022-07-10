@@ -51,6 +51,7 @@
 #include "flows/MSA.h"
 #include "flows/Mojang.h"
 #include "flows/Offline.h"
+#include "flows/Demo.h"
 
 MinecraftAccount::MinecraftAccount(QObject* parent) : QObject(parent) {
     data.internalId = QUuid::createUuid().toString().remove(QRegExp("[{}-]"));
@@ -106,6 +107,22 @@ MinecraftAccountPtr MinecraftAccount::createOffline(const QString &username)
     return account;
 }
 
+MinecraftAccountPtr MinecraftAccount::createDemo(const QString &username)
+{
+    MinecraftAccountPtr account = new MinecraftAccount();
+    account->data.type = AccountType::Demo;
+    account->data.yggdrasilToken.token = "demo";
+    account->data.yggdrasilToken.validity = Katabasis::Validity::Certain;
+    account->data.yggdrasilToken.issueInstant = QDateTime::currentDateTimeUtc();
+    account->data.yggdrasilToken.extra["userName"] = username;
+    account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegExp("[{}-]"));
+    account->data.minecraftEntitlement.ownsMinecraft = false;
+    account->data.minecraftEntitlement.canPlayMinecraft = true;
+    account->data.minecraftProfile.id = QUuid::createUuid().toString().remove(QRegExp("[{}-]"));
+    account->data.minecraftProfile.name = username;
+    account->data.minecraftProfile.validity = Katabasis::Validity::Certain;
+    return account;
+}
 
 QJsonObject MinecraftAccount::saveToJson() const
 {
@@ -162,6 +179,17 @@ shared_qobject_ptr<AccountTask> MinecraftAccount::loginOffline() {
     return m_currentTask;
 }
 
+shared_qobject_ptr<AccountTask> MinecraftAccount::loginDemo() {
+    Q_ASSERT(m_currentTask.get() == nullptr);
+
+    m_currentTask.reset(new DemoLogin(&data));
+    connect(m_currentTask.get(), SIGNAL(succeeded()), SLOT(authSucceeded()));
+    connect(m_currentTask.get(), SIGNAL(failed(QString)), SLOT(authFailed(QString)));
+    connect(m_currentTask.get(), &Task::aborted, this, [this]{ authFailed(tr("Aborted")); });
+    emit activityChanged(true);
+    return m_currentTask;
+}
+
 shared_qobject_ptr<AccountTask> MinecraftAccount::refresh() {
     if(m_currentTask) {
         return m_currentTask;
@@ -172,6 +200,9 @@ shared_qobject_ptr<AccountTask> MinecraftAccount::refresh() {
     }
     else if(data.type == AccountType::Offline) {
         m_currentTask.reset(new OfflineRefresh(&data));
+    }
+    else if(data.type == AccountType::Demo) {
+        m_currentTask.reset(new DemoRefresh(&data));
     }
     else {
         m_currentTask.reset(new MojangRefresh(&data));
@@ -309,6 +340,10 @@ void MinecraftAccount::fillSession(AuthSessionPtr session)
     else
     {
         session->session = "-";
+    }
+
+    if (data.type == AccountType::Demo) {
+        session->demo = true;
     }
 }
 

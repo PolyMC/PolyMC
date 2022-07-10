@@ -74,7 +74,8 @@ struct MinecraftProfile {
 enum class AccountType {
     MSA,
     Mojang,
-    Offline
+    Offline,
+    Demo
 };
 
 enum class AccountState {

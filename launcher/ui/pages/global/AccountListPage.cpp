@@ -46,6 +46,7 @@
 
 #include "ui/dialogs/ProgressDialog.h"
 #include "ui/dialogs/OfflineLoginDialog.h"
+#include "ui/dialogs/DemoLoginDialog.h"
 #include "ui/dialogs/LoginDialog.h"
 #include "ui/dialogs/MSALoginDialog.h"
 #include "ui/dialogs/CustomMessageBox.h"
@@ -215,6 +216,22 @@ void AccountListPage::on_actionAddOffline_triggered()
     }
 }
 
+void AccountListPage::on_actionAddDemo_triggered()
+{
+    MinecraftAccountPtr account = DemoLoginDialog::newAccount(
+        this,
+        tr("Please enter your desired username to add your demo account.")
+    );
+
+    if (account)
+    {
+        m_accounts->addAccount(account);
+        if (m_accounts->count() == 1) {
+            m_accounts->setDefaultAccount(account);
+        }
+    }
+}
+
 void AccountListPage::on_actionRemove_triggered()
 {
     QModelIndexList selection = ui->listView->selectionModel()->selectedIndexes();
@@ -263,7 +280,7 @@ void AccountListPage::updateButtonStates()
         QModelIndex selected = selection.first();
         MinecraftAccountPtr account = selected.data(AccountList::PointerRole).value<MinecraftAccountPtr>();
         accountIsReady = !account->isActive();
-        accountIsOnline = !account->isOffline();
+        accountIsOnline = !account->isOffline() && !account->isDemo();
     }
     ui->actionRemove->setEnabled(accountIsReady);
     ui->actionSetDefault->setEnabled(accountIsReady);
