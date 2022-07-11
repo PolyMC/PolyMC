@@ -131,7 +131,7 @@ set(Launcher_MSA_CLIENT_ID "549033b2-1532-4d4e-ae77-1bbaa46f9d74" CACHE STRING "
 # By using this key in your builds you accept the terms and conditions laid down in
 # https://support.curseforge.com/en/support/solutions/articles/9000207405-curse-forge-3rd-party-api-terms-and-conditions
 # NOTE: CurseForge requires you to change this if you make any kind of derivative work.
-set(Launcher_CURSEFORGE_API_KEY "$2a$10$5nTFauX8BoGnCIVsmE5nC.dlceZDIsE01ht2vL6eBixfqkSnyXYPe" CACHE STRING "CurseForge API Key")
+set(Launcher_CURSEFORGE_API_KEY "$2a$10$5nTFauX8BoGnCIVsmE5nC.dlceZDIsE01ht2vL6eBixfqkSnyXYPe" CACHE STRING "API key for the CurseForge platform")
 
 
 #### Check the current Git commit and branch
@@ -263,7 +263,10 @@ elseif(UNIX)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${Launcher_Desktop} DESTINATION ${LAUNCHER_DESKTOP_DEST_DIR})
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${Launcher_MetaInfo} DESTINATION ${LAUNCHER_METAINFO_DEST_DIR})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${Launcher_SVG} DESTINATION ${LAUNCHER_ICON_DEST_DIR})
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${Launcher_ManPage} DESTINATION ${LAUNCHER_MAN_DEST_DIR} RENAME "${Launcher_APP_BINARY_NAME}.6")
+
+    if(Launcher_ManPage)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${Launcher_ManPage} DESTINATION ${LAUNCHER_MAN_DEST_DIR})
+    endif()
 
     # Install basic runner script if component "portable" is selected
     configure_file(launcher/Launcher.in "${CMAKE_CURRENT_BINARY_DIR}/LauncherScript" @ONLY)
