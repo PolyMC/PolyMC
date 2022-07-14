@@ -22,10 +22,10 @@
 
 #include "BaseInstance.h"
 
-#include "QObjectPtr.h"
-
 class QFileSystemWatcher;
 class InstanceTask;
+struct InstanceName;
+
 using InstanceId = QString;
 using GroupId = QString;
 using InstanceLocator = std::pair<InstancePtr, int>;
@@ -122,7 +122,7 @@ public:
      * should_override is used when another similar instance already exists, and we want to override it
      * - for instance, when updating it.
      */
-    bool commitStagedInstance(const QString & keyPath, const QString& instanceName, const QString & groupName, bool should_override);
+    bool commitStagedInstance(QString keyPath, const InstanceName& instanceName, QString groupName, bool should_override);
 
     /**
      * Destroy a previously created staging area given by @keyPath - used when creation fails.
