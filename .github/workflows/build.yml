@@ -7,6 +7,10 @@ on:
         description: Type of build (Debug, Release, RelWithDebInfo, MinSizeRel)
         type: string
         default: Debug
+    secrets:
+      SPARKLE_ED25519_KEY:
+        description: Private key for signing Sparkle updates
+        required: false
 
 jobs:
   build:
@@ -24,6 +28,7 @@ jobs:
             qt_host: linux
             qt_version: '6.3.1'
             qt_modules: 'qt5compat qtimageformats'
+            qt_path: /home/runner/work/PolyMC/Qt
 
           - os: windows-2022
             name: "Windows-Legacy"
@@ -41,6 +46,7 @@ jobs:
             qt_host: mac
             qt_version: '6.3.1'
             qt_modules: 'qt5compat qtimageformats'
+            qt_path: /Users/runner/work/PolyMC/Qt
 
     runs-on: ${{ matrix.os }}
 
@@ -109,9 +115,9 @@ jobs:
         uses: actions/cache@v3.0.2
         with:
           path: '${{ github.workspace }}\.ccache'
-          key: ${{ matrix.os }}-${{ matrix.msystem }}
+          key: ${{ matrix.os }}--qt${{ matrix.qt_ver }}
           restore-keys: |
-              ${{ matrix.os }}-${{ matrix.msystem }}
+              ${{ matrix.os }}--qt${{ matrix.qt_ver }}
 
       - name: Set short version
         shell: bash
@@ -123,7 +129,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install ninja-build extra-cmake-modules
+          sudo apt-get -y install ninja-build extra-cmake-modules scdoc
 
       - name: Install Dependencies (macOS)
         if: runner.os == 'macOS'
@@ -134,7 +140,15 @@ jobs:
       - name: Install Qt (Linux)
         if: runner.os == 'Linux' && matrix.appimage != true
         run: |
-          sudo apt-get -y install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5core5a libqt5network5 libqt5gui5 qt5-image-formats-plugins
+          sudo apt-get -y install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5core5a libqt5network5 libqt5gui5
+ 
+      - name: Cache Qt (macOS and AppImage)
+        id: cache-qt
+        if: matrix.qt_ver == 6 && runner.os != 'Windows'
+        uses: actions/cache@v3
+        with:
+          path: '${{ matrix.qt_path }}/${{ matrix.qt_version }}'
+          key: ${{ matrix.qt_host }}-${{ matrix.qt_version }}-"${{ matrix.qt_modules }}"-qt_cache
 
       - name: Install Qt (macOS and AppImage)
         if: matrix.qt_ver == 6 && runner.os != 'Windows'
@@ -144,6 +158,7 @@ jobs:
            host: ${{ matrix.qt_host }}
            target: 'desktop'
            modules: ${{ matrix.qt_modules }}
+           cached: ${{ steps.cache-qt.outputs.cache-hit }}
            aqtversion: ==2.1.*
 
       - name: Prepare AppImage (Linux)
@@ -218,6 +233,25 @@ jobs:
           chmod +x "PolyMC.app/Contents/MacOS/polymc"
           sudo codesign --sign - --deep --force --entitlements "../program_info/App.entitlements" --options runtime "PolyMC.app/Contents/MacOS/polymc"
           tar -czf ../PolyMC.tar.gz *
+
+      - name: Make Sparkle signature (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          if [ '${{ secrets.SPARKLE_ED25519_KEY }}' != '' ]; then
+            brew install openssl@3
+            echo '${{ secrets.SPARKLE_ED25519_KEY }}' > ed25519-priv.pem
+            signature=$(/usr/local/opt/openssl@3/bin/openssl pkeyutl -sign -rawin -in ${{ github.workspace }}/PolyMC.tar.gz -inkey ed25519-priv.pem | openssl base64 | tr -d \\n)
+            rm ed25519-priv.pem
+            cat >> $GITHUB_STEP_SUMMARY << EOF
+          ### Artifact Information :information_source:
+          - :memo: Sparkle Signature (ed25519): \`$signature\`
+          EOF
+          else
+            cat >> $GITHUB_STEP_SUMMARY << EOF
+          ### Artifact Information :information_source:
+          - :warning: Sparkle Signature (ed25519): No private key available (likely a pull request or fork)
+          EOF
+          fi
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
