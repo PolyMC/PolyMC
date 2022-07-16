@@ -111,9 +111,9 @@ QList<NetAction::Ptr> Library::getDownloads(
     {
         if(isNative())
         {
-            if(m_nativeClassifiers.contains(system + '-' + arch))
+            if(m_nativeClassifiers.contains(SysInfo::currentOSString(system, arch)))
             {
-                auto nativeClassifier = m_nativeClassifiers[system + '-' + arch];
+                auto nativeClassifier = m_nativeClassifiers[SysInfo::currentOSString(system, arch)];
                 if(nativeClassifier.contains("${arch}"))
                 {
                     auto nat32Classifier = nativeClassifier;
@@ -223,7 +223,7 @@ bool Library::isActive(const SettingsObjectPtr& settingsObjJavaArch)
     }
     if (isNative())
     {
-        result = result && m_nativeClassifiers.contains(SysInfo::currentSystem() + '-' + SysInfo::currentArch(settingsObjJavaArch));
+        result = result && m_nativeClassifiers.contains(SysInfo::currentOSString(settingsObjJavaArch));
     }
     return result;
 }
@@ -271,9 +271,9 @@ QString Library::filename(QString system, QString arch) const
 
     // otherwise native, override classifiers. Mojang HACK!
     GradleSpecifier nativeSpec = m_name;
-    if (m_nativeClassifiers.contains(system + '-' + arch))
+    if (m_nativeClassifiers.contains(SysInfo::currentOSString(system, arch)))
     {
-        nativeSpec.setClassifier(m_nativeClassifiers[system + '-' + arch]);
+        nativeSpec.setClassifier(m_nativeClassifiers[SysInfo::currentOSString(system, arch)]);
     }
     else
     {
@@ -301,9 +301,9 @@ QString Library::storageSuffix(QString system, QString arch) const
 
     // otherwise native, override classifiers. Mojang HACK!
     GradleSpecifier nativeSpec = m_name;
-    if (m_nativeClassifiers.contains(system + '-' + arch))
+    if (m_nativeClassifiers.contains(SysInfo::currentOSString(system, arch)))
     {
-        nativeSpec.setClassifier(m_nativeClassifiers[system + '-' + arch]);
+        nativeSpec.setClassifier(m_nativeClassifiers[SysInfo::currentOSString(system, arch)]);
     }
     else
     {

@@ -9,5 +9,7 @@ namespace SysInfo {
     QString currentArch(LaunchContext launchContext);
     QString runCheckerForArch(LaunchContext launchContext);
     QString useQTForArch();
+    QString currentOSString(LaunchContext launchContext);
+    QString currentOSString(QString system, QString arch);
 }
 

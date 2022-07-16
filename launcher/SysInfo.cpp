@@ -165,5 +165,24 @@ namespace SysInfo {
             return realJavaArchitecture;
         }
     }
+
+    QString currentOSString(LaunchContext launchContext) {
+        auto system = currentSystem();
+        auto arch   = currentArch(launchContext);
+
+        if (arch == "arm64") {
+            return system + "-" + arch;
+        } else {
+            return system;
+        }
+    }
+
+    QString currentOSString(QString system, QString arch) {
+        if (arch == "arm64") {
+            return system + "-" + arch;
+        } else {
+            return system;
+        }
+    }
 }
 
