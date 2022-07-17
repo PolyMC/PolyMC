@@ -34,7 +34,6 @@ let
     libXxf86vm
     libpulseaudio
     libGL
-    stdenv.cc.cc.lib
   ];
 
   # This variable will be passed to Minecraft by PolyMC
