@@ -10,6 +10,7 @@
 , wrapQtAppsHook
 , xorg
 , libpulseaudio
+, mangohud
 , qtbase
 , quazip
 , libGL
@@ -38,7 +39,9 @@ let
   ];
 
   # This variable will be passed to Minecraft by PolyMC
-  gameLibraryPath = libpath + ":/run/opengl-driver/lib";
+  # MangoHUD needs to be handled specially because it
+  # puts library files in lib/mangohud/ rather than lib/
+  gameLibraryPath = libpath + ":${mangohud}/lib/mangohud:/run/opengl-driver/lib";
 
   javaPaths = lib.makeSearchPath "bin/java" ([ jdk jdk8 ] ++ extraJDKs);
 in
