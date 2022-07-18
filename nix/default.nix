@@ -38,7 +38,9 @@ let
   ];
 
   # This variable will be passed to Minecraft by PolyMC
-  gameLibraryPath = libpath + ":/run/opengl-driver/lib";
+  # We need to add /lib and /usr/lib to enable external processes
+  # on non-NixOS to work properly
+  gameLibraryPath = "/lib:/usr/lib:" + libpath + ":/run/opengl-driver/lib";
 
   javaPaths = lib.makeSearchPath "bin/java" ([ jdk jdk8 ] ++ extraJDKs);
 in
