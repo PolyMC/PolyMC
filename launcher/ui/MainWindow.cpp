@@ -42,31 +42,31 @@
 
 #include "MainWindow.h"
 
-#include <QtCore/QVariant>
-#include <QtCore/QUrl>
-#include <QtCore/QDir>
-#include <QtCore/QFileInfo>
+#include <QVariant>
+#include <QUrl>
+#include <QDir>
+#include <QFileInfo>
 
-#include <QtGui/QKeyEvent>
+#include <QKeyEvent>
+#include <QAction>
 
-#include <QtWidgets/QAction>
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QMainWindow>
-#include <QtWidgets/QStatusBar>
-#include <QtWidgets/QToolBar>
-#include <QtWidgets/QWidget>
-#include <QtWidgets/QMenu>
-#include <QtWidgets/QMenuBar>
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QInputDialog>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QWidgetAction>
-#include <QtWidgets/QProgressDialog>
-#include <QtWidgets/QShortcut>
+#include <QApplication>
+#include <QButtonGroup>
+#include <QHBoxLayout>
+#include <QHeaderView>
+#include <QMainWindow>
+#include <QStatusBar>
+#include <QToolBar>
+#include <QWidget>
+#include <QMenu>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <QInputDialog>
+#include <QLabel>
+#include <QToolButton>
+#include <QWidgetAction>
+#include <QProgressDialog>
+#include <QShortcut>
 
 #include <BaseInstance.h>
 #include <InstanceList.h>
@@ -235,7 +235,6 @@ public:
     TranslatedAction actionMods;
     TranslatedAction actionViewSelectedInstFolder;
     TranslatedAction actionViewSelectedMCFolder;
-    TranslatedAction actionViewSelectedModsFolder;
     TranslatedAction actionDeleteInstance;
     TranslatedAction actionConfig_Folder;
     TranslatedAction actionCAT;
@@ -288,7 +287,7 @@ public:
     TranslatedToolbar newsToolBar;
     QVector<TranslatedToolbar *> all_toolbars;
 
-    void createMainToolbarActions(QMainWindow *MainWindow)
+    void createMainToolbarActions(MainWindow *MainWindow)
     {
         actionAddInstance = TranslatedAction(MainWindow);
         actionAddInstance->setObjectName(QStringLiteral("actionAddInstance"));
@@ -723,14 +722,6 @@ public:
         actionViewSelectedMCFolder->setShortcut(QKeySequence(tr("Ctrl+M")));
         all_actions.append(&actionViewSelectedMCFolder);
 
-        /*
-        actionViewSelectedModsFolder = TranslatedAction(MainWindow);
-        actionViewSelectedModsFolder->setObjectName(QStringLiteral("actionViewSelectedModsFolder"));
-        actionViewSelectedModsFolder.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Mods Folder"));
-        actionViewSelectedModsFolder.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Open the selected instance's mods folder in a file browser."));
-        all_actions.append(&actionViewSelectedModsFolder);
-        */
-
         actionConfig_Folder = TranslatedAction(MainWindow);
         actionConfig_Folder->setObjectName(QStringLiteral("actionConfig_Folder"));
         actionConfig_Folder.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Confi&g Folder"));
@@ -808,9 +799,6 @@ public:
         instanceToolBar->addSeparator();
 
         instanceToolBar->addAction(actionViewSelectedMCFolder);
-        /*
-        instanceToolBar->addAction(actionViewSelectedModsFolder);
-        */
         instanceToolBar->addAction(actionConfig_Folder);
         instanceToolBar->addAction(actionViewSelectedInstFolder);
 
@@ -1039,7 +1027,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
     }
 
 
-#ifdef LAUNCHER_WITH_UPDATER
     if(BuildConfig.UPDATER_ENABLED)
     {
         bool updatesAllowed = APPLICATION->updatesAreAllowed();
@@ -1057,8 +1044,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
         {
             updater->checkForUpdate(APPLICATION->settings()->get("UpdateChannel").toString(), false);
         }
+
+        if (APPLICATION->updateChecker()->getExternalUpdater())
+        {
+            connect(APPLICATION->updateChecker()->getExternalUpdater(),
+                    &ExternalUpdater::canCheckForUpdatesChanged,
+                    this,
+                    &MainWindow::updatesAllowedChanged);
+        }
     }
-#endif
 
     setSelectedInstanceById(APPLICATION->settings()->get("SelectedInstance").toString());
 
@@ -1375,7 +1369,6 @@ void MainWindow::repopulateAccountsMenu()
     ui->profileMenu->addAction(ui->actionManageAccounts);
 }
 
-#ifdef LAUNCHER_WITH_UPDATER
 void MainWindow::updatesAllowedChanged(bool allowed)
 {
     if(!BuildConfig.UPDATER_ENABLED)
@@ -1384,7 +1377,6 @@ void MainWindow::updatesAllowedChanged(bool allowed)
     }
     ui->actionCheckUpdate->setEnabled(allowed);
 }
-#endif
 
 /*
  * Assumes the sender is a QAction
@@ -1490,7 +1482,6 @@ void MainWindow::updateNewsLabel()
     }
 }
 
-#ifdef LAUNCHER_WITH_UPDATER
 void MainWindow::updateAvailable(GoUpdate::Status status)
 {
     if(!APPLICATION->updatesAreAllowed())
@@ -1516,11 +1507,14 @@ void MainWindow::updateNotAvailable()
     UpdateDialog dlg(false, this);
     dlg.exec();
 }
-#endif
 
 QList<int> stringToIntList(const QString &string)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    QStringList split = string.split(',', Qt::SkipEmptyParts);
+#else
     QStringList split = string.split(',', QString::SkipEmptyParts);
+#endif
     QList<int> out;
     for (int i = 0; i < split.size(); ++i)
     {
@@ -1538,7 +1532,6 @@ QString intListToString(const QList<int> &list)
     return slist.join(',');
 }
 
-#ifdef LAUNCHER_WITH_UPDATER
 void MainWindow::downloadUpdates(GoUpdate::Status status)
 {
     if(!APPLICATION->updatesAreAllowed())
@@ -1572,7 +1565,6 @@ void MainWindow::downloadUpdates(GoUpdate::Status status)
         CustomMessageBox::selectable(this, tr("Error"), updateTask.failReason(), QMessageBox::Warning)->show();
     }
 }
-#endif
 
 void MainWindow::onCatToggled(bool state)
 {
@@ -1890,7 +1882,6 @@ void MainWindow::on_actionConfig_Folder_triggered()
     }
 }
 
-#ifdef LAUNCHER_WITH_UPDATER
 void MainWindow::checkForUpdates()
 {
     if(BuildConfig.UPDATER_ENABLED)
@@ -1903,7 +1894,6 @@ void MainWindow::checkForUpdates()
         qWarning() << "Updater not set up. Cannot check for updates.";
     }
 }
-#endif
 
 void MainWindow::on_actionSettings_triggered()
 {
@@ -1923,11 +1913,6 @@ void MainWindow::globalSettingsClosed()
     // but PolyMC exits abnormally, causing the window state to never be saved:
     APPLICATION->settings()->set("MainWindowState", saveState().toBase64());
     update();
-}
-
-void MainWindow::on_actionInstanceSettings_triggered()
-{
-    APPLICATION->showInstanceWindow(m_selectedInstance, "settings");
 }
 
 void MainWindow::on_actionEditInstNotes_triggered()
@@ -2048,20 +2033,6 @@ void MainWindow::on_actionViewSelectedMCFolder_triggered()
     if (m_selectedInstance)
     {
         QString str = m_selectedInstance->gameRoot();
-        if (!FS::ensureFilePathExists(str))
-        {
-            // TODO: report error
-            return;
-        }
-        DesktopServices::openDirectory(QDir(str).absolutePath());
-    }
-}
-
-void MainWindow::on_actionViewSelectedModsFolder_triggered()
-{
-    if (m_selectedInstance)
-    {
-        QString str = m_selectedInstance->modsRoot();
         if (!FS::ensureFilePathExists(str))
         {
             // TODO: report error

@@ -2,6 +2,7 @@
 /*
  *  PolyMC - Minecraft Launcher
  *  Copyright (c) 2022 Jamie Mansfield <jmansfield@cadixdev.org>
+ *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -55,6 +56,7 @@ class ModFolderPage : public ExternalResourcesPage {
 
    private slots:
     void installMods();
+    void updateMods();
 };
 
 class CoreModFolderPage : public ModFolderPage {

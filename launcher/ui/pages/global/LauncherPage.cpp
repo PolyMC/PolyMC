@@ -78,7 +78,6 @@ LauncherPage::LauncherPage(QWidget *parent) : QWidget(parent), ui(new Ui::Launch
     m_languageModel = APPLICATION->translations();
     loadSettings();
 
-#ifdef LAUNCHER_WITH_UPDATER
     if(BuildConfig.UPDATER_ENABLED)
     {
         QObject::connect(APPLICATION->updateChecker().get(), &UpdateChecker::channelListLoaded, this, &LauncherPage::refreshUpdateChannelList);
@@ -91,9 +90,18 @@ LauncherPage::LauncherPage(QWidget *parent) : QWidget(parent), ui(new Ui::Launch
         {
             APPLICATION->updateChecker()->updateChanList(false);
         }
-        ui->updateSettingsBox->setHidden(false);
+
+        if (APPLICATION->updateChecker()->getExternalUpdater())
+        {
+            ui->updateChannelComboBox->setVisible(false);
+            ui->updateChannelDescLabel->setVisible(false);
+            ui->updateChannelLabel->setVisible(false);
+        }
     }
-#endif
+    else
+    {
+        ui->updateSettingsBox->setHidden(true);
+    }
     connect(ui->fontSizeBox, SIGNAL(valueChanged(int)), SLOT(refreshFontPreview()));
     connect(ui->consoleFont, SIGNAL(currentFontChanged(QFont)), SLOT(refreshFontPreview()));
 }
@@ -188,7 +196,6 @@ void LauncherPage::on_metadataDisableBtn_clicked()
     ui->metadataWarningLabel->setHidden(!ui->metadataDisableBtn->isChecked());
 }
 
-#ifdef LAUNCHER_WITH_UPDATER
 void LauncherPage::refreshUpdateChannelList()
 {
     // Stop listening for selection changes. It's going to change a lot while we update it and
@@ -260,14 +267,22 @@ void LauncherPage::refreshUpdateChannelDesc()
         m_currentUpdateChannel = selected.id;
     }
 }
-#endif
 
 void LauncherPage::applySettings()
 {
     auto s = APPLICATION->settings();
 
     // Updates
-    s->set("AutoUpdate", ui->autoUpdateCheckBox->isChecked());
+    if (BuildConfig.UPDATER_ENABLED && APPLICATION->updateChecker()->getExternalUpdater())
+    {
+        APPLICATION->updateChecker()->getExternalUpdater()->setAutomaticallyChecksForUpdates(
+                ui->autoUpdateCheckBox->isChecked());
+    }
+    else
+    {
+        s->set("AutoUpdate", ui->autoUpdateCheckBox->isChecked());
+    }
+
     s->set("UpdateChannel", m_currentUpdateChannel);
     auto original = s->get("IconTheme").toString();
     //FIXME: make generic
@@ -352,7 +367,16 @@ void LauncherPage::loadSettings()
 {
     auto s = APPLICATION->settings();
     // Updates
-    ui->autoUpdateCheckBox->setChecked(s->get("AutoUpdate").toBool());
+    if (BuildConfig.UPDATER_ENABLED && APPLICATION->updateChecker()->getExternalUpdater())
+    {
+        ui->autoUpdateCheckBox->setChecked(
+                APPLICATION->updateChecker()->getExternalUpdater()->getAutomaticallyChecksForUpdates());
+    }
+    else
+    {
+        ui->autoUpdateCheckBox->setChecked(s->get("AutoUpdate").toBool());
+    }
+
     m_currentUpdateChannel = s->get("UpdateChannel").toString();
     //FIXME: make generic
     auto theme = s->get("IconTheme").toString();

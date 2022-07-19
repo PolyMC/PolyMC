@@ -9,6 +9,14 @@ This library has served as a base for some (much more full-featured and advanced
 
 Copyright belongs to Petr Mrázek, unless explicitly stated otherwise in the source files. Available under the Apache 2.0 license.
 
+## gamemode
+
+A performance optimization daemon.
+
+See [github repo](https://github.com/FeralInteractive/gamemode).
+
+BSD licensed
+
 ## hoedown
 Hoedown is a revived fork of Sundown, the Markdown parser based on the original code of the Upskirt library by Natacha Porté.
 
@@ -141,6 +149,12 @@ BSD licensed, derived from [QtSingleApplication](https://github.com/qtproject/qt
 
 Changes are made to make the code more generic and useful in less usual conditions.
 
+## murmur2
+
+Canonical implementation of the murmur2 hash, taken from [SMHasher](https://github.com/aappleby/smhasher).
+
+Public domain (the author disclaimed the copyright).
+
 ## optional-bare
 
 A simple single-file header-only version of a C++17-like optional for default-constructible, copyable types, for C++98 and later.
@@ -179,3 +193,4 @@ Licenced under the MIT licence.
 Tiny implementation of LZMA2 de/compression. This format is only used by Forge to save bandwidth.
 
 Public domain.
+

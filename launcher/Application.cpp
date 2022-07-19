@@ -84,6 +84,7 @@
 #include <QDebug>
 #include <QStyleFactory>
 #include <QWindow>
+#include <QIcon>
 
 #include "InstanceList.h"
 
@@ -99,7 +100,6 @@
 #include "tools/JVisualVM.h"
 #include "tools/MCEditTool.h"
 
-#include <xdgicon.h>
 #include "settings/INISettingsObject.h"
 #include "settings/Setting.h"
 
@@ -154,7 +154,6 @@ void appDebugOutput(QtMsgType type, const QMessageLogContext &context, const QSt
     fflush(stderr);
 }
 
-#ifdef LAUNCHER_WITH_UPDATER
 QString getIdealPlatform(QString currentPlatform) {
     auto info = Sys::getKernelInfo();
     switch(info.kernelType) {
@@ -193,7 +192,6 @@ QString getIdealPlatform(QString currentPlatform) {
     }
     return currentPlatform;
 }
-#endif
 
 }
 
@@ -333,10 +331,6 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_rootPath = foo.absolutePath();
         // on macOS, touch the root to force Finder to reload the .app metadata (and fix any icon change issues)
         FS::updateTimestamp(m_rootPath);
-#endif
-
-#ifdef LAUNCHER_JARS_LOCATION
-        m_jarsPath = TOSTRING(LAUNCHER_JARS_LOCATION);
 #endif
     }
 
@@ -549,6 +543,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
     {
         m_settings.reset(new INISettingsObject(BuildConfig.LAUNCHER_CONFIGFILE, this));
         // Updates
+        // Multiple channels are separated by spaces
         m_settings->registerSetting("UpdateChannel", BuildConfig.VERSION_CHANNEL);
         m_settings->registerSetting("AutoUpdate", true);
 
@@ -638,6 +633,11 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("UseNativeOpenAL", false);
         m_settings->registerSetting("UseNativeGLFW", false);
 
+        // Peformance related options
+        m_settings->registerSetting("EnableFeralGamemode", false);
+        m_settings->registerSetting("EnableMangoHud", false);
+        m_settings->registerSetting("UseDiscreteGpu", false);
+
         // Game time
         m_settings->registerSetting("ShowGameTime", true);
         m_settings->registerSetting("ShowGlobalGameTime", true);
@@ -711,9 +711,20 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("CloseAfterLaunch", false);
         m_settings->registerSetting("QuitAfterGameStop", false);
 
-        // Custom MSA credentials
+        // Custom Microsoft Authentication Client ID
         m_settings->registerSetting("MSAClientIDOverride", "");
-        m_settings->registerSetting("CFKeyOverride", "");
+
+        // Custom Flame API Key
+        {
+            m_settings->registerSetting("CFKeyOverride", "");
+            m_settings->registerSetting("FlameKeyOverride", "");
+
+            QString flameKey = m_settings->get("CFKeyOverride").toString();
+
+            if (!flameKey.isEmpty())
+                m_settings->set("FlameKeyOverride", flameKey);
+            m_settings->reset("CFKeyOverride");
+        }
         m_settings->registerSetting("UserAgentOverride", "");
 
         // Init page provider
@@ -757,7 +768,6 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         qDebug() << "<> Translations loaded.";
     }
 
-#ifdef LAUNCHER_WITH_UPDATER
     // initialize the updater
     if(BuildConfig.UPDATER_ENABLED)
     {
@@ -767,7 +777,6 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_updateChecker.reset(new UpdateChecker(m_network, channelUrl, BuildConfig.VERSION_CHANNEL, BuildConfig.VERSION_BUILD));
         qDebug() << "<> Updater started.";
     }
-#endif
 
     // Instance icons
     {
@@ -1185,7 +1194,7 @@ void Application::setApplicationTheme(const QString& name, bool initial)
 
 void Application::setIconTheme(const QString& name)
 {
-    XdgIcon::setThemeName(name);
+    QIcon::setThemeName(name);
 }
 
 QIcon Application::getThemedIcon(const QString& name)
@@ -1193,7 +1202,7 @@ QIcon Application::getThemedIcon(const QString& name)
     if(name == "logo") {
         return QIcon(":/org.polymc.PolyMC.svg");
     }
-    return XdgIcon::fromTheme(name);
+    return QIcon::fromTheme(name);
 }
 
 bool Application::openJsonEditor(const QString &filename)
@@ -1413,9 +1422,7 @@ MainWindow* Application::showMainWindow(bool minimized)
         }
 
         m_mainWindow->checkInstancePathForProblems();
-#ifdef LAUNCHER_WITH_UPDATER
         connect(this, &Application::updateAllowedChanged, m_mainWindow, &MainWindow::updatesAllowedChanged);
-#endif
         connect(m_mainWindow, &MainWindow::isClosing, this, &Application::on_windowClose);
         m_openWindows++;
     }
@@ -1557,13 +1564,32 @@ shared_qobject_ptr<Meta::Index> Application::metadataIndex()
     return m_metadataIndex;
 }
 
-QString Application::getJarsPath()
+Application::Capabilities Application::currentCapabilities()
 {
-    if(m_jarsPath.isEmpty())
+    Capabilities c;
+    if (!getMSAClientID().isEmpty())
+        c |= SupportsMSA;
+    if (!getFlameAPIKey().isEmpty())
+        c |= SupportsFlame;
+    return c;
+}
+
+QString Application::getJarPath(QString jarFile)
+{
+    QStringList potentialPaths = {
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD) || defined(Q_OS_OPENBSD)
+        FS::PathCombine(m_rootPath, "share/jars"),
+#endif
+        FS::PathCombine(m_rootPath, "jars"),
+        FS::PathCombine(applicationDirPath(), "jars")
+    };
+    for(QString p : potentialPaths)
     {
-        return FS::PathCombine(QCoreApplication::applicationDirPath(), "jars");
+        QString jarPath = FS::PathCombine(p, jarFile);
+        if (QFileInfo(jarPath).isFile())
+            return jarPath;
     }
-    return FS::PathCombine(m_rootPath, m_jarsPath);
+    return {};
 }
 
 QString Application::getMSAClientID()
@@ -1576,14 +1602,14 @@ QString Application::getMSAClientID()
     return BuildConfig.MSA_CLIENT_ID;
 }
 
-QString Application::getCurseKey()
+QString Application::getFlameAPIKey()
 {
-    QString keyOverride = m_settings->get("CFKeyOverride").toString();
+    QString keyOverride = m_settings->get("FlameKeyOverride").toString();
     if (!keyOverride.isEmpty()) {
         return keyOverride;
     }
 
-    return BuildConfig.CURSEFORGE_API_KEY;
+    return BuildConfig.FLAME_API_KEY;
 }
 
 QString Application::getUserAgent()

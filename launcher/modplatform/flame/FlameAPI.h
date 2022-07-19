@@ -4,6 +4,14 @@
 #include "modplatform/helpers/NetworkModAPI.h"
 
 class FlameAPI : public NetworkModAPI {
+   public:
+    auto matchFingerprints(const QList<uint>& fingerprints, QByteArray* response) -> NetJob::Ptr;
+    auto getModFileChangelog(int modId, int fileId) -> QString;
+
+    auto getLatestVersion(VersionSearchArgs&& args) -> ModPlatform::IndexedVersion;
+
+    auto getProjects(QStringList addonIds, QByteArray* response) const -> NetJob* override;
+
    private:
     inline auto getSortFieldInt(QString sortString) const -> int
     {
@@ -59,7 +67,7 @@ class FlameAPI : public NetworkModAPI {
     };
 
    public:
-    static auto getMappedModLoader(const ModLoaderTypes loaders) -> const int
+    static auto getMappedModLoader(const ModLoaderTypes loaders) -> int
     {
         // https://docs.curseforge.com/?http#tocS_ModLoaderType
         if (loaders & Forge)

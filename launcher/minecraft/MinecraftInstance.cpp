@@ -154,6 +154,12 @@ MinecraftInstance::MinecraftInstance(SettingsObjectPtr globalSettings, SettingsO
     m_settings->registerOverride(globalSettings->getSetting("UseNativeOpenAL"), nativeLibraryWorkaroundsOverride);
     m_settings->registerOverride(globalSettings->getSetting("UseNativeGLFW"), nativeLibraryWorkaroundsOverride);
 
+    // Peformance related options
+    auto performanceOverride = m_settings->registerSetting("OverridePerformance", false);
+    m_settings->registerOverride(globalSettings->getSetting("EnableFeralGamemode"), performanceOverride);
+    m_settings->registerOverride(globalSettings->getSetting("EnableMangoHud"), performanceOverride);
+    m_settings->registerOverride(globalSettings->getSetting("UseDiscreteGpu"), performanceOverride);
+
     // Game time
     auto gameTimeOverride = m_settings->registerSetting("OverrideGameTime", false);
     m_settings->registerOverride(globalSettings->getSetting("ShowGameTime"), gameTimeOverride);
@@ -435,27 +441,57 @@ QProcessEnvironment MinecraftInstance::createEnvironment()
     return env;
 }
 
+QProcessEnvironment MinecraftInstance::createLaunchEnvironment()
+{
+    // prepare the process environment
+    QProcessEnvironment env = createEnvironment();
+
+#ifdef Q_OS_LINUX
+    if (settings()->get("EnableMangoHud").toBool())
+    {
+        auto preload = env.value("LD_PRELOAD", "") + ":libMangoHud_dlsym.so:libMangoHud.so";
+        auto lib_path = env.value("LD_LIBRARY_PATH", "") +  ":/usr/local/$LIB/mangohud/:/usr/$LIB/mangohud/";
+
+        env.insert("LD_PRELOAD", preload);
+        env.insert("LD_LIBRARY_PATH", lib_path);
+        env.insert("MANGOHUD", "1");
+    }
+
+    if (settings()->get("UseDiscreteGpu").toBool())
+    {
+        // Open Source Drivers
+        env.insert("DRI_PRIME", "1");
+        // Proprietary Nvidia Drivers
+        env.insert("__NV_PRIME_RENDER_OFFLOAD", "1");
+        env.insert("__VK_LAYER_NV_optimus", "NVIDIA_only");
+        env.insert("__GLX_VENDOR_LIBRARY_NAME", "nvidia");
+    }
+#endif
+
+    return env;
+}
+
 static QString replaceTokensIn(QString text, QMap<QString, QString> with)
 {
+    // TODO: does this still work??
     QString result;
-    QRegExp token_regexp("\\$\\{(.+)\\}");
-    token_regexp.setMinimal(true);
+    QRegularExpression token_regexp("\\$\\{(.+)\\}", QRegularExpression::InvertedGreedinessOption);
     QStringList list;
-    int tail = 0;
-    int head = 0;
-    while ((head = token_regexp.indexIn(text, head)) != -1)
+    QRegularExpressionMatchIterator i = token_regexp.globalMatch(text);
+    int lastCapturedEnd = 0;
+    while (i.hasNext())
     {
-        result.append(text.mid(tail, head - tail));
-        QString key = token_regexp.cap(1);
+        QRegularExpressionMatch match = i.next();
+        result.append(text.mid(lastCapturedEnd, match.capturedStart()));
+        QString key = match.captured(1);
         auto iter = with.find(key);
         if (iter != with.end())
         {
             result.append(*iter);
         }
-        head += token_regexp.matchedLength();
-        tail = head;
+        lastCapturedEnd = match.capturedEnd();
     }
-    result.append(text.mid(tail));
+    result.append(text.mid(lastCapturedEnd));
     return result;
 }
 
@@ -504,7 +540,11 @@ QStringList MinecraftInstance::processMinecraftArgs(
     token_mapping["assets_root"] = absAssetsDir;
     token_mapping["assets_index_name"] = assets->id;
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    QStringList parts = args_pattern.split(' ', Qt::SkipEmptyParts);
+#else
     QStringList parts = args_pattern.split(' ', QString::SkipEmptyParts);
+#endif
     for (int i = 0; i < parts.length(); i++)
     {
         parts[i] = replaceTokensIn(parts[i], token_mapping);
@@ -660,24 +700,24 @@ QStringList MinecraftInstance::verboseDescription(AuthSessionPtr session, Minecr
         {
             out << QString("%1:").arg(label);
             auto modList = model.allMods();
-            std::sort(modList.begin(), modList.end(), [](Mod &a, Mod &b) {
-                auto aName = a.fileinfo().completeBaseName();
-                auto bName = b.fileinfo().completeBaseName();
+            std::sort(modList.begin(), modList.end(), [](Mod::Ptr a, Mod::Ptr b) {
+                auto aName = a->fileinfo().completeBaseName();
+                auto bName = b->fileinfo().completeBaseName();
                 return aName.localeAwareCompare(bName) < 0;
             });
-            for(auto & mod: modList)
+            for(auto mod: modList)
             {
-                if(mod.type() == Mod::MOD_FOLDER)
+                if(mod->type() == Mod::MOD_FOLDER)
                 {
-                    out << u8"  [📁] " + mod.fileinfo().completeBaseName() + " (folder)";
+                    out << u8"  [📁] " + mod->fileinfo().completeBaseName() + " (folder)";
                     continue;
                 }
 
-                if(mod.enabled()) {
-                    out << u8"  [✔️] " + mod.fileinfo().completeBaseName();
+                if(mod->enabled()) {
+                    out << u8"  [✔️]" + mod->fileinfo().completeBaseName();
                 }
                 else {
-                    out << u8"  [❌] " + mod.fileinfo().completeBaseName() + " (disabled)";
+                    out << u8"  [❌] " + mod->fileinfo().completeBaseName() + " (disabled)";
                 }
 
             }
@@ -1096,16 +1136,16 @@ std::shared_ptr<GameOptions> MinecraftInstance::gameOptionsModel() const
     return m_game_options;
 }
 
-QList< Mod > MinecraftInstance::getJarMods() const
+QList<Mod*> MinecraftInstance::getJarMods() const
 {
     auto profile = m_components->getProfile();
-    QList<Mod> mods;
+    QList<Mod*> mods;
     for (auto jarmod : profile->getJarMods())
     {
         QStringList jar, temp1, temp2, temp3;
         jarmod->getApplicableFiles(currentSystem, jar, temp1, temp2, temp3, jarmodsPath().absolutePath());
         // QString filePath = jarmodsPath().absoluteFilePath(jarmod->filename(currentSystem));
-        mods.push_back(Mod(QFileInfo(jar[0])));
+        mods.push_back(new Mod(QFileInfo(jar[0])));
     }
     return mods;
 }

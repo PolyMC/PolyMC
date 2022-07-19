@@ -36,13 +36,16 @@
 #include "LauncherPartLaunch.h"
 
 #include <QStandardPaths>
-#include <QRegularExpression>
 
 #include "launch/LaunchTask.h"
 #include "minecraft/MinecraftInstance.h"
 #include "FileSystem.h"
 #include "Commandline.h"
 #include "Application.h"
+
+#ifdef Q_OS_LINUX
+#include "gamemode_client.h"
+#endif
 
 LauncherPartLaunch::LauncherPartLaunch(LaunchTask *parent) : LaunchStep(parent)
 {
@@ -92,6 +95,15 @@ bool fitsInLocal8bit(const QString & string)
 
 void LauncherPartLaunch::executeTask()
 {
+    QString jarPath = APPLICATION->getJarPath("NewLaunch.jar");
+    if (jarPath.isEmpty())
+    {
+        const char *reason = QT_TR_NOOP("Launcher library could not be found. Please check your installation.");
+        emit logLine(tr(reason), MessageLevel::Fatal);
+        emitFailed(tr(reason));
+        return;
+    }
+
     auto instance = m_parent->instance();
     std::shared_ptr<MinecraftInstance> minecraftInstance = std::dynamic_pointer_cast<MinecraftInstance>(instance);
 
@@ -102,13 +114,13 @@ void LauncherPartLaunch::executeTask()
 
     auto javaPath = FS::ResolveExecutable(instance->settings()->get("JavaPath").toString());
 
-    m_process.setProcessEnvironment(instance->createEnvironment());
+    m_process.setProcessEnvironment(instance->createLaunchEnvironment());
 
     // make detachable - this will keep the process running even if the object is destroyed
     m_process.setDetachable(true);
 
     auto classPath = minecraftInstance->getClassPath();
-    classPath.prepend(FS::PathCombine(APPLICATION->getJarsPath(), "NewLaunch.jar"));
+    classPath.prepend(jarPath);
 
     auto natPath = minecraftInstance->getNativePath();
 #ifdef Q_OS_WIN
@@ -167,6 +179,17 @@ void LauncherPartLaunch::executeTask()
     {
         m_process.start(javaPath, args);
     }
+
+#ifdef Q_OS_LINUX
+    if (instance->settings()->get("EnableFeralGamemode").toBool())
+    {
+        auto pid = m_process.processId();
+        if (pid)
+        {
+            gamemode_request_start_for(pid);
+        }
+    }
+#endif
 }
 
 void LauncherPartLaunch::on_state(LoggedProcess::State state)

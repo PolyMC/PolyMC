@@ -325,7 +325,7 @@ void InstanceImportTask::processFlame()
     // Hack to correct some 'special sauce'...
     if(mcVersion.endsWith('.'))
     {
-        mcVersion.remove(QRegExp("[.]+$"));
+        mcVersion.remove(QRegularExpression("[.]+$"));
         logWarning(tr("Mysterious trailing dots removed from Minecraft version while importing pack."));
     }
     auto components = instance.getPackProfile();
@@ -412,12 +412,8 @@ void InstanceImportTask::processFlame()
                                                           "You will need to manually download them and add them to the modpack"),
                                                        text);
             message_dialog->setModal(true);
-            message_dialog->show();
-            connect(message_dialog, &QDialog::rejected, [&]() {
-                m_modIdResolver.reset();
-                emitFailed("Canceled");
-            });
-            connect(message_dialog, &QDialog::accepted, [&]() {
+
+            if (message_dialog->exec()) {
                 m_filesNetJob = new NetJob(tr("Mod download"), APPLICATION->network());
                 for (const auto &result: m_modIdResolver->getResults().files) {
                     QString filename = result.fileName;
@@ -469,8 +465,11 @@ void InstanceImportTask::processFlame()
                 });
                 setStatus(tr("Downloading mods..."));
                 m_filesNetJob->start();
-            });
-        }else{
+            } else {
+                m_modIdResolver.reset();
+                emitFailed("Canceled");
+            }
+        } else {
             //TODO extract to function ?
             m_filesNetJob = new NetJob(tr("Mod download"), APPLICATION->network());
             for (const auto &result: m_modIdResolver->getResults().files) {
@@ -723,11 +722,11 @@ void InstanceImportTask::processModrinth()
     components->buildingFromScratch();
     components->setComponentVersion("net.minecraft", minecraftVersion, true);
     if (!fabricVersion.isEmpty())
-        components->setComponentVersion("net.fabricmc.fabric-loader", fabricVersion, true);
+        components->setComponentVersion("net.fabricmc.fabric-loader", fabricVersion);
     if (!quiltVersion.isEmpty())
-        components->setComponentVersion("org.quiltmc.quilt-loader", quiltVersion, true);
+        components->setComponentVersion("org.quiltmc.quilt-loader", quiltVersion);
     if (!forgeVersion.isEmpty())
-        components->setComponentVersion("net.minecraftforge", forgeVersion, true);
+        components->setComponentVersion("net.minecraftforge", forgeVersion);
     if (m_instIcon != "default")
     {
         instance.setIconKey(m_instIcon);

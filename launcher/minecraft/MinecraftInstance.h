@@ -81,7 +81,7 @@ public:
     shared_qobject_ptr<LaunchTask> createLaunchTask(AuthSessionPtr account, MinecraftServerTargetPtr serverToJoin) override;
     QStringList extraArguments() const override;
     QStringList verboseDescription(AuthSessionPtr session, MinecraftServerTargetPtr serverToJoin) override;
-    QList<Mod> getJarMods() const;
+    QList<Mod*> getJarMods() const;
     QString createLaunchScript(AuthSessionPtr session, MinecraftServerTargetPtr serverToJoin);
     /// get arguments passed to java
     QStringList javaArguments() const;
@@ -91,6 +91,7 @@ public:
 
     /// create an environment for launching processes
     QProcessEnvironment createEnvironment() override;
+    QProcessEnvironment createLaunchEnvironment() override;
 
     /// guess log level from a line of minecraft log
     MessageLevel::Enum guessLevel(const QString &line, MessageLevel::Enum level) override;

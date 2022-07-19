@@ -12,6 +12,8 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       build_type: Release
+    secrets:
+      SPARKLE_ED25519_KEY: ${{ secrets.SPARKLE_ED25519_KEY }}
 
   create_release:
     needs: build_release
@@ -42,10 +44,11 @@ jobs:
 
           for d in PolyMC-Windows-*; do
             cd "${d}" || continue
-            ARCH="$(echo -n ${d} | cut -d '-' -f 3)"
+            LEGACY="$(echo -n ${d} | grep -o Legacy || true)"
             INST="$(echo -n ${d} | grep -o Setup || true)"
             PORT="$(echo -n ${d} | grep -o Portable || true)"
-            NAME="PolyMC-Windows-${ARCH}"
+            NAME="PolyMC-Windows"
+            test -z "${LEGACY}" || NAME="${NAME}-Legacy"
             test -z "${PORT}" || NAME="${NAME}-Portable"
             test -z "${INST}" || mv PolyMC-*.exe ../${NAME}-Setup-${{ env.VERSION }}.exe
             test -n "${INST}" || zip -r -9 "../${NAME}-${{ env.VERSION }}.zip" *
@@ -66,11 +69,11 @@ jobs:
             PolyMC-Linux-${{ env.VERSION }}.tar.gz
             PolyMC-Linux-Portable-${{ env.VERSION }}.tar.gz
             PolyMC-Linux-${{ env.VERSION }}-x86_64.AppImage
-            PolyMC-Windows-i686-${{ env.VERSION }}.zip
-            PolyMC-Windows-i686-Portable-${{ env.VERSION }}.zip
-            PolyMC-Windows-i686-Setup-${{ env.VERSION }}.exe
-            PolyMC-Windows-x86_64-${{ env.VERSION }}.zip
-            PolyMC-Windows-x86_64-Portable-${{ env.VERSION }}.zip
-            PolyMC-Windows-x86_64-Setup-${{ env.VERSION }}.exe
+            PolyMC-Windows-Legacy-${{ env.VERSION }}.zip
+            PolyMC-Windows-Legacy-Portable-${{ env.VERSION }}.zip
+            PolyMC-Windows-Legacy-Setup-${{ env.VERSION }}.exe
+            PolyMC-Windows-${{ env.VERSION }}.zip
+            PolyMC-Windows-Portable-${{ env.VERSION }}.zip
+            PolyMC-Windows-Setup-${{ env.VERSION }}.exe
             PolyMC-macOS-${{ env.VERSION }}.tar.gz
             PolyMC-${{ env.VERSION }}.tar.gz
