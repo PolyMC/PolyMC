@@ -305,7 +305,7 @@ bool InstanceList::trashInstance(const InstanceId& id)
     }
 
     if (!FS::trash(inst->instanceRoot(), &trashedLoc)) {
-        qWarning() << "Trash of instance" << id << "has not been completely successful ...";
+        qDebug() << "Trash of instance" << id << "has not been completely successfully...";
         return false;
     }
 
