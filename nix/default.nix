@@ -88,7 +88,7 @@ stdenv.mkDerivation rec {
       their associated options with a simple interface.
     '';
     platforms = platforms.unix;
-    license = licenses.gpl3Plus;
+    license = licenses.gpl3Only;
     maintainers = with maintainers; [ starcraft66 kloenk ];
   };
 }
