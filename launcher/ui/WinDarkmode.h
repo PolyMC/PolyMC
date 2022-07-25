@@ -1,10 +1,9 @@
 #ifndef WINDARKMODE_H
 #define WINDARKMODE_H
 
-#include <QWidget>
 
 #ifdef Q_OS_WIN
-#include <Windows.h>
+#include <windows.h>
 #include <dwmapi.h>
 #pragma comment (lib, "Dwmapi.lib")
 #endif
