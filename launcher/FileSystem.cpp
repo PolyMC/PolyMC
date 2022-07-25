@@ -341,7 +341,7 @@ bool checkProblemticPathJava(QDir folder)
 
 bool called_coinit = false;
 
-HRESULT CreateLink(LPCWSTR linkPath, LPCWSTR targetPath, LPCWSTR args)
+HRESULT CreateLink(LPCCH linkPath, LPCWSTR targetPath, LPCWSTR args)
 {
     HRESULT hres;
 
