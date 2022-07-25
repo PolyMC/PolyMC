@@ -63,7 +63,7 @@ QStringList reprocess(const QByteArray& data, QByteArray& leftover)
 {
     QByteArray str = leftover + data;
 
-    str.removeIf([](char c) -> bool { return c == '\r'; });
+    str.erase(std::remove_if(str.begin(), str.end(), [](char c) -> bool { return c == '\r'; }), str.end());
     QByteArrayList lines = str.split('\n');
     leftover = lines.takeLast();
 
