@@ -59,14 +59,18 @@ LoggedProcess::~LoggedProcess()
     }
 }
 
-QStringList reprocess(const QByteArray & data, QString & leftover)
+QStringList reprocess(const QByteArray& data, QByteArray& leftover)
 {
-    QString str = leftover + QString::fromLocal8Bit(data);
+    QByteArray str = leftover + data;
 
-    str.remove('\r');
-    QStringList lines = str.split("\n");
+    str.removeIf([](char c) -> bool { return c == '\r'; });
+    QByteArrayList lines = str.split('\n');
     leftover = lines.takeLast();
-    return lines;
+
+    // Only decode whole lines to yield "Well-Formed UTF-8 Byte Sequences" in case the buffer is flushed partway through a sequence.
+    QStringList decodedLines;
+    std::transform(lines.begin(), lines.end(), std::back_inserter(decodedLines), [](const QByteArray& a) { return QString::fromUtf8(a); });
+    return decodedLines;
 }
 
 void LoggedProcess::on_stdErr()
@@ -89,12 +93,12 @@ void LoggedProcess::on_exit(int exit_code, QProcess::ExitStatus status)
     // Flush console window
     if (!m_err_leftover.isEmpty())
     {
-        emit log({m_err_leftover}, MessageLevel::StdErr);
+        emit log({ QString::fromUtf8(m_err_leftover) }, MessageLevel::StdErr);
         m_err_leftover.clear();
     }
     if (!m_out_leftover.isEmpty())
     {
-        emit log({m_err_leftover}, MessageLevel::StdOut);
+        emit log({ QString::fromUtf8(m_err_leftover) }, MessageLevel::StdOut);
         m_out_leftover.clear();
     }
 

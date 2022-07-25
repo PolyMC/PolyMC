@@ -88,8 +88,8 @@ private:
     void changeState(LoggedProcess::State state);
 
 private:
-    QString m_err_leftover;
-    QString m_out_leftover;
+    QByteArray m_err_leftover;
+    QByteArray m_out_leftover;
     bool m_killed = false;
     State m_state = NotRunning;
     int m_exit_code = 0;
