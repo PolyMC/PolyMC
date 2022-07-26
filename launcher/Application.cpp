@@ -60,7 +60,9 @@
 #include "ui/themes/BrightTheme.h"
 #include "ui/themes/CustomTheme.h"
 
+#ifdef Q_OS_WIN
 #include "ui/WinDarkmode.h"
+#endif
 
 #include "ui/setupwizard/SetupWizard.h"
 #include "ui/setupwizard/LanguageWizardPage.h"

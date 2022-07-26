@@ -654,8 +654,6 @@ SET(LAUNCHER_SOURCES
     ui/MainWindow.cpp
     ui/InstanceWindow.h
     ui/InstanceWindow.cpp
-    ui/WinDarkmode.h
-    ui/WinDarkmode.cpp
 
     # FIXME: maybe find a better home for this.
     SkinUtils.cpp
