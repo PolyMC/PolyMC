@@ -7,7 +7,6 @@ namespace WinDarkmode {
 /* See https://github.com/statiolake/neovim-qt/commit/da8eaba7f0e38b6b51f3bacd02a8cc2d1f7a34d8 */
 void setDarkWinTitlebar(WId winid, bool darkmode)
 {
-#ifdef Q_OS_WIN
     HWND hwnd = reinterpret_cast<HWND>(winid);
     BOOL dark = (BOOL) darkmode;
 
@@ -28,7 +27,6 @@ void setDarkWinTitlebar(WId winid, bool darkmode)
         sizeof(dark)
     };
     SetWindowCompositionAttribute(hwnd, &data);
-#endif
 }
 
 }

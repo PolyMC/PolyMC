@@ -654,8 +654,6 @@ SET(LAUNCHER_SOURCES
     ui/MainWindow.cpp
     ui/InstanceWindow.h
     ui/InstanceWindow.cpp
-    ui/WinDarkmode.h
-    ui/WinDarkmode.cpp
 
     # FIXME: maybe find a better home for this.
     SkinUtils.cpp
@@ -908,6 +906,16 @@ SET(LAUNCHER_SOURCES
     ui/instanceview/VisualGroup.cpp
     ui/instanceview/VisualGroup.h
 )
+
+if(WIN32)
+    set(LAUNCHER_SOURCES
+        ${LAUNCHER_SOURCES}
+
+        # GUI - dark titlebar for Windows 10/11
+        ui/WinDarkmode.h
+        ui/WinDarkmode.cpp
+    )
+endif()
 
 qt_wrap_ui(LAUNCHER_UI
     ui/setupwizard/PasteWizardPage.ui

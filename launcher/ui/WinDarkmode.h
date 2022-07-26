@@ -1,18 +1,13 @@
-#ifndef WINDARKMODE_H
-#define WINDARKMODE_H
+#pragma once
 
-
-#ifdef Q_OS_WIN
 #include <windows.h>
 #include <dwmapi.h>
-#pragma comment (lib, "Dwmapi.lib")
-#endif
+
 
 namespace WinDarkmode {
 
 void setDarkWinTitlebar(WId winid, bool darkmode);
 
-#ifdef Q_OS_WIN
 enum PreferredAppMode {
     Default,
     AllowDark,
@@ -62,8 +57,4 @@ using fnAllowDarkModeForWindow =  BOOL (WINAPI *)(HWND hWnd, BOOL allow);
 using fnSetPreferredAppMode = PreferredAppMode (WINAPI *)(PreferredAppMode appMode);
 using fnSetWindowCompositionAttribute =  BOOL (WINAPI *)(HWND hwnd, WINDOWCOMPOSITIONATTRIBDATA *);
 
-#endif
-
 }
-
-#endif // WINDARKMODE_H
