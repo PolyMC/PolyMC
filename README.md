@@ -59,7 +59,8 @@ If you want to build PolyMC yourself, check [Build Instructions](https://polymc.
 The translation effort for PolyMC is hosted on [Weblate](https://hosted.weblate.org/projects/polymc/polymc/) and information about translating PolyMC is available at https://github.com/PolyMC/Translations
 
 ## Download information
-To modify download information or change packaging information send a pull request or issue to the website [Here](https://github.com/PolyMC/polymc.github.io/blob/master/src/download.md)
+
+To modify download information or change packaging information send a pull request or issue to the website [here](https://github.com/PolyMC/polymc.github.io/tree/master/src/download).
 
 ## Forking/Redistributing/Custom builds policy
 
