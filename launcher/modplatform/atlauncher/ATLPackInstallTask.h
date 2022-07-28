@@ -87,6 +87,7 @@ protected:
 private slots:
     void onDownloadSucceeded();
     void onDownloadFailed(QString reason);
+    void onDownloadAborted();
 
     void onModsDownloaded();
     void onModsExtracted();
