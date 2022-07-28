@@ -17,7 +17,7 @@ If you want to read about why this fork was created, check out [our FAQ page](ht
 
 ## Development Builds
 
-There are per-commit development builds available [here](https://github.com/PolyMC/PolyMC/actions). These have debug information in the binaries, so their file sizes are relatively larger.
+There are per-commit development builds available [here](https://github.com/EvilToasterDBU/PolyMC-Offline/actions). These have debug information in the binaries, so their file sizes are relatively larger.
 Portable builds are provided for AppImage on Linux, Windows, and macOS.
 
 
