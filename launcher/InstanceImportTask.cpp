@@ -97,10 +97,11 @@ void InstanceImportTask::executeTask()
         m_filesNetJob = new NetJob(tr("Modpack download"), APPLICATION->network());
         m_filesNetJob->addNetAction(Net::Download::makeCached(m_sourceUrl, entry));
         m_archivePath = entry->getFullPath();
-        auto job = m_filesNetJob.get();
-        connect(job, &NetJob::succeeded, this, &InstanceImportTask::downloadSucceeded);
-        connect(job, &NetJob::progress, this, &InstanceImportTask::downloadProgressChanged);
-        connect(job, &NetJob::failed, this, &InstanceImportTask::downloadFailed);
+        connect(m_filesNetJob.get(), &NetJob::succeeded, this, &InstanceImportTask::downloadSucceeded);
+        connect(m_filesNetJob.get(), &NetJob::progress, this, &InstanceImportTask::downloadProgressChanged);
+        connect(m_filesNetJob.get(), &NetJob::failed, this, &InstanceImportTask::downloadFailed);
+        connect(m_filesNetJob.get(), &NetJob::aborted, this, &InstanceImportTask::downloadAborted);
+
         m_filesNetJob->start();
     }
 }
@@ -120,6 +121,12 @@ void InstanceImportTask::downloadFailed(QString reason)
 void InstanceImportTask::downloadProgressChanged(qint64 current, qint64 total)
 {
     setProgress(current / 2, total);
+}
+
+void InstanceImportTask::downloadAborted()
+{
+    emitAborted();
+    m_filesNetJob.reset();
 }
 
 void InstanceImportTask::processZipPack()
@@ -255,8 +262,7 @@ void InstanceImportTask::extractFinished()
 
 void InstanceImportTask::extractAborted()
 {
-    emitFailed(tr("Instance import has been aborted."));
-    return;
+    emitAborted();
 }
 
 void InstanceImportTask::processFlame()
