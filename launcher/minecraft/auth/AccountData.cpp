@@ -350,6 +350,8 @@ bool AccountData::resumeStateFromV3(QJsonObject data) {
         type = AccountType::MSA;
     } else if (typeS == "Mojang") {
         type = AccountType::Mojang;
+    } else if (typeS == "CustomYggdrasil") {
+        type = AccountType::CustomYggdrasil;
     } else if (typeS == "Offline") {
         type = AccountType::Offline;
     } else {
@@ -360,6 +362,12 @@ bool AccountData::resumeStateFromV3(QJsonObject data) {
     if(type == AccountType::Mojang) {
         legacy = data.value("legacy").toBool(false);
         canMigrateToMSA = data.value("canMigrateToMSA").toBool(false);
+    }
+
+    if(type == AccountType::CustomYggdrasil) {
+        authServerUrl = data.value("authServerUrl").toString();
+        sessionServerUrl = data.value("sessionServerUrl").toString();
+        apiServerUrl = data.value("apiServerUrl").toString();
     }
 
     if(type == AccountType::MSA) {
@@ -406,6 +414,12 @@ QJsonObject AccountData::saveState() const {
         tokenToJSONV3(output, xboxApiToken, "xrp-main");
         tokenToJSONV3(output, mojangservicesToken, "xrp-mc");
     }
+    else if (type == AccountType::CustomYggdrasil) {
+        output["type"] = "CustomYggdrasil";
+        output["authServerUrl"] = authServerUrl;
+        output["sessionServerUrl"] = sessionServerUrl;
+        output["apiServerUrl"] = apiServerUrl;
+    }
     else if (type == AccountType::Offline) {
         output["type"] = "Offline";
     }
@@ -428,14 +442,14 @@ QString AccountData::accessToken() const {
 }
 
 QString AccountData::clientToken() const {
-    if(type != AccountType::Mojang) {
+    if(type != AccountType::Mojang && type != AccountType::CustomYggdrasil) {
         return QString();
     }
     return yggdrasilToken.extra["clientToken"].toString();
 }
 
 void AccountData::setClientToken(QString clientToken) {
-    if(type != AccountType::Mojang) {
+    if(type != AccountType::Mojang && type != AccountType::CustomYggdrasil) {
         return;
     }
     yggdrasilToken.extra["clientToken"] = clientToken;
@@ -449,7 +463,7 @@ void AccountData::generateClientTokenIfMissing() {
 }
 
 void AccountData::invalidateClientToken() {
-    if(type != AccountType::Mojang) {
+    if(type != AccountType::Mojang && type != AccountType::CustomYggdrasil) {
         return;
     }
     yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegularExpression("[{-}]"));
@@ -471,6 +485,9 @@ QString AccountData::profileName() const {
 QString AccountData::accountDisplayString() const {
     switch(type) {
         case AccountType::Mojang: {
+            return userName();
+        }
+        case AccountType::CustomYggdrasil: {
             return userName();
         }
         case AccountType::Offline: {

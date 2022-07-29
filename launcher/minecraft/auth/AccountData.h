@@ -74,6 +74,7 @@ struct MinecraftProfile {
 enum class AccountType {
     MSA,
     Mojang,
+    CustomYggdrasil,
     Offline
 };
 
@@ -116,6 +117,10 @@ struct AccountData {
     AccountType type = AccountType::MSA;
     bool legacy = false;
     bool canMigrateToMSA = false;
+
+    QString authServerUrl;
+    QString sessionServerUrl;
+    QString apiServerUrl;
 
     QString msaClientID;
     Katabasis::Token msaToken;

@@ -137,6 +137,7 @@ bool parseXTokenResponse(QByteArray & data, Katabasis::Token &output, QString na
 
 bool parseMinecraftProfile(QByteArray & data, MinecraftProfile &output) {
     qDebug() << "Parsing Minecraft profile...";
+    qDebug() << data;
 #ifndef NDEBUG
     qDebug() << data;
 #endif
@@ -275,6 +276,7 @@ decoded base64 "value":
 
 bool parseMinecraftProfileMojang(QByteArray & data, MinecraftProfile &output) {
     qDebug() << "Parsing Minecraft profile...";
+    qDebug() << data;
 #ifndef NDEBUG
     qDebug() << data;
 #endif

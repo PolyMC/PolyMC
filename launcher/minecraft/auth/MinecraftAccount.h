@@ -90,6 +90,7 @@ public: /* construction */
     explicit MinecraftAccount(QObject *parent = 0);
 
     static MinecraftAccountPtr createFromUsername(const QString &username);
+    static MinecraftAccountPtr createFromUsernameCustomYggdrasil(const QString &username, const QString &authServerUrl, const QString &sessionServerUrl, const QString &apiServerUrl);
 
     static MinecraftAccountPtr createBlankMSA();
 
@@ -108,6 +109,8 @@ public: /* manipulation */
      * If the attempt fails because we already are performing some task, it returns false.
      */
     shared_qobject_ptr<AccountTask> login(QString password);
+
+    shared_qobject_ptr<AccountTask> loginCustomYggdrasil(QString password);
 
     shared_qobject_ptr<AccountTask> loginMSA();
 
@@ -170,6 +173,10 @@ public: /* queries */
                 if(data.legacy) {
                     return "legacy";
                 }
+                return "mojang";
+            }
+            break;
+            case AccountType::CustomYggdrasil: {
                 return "mojang";
             }
             break;

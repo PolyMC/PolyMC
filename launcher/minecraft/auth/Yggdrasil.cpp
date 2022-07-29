@@ -25,6 +25,7 @@
 
 #include <QDebug>
 
+#include "BuildConfig.h"
 #include "Application.h"
 
 Yggdrasil::Yggdrasil(AccountData *data, QObject *parent)
@@ -72,6 +73,8 @@ void Yggdrasil::refresh() {
     QJsonObject req;
     req.insert("clientToken", m_data->clientToken());
     req.insert("accessToken", m_data->accessToken());
+
+    qDebug() << "refreshing, access token is" << m_data->accessToken();
     /*
     {
         auto currentProfile = m_account->currentProfile();
@@ -84,10 +87,18 @@ void Yggdrasil::refresh() {
     req.insert("requestUser", false);
     QJsonDocument doc(req);
 
-    QUrl reqUrl("https://authserver.mojang.com/refresh");
+    QUrl reqUrl(Yggdrasil::getAuthBase() + "/refresh");
     QByteArray requestData = doc.toJson();
 
     sendRequest(reqUrl, requestData);
+}
+
+QString Yggdrasil::getAuthBase() {
+    if (m_data->type == AccountType::CustomYggdrasil) {
+        return m_data->authServerUrl;
+    } else {
+        return BuildConfig.MOJANG_AUTH_BASE;
+    }
 }
 
 void Yggdrasil::login(QString password) {
@@ -129,7 +140,7 @@ void Yggdrasil::login(QString password) {
 
     QJsonDocument doc(req);
 
-    QUrl reqUrl("https://authserver.mojang.com/authenticate");
+    QUrl reqUrl(Yggdrasil::getAuthBase() + "/authenticate");
     QNetworkRequest netRequest(reqUrl);
     QByteArray requestData = doc.toJson();
 
