@@ -70,10 +70,10 @@ public:
     void move(const int index, const MoveDirection direction);
 
     /// remove component file # - including files/records
-    bool remove(const int index);
+    bool remove(const int index, const QString realArchitecture);
 
     /// remove component file by id - including files/records
-    bool remove(const QString id);
+    bool remove(const QString id, const QString realArchitecture);
 
     bool customize(int index);
 
@@ -88,7 +88,7 @@ public:
     /// get current running task...
     Task::Ptr getCurrentTask();
 
-    std::shared_ptr<LaunchProfile> getProfile() const;
+    std::shared_ptr<LaunchProfile> getProfile(const SettingsObjectPtr& settingsObjJavaArch) const;
 
     // NOTE: used ONLY by MinecraftInstance to provide legacy version mappings from instance config
     void setOldConfigVersion(const QString &uid, const QString &version);
@@ -144,7 +144,7 @@ private:
     bool load();
     bool installJarMods_internal(QStringList filepaths);
     bool installCustomJar_internal(QString filepath);
-    bool removeComponent_internal(ComponentPtr patch);
+    bool removeComponent_internal(ComponentPtr patch, QString realArchitecture);
 
 private: /* data */
 

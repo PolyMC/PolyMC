@@ -181,6 +181,7 @@ void InstanceSettingsPage::applySettings()
     {
         m_settings->set("JavaPath", ui->javaPathTextBox->text());
         m_settings->set("IgnoreJavaCompatibility", ui->skipCompatibilityCheckbox->isChecked());
+        m_settings->set("JavaRealArchitecture", ""); //bye bye cache
     }
     else
     {

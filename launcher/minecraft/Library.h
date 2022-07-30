@@ -10,11 +10,11 @@
 #include <memory>
 
 #include "Rule.h"
-#include "minecraft/OpSys.h"
 #include "GradleSpecifier.h"
 #include "MojangDownloadInfo.h"
 
 class Library;
+class Rule;
 class MinecraftInstance;
 
 typedef std::shared_ptr<Library> LibraryPtr;
@@ -46,6 +46,7 @@ public:
         newlib->m_storagePrefix = base->m_storagePrefix;
         newlib->m_mojangDownloads = base->m_mojangDownloads;
         newlib->m_filename = base->m_filename;
+        newlib->m_archDependent = base->m_archDependent;
         return newlib;
     }
 
@@ -98,7 +99,7 @@ public: /* methods */
         m_repositoryURL = base_url;
     }
 
-    void getApplicableFiles(OpSys system, QStringList & jar, QStringList & native,
+    void getApplicableFiles(QString system, QString arch, QStringList & jar, QStringList & native,
                             QStringList & native32, QStringList & native64, const QString & overridePath) const;
 
     void setAbsoluteUrl(const QString &absolute_url)
@@ -112,7 +113,7 @@ public: /* methods */
     }
 
     /// Get the file name of the library
-    QString filename(OpSys system) const;
+    QString filename(QString system, QString arch) const;
 
     // DEPRECATED: set a display name, used by jar mods only
     void setDisplayName(const QString & displayName)
@@ -121,7 +122,7 @@ public: /* methods */
     }
 
     /// Get the file name of the library
-    QString displayName(OpSys system) const;
+    QString displayName(QString system, QString arch) const;
 
     void setMojangDownloadInfo(MojangLibraryDownloadInfo::Ptr info)
     {
@@ -139,8 +140,14 @@ public: /* methods */
         m_rules = rules;
     }
 
+    /// Set archDependent
+    void setArchDependent(bool archDependent)
+    {
+        m_archDependent = archDependent;
+    }
+
     /// Returns true if the library should be loaded (or extracted, in case of natives)
-    bool isActive() const;
+    bool isActive(const SettingsObjectPtr& settingsObjJavaArch);
 
     /// Returns true if the library is contained in an instance and false if it is shared
     bool isLocal() const;
@@ -152,8 +159,8 @@ public: /* methods */
     bool isForge() const;
 
     // Get a list of downloads for this library
-    QList<NetAction::Ptr> getDownloads(OpSys system, class HttpMetaCache * cache,
-                                     QStringList & failedLocalFiles, const QString & overridePath) const;
+    QList<NetAction::Ptr> getDownloads(QString system, QString arch, class HttpMetaCache * cache,
+                                     QStringList & failedLocalFiles, const QString & overridePath);
 
 private: /* methods */
     /// the default storage prefix used by PolyMC
@@ -163,7 +170,7 @@ private: /* methods */
     QString storagePrefix() const;
 
     /// Get the relative file path where the library should be saved
-    QString storageSuffix(OpSys system) const;
+    QString storageSuffix(QString system, QString arch) const;
 
     QString hint() const
     {
@@ -204,7 +211,7 @@ protected: /* data */
     QStringList m_extractExcludes;
 
     /// native suffixes per OS
-    QMap<OpSys, QString> m_nativeClassifiers;
+    QMap<QString, QString> m_nativeClassifiers;
 
     /// true if the library had a rules section (even empty)
     bool applyRules = false;
@@ -214,5 +221,8 @@ protected: /* data */
 
     /// MOJANG: container with Mojang style download info
     MojangLibraryDownloadInfo::Ptr m_mojangDownloads;
+
+    /// PolyMC: do we need to append architecture to the filename?
+    bool m_archDependent = false;
 };
 

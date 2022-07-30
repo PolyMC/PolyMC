@@ -17,7 +17,7 @@ void FMLLibrariesTask::executeTask()
     // Get the mod list
     MinecraftInstance *inst = (MinecraftInstance *)m_inst;
     auto components = inst->getPackProfile();
-    auto profile = components->getProfile();
+    auto profile = components->getProfile(inst->settings());
 
     if (!profile->hasTrait("legacyFML"))
     {

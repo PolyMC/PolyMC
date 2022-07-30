@@ -5,9 +5,10 @@
 #include <net/ChecksumValidator.h>
 #include <FileSystem.h>
 #include <BuildConfig.h>
+#include "SysInfo.h"
 
 
-void Library::getApplicableFiles(OpSys system, QStringList& jar, QStringList& native, QStringList& native32,
+void Library::getApplicableFiles(QString system, QString arch, QStringList& jar, QStringList& native, QStringList& native32,
                                  QStringList& native64, const QString &overridePath) const
 {
     bool local = isLocal();
@@ -21,7 +22,7 @@ void Library::getApplicableFiles(OpSys system, QStringList& jar, QStringList& na
         }
         return out.absoluteFilePath();
     };
-    QString raw_storage = storageSuffix(system);
+    QString raw_storage = storageSuffix(system, arch);
     if(isNative())
     {
         if (raw_storage.contains("${arch}"))
@@ -45,11 +46,12 @@ void Library::getApplicableFiles(OpSys system, QStringList& jar, QStringList& na
 }
 
 QList<NetAction::Ptr> Library::getDownloads(
-    OpSys system,
+    QString system,
+    QString arch,
     class HttpMetaCache* cache,
     QStringList& failedLocalFiles,
     const QString & overridePath
-) const
+)
 {
     QList<NetAction::Ptr> out;
     bool stale = isAlwaysStale();
@@ -104,14 +106,14 @@ QList<NetAction::Ptr> Library::getDownloads(
         return true;
     };
 
-    QString raw_storage = storageSuffix(system);
+    QString raw_storage = storageSuffix(system, arch);
     if(m_mojangDownloads)
     {
         if(isNative())
         {
-            if(m_nativeClassifiers.contains(system))
+            if(m_nativeClassifiers.contains(SysInfo::currentOSString(system, arch)))
             {
-                auto nativeClassifier = m_nativeClassifiers[system];
+                auto nativeClassifier = m_nativeClassifiers[SysInfo::currentOSString(system, arch)];
                 if(nativeClassifier.contains("${arch}"))
                 {
                     auto nat32Classifier = nativeClassifier;
@@ -162,6 +164,7 @@ QList<NetAction::Ptr> Library::getDownloads(
     }
     else
     {
+        // qDebug() << "no m_mojangDownloads for " << m_name.serialize() << "m_absoluteURL m_repositoryURL" << m_absoluteURL << "," << m_repositoryURL;
         auto raw_dl = [&]()
         {
             if (!m_absoluteURL.isEmpty())
@@ -200,7 +203,7 @@ QList<NetAction::Ptr> Library::getDownloads(
     return out;
 }
 
-bool Library::isActive() const
+bool Library::isActive(const SettingsObjectPtr& settingsObjJavaArch)
 {
     bool result = true;
     if (m_rules.empty())
@@ -212,7 +215,7 @@ bool Library::isActive() const
         RuleAction ruleResult = Disallow;
         for (auto rule : m_rules)
         {
-            RuleAction temp = rule->apply(this);
+            RuleAction temp = rule->apply(this, settingsObjJavaArch);
             if (temp != Defer)
                 ruleResult = temp;
         }
@@ -220,7 +223,7 @@ bool Library::isActive() const
     }
     if (isNative())
     {
-        result = result && m_nativeClassifiers.contains(currentSystem);
+        result = result && m_nativeClassifiers.contains(SysInfo::currentOSString(settingsObjJavaArch));
     }
     return result;
 }
@@ -254,7 +257,7 @@ QString Library::storagePrefix() const
     return m_storagePrefix;
 }
 
-QString Library::filename(OpSys system) const
+QString Library::filename(QString system, QString arch) const
 {
     if(!m_filename.isEmpty())
     {
@@ -263,46 +266,48 @@ QString Library::filename(OpSys system) const
     // non-native? use only the gradle specifier
     if (!isNative())
     {
-        return m_name.getFileName();
+        return m_name.getFileName(arch, m_archDependent);
     }
 
     // otherwise native, override classifiers. Mojang HACK!
     GradleSpecifier nativeSpec = m_name;
-    if (m_nativeClassifiers.contains(system))
+    if (m_nativeClassifiers.contains(SysInfo::currentOSString(system, arch)))
     {
-        nativeSpec.setClassifier(m_nativeClassifiers[system]);
+        nativeSpec.setClassifier(m_nativeClassifiers[SysInfo::currentOSString(system, arch)]);
     }
     else
     {
         nativeSpec.setClassifier("INVALID");
     }
-    return nativeSpec.getFileName();
+    return nativeSpec.getFileName(arch, m_archDependent);
 }
 
-QString Library::displayName(OpSys system) const
+QString Library::displayName(QString system, QString arch) const
 {
     if(!m_displayname.isEmpty())
         return m_displayname;
-    return filename(system);
+    return filename(system, arch);
 }
 
-QString Library::storageSuffix(OpSys system) const
+QString Library::storageSuffix(QString system, QString arch) const
 {
+    // qDebug() << "storageSuffix called" << m_archDependent;
     // non-native? use only the gradle specifier
     if (!isNative())
     {
-        return m_name.toPath(m_filename);
+        // qDebug() << "storageSuffix: non-native filename:" << m_filename << "arch: " << arch;
+        return m_name.toPath(m_filename, arch, m_archDependent);
     }
 
     // otherwise native, override classifiers. Mojang HACK!
     GradleSpecifier nativeSpec = m_name;
-    if (m_nativeClassifiers.contains(system))
+    if (m_nativeClassifiers.contains(SysInfo::currentOSString(system, arch)))
     {
-        nativeSpec.setClassifier(m_nativeClassifiers[system]);
+        nativeSpec.setClassifier(m_nativeClassifiers[SysInfo::currentOSString(system, arch)]);
     }
     else
     {
         nativeSpec.setClassifier("INVALID");
     }
-    return nativeSpec.toPath(m_filename);
+    return nativeSpec.toPath(m_filename, arch, m_archDependent);
 }

@@ -46,7 +46,7 @@ void VerifyJavaInstall::executeTask() {
     auto storedVersion = settings->get("JavaVersion").toString();
     auto ignoreCompatibility = settings->get("IgnoreJavaCompatibility").toBool();
 
-    auto compatibleMajors = packProfile->getProfile()->getCompatibleJavaMajors();
+    auto compatibleMajors = packProfile->getProfile(instance->settings())->getCompatibleJavaMajors();
 
     JavaVersion javaVersion(storedVersion);
 

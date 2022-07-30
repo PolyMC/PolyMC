@@ -56,9 +56,9 @@ public: /* application of profile variables from patches */
     void applyTweakers(const QStringList &tweakers);
     void applyJarMods(const QList<LibraryPtr> &jarMods);
     void applyMods(const QList<LibraryPtr> &jarMods);
-    void applyLibrary(LibraryPtr library);
-    void applyMavenFile(LibraryPtr library);
-    void applyAgent(AgentPtr agent);
+    void applyLibrary(LibraryPtr library, const SettingsObjectPtr& settingsObjJavaArch);
+    void applyMavenFile(LibraryPtr library, const SettingsObjectPtr& settingsObjJavaArch);
+    void applyAgent(AgentPtr agent, const SettingsObjectPtr& settingsObjJavaArch);
     void applyCompatibleJavaMajors(QList<int>& javaMajor);
     void applyMainJar(LibraryPtr jar);
     void applyProblemSeverity(ProblemSeverity severity);
@@ -84,6 +84,7 @@ public: /* getters for profile variables */
     const LibraryPtr getMainJar() const;
     void getLibraryFiles(
         const QString & architecture,
+        const QString & realArchitecture,
         QStringList & jars,
         QStringList & nativeJars,
         const QString & overridePath,

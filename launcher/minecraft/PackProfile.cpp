@@ -439,7 +439,7 @@ void PackProfile::componentDataChanged()
     qWarning() << "PackProfile got dataChenged signal from a Component which does not belong to it!";
 }
 
-bool PackProfile::remove(const int index)
+bool PackProfile::remove(const int index, const QString realArchitecture)
 {
     auto patch = getComponent(index);
     if (!patch->isRemovable())
@@ -448,7 +448,7 @@ bool PackProfile::remove(const int index)
         return false;
     }
 
-    if(!removeComponent_internal(patch))
+    if(!removeComponent_internal(patch, realArchitecture))
     {
         qCritical() << "Patch" << patch->getID() << "could not be removed";
         return false;
@@ -463,14 +463,14 @@ bool PackProfile::remove(const int index)
     return true;
 }
 
-bool PackProfile::remove(const QString id)
+bool PackProfile::remove(const QString id, const QString realArchitecture)
 {
     int i = 0;
     for (auto patch : d->components)
     {
         if (patch->getID() == id)
         {
-            return remove(i);
+            return remove(i, realArchitecture);
         }
         i++;
     }
@@ -761,7 +761,7 @@ bool PackProfile::installEmpty(const QString& uid, const QString& name)
     return true;
 }
 
-bool PackProfile::removeComponent_internal(ComponentPtr patch)
+bool PackProfile::removeComponent_internal(ComponentPtr patch, QString realArchitecture)
 {
     bool ok = true;
     // first, remove the patch file. this ensures it's not used anymore
@@ -777,14 +777,14 @@ bool PackProfile::removeComponent_internal(ComponentPtr patch)
     }
 
     // FIXME: we need a generic way of removing local resources, not just jar mods...
-    auto preRemoveJarMod = [&](LibraryPtr jarMod) -> bool
+    auto preRemoveJarMod = [&](LibraryPtr jarMod, QString realArchitecture) -> bool
     {
         if (!jarMod->isLocal())
         {
             return true;
         }
         QStringList jar, temp1, temp2, temp3;
-        jarMod->getApplicableFiles(currentSystem, jar, temp1, temp2, temp3, d->m_instance->jarmodsPath().absolutePath());
+        jarMod->getApplicableFiles(SysInfo::currentSystem(), realArchitecture, jar, temp1, temp2, temp3, d->m_instance->jarmodsPath().absolutePath());
         QFileInfo finfo (jar[0]);
         if(finfo.exists())
         {
@@ -805,7 +805,7 @@ bool PackProfile::removeComponent_internal(ComponentPtr patch)
         auto &jarMods = vFile->jarMods;
         for(auto &jarmod: jarMods)
         {
-            ok &= preRemoveJarMod(jarmod);
+            ok &= preRemoveJarMod(jarmod, realArchitecture);
         }
     }
     return ok;
@@ -889,7 +889,7 @@ bool PackProfile::installCustomJar_internal(QString filepath)
 
     auto specifier = GradleSpecifier("org.multimc:customjar:1");
     QFileInfo sourceInfo(filepath);
-    QString target_filename = specifier.getFileName();
+    QString target_filename = specifier.getFileName(QString(), false);
     QString target_id = specifier.artifactId();
     QString target_name = sourceInfo.completeBaseName() + " (custom jar)";
     QString finalPath = FS::PathCombine(libDir, target_filename);
@@ -934,7 +934,7 @@ bool PackProfile::installCustomJar_internal(QString filepath)
     return true;
 }
 
-std::shared_ptr<LaunchProfile> PackProfile::getProfile() const
+std::shared_ptr<LaunchProfile> PackProfile::getProfile(const SettingsObjectPtr& settingsObjJavaArch) const
 {
     if(!d->m_profile)
     {
@@ -944,7 +944,7 @@ std::shared_ptr<LaunchProfile> PackProfile::getProfile() const
             for(auto file: d->components)
             {
                 qDebug() << "Applying" << file->getID() << (file->getProblemSeverity() == ProblemSeverity::Error ? "ERROR" : "GOOD");
-                file->applyTo(profile.get());
+                file->applyTo(profile.get(), settingsObjJavaArch);
             }
             d->m_profile = profile;
         }

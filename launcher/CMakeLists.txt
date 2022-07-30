@@ -276,6 +276,8 @@ set(MINECRAFT_SOURCES
     minecraft/GradleSpecifier.h
     minecraft/MinecraftInstance.cpp
     minecraft/MinecraftInstance.h
+    minecraft/LaunchContext.cpp
+    minecraft/LaunchContext.h
     minecraft/LaunchProfile.cpp
     minecraft/LaunchProfile.h
     minecraft/Component.cpp
@@ -294,8 +296,6 @@ set(MINECRAFT_SOURCES
     minecraft/Rule.h
     minecraft/OneSixVersionFormat.cpp
     minecraft/OneSixVersionFormat.h
-    minecraft/OpSys.cpp
-    minecraft/OpSys.h
     minecraft/ParseUtils.cpp
     minecraft/ParseUtils.h
     minecraft/ProfileUtils.cpp
@@ -614,6 +614,8 @@ SET(LAUNCHER_SOURCES
     UpdateController.h
     ApplicationMessage.h
     ApplicationMessage.cpp
+    SysInfo.h
+    SysInfo.cpp
 
     # GUI - general utilities
     DesktopServices.h
