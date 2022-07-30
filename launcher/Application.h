@@ -207,6 +207,7 @@ public slots:
     bool launch(
         InstancePtr instance,
         bool online = true,
+        bool demo = false,
         BaseProfilerFactory *profiler = nullptr,
         MinecraftServerTargetPtr serverToJoin = nullptr,
         MinecraftAccountPtr accountToUse = nullptr
