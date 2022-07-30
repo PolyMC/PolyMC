@@ -247,6 +247,14 @@ if(UNIX AND APPLE)
     # Add the icon
     install(FILES ${Launcher_Branding_ICNS} DESTINATION ${RESOURCES_DEST_DIR} RENAME ${Launcher_Name}.icns)
 
+    # Add translation directories
+    file(GLOB TRANSLATIONS RELATIVE "${CMAKE_SOURCE_DIR}/Translations" "${CMAKE_SOURCE_DIR}/Translations/*.ts")
+    list(REMOVE_ITEM TRANSLATIONS ".template.ts")
+    list(APPEND TRANSLATIONS "en_US.ts")
+    list(TRANSFORM TRANSLATIONS REPLACE "\.ts" ".lproj")
+    list(TRANSFORM TRANSLATIONS PREPEND "${CMAKE_INSTALL_PREFIX}/${RESOURCES_DEST_DIR}/")
+    file(MAKE_DIRECTORY ${TRANSLATIONS})
+
 elseif(UNIX)
     set(BINARY_DEST_DIR "bin")
     set(LIBRARY_DEST_DIR "lib${LIB_SUFFIX}")
