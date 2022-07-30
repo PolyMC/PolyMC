@@ -2,9 +2,12 @@
 
 #include "BuildConfig.h"
 #include "Json.h"
+#include "ModPage.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "ui/dialogs/ModDownloadDialog.h"
+
+#include "ui/widgets/ProjectItem.h"
 
 #include <QMessageBox>
 
@@ -39,9 +42,6 @@ auto ListModel::data(const QModelIndex& index, int role) const -> QVariant
 
     ModPlatform::IndexedPack pack = modpacks.at(pos);
     switch (role) {
-        case Qt::DisplayRole: {
-            return pack.name;
-        }
         case Qt::ToolTipRole: {
             if (pack.description.length() > 100) {
                 // some magic to prevent to long tooltips and replace html linebreaks
@@ -64,20 +64,20 @@ auto ListModel::data(const QModelIndex& index, int role) const -> QVariant
             ((ListModel*)this)->requestLogo(pack.logoName, pack.logoUrl);
             return icon;
         }
+        case Qt::SizeHintRole: 
+            return QSize(0, 58);
         case Qt::UserRole: {
             QVariant v;
             v.setValue(pack);
             return v;
         }
-        case Qt::FontRole: {
-            QFont font;
-            if (m_parent->getDialog()->isModSelected(pack.name)) {
-                font.setBold(true);
-                font.setUnderline(true);
-            }
-
-            return font;
-        }
+    // Custom data
+        case UserDataTypes::TITLE:
+            return pack.name;
+        case UserDataTypes::DESCRIPTION:
+            return pack.description;
+        case UserDataTypes::SELECTED:
+            return m_parent->getDialog()->isModSelected(pack.name);
         default:
             break;
     }
@@ -85,11 +85,23 @@ auto ListModel::data(const QModelIndex& index, int role) const -> QVariant
     return {};
 }
 
-void ListModel::requestModVersions(ModPlatform::IndexedPack const& current)
+bool ListModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    int pos = index.row();
+    if (pos >= modpacks.size() || pos < 0 || !index.isValid())
+        return false;
+
+    modpacks[pos] = value.value<ModPlatform::IndexedPack>();
+
+    return true;
+}
+
+void ListModel::requestModVersions(ModPlatform::IndexedPack const& current, QModelIndex index)
 {
     auto profile = (dynamic_cast<MinecraftInstance*>((dynamic_cast<ModPage*>(parent()))->m_instance))->getPackProfile();
 
-    m_parent->apiProvider()->getVersions(this, { current.addonId.toString(), getMineVersions(), profile->getModLoaders() });
+    m_parent->apiProvider()->getVersions({ current.addonId.toString(), getMineVersions(), profile->getModLoaders() },
+                                         [this, current, index](QJsonDocument& doc, QString addonId) { versionRequestSucceeded(doc, addonId, index); });
 }
 
 void ListModel::performPaginatedSearch()
@@ -100,9 +112,10 @@ void ListModel::performPaginatedSearch()
         this, { nextSearchOffset, currentSearchTerm, getSorts()[currentSort], profile->getModLoaders(), getMineVersions() });
 }
 
-void ListModel::requestModInfo(ModPlatform::IndexedPack& current)
+void ListModel::requestModInfo(ModPlatform::IndexedPack& current, QModelIndex index)
 {
-    m_parent->apiProvider()->getModInfo(this, current);
+    m_parent->apiProvider()->getModInfo(
+        current, [this, index](QJsonDocument& doc, ModPlatform::IndexedPack& pack) { infoRequestFinished(doc, pack, index); });
 }
 
 void ListModel::refresh()
@@ -255,7 +268,7 @@ void ListModel::searchRequestFailed(QString reason)
     }
 }
 
-void ListModel::infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack& pack)
+void ListModel::infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack& pack, const QModelIndex& index)
 {
     qDebug() << "Loading mod info";
 
@@ -267,10 +280,20 @@ void ListModel::infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack
         qWarning() << "Error while reading " << debugName() << " mod info: " << e.cause();
     }
 
+    // Check if the index is still valid for this mod or not
+    if (pack.addonId == data(index, Qt::UserRole).value<ModPlatform::IndexedPack>().addonId) {
+        // Cache info :^)
+        QVariant new_pack;
+        new_pack.setValue(pack);
+        if (!setData(index, new_pack, Qt::UserRole)) {
+            qWarning() << "Failed to cache mod info!";
+        }
+    }
+
     m_parent->updateUi();
 }
 
-void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId)
+void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId, const QModelIndex& index)
 {
     auto& current = m_parent->getCurrent();
     if (addonId != current.addonId) {
@@ -285,6 +308,14 @@ void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId)
         qDebug() << doc;
         qWarning() << "Error while reading " << debugName() << " mod version: " << e.cause();
     }
+
+    // Cache info :^)
+    QVariant new_pack;
+    new_pack.setValue(current);
+    if (!setData(index, new_pack, Qt::UserRole)) {
+        qWarning() << "Failed to cache mod versions!";
+    }
+
 
     m_parent->updateModVersions();
 }
