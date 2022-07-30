@@ -849,6 +849,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/ModDownloadDialog.h
     ui/dialogs/ScrollMessageBox.cpp
     ui/dialogs/ScrollMessageBox.h
+    ui/dialogs/BlockedModsDialog.cpp
+    ui/dialogs/BlockedModsDialog.h
     ui/dialogs/ChooseProviderDialog.h
     ui/dialogs/ChooseProviderDialog.cpp
     ui/dialogs/ModUpdateDialog.cpp
@@ -958,6 +960,7 @@ qt_wrap_ui(LAUNCHER_UI
     ui/dialogs/EditAccountDialog.ui
     ui/dialogs/ReviewMessageBox.ui
     ui/dialogs/ScrollMessageBox.ui
+    ui/dialogs/BlockedModsDialog.ui
     ui/dialogs/ChooseProviderDialog.ui
 )
 
