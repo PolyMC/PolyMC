@@ -276,6 +276,8 @@ set(MINECRAFT_SOURCES
     minecraft/GradleSpecifier.h
     minecraft/MinecraftInstance.cpp
     minecraft/MinecraftInstance.h
+    minecraft/LaunchContext.cpp
+    minecraft/LaunchContext.h
     minecraft/LaunchProfile.cpp
     minecraft/LaunchProfile.h
     minecraft/Component.cpp
@@ -614,6 +616,8 @@ SET(LAUNCHER_SOURCES
     UpdateController.h
     ApplicationMessage.h
     ApplicationMessage.cpp
+    SysInfo.h
+    SysInfo.cpp
 
     # GUI - general utilities
     DesktopServices.h
@@ -905,6 +909,8 @@ SET(LAUNCHER_SOURCES
     ui/instanceview/InstanceDelegate.h
     ui/instanceview/VisualGroup.cpp
     ui/instanceview/VisualGroup.h
+    JavaDownloader.cpp
+    JavaDownloader.h
 )
 
 qt_wrap_ui(LAUNCHER_UI
