@@ -81,6 +81,8 @@ LauncherPage::LauncherPage(QWidget *parent) : QWidget(parent), ui(new Ui::Launch
     m_languageModel = APPLICATION->translations();
     loadSettings();
 
+    ui->toolbarListWidget->setDragDropMode(QAbstractItemView::InternalMove);
+
     if(BuildConfig.UPDATER_ENABLED)
     {
         QObject::connect(APPLICATION->updateChecker().get(), &UpdateChecker::channelListLoaded, this, &LauncherPage::refreshUpdateChannelList);
@@ -108,7 +110,10 @@ LauncherPage::LauncherPage(QWidget *parent) : QWidget(parent), ui(new Ui::Launch
 
     connect(ui->fontSizeBox, SIGNAL(valueChanged(int)), SLOT(refreshFontPreview()));
     connect(ui->consoleFont, SIGNAL(currentFontChanged(QFont)), SLOT(refreshFontPreview()));
-    connect(ui->toolbarLineEdit, &QLineEdit::textChanged, this, &LauncherPage::toolbarConfigChanged);
+
+    connect(ui->toolbarRemoveButton, &QPushButton::clicked, this, &LauncherPage::toolbarRemove);
+    connect(ui->toolbarAddButton, &QPushButton::clicked, this, &LauncherPage::toolbarAdd);
+    connect(ui->toolbarListWidget->model(), &QAbstractItemModel::rowsMoved, this, &LauncherPage::toolbarConfigChanged);
 }
 
 LauncherPage::~LauncherPage()
@@ -484,7 +489,11 @@ void LauncherPage::loadSettings()
     ui->metadataWarningLabel->setHidden(!ui->metadataDisableBtn->isChecked());
 
     // Toolbar
-    ui->toolbarLineEdit->setText(s->get("ToolbarConfig").toString());
+    auto toolbarItems = s->get("ToolbarConfig").toString().split(",");
+
+    for (auto item : toolbarItems) {
+        ui->toolbarListWidget->addItem(item);
+    }
 }
 
 void LauncherPage::refreshFontPreview()
@@ -524,7 +533,26 @@ void LauncherPage::refreshFontPreview()
 
 void LauncherPage::toolbarConfigChanged()
 {
-    APPLICATION->settings()->set("ToolbarConfig", ui->toolbarLineEdit->text());
+    QVector<QString> stuff;
+
+    for (auto idx = 0; idx < ui->toolbarListWidget->count(); idx++) {
+        stuff.push_back(ui->toolbarListWidget->item(idx)->text());
+    }
+
+    APPLICATION->settings()->set("ToolbarConfig", stuff.join(","));
+}
+
+void LauncherPage::toolbarAdd()
+{
+    auto select = ui->toolbarComboBox->currentText();
+    ui->toolbarListWidget->addItem(select);
+    toolbarConfigChanged();
+}
+
+void LauncherPage::toolbarRemove()
+{
+    ui->toolbarListWidget->takeItem(ui->toolbarListWidget->currentRow());
+    toolbarConfigChanged();
 }
 
 void LauncherPage::retranslate()
