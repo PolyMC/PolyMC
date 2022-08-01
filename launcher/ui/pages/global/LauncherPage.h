@@ -106,6 +106,7 @@ slots:
     void refreshFontPreview();
 
     void updateChannelSelectionChanged(int index);
+    void toolbarConfigChanged();
 
 private:
     Ui::LauncherPage *ui;

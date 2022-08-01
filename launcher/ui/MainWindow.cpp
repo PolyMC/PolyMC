@@ -423,45 +423,52 @@ public:
 
     void createMainToolbar(QMainWindow *MainWindow)
     {
-        mainToolBar = TranslatedToolbar(MainWindow);
-        mainToolBar->setVisible(menuBar->isNativeMenuBar() || !APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
-        mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
-        mainToolBar->setMovable(true);
-        mainToolBar->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
-        mainToolBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        mainToolBar->setFloatable(false);
-        mainToolBar.setWindowTitleId(QT_TRANSLATE_NOOP("MainWindow", "Main Toolbar"));
-
-        helpMenu = new QMenu(MainWindow);
-        helpMenu->setToolTipsVisible(true);
-
-        if (!BuildConfig.BUG_TRACKER_URL.isEmpty()) {
-            helpMenu->addAction(actionReportBug);
-        }
-        
-        if(!BuildConfig.MATRIX_URL.isEmpty()) {
-            helpMenu->addAction(actionMATRIX);
+        if (mainToolBar == nullptr) {
+            mainToolBar = TranslatedToolbar(MainWindow);
+            mainToolBar->setVisible(menuBar->isNativeMenuBar() || !APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
+            mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
+            mainToolBar->setMovable(true);
+            mainToolBar->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
+            mainToolBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+            mainToolBar->setFloatable(false);
+            mainToolBar.setWindowTitleId(QT_TRANSLATE_NOOP("MainWindow", "Main Toolbar"));
+        } else {
+            mainToolBar->clear();
         }
 
-        if (!BuildConfig.DISCORD_URL.isEmpty()) {
-            helpMenu->addAction(actionDISCORD);
+        if (helpMenu != nullptr) {
+            helpMenu = new QMenu(MainWindow);
+            helpMenu->setToolTipsVisible(true);
+
+            if (!BuildConfig.BUG_TRACKER_URL.isEmpty()) {
+                helpMenu->addAction(actionReportBug);
+            }
+
+            if (!BuildConfig.MATRIX_URL.isEmpty()) {
+                helpMenu->addAction(actionMATRIX);
+            }
+
+            if (!BuildConfig.DISCORD_URL.isEmpty()) {
+                helpMenu->addAction(actionDISCORD);
+            }
+
+            if (!BuildConfig.SUBREDDIT_URL.isEmpty()) {
+                helpMenu->addAction(actionREDDIT);
+            }
+
+            helpMenu->addAction(actionAbout);
+
+            helpMenuButton = TranslatedToolButton(MainWindow);
+            helpMenuButton.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Help"));
+            helpMenuButton.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Get help with %1 or Minecraft."));
+            helpMenuButton->setMenu(helpMenu);
+            helpMenuButton->setPopupMode(QToolButton::InstantPopup);
+            helpMenuButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+            helpMenuButton->setIcon(APPLICATION->getThemedIcon("help"));
+            helpMenuButton->setFocusPolicy(Qt::NoFocus);
+            all_toolbuttons.append(&helpMenuButton);
         }
 
-        if (!BuildConfig.SUBREDDIT_URL.isEmpty()) {
-            helpMenu->addAction(actionREDDIT);
-        }
-
-        helpMenu->addAction(actionAbout);
-
-        helpMenuButton = TranslatedToolButton(MainWindow);
-        helpMenuButton.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Help"));
-        helpMenuButton.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Get help with %1 or Minecraft."));
-        helpMenuButton->setMenu(helpMenu);
-        helpMenuButton->setPopupMode(QToolButton::InstantPopup);
-        helpMenuButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        helpMenuButton->setIcon(APPLICATION->getThemedIcon("help"));
-        helpMenuButton->setFocusPolicy(Qt::NoFocus);
-        all_toolbuttons.append(&helpMenuButton);
         QWidgetAction* helpButtonAction = new QWidgetAction(MainWindow);
         helpButtonAction->setDefaultWidget(helpMenuButton);
 
@@ -1923,9 +1930,12 @@ void MainWindow::globalSettingsClosed()
     APPLICATION->instances()->loadList();
     proxymodel->invalidate();
     proxymodel->sort(0);
+
     updateMainToolBar();
+    ui->createMainToolbar(this);
     updateToolsMenu();
     updateStatusCenter();
+
     // This needs to be done to prevent UI elements disappearing in the event the config is changed
     // but PolyMC exits abnormally, causing the window state to never be saved:
     APPLICATION->settings()->set("MainWindowState", saveState().toBase64());

@@ -42,6 +42,9 @@
 #include <QDir>
 #include <QTextCharFormat>
 #include <QMenuBar>
+#include <QListWidget>
+
+#include <QDebug>
 
 #include "updater/UpdateChecker.h"
 
@@ -102,8 +105,10 @@ LauncherPage::LauncherPage(QWidget *parent) : QWidget(parent), ui(new Ui::Launch
     {
         ui->updateSettingsBox->setHidden(true);
     }
+
     connect(ui->fontSizeBox, SIGNAL(valueChanged(int)), SLOT(refreshFontPreview()));
     connect(ui->consoleFont, SIGNAL(currentFontChanged(QFont)), SLOT(refreshFontPreview()));
+    connect(ui->toolbarLineEdit, &QLineEdit::textChanged, this, &LauncherPage::toolbarConfigChanged);
 }
 
 LauncherPage::~LauncherPage()
@@ -477,6 +482,9 @@ void LauncherPage::loadSettings()
     // Mods
     ui->metadataDisableBtn->setChecked(s->get("ModMetadataDisabled").toBool());
     ui->metadataWarningLabel->setHidden(!ui->metadataDisableBtn->isChecked());
+
+    // Toolbar
+    ui->toolbarLineEdit->setText(s->get("ToolbarConfig").toString());
 }
 
 void LauncherPage::refreshFontPreview()
@@ -512,6 +520,11 @@ void LauncherPage::refreshFontPreview()
         workCursor.insertText(tr("[Something/WARN] A not so spooky warning."), format);
         workCursor.insertBlock();
     }
+}
+
+void LauncherPage::toolbarConfigChanged()
+{
+    APPLICATION->settings()->set("ToolbarConfig", ui->toolbarLineEdit->text());
 }
 
 void LauncherPage::retranslate()
