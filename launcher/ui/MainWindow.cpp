@@ -267,6 +267,9 @@ public:
     TranslatedAction actionNoAccountsAdded;
     TranslatedAction actionNoDefaultAccount;
 
+    QWidgetAction* helpButtonAction;
+    QWidgetAction* foldersButtonAction;
+
     QVector<TranslatedToolButton *> all_toolbuttons;
 
     QWidget *centralWidget = nullptr;
@@ -421,56 +424,53 @@ public:
         all_actions.append(&actionManageAccounts);
     }
 
-    void createMainToolbar(QMainWindow *MainWindow)
+    void createMainToolbar(QMainWindow* MainWindow)
     {
-        if (mainToolBar == nullptr) {
-            mainToolBar = TranslatedToolbar(MainWindow);
-            mainToolBar->setVisible(menuBar->isNativeMenuBar() || !APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
-            mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
-            mainToolBar->setMovable(true);
-            mainToolBar->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
-            mainToolBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-            mainToolBar->setFloatable(false);
-            mainToolBar.setWindowTitleId(QT_TRANSLATE_NOOP("MainWindow", "Main Toolbar"));
-        } else {
-            mainToolBar->clear();
+        mainToolBar = TranslatedToolbar(MainWindow);
+        mainToolBar->setVisible(menuBar->isNativeMenuBar() || !APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
+        mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
+        mainToolBar->setMovable(true);
+        mainToolBar->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
+        mainToolBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        mainToolBar->setFloatable(false);
+        mainToolBar.setWindowTitleId(QT_TRANSLATE_NOOP("MainWindow", "Main Toolbar"));
+
+        helpMenu = new QMenu(MainWindow);
+        helpMenu->setToolTipsVisible(true);
+
+        if (!BuildConfig.BUG_TRACKER_URL.isEmpty()) {
+            helpMenu->addAction(actionReportBug);
         }
 
-        if (helpMenu != nullptr) {
-            helpMenu = new QMenu(MainWindow);
-            helpMenu->setToolTipsVisible(true);
-
-            if (!BuildConfig.BUG_TRACKER_URL.isEmpty()) {
-                helpMenu->addAction(actionReportBug);
-            }
-
-            if (!BuildConfig.MATRIX_URL.isEmpty()) {
-                helpMenu->addAction(actionMATRIX);
-            }
-
-            if (!BuildConfig.DISCORD_URL.isEmpty()) {
-                helpMenu->addAction(actionDISCORD);
-            }
-
-            if (!BuildConfig.SUBREDDIT_URL.isEmpty()) {
-                helpMenu->addAction(actionREDDIT);
-            }
-
-            helpMenu->addAction(actionAbout);
-
-            helpMenuButton = TranslatedToolButton(MainWindow);
-            helpMenuButton.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Help"));
-            helpMenuButton.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Get help with %1 or Minecraft."));
-            helpMenuButton->setMenu(helpMenu);
-            helpMenuButton->setPopupMode(QToolButton::InstantPopup);
-            helpMenuButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-            helpMenuButton->setIcon(APPLICATION->getThemedIcon("help"));
-            helpMenuButton->setFocusPolicy(Qt::NoFocus);
-            all_toolbuttons.append(&helpMenuButton);
+        if (!BuildConfig.MATRIX_URL.isEmpty()) {
+            helpMenu->addAction(actionMATRIX);
         }
 
-        QWidgetAction* helpButtonAction = new QWidgetAction(MainWindow);
+        if (!BuildConfig.DISCORD_URL.isEmpty()) {
+            helpMenu->addAction(actionDISCORD);
+        }
+
+        if (!BuildConfig.SUBREDDIT_URL.isEmpty()) {
+            helpMenu->addAction(actionREDDIT);
+        }
+
+        helpMenu->addAction(actionAbout);
+
+        helpMenuButton = TranslatedToolButton(MainWindow);
+        helpMenuButton.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Help"));
+        helpMenuButton.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Get help with %1 or Minecraft."));
+        helpMenuButton->setMenu(helpMenu);
+        helpMenuButton->setPopupMode(QToolButton::InstantPopup);
+        helpMenuButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        helpMenuButton->setIcon(APPLICATION->getThemedIcon("help"));
+        helpMenuButton->setFocusPolicy(Qt::NoFocus);
+        all_toolbuttons.append(&helpMenuButton);
+
+        helpButtonAction = new QWidgetAction(MainWindow);
         helpButtonAction->setDefaultWidget(helpMenuButton);
+
+        foldersButtonAction = new QWidgetAction(MainWindow);
+        foldersButtonAction->setDefaultWidget(foldersMenuButton);
 
         for (auto item : APPLICATION->settings()->get("ToolbarConfig").toString().split(",")) {
             if (item == "add_instance") {
@@ -478,8 +478,6 @@ public:
             } else if (item == "separator") {
                 mainToolBar->addSeparator();
             } else if (item == "folders") {
-                QWidgetAction* foldersButtonAction = new QWidgetAction(MainWindow);
-                foldersButtonAction->setDefaultWidget(foldersMenuButton);
                 mainToolBar->addAction(foldersButtonAction);
             } else if (item == "settings") {
                 mainToolBar->addAction(actionSettings);
@@ -494,6 +492,33 @@ public:
 
         all_toolbars.append(&mainToolBar);
         MainWindow->addToolBar(Qt::TopToolBarArea, mainToolBar);
+    }
+
+    void redrawMainToolBar(MainWindow* MainWindow)
+    {
+        if (!mainToolBar || !helpMenuButton) return;
+
+        mainToolBar->clear();
+
+        for (auto item : APPLICATION->settings()->get("ToolbarConfig").toString().split(",")) {
+            if (item == "add_instance") {
+                mainToolBar->addAction(actionAddInstance);
+            } else if (item == "separator") {
+                mainToolBar->addSeparator();
+            } else if (item == "folders") {
+                mainToolBar->addAction(foldersButtonAction);
+            } else if (item == "settings") {
+                mainToolBar->addAction(actionSettings);
+            } else if (item == "help") {
+                mainToolBar->addAction(helpButtonAction);
+            } else if (item == "update" && BuildConfig.UPDATER_ENABLED) {
+                mainToolBar->addAction(actionCheckUpdate);
+            } else if (item == "cat") {
+                mainToolBar->addAction(actionCAT);
+            }
+        }
+
+        MainWindow->appendAccountsMenuToMainToolBar();
     }
 
     void createMenuBar(QMainWindow *MainWindow)
@@ -987,27 +1012,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
     statusBar()->addPermanentWidget(m_statusLeft, 1);
     statusBar()->addPermanentWidget(m_statusCenter, 0);
 
-    // Add "manage accounts" button, right align
-    QWidget *spacer = new QWidget();
-    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    ui->mainToolBar->addWidget(spacer);
-
-    accountMenu = new QMenu(this);
-    // Use undocumented property... https://stackoverflow.com/questions/7121718/create-a-scrollbar-in-a-submenu-qt
-    accountMenu->setStyleSheet("QMenu { menu-scrollable: 1; }");
-
-    repopulateAccountsMenu();
-
-    accountMenuButton = new QToolButton(this);
-    accountMenuButton->setMenu(accountMenu);
-    accountMenuButton->setPopupMode(QToolButton::InstantPopup);
-    accountMenuButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    accountMenuButton->setIcon(APPLICATION->getThemedIcon("noaccount"));
-
-    QWidgetAction *accountMenuButtonAction = new QWidgetAction(this);
-    accountMenuButtonAction->setDefaultWidget(accountMenuButton);
-
-    ui->mainToolBar->addAction(accountMenuButtonAction);
+    appendAccountsMenuToMainToolBar();
 
     // Update the menu when the active account changes.
     // Shouldn't have to use lambdas here like this, but if I don't, the compiler throws a fit.
@@ -1027,9 +1032,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
             repopulateAccountsMenu();
         }
     );
-
-    // Show initial account
-    defaultAccountChanged();
 
     // TODO: refresh accounts here?
     // auto accounts = APPLICATION->accounts();
@@ -1087,6 +1089,32 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event)
         QMainWindow::keyReleaseEvent(event);
 }
 #endif
+
+void MainWindow::appendAccountsMenuToMainToolBar() {
+    // Add "manage accounts" button, right align
+    QWidget *spacer = new QWidget();
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    ui->mainToolBar->addWidget(spacer);
+
+    accountMenu = new QMenu(this);
+    // Use undocumented property... https://stackoverflow.com/questions/7121718/create-a-scrollbar-in-a-submenu-qt
+    accountMenu->setStyleSheet("QMenu { menu-scrollable: 1; }");
+
+    repopulateAccountsMenu();
+
+    accountMenuButton = new QToolButton(this);
+    accountMenuButton->setMenu(accountMenu);
+    accountMenuButton->setPopupMode(QToolButton::InstantPopup);
+    accountMenuButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    accountMenuButton->setIcon(APPLICATION->getThemedIcon("noaccount"));
+
+    QWidgetAction *accountMenuButtonAction = new QWidgetAction(this);
+    accountMenuButtonAction->setDefaultWidget(accountMenuButton);
+
+    ui->mainToolBar->addAction(accountMenuButtonAction);
+
+    defaultAccountChanged();
+}
 
 void MainWindow::retranslateUi()
 {
@@ -1196,6 +1224,7 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
 
 void MainWindow::updateMainToolBar()
 {
+    ui->redrawMainToolBar(this);
     ui->menuBar->setVisible(APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
     ui->mainToolBar->setVisible(ui->menuBar->isNativeMenuBar() || !APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
 }
@@ -1932,7 +1961,6 @@ void MainWindow::globalSettingsClosed()
     proxymodel->sort(0);
 
     updateMainToolBar();
-    ui->createMainToolbar(this);
     updateToolsMenu();
     updateStatusCenter();
 

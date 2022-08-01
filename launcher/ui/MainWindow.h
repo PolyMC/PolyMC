@@ -218,6 +218,7 @@ private slots:
 #endif
 
     void refreshCurrentInstance(bool running);
+    void appendAccountsMenuToMainToolBar();
 
 private:
     void retranslateUi();
