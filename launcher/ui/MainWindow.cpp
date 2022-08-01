@@ -432,16 +432,6 @@ public:
         mainToolBar->setFloatable(false);
         mainToolBar.setWindowTitleId(QT_TRANSLATE_NOOP("MainWindow", "Main Toolbar"));
 
-        mainToolBar->addAction(actionAddInstance);
-
-        mainToolBar->addSeparator();
-
-        QWidgetAction* foldersButtonAction = new QWidgetAction(MainWindow);
-        foldersButtonAction->setDefaultWidget(foldersMenuButton);
-        mainToolBar->addAction(foldersButtonAction);
-
-        mainToolBar->addAction(actionSettings);
-
         helpMenu = new QMenu(MainWindow);
         helpMenu->setToolTipsVisible(true);
 
@@ -474,16 +464,26 @@ public:
         all_toolbuttons.append(&helpMenuButton);
         QWidgetAction* helpButtonAction = new QWidgetAction(MainWindow);
         helpButtonAction->setDefaultWidget(helpMenuButton);
-        mainToolBar->addAction(helpButtonAction);
 
-        if(BuildConfig.UPDATER_ENABLED)
-        {
-            mainToolBar->addAction(actionCheckUpdate);
+        for (auto item : APPLICATION->settings()->get("ToolbarConfig").toString().split(",")) {
+            if (item == "add_instance") {
+                mainToolBar->addAction(actionAddInstance);
+            } else if (item == "separator") {
+                mainToolBar->addSeparator();
+            } else if (item == "folders") {
+                QWidgetAction* foldersButtonAction = new QWidgetAction(MainWindow);
+                foldersButtonAction->setDefaultWidget(foldersMenuButton);
+                mainToolBar->addAction(foldersButtonAction);
+            } else if (item == "settings") {
+                mainToolBar->addAction(actionSettings);
+            } else if (item == "help") {
+                mainToolBar->addAction(helpButtonAction);
+            } else if (item == "update" && BuildConfig.UPDATER_ENABLED) {
+                mainToolBar->addAction(actionCheckUpdate);
+            } else if (item == "cat") {
+                mainToolBar->addAction(actionCAT);
+            }
         }
-
-        mainToolBar->addSeparator();
-
-        mainToolBar->addAction(actionCAT);
 
         all_toolbars.append(&mainToolBar);
         MainWindow->addToolBar(Qt::TopToolBarArea, mainToolBar);
