@@ -43,6 +43,7 @@
 #include <QTextCharFormat>
 #include <QMenuBar>
 #include <QListWidget>
+#include <QStringList>
 
 #include <QDebug>
 
@@ -533,7 +534,7 @@ void LauncherPage::refreshFontPreview()
 
 void LauncherPage::toolbarConfigChanged()
 {
-    QVector<QString> stuff;
+    QStringList stuff;
 
     for (auto idx = 0; idx < ui->toolbarListWidget->count(); idx++) {
         stuff.push_back(ui->toolbarListWidget->item(idx)->text());
