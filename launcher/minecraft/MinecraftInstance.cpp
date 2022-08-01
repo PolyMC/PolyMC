@@ -1140,7 +1140,7 @@ std::shared_ptr<GameOptions> MinecraftInstance::gameOptionsModel() const
 QList<Mod*> MinecraftInstance::getJarMods() const
 {
     auto profile = m_components->getProfile(settings());
-    QList<Mod> mods;
+    QList<Mod*> mods;
     for (auto jarmod : profile->getJarMods())
     {
         QStringList jar, temp1, temp2, temp3;
