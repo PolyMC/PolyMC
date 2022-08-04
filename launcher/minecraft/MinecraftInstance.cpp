@@ -425,7 +425,7 @@ QStringList MinecraftInstance::javaArguments()
 QStringList MinecraftInstance::processAuthArgs(AuthSessionPtr session) const
 {
     QStringList args;
-    if (!session->auth_server_url.isNull())
+    if(session->uses_custom_api_servers)
     {
         args << "-Dminecraft.api.env=custom";
         args << "-Dminecraft.api.auth.host=" + session->auth_server_url;

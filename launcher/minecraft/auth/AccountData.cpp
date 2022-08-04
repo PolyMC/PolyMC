@@ -434,8 +434,12 @@ QJsonObject AccountData::saveState() const {
     return output;
 }
 
+bool AccountData::usesCustomApiServers() const {
+    return type == AccountType::CustomYggdrasil;
+}
+
 QString AccountData::authServerUrl() const {
-    if(type == AccountType::CustomYggdrasil) {
+    if(usesCustomApiServers()) {
         return customAuthServerUrl;
     } else {
         return BuildConfig.MOJANG_AUTH_BASE;
@@ -443,7 +447,7 @@ QString AccountData::authServerUrl() const {
 }
 
 QString AccountData::accountServerUrl() const {
-    if(type == AccountType::CustomYggdrasil) {
+    if(usesCustomApiServers()) {
         return customAccountServerUrl;
     } else {
         return BuildConfig.MOJANG_ACCOUNT_BASE;
@@ -451,7 +455,7 @@ QString AccountData::accountServerUrl() const {
 }
 
 QString AccountData::sessionServerUrl() const {
-    if(type == AccountType::CustomYggdrasil) {
+    if(usesCustomApiServers()) {
         return customSessionServerUrl;
     } else {
         return BuildConfig.MOJANG_SESSION_BASE;
@@ -459,7 +463,7 @@ QString AccountData::sessionServerUrl() const {
 }
 
 QString AccountData::servicesServerUrl() const {
-    if(type == AccountType::CustomYggdrasil) {
+    if(usesCustomApiServers()) {
         return customServicesServerUrl;
     } else {
         return BuildConfig.MOJANG_SERVICES_BASE;

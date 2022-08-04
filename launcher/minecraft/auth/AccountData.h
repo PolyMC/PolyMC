@@ -94,6 +94,7 @@ struct AccountData {
     bool resumeStateFromV2(QJsonObject data);
     bool resumeStateFromV3(QJsonObject data);
 
+    bool usesCustomApiServers() const;
     QString authServerUrl() const;
     QString accountServerUrl() const;
     QString sessionServerUrl() const;

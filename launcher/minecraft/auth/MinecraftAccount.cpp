@@ -348,6 +348,7 @@ void MinecraftAccount::fillSession(AuthSessionPtr session)
     session->account_server_url = data.accountServerUrl();
     session->session_server_url = data.sessionServerUrl();
     session->services_server_url = data.servicesServerUrl();
+    session->uses_custom_api_servers = data.usesCustomApiServers();
 }
 
 void MinecraftAccount::decrementUses()
