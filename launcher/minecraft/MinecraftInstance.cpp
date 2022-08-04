@@ -427,15 +427,11 @@ QStringList MinecraftInstance::processAuthArgs(AuthSessionPtr session) const
     QStringList args;
     if (!session->auth_server_url.isNull())
     {
-        QString auth_server_url    = session->auth_server_url.left(session->auth_server_url.size() - 1);
-        QString session_server_url = session->session_server_url.left(session->session_server_url.size() - 1);
-        QString api_server_url     = session->api_server_url.left(session->api_server_url.size() - 1);
-
         args << "-Dminecraft.api.env=custom";
-        args << "-Dminecraft.api.auth.host=" + auth_server_url;
-        args << "-Dminecraft.api.account.host=" + api_server_url;
-        args << "-Dminecraft.api.session.host=" + session_server_url;
-        args << "-Dminecraft.api.services.host=" + api_server_url;
+        args << "-Dminecraft.api.auth.host=" + session->auth_server_url;
+        args << "-Dminecraft.api.account.host=" + session->api_server_url;
+        args << "-Dminecraft.api.session.host=" + session->session_server_url;
+        args << "-Dminecraft.api.services.host=" + session->api_server_url;
     }
     return args;
 }

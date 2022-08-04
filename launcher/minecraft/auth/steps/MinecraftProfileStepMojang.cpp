@@ -17,14 +17,6 @@ QString MinecraftProfileStepMojang::describe() {
     return tr("Fetching the Minecraft profile.");
 }
 
-QString MinecraftProfileStepMojang::getSessionBase() {
-    if (m_data->type == AccountType::CustomYggdrasil) { 
-        return m_data->sessionServerUrl;
-    } else {
-        return BuildConfig.MOJANG_SESSION_BASE;
-    }
-}
-
 void MinecraftProfileStepMojang::perform() {
     if (m_data->minecraftProfile.id.isEmpty()) {
         emit finished(AccountTaskState::STATE_FAILED_HARD, tr("A UUID is required to get the profile."));
@@ -33,7 +25,7 @@ void MinecraftProfileStepMojang::perform() {
 
     // use session server instead of profile due to profile endpoint being locked for locked Mojang accounts
 
-    QUrl url = QUrl(MinecraftProfileStepMojang::getSessionBase() + "/session/minecraft/profile/" + m_data->minecraftProfile.id);
+    QUrl url = QUrl(m_data->sessionServerUrl() + "/session/minecraft/profile/" + m_data->minecraftProfile.id);
     QNetworkRequest req = QNetworkRequest(url);
     AuthRequest *request = new AuthRequest(this);
     connect(request, &AuthRequest::finished, this, &MinecraftProfileStepMojang::onRequestDone);

@@ -34,6 +34,8 @@
  */
 
 #include "AccountData.h"
+#include "BuildConfig.h"
+
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -365,9 +367,9 @@ bool AccountData::resumeStateFromV3(QJsonObject data) {
     }
 
     if(type == AccountType::CustomYggdrasil) {
-        authServerUrl = data.value("authServerUrl").toString();
-        sessionServerUrl = data.value("sessionServerUrl").toString();
-        apiServerUrl = data.value("apiServerUrl").toString();
+        customAuthServerUrl = data.value("customAuthServerUrl").toString();
+        customSessionServerUrl = data.value("customSessionServerUrl").toString();
+        customApiServerUrl = data.value("customApiServerUrl").toString();
     }
 
     if(type == AccountType::MSA) {
@@ -416,9 +418,9 @@ QJsonObject AccountData::saveState() const {
     }
     else if (type == AccountType::CustomYggdrasil) {
         output["type"] = "CustomYggdrasil";
-        output["authServerUrl"] = authServerUrl;
-        output["sessionServerUrl"] = sessionServerUrl;
-        output["apiServerUrl"] = apiServerUrl;
+        output["customAuthServerUrl"] = customAuthServerUrl;
+        output["customSessionServerUrl"] = customSessionServerUrl;
+        output["customApiServerUrl"] = customApiServerUrl;
     }
     else if (type == AccountType::Offline) {
         output["type"] = "Offline";
@@ -428,6 +430,30 @@ QJsonObject AccountData::saveState() const {
     profileToJSONV3(output, minecraftProfile, "profile");
     entitlementToJSONV3(output, minecraftEntitlement);
     return output;
+}
+
+QString AccountData::authServerUrl() const {
+    if(type == AccountType::CustomYggdrasil) {
+        return customAuthServerUrl;
+    } else {
+        return BuildConfig.MOJANG_AUTH_BASE;
+    }
+}
+
+QString AccountData::sessionServerUrl() const {
+    if(type == AccountType::CustomYggdrasil) {
+        return customSessionServerUrl;
+    } else {
+        return BuildConfig.MOJANG_SESSION_BASE;
+    }
+}
+
+QString AccountData::apiServerUrl() const {
+    if(type == AccountType::CustomYggdrasil) {
+        return customApiServerUrl;
+    } else {
+        return BuildConfig.MOJANG_API_BASE;
+    }
 }
 
 QString AccountData::userName() const {

@@ -160,9 +160,22 @@ void AccountListPage::on_actionAddMojang_triggered()
 
 void AccountListPage::on_actionAddCustomYggdrasil_triggered()
 {
+    if (!m_accounts->anyAccountIsValid()) {
+        QMessageBox::warning(
+            this,
+            tr("Error"),
+            tr(
+                "You must add a Microsoft or Mojang account that owns Minecraft before you can add an account on a custom authentication server."
+                "<br><br>"
+                "If you have lost your account you can contact Microsoft for support."
+            )
+        );
+        return;
+    }
+
     MinecraftAccountPtr account = CustomYggdrasilLoginDialog::newAccount(
         this,
-        tr("Please enter your account username and password to add your account.")
+        tr("Please enter your email/username, password, and the URLs for your authentication server, session server, and API server.")
     );
 
     if (account)

@@ -125,6 +125,18 @@ public: /* queries */
         return data.internalId;
     }
 
+    QString authServerUrl() const {
+        return data.authServerUrl();
+    }
+
+    QString sessionServerUrl() const {
+        return data.sessionServerUrl();
+    }
+
+    QString apiServerUrl() const {
+        return data.apiServerUrl();
+    }
+
     QString accountDisplayString() const {
         return data.accountDisplayString();
     }

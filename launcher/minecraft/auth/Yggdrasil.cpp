@@ -87,18 +87,10 @@ void Yggdrasil::refresh() {
     req.insert("requestUser", false);
     QJsonDocument doc(req);
 
-    QUrl reqUrl(Yggdrasil::getAuthBase() + "/refresh");
+    QUrl reqUrl(m_data->authServerUrl() + "/refresh");
     QByteArray requestData = doc.toJson();
 
     sendRequest(reqUrl, requestData);
-}
-
-QString Yggdrasil::getAuthBase() {
-    if (m_data->type == AccountType::CustomYggdrasil) {
-        return m_data->authServerUrl;
-    } else {
-        return BuildConfig.MOJANG_AUTH_BASE;
-    }
 }
 
 void Yggdrasil::login(QString password) {
@@ -140,7 +132,7 @@ void Yggdrasil::login(QString password) {
 
     QJsonDocument doc(req);
 
-    QUrl reqUrl(Yggdrasil::getAuthBase() + "/authenticate");
+    QUrl reqUrl(m_data->authServerUrl() + "/authenticate");
     QNetworkRequest netRequest(reqUrl);
     QByteArray requestData = doc.toJson();
 

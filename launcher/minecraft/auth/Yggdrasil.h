@@ -89,7 +89,6 @@ public slots:
     virtual bool abort() override;
 
 private:
-    QString getAuthBase();
     void sendRequest(QUrl endpoint, QByteArray content);
 
 protected:

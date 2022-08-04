@@ -94,6 +94,10 @@ struct AccountData {
     bool resumeStateFromV2(QJsonObject data);
     bool resumeStateFromV3(QJsonObject data);
 
+    QString authServerUrl() const;
+    QString sessionServerUrl() const;
+    QString apiServerUrl() const;
+
     //! userName for Mojang accounts, gamertag for MSA
     QString accountDisplayString() const;
 
@@ -118,9 +122,9 @@ struct AccountData {
     bool legacy = false;
     bool canMigrateToMSA = false;
 
-    QString authServerUrl;
-    QString sessionServerUrl;
-    QString apiServerUrl;
+    QString customAuthServerUrl;
+    QString customSessionServerUrl;
+    QString customApiServerUrl;
 
     QString msaClientID;
     Katabasis::Token msaToken;

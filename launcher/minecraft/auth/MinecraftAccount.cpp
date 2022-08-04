@@ -83,16 +83,16 @@ MinecraftAccountPtr MinecraftAccount::createFromUsername(const QString &username
     return account;
 }
 
-MinecraftAccountPtr MinecraftAccount::createFromUsernameCustomYggdrasil(const QString &username, const QString &authServerUrl, const QString &sessionServerUrl, const QString &apiServerUrl)
+MinecraftAccountPtr MinecraftAccount::createFromUsernameCustomYggdrasil(const QString &username, const QString &customAuthServerUrl, const QString &customSessionServerUrl, const QString &customApiServerUrl)
 {
     MinecraftAccountPtr account = new MinecraftAccount();
     account->data.type = AccountType::CustomYggdrasil;
     account->data.yggdrasilToken.extra["userName"] = username;
     account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
 
-    account->data.authServerUrl = authServerUrl;
-    account->data.sessionServerUrl = sessionServerUrl;
-    account->data.apiServerUrl = apiServerUrl;
+    account->data.customAuthServerUrl = customAuthServerUrl;
+    account->data.customSessionServerUrl = customSessionServerUrl;
+    account->data.customApiServerUrl = customApiServerUrl;
     return account;
 }
 
@@ -335,12 +335,11 @@ void MinecraftAccount::fillSession(AuthSessionPtr session)
     {
         session->session = "-";
     }
-    if (data.type == AccountType::CustomYggdrasil)
-    {
-        session->auth_server_url = data.authServerUrl;
-        session->session_server_url = data.sessionServerUrl;
-        session->api_server_url = data.apiServerUrl;
-    }
+
+    // API URLs
+    session->auth_server_url = data.authServerUrl();
+    session->session_server_url = data.sessionServerUrl();
+    session->api_server_url = data.apiServerUrl();
 }
 
 void MinecraftAccount::decrementUses()

@@ -26,6 +26,7 @@ struct AuthSession
         GoneOrMigrated
     } status = Undetermined;
 
+    // API URLs
     QString auth_server_url;
     QString session_server_url;
     QString api_server_url;

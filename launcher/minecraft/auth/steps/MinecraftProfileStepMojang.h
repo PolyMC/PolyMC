@@ -18,6 +18,5 @@ public:
     QString describe() override;
 
 private slots:
-    QString getSessionBase();
     void onRequestDone(QNetworkReply::NetworkError, QByteArray, QList<QNetworkReply::RawHeaderPair>);
 };

@@ -38,11 +38,11 @@ CustomYggdrasilLoginDialog::~CustomYggdrasilLoginDialog()
 QString CustomYggdrasilLoginDialog::fixUrl(QString url)
 {
     QString fixed(url);
-    if (!fixed.endsWith("/")) {
-        fixed.append("/");
-    }
     if (!fixed.contains("://")) {
         fixed.prepend("https://");
+    }
+    if (fixed.endsWith("/")) {
+        fixed = fixed.left(fixed.size() - 1);
     }
     return fixed;
 }
@@ -79,7 +79,7 @@ void CustomYggdrasilLoginDialog::setUserInputsEnabled(bool enable)
     ui->buttonBox->setEnabled(enable);
 }
 
-// Enable the OK button only when both textboxes contain something.
+// Enable the OK button only when all textboxes contain something.
 void CustomYggdrasilLoginDialog::on_userTextBox_textEdited(const QString &newText)
 {
     ui->buttonBox->button(QDialogButtonBox::Ok)
