@@ -28,8 +28,9 @@ struct AuthSession
 
     // API URLs
     QString auth_server_url;
+    QString account_server_url;
     QString session_server_url;
-    QString api_server_url;
+    QString services_server_url;
     // client token
     QString client_token;
     // account user name

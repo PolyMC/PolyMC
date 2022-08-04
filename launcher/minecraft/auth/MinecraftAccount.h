@@ -90,7 +90,13 @@ public: /* construction */
     explicit MinecraftAccount(QObject *parent = 0);
 
     static MinecraftAccountPtr createFromUsername(const QString &username);
-    static MinecraftAccountPtr createFromUsernameCustomYggdrasil(const QString &username, const QString &authServerUrl, const QString &sessionServerUrl, const QString &apiServerUrl);
+    static MinecraftAccountPtr createFromUsernameCustomYggdrasil(
+        const QString &username,
+        const QString &authServerUrl,
+        const QString &accountServerUrl,
+        const QString &sessionServerUrl,
+        const QString &servicesServerUrl
+    );
 
     static MinecraftAccountPtr createBlankMSA();
 
@@ -129,12 +135,16 @@ public: /* queries */
         return data.authServerUrl();
     }
 
+    QString accountServerUrl() const {
+        return data.accountServerUrl();
+    }
+
     QString sessionServerUrl() const {
         return data.sessionServerUrl();
     }
 
-    QString apiServerUrl() const {
-        return data.apiServerUrl();
+    QString servicesServerUrl() const {
+        return data.servicesServerUrl();
     }
 
     QString accountDisplayString() const {
@@ -179,6 +189,34 @@ public: /* queries */
         return data.profileId().size() != 0;
     }
 
+    QString typeDisplayName() const {
+        switch(data.type) {
+            case AccountType::Mojang: {
+                if(data.legacy) {
+                    return "Legacy";
+                }
+                return "Mojang";
+            }
+            break;
+            case AccountType::CustomYggdrasil: {
+                return "Custom Yggdrasil";
+            }
+            break;
+            case AccountType::MSA: {
+                return "Microsoft";
+            }
+            break;
+            case AccountType::Offline: {
+                return "Offline";
+            }
+            break;
+            default: {
+                return "Unknown";
+            }
+
+        }
+    }
+
     QString typeString() const {
         switch(data.type) {
             case AccountType::Mojang: {
@@ -189,6 +227,9 @@ public: /* queries */
             }
             break;
             case AccountType::CustomYggdrasil: {
+                // This typeString gets passed to Minecraft; any Yggdrasil
+                // account should have the "mojang" type regardless of which
+                // servers are used.
                 return "mojang";
             }
             break;

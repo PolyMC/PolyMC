@@ -429,9 +429,9 @@ QStringList MinecraftInstance::processAuthArgs(AuthSessionPtr session) const
     {
         args << "-Dminecraft.api.env=custom";
         args << "-Dminecraft.api.auth.host=" + session->auth_server_url;
-        args << "-Dminecraft.api.account.host=" + session->api_server_url;
+        args << "-Dminecraft.api.account.host=" + session->account_server_url;
         args << "-Dminecraft.api.session.host=" + session->session_server_url;
-        args << "-Dminecraft.api.services.host=" + session->api_server_url;
+        args << "-Dminecraft.api.services.host=" + session->services_server_url;
     }
     return args;
 }

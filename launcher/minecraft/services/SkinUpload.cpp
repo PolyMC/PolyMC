@@ -58,7 +58,7 @@ SkinUpload::SkinUpload(QObject *parent, MinecraftAccountPtr acct, QByteArray ski
 
 void SkinUpload::executeTask()
 {
-    QNetworkRequest request(QUrl(m_acct->apiServerUrl() + "/minecraft/profile/skins"));
+    QNetworkRequest request(QUrl(m_acct->servicesServerUrl() + "/minecraft/profile/skins"));
     QString token = m_acct->accessToken();
     request.setRawHeader("Authorization", QString("Bearer %1").arg(token).toLocal8Bit());
     QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);

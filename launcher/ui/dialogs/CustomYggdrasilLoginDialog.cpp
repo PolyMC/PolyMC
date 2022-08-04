@@ -57,8 +57,9 @@ void CustomYggdrasilLoginDialog::accept()
     m_account = MinecraftAccount::createFromUsernameCustomYggdrasil(
         ui->userTextBox->text(),
         CustomYggdrasilLoginDialog::fixUrl(ui->authServerTextBox->text()),
+        CustomYggdrasilLoginDialog::fixUrl(ui->accountServerTextBox->text()),
         CustomYggdrasilLoginDialog::fixUrl(ui->sessionServerTextBox->text()),
-        CustomYggdrasilLoginDialog::fixUrl(ui->apiServerTextBox->text())
+        CustomYggdrasilLoginDialog::fixUrl(ui->servicesServerTextBox->text())
     );
 
     m_loginTask = m_account->loginCustomYggdrasil(ui->passTextBox->text());
@@ -74,8 +75,9 @@ void CustomYggdrasilLoginDialog::setUserInputsEnabled(bool enable)
     ui->userTextBox->setEnabled(enable);
     ui->passTextBox->setEnabled(enable);
     ui->authServerTextBox->setEnabled(enable);
+    ui->accountServerTextBox->setEnabled(enable);
     ui->sessionServerTextBox->setEnabled(enable);
-    ui->apiServerTextBox->setEnabled(enable);
+    ui->servicesServerTextBox->setEnabled(enable);
     ui->buttonBox->setEnabled(enable);
 }
 
@@ -86,8 +88,9 @@ void CustomYggdrasilLoginDialog::on_userTextBox_textEdited(const QString &newTex
         ->setEnabled(!newText.isEmpty() &&
                      !ui->passTextBox->text().isEmpty() &&
                      !ui->authServerTextBox->text().isEmpty() &&
+                     !ui->accountServerTextBox->text().isEmpty() &&
                      !ui->sessionServerTextBox->text().isEmpty() &&
-                     !ui->apiServerTextBox->text().isEmpty());
+                     !ui->servicesServerTextBox->text().isEmpty());
 
 }
 void CustomYggdrasilLoginDialog::on_passTextBox_textEdited(const QString &newText)

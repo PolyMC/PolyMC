@@ -46,7 +46,7 @@ CapeChange::CapeChange(QObject *parent, MinecraftAccountPtr acct, QString cape)
 }
 
 void CapeChange::setCape(QString& cape) {
-    QNetworkRequest request(QUrl(m_acct->apiServerUrl() + "/minecraft/profile/capes/active"));
+    QNetworkRequest request(QUrl(m_acct->servicesServerUrl() + "/minecraft/profile/capes/active"));
     QString token = m_acct->accessToken();
     auto requestString = QString("{\"capeId\":\"%1\"}").arg(m_capeId);
     request.setRawHeader("Authorization", QString("Bearer %1").arg(token).toLocal8Bit());
@@ -61,7 +61,7 @@ void CapeChange::setCape(QString& cape) {
 }
 
 void CapeChange::clearCape() {
-    QNetworkRequest request(QUrl(m_acct->apiServerUrl() + "/minecraft/profile/capes/active"));
+    QNetworkRequest request(QUrl(m_acct->servicesServerUrl() + "/minecraft/profile/capes/active"));
     QString token = m_acct->accessToken();
     auto requestString = QString("{\"capeId\":\"%1\"}").arg(m_capeId);
     request.setRawHeader("Authorization", QString("Bearer %1").arg(token).toLocal8Bit());

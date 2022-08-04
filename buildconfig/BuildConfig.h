@@ -141,8 +141,9 @@ class Config {
 
     // Minecraft expects these without trailing slashes, best to keep that format everywhere
     QString MOJANG_AUTH_BASE = "https://authserver.mojang.com";
+    QString MOJANG_ACCOUNT_BASE = "https://api.mojang.com";
     QString MOJANG_SESSION_BASE = "https://sessionserver.mojang.com";
-    QString MOJANG_API_BASE = "https://apiserver.mojang.com";
+    QString MOJANG_SERVICES_BASE = "https://api.minecraftservices.com";
 
     QString IMGUR_BASE_URL = "https://api.imgur.com/3/";
     QString FMLLIBS_BASE_URL = "https://files.polymc.org/fmllibs/";

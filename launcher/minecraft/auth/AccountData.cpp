@@ -368,8 +368,9 @@ bool AccountData::resumeStateFromV3(QJsonObject data) {
 
     if(type == AccountType::CustomYggdrasil) {
         customAuthServerUrl = data.value("customAuthServerUrl").toString();
+        customAccountServerUrl = data.value("customAccountServerUrl").toString();
         customSessionServerUrl = data.value("customSessionServerUrl").toString();
-        customApiServerUrl = data.value("customApiServerUrl").toString();
+        customServicesServerUrl = data.value("customServicesServerUrl").toString();
     }
 
     if(type == AccountType::MSA) {
@@ -419,8 +420,9 @@ QJsonObject AccountData::saveState() const {
     else if (type == AccountType::CustomYggdrasil) {
         output["type"] = "CustomYggdrasil";
         output["customAuthServerUrl"] = customAuthServerUrl;
+        output["customAccountServerUrl"] = customAccountServerUrl;
         output["customSessionServerUrl"] = customSessionServerUrl;
-        output["customApiServerUrl"] = customApiServerUrl;
+        output["customServicesServerUrl"] = customServicesServerUrl;
     }
     else if (type == AccountType::Offline) {
         output["type"] = "Offline";
@@ -440,6 +442,14 @@ QString AccountData::authServerUrl() const {
     }
 }
 
+QString AccountData::accountServerUrl() const {
+    if(type == AccountType::CustomYggdrasil) {
+        return customAccountServerUrl;
+    } else {
+        return BuildConfig.MOJANG_ACCOUNT_BASE;
+    }
+}
+
 QString AccountData::sessionServerUrl() const {
     if(type == AccountType::CustomYggdrasil) {
         return customSessionServerUrl;
@@ -448,11 +458,11 @@ QString AccountData::sessionServerUrl() const {
     }
 }
 
-QString AccountData::apiServerUrl() const {
+QString AccountData::servicesServerUrl() const {
     if(type == AccountType::CustomYggdrasil) {
-        return customApiServerUrl;
+        return customServicesServerUrl;
     } else {
-        return BuildConfig.MOJANG_API_BASE;
+        return BuildConfig.MOJANG_SERVICES_BASE;
     }
 }
 
