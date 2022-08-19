@@ -136,8 +136,9 @@ public:
      * @brief define an option that takes an additional argument
      * @param name the parameter name
      * @param def the default value
+     * @param null_when_missing if false, use the default value when the option is missing, otherwise use a null QVariant
      */
-    void addOption(QString name, QVariant def = QVariant());
+    void addOption(QString name, QVariant def = QVariant(), bool null_when_missing = false);
 
     /**
      * @brief define a positional argument
@@ -207,7 +208,6 @@ private:
         otOption
     };
 
-    // Important: the common part MUST BE COMMON ON ALL THREE structs
     struct CommonDef
     {
         QString name;
@@ -216,27 +216,16 @@ private:
         QVariant def;
     };
 
-    struct OptionDef
+    struct OptionDef : CommonDef
     {
-        // common
-        QString name;
-        QString doc;
-        QString metavar;
-        QVariant def;
-        // option
-        OptionType type;
+        OptionType type {};
         QChar flag;
+        bool null_when_missing = false;
     };
 
-    struct PositionalDef
+    struct PositionalDef : CommonDef
     {
-        // common
-        QString name;
-        QString doc;
-        QString metavar;
-        QVariant def;
-        // positional
-        bool required;
+        bool required = true;
     };
 
     QHash<QString, OptionDef *> m_options;

@@ -135,7 +135,7 @@ void Parser::addSwitch(QString name, bool def)
     m_optionList.append(param);
 }
 
-void Parser::addOption(QString name, QVariant def)
+void Parser::addOption(QString name, QVariant def, bool null_when_missing)
 {
     if (m_params.contains(name))
         throw "Name not unique";
@@ -145,6 +145,7 @@ void Parser::addOption(QString name, QVariant def)
     param->name = name;
     param->metavar = QString("<%1>").arg(name);
     param->def = def;
+    param->null_when_missing = null_when_missing;
 
     m_options[name] = param;
     m_params[name] = (CommonDef *)param;
@@ -286,22 +287,23 @@ QString Parser::compileUsage(QString progName, bool useFlags)
 QHash<QString, QVariant> Parser::parse(QStringList argv)
 {
     QHash<QString, QVariant> map;
+    QMap<QString, OptionDef*> expecting;
 
     QString programName = argv.takeFirst();
 
     QString optionPrefix;
     QString flagPrefix;
     QListIterator<PositionalDef *> positionals(m_positionals);
-    QStringList expecting;
 
     getPrefix(optionPrefix, flagPrefix);
 
     for (auto arg : argv) {
         // we were expecting an argument
         if (!expecting.isEmpty()) {
-            QString name = expecting.takeFirst();
+            QString name = expecting.firstKey();
             map[name] = QVariant(arg);
 
+            expecting.remove(name);
             continue;
         }
 
@@ -327,11 +329,11 @@ QHash<QString, QVariant> Parser::parse(QStringList argv)
                     map[name] = true;
                 } else {
                     if (m_argStyle == ArgumentStyle::Space)
-                        expecting.append(name);
+                        expecting.insert(name, option);
                     else if (!equals.isNull())
                         map[name] = equals;
                     else if (m_argStyle == ArgumentStyle::SpaceAndEquals)
-                        expecting.append(name);
+                        expecting.insert(name, option);
                     else
                         throw ParsingError(QString("Option %1%2 requires an argument.")
                                                .arg(optionPrefix, name));
@@ -367,7 +369,7 @@ QHash<QString, QVariant> Parser::parse(QStringList argv)
                     map[option->name] = true;
                 } else {
                     if (m_argStyle == ArgumentStyle::Space)
-                        expecting.append(option->name);
+                        expecting.insert(option->name, option);
                     else if (!equals.isNull())
                         if (flags.endsWith(flag))
                             map[option->name] = equals;
@@ -376,7 +378,7 @@ QHash<QString, QVariant> Parser::parse(QStringList argv)
                                                        "%1 not last flag in %4%3")
                                                    .arg(option->name, flag, flags, flagPrefix));
                     else if (m_argStyle == ArgumentStyle::SpaceAndEquals)
-                        expecting.append(option->name);
+                        expecting.insert(option->name, option);
                     else
                         throw ParsingError(QString("Option %1 reqires an argument. (flag %3%2)")
                                                .arg(option->name, flag, flagPrefix));
@@ -396,9 +398,16 @@ QHash<QString, QVariant> Parser::parse(QStringList argv)
     }
 
     // check if we're missing something
-    if (!expecting.isEmpty())
-        throw ParsingError(QString("Was still expecting arguments for %2%1").arg(
-            expecting.join(QString(", ") + optionPrefix), optionPrefix));
+    if (!expecting.isEmpty()) {
+        // Allow missing parameters if we have a default set for it!
+        for (auto const& missing : expecting) {
+            if (missing->def.isNull()) {
+                throw ParsingError(QString("Was still expecting arguments for %2%1").arg(
+                    expecting.keys().join(QString(", ") + optionPrefix), optionPrefix));
+            }
+            map[missing->name] = missing->def;
+        }
+    }
 
     while (positionals.hasNext())
     {
@@ -415,8 +424,12 @@ QHash<QString, QVariant> Parser::parse(QStringList argv)
     while (iter.hasNext())
     {
         OptionDef *option = iter.next();
-        if (!map.contains(option->name))
-            map[option->name] = option->def;
+        if (!map.contains(option->name)) {
+            if (option->null_when_missing)
+                map[option->name] = QVariant();
+            else
+                map[option->name] = option->def;
+        }
     }
 
     return map;
