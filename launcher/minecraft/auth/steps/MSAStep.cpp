@@ -42,6 +42,7 @@
 #include "minecraft/auth/Parsers.h"
 
 #include "Application.h"
+#include "Log.h"
 
 using OAuth2 = Katabasis::DeviceFlow;
 using Activity = Katabasis::Activity;
@@ -119,9 +120,9 @@ void MSAStep::onOAuthActivityChanged(Katabasis::Activity activity) {
             QVariantMap extraTokens = m_oauth2->extraTokens();
 #ifndef NDEBUG
             if (!extraTokens.isEmpty()) {
-                qDebug() << "Extra tokens in response:";
+                qCDebug(auth) << "Extra tokens in response:";
                 foreach (QString key, extraTokens.keys()) {
-                    qDebug() << "\t" << key << ":" << extraTokens.value(key);
+                    qCDebug(auth) << "\t" << key << ":" << extraTokens.value(key);
                 }
             }
 #endif

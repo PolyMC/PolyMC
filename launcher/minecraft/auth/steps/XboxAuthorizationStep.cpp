@@ -4,6 +4,8 @@
 #include <QJsonParseError>
 #include <QJsonDocument>
 
+#include "Log.h"
+
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"
 #include "net/NetUtils.h"
@@ -47,7 +49,7 @@ void XboxAuthorizationStep::perform() {
     AuthRequest *requestor = new AuthRequest(this);
     connect(requestor, &AuthRequest::finished, this, &XboxAuthorizationStep::onRequestDone);
     requestor->post(request, xbox_auth_data.toUtf8());
-    qDebug() << "Getting authorization token for " << m_relyingParty;
+    qCDebug(auth) << "Getting authorization token for " << m_relyingParty;
 }
 
 void XboxAuthorizationStep::onRequestDone(
@@ -59,7 +61,7 @@ void XboxAuthorizationStep::onRequestDone(
     requestor->deleteLater();
 
 #ifndef NDEBUG
-    qDebug() << data;
+    qCDebug(auth) << data;
 #endif
     if (error != QNetworkReply::NoError) {
         qWarning() << "Reply error:" << error;

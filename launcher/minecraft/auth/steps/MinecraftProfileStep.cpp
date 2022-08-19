@@ -2,6 +2,8 @@
 
 #include <QNetworkRequest>
 
+#include "Log.h"
+
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"
 #include "net/NetUtils.h"
@@ -41,7 +43,7 @@ void MinecraftProfileStep::onRequestDone(
     requestor->deleteLater();
 
 #ifndef NDEBUG
-    qDebug() << data;
+    qCDebug(auth) << data;
 #endif
     if (error == QNetworkReply::ContentNotFoundError) {
         // NOTE: Succeed even if we do not have a profile. This is a valid account state.

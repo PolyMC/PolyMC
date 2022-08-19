@@ -2,6 +2,8 @@
 
 #include <QNetworkRequest>
 
+#include "Log.h"
+
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"
 #include "net/NetUtils.h"
@@ -41,7 +43,7 @@ void XboxUserStep::perform() {
     auto *requestor = new AuthRequest(this);
     connect(requestor, &AuthRequest::finished, this, &XboxUserStep::onRequestDone);
     requestor->post(request, xbox_auth_data.toUtf8());
-    qDebug() << "First layer of XBox auth ... commencing.";
+    qCDebug(auth) << "First layer of XBox auth ... commencing.";
 }
 
 void XboxUserStep::onRequestDone(

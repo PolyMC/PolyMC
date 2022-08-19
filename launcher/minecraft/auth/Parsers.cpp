@@ -1,5 +1,6 @@
 #include "Parsers.h"
 #include "Json.h"
+#include "Log.h"
 
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -74,9 +75,9 @@ bool getBool(QJsonValue value, bool & out) {
 */
 
 bool parseXTokenResponse(QByteArray & data, Katabasis::Token &output, QString name) {
-    qDebug() << "Parsing" << name <<":";
+    qCDebug(auth) << "Parsing" << name <<":";
 #ifndef NDEBUG
-    qDebug() << data;
+    qCDebug(auth) << data;
 #endif
     QJsonParseError jsonError;
     QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
@@ -131,14 +132,14 @@ bool parseXTokenResponse(QByteArray & data, Katabasis::Token &output, QString na
         return false;
     }
     output.validity = Katabasis::Validity::Certain;
-    qDebug() << name << "is valid.";
+    qCDebug(auth) << name << "is valid.";
     return true;
 }
 
 bool parseMinecraftProfile(QByteArray & data, MinecraftProfile &output) {
-    qDebug() << "Parsing Minecraft profile...";
+    qCDebug(auth) << "Parsing Minecraft profile...";
 #ifndef NDEBUG
-    qDebug() << data;
+    qCDebug(auth) << data;
 #endif
 
     QJsonParseError jsonError;
@@ -274,9 +275,9 @@ decoded base64 "value":
 */
 
 bool parseMinecraftProfileMojang(QByteArray & data, MinecraftProfile &output) {
-    qDebug() << "Parsing Minecraft profile...";
+    qCDebug(auth) << "Parsing Minecraft profile...";
 #ifndef NDEBUG
-    qDebug() << data;
+    qCDebug(auth) << data;
 #endif
 
     QJsonParseError jsonError;
@@ -388,9 +389,9 @@ bool parseMinecraftProfileMojang(QByteArray & data, MinecraftProfile &output) {
 }
 
 bool parseMinecraftEntitlements(QByteArray & data, MinecraftEntitlement &output) {
-    qDebug() << "Parsing Minecraft entitlements...";
+    qCDebug(auth) << "Parsing Minecraft entitlements...";
 #ifndef NDEBUG
-    qDebug() << data;
+    qCDebug(auth) << data;
 #endif
 
     QJsonParseError jsonError;
@@ -423,9 +424,9 @@ bool parseMinecraftEntitlements(QByteArray & data, MinecraftEntitlement &output)
 }
 
 bool parseRolloutResponse(QByteArray & data, bool& result) {
-    qDebug() << "Parsing Rollout response...";
+    qCDebug(auth) << "Parsing Rollout response...";
 #ifndef NDEBUG
-    qDebug() << data;
+    qCDebug(auth) << data;
 #endif
 
     QJsonParseError jsonError;
@@ -454,9 +455,9 @@ bool parseRolloutResponse(QByteArray & data, bool& result) {
 
 bool parseMojangResponse(QByteArray & data, Katabasis::Token &output) {
     QJsonParseError jsonError;
-    qDebug() << "Parsing Mojang response...";
+    qCDebug(auth) << "Parsing Mojang response...";
 #ifndef NDEBUG
-    qDebug() << data;
+    qCDebug(auth) << data;
 #endif
     QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
     if(jsonError.error) {
@@ -486,7 +487,7 @@ bool parseMojangResponse(QByteArray & data, Katabasis::Token &output) {
         return false;
     }
     output.validity = Katabasis::Validity::Certain;
-    qDebug() << "Mojang response is valid.";
+    qCDebug(auth) << "Mojang response is valid.";
     return true;
 }
 

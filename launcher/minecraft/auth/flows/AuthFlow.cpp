@@ -6,7 +6,8 @@
 #include "AuthFlow.h"
 #include "katabasis/Globals.h"
 
-#include <Application.h>
+#include "Application.h"
+#include "Log.h"
 
 AuthFlow::AuthFlow(AccountData * data, QObject *parent) :
     AccountTask(data, parent)
@@ -37,7 +38,7 @@ void AuthFlow::nextStep() {
         return;
     }
     m_currentStep = m_steps.front();
-    qDebug() << "AuthFlow:" << m_currentStep->describe();
+    qCDebug(auth) << "AuthFlow:" << m_currentStep->describe();
     m_steps.pop_front();
     connect(m_currentStep.get(), &AuthStep::finished, this, &AuthFlow::stepFinished);
     connect(m_currentStep.get(), &AuthStep::showVerificationUriAndCode, this, &AuthFlow::showVerificationUriAndCode);
