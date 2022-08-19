@@ -112,9 +112,9 @@ void AuthRequest::onRequestError(QNetworkReply::NetworkError error) {
 void AuthRequest::onSslErrors(QList<QSslError> errors) {
     int i = 1;
     for (auto error : errors) {
-        qCritical() << "LOGIN SSL Error #" << i << " : " << error.errorString();
+        qCCritical(auth) << "LOGIN SSL Error #" << i << " : " << error.errorString();
         auto cert = error.certificate();
-        qCritical() << "Certificate in question:\n" << cert.toText();
+        qCCritical(auth) << "Certificate in question:\n" << cert.toText();
         i++;
     }
 }

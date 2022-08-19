@@ -454,7 +454,7 @@ bool AccountList::loadList()
 {
     if (m_listFilePath.isEmpty())
     {
-        qCritical() << "Can't load Mojang account list. No file path given and no default set.";
+        qCCritical(auth_accountlist) << "Can't load Mojang account list. No file path given and no default set.";
         return false;
     }
 
@@ -464,7 +464,7 @@ bool AccountList::loadList()
     // TODO: We should probably report this error to the user.
     if (!file.open(QIODevice::ReadOnly))
     {
-        qCritical() << QString("Failed to read the account list file (%1).").arg(m_listFilePath).toUtf8();
+        qCCritical(auth_accountlist) << QString("Failed to read the account list file (%1).").arg(m_listFilePath).toUtf8();
         return false;
     }
 
@@ -478,7 +478,7 @@ bool AccountList::loadList()
     // Fail if the JSON is invalid.
     if (parseError.error != QJsonParseError::NoError)
     {
-        qCritical() << QString("Failed to parse account list file: %1 at offset %2")
+        qCCritical(auth_accountlist) << QString("Failed to parse account list file: %1 at offset %2")
                             .arg(parseError.errorString(), QString::number(parseError.offset))
                             .toUtf8();
         return false;
@@ -487,7 +487,7 @@ bool AccountList::loadList()
     // Make sure the root is an object.
     if (!jsonDoc.isObject())
     {
-        qCritical() << "Invalid account list JSON: Root should be an array.";
+        qCCritical(auth_accountlist) << "Invalid account list JSON: Root should be an array.";
         return false;
     }
 
@@ -583,7 +583,7 @@ bool AccountList::saveList()
 {
     if (m_listFilePath.isEmpty())
     {
-        qCritical() << "Can't save Mojang account list. No file path given and no default set.";
+        qCCritical(auth_accountlist) << "Can't save Mojang account list. No file path given and no default set.";
         return false;
     }
 
@@ -633,7 +633,7 @@ bool AccountList::saveList()
     // TODO: We should probably report this error to the user.
     if (!file.open(QIODevice::WriteOnly))
     {
-        qCritical() << QString("Failed to read the account list file (%1).").arg(m_listFilePath).toUtf8();
+        qCCritical(auth_accountlist) << QString("Failed to read the account list file (%1).").arg(m_listFilePath).toUtf8();
         return false;
     }
 

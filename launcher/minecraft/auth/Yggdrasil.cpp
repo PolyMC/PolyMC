@@ -168,9 +168,9 @@ void Yggdrasil::abortByTimeout() {
 void Yggdrasil::sslErrors(QList<QSslError> errors) {
     int i = 1;
     for (auto error : errors) {
-        qCritical() << "LOGIN SSL Error #" << i << " : " << error.errorString();
+        qCCritical(auth) << "LOGIN SSL Error #" << i << " : " << error.errorString();
         auto cert = error.certificate();
-        qCritical() << "Certificate in question:\n" << cert.toText();
+        qCCritical(auth) << "Certificate in question:\n" << cert.toText();
         i++;
     }
 }
@@ -305,7 +305,7 @@ void Yggdrasil::processReply() {
                 AccountTaskState::STATE_FAILED_SOFT,
                 tr("Failed to parse authentication server response JSON response: %1 at offset %2.").arg(jsonError.errorString()).arg(jsonError.offset)
             );
-            qCritical() << replyData;
+            qCCritical(auth) << replyData;
         }
         return;
     }

@@ -281,7 +281,7 @@ bool AccountData::resumeStateFromV2(QJsonObject data) {
     // The JSON object must at least have a username for it to be valid.
     if (!data.value("username").isString())
     {
-        qCritical() << "Can't load Mojang account info from JSON object. Username field is missing or of the wrong type.";
+        qCCritical(auth) << "Can't load Mojang account info from JSON object. Username field is missing or of the wrong type.";
         return false;
     }
 
@@ -292,7 +292,7 @@ bool AccountData::resumeStateFromV2(QJsonObject data) {
     QJsonArray profileArray = data.value("profiles").toArray();
     if (profileArray.size() < 1)
     {
-        qCritical() << "Can't load Mojang account with username \"" << userName << "\". No profiles found.";
+        qCCritical(auth) << "Can't load Mojang account with username \"" << userName << "\". No profiles found.";
         return false;
     }
 
