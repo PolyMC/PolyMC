@@ -38,6 +38,19 @@ Here are the current features of PolyMC.
 *-a, --profile*=PROFILE
 	Use the account specified by PROFILE (only valid in combination with --launch).
 
+*-L, --custom-logging*=CATEGORY_LIST
+	Include / exclude certain logging categories from being shown.
+
+	Use it with no arguments (or with a 'list' argument) to show the possible
+	categories. You can use the '\*' character as a wildcard.
+
+	Examples:
+
+	'polymc -L' - Show the list of possible categories.
+
+	'polymc -L "Auth=false,Auth.\*=false"' - Disable all logging for
+	authentication.
+
 # EXIT STATUS
 
 *0*

@@ -110,6 +110,7 @@
 #include <FileSystem.h>
 #include <DesktopServices.h>
 #include <LocalPeer.h>
+#include "Log.h"
 
 #include <sys.h>
 
@@ -260,6 +261,10 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         parser.addOption("import");
         parser.addShortOpt("import", 'I');
         parser.addDocumentation("import", "Import instance from specified zip (local path or URL)");
+        // --custom-logging
+        parser.addOption("custom-logging", "list", true);
+        parser.addShortOpt("custom-logging", 'L');
+        parser.addDocumentation("custom-logging", "Comma-separated list of logging categories to enable/disable (e.g.: Auth=true,Auth.AccountList=false).");
 
         // parse the arguments
         try
@@ -299,6 +304,19 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
     m_profileToUse = args["profile"].toString();
     m_liveCheck = args["alive"].toBool();
     m_zipToImport = args["import"].toUrl();
+    m_custom_logging = args["custom-logging"].toString().split(',');
+
+    if (!args["custom-logging"].isNull()) {
+        // TODO: Somehow make it so that we don't have to manually state every category
+        if (m_custom_logging.at(0) == "list") {
+            std::cout << "Available logging categories:" << std::endl;
+            std::cout << auth().categoryName() << "\t(default: true)" << std::endl;
+            std::cout << auth_accountlist().categoryName() << "\t(default: true)" << std::endl;
+            std::cout << auth_refreshschedule().categoryName() << "\t(default: true)" << std::endl;
+            m_status = Application::Succeeded;
+            return;
+        }
+    }
 
     // error if --launch is missing with --server or --profile
     if((!m_serverToJoin.isEmpty() || !m_profileToUse.isEmpty()) && m_instanceIdToLaunch.isEmpty())
@@ -482,13 +500,14 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         }
         qInstallMessageHandler(appDebugOutput);
 
-        // TODO: Set filter rules based on CLI arguments
         qSetMessagePattern(
                 "%{time process}" " "
                 "%{if-debug}D%{endif}" "%{if-info}I%{endif}" "%{if-warning}W%{endif}" "%{if-critical}C%{endif}" "%{if-fatal}F%{endif}"
                 " " "|" " "
                 "%{if-category}[%{category}]: %{endif}"
                 "%{message}\n");
+
+        QLoggingCategory::setFilterRules(m_custom_logging.join('\n'));
 
         qDebug() << "<> Log initialized.";
     }

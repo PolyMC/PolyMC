@@ -294,5 +294,7 @@ public:
     bool m_liveCheck = false;
     QUrl m_zipToImport;
     std::unique_ptr<QFile> logFile;
+
+    QStringList m_custom_logging;
 };
 
