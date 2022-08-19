@@ -42,6 +42,7 @@
 
 #include "Application.h"
 #include "AuthRequest.h"
+#include "Log.h"
 #include "katabasis/Globals.h"
 
 AuthRequest::AuthRequest(QObject *parent): QObject(parent) {
@@ -92,7 +93,7 @@ void AuthRequest::onRequestFinished() {
 }
 
 void AuthRequest::onRequestError(QNetworkReply::NetworkError error) {
-    qWarning() << "AuthRequest::onRequestError: Error" << (int)error;
+    qCWarning(auth) << "AuthRequest::onRequestError: Error" << (int)error;
     if (status_ == Idle) {
         return;
     }
@@ -102,8 +103,8 @@ void AuthRequest::onRequestError(QNetworkReply::NetworkError error) {
     errorString_ = reply_->errorString();
     httpStatus_ = reply_->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     error_ = error;
-    qWarning() << "AuthRequest::onRequestError: Error string: " << errorString_;
-    qWarning() << "AuthRequest::onRequestError: HTTP status" << httpStatus_ << reply_->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
+    qCWarning(auth) << "AuthRequest::onRequestError: Error string: " << errorString_;
+    qCWarning(auth) << "AuthRequest::onRequestError: HTTP status" << httpStatus_ << reply_->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
 
     // QTimer::singleShot(10, this, SLOT(finish()));
 }
@@ -120,7 +121,7 @@ void AuthRequest::onSslErrors(QList<QSslError> errors) {
 
 void AuthRequest::onUploadProgress(qint64 uploaded, qint64 total) {
     if (status_ == Idle) {
-        qWarning() << "AuthRequest::onUploadProgress: No pending request";
+        qCWarning(auth) << "AuthRequest::onUploadProgress: No pending request";
         return;
     }
     if (reply_ != qobject_cast<QNetworkReply *>(sender())) {
@@ -155,7 +156,7 @@ void AuthRequest::setup(const QNetworkRequest &req, QNetworkAccessManager::Opera
 void AuthRequest::finish() {
     QByteArray data;
     if (status_ == Idle) {
-        qWarning() << "AuthRequest::finish: No pending request";
+        qCWarning(auth) << "AuthRequest::finish: No pending request";
         return;
     }
     data = reply_->readAll();

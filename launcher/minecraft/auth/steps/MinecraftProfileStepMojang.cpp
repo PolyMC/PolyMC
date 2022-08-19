@@ -62,13 +62,13 @@ void MinecraftProfileStepMojang::onRequestDone(
         return;
     }
     if (error != QNetworkReply::NoError) {
-        qWarning() << "Error getting profile:";
-        qWarning() << " HTTP Status:        " << requestor->httpStatus_;
-        qWarning() << " Internal error no.: " << error;
-        qWarning() << " Error string:       " << requestor->errorString_;
+        qCWarning(auth) << "Error getting profile:";
+        qCWarning(auth) << " HTTP Status:        " << requestor->httpStatus_;
+        qCWarning(auth) << " Internal error no.: " << error;
+        qCWarning(auth) << " Error string:       " << requestor->errorString_;
 
-        qWarning() << " Response:";
-        qWarning() << QString::fromUtf8(data);
+        qCWarning(auth) << " Response:";
+        qCWarning(auth) << QString::fromUtf8(data);
 
         if (Net::isApplicationError(error)) {
             emit finished(

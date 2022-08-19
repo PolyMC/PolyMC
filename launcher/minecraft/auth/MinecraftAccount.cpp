@@ -321,7 +321,7 @@ void MinecraftAccount::decrementUses()
     {
         emit changed();
         // FIXME: we now need a better way to identify accounts...
-        qWarning() << "Profile" << data.profileId() << "is no longer in use.";
+        qCWarning(auth) << "Profile" << data.profileId() << "is no longer in use.";
     }
 }
 
@@ -333,6 +333,6 @@ void MinecraftAccount::incrementUses()
     {
         emit changed();
         // FIXME: we now need a better way to identify accounts...
-        qWarning() << "Profile" << data.profileId() << "is now in use.";
+        qCWarning(auth) << "Profile" << data.profileId() << "is now in use.";
     }
 }

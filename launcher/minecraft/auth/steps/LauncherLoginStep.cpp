@@ -57,7 +57,7 @@ void LauncherLoginStep::onRequestDone(
     qCDebug(auth) << data;
 #endif
     if (error != QNetworkReply::NoError) {
-        qWarning() << "Reply error:" << error;
+        qCWarning(auth) << "Reply error:" << error;
 #ifndef NDEBUG
         qCDebug(auth) << data;
 #endif
@@ -77,7 +77,7 @@ void LauncherLoginStep::onRequestDone(
     }
 
     if(!Parsers::parseMojangResponse(data, m_data->yggdrasilToken)) {
-        qWarning() << "Could not parse login_with_xbox response...";
+        qCWarning(auth) << "Could not parse login_with_xbox response...";
 #ifndef NDEBUG
         qCDebug(auth) << data;
 #endif

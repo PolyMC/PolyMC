@@ -56,7 +56,7 @@ void XboxProfileStep::onRequestDone(
     requestor->deleteLater();
 
     if (error != QNetworkReply::NoError) {
-        qWarning() << "Reply error:" << error;
+        qCWarning(auth) << "Reply error:" << error;
 #ifndef NDEBUG
         qCDebug(auth) << data;
 #endif

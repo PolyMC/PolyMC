@@ -506,7 +506,7 @@ bool AccountList::loadList()
         break;
         default: {
             QString newName = "accounts-old.json";
-            qWarning() << "Unknown format version when loading account list. Existing one will be renamed to" << newName;
+            qCWarning(auth_accountlist) << "Unknown format version when loading account list. Existing one will be renamed to" << newName;
             // Attempt to rename the old version.
             file.rename(newName);
             return false;
@@ -540,7 +540,7 @@ bool AccountList::loadV2(QJsonObject& root) {
         }
         else
         {
-            qWarning() << "Failed to load an account.";
+            qCWarning(auth_accountlist) << "Failed to load an account.";
         }
     }
     endResetModel();
@@ -571,7 +571,7 @@ bool AccountList::loadV3(QJsonObject& root) {
         }
         else
         {
-            qWarning() << "Failed to load an account.";
+            qCWarning(auth_accountlist) << "Failed to load an account.";
         }
     }
     endResetModel();
@@ -759,7 +759,7 @@ void AccountList::beginActivity() {
 
 void AccountList::endActivity() {
     if(m_activityCount == 0) {
-        qWarning() << m_name << " - Activity count would become below zero";
+        qCWarning(auth_accountlist) << m_name << " - Activity count would become below zero";
         return;
     }
     bool deactivating = m_activityCount == 1;
