@@ -282,12 +282,12 @@ QString Parser::compileUsage(QString progName, bool useFlags)
 }
 
 // parsing
+// TODO: Clean up
 QHash<QString, QVariant> Parser::parse(QStringList argv)
 {
     QHash<QString, QVariant> map;
 
-    QStringListIterator it(argv);
-    QString programName = it.next();
+    QString programName = argv.takeFirst();
 
     QString optionPrefix;
     QString flagPrefix;
@@ -296,54 +296,36 @@ QHash<QString, QVariant> Parser::parse(QStringList argv)
 
     getPrefix(optionPrefix, flagPrefix);
 
-    while (it.hasNext())
-    {
-        QString arg = it.next();
-
-        if (!expecting.isEmpty())
+    for (auto arg : argv) {
         // we were expecting an argument
-        {
-            QString name = expecting.first();
-/*
-            if (map.contains(name))
-                throw ParsingError(
-                    QString("Option %2%1 was given multiple times").arg(name, optionPrefix));
-*/
+        if (!expecting.isEmpty()) {
+            QString name = expecting.takeFirst();
             map[name] = QVariant(arg);
 
-            expecting.removeFirst();
             continue;
         }
 
-        if (arg.startsWith(optionPrefix))
         // we have an option
-        {
+        if (arg.startsWith(optionPrefix)) {
             // qDebug("Found option %s", qPrintable(arg));
 
-            QString name = arg.mid(optionPrefix.length());
+            QString name = arg.remove(optionPrefix);
             QString equals;
 
-            if ((m_argStyle == ArgumentStyle::Equals ||
-                 m_argStyle == ArgumentStyle::SpaceAndEquals) &&
-                name.contains("="))
+            if ((m_argStyle == ArgumentStyle::Equals || m_argStyle == ArgumentStyle::SpaceAndEquals)
+                    && name.contains("="))
             {
-                int i = name.indexOf("=");
-                equals = name.mid(i + 1);
-                name = name.left(i);
+                auto arg_split = name.split('=');
+                name = arg_split.at(0);
+                equals = arg_split.at(1);
             }
 
-            if (m_options.contains(name))
-            {
-                /*
-                if (map.contains(name))
-                    throw ParsingError(QString("Option %2%1 was given multiple times")
-                                           .arg(name, optionPrefix));
-*/
-                OptionDef *option = m_options[name];
-                if (option->type == otSwitch)
+            if (m_options.contains(name)) {
+                auto option = m_options[name];
+
+                if (option->type == otSwitch) {
                     map[name] = true;
-                else // if (option->type == otOption)
-                {
+                } else {
                     if (m_argStyle == ArgumentStyle::Space)
                         expecting.append(name);
                     else if (!equals.isNull())
@@ -351,54 +333,43 @@ QHash<QString, QVariant> Parser::parse(QStringList argv)
                     else if (m_argStyle == ArgumentStyle::SpaceAndEquals)
                         expecting.append(name);
                     else
-                        throw ParsingError(QString("Option %2%1 reqires an argument.")
-                                               .arg(name, optionPrefix));
+                        throw ParsingError(QString("Option %1%2 requires an argument.")
+                                               .arg(optionPrefix, name));
                 }
 
                 continue;
             }
 
-            throw ParsingError(QString("Unknown Option %2%1").arg(name, optionPrefix));
+            throw ParsingError(QString("Unknown Option %1%2").arg(optionPrefix, name));
         }
 
-        if (arg.startsWith(flagPrefix))
         // we have (a) flag(s)
-        {
+        if (arg.startsWith(flagPrefix)) {
             // qDebug("Found flags %s", qPrintable(arg));
 
-            QString flags = arg.mid(flagPrefix.length());
+            QString flags = arg.remove(flagPrefix);
             QString equals;
 
-            if ((m_argStyle == ArgumentStyle::Equals ||
-                 m_argStyle == ArgumentStyle::SpaceAndEquals) &&
-                flags.contains("="))
+            if ((m_argStyle == ArgumentStyle::Equals || m_argStyle == ArgumentStyle::SpaceAndEquals)
+                    && flags.contains("="))
             {
-                int i = flags.indexOf("=");
-                equals = flags.mid(i + 1);
-                flags = flags.left(i);
+                auto arg_split = flags.split('=');
+                flags = arg_split.at(0);
+                equals = arg_split.at(1);
             }
 
-            for (int i = 0; i < flags.length(); i++)
-            {
-                QChar flag = flags.at(i);
-
+            for (auto const& flag : flags) {
                 if (!m_flags.contains(flag))
-                    throw ParsingError(QString("Unknown flag %2%1").arg(flag, flagPrefix));
+                    throw ParsingError(QString("Unknown flag %1%2").arg(flagPrefix, flag));
 
-                OptionDef *option = m_flags[flag];
-/*
-                if (map.contains(option->name))
-                    throw ParsingError(QString("Option %2%1 was given multiple times")
-                                           .arg(option->name, optionPrefix));
-*/
-                if (option->type == otSwitch)
+                auto option = m_flags[flag];
+                if (option->type == otSwitch) {
                     map[option->name] = true;
-                else // if (option->type == otOption)
-                {
+                } else {
                     if (m_argStyle == ArgumentStyle::Space)
                         expecting.append(option->name);
                     else if (!equals.isNull())
-                        if (i == flags.length() - 1)
+                        if (flags.endsWith(flag))
                             map[option->name] = equals;
                         else
                             throw ParsingError(QString("Flag %4%2 of Argument-requiring Option "
@@ -419,9 +390,9 @@ QHash<QString, QVariant> Parser::parse(QStringList argv)
         if (!positionals.hasNext())
             throw ParsingError(QString("Don't know what to do with '%1'").arg(arg));
 
-        PositionalDef *param = positionals.next();
+        auto positional = positionals.next();
 
-        map[param->name] = arg;
+        map[positional->name] = arg;
     }
 
     // check if we're missing something
