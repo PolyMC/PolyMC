@@ -144,5 +144,5 @@ MinecraftAccountPtr CustomYggdrasilLoginDialog::newAccount(QWidget *parent, QStr
     {
         return dlg.m_account;
     }
-    return 0;
+    return nullptr;
 }
