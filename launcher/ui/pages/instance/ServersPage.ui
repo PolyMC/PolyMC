@@ -61,62 +61,43 @@
     <item>
      <layout class="QGridLayout" name="gridLayout_2">
       <property name="leftMargin">
-       <number>6</number>
+       <number>0</number>
       </property>
       <property name="rightMargin">
-       <number>6</number>
+       <number>0</number>
       </property>
       <item row="0" column="0">
-       <widget class="QLabel" name="nameLabel">
+       <widget class="QLineEdit" name="nameLine">
         <property name="text">
-         <string>&amp;Name</string>
+         <string/>
         </property>
-        <property name="buddy">
-         <cstring>nameLine</cstring>
+        <property name="placeholderText">
+         <string>Server name</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="nameLine"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="addressLabel">
-        <property name="text">
-         <string>Address</string>
-        </property>
-        <property name="buddy">
-         <cstring>addressLine</cstring>
+       <widget class="QLineEdit" name="addressLine">
+        <property name="placeholderText">
+         <string>Server address</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="addressLine"/>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="resourcesLabel">
-        <property name="text">
-         <string>Reso&amp;urces</string>
-        </property>
-        <property name="buddy">
-         <cstring>resourceComboBox</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
+      <item row="2" column="0" colspan="2">
        <widget class="QComboBox" name="resourceComboBox">
         <item>
          <property name="text">
-          <string>Ask to download</string>
+          <string>Ask to download resources</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Always download</string>
+          <string>Always download resources</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Never download</string>
+          <string>Never download resources</string>
          </property>
         </item>
        </widget>
@@ -185,9 +166,6 @@
  </customwidgets>
  <tabstops>
   <tabstop>serversView</tabstop>
-  <tabstop>nameLine</tabstop>
-  <tabstop>addressLine</tabstop>
-  <tabstop>resourceComboBox</tabstop>
  </tabstops>
  <resources/>
  <connections/>

@@ -39,7 +39,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="minecraftTab">
       <attribute name="title">
@@ -575,20 +575,11 @@
           <item>
            <layout class="QGridLayout" name="serverJoinLayout">
             <item row="0" column="0">
-             <widget class="QLabel" name="serverJoinAddressLabel">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Server address:</string>
+             <widget class="QLineEdit" name="serverJoinAddress">
+              <property name="placeholderText">
+               <string>Server address</string>
               </property>
              </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLineEdit" name="serverJoinAddress"/>
             </item>
            </layout>
           </item>
