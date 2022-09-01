@@ -31,16 +31,6 @@
      </item>
     </layout>
    </item>
-   <item row="0" column="0">
-    <widget class="QLineEdit" name="searchEdit">
-     <property name="placeholderText">
-      <string>Search and filter...</string>
-     </property>
-     <property name="clearButtonEnabled">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0" colspan="2">
     <layout class="QGridLayout" name="gridLayout_3">
      <item row="0" column="0">
@@ -67,6 +57,16 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="QLineEdit" name="searchEdit">
+     <property name="placeholderText">
+      <string>Search and filter...</string>
+     </property>
+     <property name="clearButtonEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
