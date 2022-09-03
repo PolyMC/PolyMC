@@ -61,7 +61,7 @@ public:
     }
     virtual QIcon icon() const override
     {
-        return APPLICATION->getThemedIcon("minecraft");
+        return APPLICATION->getThemedIcon("launcher");
     }
     virtual QString id() const override
     {
