@@ -529,7 +529,7 @@ public:
 
         menuBar->addMenu(foldersMenu);
 
-        profileMenu = menuBar->addMenu(tr("&Profiles"));
+        profileMenu = menuBar->addMenu(tr("&Accounts"));
         profileMenu->setSeparatorsCollapsible(false);
         profileMenu->addAction(actionManageAccounts);
 
@@ -1083,7 +1083,7 @@ void MainWindow::retranslateUi()
         accountMenuButton->setText(profileLabel);
     }
     else {
-        accountMenuButton->setText(tr("Profiles"));
+        accountMenuButton->setText(tr("Accounts"));
     }
 
     if (m_selectedInstance) {
@@ -1423,7 +1423,7 @@ void MainWindow::defaultAccountChanged()
 
     // Set the icon to the "no account" icon.
     accountMenuButton->setIcon(APPLICATION->getThemedIcon("noaccount"));
-    accountMenuButton->setText(tr("Profiles"));
+    accountMenuButton->setText(tr("Accounts"));
 }
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
