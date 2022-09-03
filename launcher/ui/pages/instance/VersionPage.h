@@ -84,7 +84,6 @@ private slots:
     void on_actionReplace_Minecraft_jar_triggered();
     void on_actionRevert_triggered();
     void on_actionEdit_triggered();
-    void on_actionInstall_mods_triggered();
     void on_actionCustomize_triggered();
     void on_actionDownload_All_triggered();
 
