@@ -52,7 +52,7 @@ QString LanguageSelectionWidget::getSelectedLanguageKey() const
 
 void LanguageSelectionWidget::retranslate()
 {
-    QString text = tr("Don't see your language or the quality is poor?<br/><a href=\"%1\">Help us with translations!</a>")
+    QString text = tr("Don't see your language or the quality is poor?<br/><a href=\"https://hosted.weblate.org/projects/polymc/polymc/\">Help us with translations!</a>")
         .arg(BuildConfig.TRANSLATIONS_URL);
     helpUsLabel->setText(text);
 
