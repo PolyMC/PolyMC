@@ -7,8 +7,28 @@ jobs:
   publish:
     runs-on: windows-latest
     steps:
-      - uses: vedantmgoyal2009/winget-releaser@latest
-        with:
-          identifier: PolyMC.PolyMC
-          installers-regex: 'PolyMC-Windows-Setup-.+\.exe$'
-          token: ${{ secrets.WINGET_TOKEN }}
+      - name: Get version
+        id: get_version
+        run: |
+          version=""
+          if [ "${{ github.event_name }}" == "repository_dispatch" ]
+          then
+            version="${{ github.event.client_payload.version }}"
+          else
+            version="${{ github.event.inputs.version }}"
+          fi
+          if [[ $version == v* ]]; then
+            version="${version:1}"
+          fi
+          echo "::set-output name=version::$version"
+      - name: Create winget PR
+        shell: pwsh
+        run: |
+          git config --global user.email action@github.com
+          git config --global user.name actions-user
+          iwr https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          .\wingetcreate.exe update PolyMC.PolyMC-u $Env:URL -v $Env:VERSION -t $Env:TOKEN --submit
+        env:
+          TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+          VERSION: ${{ steps.get_version.outputs.version }}
+          URL: ${{ format('https://github.com/PolyMC/PolyMC/releases/download/v{0}/dolt-windows-amd64.msi', steps.get_version.outputs.version) }}
