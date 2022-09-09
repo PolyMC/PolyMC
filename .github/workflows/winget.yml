@@ -24,8 +24,6 @@ jobs:
       - name: Create winget PR
         shell: pwsh
         run: |
-          git config --global user.email action@github.com
-          git config --global user.name actions-user
           iwr https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
           .\wingetcreate.exe update PolyMC.PolyMC-u $Env:URL -v $Env:VERSION -t $Env:TOKEN --submit
         env:
