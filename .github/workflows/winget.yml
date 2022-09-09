@@ -27,6 +27,7 @@ jobs:
           iwr https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
           .\wingetcreate.exe update PolyMC.PolyMC-u $Env:URL -v $Env:VERSION -t $Env:TOKEN --submit
         env:
-          TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+          TOKEN: ${{ secrets.WINGET_TOKEN }}
           VERSION: ${{ steps.get_version.outputs.version }}
           URL: ${{ format('https://github.com/PolyMC/PolyMC/releases/download/v{0}/PolyMC-Windows-Setup-{0}.exe', steps.get_version.outputs.version) }}
+          
