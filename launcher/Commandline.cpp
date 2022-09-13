@@ -36,6 +36,7 @@
  */
 
 #include "Commandline.h"
+#include "qloggingcategory.h"
 
 /**
  * @file libutil/src/cmdutils.cpp
@@ -416,8 +417,11 @@ QHash<QString, QVariant> Parser::parse(QStringList argv)
         }
 
         // must be a positional argument
-        if (!positionals.hasNext())
-            throw ParsingError(QString("Don't know what to do with '%1'").arg(arg));
+        if (!positionals.hasNext()) {
+            //TODO find a better way to reference default args
+            map["0"] = arg;
+            continue;
+        }
 
         PositionalDef *param = positionals.next();
 
