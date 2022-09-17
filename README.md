@@ -3,6 +3,7 @@
 <img src="./program_info/polymc-header.svg#gh-dark-mode-only" alt="PolyMC logo" width="50%"/>
 </p>
 
+This is [**fork** of PolyMC](https://github.com/PolyMC/PolyMC) with offline patches for personal use.<br><br>
 PolyMC is a custom launcher for Minecraft that focuses on predictability, long term stability and simplicity.
 
 This is a **fork** of the MultiMC Launcher and not endorsed by MultiMC.
