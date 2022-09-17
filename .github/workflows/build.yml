@@ -27,7 +27,6 @@ jobs:
             qt_host: linux
             qt_version: '6.2.4'
             qt_modules: 'qt5compat qtimageformats'
-            qt_path: /home/runner/work/PolyMC/Qt
 
           - os: windows-2022
             name: "Windows-Legacy"
@@ -43,9 +42,8 @@ jobs:
             macosx_deployment_target: 10.14
             qt_ver: 6
             qt_host: mac
-            qt_version: '6.3.1'
+            qt_version: '6.3.0'
             qt_modules: 'qt5compat qtimageformats'
-            qt_path: /Users/runner/work/PolyMC/Qt
 
     runs-on: ${{ matrix.os }}
 
@@ -141,24 +139,16 @@ jobs:
         run: |
           sudo apt-get -y install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5core5a libqt5network5 libqt5gui5
  
-      - name: Cache Qt (macOS and AppImage)
-        id: cache-qt
-        if: matrix.qt_ver == 6 && runner.os != 'Windows'
-        uses: actions/cache@v3
-        with:
-          path: '${{ matrix.qt_path }}/${{ matrix.qt_version }}'
-          key: ${{ matrix.qt_host }}-${{ matrix.qt_version }}-"${{ matrix.qt_modules }}"-qt_cache
-
       - name: Install Qt (macOS and AppImage)
         if: matrix.qt_ver == 6 && runner.os != 'Windows'
-        uses: jurplel/install-qt-action@v2
+        uses: jurplel/install-qt-action@v3
         with:
            version: ${{ matrix.qt_version }}
            host: ${{ matrix.qt_host }}
            target: 'desktop'
            modules: ${{ matrix.qt_modules }}
-           cached: ${{ steps.cache-qt.outputs.cache-hit }}
-           aqtversion: ==2.1.*
+           cache: true
+           cache-key-prefix: ${{ matrix.qt_host }}-${{ matrix.qt_version }}-"${{ matrix.qt_modules }}"-qt_cache
 
       - name: Prepare AppImage (Linux)
         if: runner.os == 'Linux' && matrix.qt_ver != 5
@@ -259,10 +249,8 @@ jobs:
           cmake --install ${{ env.BUILD_DIR }}
 
           cd ${{ env.INSTALL_DIR }}
-          if [ "${{ matrix.msystem }}" == "mingw32" ]; then
+          if [ "${{ matrix.qt_ver }}" == "5" ]; then
             cp /mingw32/bin/libcrypto-1_1.dll /mingw32/bin/libssl-1_1.dll ./
-          elif [ "${{ matrix.msystem }}" == "mingw64" ]; then
-            cp /mingw64/bin/libcrypto-1_1-x64.dll /mingw64/bin/libssl-1_1-x64.dll ./
           fi
 
       - name: Package (Windows, portable)
@@ -314,6 +302,9 @@ jobs:
           cp -r ${{ github.workspace }}/JREs/jre17/* ${{ env.INSTALL_APPIMAGE_DIR }}/usr/lib/jvm/java-17-openjdk
 
           cp -r /home/runner/work/PolyMC-Offline/Qt/${{ matrix.qt_version }}/gcc_64/plugins/iconengines/* ${{ env.INSTALL_APPIMAGE_DIR }}/usr/plugins/iconengines
+          
+          cp /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 ${{ env.INSTALL_APPIMAGE_DIR }}/usr/lib/
+          cp /usr/lib/x86_64-linux-gnu/libssl.so.1.1 ${{ env.INSTALL_APPIMAGE_DIR }}//usr/lib/
 
           LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${{ env.INSTALL_APPIMAGE_DIR }}/usr/lib"
           LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${{ env.INSTALL_APPIMAGE_DIR }}/usr/lib/jvm/java-8-openjdk/lib/amd64/server"

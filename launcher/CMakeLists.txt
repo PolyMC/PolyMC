@@ -88,12 +88,6 @@ set(CORE_SOURCES
     MMCTime.cpp
 )
 
-ecm_add_test(FileSystem_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME FileSystem)  # TODO: needs testdata
-
-ecm_add_test(GZip_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME GZip)
-
 set(PATHMATCHER_SOURCES
     # Path matchers
     pathmatcher/FSTreeMatcher.h
@@ -318,16 +312,26 @@ set(MINECRAFT_SOURCES
     minecraft/mod/ModDetails.h
     minecraft/mod/ModFolderModel.h
     minecraft/mod/ModFolderModel.cpp
+    minecraft/mod/Resource.h
+    minecraft/mod/Resource.cpp
+    minecraft/mod/ResourceFolderModel.h
+    minecraft/mod/ResourceFolderModel.cpp
+    minecraft/mod/ResourcePack.h
+    minecraft/mod/ResourcePack.cpp
     minecraft/mod/ResourcePackFolderModel.h
     minecraft/mod/ResourcePackFolderModel.cpp
     minecraft/mod/TexturePackFolderModel.h
     minecraft/mod/TexturePackFolderModel.cpp
+    minecraft/mod/ShaderPackFolderModel.h
+    minecraft/mod/tasks/BasicFolderLoadTask.h
     minecraft/mod/tasks/ModFolderLoadTask.h
     minecraft/mod/tasks/ModFolderLoadTask.cpp
     minecraft/mod/tasks/LocalModParseTask.h
     minecraft/mod/tasks/LocalModParseTask.cpp
     minecraft/mod/tasks/LocalModUpdateTask.h
     minecraft/mod/tasks/LocalModUpdateTask.cpp
+    minecraft/mod/tasks/LocalResourcePackParseTask.h
+    minecraft/mod/tasks/LocalResourcePackParseTask.cpp
 
     # Assets
     minecraft/AssetsUtils.h
@@ -344,42 +348,6 @@ set(MINECRAFT_SOURCES
     mojang/PackageManifest.h
     mojang/PackageManifest.cpp
     minecraft/Agent.h)
-
-ecm_add_test(minecraft/GradleSpecifier_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME GradleSpecifier)
-
-if(BUILD_TESTING)
-    add_executable(PackageManifest
-        mojang/PackageManifest_test.cpp
-    )
-    target_link_libraries(PackageManifest
-        Launcher_logic
-        Qt${QT_VERSION_MAJOR}::Test
-    )
-    target_include_directories(PackageManifest
-        PRIVATE ../cmake/UnitTest/
-    )
-    add_test(
-        NAME PackageManifest
-        COMMAND PackageManifest
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-endif()
-
-# TODO: needs minecraft/testdata
-ecm_add_test(minecraft/MojangVersionFormat_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME MojangVersionFormat)
-
-ecm_add_test(minecraft/Library_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME Library)
-
-# FIXME: shares data with FileSystem test
-# TODO: needs testdata
-ecm_add_test(minecraft/mod/ModFolderModel_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME ModFolderModel)
-
-ecm_add_test(minecraft/ParseUtils_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME ParseUtils)
 
 # the screenshots feature
 set(SCREENSHOTS_SOURCES
@@ -402,9 +370,6 @@ set(TASKS_SOURCES
     tasks/MultipleOptionsTask.cpp
 )
 
-ecm_add_test(tasks/Task_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME Task)
-
 set(SETTINGS_SOURCES
     # Settings
     settings/INIFile.cpp
@@ -421,9 +386,6 @@ set(SETTINGS_SOURCES
     settings/SettingsObject.h
 )
 
-ecm_add_test(settings/INIFile_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME INIFile)
-
 set(JAVA_SOURCES
     java/JavaChecker.h
     java/JavaChecker.cpp
@@ -438,9 +400,6 @@ set(JAVA_SOURCES
     java/JavaVersion.h
     java/JavaVersion.cpp
 )
-
-ecm_add_test(java/JavaVersion_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME JavaVersion)
 
 set(TRANSLATIONS_SOURCES
     translations/TranslationsModel.h
@@ -494,6 +453,8 @@ set(API_SOURCES
     modplatform/modrinth/ModrinthAPI.cpp
     modplatform/helpers/NetworkModAPI.h
     modplatform/helpers/NetworkModAPI.cpp
+    modplatform/helpers/HashUtils.h
+    modplatform/helpers/HashUtils.cpp
 )
 
 set(FTB_SOURCES
@@ -542,9 +503,6 @@ set(PACKWIZ_SOURCES
     modplatform/packwiz/Packwiz.cpp
 )
 
-# TODO: needs modplatform/packwiz/testdata
-ecm_add_test(modplatform/packwiz/Packwiz_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME Packwiz)
 
 set(TECHNIC_SOURCES
     modplatform/technic/SingleZipPackInstallTask.h
@@ -567,9 +525,6 @@ set(ATLAUNCHER_SOURCES
     modplatform/atlauncher/ATLShareCode.cpp
     modplatform/atlauncher/ATLShareCode.h
 )
-
-ecm_add_test(meta/Index_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME Index)
 
 ################################ COMPILE ################################
 
@@ -764,6 +719,8 @@ SET(LAUNCHER_SOURCES
     ui/pages/modplatform/atlauncher/AtlOptionalModDialog.h
     ui/pages/modplatform/atlauncher/AtlPage.cpp
     ui/pages/modplatform/atlauncher/AtlPage.h
+    ui/pages/modplatform/atlauncher/AtlUserInteractionSupportImpl.cpp
+    ui/pages/modplatform/atlauncher/AtlUserInteractionSupportImpl.h
 
     ui/pages/modplatform/ftb/FtbFilterModel.cpp
     ui/pages/modplatform/ftb/FtbFilterModel.h
@@ -849,6 +806,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/ModDownloadDialog.h
     ui/dialogs/ScrollMessageBox.cpp
     ui/dialogs/ScrollMessageBox.h
+    ui/dialogs/BlockedModsDialog.cpp
+    ui/dialogs/BlockedModsDialog.h
     ui/dialogs/ChooseProviderDialog.h
     ui/dialogs/ChooseProviderDialog.cpp
     ui/dialogs/ModUpdateDialog.cpp
@@ -875,8 +834,8 @@ SET(LAUNCHER_SOURCES
     ui/widgets/LineSeparator.h
     ui/widgets/LogView.cpp
     ui/widgets/LogView.h
-    ui/widgets/MCModInfoFrame.cpp
-    ui/widgets/MCModInfoFrame.h
+    ui/widgets/InfoFrame.cpp
+    ui/widgets/InfoFrame.h
     ui/widgets/ModFilterWidget.cpp
     ui/widgets/ModFilterWidget.h
     ui/widgets/ModListView.cpp
@@ -884,6 +843,8 @@ SET(LAUNCHER_SOURCES
     ui/widgets/PageContainer.cpp
     ui/widgets/PageContainer.h
     ui/widgets/PageContainer_p.h
+    ui/widgets/ProjectItem.h
+    ui/widgets/ProjectItem.cpp
     ui/widgets/VersionListView.cpp
     ui/widgets/VersionListView.h
     ui/widgets/VersionSelectWidget.cpp
@@ -906,6 +867,16 @@ SET(LAUNCHER_SOURCES
     ui/instanceview/VisualGroup.cpp
     ui/instanceview/VisualGroup.h
 )
+
+if(WIN32)
+    set(LAUNCHER_SOURCES
+        ${LAUNCHER_SOURCES}
+
+        # GUI - dark titlebar for Windows 10/11
+        ui/WinDarkmode.h
+        ui/WinDarkmode.cpp
+    )
+endif()
 
 qt_wrap_ui(LAUNCHER_UI
     ui/setupwizard/PasteWizardPage.ui
@@ -938,7 +909,7 @@ qt_wrap_ui(LAUNCHER_UI
     ui/pages/modplatform/technic/TechnicPage.ui
     ui/widgets/InstanceCardWidget.ui
     ui/widgets/CustomCommands.ui
-    ui/widgets/MCModInfoFrame.ui
+    ui/widgets/InfoFrame.ui
     ui/widgets/ModFilterWidget.ui
     ui/dialogs/CopyInstanceDialog.ui
     ui/dialogs/ProfileSetupDialog.ui
@@ -958,6 +929,7 @@ qt_wrap_ui(LAUNCHER_UI
     ui/dialogs/EditAccountDialog.ui
     ui/dialogs/ReviewMessageBox.ui
     ui/dialogs/ScrollMessageBox.ui
+    ui/dialogs/BlockedModsDialog.ui
     ui/dialogs/ChooseProviderDialog.ui
 )
 
@@ -982,6 +954,7 @@ endif()
 
 # Add executable
 add_library(Launcher_logic STATIC ${LOGIC_SOURCES} ${LAUNCHER_SOURCES} ${LAUNCHER_UI} ${LAUNCHER_RESOURCES})
+target_include_directories(Launcher_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(Launcher_logic
     systeminfo
     Launcher_classparser

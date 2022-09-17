@@ -36,7 +36,7 @@ static ModAPI::ModLoaderTypes mcLoaders(BaseInstance* inst)
 ModUpdateDialog::ModUpdateDialog(QWidget* parent,
                                  BaseInstance* instance,
                                  const std::shared_ptr<ModFolderModel> mods,
-                                 QList<Mod::Ptr>& search_for)
+                                 QList<Mod*>& search_for)
     : ReviewMessageBox(parent, tr("Confirm mods to update"), "")
     , m_parent(parent)
     , m_mod_model(mods)
@@ -226,9 +226,8 @@ auto ModUpdateDialog::ensureMetadata() -> bool
     };
 
     for (auto candidate : m_candidates) {
-        auto* candidate_ptr = candidate.get();
         if (candidate->status() != ModStatus::NoMetadata) {
-            onMetadataEnsured(candidate_ptr);
+            onMetadataEnsured(candidate);
             continue;
         }
 
@@ -236,7 +235,7 @@ auto ModUpdateDialog::ensureMetadata() -> bool
             continue;
 
         if (confirm_rest) {
-            addToTmp(candidate_ptr, provider_rest);
+            addToTmp(candidate, provider_rest);
             should_try_others.insert(candidate->internal_id(), try_others_rest);
             continue;
         }
@@ -261,7 +260,7 @@ auto ModUpdateDialog::ensureMetadata() -> bool
         should_try_others.insert(candidate->internal_id(), response.try_others);
 
         if (confirmed)
-            addToTmp(candidate_ptr, response.chosen);
+            addToTmp(candidate, response.chosen);
     }
 
     if (!modrinth_tmp.empty()) {
@@ -270,6 +269,10 @@ auto ModUpdateDialog::ensureMetadata() -> bool
         connect(modrinth_task, &EnsureMetadataTask::metadataFailed, [this, &should_try_others](Mod* candidate) {
             onMetadataFailed(candidate, should_try_others.find(candidate->internal_id()).value(), ModPlatform::Provider::MODRINTH);
         });
+
+        if (modrinth_task->getHashingTask())
+            seq.addTask(modrinth_task->getHashingTask());
+
         seq.addTask(modrinth_task);
     }
 
@@ -279,6 +282,10 @@ auto ModUpdateDialog::ensureMetadata() -> bool
         connect(flame_task, &EnsureMetadataTask::metadataFailed, [this, &should_try_others](Mod* candidate) {
             onMetadataFailed(candidate, should_try_others.find(candidate->internal_id()).value(), ModPlatform::Provider::FLAME);
         });
+
+        if (flame_task->getHashingTask())
+            seq.addTask(flame_task->getHashingTask());
+
         seq.addTask(flame_task);
     }
 

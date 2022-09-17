@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MCModInfoFrame</class>
- <widget class="QFrame" name="MCModInfoFrame">
+ <class>InfoFrame</class>
+ <widget class="QFrame" name="InfoFrame">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -22,10 +22,7 @@
     <height>120</height>
    </size>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
-   <property name="spacing">
-    <number>6</number>
-   </property>
+  <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -38,8 +35,8 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <item>
-    <widget class="QLabel" name="label_ModText">
+   <item row="0" column="1">
+    <widget class="QLabel" name="nameLabel">
      <property name="text">
       <string notr="true"/>
      </property>
@@ -60,8 +57,8 @@
      </property>
     </widget>
    </item>
-   <item>
-    <widget class="QLabel" name="label_ModDescription">
+   <item row="1" column="1">
+    <widget class="QLabel" name="descriptionLabel">
      <property name="toolTip">
       <string notr="true"/>
      </property>
@@ -82,6 +79,31 @@
      </property>
      <property name="textInteractionFlags">
       <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" rowspan="2">
+    <widget class="QLabel" name="iconLabel">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>64</width>
+       <height>64</height>
+      </size>
+     </property>
+     <property name="text">
+      <string notr="true"/>
+     </property>
+     <property name="scaledContents">
+      <bool>false</bool>
+     </property>
+     <property name="margin">
+      <number>0</number>
      </property>
     </widget>
    </item>

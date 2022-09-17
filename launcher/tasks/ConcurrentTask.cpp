@@ -1,10 +1,11 @@
 #include "ConcurrentTask.h"
 
 #include <QDebug>
+#include <QCoreApplication>
 
 ConcurrentTask::ConcurrentTask(QObject* parent, QString task_name, int max_concurrent)
     : Task(parent), m_name(task_name), m_total_max_size(max_concurrent)
-{}
+{ setObjectName(task_name); }
 
 ConcurrentTask::~ConcurrentTask()
 {
@@ -36,31 +37,40 @@ void ConcurrentTask::executeTask()
 {
     m_total_size = m_queue.size();
 
-    for (int i = 0; i < m_total_max_size; i++)
-        startNext();
+    // Start the least amount of tasks needed, but at least one
+    int num_starts = std::max(1, std::min(m_total_max_size, m_total_size));
+    for (int i = 0; i < num_starts; i++) {
+        QMetaObject::invokeMethod(this, &ConcurrentTask::startNext, Qt::QueuedConnection);
+    }
 }
 
 bool ConcurrentTask::abort()
 {
+    m_queue.clear();
+    m_aborted = true;
+
     if (m_doing.isEmpty()) {
         // Don't call emitAborted() here, we want to bypass the 'is the task running' check
         emit aborted();
         emit finished();
 
-        m_aborted = true;
         return true;
     }
 
-    m_queue.clear();
+    bool suceedeed = true;
 
-    m_aborted = true;
-    for (auto task : m_doing)
-        m_aborted &= task->abort();
+    QMutableHashIterator<Task*, Task::Ptr> doing_iter(m_doing);
+    while (doing_iter.hasNext()) {
+        auto task = doing_iter.next();
+        suceedeed &= (task.value())->abort();
+    }
 
-    if (m_aborted)
+    if (suceedeed)
         emitAborted();
+    else
+        emitFailed(tr("Failed to abort all running tasks."));
 
-    return m_aborted;
+    return suceedeed;
 }
 
 void ConcurrentTask::startNext()
@@ -68,7 +78,7 @@ void ConcurrentTask::startNext()
     if (m_aborted || m_doing.count() > m_total_max_size)
         return;
 
-    if (m_queue.isEmpty() && m_doing.isEmpty()) {
+    if (m_queue.isEmpty() && m_doing.isEmpty() && !wasSuccessful()) {
         emitSucceeded();
         return;
     }
@@ -90,6 +100,8 @@ void ConcurrentTask::startNext()
 
     setStepStatus(next->isMultiStep() ? next->getStepStatus() : next->getStatus());
     updateState();
+
+    QCoreApplication::processEvents();
 
     next->start();
 }
@@ -127,11 +139,6 @@ void ConcurrentTask::subTaskStatus(const QString& msg)
 
 void ConcurrentTask::subTaskProgress(qint64 current, qint64 total)
 {
-    if (total == 0) {
-        setProgress(0, 100);
-        return;
-    }
-
     m_stepProgress = current;
     m_stepTotalProgress = total;
 }

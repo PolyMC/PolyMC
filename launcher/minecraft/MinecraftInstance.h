@@ -7,6 +7,10 @@
 #include "minecraft/launch/MinecraftServerTarget.h"
 
 class ModFolderModel;
+class ResourceFolderModel;
+class ResourcePackFolderModel;
+class ShaderPackFolderModel;
+class TexturePackFolderModel;
 class WorldList;
 class GameOptions;
 class LaunchStep;
@@ -19,6 +23,8 @@ public:
     MinecraftInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString &rootDir);
     virtual ~MinecraftInstance() {};
     virtual void saveNow() override;
+
+    void loadSpecificSettings() override;
 
     // FIXME: remove
     QString typeName() const override;
@@ -70,24 +76,24 @@ public:
     //////  Mod Lists  //////
     std::shared_ptr<ModFolderModel> loaderModList() const;
     std::shared_ptr<ModFolderModel> coreModList() const;
-    std::shared_ptr<ModFolderModel> resourcePackList() const;
-    std::shared_ptr<ModFolderModel> texturePackList() const;
-    std::shared_ptr<ModFolderModel> shaderPackList() const;
+    std::shared_ptr<ResourcePackFolderModel> resourcePackList() const;
+    std::shared_ptr<TexturePackFolderModel> texturePackList() const;
+    std::shared_ptr<ShaderPackFolderModel> shaderPackList() const;
     std::shared_ptr<WorldList> worldList() const;
     std::shared_ptr<GameOptions> gameOptionsModel() const;
 
     //////  Launch stuff //////
     Task::Ptr createUpdateTask(Net::Mode mode) override;
     shared_qobject_ptr<LaunchTask> createLaunchTask(AuthSessionPtr account, MinecraftServerTargetPtr serverToJoin) override;
-    QStringList extraArguments() const override;
+    QStringList extraArguments() override;
     QStringList verboseDescription(AuthSessionPtr session, MinecraftServerTargetPtr serverToJoin) override;
     QList<Mod*> getJarMods() const;
     QString createLaunchScript(AuthSessionPtr session, MinecraftServerTargetPtr serverToJoin);
     /// get arguments passed to java
-    QStringList javaArguments() const;
+    QStringList javaArguments();
 
     /// get variables for launch command variable substitution/environment
-    QMap<QString, QString> getVariables() const override;
+    QMap<QString, QString> getVariables() override;
 
     /// create an environment for launching processes
     QProcessEnvironment createEnvironment() override;
@@ -103,16 +109,16 @@ public:
     QString getStatusbarDescription() override;
 
     // FIXME: remove
-    virtual QStringList getClassPath() const;
+    virtual QStringList getClassPath();
     // FIXME: remove
-    virtual QStringList getNativeJars() const;
+    virtual QStringList getNativeJars();
     // FIXME: remove
     virtual QString getMainClass() const;
 
     // FIXME: remove
     virtual QStringList processMinecraftArgs(AuthSessionPtr account, MinecraftServerTargetPtr serverToJoin) const;
 
-    virtual JavaVersion getJavaVersion() const;
+    virtual JavaVersion getJavaVersion();
 
 protected:
     QMap<QString, QString> createCensorFilterFromSession(AuthSessionPtr session);
@@ -123,9 +129,9 @@ protected: // data
     std::shared_ptr<PackProfile> m_components;
     mutable std::shared_ptr<ModFolderModel> m_loader_mod_list;
     mutable std::shared_ptr<ModFolderModel> m_core_mod_list;
-    mutable std::shared_ptr<ModFolderModel> m_resource_pack_list;
-    mutable std::shared_ptr<ModFolderModel> m_shader_pack_list;
-    mutable std::shared_ptr<ModFolderModel> m_texture_pack_list;
+    mutable std::shared_ptr<ResourcePackFolderModel> m_resource_pack_list;
+    mutable std::shared_ptr<ShaderPackFolderModel> m_shader_pack_list;
+    mutable std::shared_ptr<TexturePackFolderModel> m_texture_pack_list;
     mutable std::shared_ptr<WorldList> m_world_list;
     mutable std::shared_ptr<GameOptions> m_game_options;
 };

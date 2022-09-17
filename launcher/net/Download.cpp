@@ -60,7 +60,7 @@ auto Download::makeCached(QUrl url, MetaEntryPtr entry, Options options) -> Down
     dl->m_url = url;
     dl->m_options = options;
     auto md5Node = new ChecksumValidator(QCryptographicHash::Md5);
-    auto cachedNode = new MetaCacheSink(entry, md5Node);
+    auto cachedNode = new MetaCacheSink(entry, md5Node, options.testFlag(Option::MakeEternal));
     dl->m_sink.reset(cachedNode);
     return dl;
 }
@@ -118,7 +118,7 @@ void Download::executeTask()
     }
 
     request.setHeader(QNetworkRequest::UserAgentHeader, APPLICATION->getUserAgent().toUtf8());
-    if (APPLICATION->currentCapabilities() & Application::SupportsFlame
+    if (APPLICATION->capabilities() & Application::SupportsFlame
             && request.url().host().contains("api.curseforge.com")) {
         request.setRawHeader("x-api-key", APPLICATION->getFlameAPIKey().toUtf8());
     };

@@ -1,4 +1,4 @@
-# PolyMC
+## PolyMC
 
      PolyMC - Minecraft Launcher
      Copyright (C) 2021-2022 PolyMC Contributors
@@ -32,36 +32,56 @@
          See the License for the specific language governing permissions and
          limitations under the License.
 
-# MinGW runtime (Windows)
+## MinGW-w64 runtime (Windows)
 
-    Copyright (c) 2012 MinGW.org project
+    Copyright (c) 2009, 2010, 2011, 2012, 2013 by the mingw-w64 project
 
-    Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following conditions:
+    This license has been certified as open source. It has also been designated
+    as GPL compatible by the Free Software Foundation (FSF).
 
-    The above copyright notice, this permission notice and the below disclaimer
-    shall be included in all copies or substantial portions of the Software.
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-    DEALINGS IN THE SOFTWARE.
+    1. Redistributions in source code must retain the accompanying copyright
+      notice, this list of conditions, and the following disclaimer.
+    2. Redistributions in binary form must reproduce the accompanying
+      copyright notice, this list of conditions, and the following disclaimer
+      in the documentation and/or other materials provided with the
+      distribution.
+    3. Names of the copyright holders must not be used to endorse or promote
+      products derived from this software without prior written permission
+      from the copyright holders.
+    4. The right to distribute this software or to use it for any purpose does
+      not give you the right to use Servicemarks (sm) or Trademarks (tm) of
+      the copyright holders.  Use of them is covered by separate agreement
+      with the copyright holders.
+    5. If any files are modified, you must cause the modified files to carry
+      prominent notices stating that you changed the files and the date of
+      any change.
 
-# Qt 5/6
+    Disclaimer
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY EXPRESSED
+    OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+    OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+    EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT,
+    INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+    OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+    EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+    Information on third party licenses used in MinGW-w64 can be found in its COPYING.MinGW-w64-runtime.txt.
+
+## Qt 5/6
 
     Copyright (C) 2022 The Qt Company Ltd and other contributors.
     Contact: https://www.qt.io/licensing
 
     Licensed under LGPL v3
 
-# libnbt++
+## libnbt++
 
     libnbt++ - A library for the Minecraft Named Binary Tag format.
     Copyright (C) 2013, 2015  ljfa-ag
@@ -79,7 +99,7 @@
     You should have received a copy of the GNU Lesser General Public License
     along with libnbt++.  If not, see <http://www.gnu.org/licenses/>.
 
-# rainbow (KGuiAddons)
+## rainbow (KGuiAddons)
 
     Copyright (C) 2007 Matthew Woehlke <mw_triad@users.sourceforge.net>
     Copyright (C) 2007 Olaf Schmidt <ojschmidt@kde.org>
@@ -102,7 +122,7 @@
     the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
     Boston, MA 02110-1301, USA.
 
-# Hoedown
+## Hoedown
 
     Copyright (c) 2008, Natacha Porté
     Copyright (c) 2011, Vicent Martí
@@ -120,7 +140,7 @@
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
     OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# Batch icon set
+## Batch icon set
 
     You are free to use Batch (the "icon set") or any part thereof (the "icons")
     in any personal, open-source or commercial work without obligation of payment
@@ -136,7 +156,7 @@
     PUNITIVE OR EXEMPLARY DAMAGES ARISING OUT OF THE USE OF THE ICONS,
     EVEN IF LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
-# Material Design Icons
+## Material Design Icons
 
     Copyright (c) 2014, Austin Andrews (http://materialdesignicons.com/),
     with Reserved Font Name Material Design Icons.
@@ -147,7 +167,7 @@
     This license is copied below, and is also available with a FAQ at:
     http://scripts.sil.org/OFL
 
-# Quazip
+## Quazip
 
     Copyright (C) 2005-2021 Sergey A. Tachenov
 
@@ -171,7 +191,7 @@
 
     See COPYING file for the full LGPL text.
 
-# xz-minidec
+## xz-minidec
 
     XZ decompressor
 
@@ -181,7 +201,7 @@
     This file has been put into the public domain.
     You can do whatever you want with this file.
 
-# ColumnResizer
+## ColumnResizer
 
     Copyright (c) 2011-2016 Aurélien Gâteau and contributors.
 
@@ -217,7 +237,7 @@
     OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
     IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# launcher (`libraries/launcher`)
+## launcher (`libraries/launcher`)
 
      PolyMC - Minecraft Launcher
      Copyright (C) 2021-2022 PolyMC Contributors
@@ -268,7 +288,7 @@
          See the License for the specific language governing permissions and
          limitations under the License.
 
-# lionshead
+## lionshead
 
     Code has been taken from https://github.com/natefoo/lionshead and loosely
     translated to C++ laced with Qt.
@@ -295,7 +315,7 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
-# tomlc99
+## tomlc99
 
     MIT License
 
@@ -320,7 +340,7 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
-# O2 (Katabasis fork)
+## O2 (Katabasis fork)
 
     Copyright (c) 2012, Akos Polster
     All rights reserved.
@@ -345,3 +365,32 @@
     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
     OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+## Gamemode
+
+    Copyright (c) 2017-2022, Feral Interactive
+    All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+    * Neither the name of Feral Interactive nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.

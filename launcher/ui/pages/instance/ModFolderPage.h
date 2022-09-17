@@ -53,15 +53,30 @@ class ModFolderPage : public ExternalResourcesPage {
     virtual QString helpPage() const override { return "Loader-mods"; }
 
     virtual bool shouldDisplay() const override;
+    void runningStateChanged(bool running) override;
+
+   public slots:
+    bool onSelectionChanged(const QModelIndex& current, const QModelIndex& previous) override;
 
    private slots:
+    void removeItem() override;
+
     void installMods();
     void updateMods();
+
+   protected:
+    std::shared_ptr<ModFolderModel> m_model;
 };
 
 class CoreModFolderPage : public ModFolderPage {
    public:
     explicit CoreModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel> mods, QWidget* parent = 0);
     virtual ~CoreModFolderPage() = default;
-    virtual bool shouldDisplay() const;
+
+    virtual QString displayName() const override { return tr("Core mods"); }
+    virtual QIcon icon() const override { return APPLICATION->getThemedIcon("coremods"); }
+    virtual QString id() const override { return "coremods"; }
+    virtual QString helpPage() const override { return "Core-mods"; }
+
+    virtual bool shouldDisplay() const override;
 };

@@ -65,7 +65,7 @@
 #include "ui/dialogs/ProgressDialog.h"
 
 ModFolderPage::ModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel> mods, QWidget* parent)
-    : ExternalResourcesPage(inst, mods, parent)
+    : ExternalResourcesPage(inst, mods, parent), m_model(mods)
 {
     // This is structured like that so that these changes
     // do not affect the Resource pack and Shader pack tabs
@@ -84,49 +84,65 @@ ModFolderPage::ModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel>
         ui->actionsToolbar->insertActionAfter(ui->actionAddItem, ui->actionUpdateItem);
         connect(ui->actionUpdateItem, &QAction::triggered, this, &ModFolderPage::updateMods);
 
-        connect(ui->treeView->selectionModel(), &QItemSelectionModel::selectionChanged, this,
-                [this] { ui->actionUpdateItem->setEnabled(ui->treeView->selectionModel()->hasSelection() || !m_model->empty()); });
+        auto check_allow_update = [this] {
+            return (!m_instance || !m_instance->isRunning()) &&
+                   (ui->treeView->selectionModel()->hasSelection() || !m_model->empty());
+        };
 
-        connect(mods.get(), &ModFolderModel::rowsInserted, this,
-                [this] { ui->actionUpdateItem->setEnabled(ui->treeView->selectionModel()->hasSelection() || !m_model->empty()); });
-                
-        connect(mods.get(), &ModFolderModel::updateFinished, this, [this, mods] {
-            ui->actionUpdateItem->setEnabled(ui->treeView->selectionModel()->hasSelection() || !m_model->empty());
+        connect(ui->treeView->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this, check_allow_update] {
+            ui->actionUpdateItem->setEnabled(check_allow_update());
+        });
+
+        connect(mods.get(), &ModFolderModel::rowsInserted, this, [this, check_allow_update] {
+            ui->actionUpdateItem->setEnabled(check_allow_update());
+        });
+
+        connect(mods.get(), &ModFolderModel::rowsRemoved, this, [this, check_allow_update] {
+            ui->actionUpdateItem->setEnabled(check_allow_update());
+        });
+
+        connect(mods.get(), &ModFolderModel::updateFinished, this, [this, check_allow_update, mods] {
+            ui->actionUpdateItem->setEnabled(check_allow_update());
 
             // Prevent a weird crash when trying to open the mods page twice in a session o.O
             disconnect(mods.get(), &ModFolderModel::updateFinished, this, 0);
         });
+
+        ModFolderPage::runningStateChanged(m_instance && m_instance->isRunning());
     }
 }
 
-CoreModFolderPage::CoreModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel> mods, QWidget* parent)
-    : ModFolderPage(inst, mods, parent)
-{}
+void ModFolderPage::runningStateChanged(bool running)
+{
+    ExternalResourcesPage::runningStateChanged(running);
+    ui->actionDownloadItem->setEnabled(!running);
+    ui->actionUpdateItem->setEnabled(!running);
+}
 
 bool ModFolderPage::shouldDisplay() const
 {
     return true;
 }
 
-bool CoreModFolderPage::shouldDisplay() const
+bool ModFolderPage::onSelectionChanged(const QModelIndex& current, const QModelIndex& previous)
 {
-    if (ModFolderPage::shouldDisplay()) {
-        auto inst = dynamic_cast<MinecraftInstance*>(m_instance);
-        if (!inst)
-            return true;
+    auto sourceCurrent = m_filterModel->mapToSource(current);
+    int row = sourceCurrent.row();
+    Mod const* m = m_model->at(row);
+    if (m)
+        ui->frame->updateWithMod(*m);
 
-        auto version = inst->getPackProfile();
+    return true;
+}
 
-        if (!version)
-            return true;
-        if (!version->getComponent("net.minecraftforge"))
-            return false;
-        if (!version->getComponent("net.minecraft"))
-            return false;
-        if (version->getComponent("net.minecraft")->getReleaseDateTime() < g_VersionFilterData.legacyCutoffDate)
-            return true;
-    }
-    return false;
+void ModFolderPage::removeItem()
+{
+
+    if (!m_controlsEnabled)
+        return;
+
+    auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection());
+    m_model->deleteMods(selection.indexes());
 }
 
 void ModFolderPage::installMods()
@@ -231,4 +247,29 @@ void ModFolderPage::updateMods()
 
         m_model->update();
     }
+}
+
+CoreModFolderPage::CoreModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel> mods, QWidget* parent)
+    : ModFolderPage(inst, mods, parent)
+{}
+
+bool CoreModFolderPage::shouldDisplay() const
+{
+    if (ModFolderPage::shouldDisplay()) {
+        auto inst = dynamic_cast<MinecraftInstance*>(m_instance);
+        if (!inst)
+            return true;
+
+        auto version = inst->getPackProfile();
+
+        if (!version)
+            return true;
+        if (!version->getComponent("net.minecraftforge"))
+            return false;
+        if (!version->getComponent("net.minecraft"))
+            return false;
+        if (version->getComponent("net.minecraft")->getReleaseDateTime() < g_VersionFilterData.legacyCutoffDate)
+            return true;
+    }
+    return false;
 }

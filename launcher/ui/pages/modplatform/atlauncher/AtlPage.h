@@ -52,7 +52,7 @@ namespace Ui
 
 class NewInstanceDialog;
 
-class AtlPage : public QWidget, public BasePage, public ATLauncher::UserInteractionSupport
+class AtlPage : public QWidget, public BasePage
 {
 Q_OBJECT
 
@@ -82,10 +82,6 @@ public:
 
 private:
     void suggestCurrent();
-
-    QString chooseVersion(Meta::VersionListPtr vlist, QString minecraftVersion) override;
-    QVector<QString> chooseOptionalMods(ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods) override;
-    void displayMessage(QString message) override;
 
 private slots:
     void triggerSearch();

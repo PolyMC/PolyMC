@@ -8,6 +8,7 @@
 #include "ui/pages/BasePage.h"
 #include "ui/pages/modplatform/ModModel.h"
 #include "ui/widgets/ModFilterWidget.h"
+#include "ui/widgets/ProgressWidget.h"
 
 class ModDownloadDialog;
 
@@ -20,7 +21,17 @@ class ModPage : public QWidget, public BasePage {
     Q_OBJECT
 
    public:
-    explicit ModPage(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI* api);
+    template<typename T>
+    static T* create(ModDownloadDialog* dialog, BaseInstance* instance)
+    {
+        auto page = new T(dialog, instance);
+
+        auto filter_widget = ModFilterWidget::create(static_cast<MinecraftInstance*>(instance)->getPackProfile()->getComponentVersion("net.minecraft"), page);
+        page->setFilterWidget(filter_widget);
+
+        return page;
+    }
+
     ~ModPage() override;
 
     /* Affects what the user sees */
@@ -45,6 +56,13 @@ class ModPage : public QWidget, public BasePage {
     auto getFilter() const -> const std::shared_ptr<ModFilterWidget::Filter> { return m_filter; }
     auto getDialog() const -> const ModDownloadDialog* { return dialog; }
 
+    /** Get the current term in the search bar. */
+    auto getSearchTerm() const -> QString;
+    /** Programatically set the term in the search bar. */
+    void setSearchTerm(QString);
+
+    void setFilterWidget(unique_qobject_ptr<ModFilterWidget>&);
+
     auto getCurrent() -> ModPlatform::IndexedPack& { return current; }
     void updateModVersions(int prev_count = -1);
 
@@ -54,6 +72,7 @@ class ModPage : public QWidget, public BasePage {
     BaseInstance* m_instance;
 
    protected:
+    ModPage(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI* api);
     void updateSelectionButton();
 
    protected slots:
@@ -67,8 +86,10 @@ class ModPage : public QWidget, public BasePage {
     Ui::ModPage* ui = nullptr;
     ModDownloadDialog* dialog = nullptr;
 
-    ModFilterWidget filter_widget;
+    unique_qobject_ptr<ModFilterWidget> m_filter_widget;
     std::shared_ptr<ModFilterWidget::Filter> m_filter;
+
+    ProgressWidget m_fetch_progress;
 
     ModPlatform::ListModel* listModel = nullptr;
     ModPlatform::IndexedPack current;
@@ -76,4 +97,7 @@ class ModPage : public QWidget, public BasePage {
     std::unique_ptr<ModAPI> api;
 
     int selectedVersion = -1;
+
+    // Used to do instant searching with a delay to cache quick changes
+    QTimer m_search_timer;
 };

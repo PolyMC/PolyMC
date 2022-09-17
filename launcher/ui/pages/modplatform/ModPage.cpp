@@ -40,42 +40,70 @@
 #include <QKeyEvent>
 #include <memory>
 
+#include <HoeDown.h>
+
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "ui/dialogs/ModDownloadDialog.h"
+#include "ui/widgets/ProjectItem.h"
+
 
 ModPage::ModPage(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI* api)
     : QWidget(dialog)
     , m_instance(instance)
     , ui(new Ui::ModPage)
     , dialog(dialog)
-    , filter_widget(static_cast<MinecraftInstance*>(instance)->getPackProfile()->getComponentVersion("net.minecraft"), this)
+    , m_fetch_progress(this, false)
     , api(api)
 {
     ui->setupUi(this);
+
     connect(ui->searchButton, &QPushButton::clicked, this, &ModPage::triggerSearch);
     connect(ui->modFilterButton, &QPushButton::clicked, this, &ModPage::filterMods);
+
+    m_search_timer.setTimerType(Qt::TimerType::CoarseTimer);
+    m_search_timer.setSingleShot(true);
+
+    connect(&m_search_timer, &QTimer::timeout, this, &ModPage::triggerSearch);
+
     ui->searchEdit->installEventFilter(this);
 
     ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->versionSelectionBox->view()->parentWidget()->setMaximumHeight(300);
 
-    ui->gridLayout_3->addWidget(&filter_widget, 0, 0, 1, ui->gridLayout_3->columnCount());
+    m_fetch_progress.hideIfInactive(true);
+    m_fetch_progress.setFixedHeight(24);
+    m_fetch_progress.progressFormat("");
 
-    filter_widget.setInstance(static_cast<MinecraftInstance*>(m_instance));
-    m_filter = filter_widget.getFilter();
+    ui->gridLayout_3->addWidget(&m_fetch_progress, 0, 0, 1, ui->gridLayout_3->columnCount());
 
-    connect(&filter_widget, &ModFilterWidget::filterChanged, this, [&]{
-        ui->searchButton->setStyleSheet("text-decoration: underline");
-    });
-    connect(&filter_widget, &ModFilterWidget::filterUnchanged, this, [&]{
-        ui->searchButton->setStyleSheet("text-decoration: none");
-    });
+    ui->packView->setItemDelegate(new ProjectItemDelegate(this));
+    ui->packView->installEventFilter(this);
 }
 
 ModPage::~ModPage()
 {
     delete ui;
+}
+
+void ModPage::setFilterWidget(unique_qobject_ptr<ModFilterWidget>& widget)
+{
+    if (m_filter_widget)
+        disconnect(m_filter_widget.get(), nullptr, nullptr, nullptr);
+
+    m_filter_widget.swap(widget);
+
+    ui->gridLayout_3->addWidget(m_filter_widget.get(), 0, 0, 1, ui->gridLayout_3->columnCount());
+
+    m_filter_widget->setInstance(static_cast<MinecraftInstance*>(m_instance));
+    m_filter = m_filter_widget->getFilter();
+
+    connect(m_filter_widget.get(), &ModFilterWidget::filterChanged, this, [&]{
+        ui->searchButton->setStyleSheet("text-decoration: underline");
+    });
+    connect(m_filter_widget.get(), &ModFilterWidget::filterUnchanged, this, [&]{
+        ui->searchButton->setStyleSheet("text-decoration: none");
+    });
 }
 
 
@@ -95,6 +123,23 @@ auto ModPage::eventFilter(QObject* watched, QEvent* event) -> bool
             triggerSearch();
             keyEvent->accept();
             return true;
+        } else {
+            if (m_search_timer.isActive())
+                m_search_timer.stop();
+
+            m_search_timer.start(350);
+        }
+    } else if (watched == ui->packView && event->type() == QEvent::KeyPress) {
+        auto* keyEvent = dynamic_cast<QKeyEvent*>(event);
+        if (keyEvent->key() == Qt::Key_Return) {
+            onModSelected();
+
+            // To have the 'select mod' button outlined instead of the 'review and confirm' one
+            ui->modSelectionButton->setFocus(Qt::FocusReason::ShortcutFocusReason);
+            ui->packView->setFocus(Qt::FocusReason::NoFocusReason);
+
+            keyEvent->accept();
+            return true;
         }
     }
     return QWidget::eventFilter(watched, event);
@@ -105,13 +150,13 @@ auto ModPage::eventFilter(QObject* watched, QEvent* event) -> bool
 
 void ModPage::filterMods()
 {
-    filter_widget.setHidden(!filter_widget.isHidden());
+    m_filter_widget->setHidden(!m_filter_widget->isHidden());
 }
 
 void ModPage::triggerSearch()
 {
-    auto changed = filter_widget.changed();
-    m_filter = filter_widget.getFilter();
+    auto changed = m_filter_widget->changed();
+    m_filter = m_filter_widget->getFilter();
     
     if(changed){
         ui->packView->clearSelection();
@@ -120,16 +165,26 @@ void ModPage::triggerSearch()
         updateSelectionButton();
     }
 
-    listModel->searchWithTerm(ui->searchEdit->text(), ui->sortByBox->currentIndex(), changed);
+    listModel->searchWithTerm(getSearchTerm(), ui->sortByBox->currentIndex(), changed);
+    m_fetch_progress.watch(listModel->activeJob());
 }
 
-void ModPage::onSelectionChanged(QModelIndex first, QModelIndex second)
+QString ModPage::getSearchTerm() const
+{
+    return ui->searchEdit->text();
+}
+void ModPage::setSearchTerm(QString term)
+{
+    ui->searchEdit->setText(term);
+}
+
+void ModPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
 {
     ui->versionSelectionBox->clear();
 
-    if (!first.isValid()) { return; }
+    if (!curr.isValid()) { return; }
 
-    current = listModel->data(first, Qt::UserRole).value<ModPlatform::IndexedPack>();
+    current = listModel->data(curr, Qt::UserRole).value<ModPlatform::IndexedPack>();
 
     if (!current.versionsLoaded) {
         qDebug() << QString("Loading %1 mod versions").arg(debugName());
@@ -137,7 +192,7 @@ void ModPage::onSelectionChanged(QModelIndex first, QModelIndex second)
         ui->modSelectionButton->setText(tr("Loading versions..."));
         ui->modSelectionButton->setEnabled(false);
 
-        listModel->requestModVersions(current);
+        listModel->requestModVersions(current, curr);
     } else {
         for (int i = 0; i < current.versions.size(); i++) {
             ui->versionSelectionBox->addItem(current.versions[i].version, QVariant(i));
@@ -149,7 +204,8 @@ void ModPage::onSelectionChanged(QModelIndex first, QModelIndex second)
 
     if(!current.extraDataLoaded){
         qDebug() << QString("Loading %1 mod info").arg(debugName());
-        listModel->requestModInfo(current);
+
+        listModel->requestModInfo(current, curr);
     }
 
     updateUi();
@@ -167,6 +223,9 @@ void ModPage::onVersionSelectionChanged(QString data)
 
 void ModPage::onModSelected()
 {
+    if (selectedVersion < 0)
+        return;
+
     auto& version = current.versions[selectedVersion];
     if (dialog->isModSelected(current.name, version.fileName)) {
         dialog->removeSelectedMod(current.name);
@@ -176,6 +235,9 @@ void ModPage::onModSelected()
     }
 
     updateSelectionButton();
+
+    /* Force redraw on the mods list when the selection changes */
+    ui->packView->adjustSize();
 }
 
 
@@ -285,5 +347,6 @@ void ModPage::updateUi()
 
     text += "<hr>";
 
-    ui->packDescription->setHtml(text + current.description);
+    HoeDown h;
+    ui->packDescription->setHtml(text + (current.extraData.body.isEmpty() ? current.description : h.process(current.extraData.body.toUtf8())));
 }
