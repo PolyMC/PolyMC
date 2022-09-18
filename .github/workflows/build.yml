@@ -20,30 +20,15 @@ jobs:
         include:
 
           - os: ubuntu-20.04
-            qt_ver: 5
-
-          - os: ubuntu-20.04
             qt_ver: 6
             qt_host: linux
             qt_version: '6.2.4'
             qt_modules: 'qt5compat qtimageformats'
 
           - os: windows-2022
-            name: "Windows-Legacy"
-            msystem: mingw32
-            qt_ver: 5
-
-          - os: windows-2022
             name: "Windows"
             msystem: mingw32
             qt_ver: 6
-
-          - os: macos-12
-            macosx_deployment_target: 10.14
-            qt_ver: 6
-            qt_host: mac
-            qt_version: '6.3.0'
-            qt_modules: 'qt5compat qtimageformats'
 
     runs-on: ${{ matrix.os }}
 
