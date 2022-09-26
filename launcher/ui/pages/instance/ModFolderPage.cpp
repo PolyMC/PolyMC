@@ -195,8 +195,14 @@ void ModFolderPage::updateMods()
 
     auto mods_list = m_model->selectedMods(selection);
     bool use_all = mods_list.empty();
-    if (use_all)
+    if (use_all) {
         mods_list = m_model->allMods();
+        for(Mod* mod : mods_list) {
+            if (mod->metadata()->do_updates==false) {
+                mods_list.removeAll(mod);
+            }
+        }
+    }
 
     ModUpdateDialog update_dialog(this, m_instance, m_model, mods_list);
     update_dialog.checkCandidates();

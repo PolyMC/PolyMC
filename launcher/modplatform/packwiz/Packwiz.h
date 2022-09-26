@@ -56,6 +56,7 @@ class V1 {
         ModPlatform::Provider provider {};
         QVariant file_id {};
         QVariant project_id {};
+        bool do_updates {true};
 
        public:
         // This is a totally heuristic, but should work for now.
