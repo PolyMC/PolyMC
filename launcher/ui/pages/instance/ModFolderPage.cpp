@@ -84,6 +84,16 @@ ModFolderPage::ModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel>
         ui->actionsToolbar->insertActionAfter(ui->actionAddItem, ui->actionUpdateItem);
         connect(ui->actionUpdateItem, &QAction::triggered, this, &ModFolderPage::updateMods);
 
+        ui->actionDisableUpdates->setText(tr("Disable Update Check"));
+        ui->actionDisableUpdates->setToolTip(tr("Disable mod updates for selected resources"));
+        ui->actionsToolbar->insertActionAfter(ui->actionUpdateItem, ui->actionDisableUpdates);
+
+        connect(ui->actionDisableUpdates, &QAction::triggered, this, &ModFolderPage::disableUpdates);
+        connect(ui->treeView->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this] {
+            ui->actionDisableUpdates->setEnabled(ui->treeView->selectionModel()->hasSelection());
+            onDisableUpdatesChange();
+        });
+
         auto check_allow_update = [this] {
             return (!m_instance || !m_instance->isRunning()) &&
                    (ui->treeView->selectionModel()->hasSelection() || !m_model->empty());
@@ -252,6 +262,36 @@ void ModFolderPage::updateMods()
         loadDialog.execWithTask(tasks);
 
         m_model->update();
+    }
+}
+
+void ModFolderPage::disableUpdates()
+{
+    auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection()).indexes();
+    auto mods_list = m_model->selectedMods(selection);
+
+    for(Mod* mod : mods_list) {
+        mod->metadata()->do_updates = !mod->metadata()->do_updates;
+    }
+    
+    onDisableUpdatesChange();
+}
+
+void ModFolderPage::onDisableUpdatesChange()
+{
+    auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection()).indexes();
+    auto mods_list = m_model->selectedMods(selection);
+
+    if(ui->treeView->selectionModel()->hasSelection()){
+        if(mods_list.length() > 1) {
+            ui->actionDisableUpdates->setText(tr("Invert Update Check"));
+        } else if (mods_list[0]->metadata()->do_updates) {
+            ui->actionDisableUpdates->setText(tr("Disable Update Check"));
+        } else {
+            ui->actionDisableUpdates->setText(tr("Enable Update Check"));
+        }
+    } else {
+        ui->actionDisableUpdates->setText(tr("Disable Update Check"));
     }
 }
 
