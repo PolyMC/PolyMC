@@ -84,8 +84,6 @@ ModFolderPage::ModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel>
         ui->actionsToolbar->insertActionAfter(ui->actionAddItem, ui->actionUpdateItem);
         connect(ui->actionUpdateItem, &QAction::triggered, this, &ModFolderPage::updateMods);
 
-        ui->actionDisableUpdates->setText(tr("Disable Update Check"));
-        ui->actionDisableUpdates->setToolTip(tr("Disable mod updates for selected resources"));
         ui->actionsToolbar->insertActionAfter(ui->actionUpdateItem, ui->actionDisableUpdates);
 
         connect(ui->actionDisableUpdates, &QAction::triggered, this, &ModFolderPage::disableUpdates);
