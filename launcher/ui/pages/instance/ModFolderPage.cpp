@@ -270,7 +270,7 @@ void ModFolderPage::disableUpdates()
     auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection()).indexes();
     auto mods_list = m_model->selectedMods(selection);
 
-    for(Mod* mod : mods_list) {
+    for (auto mod : mods_list) {
         mod->metadata()->do_updates = !mod->metadata()->do_updates;
     }
     
