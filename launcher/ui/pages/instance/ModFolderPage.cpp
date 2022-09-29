@@ -205,7 +205,8 @@ void ModFolderPage::updateMods()
     bool use_all = mods_list.empty();
     if (use_all) {
         mods_list = m_model->allMods();
-        for(Mod* mod : mods_list) {
+        auto tempModList = mods_list;
+        for(auto mod : tempModList) {
             if (mod->metadata()->do_updates==false) {
                 mods_list.removeAll(mod);
             }
