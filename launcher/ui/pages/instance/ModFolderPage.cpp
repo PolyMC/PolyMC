@@ -285,7 +285,7 @@ void ModFolderPage::onDisableUpdatesChange()
     if(ui->treeView->selectionModel()->hasSelection()){
         if(mods_list.length() > 1) {
             ui->actionDisableUpdates->setText(tr("Invert Update Check"));
-        } else if (mods_list[0]->metadata()->do_updates) {
+        } else if (mods_list.first()->metadata()->do_updates) {
             ui->actionDisableUpdates->setText(tr("Disable Update Check"));
         } else {
             ui->actionDisableUpdates->setText(tr("Enable Update Check"));
