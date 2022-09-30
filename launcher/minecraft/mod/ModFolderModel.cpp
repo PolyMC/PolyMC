@@ -67,6 +67,8 @@ QVariant ModFolderModel::data(const QModelIndex &index, int role) const
     case Qt::DisplayRole:
         switch (column)
         {
+        case ModUpdateColumn:
+            return tr("⭳");
         case NameColumn:
             return m_resources[row]->name();
         case VersionColumn: {
@@ -112,6 +114,8 @@ QVariant ModFolderModel::headerData(int section, Qt::Orientation orientation, in
         {
         case ActiveColumn:
             return QString();
+        case ModUpdateColumn:
+            return QString();
         case NameColumn:
             return tr("Name");
         case VersionColumn:
@@ -127,6 +131,8 @@ QVariant ModFolderModel::headerData(int section, Qt::Orientation orientation, in
         {
         case ActiveColumn:
             return tr("Is the mod enabled?");
+        case ModUpdateColumn:
+            return tr("Are update checks enabled?");
         case NameColumn:
             return tr("The name of the mod.");
         case VersionColumn:
