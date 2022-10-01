@@ -30,7 +30,7 @@ QPalette BrightTheme::colorScheme()
     brightPalette.setColor(QPalette::BrightText, Qt::red);
     brightPalette.setColor(QPalette::Link, QColor(37,137,164));
     brightPalette.setColor(QPalette::Highlight, QColor(137,207,84));
-    brightPalette.setColor(QPalette::HighlightedText, Qt::black));
+    brightPalette.setColor(QPalette::HighlightedText, Qt::black);
     return fadeInactive(brightPalette, fadeAmount(), fadeColor());
 }
 
