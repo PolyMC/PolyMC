@@ -21,7 +21,7 @@ QPalette BrightTheme::colorScheme()
     brightPalette.setColor(QPalette::Window, QColor(255,255,255));
     brightPalette.setColor(QPalette::WindowText, QColor(17,17,17));
     brightPalette.setColor(QPalette::Base, QColor(250,250,250));
-    brightPalette.setColor(QPalette::AlternateBase, QColor(246,246,246));
+    brightPalette.setColor(QPalette::AlternateBase, QColor(240,240,240));
     brightPalette.setColor(QPalette::ToolTipBase, QColor(17,17,17));
     brightPalette.setColor(QPalette::ToolTipText, QColor(255,255,255));
     brightPalette.setColor(QPalette::Text,  Qt::black);
