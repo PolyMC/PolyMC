@@ -21,7 +21,7 @@ QPalette DarkTheme::colorScheme()
     darkPalette.setColor(QPalette::Window, QColor(49,49,49));
     darkPalette.setColor(QPalette::WindowText, Qt::white);
     darkPalette.setColor(QPalette::Base, QColor(34,34,34));
-    darkPalette.setColor(QPalette::AlternateBase, QColor(38,38,38));
+    darkPalette.setColor(QPalette::AlternateBase, QColor(42,42,42));
     darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
     darkPalette.setColor(QPalette::ToolTipText, Qt::white);
     darkPalette.setColor(QPalette::Text, Qt::white);
