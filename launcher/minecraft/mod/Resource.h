@@ -20,6 +20,7 @@ enum class SortType {
     DATE,
     VERSION,
     ENABLED,
+    DO_UPDATES,
     PACK_FORMAT
 };
 

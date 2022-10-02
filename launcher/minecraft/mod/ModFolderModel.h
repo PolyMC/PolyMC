@@ -64,10 +64,10 @@ public:
     enum Columns
     {
         ActiveColumn = 0,
-        ModUpdateColumn,
         NameColumn,
         VersionColumn,
         DateColumn,
+        ModUpdateColumn,
         NUM_COLUMNS
     };
     enum ModStatusAction {

@@ -78,6 +78,7 @@ std::pair<int, bool> Mod::compare(const Resource& other, SortType type) const
         default:
         case SortType::ENABLED:
         case SortType::NAME:
+        case SortType::DO_UPDATES:
         case SortType::DATE: {
             auto res = Resource::compare(other, type);
             if (res.first != 0)

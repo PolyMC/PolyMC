@@ -51,7 +51,7 @@
 
 ModFolderModel::ModFolderModel(const QString &dir, bool is_indexed) : ResourceFolderModel(QDir(dir)), m_is_indexed(is_indexed)
 {
-    m_column_sort_keys = { SortType::ENABLED, SortType::NAME, SortType::VERSION, SortType::DATE };
+    m_column_sort_keys = { SortType::ENABLED, SortType::NAME, SortType::VERSION, SortType::DATE, SortType::DO_UPDATES };
 }
 
 QVariant ModFolderModel::data(const QModelIndex &index, int role) const
@@ -67,8 +67,6 @@ QVariant ModFolderModel::data(const QModelIndex &index, int role) const
     case Qt::DisplayRole:
         switch (column)
         {
-        case ModUpdateColumn:
-            return tr("⭳");
         case NameColumn:
             return m_resources[row]->name();
         case VersionColumn: {
@@ -84,7 +82,8 @@ QVariant ModFolderModel::data(const QModelIndex &index, int role) const
         }
         case DateColumn:
             return m_resources[row]->dateTimeChanged();
-
+        case ModUpdateColumn:
+            return tr("⭳");
         default:
             return QVariant();
         }
