@@ -1425,9 +1425,6 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
             case Qt::Key_F5:
                 refreshInstances();
                 return true;
-            case Qt::Key_F2:
-                on_actionRenameInstance_triggered();
-                return true;
             default:
                 break;
             }
@@ -1943,10 +1940,8 @@ void MainWindow::on_actionExportInstance_triggered()
 
 void MainWindow::on_actionRenameInstance_triggered()
 {
-    if (m_selectedInstance)
-    {
-        // FIXME
-    }
+    // NOTE: editSelected already checky if an instance is selected
+    view->editSelected();
 }
 
 void MainWindow::on_actionViewSelectedInstFolder_triggered()
