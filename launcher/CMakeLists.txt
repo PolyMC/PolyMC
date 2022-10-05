@@ -868,8 +868,8 @@ SET(LAUNCHER_SOURCES
     ui/instanceview/InstanceGridProxyModel.h
     ui/instanceview/InstanceDelegate.h
     ui/instanceview/InstanceDelegate.cpp
-    ui/instanceview/InstanceView.h
-    ui/instanceview/InstanceView.cpp
+    ui/instanceview/InstancesView.h
+    ui/instanceview/InstancesView.cpp
 )
 
 if(WIN32)
