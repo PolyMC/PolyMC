@@ -84,8 +84,6 @@ ModFolderPage::ModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel>
         ui->actionsToolbar->insertActionAfter(ui->actionAddItem, ui->actionUpdateItem);
         connect(ui->actionUpdateItem, &QAction::triggered, this, &ModFolderPage::updateMods);
 
-        ui->actionsToolbar->insertActionAfter(ui->actionUpdateItem, ui->actionDisableUpdates);
-
         connect(ui->actionDisableUpdates, &QAction::triggered, this, &ModFolderPage::disableUpdates);
         connect(ui->treeView->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this] {
             ui->actionDisableUpdates->setEnabled(ui->treeView->selectionModel()->hasSelection());

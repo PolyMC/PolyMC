@@ -63,6 +63,9 @@ QMenu* ExternalResourcesPage::createPopupMenu()
 void ExternalResourcesPage::ShowContextMenu(const QPoint& pos)
 {
     auto menu = ui->actionsToolbar->createContextMenu(this, tr("Context menu"));
+    if(menu->actions().contains(ui->actionUpdateItem)) {
+        menu->insertAction(ui->actionUpdateItem, ui->actionDisableUpdates);
+    }
     menu->exec(ui->treeView->mapToGlobal(pos));
     delete menu;
 }
