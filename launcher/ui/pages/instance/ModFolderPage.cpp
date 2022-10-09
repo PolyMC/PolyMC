@@ -203,11 +203,12 @@ void ModFolderPage::updateMods()
     bool use_all = mods_list.empty();
     if (use_all) {
         mods_list = m_model->allMods();
-        auto tempModList = mods_list;
-        for(auto mod : tempModList) {
-            if (mod->metadata() && mod->metadata()->hasDoUpdates() && mod->metadata()->do_updates == "false") {
-                mods_list.removeAll(mod);
-            }
+    }
+
+    auto tempModList = mods_list;
+    for(auto mod : tempModList) {
+        if (mod->metadata() && mod->metadata()->hasDoUpdates() && mod->metadata()->do_updates == "false") {
+            mods_list.removeAll(mod);
         }
     }
 
