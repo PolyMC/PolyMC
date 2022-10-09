@@ -107,6 +107,8 @@ auto V1::createModFormat(QDir& index_dir, ModPlatform::IndexedPack& mod_pack, Mo
     mod.file_id = mod_version.fileId;
     mod.project_id = mod_pack.addonId;
 
+    mod.do_updates = "true";
+
     return mod;
 }
 
@@ -179,6 +181,8 @@ void V1::updateModIndex(QDir& index_dir, Mod& mod)
                 addToStream("version", mod.version().toString());
                 break;
         }
+        in_stream << QString("\n[update.do_updates]\n");
+        addToStream("do_updates", mod.do_updates);
     }
 
     index_file.flush();
@@ -273,6 +277,13 @@ auto V1::getIndexForMod(QDir& index_dir, QString slug) -> Mod
         if (!update_table || !update_table.is_table()) {
             qCritical() << QString("No [update] section found on mod metadata!");
             return {};
+        }
+
+        auto do_updates_table = update_table["do_updates"].as_table();
+        if (do_updates_table) {
+            mod.do_updates = stringEntry(*do_updates_table, "do_updates");
+        } else {
+            qDebug() << QString("No [do_updates] section found in mod metadata!");
         }
 
         toml::table* mod_provider_table = nullptr;

@@ -83,7 +83,12 @@ QVariant ModFolderModel::data(const QModelIndex &index, int role) const
         case DateColumn:
             return m_resources[row]->dateTimeChanged();
         case ModUpdateColumn:
-            return tr("⭳");
+            if(at(row)->metadata() && at(row)->metadata()->hasDoUpdates() && at(row)->metadata()->do_updates == "true") {
+                return tr("⭳");
+            } else if(!at(row)->metadata()) {
+                return tr("⮾");
+            }
+            return QString();
         default:
             return QVariant();
         }
