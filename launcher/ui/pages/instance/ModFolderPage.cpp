@@ -273,6 +273,12 @@ void ModFolderPage::disableUpdates()
             mod->metadata()->do_updates == "true" ? mod->metadata()->do_updates = "false" : mod->metadata()->do_updates = "true";
             QDir Dir = m_model->indexDir();
             Metadata::update(Dir, *(mod->metadata()));
+        } else if(!mod->metadata()) {
+            ModUpdateDialog MetadataGenDialog(this, m_instance, m_model, mods_list, false);
+            MetadataGenDialog.ensureMetadata();
+            if(mods_list.length()>1){
+                mod->metadata()->do_updates = "false";
+            }
         }
     }
     
@@ -289,6 +295,8 @@ void ModFolderPage::onDisableUpdatesChange()
             ui->actionDisableUpdates->setText(tr("Invert Update Check"));
         } else if (mods_list.first()->metadata() && mods_list.first()->metadata()->hasDoUpdates() && mods_list.first()->metadata()->do_updates == "true") {
             ui->actionDisableUpdates->setText(tr("Disable Update Check"));
+        } else if (!mods_list.first()->metadata()) {
+            ui->actionDisableUpdates->setText(tr("Generate Metadata"));
         } else {
             ui->actionDisableUpdates->setText(tr("Enable Update Check"));
         }
