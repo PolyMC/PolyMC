@@ -84,9 +84,9 @@ QVariant ModFolderModel::data(const QModelIndex &index, int role) const
             return m_resources[row]->dateTimeChanged();
         case ModUpdateColumn:
             if(at(row)->metadata() && at(row)->metadata()->hasDoUpdates() && at(row)->metadata()->do_updates == "true") {
-                return tr("⭳");
+                return QChar(11123);
             } else if(!at(row)->metadata()) {
-                return tr("⮾");
+                return QChar(11198);
             }
             return QString();
         default:
