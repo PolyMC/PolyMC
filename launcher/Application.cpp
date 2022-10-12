@@ -600,6 +600,9 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting({"PreLaunchCommand", "PreLaunchCmd"}, "");
         m_settings->registerSetting({"PostExitCommand", "PostExitCmd"}, "");
 
+        // Toolbar
+        m_settings->registerSetting("ToolbarConfig", "add_instance,separator,folders,settings,help,update,separator,cat");
+
         // The cat
         m_settings->registerSetting("TheCat", false);
 

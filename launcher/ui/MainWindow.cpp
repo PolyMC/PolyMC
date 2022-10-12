@@ -267,6 +267,9 @@ public:
     TranslatedAction actionNoAccountsAdded;
     TranslatedAction actionNoDefaultAccount;
 
+    QWidgetAction* helpButtonAction;
+    QWidgetAction* foldersButtonAction;
+
     QVector<TranslatedToolButton *> all_toolbuttons;
 
     QWidget *centralWidget = nullptr;
@@ -421,7 +424,7 @@ public:
         all_actions.append(&actionManageAccounts);
     }
 
-    void createMainToolbar(QMainWindow *MainWindow)
+    void createMainToolbar(QMainWindow* MainWindow)
     {
         mainToolBar = TranslatedToolbar(MainWindow);
         mainToolBar->setVisible(menuBar->isNativeMenuBar() || !APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
@@ -432,24 +435,14 @@ public:
         mainToolBar->setFloatable(false);
         mainToolBar.setWindowTitleId(QT_TRANSLATE_NOOP("MainWindow", "Main Toolbar"));
 
-        mainToolBar->addAction(actionAddInstance);
-
-        mainToolBar->addSeparator();
-
-        QWidgetAction* foldersButtonAction = new QWidgetAction(MainWindow);
-        foldersButtonAction->setDefaultWidget(foldersMenuButton);
-        mainToolBar->addAction(foldersButtonAction);
-
-        mainToolBar->addAction(actionSettings);
-
         helpMenu = new QMenu(MainWindow);
         helpMenu->setToolTipsVisible(true);
 
         if (!BuildConfig.BUG_TRACKER_URL.isEmpty()) {
             helpMenu->addAction(actionReportBug);
         }
-        
-        if(!BuildConfig.MATRIX_URL.isEmpty()) {
+
+        if (!BuildConfig.MATRIX_URL.isEmpty()) {
             helpMenu->addAction(actionMATRIX);
         }
 
@@ -472,21 +465,60 @@ public:
         helpMenuButton->setIcon(APPLICATION->getThemedIcon("help"));
         helpMenuButton->setFocusPolicy(Qt::NoFocus);
         all_toolbuttons.append(&helpMenuButton);
-        QWidgetAction* helpButtonAction = new QWidgetAction(MainWindow);
+
+        helpButtonAction = new QWidgetAction(MainWindow);
         helpButtonAction->setDefaultWidget(helpMenuButton);
-        mainToolBar->addAction(helpButtonAction);
 
-        if(BuildConfig.UPDATER_ENABLED)
-        {
-            mainToolBar->addAction(actionCheckUpdate);
+        foldersButtonAction = new QWidgetAction(MainWindow);
+        foldersButtonAction->setDefaultWidget(foldersMenuButton);
+
+        for (auto item : APPLICATION->settings()->get("ToolbarConfig").toString().split(",")) {
+            if (item == "add_instance") {
+                mainToolBar->addAction(actionAddInstance);
+            } else if (item == "separator") {
+                mainToolBar->addSeparator();
+            } else if (item == "folders") {
+                mainToolBar->addAction(foldersButtonAction);
+            } else if (item == "settings") {
+                mainToolBar->addAction(actionSettings);
+            } else if (item == "help") {
+                mainToolBar->addAction(helpButtonAction);
+            } else if (item == "update" && BuildConfig.UPDATER_ENABLED) {
+                mainToolBar->addAction(actionCheckUpdate);
+            } else if (item == "cat") {
+                mainToolBar->addAction(actionCAT);
+            }
         }
-
-        mainToolBar->addSeparator();
-
-        mainToolBar->addAction(actionCAT);
 
         all_toolbars.append(&mainToolBar);
         MainWindow->addToolBar(Qt::TopToolBarArea, mainToolBar);
+    }
+
+    void redrawMainToolBar(MainWindow* MainWindow)
+    {
+        if (!mainToolBar || !helpMenuButton) return;
+
+        mainToolBar->clear();
+
+        for (auto item : APPLICATION->settings()->get("ToolbarConfig").toString().split(",")) {
+            if (item == "add_instance") {
+                mainToolBar->addAction(actionAddInstance);
+            } else if (item == "separator") {
+                mainToolBar->addSeparator();
+            } else if (item == "folders") {
+                mainToolBar->addAction(foldersButtonAction);
+            } else if (item == "settings") {
+                mainToolBar->addAction(actionSettings);
+            } else if (item == "help") {
+                mainToolBar->addAction(helpButtonAction);
+            } else if (item == "update" && BuildConfig.UPDATER_ENABLED) {
+                mainToolBar->addAction(actionCheckUpdate);
+            } else if (item == "cat") {
+                mainToolBar->addAction(actionCAT);
+            }
+        }
+
+        MainWindow->appendAccountsMenuToMainToolBar();
     }
 
     void createMenuBar(QMainWindow *MainWindow)
@@ -980,27 +1012,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
     statusBar()->addPermanentWidget(m_statusLeft, 1);
     statusBar()->addPermanentWidget(m_statusCenter, 0);
 
-    // Add "manage accounts" button, right align
-    QWidget *spacer = new QWidget();
-    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    ui->mainToolBar->addWidget(spacer);
-
-    accountMenu = new QMenu(this);
-    // Use undocumented property... https://stackoverflow.com/questions/7121718/create-a-scrollbar-in-a-submenu-qt
-    accountMenu->setStyleSheet("QMenu { menu-scrollable: 1; }");
-
-    repopulateAccountsMenu();
-
-    accountMenuButton = new QToolButton(this);
-    accountMenuButton->setMenu(accountMenu);
-    accountMenuButton->setPopupMode(QToolButton::InstantPopup);
-    accountMenuButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    accountMenuButton->setIcon(APPLICATION->getThemedIcon("noaccount"));
-
-    QWidgetAction *accountMenuButtonAction = new QWidgetAction(this);
-    accountMenuButtonAction->setDefaultWidget(accountMenuButton);
-
-    ui->mainToolBar->addAction(accountMenuButtonAction);
+    appendAccountsMenuToMainToolBar();
 
     // Update the menu when the active account changes.
     // Shouldn't have to use lambdas here like this, but if I don't, the compiler throws a fit.
@@ -1020,9 +1032,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
             repopulateAccountsMenu();
         }
     );
-
-    // Show initial account
-    defaultAccountChanged();
 
     // TODO: refresh accounts here?
     // auto accounts = APPLICATION->accounts();
@@ -1080,6 +1089,32 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event)
         QMainWindow::keyReleaseEvent(event);
 }
 #endif
+
+void MainWindow::appendAccountsMenuToMainToolBar() {
+    // Add "manage accounts" button, right align
+    QWidget *spacer = new QWidget();
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    ui->mainToolBar->addWidget(spacer);
+
+    accountMenu = new QMenu(this);
+    // Use undocumented property... https://stackoverflow.com/questions/7121718/create-a-scrollbar-in-a-submenu-qt
+    accountMenu->setStyleSheet("QMenu { menu-scrollable: 1; }");
+
+    repopulateAccountsMenu();
+
+    accountMenuButton = new QToolButton(this);
+    accountMenuButton->setMenu(accountMenu);
+    accountMenuButton->setPopupMode(QToolButton::InstantPopup);
+    accountMenuButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    accountMenuButton->setIcon(APPLICATION->getThemedIcon("noaccount"));
+
+    QWidgetAction *accountMenuButtonAction = new QWidgetAction(this);
+    accountMenuButtonAction->setDefaultWidget(accountMenuButton);
+
+    ui->mainToolBar->addAction(accountMenuButtonAction);
+
+    defaultAccountChanged();
+}
 
 void MainWindow::retranslateUi()
 {
@@ -1189,6 +1224,7 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
 
 void MainWindow::updateMainToolBar()
 {
+    ui->redrawMainToolBar(this);
     ui->menuBar->setVisible(APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
     ui->mainToolBar->setVisible(ui->menuBar->isNativeMenuBar() || !APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
 }
@@ -1923,9 +1959,11 @@ void MainWindow::globalSettingsClosed()
     APPLICATION->instances()->loadList();
     proxymodel->invalidate();
     proxymodel->sort(0);
+
     updateMainToolBar();
     updateToolsMenu();
     updateStatusCenter();
+
     // This needs to be done to prevent UI elements disappearing in the event the config is changed
     // but PolyMC exits abnormally, causing the window state to never be saved:
     APPLICATION->settings()->set("MainWindowState", saveState().toBase64());
