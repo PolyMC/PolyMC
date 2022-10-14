@@ -268,6 +268,7 @@ void InstanceImportTask::processFlame()
     inst_creation_task->setName(*this);
     inst_creation_task->setIcon(m_instIcon);
     inst_creation_task->setGroup(m_instGroup);
+    inst_creation_task->setConfirmUpdate(shouldConfirmUpdate());
     
     connect(inst_creation_task, &Task::succeeded, this, [this, inst_creation_task] {
         setOverride(inst_creation_task->shouldOverride());
@@ -332,6 +333,7 @@ void InstanceImportTask::processModrinth()
     inst_creation_task->setName(*this);
     inst_creation_task->setIcon(m_instIcon);
     inst_creation_task->setGroup(m_instGroup);
+    inst_creation_task->setConfirmUpdate(shouldConfirmUpdate());
     
     connect(inst_creation_task, &Task::succeeded, this, [this, inst_creation_task] {
         setOverride(inst_creation_task->shouldOverride());
