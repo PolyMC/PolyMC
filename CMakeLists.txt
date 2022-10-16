@@ -190,8 +190,15 @@ if (Qt5_POSITION_INDEPENDENT_CODE)
 endif()
 
 if(NOT Launcher_FORCE_BUNDLED_LIBS)
+    find_package(PkgConfig QUIET)
+
     # Find toml++
     find_package(tomlplusplus 3.2.0 QUIET)
+
+    if(PkgConfig_FOUND)
+        # find gamemode
+        pkg_search_module(GAMEMODE gamemode QUIET)
+    endif()
 
     # Find ghc_filesystem
     find_package(ghc_filesystem QUIET)
@@ -324,7 +331,12 @@ else()
     message(STATUS "Using system tomlplusplus")
 endif()
 add_subdirectory(libraries/katabasis) # An OAuth2 library that tried to do too much
-add_subdirectory(libraries/gamemode)
+if (NOT GAMEMODE_FOUND)
+    message(STATUS "Using bundled gamemode")
+    add_subdirectory(libraries/gamemode)
+else()
+    message(STATUS "Using system gamemode")
+endif()
 add_subdirectory(libraries/murmur2) # Hash for usage with the CurseForge API
 if (NOT ghc_filesystem_FOUND)
     message(STATUS "Using bundled ghc_filesystem")
