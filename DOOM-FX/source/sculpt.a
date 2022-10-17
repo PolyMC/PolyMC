@@ -1,0 +1,1215 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                    SCULPTURED SOFTWARE LOGO MODULE                 *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	xfer.i
+	include	music.i
+
+
+	ifn	useSCULPT
+
+	SECTION	SCULPT,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	>>>   ARTWORK   <<<
+;
+
+SCULPT.CHRSET
+	image	RLDATA:COMP/SCULPT.def
+
+SCULPT.SCREEN
+	image	RLDATA:COMP/SCULPT.map
+
+SCULPT.PALSET
+SculptColorPallette
+	image	RLDATA:COMP/SCULPT.rgb,0,(16*4*2)
+
+
+******************************************************************************
+*
+* 		These equates adjust the fade in rate, the fade out rate, and
+*	the controller interruption keys.  Adjust at will.
+*
+******************************************************************************
+
+SculptFadeInRate  equ $0100		; $0100 fades up one increment
+						;   each VBlank
+
+SculptFadeOutRate equ $0100		; $0100 fades down one increment
+						;   each VBlank
+
+
+SculptDelayToStart equ 30		; Pause 1/2 sec. before animation
+
+SculptDelayAtEnd  equ 120		; Pause 3 sec. after animation
+
+
+SculptController1 equ %1011000010000000	; No keys on controller 1 or 2
+						; will interrupt the demo.
+SculptController2 equ %1011000010000000     ; Set appropriate bits to allow 
+						; particular buttons to interrupt
+						; the demo
+
+******************************************************************************
+*
+* 		Just a precautionary setup.
+*
+******************************************************************************
+
+
+	dpr 0
+	dbr 0
+	mode 'AX'
+
+
+******************************************************************************
+*
+*  	External ram locations
+*
+******************************************************************************
+
+***** VRam
+
+SculptLogoCharAddr  equ $3000		; BG1 character address
+
+SculptLogoMapAddr   equ $5800 		; BG1 map address
+SculptLightMapAddr  equ $5c00	     	; BG2 map address
+SculptLightCharAddr equ $6000		; BG2 character address
+SculptClearLeft	    equ $7000		;
+SculptClearCenter   equ $7200		; These equates MUST remain
+SculptClearRight    equ $7400		; at contiguous addresses.
+SculptWindowXfer    equ $7600		;
+
+*** CgRam
+
+SculptPallette	equ $0
+
+******************************************************************************
+*
+*  	Zero Page Variables (The zero page is allocated from the stack)
+*
+******************************************************************************
+
+SculptPacked		equ 1
+SculptCount		equ 4
+SculptTemp		equ 6
+SculptSourceY		equ 8
+SculptSourceX		equ 10
+SculptColumn		equ 12
+SculptCurrentColumn 	equ 14
+SculptCurrentRow    	equ 16
+SculptAndMask		equ 18
+SculptOrMask		equ 20
+SculptBits		equ 22
+SculptPoints		equ 26
+SculptPointCount    	equ 46
+SculptDeltaY		equ 48
+SculptDeltaX		equ 50
+SculptAddStep		equ 52
+SculptCompareStep   	equ 54
+SculptStepValue	    	equ 56
+SculptByteOffset    	equ 58
+SculptSetA		equ 60
+SculptSetX		equ 62
+SculptSetY		equ 64
+SculptRead		equ 66
+SculptPackedBits    	equ 69
+SculptPackedLength  	equ 70
+SculptPackedOffset  	equ 72
+SculptRightLeft	    	equ 74
+SculptCharIndex     	equ 76
+SculptZpSize		equ 86            
+
+******************************************************************************
+*
+*   	Work ram usage
+*
+******************************************************************************
+
+SculptCharBuffer     	equ $7e6000
+            
+SculptBitMap1	     	equ $7e6000
+SculptBitMap2	     	equ $7ea800
+
+SculptLogoMap	 	equ $7ee000
+SculptLightMap	     	equ $7ee800
+SculptMapBuffer	     	equ $7ef000
+
+SculptWindowEdges    	equ $7ef800
+SculptDmaWindowSpace 	equ $7efc00
+
+
+******************************************************************************
+*
+*   	Constants
+*
+******************************************************************************
+
+SculptWindowHDmaTable
+	dc.b 128+112
+	dc.w <SculptDmaWindowSpace
+	dc.b 128+112
+	dc.w <SculptDmaWindowSpace+448
+	dc.b 0
+
+SculptMaskTable	
+	dc.w $8080,$4040,$2020,$1010,$0808,$0404,$0202,$0101
+
+SculptClearValues
+	dc.w $feff,$ff00,$0001
+
+
+;
+;	* * * * * * *       SCULPTURED LIGHT DEMO       * * * * * * *
+;
+	dbr	?
+	dpr	0
+SculpturedLightDemo
+	mode	'AX!'
+	ifn	useSOUND
+	lda	#logo1_eff_MODULE		; Load SoundEffect Module
+	jsl	_LoadModule
+	endif
+;
+	pea #0
+	plb
+	phb
+	pld
+	ldx #<SCULPT.CHRSET
+	ldy #<SculptCharBuffer
+	lda #((SculptCharBuffer>>8)&$ff00)|(^SCULPT.CHRSET)
+	jsl Decompress
+
+	ldx #<SCULPT.SCREEN
+	ldy #<SculptMapBuffer
+	lda #((SculptMapBuffer>>8)&$ff00)|(^SCULPT.CHRSET)
+	jsl Decompress
+;
+	tsc				; Create a ZP on the stack (86 bytes)
+	sec
+	sbc	#SculptZpSize
+	tcs
+	pha				; And point to it
+	pld
+	pea #0				; Initial data bank = $00
+	plb
+	plb
+        sei				; No IRQs allowed
+
+*
+* Reset the PPU and CPU registers
+*
+
+	mode 'a!'
+	stz HDMAEN			; Shut off all HDMA
+	lda #1
+	sta NMITIMEN  		; Disable all interrupts
+	phd
+	pea #$2100			; Point direct page to PPU
+	pld
+	dpr $2100
+	sta <BGMODE			; Set display mode 1
+	lda #$80
+	sta <INIDISP		; Force blanking for setup
+	stz <MOSAIC	    
+	ldx #SculptLightMapAddr|(SculptLogoMapAddr>>8)
+         	stx <BG1SC			; Set up map addresses
+	lda #(SculptLightCharAddr|(SculptLogoCharAddr>>4))>>8
+	sta <BG12NBA		; Set up cahracter base addresses
+	lda #-1
+	stz <BG1HOFS		; Reset offsets
+	stz <BG1HOFS
+	sta <BG1VOFS
+	stz <BG1VOFS
+	stz <BG2HOFS
+	stz <BG2HOFS
+	sta <BG2VOFS
+	stz <BG2VOFS
+	lda #$80
+	sta VMAINC		  	; Standard inc sequence
+	lda #$f0
+	sta <W12SEL
+	stz <WOBJSEL			
+	ldy #$0004			; Set up window enables and logic
+	sty <WBGLOG
+	ldx #$0201
+	stx <TM			; Set up TM and TS
+	dex
+	stx <TMW 			; Set up TMW and TSW
+	ldx #$2102
+	stx <CGSWSEL	      	; Enable BG addition
+	ldx #$00e0
+ 	stx <COLDATA	         	; Make sure color window is off
+	pld
+	dpr $0000
+
+*
+* The first section, .unpack1, unpacks the charater set.  The second section
+*   .unpack2, unpacks the map.
+*
+
+	pea #$007e	     		; Data bank to $7e0000
+	plb
+	dbr $7e
+
+*
+* Create a map for BG2 which has a repeating light pattern.  The pattern is
+*  created from a small block located in the lower left of the unpacked 
+*  map data.
+*
+
+	mode 'A!'
+	lda #10
+	sta SculptCount
+	ldx #0
+.BuildMapLoop 
+	ldy #-2
+.BuildMapRow1		      			; Repeat it vertically
+	iny	      	  
+	iny
+	lda SculptMapBuffer+(64*25),y
+	sta SculptLightMap,x
+	lda SculptMapBuffer+(64*26),y
+	sta SculptLightMap+64,x
+	lda SculptMapBuffer+(64*27),y
+	sta SculptLightMap+128,x
+	inx
+	inx
+	cpy #30
+ 	bcc .BuildMapRow1
+.BuildMapRow2 			      	; Flip it horizontally
+	lda SculptMapBuffer+(64*25),y       
+	eor #$4000
+	sta SculptLightMap,x
+	lda SculptMapBuffer+(64*26),y
+	eor #$4000
+	sta SculptLightMap+64,x
+	lda SculptMapBuffer+(64*27),y
+	eor #$4000
+	sta SculptLightMap+128,x
+	inx
+	inx
+	dey
+	dey
+ 	bpl .BuildMapRow2
+	txa
+	adc #128-1
+	tax
+	dec SculptCount
+	bne .BuildMapLoop
+
+*
+* Create a map for BG1 which will simply be an incrementing series for
+*   the first 18 lines.  The last 10 lines will point to character 0.
+*   This will facilitate bit mapping.
+*
+
+	ldx #$7fe
+.SculptMapLoop	
+	txa
+	lsr
+	cpx #20
+	bcc .ClearSculptMap
+	cpx #1152
+	bcc .SetSculptMap
+.ClearSculptMap 
+	lda #0
+.SetSculptMap 
+	sta SculptLogoMap,x  	; Store character name
+	dex
+	dex
+	bpl .SculptMapLoop
+
+*
+* Set up DMA registers for the duration of this program
+*
+
+	plb				; Data bank back to $000000	   				
+	dbr $0
+	mode 'a!'
+	phd
+	pea #$4300  			; Point direct page to DMA
+	pld
+	dpr $4300
+	lda #1
+	sta <DMA0INC	    
+	sta <DMA1INC		; Used for sending to VRam	    
+	lda #$81
+	sta <DMA5INC     		; Used for reading from VRam
+	stz <DMA6INC		; Used for sending to CgRam
+	lda #$44
+	sta <DMA7INC    		; Used for HDMA
+	lda #<VMDATAL
+	sta <DMA0DEST
+	sta <DMA1DEST
+	lda #<_VMDATAL
+	sta <DMA5DEST
+	lda #<CGDATA
+	sta <DMA6DEST
+	lda #<WH0
+	sta <DMA7DEST	  	; HDMA changes the window edges
+
+*
+* Send the maps for BG1 and BG2 and the unpacked character set to VRam
+*
+
+	lda #^SculptLogoMap
+	ldx #<SculptLogoMap
+	sta <DMA0A1B
+	stx <DMA0A1L
+	lda #^SculptCharBuffer
+	ldx #<SculptCharBuffer
+	sta <DMA1A1B
+	stx <DMA1A1L
+	ldx #$1000
+	stx <DMA0NUML
+	ldx #$2000
+	stx <DMA1NUML
+	ldx #SculptLogoMapAddr
+	stx VMADDL
+	lda #$3
+	sta MDMAEN
+	pld	     			; Restore direct page
+	dpr $0000
+
+*
+* Send default window edge values to VRam so that when the edge table needs
+*   to be reset, it can quickly be reset by DMAing the defaults from VRam.
+*
+
+	mode 'A!'
+	ldx #4
+.SetClearVram 
+	lda >SculptClearValues,X 	; Get a default value
+	ldy #$200
+.SetClearLoop 
+	sta VMDATAL			; Store directly to VRam
+	dey
+	bne .SetClearLoop
+	dex
+	dex
+	bpl .SetClearVram
+
+*
+* Change the map buffer values from character names to Vram character
+*   addresses.  This will facilitate the construction of a bit map for
+*   BG1.
+*
+
+	ldx #$6fe
+.CalcVramAddrs 
+	lda >SculptMapBuffer,x
+	and #$3ff
+	asl
+	asl
+	asl
+	asl
+	adc #SculptLightCharAddr
+	sta >SculptMapBuffer,x    	; Store vram address
+	dex
+	dex
+	bpl .CalcVramAddrs
+
+*
+* Read back from VRam the characters which form BG1.  Read them back in the
+*   order in which they occur on the screen.  This will create a bit map for
+*   the top	18 lines of BG1 ($4800 long).
+*
+
+	mode 'x!'
+	lda #<SculptMapBuffer
+	ldx #^SculptMapBuffer
+	sta SculptRead       		; Set up indirection
+	stx SculptRead+2
+	lda #<SculptBitMap1
+	ldx #^SculptBitMap1
+	sta DMA5A1L
+	stx DMA5A1B		 	; Set up DMA destination
+	mode 'X!'
+	ldx #$0020
+	jsr .ReadBackChars		; Reads back 576 characters
+
+*
+* Read back another bit map of the top 18 lines.  Some information stays set
+*   up from above.  Before reading back, clear a few spots on the screen.
+*   These characters are read back to SculptBitMap2 ($4800 long).
+*
+
+	lda >SculptMapBuffer
+	sta >SculptMapBuffer+(13*64)+2 	; Clear these characters
+	sta >SculptMapBuffer+(14*64)+2
+	sta >SculptMapBuffer+(13*64)+60
+	sta >SculptMapBuffer+(14*64)+60
+	jsr .ReadBackChars 		; Reads back 576 characters
+
+*
+* On the second bit map (SculptBitMap2), wipe all text from the box in the
+*   center.  (Convert it all to one color of blue.)
+*
+
+	ldx #32*((10*32)+2)		; Point to row of chars to clear
+	stz SculptTemp		; Top row flag
+.ClearSculptLoop
+	lda #28
+	sta SculptCount	   	; Number of chars per row
+.ClearRowLoop
+	ldy #8			; Number of pixel rows per char
+	bit SculptTemp
+	bmi .ClearCharLoop
+	dey		         		; If top row of chars, skip top 
+	inx				;   pixel row
+	inx
+.ClearCharLoop
+	lda #$ff00			; Set pixel row to blue
+	sta >SculptBitMap2+16,x
+	lda #$0000
+	sta >SculptBitMap2,x
+	inx
+	inx
+	dey
+	bne .ClearCharLoop
+	txa		      		; Advance to next character
+	clc
+	adc #16
+	tax
+	dec SculptCount
+	bne .ClearRowLoop
+	dec SculptTemp
+	adc #128	        		; Advance to next row
+	tax
+	cmp #(32*((14*32)+2))+1
+	bcc .ClearSculptLoop		; Until 5 rows are done
+
+*
+* Dma the characters for BG1 (the second bit map) and the first 32 colors
+*   in the pallette to their respective destinations.
+*
+
+	mode 'a!'
+	ldx #SculptLogoCharAddr
+	stx VMADDL
+	lda #^SculptBitMap2
+	ldx #<SculptBitMap2
+	sta DMA0A1B
+	stx DMA0A1L
+	ldx #$4800
+	stx DMA0NUML
+	stz CGADD
+	lda #^SculptColorPallette
+	ldx #<SculptColorPallette
+	sta DMA6A1B
+	stx DMA6A1L
+	ldx #64
+	stx DMA6NUML
+	lda #$41
+	sta MDMAEN
+
+*
+* Reset the window edges, redraw the rightmost edge of the blue box (all
+*   drawing occurs in the second bit map), and send the redrawn	data.
+*
+
+	mode 'A!'
+	stz SculptSourceY
+	jsr .TransferAndClearWindow  	; Clear window edges
+	jsr .TransferAndClearWindow	;   and move them to HDMA table
+	lda #239
+	sta SculptColumn
+	jsr .TransferRow
+	ldx #8
+	jsr .DmaChars
+
+*
+* Wait for a VBlank and then enable HDMA of the window edges.  Fade on the
+*   screen.  Pause for a short time.
+*
+
+	mode 'x!'
+	lda #<SculptWindowHDmaTable
+	ldx #^SculptWindowHDmaTable
+	sta DMA7A1L
+	stx DMA7A1B
+	ldx #^SculptDmaWindowSpace
+	stx DMA7BANK
+	ldx #$80
+ 	stx HDMAEN	       		; Enable HDMA
+	lda #0000
+	clc
+.FadeUpLoop			   	         
+	jsr .WaitVBlank
+	adc #SculptFadeInRate        	; Increase intensity
+	cmp #$0f00
+	bcc .SetFadeIn      		; Clip intensity
+	lda #$0f00
+.SetFadeIn
+	xba
+	tax	      			; Put high byte of intensity in X
+	xba
+	stx INIDISP			; Store the fade value
+	bcc .FadeUpLoop
+	mode 'X!'
+	ldx #SculptDelayToStart
+        jsr .WaitX	 		; Pause x seconds
+
+*
+* Make the call to initialize the sound
+*
+	ifn	useSOUND
+	ldy	#(logo1_eff)
+	lda	#DCOM_START_EFFECT
+	jsl	__SendDriverCommand
+	endif
+
+*
+* Starting from the left, draw one column of the logo, calculate the window
+*   of light, and update.  Do this all the way across the screen.
+*
+
+	lda #101
+	sta SculptSourceY 		; Light source at 101 vertically
+	lda #16
+	sta SculptColumn 		; Start at "row" 16
+.CutLoop	
+;	jsr .InterruptDemo		; Check for button press
+	jsr .SetSource   		
+	jsr .TransferRow		; Draw one column
+	jsr .DrawDust		; Calculate windows
+	ldx #8
+	jsr .WaitDmaChars	      	; Send character changes
+	jsr .TransferAndClearWindow	; Update and reset windows
+	inc SculptColumn
+	lda SculptColumn
+	cmp #239			
+	bcc .CutLoop
+
+*
+* Move some special case characters from the upper left of the first bit map
+*   to their final locations.
+*
+
+	ldx #30
+.CopyChangeLoop 
+	lda >SculptBitMap1+32,x
+	sta >SculptBitMap1+(32*((32*13)+14)),x
+	lda >SculptBitMap1+64,x
+	sta >SculptBitMap1+(32*((32*13)+29)),x
+	lda >SculptBitMap1+96,x
+	sta >SculptBitMap1+(32*((32*14)+29)),x
+	dex
+	dex
+	bpl .CopyChangeLoop
+
+*
+* At the next VBlank, change the light beam to red by DMAing a red pallette
+*   to the appropriate location.
+*
+
+	jsr .WaitVBlank
+	mode 'a!'
+	stz	HDMAEN
+	lda #$10
+	sta CGADD
+	asl
+	sta DMA6NUML
+	asl
+	sta MDMAEN
+	asl	a
+	sta	HDMAEN
+*
+* Starting from the right, draw one character column of the slash, calculate
+*   the window of light, and update.  Do this all the way across the screen.
+*
+
+
+	mode 'A!'
+	lda #105   	
+	sta SculptSourceY    		; Light source at 105 vertically
+	lda #240
+	sta SculptColumn   		; Start at "row" 240
+.CutSlashLoop 
+;	jsr .InterruptDemo		; Check for button press
+	jsr .SetSource
+	jsr .TransferSlash 		; Draw one column of characters
+	jsr .DrawDust		; Calculate windows
+	ldx #2
+	jsr .WaitDmaChars		; Send character changes	
+	jsr .TransferAndClearWindow	; Update and reset windows
+	lda SculptColumn
+	sec
+	sbc #8
+	and #$fff8
+	sta SculptColumn
+	bpl .CutSlashLoop
+
+*
+* Now that the demo is complete, pause a short time, fade off, and disable
+*   HDMA.  Then restore registers and stack and return to the caller.
+*
+
+	ldx #SculptDelayAtEnd
+	jsr .WaitX	        		; Pause x seconds
+.RudeExit
+	mode 'x!'
+	lda #$0f00
+	sec
+.FadeDownLoop			   	         
+	jsr .WaitVBlank
+	sbc #SculptFadeOutRate        	; Decrease intensity
+	bcc .ForceOff
+	cmp #$100
+	bcs .SetFadeOut      		; Clip intensity
+.ForceOff
+	lda #$8000
+.SetFadeOut
+	xba
+	tax	      			; Put high byte of intensity in X
+	xba
+	stx INIDISP			; Store the fade value
+	bcs .FadeDownLoop
+	mode 'X!'
+        stz MDMAEN			; Shut off HDMA 
+	tsc
+	clc
+	adc #SculptZpSize		; Restore stack
+	tcs
+;
+	pea #0
+	plb
+	phb
+	pld
+;
+	rtl	      			; Return to caller
+
+******************************************************************************
+*
+*	Support routines
+*
+******************************************************************************
+
+*
+* This routine has two entry points.  WaitX waits X VBLanks.  WaitVBlank
+*   keeps control until the next VBlank.
+*
+
+.WaitXLoop
+	jsr .WaitVBlank
+;	ply				; Remove Caller Return Address
+;	jsr .InterruptDemo		; Check for button presses
+;	phy				; Restore Caller Return Address
+.WaitX
+	dex
+	bne .WaitXLoop
+.WaitVBlank				; Carry, X and Y preserved
+	mode 'a!'
+.WaitOutBlankLoop	     		; Wait until we are out of VBlank
+	bit _HVBJOY
+	bmi .WaitOutBlankLoop
+.WaitInBlankLoop	         		; Wait until we transition back
+	bit _HVBJOY			;   into VBlank
+	bpl .WaitInBlankLoop
+	mode 'A!'
+	rts
+
+*
+* This routine checks keys on the controllers to see if the user has pressed
+*   a valid interruption key.  If so, this routine forces an immediate exit.
+*
+
+	ifn	0
+.InterruptDemo
+	lda _HVBJOY		   	; Wait for valid data
+	lsr
+	bcs .InterruptDemo
+	lda #SculptController1		; Check for button press
+	and JOY1L
+	bne .GoRudeExit
+	lda #SculptController2
+	and JOY2L
+	bne .GoRudeExit
+	rts
+.GoRudeExit
+	pla				; Pop return address
+	jmp .RudeExit
+	endif
+
+
+*
+* This routine is used in the setup area to read back 576 characters from
+*   VRam.  It assumes that everything is properly set up for the DMA activity.
+*
+
+.ReadBackChars
+	ldy #0000
+.ReadBackLoop 
+	lda [SculptRead],y
+	sta VMADDL		 	; Set source address
+	lda _VMDATAL			; Take care of false read
+	stx DMA5NUML
+	stx MDMAEN			; Read back one character
+	iny
+	iny
+	cpy #576*2
+	bne .ReadBackLoop
+	rts
+
+*
+* This routine waits until the next VBlank and then DMAs the character changes
+*   from the second bit map to the appropriate places in VRam.  X is passed
+*   to this routine and X indicates how many characters have changed times 2.
+* DmaChars is an alternate entry point.
+*
+
+.WaitDmaChars
+	jsr .WaitVBlank
+.DmaChars 	
+	lda #SculptBitMap2>>8		; Set up source bank
+	sta DMA0A1H
+	mode	'a!'
+	stz	HDMAEN
+	mode	'A!'
+	ldy #$8001	      		
+.DrawCharsLoop	
+	lda SculptCharIndex,x		; Get index into bit map
+	lsr
+	adc #SculptLogoCharAddr
+	sta VMADDL	        		; Set source
+	lda SculptCharIndex,x
+	adc #<SculptBitMap2
+	sta DMA0A1L	 		; Set destination
+	lda #$20
+	sta DMA0NUML   	
+	sty MDMAEN			; Send changed character
+	dex
+	dex
+	bpl .DrawCharsLoop
+	mode	'a!'
+	lda	#$80
+	sta	HDMAEN
+	mode	'A!'
+	rts
+
+*
+* This routine moves the calculated window parameters to the HDMA space
+*   via a DMA to and then from VRam (for speed).  It then, based on current
+*   conditions, resets the window edge calculation space.
+*
+
+.TransferAndClearWindow
+	mode 'x!'
+	ldx #^SculptWindowEdges
+	stx DMA0A1B	      		; Set up all DMA stuff in advance
+	stx DMA5A1B
+	lda #<SculptWindowEdges
+	sta DMA0A1L
+	lda #<SculptDmaWindowSpace
+	sta DMA5A1L
+	lda #896
+	sta DMA0NUML
+	sta DMA5NUML
+	ldx #1
+	ldy #$20
+	lda #SculptWindowXfer
+	sta VMADDL
+	stx MDMAEN	 		; Transfer window edges to VRam
+	sta VMADDL
+	sty MDMAEN		 	; Transfer window edges from VRam
+	lda #<SculptWindowEdges
+	sta DMA5A1L
+	lda #896
+	sta DMA5NUML
+	ldx SculptSourceY	 	; Identify values to clear to 
+	beq .BeginningClear
+	cpx #102
+	bcs .SkipForSlash
+	lda #SculptClearCenter
+	ldx SculptCompareStep
+	cpx #-1			; Super bright center
+	beq .ClearAddr
+.SkipForSlash
+	lda #SculptClearLeft		; Windows cut to left
+	ldx SculptColumn
+	cpx SculptSourceX
+	bcc .ClearAddr
+.BeginningClear
+	lda #SculptClearRight	    	; Windows cut to right
+.ClearAddr
+	sta VMADDL
+	sty MDMAEN	 		; Read from VRam, clearing windows
+	mode 'X!'
+	rts
+
+*
+* This routine sets up the X position of the light source and also sets up
+*   related values for the light window calculations.
+*
+
+.SetSource
+	stz SculptPointCount       	; Clear light edge counter
+	lda SculptColumn
+	asl			     
+	adc SculptColumn
+	asl
+	adc SculptColumn
+	adc #128
+	lsr
+	lsr
+	lsr
+	sta SculptSourceX	 	; Set x position of the light
+	ldy #1
+	lda SculptColumn	  	; Calculate delta x
+	sec
+	sbc SculptSourceX
+	bpl .SetDeltaX
+	eor #$ffff
+	inc
+	ldy #-1
+.SetDeltaX	
+	dec		    		; Save delta and step values
+	sta SculptCompareStep
+	sty SculptDeltaX
+        rts
+
+*
+* This routine moves one pixel "row" (column) of data from the source bit
+*   map to the second bit map.  It also identifies the transitions from
+*   background to letter colors and stores these transition points in a table
+*   so that light windows can be calculated.
+*
+
+.TransferRow
+	pea #$007e 			; Data bank set to $7e0000
+	plb
+	dbr $7e
+	lda SculptColumn  		; Calculate which bit contains
+	and #$7				;   data
+	asl
+	tax
+	lda >SculptMaskTable,x
+	sta SculptAndMask    		; Set up masks to extract this
+	eor #$ffff			;   bit
+	sta SculptOrMask
+	lda SculptColumn		; Identify index of first 
+	and #$fff8			;   character to draw from/to
+	asl
+	asl
+	clc
+	adc #(32*32)*10
+	tay
+	lda #80   			; Keep track of vertical pixel row
+	sta SculptCount
+.TransferCharLoop
+	lsr
+	lsr
+	sbc #20-1
+	tax
+	tya				; Save index of changed character
+	sta SculptCharIndex,x 	;   so that it may be DMAed.
+.TransferBitLoop
+	ldx SculptAndMask
+	txa				; Extract one pixel from source
+	and SculptBitMap1,y
+	sta SculptBits
+	txa
+	and SculptBitMap1+16,y 	
+	sta SculptBits+2
+	txa			 	; Determine its color value
+	and #$ff00
+	dec
+	tax
+	cpx SculptBits+2
+	rol
+	cpx SculptBits+1
+	rol
+	cpx SculptBits
+	rol
+	cpx SculptBits-1
+	rol
+	and #$000f	 		; Got (15 - color) value
+	tax
+	cpx #5	       		; Detect color transitions and
+	lda SculptPointCount       	;  color types
+	bit #2
+	bne .CheckEndPoint
+	bcc .SetPoint
+	cpx #7
+	bcc .DrawOnly
+	bra .NextPixel
+.CheckEndPoint
+	bcc .DrawOnly
+	cpx #7
+.SetPoint
+	tax
+	lda SculptCount 		; If transition was detected,
+	sta SculptPoints,x		;   store current vertical pos.
+	inx
+	inx
+	stx SculptPointCount
+	bcs .NextPixel
+.DrawOnly
+	lda SculptOrMask		; If color was a text color,
+	and SculptBitMap2,y		;   then store it to the second
+	ora SculptBits 		;   bit map
+	sta SculptBitMap2,y
+	lda SculptOrMask
+	and SculptBitMap2+16,y
+	ora SculptBits+2
+	sta SculptBitMap2+16,y
+.NextPixel
+	iny		 		; Advance to next vertical pixel
+	iny
+	inc SculptCount
+	tya
+	bit #$000e
+	bne .TransferBitLoop
+	clc		 		; Advance to next character
+	adc #(32*32)-16
+	tay
+	lda SculptCount
+	cmp #120	       		; Do 5 characters (40 pixels)
+	bcc .TransferCharLoop	     
+	plb				; Data Bank set to $00000
+	dbr $0
+	rts
+
+*
+* This routine moves one character column of data from the source bit
+*   map to the second bit map.  It also identifies the transitions from
+*   background to slash colors and stores these transition points in a table
+*   so that light windows can be calculated.
+*
+
+.TransferSlash
+	pea #$007e			; Data bank set to $7e00000  			
+	plb
+	dbr $7e
+	lda SculptColumn 		; Identify index of first
+	and #$fff8			;   character to draw to/from
+	asl
+	asl
+	adc #(32*32)*13
+	tay
+	sta SculptCharIndex 		; Save character indexes so that
+	adc #1024			;   the changed characters may
+	sta SculptCharIndex+2		;   be DMAed 
+	lda #104
+	sta SculptCount      		; Keep track of vertical row
+.TransferBitSlashLoop
+	lda SculptBitMap1,y	 	; Move whole words of the 
+	sta SculptBitMap2,y		;   character 
+	and #$8080
+	sta SculptBits
+	lda SculptBitMap1+16,y
+	sta SculptBitMap2+16,y
+	and #$8080
+	sta SculptBits+2 		; Keep track of far left color
+	ldx #$7fff
+	cpx SculptBits+2	      	; Identify far left color number
+	rol
+	cpx SculptBits+1
+	rol
+	cpx SculptBits
+	rol
+	cpx SculptBits-1
+	rol
+	and #$000f			; Got (15 - color) value
+	tax
+	lda SculptPointCount 		; Detect color transitions
+	bit #2
+	bne .CheckEndSlash
+	cpx	#11
+	bcs .NextSlash
+	cpx #8
+	bcc .NextSlash
+	bcs .SetSlash
+.CheckEndSlash	
+	cpx #8
+	bcc .SetSlash
+	cpx #11
+	bcc .NextSlash
+.SetSlash	
+	tax
+	lda SculptCount	  	; If transition detected, 
+	sta SculptPoints,x		;   store current vertical pos.
+	inx
+	inx
+	stx SculptPointCount
+.NextSlash	
+	iny				; Advance to next vertical row
+	iny
+	inc SculptCount
+	tya
+	bit #$000e
+	bne .TransferBitSlashLoop
+	clc			   	; Advance to next character
+	adc #(32*32)-16
+	tay
+	lda SculptCount
+	cmp #120		   	; Do 2 characters (16 rows)
+	bcc .TransferBitSlashLoop
+	plb 		     	; Data bank set to $000000
+	dbr 0
+	rts
+
+*
+* This routine takes the trantision positions determined above and calls
+*   a routine to draw light windows.
+*
+
+.DrawDust
+	pea #$007e			; Data bank set to $7e0000
+	plb
+	dbr $7e
+	lda SculptWindowEdges 	; If center is bright, quit early
+	cmp #$ff00
+	beq .DoneDrawDust
+	ldx SculptPointCount		; Terminate the list properly
+	stz SculptPoints,x
+	ldx SculptPoints   		; If transition pair #1 exists,
+	beq .DoneDrawDust	
+	ldy SculptPoints+2		;  draw a window for it
+	lda #0
+	jsr .SetWindow
+	ldx SculptPoints+4		; If transition pair #2 exists,
+	beq .DoneDrawDust
+	ldy SculptPoints+6		;  draw a window for it
+	lda #2
+	jsr .SetWindow
+	ldx SculptPoints+8		; If transition pair #3 exists,
+	beq .DoneDrawDust
+	ldy SculptPoints+10		;  draw a window for it
+	lda #0
+	jsr .SetWindow
+.DoneDrawDust			     
+	plb  			; Data bank set to $000000
+	dbr $0
+	rts
+
+*
+* This routine draws a light window.  A is the (display window *2) to modify. 
+*   X and Y are the vertical values of each transition location.  Each light
+*   window is a trapezoid.  The outside edge is created when the window space
+*   is cleared.  The inside edge and the angled lines are created below.
+*
+
+	dbr $7e
+
+.SetWindow	
+	sta SculptSetA		; Save the input values for later
+	sty SculptSetY
+	stx SculptSetX 		
+	txa		     		; Calculate the position in the
+	asl				;   window edge buffer to draw
+	asl				;   the inside edge to
+	adc SculptSetA
+	tax
+	tya
+	asl
+	asl
+	adc SculptSetA
+	sta SculptTemp
+	ldy #0	        		; Is inside edge to left or right?
+	lda SculptColumn
+	cmp SculptSourceX
+	xba
+	bcc .ColumnLoop
+	iny		   		; Offset accordingly
+	xba
+	ora #$ff00
+.ColumnLoop
+	sta SculptWindowEdges,x    	; Set one portion of inside edge
+	inx
+	inx
+	inx
+	inx
+	cpx SculptTemp     		; Loop until inside edge is done
+	bcc .ColumnLoop
+	beq .ColumnLoop
+	sty SculptRightLeft	 	; Inside edge was left or right
+.StartLine1	
+	ldx SculptSetX		; Set up to draw first angled edge
+	tya
+	cpx SculptSourceY
+	beq .StartLine2
+	bcs .DoLine1    		; Set appropriate offsets
+	eor #1
+.DoLine1  
+	ora SculptSetA
+	jsr .LineFromX  		; Draw angled window edge
+.StartLine2
+	ldx SculptSetY       		; Set up to draw other angled edge
+	lda SculptRightLeft
+	cpx SculptSourceY
+	beq .DoneLine
+	bcc .DoLine2 		; Set opposing offsets
+	eor #1
+.DoLine2	
+	ora SculptSetA
+*	jmp .LineFromX  		; Falls through to below (draw it)
+
+*
+* This routine uses the source of light coordinates, the current column, the 
+*   current row (specified in X), and a byte offset (specified in A) to draw
+*   one edge of a light window.  The edge is drawn directly to the window
+*   edge buffer.  This routine has similarities to a line drawing routine.
+*
+
+.LineFromX
+	sta SculptByteOffset	 	; Save offset to window space	
+	lda SculptColumn
+	sta SculptCurrentColumn    	; Initialize a local counter
+	txa
+	asl
+	asl
+	adc SculptByteOffset	 	; Calculate index to window space
+	sta SculptCurrentRow
+	ldy #4-1
+	txa
+	sec
+	sbc SculptSourceY		; Calculate Delta Y and step Y
+	bpl .SetDeltaY
+	eor #$ffff
+	inc
+	ldy #-5			; Same as -4-1
+.SetDeltaY	
+	sta SculptAddStep
+	lsr
+	tax
+	sty SculptDeltaY
+	ldy SculptCurrentRow				
+	bra .LineEntry		; Jump into edge draw loop
+.AdvanceLine
+	txa			 	; Carry is clear
+	adc SculptAddStep 		; Adjust for a horizontal step
+	tax
+.OverflowLoop					; Carry is clear
+	sbc SculptCompareStep	        
+	bcc .DoneOverflow		; Check for vertical step
+	tax
+	tya
+	adc SculptDeltaY	        	; Take vertical step
+	cmp #224*4
+	bcs .DoneLine       		; Clip at top/bottom
+	tay
+.LineEntry	
+	lda SculptWindowEdges,y 	; Set window edge for this
+	and #$ff00			;   vertical row
+	ora SculptCurrentColumn
+	sta SculptWindowEdges,y
+	txa
+	bra .OverflowLoop
+.DoneOverflow
+	lda SculptCurrentColumn  	; Take horizontal step
+	adc SculptDeltaX
+	sta SculptCurrentColumn
+	cmp #256		 	; Clip at Left/Right
+	bcc .AdvanceLine
+.DoneLine	
+	rts
+
+	endif

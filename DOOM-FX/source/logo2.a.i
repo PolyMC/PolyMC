@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	133
+DATE	MACRO
+		dc.b	'17.10.95'
+	ENDM
+VERS	MACRO
+		dc.b	'logo2.a 1.133'
+	ENDM
+VSTRING	MACRO
+		dc.b	'logo2.a 1.133 (17.10.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: logo2.a 1.133 (17.10.95)',0
+	ENDM

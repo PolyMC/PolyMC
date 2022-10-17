@@ -1,0 +1,122 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                   ENGINE DRAW MISCELLANEOUS MODULE                 *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+
+	public	_RLDrawMiscA
+	public	_RLDrawMiscB
+	public	_RLDrawMiscC
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+;
+;	* * * * * * *       REALITY_ENGINE DRAW MISCELLANEOUS A       * * * * * * *
+;
+
+;	align	16,(_RLDrawMiscA-_RLDrawMiscAAlign)&$0f
+_RLDrawMiscA
+;
+;	>>>   HANDLE MESSAGES   <<<
+;
+	move	r0,(<MsgCount)			; Any Message to Display?
+	dec	r0
+	bmi	_RLDMA200			; No
+	nop
+	ibt	r1,#((RLViewPixX/3)*0)
+	ibt	r2,#0
+	move	r12,(<MsgDataA)
+	link	#4
+	move	r15,#<_RLText
+	nop
+_RLDMA200
+	ibt	r1,#0				; Flush Pixel Cache
+	ibt	r2,#0
+	rpix
+	ifn	DEBUG
+	move	r0,#0				; NO ERROR!
+	move	(<GSUERROR),r0
+	endif
+	stop
+	nop
+
+
+;
+;	* * * * * * *       REALITY_ENGINE DRAW MISCELLANEOUS B       * * * * * * *
+;
+_RLDrawMiscB
+;
+;	>>>   HANDLE MESSAGES   <<<
+;
+	move	r0,(<MsgCount)			; Any Message to Display?
+	dec	r0
+	bmi	_RLDMB200			; No
+	nop
+	iwt	r1,#((RLViewPixX/3)*0)
+	ibt	r2,#0
+	move	r12,(<MsgDataB)
+	link	#4
+	move	r15,#<_RLText
+	nop
+_RLDMB200
+;
+;	>>>   HANDLE FACES   <<<
+;
+	link	#4
+	move	r15,#<_RLAnimFace
+	nop
+	ibt	r1,#0				; Flush Pixel Cache
+	ibt	r2,#0
+	rpix
+	ifn	DEBUG
+	move	r0,#0				; NO ERROR!
+	move	(<GSUERROR),r0
+	endif
+	stop
+	nop
+
+
+;
+;	* * * * * * *       REALITY_ENGINE DRAW MISCELLANEOUS C       * * * * * * *
+;
+_RLDrawMiscC
+;
+;	>>>   HANDLE MESSAGES   <<<
+;
+	move	r0,(<MsgCount)			; Any Message to Display?
+	dec	r0
+	bmi	_RLDMC200			; No
+	inc	r0
+	move	r2,(<(FPSCount+RLGSUSNESXVarsO)) ; #VBlanks
+;	with	r0				; Update Counter
+	sub	r2
+	bpl	_RLDMC120			; Not Finished
+	nop
+;	with	r0				; Finished
+	sub	r0
+_RLDMC120
+	move	(<MsgCount),r0			; Save Updated Counter
+;
+	iwt	r1,#((RLViewPixX/3)*0)
+	ibt	r2,#0
+	move	r12,(<MsgDataC)
+	link	#4
+	move	r15,#<_RLText
+	nop
+_RLDMC200
+	ibt	r1,#0				; Flush Pixel Cache
+	ibt	r2,#0
+	rpix
+	ifn	DEBUG
+	move	r0,#0				; NO ERROR!
+	move	(<GSUERROR),r0
+	endif
+	stop
+	nop

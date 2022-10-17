@@ -1,0 +1,2 @@
+xg -pRLART:Logo4 -dRLDATA:ART/Logo4 -ms -c8
+make/art/Logo4.c

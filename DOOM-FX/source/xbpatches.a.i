@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	280
+DATE	MACRO
+		dc.b	'25.10.95'
+	ENDM
+VERS	MACRO
+		dc.b	'xbpatches.a 1.280'
+	ENDM
+VSTRING	MACRO
+		dc.b	'xbpatches.a 1.280 (25.10.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: xbpatches.a 1.280 (25.10.95)',0
+	ENDM

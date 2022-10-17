@@ -1,0 +1,248 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         ENGINE LIGHTS MODULE                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rFPSRatio	equ	r5			; FPS Ratio
+rFPSCount	equ	r7			; FPS Counter
+rSectorData	equ	r8			; Pointer to SectorData
+rSectorData0	equ	r9			; Pointer to SectorData Base
+
+rTaskPtr	equ	r10			; Pointer to RLTask Structure
+rTaskCount	equ	r13			; TaskCounter
+
+
+;
+;	* * * * * * *       PREPARE TO CALL LIGHTS_TASKCODE       * * * * * * *
+;
+_RLPreLightsTaskCode
+	move	r0,#<(EMSECTORS+2)			; Bank of EM Data
+	ldb	(r0)
+	romb						; Set ROM Bank
+	from	r10					; Move to TaskData
+;	to	r0
+	add	#rlmData
+;	to	r0					; Get Sector#
+	ldb	(r0)
+;	from	r0
+	to	rSectorData0
+	umult	#rlsdSize
+;	with	r0
+	umult	#rlsSize
+	move	r1,(<EMSECTORS)				; Base of Sectors
+;	from	r0
+	to	r14
+	add	r1
+	move	r1,#<_RLSectorData
+	with	rSectorData0
+	add	r1
+	move	rFPSCount,(<(FPSCount+RLGSUSNESXVarsO))	; Get FPSCount
+	move	rFPSRatio,(<FPSRatio)			; Get FPSRatio
+	move	rSectorData,rSectorData0
+	jmp	r11					; Return to Caller
+	nop
+
+
+;
+;	* * * * * * *       LIGHT BLINKS OFF RANDOMLY       * * * * * * *
+;
+_TLightOffRandom
+	move	r12,r11
+	link	#3
+	iwt	r15,#<_RLPreLightsTaskCode
+	with	rSectorData			; Move to Counter
+	add	#rlsdData
+	to	r2
+	ldb	(rSectorData)			; Get Counter
+	with	r2
+	sub	rFPSCount
+	bpl	_TLOR800
+	nop
+	ldb	(rSectorData0)			; Get Flags
+	and	#rlsdfLightDir			; Going On or Off?
+	bne	_TLOR500			; Off
+	inc	r14
+	move	r0,#^RandomTable		; Get Random Time
+	to	r1				; R1 = Light Level Normal
+	getb
+	romb
+	move	r0,#<RandomNumI			; Get Random Number
+	to	r14
+	ldb	(r0)
+	move	r0,r14
+	inc	r0
+;	from	r0
+	sbk
+;	to	r0
+	getb
+;	from	r0				; Random Time = 0-127
+	to	r2
+	bra	_TLOR700
+	lsr
+_TLOR500
+	inc	r14
+	ibt	r2,#1				; Stay Off for 1 Tick
+	to	r1				; R1 = Light Level Minimum
+	getb
+_TLOR700
+	from	rSectorData0			; Move to LightLevel
+	to	rSectorData
+	add	#rlsdLightLevel
+	from	r1
+	stb	(rSectorData)
+	ldb	(rSectorData0)			; Reverse Direction Bit
+	xor	#rlsdfLightDir
+	stb	(rSectorData0)
+	from	rSectorData0			; Move back to Counter
+	to	rSectorData
+	add	#rlsdData
+_TLOR800
+	from	r2
+	stb	(rSectorData)			; Save new Counter
+	jmp	r12				; Return to Caller
+	nop
+
+
+;
+;	* * * * * * *       LIGHT BLINKS ON EVERY n SECONDS       * * * * * * *
+;
+_TLightOnB
+	move	r12,r11
+	link	#3
+	iwt	r15,#<_RLPreLightsTaskCode
+	move	r11,r12
+	ibt	r3,#60				; 1.0 Seconds
+	bra	_TLightOn
+_TLightOnA0
+	move	r12,r11
+	link	#3
+	iwt	r15,#<_RLPreLightsTaskCode
+	move	r11,r12
+_TLightOnA
+	ibt	r3,#30				; 0.5 Seconds
+_TLightOn
+	with	rSectorData			; Move to Counter
+	add	#rlsdData
+	to	r2
+	ldb	(rSectorData)			; Get Counter
+	with	r2
+	sub	rFPSCount
+	bpl	_TLN800
+	ldb	(rSectorData0)			; Get Flags
+	and	#rlsdfLightDir			; Going On or Off?
+	bne	_TLN500				; Off
+	inc	r14
+	to	r1				; R1 = Light Level Far
+	getb
+	ibt	r2,#1				; Stay On for 1 Tick
+	bra	_TLN700
+	nop
+_TLN500
+	inc	r14				; Off
+	move	r2,r3				; Stay Off for n Ticks
+	to	r1				; R1 = Light Level Normal
+	getb
+_TLN700
+	from	rSectorData0			; Move to LightLevel
+	to	rSectorData
+	add	#rlsdLightLevel
+	from	r1
+	stb	(rSectorData)
+	ldb	(rSectorData0)			; Reverse Direction Bit
+	xor	#rlsdfLightDir
+	stb	(rSectorData0)
+	from	rSectorData0			; Move back to Counter
+	to	rSectorData
+	add	#rlsdData
+_TLN800
+	from	r2
+	stb	(rSectorData)			; Save new Counter
+	jmp	r11				; Return to Caller
+	nop
+
+
+;
+;	* * * * * * *       LIGHT OSCILLATES       * * * * * * *
+;
+_TLightOsc
+	move	r12,r11
+	link	#3
+	iwt	r15,#<_RLPreLightsTaskCode
+	inc	r14
+	to	r2				; R2 = Maximum
+	getb
+	inc	r14
+	to	r3				; R3 = Minimum
+	getb
+;
+	move	r6,#16				; Light Adjustment
+	from	rFPSRatio			; FPS Adjustment
+;	to	r0
+	lmult
+;	with	r0				; Get Whole Levels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R1 = |LightAdjustment|
+	to	r1
+	or	r4
+;
+;	to	r0
+	ldb	(rSectorData0)			; Get Flags
+	and	#rlsdfLightDir			; Going Up or Down?
+	bne	_TLO500				; Up
+	from	rSectorData0			; Move to LightLevel
+	to	rSectorData
+	add	#rlsdLightLevel
+	ldb	(rSectorData)			; Get Light Level
+;	with	r0
+	add	r1				; Next Light Level
+;	from	r0
+	to	r1				; Underflow Minimum?
+	hib
+	bne	_TLO380				; Yes!
+	cmp	r3				; <= Minimum Allowed?
+	blt	_TLO600				; No!
+	nop
+_TLO380
+	move	r2,r3
+_TLO400
+;	to	r0				; Reverse Direction Bit
+	ldb	(rSectorData0)
+	from	r2
+	stb	(rSectorData)			; Save new Light Level
+;	with	r0
+	xor	#rlsdfLightDir
+;	from	r0
+	stb	(rSectorData0)
+	jmp	r12				; Return to Caller
+	nop
+_TLO500
+;	from	rSectorData0			; Move to LightLevel
+	to	rSectorData
+	add	#rlsdLightLevel
+	ldb	(rSectorData)			; Get Light Level
+;	with	r0
+	sub	r1
+	bmi	_TLO400				; Overflow Maximum?
+	nop
+	cmp	r2				; >= Maximum Allowed?
+	blt	_TLO400+1			; Yes!
+_TLO600
+	stb	(rSectorData)			; Save new Light Level
+	jmp	r12				; Return to Caller
+	nop

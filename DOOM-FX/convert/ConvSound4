@@ -1,0 +1,121 @@
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/PISTOL.RAW -t raw -x -w -u hd3:doom/sound/PISTOL.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SHOTGN.RAW -t raw -x -w -u hd3:doom/sound/SHOTGN.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SGCOCK.RAW -t raw -x -w -u hd3:doom/sound/SGCOCK.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SAWUP.RAW -t raw -x -w -u hd3:doom/sound/SAWUP.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SAWIDL.RAW -t raw -x -w -u hd3:doom/sound/SAWIDL.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SAWFUL.RAW -t raw -x -w -u hd3:doom/sound/SAWFUL.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SAWHIT.RAW -t raw -x -w -u hd3:doom/sound/SAWHIT.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/RLAUNC.RAW -t raw -x -w -u hd3:doom/sound/RLAUNC.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/RXPLOD.RAW -t raw -x -w -u hd3:doom/sound/RXPLOD.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/FIRSHT.RAW -t raw -x -w -u hd3:doom/sound/FIRSHT.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/FIRXPL.RAW -t raw -x -w -u hd3:doom/sound/FIRXPL.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/PSTART.RAW -t raw -x -w -u hd3:doom/sound/PSTART.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/PSTOP.RAW -t raw -x -w -u hd3:doom/sound/PSTOP.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DOROPN.RAW -t raw -x -w -u hd3:doom/sound/DOROPN.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DORCLS.RAW -t raw -x -w -u hd3:doom/sound/DORCLS.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/STNMOV.RAW -t raw -x -w -u hd3:doom/sound/STNMOV.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SWTCHN.RAW -t raw -x -w -u hd3:doom/sound/SWTCHN.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SWTCHX.RAW -t raw -x -w -u hd3:doom/sound/SWTCHX.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/PLPAIN.RAW -t raw -x -w -u hd3:doom/sound/PLPAIN.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DMPAIN.RAW -t raw -x -w -u hd3:doom/sound/DMPAIN.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/POPAIN.RAW -t raw -x -w -u hd3:doom/sound/POPAIN.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SLOP.RAW -t raw -x -w -u hd3:doom/sound/SLOP.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/ITEMUP.RAW -t raw -x -w -u hd3:doom/sound/ITEMUP.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/WPNUP.RAW -t raw -x -w -u hd3:doom/sound/WPNUP.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/OOF.RAW -t raw -x -w -u hd3:doom/sound/OOF.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/TELEPT.RAW -t raw -x -w -u hd3:doom/sound/TELEPT.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/POSIT1.RAW -t raw -x -w -u hd3:doom/sound/POSIT1.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/POSIT2.RAW -t raw -x -w -u hd3:doom/sound/POSIT2.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/POSIT3.RAW -t raw -x -w -u hd3:doom/sound/POSIT3.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/BGSIT1.RAW -t raw -x -w -u hd3:doom/sound/BGSIT1.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/BGSIT2.RAW -t raw -x -w -u hd3:doom/sound/BGSIT2.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SGTSIT.RAW -t raw -x -w -u hd3:doom/sound/SGTSIT.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/BRSSIT.RAW -t raw -x -w -u hd3:doom/sound/BRSSIT.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SGTATK.RAW -t raw -x -w -u hd3:doom/sound/SGTATK.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/CLAW.RAW -t raw -x -w -u hd3:doom/sound/CLAW.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/PLDETH.RAW -t raw -x -w -u hd3:doom/sound/PLDETH.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/PODTH1.RAW -t raw -x -w -u hd3:doom/sound/PODTH1.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/PODTH2.RAW -t raw -x -w -u hd3:doom/sound/PODTH2.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/PODTH3.RAW -t raw -x -w -u hd3:doom/sound/PODTH3.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/BGDTH1.RAW -t raw -x -w -u hd3:doom/sound/BGDTH1.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/BGDTH2.RAW -t raw -x -w -u hd3:doom/sound/BGDTH2.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SGTDTH.RAW -t raw -x -w -u hd3:doom/sound/SGTDTH.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/BRSDTH.RAW -t raw -x -w -u hd3:doom/sound/BRSDTH.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/POSACT.RAW -t raw -x -w -u hd3:doom/sound/POSACT.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/BGACT.RAW -t raw -x -w -u hd3:doom/sound/BGACT.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DMACT.RAW -t raw -x -w -u hd3:doom/sound/DMACT.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/NOWAY.RAW -t raw -x -w -u hd3:doom/sound/NOWAY.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/BAREXP.RAW -t raw -x -w -u hd3:doom/sound/BAREXP.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/PUNCH.RAW -t raw -x -w -u hd3:doom/sound/PUNCH.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/PLASMA.RAW -t raw -x -w -u hd3:doom/sound/PLASMA.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/BFG.RAW -t raw -x -w -u hd3:doom/sound/BFG.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/CACSIT.RAW -t raw -x -w -u hd3:doom/sound/CACSIT.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/CYBSIT.RAW -t raw -x -w -u hd3:doom/sound/CYBSIT.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SPISIT.RAW -t raw -x -w -u hd3:doom/sound/SPISIT.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SKLATK.RAW -t raw -x -w -u hd3:doom/sound/SKLATK.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/CACDTH.RAW -t raw -x -w -u hd3:doom/sound/CACDTH.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SKLDTH.RAW -t raw -x -w -u hd3:doom/sound/SKLDTH.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/CYBDTH.RAW -t raw -x -w -u hd3:doom/sound/CYBDTH.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/SPIDTH.RAW -t raw -x -w -u hd3:doom/sound/SPIDTH.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/HOOF.RAW -t raw -x -w -u hd3:doom/sound/HOOF.16
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/METAL.RAW -t raw -x -w -u hd3:doom/sound/METAL.16

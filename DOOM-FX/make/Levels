@@ -1,0 +1,29 @@
+make/level E1 M1
+make/level E1 M2
+make/level E1 M3
+make/level E1 M4
+make/level E1 M5
+;make/level E1 M6
+make/level E1 M7
+make/level E1 M8
+make/level E1 M9
+
+make/level E2 M1
+;make/level E2 M2
+make/level E2 M3
+make/level E2 M4
+;make/level E2 M5
+make/level E2 M6
+;make/level E2 M7
+make/level E2 M8
+make/level E2 M9
+
+make/level E3 M1
+make/level E3 M2
+make/level E3 M3
+make/level E3 M4
+;make/level E3 M5
+make/level E3 M6
+make/level E3 M7
+make/level E3 M8
+make/level E3 M9

@@ -1,0 +1,353 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                     ENGINE TRACE FLOORS MODULE 3                   *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildTraceFloors3
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD TRACE             CALCULATE FLOOR/CEILING COLOURMAPS  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       CALCULATE FLOOR/CEILING COLOURMAPS       * * * * * * *
+;
+rSectorLightMin		equ	r5		; Minimum LightingLevel
+rSectorLightMax		equ	r7		; Maximum LightingLevel
+rSectorNearData		equ	r8		; Pointer to SectorNearData
+rSectorNearFlags	equ	rSectorNearData	; SectorNearData Flags
+rFloorPlotData		equ	r9		; Pointer within FloorPlotData
+rFloorPlotDataEnd	equ	r10		; Pointer to End of FloorPlotData
+rFloorsPtr		equ	r11		; Pointer to Current FloorData
+rFloorsPtrEnd		equ	r12		; Pointer to End of FloorsData
+rFloorHeight		equ	r2		; Height of Floor/Ceiling
+rInvulnerableCount	equ	r3		; Invulnerability Count
+
+
+	align	16,(_RLBuildTraceFloors3-_TRF3S2200)&$0f
+_RLBuildTraceFloors3
+	move	rFloorsPtr,#<(_RLFloors-rlfdSize)	; Start of Floors/Ceilings
+	move	rFloorsPtrEnd,(<TRFloorsEnd)		; End of Floors/Ceilings
+	move	rInvulnerableCount,(<InvulnerableCount)	; Invulnerability
+;
+	move	r0,#^RLSCNPixScale			; RL->SCN Pixel Scaling Table
+	romb
+;
+	bra	_TRF3S2000
+	nop
+
+
+;
+;	* * * * * * *       COMPLETED FLOOR/CEILING COLOURMAPS       * * * * * * *
+;
+_TRF3S9000
+	move	rFloorPlotData,(<TRObjPlotPtr)		; FLOOR PLOT DATA START
+	move	rFloorPlotDataEnd,(<TRFloorPlotPtr)
+	ifn	DEBUG
+	move	r0,#0					; NO ERROR!
+	move	(<GSUERROR),r0
+	endif
+	ifn	usePATCH
+	move	r0,(<PTRLBuildDone)			; BUILD COMPLETED
+	ibt	r8,#^_RLBuildBSP
+	ljmp	r8
+	endif
+	ife	usePATCH
+	stop
+	endif
+	nop
+
+
+;
+;	* * * * * * *       PROCESS NEXT FLOOR/CEILING       * * * * * * *
+;
+_TRF3S2000
+	CACHEB	_RLBuildTraceFloors3
+_TRF3S2200
+	move	r4,#rlfdSize		 	; Offset to Next Floor/Ceiling
+_TRF3S2400
+	with	rFloorsPtr			; Move to Next Floor/Ceiling
+	add	r4
+	from	rFloorsPtr			; At End?
+;	to	r0				; @CMP@
+	sub	rFloorsPtrEnd
+	beq	_TRF3S9000			; Yes!  No More Floors/Ceilings!
+;
+;	>>>   GET FLOORPLOTDATA START/END   <<<
+;
+	from	rFloorsPtr			; Move to FloorPlotDataEnd
+;	to	r0
+	add	#rlfdFloorPlotDataEnd
+	to	rFloorPlotDataEnd		; FloorPlotDataEnd
+	ldw	(r0)
+	dec	r0
+	dec	r0
+	to	rFloorPlotData			; FloorPlotDataStart
+	ldw	(r0)
+
+	ifn	0
+;
+;	>>>   ANY FLOOR PLOTS TO PROCESS?   <<<
+;
+	from	rFloorPlotData			; NO FLOOR PLOT DATA?
+	cmp	rFloorPlotDataEnd
+	beq	_TRF3S2400			; NO!  Skip this Floor/Ceiling
+	endif
+
+;
+;	>>>   GET FLOOR/CEILING HEIGHT   <<<
+;
+	dec	r0
+	dec	r0
+	to	rFloorHeight
+	ldw	(r0)
+;
+;	>>>   GET SECTORNEAR_DATA   <<<
+;
+	to	r6
+	ldw	(rFloorsPtr)
+	from	r6				; Remove Floor/Ceiling KeyBit
+	to	rSectorNearData
+	lsr
+;
+;	>>>   CALCULATE LIGHT LEVEL RANGE   <<<
+;
+	inc	rSectorNearData			; Move to LightLevel
+	to	rSectorLightMax			; Get Maximum LightLevel
+	ldb	(rSectorNearData)
+;
+;	>>>   LIGHT CREATED BY WEAPON   <<<
+;
+	move	r0,#<(LightAdjust)		; Get Light Adjustment
+;	to	r0
+	ldb	(r0)
+	with	rSectorLightMax
+	sub	r0
+	bpl	_TRF3S3100+1
+	from	rSectorLightMax			; Minimum Light Level
+	move	rSectorLightMax,#0
+_TRF3S3100
+	from	rSectorLightMax			; Get (Level-BrightestLevel)/2
+	to	rSectorLightMin			;    = (Level+(LowLevel))
+	add	rSectorLightMax
+	with	rSectorLightMin
+	add	#8
+;
+	ifn	useFLOORS
+	move	r0,#$00ff			; Underflow Darkness?
+	endif
+	ife	useFLOORS
+	move	r0,#$00f7			; Underflow Darkness?
+	endif
+;	from	r0
+	cmp	rSectorLightMin			; Underflow Darkness?
+	bge	_TRF3S3200			; No
+	move	rSectorLightMin,r0		; Yes!
+_TRF3S3200
+;
+;	>>>   GET SECTORDATA_NEAR FLAGS   <<<
+;
+	dec	rSectorNearData			; Move to Flags
+;	to	r0				; Get SectorFlags
+	ldb	(rSectorNearData)
+;	with	r0				; Move SKY Bit to $100
+	add	r0
+;	with	r0				; $00=NORMAL,$01=SKY
+	hib
+;	from	r0				; FLOOR/CEILING MASK
+	to	rSectorNearFlags
+	and	r6
+
+;
+;	* * * * * * *       PROCESS FLOOR/CEILING FLOORPLOTDATA       * * * * * * *
+;
+_TRF3S4000
+	from	rFloorPlotData			; At End?
+;	to	r0				; @CMP@
+	sub	rFloorPlotDataEnd
+	beq	_TRF3S2200			; Yes!  No More FloorPlots
+;
+;	>>>   REGULAR FLOOR/CEILING OR SKY?   <<<
+;
+	from	rSectorNearFlags
+;	to	r0
+	lsr
+	bcc	_TRF3S5200			; No
+;
+;	>>>   SKY   <<<
+;
+	with	rFloorPlotData			; ColourMap = 0 = SKY!
+	add	#plfColourMap
+;	with	r0
+	sub	r0
+	stb	(rFloorPlotData)
+;
+	with	rFloorPlotData			; Move to next FloorPlotData
+	add	#(plfSize-plfColourMap)
+	bra	_TRF3S4000+1
+	from	rFloorPlotData			; R0 = Pixel Y Coordinate
+
+;
+;	>>>   NORMAL FLOOR/CEILING   <<<
+;
+_TRF3S5200
+	dec	rInvulnerableCount		; Invulnerability?
+	bmi	_TRF3S5300			; No
+	inc	rInvulnerableCount		; YES!
+	ibtx	r0,#<((>RLColourMaps)+32)	; Invulnerable ColourMap
+	bra	_TRF3S7800
+
+;
+;	>>>   GET Y COORDINATE OF FLOORPLOTDATA   <<<
+;
+_TRF3S5300
+	from	rFloorPlotData			; R0 = Pixel Y Coordinate
+;	to	r0
+	add	#plfPixY
+;	to	r0
+	ldb	(r0)
+;
+;	>>>   GET SLOPE Y INVERSE TABLE ENTRY   <<<
+;
+;	with	r0				; Get Word Offset
+	add	r0
+	move	r1,#<_RLSlopeYInvTable		; Get Entry in SlopeYInvTable
+;	with	r0
+	add	r1
+	to	r6				; R6 = SlopeYInverse[ScanLineY]
+	ldw	(r0)
+;
+;	>>>   GET HEIGHT OF FLOOR/CEILING   <<<
+;
+	moves	r0,rFloorHeight			; Get Height of Floor/Ceiling
+	bpl	_TRF3S5400
+	nop
+;	with	r0
+	not
+	inc	r0
+_TRF3S5400
+;	with	r0				; R0 = Distance
+	lmult
+;	with	r0
+	lsr
+	with	r4
+	ror
+;	with	r0
+	lob
+	with	r4
+	hib
+;	with	r0
+	swap
+;	with	r0
+	or	r4
+;
+	move	r1,#RLMaxViewDistance		; Maximum Distance Away
+;	from	r0
+	cmp	r1				; Distance > Max Distance?
+	blt	_TRF3S5600			; No
+	nop
+	move	r0,r1				; Yes, use Maximum Distance
+_TRF3S5600
+;
+;	>>>   GET PIXEL SCALING RATIO   <<<
+;
+;	from	r0				; Get Long Index
+	to	r1
+	add	r0
+;	with	r0
+	add	r1
+	move	r1,#<(RLSCNPixScale+2)		; Add Base of RL->SCN Pixel Scaling Table
+;	from	r0
+	to	r14
+	add	r1
+;
+;	>>>   GET FLOORPLOT RL->SCN PIXEL SCALE INTEGER   <<<
+;
+;	to	r0				; Get Scale Whole
+	getb
+	dec	r14
+	dec	r0
+	bpl	_TRF3S7500
+;
+	from	rSectorLightMin			; R6 = Range Light Level
+	to	r6
+	sub	rSectorLightMax
+;
+	getbh					; Get Scale Fraction
+	dec	r14
+	getbl
+;
+;	>>>   LIGHT_LEVEL = (MINIMUM_LEVEL - (SCALE * RANGE_LEVEL))   <<<
+;
+;	with	r0				; (Scale * RangeLevel)
+	fmult					; r0 = Integer Result
+;	with	r0
+	rol
+;
+	from	rSectorLightMin			; (Minimum Level - (Scale*RangeLevel))
+;	to	r0
+	sub	r0
+;
+;	>>>   ENSURE LIGHTING WITHIN RANGE   <<<
+;
+;	from	r0				; < Minimum Light Level?
+	cmp	rSectorLightMin
+	blt	_TRF3S7400
+	moves	r0,rSectorLightMin
+_TRF3S7400
+;	from	r0				; > Maximum Light Level?
+	cmp	rSectorLightMax
+	bge	_TRF3S7600
+_TRF3S7500
+	moves	r0,rSectorLightMax
+;
+;	>>>   ADJUST LIGHT LEVEL TO COLOURMAP RANGE   <<<
+;
+_TRF3S7600
+;	with	r0				; Adjust to ColourMap Range
+	lsr
+;	with	r0
+	lsr
+;	with	r0
+	lsr
+	ibtx	r1,#<(>RLColourMaps)		; Add Base of ColourMaps
+;	with	r0
+	add	r1
+;
+;	>>>   SAVE COLOURMAP   <<<
+;
+_TRF3S7800
+	with	rFloorPlotData			; Move to ColourMap
+	add	#plfColourMap
+;	from	r0				; Save Calculated ColourMap
+	stb	(rFloorPlotData)
+
+;
+;	>>>   PROCESS NEXT FLOORPLOTDATA   <<<
+;
+	with	rFloorPlotData			; Move to next FloorPlotData
+	add	#(plfSize-plfColourMap)
+;
+	iwt	r15,#<_TRF3S4000+1
+	from	rFloorPlotData			; At End?
+
+	CACHEE	_RLBuildTraceFloors3
+
+
+	PLIST	OFF

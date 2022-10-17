@@ -1,0 +1,49 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                       TEXTURE DATA TABLES MODULE                   *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+
+
+	SECTION	TEXTURES,RELOC,BASE=$80000000,RORG=$400000
+
+	ifn	useTEXTURES
+;
+;	* * * * * * *       TEXTURES TABLE       * * * * * * *
+;
+;	Table of Offsets within TextureData Structures
+;
+;	DC.W	Texture0DataOffset
+;	DC.W	Texture1DataOffset
+;	DC.W	TexturenDataOffset
+;
+RLTextureTable
+	image	RLDATA:WALLS/TEXTURE.TBL
+
+
+;
+;	* * * * * * *       TEXTURE DATA TABLE       * * * * * * *
+;
+;	DC.W	TextureWidth
+;	DC.W	TextureHeight
+;	DC.B	NumberOfPatches
+;
+;	DC.W	PatchXOffset
+;	DC.W	PatchYOffset
+;	DC.W	WallNumber
+;
+RLTextureData
+	image	RLDATA:WALLS/TEXTURE.DAT
+	endif
+
+;
+;	* * * * * * *       TEXTURE -> ALTERNATE TEXTURE TRANSLATION       * * * * * * *
+;
+RLTextureXLatTable
+	image	RLDATA:WALLS/TEXTURE2.TBL
+RLTextureXLatTableE

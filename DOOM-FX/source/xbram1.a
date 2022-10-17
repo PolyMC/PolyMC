@@ -1,0 +1,112 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                            XBAND RAM1 MEMORY       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+	extern	XBRAM1Start,XBRAM1End
+
+	SECTION	XBRAM1,LOAD=RAM1End,ORG=RAM1End,SIZE=$1ef0-RAM1End
+
+;
+;	* * * * * * *       XBAND RAM1 VARIABLES       * * * * * * *
+;
+XBRAM1Start
+
+JOY2			ds.w	1		; Joystick Controller I
+JOY2Stat		ds.b	1		; $00=JOYSTICK,$01=MOUSE,$FF=INVALID!
+
+Player1Joy		ds.w	1		; Player's JoyStick Bits
+Player1Joy0		ds.w	1		; Player's Old JoyStick Bits
+Player1MouseX		ds.w	1		; X Displacement
+Player1MouseY		ds.w	1		; Y Displacement
+Player1TVObj		ds.w	1		; Targetting VObj
+
+Player2Joy		ds.w	1		; Player's JoyStick Bits
+Player2Joy0		ds.w	1		; Player's Old JoyStick Bits
+Player2MouseX		ds.w	1		; X Displacement
+Player2MouseY		ds.w	1		; Y Displacement
+Player2TVObj		ds.w	1		; Targetting VObj
+
+XBMPDPlayer		ds.w	2		; Current Player, Damage Player
+
+;
+;	>>>   PLAYER DATA   <<<
+;
+XBPlayerData
+
+XBPlayerAmmo		ds.w	1		; Player's Ammo
+XBPlayerHealth		ds.w	1		; Player's Health
+XBPlayerArmor		ds.w	1		; Player's Armor
+XBPlayerFace		ds.w	1		; Player's Face
+XBPlayerKeys		ds.b	1		; Player's Keys
+XBPlayerArms		ds.b	1		; Player's Weapons
+;
+XBRLRGB			ds.w	1		; Current Desired RGB
+;
+XBWeaponType		ds.w	1		; Type of Weapon (wtType)
+XBWeaponFrame		ds.w	1		; Weapon Frame
+XBWeaponX		ds.w	1		; Weapon Sprite X Coordinate
+XBWeaponY		ds.w	1		; Weapon Sprite Y Coordinate
+XBWeaponNext		ds.w	1		; Next Selected Weapon (wtType)
+;
+XBAutoMapMode		ds.w	1		; -1 = AUTOMAP ON
+XBExitLevel		ds.w	1		; 11=Next,51=Secret,-1=ReStart,$52=New
+XBInvisibleCount	ds.w	1		; Countdown for Invisibility
+
+XBPlayerJoyOld		ds.w	1		; Player's Old JoyStick Bits
+;
+XBPlayerDead		ds.w	1		; Player's Status
+XBPlayerDeadOld		ds.w	1		; Player's Previous Status
+XBPlayerHeight		ds.w	1		; Player's Height
+XBPlayerOnGround	ds.w	1		; Player is ON Ground!
+;
+XBPlayerFaceAnim0	ds.w	1		; Pointer to "Normal" FaceAnim
+XBPlayerFaceAnim	ds.w	1		; Pointer to FaceAnim
+XBPlayerFaceCount	ds.w	1		; Counter for Current Face
+;
+XBRadCount		ds.w	1		; Countdown for Radiation Suit
+XBBerserkCount		ds.w	1		; Countdown for Berserk
+XBInvulnerableCount	ds.w	1		; Countdown for Invulnerability
+XBLightGoggles		ds.w	1		; Countdown for Light Goggles
+XBBerserk		ds.w	1		; Berserk
+XBComputerMap		ds.b	1		; ComputerMap
+XBBackPack		ds.b	1		; BackPack
+XBPlayerHurt		ds.b	1		; Player Hurt (SoundEffect)
+			ds.b	1
+
+XBWeaponData		ds.w	1		; Address of WeaponData (wd)
+XBWeaponState		ds.w	1		; WeaponState (wdType)
+XBWeaponStateData	ds.w	1		; Address of WeaponStateData (ws)
+XBWeaponStateCount	ds.w	1		; #Cycles Left in Current State
+XBWeaponXOffset		ds.w	1		; X Offset
+XBWeaponYOffset		ds.w	1		; Y Offset
+XBWeaponAmmo		ds.w	1		; Address of Ammo (-1=Fist/ChainSaw)
+XBWeaponBullets		ds.w	1		; #Bullets (Pistol/ChainGun)
+XBWeaponShells		ds.w	1		; #Shells (ShotGun)
+XBWeaponRockets		ds.w	1		; #Rockets (Rocket)
+XBWeaponCells		ds.w	1		; #Cells (Plasma/BFG)
+XBWeaponLight		ds.b	1		; Light Created by Weapon
+XBLightAdjust		ds.b	1		; Light Adjustment (Weapons/LightGoggles)
+
+XBFragCount		ds.w	1		; FragCount
+XBWeaponTypeBuilt	ds.w	1		; Type of Weapon Built
+
+XBMsgDataA		ds.w	1		; MessageText
+XBMsgDataB		ds.w	1
+XBMsgDataC		ds.w	1
+XBMsgCount		ds.w	1		; Message Display Counter
+
+XBPlayer2Data		ds.b	(XBPlayer2Data-XBPlayerData)
+
+;
+;	* * * * * * *       END OF XBAND RAM1 VARIABLES       * * * * * * *
+;
+XBRAM1End

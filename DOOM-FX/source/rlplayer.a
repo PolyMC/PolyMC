@@ -1,0 +1,514 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       PLAYER HANDLING MODULE 1                     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	rlobjects.i
+	include	rlplayer.i
+	include	rlweapons.i
+
+
+	public	_RLInitPlayer
+
+
+	SECTION	LEVEL
+;
+;	* * * * * * *       REALITY_ENGINE INITIALIZE PLAYER       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitPlayer
+	mode	'AX!'
+;
+;	>>>   INITIALIZE MULTIPLAYER VARIABLES   <<<
+;
+	ifn	useMULTIPLAYER
+	lda	#<PlayerObject			; Player Object
+	sta	MPPlayerObject
+	sta	MPEnemyTarget			; Enemy Target Object
+	endif
+;
+;	>>>   INITIALIZE JOYSTICK/MOUSE CONTROLLERS   <<<
+;
+	lda	#0
+	sta	PlayerJoy
+	sta	PlayerJoyOld
+	sta	PlayerJoy0
+	sta	PlayerMouseX
+	sta	PlayerMouseY
+;
+;	>>>   INITIALIZE PLAYER'S FACEANIM   <<<
+;
+	lda	#-1				; Force ReBuild of PlayerFace
+	sta	PlayerFaceOld
+	lda	#(18*2)				; NORMAL Face
+	sta	PlayerFace
+	lda	#1				; CountDown to next FaceAnim
+	sta	PlayerFaceCount
+	lda	#<_FacesNormalList		; Address of FaceAnimation
+	sta	PlayerFaceAnim0
+	sta	PlayerFaceAnim
+;
+;	>>>   INITIALIZE PLAYER INFORMATION/STATS   <<<
+;
+	lda	#odhPlayerEye			; Height of Player's Eye
+	sta	PlayerHeight
+	lda	#0				; Player is NOT Dead
+	sta	PlayerDead
+	sta	PlayerDeadOld
+	lda	#-1
+	sta	PlayerOnGround			; Player IS ON Ground
+;
+	lda	#0				; No Radiation Suit
+	sta	RadCount
+;	lda	#0				; No Berserk Strength
+	sta	BerserkCount
+	ifn	useID4
+	sta	Berserk
+	endif
+;	lda	#0				; No Invisibility
+	sta	InvisibleCount
+;	lda	#0				; No Invulnerability
+	sta	InvulnerableCount
+;	lda	#0				; No Computer Map/BackPack
+	ifn	DEBUG
+	lda	#1
+	endif
+	sta	ComputerMap
+;	lda	#0				; No Light Goggles
+	sta	LightGoggles
+;
+	lda	_PlayerHealth			; Player's Health
+	sta	PlayerObject+rloHealth
+	lda	_PlayerArmor			; Player's Armor
+	sta	PlayerArmor
+	lda	_PlayerKeys			; Player's Keys/Arms
+	sta	PlayerKeys
+	stz	PlayerKeysOld
+	lda	_PlayerBullets			; Player's Bullets
+	sta	WeaponBullets
+	lda	_PlayerShells			; Player's Shells
+	sta	WeaponShells
+	lda	_PlayerRockets			; Player's Rockets
+	sta	WeaponRockets
+	lda	_PlayerCells			; Player's Cells
+	sta	WeaponCells
+	mode	'a!'
+	lda	_PlayerBackPack			; Player's BackPack
+	sta	BackPack
+;
+	rts
+
+
+	SECTION	ENGINE_RAMCODE
+;
+;	* * * * * * *       READ JOYSTICK/MOUSE       * * * * * * *
+;
+	dbr	0
+	dpr	0
+	mode	'X'
+_ReadJOY	equ	((**&$00ffffff)+$400000)
+	rtl
+__ReadJOY	equ	((**&$00ffffff)+$400000)
+	pea	#<(_ReadJOY-1)
+	pea	#<(_ConvertJOY-1)
+ReadJOY
+	mode	'a!'
+;	lda	JOY2L				; Read Joystick Controller II
+;	tax
+;	and	#%00001111
+;	cmp	#%00000001			; MOUSE?
+;	beq	RJY2200				; Yes!
+	ldx	JOY1L				; Read Joystick Controller I
+	txa
+	and	#%00001111
+	bne	RJY2100				; NOT a JOYSTICK!
+	lda	$4016				; Input PORT0
+	lsr	a
+	lda	#$00				; JOYSTICK Connected
+	bcc	RJY2340				; Nothing Connected!
+	bra	RJY2900
+;
+RJY2100
+	cmp	#%00000001			; MOUSE?
+	bne	RJY2800				; No, INVALID
+RJY2200
+	lda	JOY1Stat			; MOUSE Previously Connected?
+	dec	a
+	beq	RJY2600				; Yes!
+;
+	ldx	#4-1				; 4 Maximum Speed Settings
+RJY2300
+	lda	#$01				; Change Speed 1 Step
+	sta	$4016
+	bit	$4016+0
+	stz	$4016
+	bit	$4016+0
+;
+	sta	$4016				; Reset Data Counter
+	stz	$4016
+	ldy	#10-1				; 10 Bits to Read
+RJY2320
+	bit	$4016+0
+	dey
+	bpl	RJY2320
+	lda	$4016+0				; SP10
+	lsr	a
+	lda	$4016+0				; SP11
+	rol	a				; %SP
+	and	#%11
+	cmp	#%01				; FAST SPEED
+	beq	RJY2380
+	dex
+	bpl	RJY2300
+RJY2340
+;	bra	RJY2800				; Couldn't Set Speed?
+RJY2800
+	lda	#$ff				; Invalid Status
+	ldx	#0
+RJY2900
+	sta	JOY1Stat			; JOY1 STATUS
+	stx	JOY1				; Joystick Controller I
+	mode	'A!'
+	rts
+
+	mode	'a'
+RJY2380
+	stz	MOUSE1X				; Default Displacement is 0
+	stz	MOUSE1Y
+	lda	#$01				; MOUSE Connected
+	ldx	#0
+	bra	RJY2900
+;
+RJY2600
+	ldy	#8-1				; Read Y Displacement
+RJY2620
+	lda	$4016+0
+	lsr	a
+	rol	MOUSE1Y
+	dey
+	bpl	RJY2620
+	ldy	#8-1				; Read X Displacement
+RJY2640
+	lda	$4016+0
+	lsr	a
+	rol	MOUSE1X
+	dey
+	bpl	RJY2640
+	lda	#$01				; MOUSE Connected
+	bra	RJY2900
+
+
+;
+;	* * * * * * *       CONVERT JOYSTICK       * * * * * * *
+;
+;	CONVERT JOYSTICK MOVEMENT TO MOUSE VELOCITIES
+;
+	dbr	0
+	dpr	0
+	mode	'AX'
+;
+;	>>>   MOUSE   <<<
+;
+	mode	'A'
+CJY5000
+	dec	a				; MOUSE?
+	bne	CJY8000				; No, Invalid!
+;
+;	>>>   MOUSE VELOCITY X   <<<
+;
+	mode	'a!'
+	lda	MOUSE1X				; MOUSE VELOCITY X
+	asl	a
+	mode	'A!'
+	and	#$00ff
+	beq	CJY5300
+	bcs	CJY5200
+	xba
+	lsr
+	lsr
+	lsr
+	eor	#$ffff
+	inc	a
+	bra	CJY5300
+CJY5200
+	xba
+	lsr
+	lsr
+	lsr
+CJY5300
+	sta	PlayerMouseX
+;
+;	>>>   MOUSE VELOCITY Y   <<<
+;
+	mode	'a!'				; MOUSE VELOCITY Y
+	lda	MOUSE1Y
+	asl	a
+	mode	'A!'
+	and	#$00ff
+	beq	CJY5500
+	bcs	CJY5400
+	xba
+	lsr
+	lsr
+	eor	#$ffff
+	inc	a
+	bra	CJY5500
+CJY5400
+	xba
+	lsr
+	lsr
+CJY5500
+	sta	PlayerMouseY
+	tax					; .X = MouseY
+;
+;	>>>   MOUSE BUTTONS   <<<
+;
+	lda	JOY1				; MOUSE BUTTONS
+	mode	'a!'
+	tay
+
+	ife	useID8
+	and	#joyA				; RIGHT -> B (USE)
+	xba
+	tya					; LEFT -> X (FIRE)
+	and	#joyX
+	endif
+	ifn	useID8
+	and	#joyX				; LEFT -> Y (FIRE)
+	xba
+	tya					; RIGHT -> A (USE)
+	and	#joyA
+	endif
+
+	mode	'A!'
+	cmp	#(pjUSE|pjFIRE)			; BOTH Buttons?
+	bne	CJY5600
+	lda	#pjPAUSE			; Yes, PAUSE!
+CJY5600
+	cmp	#pjUSE				; USE BUTTON?
+	bne	CJY5800
+	txy					; GOING AWAY?
+	bpl	CJY5800
+	cpx	#-($0f00>>1)
+	bcs	CJY5800
+	lda	#pjWEAPON			; Yes, SWITCH WEAPONS!
+CJY5800
+	sta	PlayerJoy
+	rts
+;
+;	>>>   INVALID   <<<
+;
+	mode	'A'
+CJY8000
+	stz	PlayerJoy
+	stz	PlayerMouseX
+	stz	PlayerMouseY
+	rts
+
+	dbr	0
+	dpr	0
+	mode	'AX'
+_ConvertJOY	equ	((**&$00ffffff)+$400000)
+ConvertJOY
+	lda	JOY1Stat			; JOY1Status
+	and	#$00ff
+	bne	CJY5000				; MOUSE?
+;
+;	>>>   JOYSTICK   <<<
+;
+	ifn	RECORDDEMO
+	ldx	DemoIndex
+	lda	#1				; 0=PLAY,1=RECORD
+	beq	CJY1800
+;
+;	>>>   RECORD   <<<
+;
+	ldy	JOY1				; JOY1 ORIGINAL
+	cpy	DemoJOY				; Same Joystick Data?
+	beq	CJY1200				; Yes
+	lda	#0				; New Count
+	sta	>DemoData,x
+	tya					; New JOYData
+	sta	>DemoData+2,x
+	inx
+	inx
+	inx
+	inx
+	stx	DemoIndex
+	sty	DemoJOY
+CJY1200
+	ldx	DemoIndex			; Count++
+	lda	>DemoData-4,x
+	inc	a
+	sta	>DemoData-4,x
+	bra	CJY2000
+;
+;	>>>   PLAY   <<<
+;
+CJY1800
+	dec	DemoCount			; DemoJOY Still Valid?
+	bne	CJY1900				; Yes
+	lda	>DemoData,x			; No, Get Next Event!
+	sta	DemoCount
+	lda	>DemoData+2,x
+	sta	DemoJOY
+	inx					; Move to Next Event
+	inx
+	inx
+	inx
+	stx	DemoIndex
+CJY1900
+	lda	DemoJOY				; Recorded JOY Bits
+	sta	JOY1
+	endif
+
+CJY2000
+	lda	JOY1				; JOY1 ORIGINAL
+	and	#~(pjFORWARD|pjREVERSE|pjROTATELEFT|pjROTATERIGHT)
+	sta	PlayerJoy			; GSU JoyStick Bits
+	mode	'a!'
+	and	#(pjSTRAFELEFT|pjSTRAFERIGHT)	; STRAFE?
+	beq	CJY2200				; No
+	ldy	#($03c0<<1)			; Yes, Set Strafing Velocity
+	sty	ITemp
+	lda	JOY1+1
+	lsr	a
+	lsr	a
+	mode	'A!'
+	stz	PlayerMouseX
+	bra	CJY2400
+	mode	'a'
+CJY2200
+	lda	PlayerJoy0			; Previously STRAFING?
+	and	#(pjSTRAFELEFT|pjSTRAFERIGHT)
+	beq	CJY2220				; No
+	mode	'A!'				; Yes, Clear Strafing Velocity
+	stz	PlayerMouseX
+CJY2220
+	lda	JOY1+1
+	ldy	#0
+	lsr	a				; RIGHT
+	bcc	CJY2300
+	ldy	#-($0200<<1)
+	sty	ITemp
+	ldy	#-($00a0<<1)
+CJY2300
+	lsr	a				; LEFT
+	bcc	CJY2400
+	ldy	#($0200<<1)
+	sty	ITemp
+	ldy	#($00a0<<1)
+CJY2400
+	phy
+	ldy	#0
+	lsr	a				; DOWN
+	bcc	CJY2500
+	ldy	#-($03c0<<1)
+CJY2500
+	lsr	a				; UP
+	bcc	CJY2600
+	ldy	#($03c0<<1)
+CJY2600
+	sty	PlayerMouseY
+;
+;	>>>   RUNNING?   <<<
+;
+	mode	'A!'
+	lda	JOY1				; RUNNING?
+	and	#pjRUN
+	beq	CJY2700				; No
+	tya					; VELOCITY Y *= 1.50
+	cmp	#$8000
+	ror
+	clc
+	adc	PlayerMouseY
+	sta	PlayerMouseY
+	lda	PlayerJoy			; GSU JoyStick Bits
+	and	#(pjSTRAFELEFT|pjSTRAFERIGHT)	; STRAFING While RUNNING?
+	beq	CJY2650				; No
+;
+;	>>>   RUN AND STRAFE   <<<
+;
+	pla					; VELOCITY X *= 1.50
+	sta	PlayerMouseX
+	cmp	#$8000
+	ror
+	clc
+	adc	PlayerMouseX
+	bra	CJY2950
+;
+;	>>>   RUN AND TURN   <<<
+;
+CJY2650
+	ldy	#($0280<<1)
+	pla					; VELOCITY X *= 1.125
+	sta	ITemp+2
+	cmp	#$8000
+	ror
+	cmp	#$8000
+	ror
+;	cmp	#$8000
+;	ror
+	clc
+	adc	ITemp+2
+	bpl	CJY2670
+	ldy	#-($0280<<1)
+CJY2670
+	sty	ITemp
+	bra	CJY2720
+;
+;	>>>   NORMAL MOVEMENT   <<<
+;
+CJY2700
+	pla					; TURNING?
+CJY2720
+	beq	CJY2950				; No, Stop Immediately
+	bmi	CJY2750
+	bit	PlayerMouseX			; Turning in same direction?
+	bpl	CJY2800
+	bra	CJY2950
+CJY2750
+	bit	PlayerMouseX			; Turning in same direction?
+	bpl	CJY2950
+CJY2800
+	clc					; Yes, accelerate turn
+	adc	PlayerMouseX
+	bpl	CJY2850
+	cmp	ITemp				; Ensure within Maximum Velocity
+	bcs	CJY2950
+	lda	ITemp
+	bra	CJY2950
+CJY2850
+	cmp	ITemp				; Ensure within Maximum Velocity
+	bcc	CJY2950
+	lda	ITemp
+CJY2950
+	sta	PlayerMouseX
+
+	ifn	IDLERESET
+;
+;	>>>   IDLING FOR LONG TIME?   <<<
+;
+CJY3000
+	lda	JOY1				; Idling?
+	bne	CJY3100				; No
+	inc	IdleCount			; Yes!
+	bra	CJY3200
+CJY3100
+	stz	IdleCount			; NOT Idling!
+CJY3200
+	endif
+
+;
+;	>>>   COMPLETED JOYSTICK->MOUSE CONVERSION   <<<
+;
+	lda	PlayerJoy			; Save Old GSU JoyStick Bits
+	sta	PlayerJoy0
+	rts

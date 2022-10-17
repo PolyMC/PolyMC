@@ -1,0 +1,541 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                               XBAND KEYBOARD HARDWARE MODULE       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+;	SECTION	XBAND
+
+
+;
+;	* * * * * * *       XBAND KEYBOARD INIT       * * * * * * *
+;
+;	Clock the keyboard a bunch of times at startup to be sure that it is in a happy state.
+;	If someone (other than the OS, while we were away) started something that looked to the
+;	keyboard like a transaction, the keyboard could be waiting for the transaction to complete.
+;	By clocking the keyboard a bunch of times, we can ensure that its transaction state machine
+;	is in the "waiting for transaction start" state.
+;	
+;	The most number of clocks a single transaction should take is:
+;	
+;			4 clks/ID + 2 clks/waitCnt + (4 clks/byte * 15 bytes) = 66 clks
+;			
+;	Just to be paranoid, we'll clock it 75 times.  At 18us/clk, this will take 1.35ms.  Sorry
+;	about lengthening the boot time...:-)
+;
+	dbr	$ff
+	dpr	0
+_XBKeyBoardInit
+	mode	'a!'
+	lda	#0				; KeyBuffer Indices
+	sta	XBKeyBufferI
+	sta	XBKeyBufferE
+	ldx	#75				; Toggle Clock 75 Times
+_XBKBI200
+	lda	$4017				; Toggle Clock
+	lda	#kHWKeyboardBitTimeConst
+_XBKBI220
+	dec	a
+	bne	_XBKBI220
+	dex
+	bne	_XBKBI200
+	rts
+
+
+;
+;	* * * * * * *       XBAND KEYBOARD READ       * * * * * * *
+;
+;	See if there is anything waiting for us from the hardware keyboard.
+;	If there is, read it into the keyCodeBuf.
+;	
+;	Data is read from the keyboard 2 bits at a time using the manual controller
+;	read registers.  The automatic read is too fast for the keyboard micro to
+;	reliably keep up.
+;	
+;	The keyboard only responds when PP7 is low.  Dropping PP7 activates the 
+;	keyboard's host communication interrupt routine.
+;	
+;	Once PP7 is dropped:
+;		The first 8 bits (4 clocks) contain the keyboard's signature.
+;		The next 4 bits (2 clocks) tell us how many bytes are waiting (0-15).
+;		If any data is waiting, the next bits are that data.
+;		
+;	A keyboard ID-only transaction can be accomplished by raising PP7 after reading
+;	the first dibit.
+;	
+;	The Caps Lock LED is controlled via the state of PP7 between the 1st and 2nd
+;	dibit of the "chars waiting" value (the 2 clocks after the 4 clock ID read):
+;	
+;		PP7 HIGH --> Caps Lock OFF
+;		PP7 LOW  --> Caps Lock ON
+;	
+;	Terminating the transaction at any other time (an ABORT) may cause waiting
+;	data to be lost and/or the keyboard to get really confused.
+;
+	dbr	(^*)
+	dpr	0
+_XBKeyBoardRead
+	mode	'ax!'
+_XBKBR100
+	lda	_HVBJOY				; Joystick Finished Reading?
+	lsr	a
+	bcs	_XBKBR100
+;
+	lda	#$7f				; Set PP7 Low
+	sta	WRIO
+;
+;	>>>   FIRST READ THE ID   <<<
+;
+	ldx	#4
+_XBKBR200
+	lda	#kHWKeyboardBitTimeConst
+_XBKBR220
+	dec	a
+	bne	_XBKBR220
+	lda	$4017				; Read DataBits
+	lsr	a				; .0
+	ror	ITemp
+	lsr	a				; .1
+	ror	ITemp
+	dex
+	bne	_XBKBR200
+	lda	ITemp				; KeyBoard Present?
+	cmp	#<~(kHardwareKeyboardIDConst)
+	bne	_XBKBR800			; No!
+;
+;	>>>   HANDLE CAPS LOCK   <<<
+;
+;	lda	capsLock			; CapsLock LED On/Off?
+	bne	_XBKBR400			; On, Leave PP7 LOW
+	bra	_XBKBR400
+	lda	#$ff				; Off,  Set PP7 HIGH
+	sta	WRIO
+;
+;	>>>   READ NUMBER OF KEYBYTES WAITING   <<<
+;
+_XBKBR400
+	ldx	#2
+_XBKBR420
+	lda	#kHWKeyboardBitTimeConst
+_XBKBR440
+	dec	a
+	bne	_XBKBR440
+	lda	$4017				; Read DataBits
+	lsr	a				; .0
+	ror	ITemp
+	lsr	a				; .1
+	ror	ITemp
+	dex
+	bne	_XBKBR420
+	lda	ITemp
+	ror	a
+	ror	a
+	ror	a
+	ror	a
+	eor	#$ff				; Invert Data
+	and	#$0f				; .X = #Bytes to Read
+	tax
+	beq	_XBKBR800			; No Bytes to Read!
+;
+;	>>>   READ KEYBYTES   <<<
+;
+	ldy	XBKeyBufferE
+_XBKBR600
+	phx
+	ldx	#4				; 4 Groups of 2 Bits
+_XBKBR650
+	lda	#kHWKeyboardBitTimeConst
+_XBKBR670
+	dec	a
+	bne	_XBKBR670
+	lda	$4017				; Read DataBits
+	lsr	a				; .0
+	ror	ITemp
+	lsr	a				; .1
+	ror	ITemp
+	dex
+	bne	_XBKBR650
+	lda	ITemp				; Invert Data
+	eor	#$ff
+	tax
+	lda	keyTable,x			; Convert KeyByte to KeyCode
+	iny					; Save KeyByte
+	sta	XBKeyBuffer,y
+	plx					; One Less Byte to Read
+	dex
+	bne	_XBKBR600			; More Bytes to Read!
+	sty	XBKeyBufferE
+;
+;	>>>   END KEYBOARD TRANSACTION   <<<
+;	
+_XBKBR800
+	lda	#$ff				; Set PP7 HIGH
+	sta	WRIO
+	rts
+
+
+;
+;	* * * * * * *       SPECIAL KEYCODES       * * * * * * *
+;
+kControlKey		equ	$F8
+kAltKey			equ	$F9
+kLeftArrowKey		equ	$FA
+kRightArrowKey		equ	$FB
+kDownArrowKey		equ	$FC
+kUpArrowKey		equ	$FD
+kCapsLockKey		equ	$FE
+kShiftKey		equ	$FF
+
+;
+;	* * * * * * *       NORMAL KEYCODE TABLE       * * * * * * *
+;
+keyTable
+	dc.b	$00		; 00	00
+	dc.b	$00		; 01	01
+	dc.b	$00		; 02	02
+	dc.b	$00		; 03	03
+	dc.b	$00		; 04	04
+	dc.b	$00		; 05	05
+	dc.b	$00		; 06	06
+	dc.b	$00		; 07	07
+	dc.b	$00		; 08	08
+	dc.b	$00		; 09	09
+	dc.b	$00		; 10	0A
+	dc.b	$00		; 11	0B
+	dc.b	$00		; 12	0C
+	
+	dc.b	$09		; 13	0D		; HTab
+	dc.b	$60		; 14	0E		; `
+	dc.b	$00		; 15	0F
+
+	dc.b	$00		; 16	10
+	dc.b	kAltKey		; 17	11
+	dc.b	kShiftKey	; 18	12
+	dc.b	$00		; 19	13
+	dc.b	kControlKey	; 20	14		
+	dc.b	'q'		; 21	15
+	dc.b	'1'		; 22	16
+	dc.b	$00		; 23	17
+	dc.b	$00		; 24	18
+	dc.b	$00		; 25	19
+	dc.b	'z'		; 26	1A
+	dc.b	's'		; 27	1B
+	dc.b	'a'		; 28	1C
+	dc.b	'w'		; 29	1D
+	dc.b	'2'		; 30	1E
+	dc.b	$00		; 31	1F
+
+	dc.b	$00		; 32	20
+	dc.b	'c'		; 33	21
+	dc.b	'x'		; 34	22
+	dc.b	'd'		; 35	23
+	dc.b	'e'		; 36	24
+	dc.b	'4'		; 37	25
+	dc.b	'3'		; 38	26
+	dc.b	$00		; 39	27
+	dc.b	$00		; 40	28
+	dc.b	' '		; 41	29
+	dc.b	'v'		; 42	2A
+	dc.b	'f'		; 43	2B
+	dc.b	't'		; 44	2C
+	dc.b	'r'		; 45	2D
+	dc.b	'5'		; 46	2E
+	dc.b	$00		; 47	2F
+	
+	dc.b	$00		; 48	30
+	dc.b	'n'		; 49	31
+	dc.b	'b'		; 50	32
+	dc.b	'h'		; 51	33
+	dc.b	'g'		; 52	34
+	dc.b	'y'		; 53	35
+	dc.b	'6'		; 54	36
+	dc.b	$00		; 55	37
+	dc.b	$00		; 56	38
+	dc.b	$00		; 57	39
+	dc.b	'm'		; 58	3A
+	dc.b	'j'		; 59	3B
+	dc.b	'u'		; 60	3C
+	dc.b	'7'		; 61	3D
+	dc.b	'8'		; 62	3E
+	dc.b	$00		; 63	3F
+
+	dc.b	$00		; 64	40
+	dc.b	','		; 65	41
+	dc.b	'k'		; 66	42
+	dc.b	'i'		; 67	43
+	dc.b	'o'		; 68	44
+	dc.b	'0'		; 69	45
+	dc.b	'9'		; 70	46
+	dc.b	$00		; 71	47
+	dc.b	$00		; 72	48
+	dc.b	'.'		; 73	49
+	dc.b	'/'		; 74	4A
+	dc.b	'l'		; 75	4B
+	dc.b	';'		; 76	4C
+	dc.b	'p'		; 77	4D
+	dc.b	'-'		; 78	4E
+	dc.b	$00		; 79	4F
+
+	dc.b	$00		; 80	50
+	dc.b	$00		; 81	51
+	dc.b	$27		; 82	52		; '
+	dc.b	$00		; 83	53
+	dc.b	'['		; 84	54
+	dc.b	'='		; 85	55
+	dc.b	$00		; 86	56
+	dc.b	$00		; 87	57
+	dc.b	kCapsLockKey	; 88	58
+	dc.b	kShiftKey	; 89	59
+	dc.b	$0A		; 90	5A
+	dc.b	']'		; 91	5B
+	dc.b	'\'		; 92	5C
+	dc.b	'\'		; 93	5D		; the shit keybd generates this, rather than 5C
+	dc.b	$00		; 94	5E
+	dc.b	$00		; 95	5F
+
+	dc.b	$00		; 96	60
+	dc.b	$00		; 97	61
+	dc.b	$00		; 98	62
+	dc.b	$00		; 99	63
+	dc.b	$00		; 100	64
+	DC.B	$00		; 101	65
+	dc.b	$08		; 102	66		; backspace
+	dc.b	$00		; 103	67
+	dc.b	$00		; 104	68
+	dc.b	'1'		; 105	69		; keypad
+	dc.b	$00		; 106	6A
+	dc.b	'4'		; 107	6B		; keypad
+	dc.b	'7'		; 108	6C		; keypad
+	dc.b	$00		; 109	6D
+	dc.b	$00		; 110	6E
+	dc.b	$00		; 111	6F
+	
+	dc.b	'0'		; 112	70		; keypad
+	dc.b	'.'		; 113	71		; keypad
+	dc.b	'2'		; 114	72		; keypad
+	dc.b	'5'		; 115	73		; keypad
+	dc.b	'6'		; 116	74		; keypad
+	dc.b	'8'		; 117	75		; keypad
+	dc.b	$1B		; 118	76		; ESC
+	dc.b	'/'		; 119	77		; keypad
+	dc.b	$00		; 120	78
+	dc.b	$0A		; 121	79		; keypad
+	dc.b	'3'		; 122	7A		; keypad
+	dc.b	$00		; 123	7B
+	dc.b	'+'		; 124	7C		; keypad
+	dc.b	'9'		; 125	7D		; keypad
+	dc.b	'*'		; 126	7E		; keypad
+	dc.b	$00		; 127	7F
+
+	dc.b	$00		; 113	80
+	dc.b	$00		; 114	81
+	dc.b	$00		; 115	82
+	dc.b	$00		; 116	83
+	dc.b	'-'		; 117	84		; keypad
+	dc.b	$00		; 118	85
+	
+	dc.b	$86		; 119	86		; kAbuttonKey
+	dc.b	$87		; 120	87		; kBButtonKey
+	dc.b	$88		; 121	88		; kXButtonKey
+	dc.b	$89		; 122	89		; kYButtonKey
+	dc.b	$8A		; 123	8A		; kLButtonKey
+	dc.b	$8B		; 124	8B		; kRButtonKey
+	dc.b	$8C		; 125	8C		; kSelButtonKey
+	dc.b	$8D		; 126	8D		; kStartButtonKey
+	
+	dc.b	$8E		; 128	8E		; Catapult Reserved Scancodes (15)
+	dc.b	$8F		; 128	8F
+	dc.b	$90		; 128	90
+	dc.b	$91		; 128	91
+	dc.b	$92		; 128	92
+	dc.b	$93		; 128	93
+	dc.b	$94		; 128	94
+	dc.b	$95		; 128	95
+	dc.b	$96		; 128	96
+	dc.b	$97		; 128	97
+	dc.b	$98		; 128	98
+	dc.b	$99		; 128	99
+	dc.b	$9A		; 128	9A
+	dc.b	$9B		; 127	9B			
+	dc.b	$9C		; 128	9C
+	dc.b	$9D
+
+;
+;	* * * * * * *       SHIFTED KEYCODE TABLE       * * * * * * *
+;
+keyTableS
+	dc.b	$00		; 00	00
+	dc.b	$00		; 01	01
+	dc.b	$00		; 02	02
+	dc.b	$00		; 03	03
+	dc.b	$00		; 04	04
+	dc.b	$00		; 05	05
+	dc.b	$00		; 06	06
+	dc.b	$00		; 07	07
+	dc.b	$00		; 08	08
+	dc.b	$00		; 09	09
+	dc.b	$00		; 10	0A
+	dc.b	$00		; 11	0B
+	dc.b	$00		; 12	0C
+	dc.b	$09		; 13	0D		; HTab
+	dc.b	'~'		; 14	0E			
+	dc.b	$00		; 15	0F
+
+	dc.b	$00		; 16	10
+	dc.b	kAltKey		; 17	11
+	dc.b	kShiftKey	; 18	12
+	dc.b	$00		; 19	13
+	dc.b	kControlKey	; 20	14		
+	dc.b	'Q'		; 21	15
+	dc.b	'!'		; 22	16
+	dc.b	$00		; 23	17
+	dc.b	$00		; 24	18
+	dc.b	$00		; 25	19
+	dc.b	'Z'		; 26	1A
+	dc.b	'S'		; 27	1B
+	dc.b	'A'		; 28	1C
+	dc.b	'W'		; 29	1D
+	dc.b	'@'		; 30	1E
+	dc.b	$00		; 31	1F
+
+	dc.b	$00		; 32	20
+	dc.b	'C'		; 33	21
+	dc.b	'X'		; 34	22
+	dc.b	'D'		; 35	23
+	dc.b	'E'		; 36	24
+	dc.b	'$'		; 37	25
+	dc.b	'#'		; 38	26
+	dc.b	$00		; 39	27
+	dc.b	$00		; 40	28
+	dc.b	' '		; 41	29
+	dc.b	'V'		; 42	2A
+	dc.b	'F'		; 43	2B
+	dc.b	'T'		; 44	2C
+	dc.b	'R'		; 45	2D
+	dc.b	'%'		; 46	2E
+	dc.b	$00		; 47	2F
+	
+	dc.b	$00		; 48	30
+	dc.b	'N'		; 49	31
+	dc.b	'B'		; 50	32
+	dc.b	'H'		; 51	33
+	dc.b	'G'		; 52	34
+	dc.b	'Y'		; 53	35
+	dc.b	'^'		; 54	36
+	dc.b	$00		; 55	37
+	dc.b	$00		; 56	38
+	dc.b	$00		; 57	39
+	dc.b	'M'		; 58	3A
+	dc.b	'J'		; 59	3B
+	dc.b	'U'		; 60	3C
+	dc.b	'&'		; 61	3D
+	dc.b	'*'		; 62	3E
+	dc.b	$00		; 63	3F
+
+	dc.b	$00		; 64	40
+	dc.b	'<'		; 65	41
+	dc.b	'K'		; 66	42
+	dc.b	'I'		; 67	43
+	dc.b	'O'		; 68	44
+	dc.b	')'		; 69	45
+	dc.b	'('		; 70	46
+	dc.b	$00		; 71	47
+	dc.b	$00		; 72	48
+	dc.b	'>'		; 73	49
+	dc.b	'?'		; 74	4A
+	dc.b	'L'		; 75	4B
+	dc.b	':'		; 76	4C
+	dc.b	'P'		; 77	4D
+	dc.b	'_'		; 78	4E
+	dc.b	$00		; 79	4F
+
+	dc.b	$00		; 80	50
+	dc.b	$00		; 81	51
+	dc.b	$22		; 82	52		; "
+	dc.b	$00		; 83	53
+	dc.b	'{'		; 84	54
+	dc.b	'+'		; 85	55
+	dc.b	$00		; 86	56
+	dc.b	$00		; 87	57
+	dc.b	kCapsLockKey	; 88	58
+	dc.b	kShiftKey	; 89	59
+	dc.b	$0A		; 90	5A
+	dc.b	'}'		; 91	5B
+	dc.b	'|'		; 92	5C
+	dc.b	'|'		; 93	5D
+	dc.b	$00		; 94	5E
+	dc.b	$00		; 95	5F
+
+	dc.b	$00		; 96	60
+	dc.b	$00		; 97	61
+	dc.b	$00		; 98	62
+	dc.b	$00		; 99	63
+	dc.b	$00		; 100	64
+	dc.b	$00		; 101	65
+	dc.b	$08		; 102	66		; backspace
+	dc.b	$00		; 103	67
+	dc.b	$00		; 104	68
+	dc.b	'1'		; 105	69		; keypad
+	dc.b	$00		; 106	6A
+	dc.b	'4'		; 107	6B		; keypad
+	dc.b	'7'		; 108	6C		; keypad
+	dc.b	$00		; 109	6D
+	dc.b	$00		; 110	6E
+	dc.b	$00		; 111	6F
+	
+	dc.b	'0'		; 112	70		; keypad
+	dc.b	'.'		; 113	71		; keypad
+	dc.b	'2'		; 114	72		; keypad
+	dc.b	'5'		; 115	73		; keypad
+	dc.b	'6'		; 116	74		; keypad
+	dc.b	'8'		; 117	75		; keypad
+	dc.b	$1B		; 118	76		; ESC
+	dc.b	'/'		; 119	77		; keypad
+	dc.b	$00		; 120	78
+	dc.b	$0A		; 121	79		; keypad
+	dc.b	'3'		; 122	7A		; keypad
+	dc.b	$00		; 123	7B
+	dc.b	'+'		; 124	7C		; keypad
+	dc.b	'9'		; 125	7D		; keypad
+	dc.b	'*'		; 126	7E		; keypad
+	dc.b	$00		; 127	7F
+
+	dc.b	$00		; 113	80
+	dc.b	$00		; 114	81
+	dc.b	$00		; 115	82
+	dc.b	$00		; 116	83
+	dc.b	'-'		; 117	84		; keypad
+	dc.b	$00		; 118	85
+	
+	dc.b	$86		; 119	86		; kAbuttonKey
+	dc.b	$87		; 120	87		; kBButtonKey
+	dc.b	$88		; 121	88		; kXButtonKey
+	dc.b	$89		; 122	89		; kYButtonKey
+	dc.b	$8A		; 123	8A		; kLButtonKey
+	dc.b	$8B		; 124	8B		; kRButtonKey
+	dc.b	$8C		; 125	8C		; kSelButtonKey
+	dc.b	$8D		; 126	8D		; kStartButtonKey
+	
+	dc.b	$8E		; 128	8E		; Catapult Reserved Scancodes (15)
+	dc.b	$8F		; 128	8F
+	dc.b	$90		; 128	90
+	dc.b	$91		; 128	91
+	dc.b	$92		; 128	92
+	dc.b	$93		; 128	93
+	dc.b	$94		; 128	94
+	dc.b	$95		; 128	95
+	dc.b	$96		; 128	96
+	dc.b	$97		; 128	97
+	dc.b	$98		; 128	98
+	dc.b	$99		; 128	99
+	dc.b	$9A		; 128	9A
+	dc.b	$9B		; 127	9B			
+	dc.b	$9C		; 128	9C
+	dc.b	$9D

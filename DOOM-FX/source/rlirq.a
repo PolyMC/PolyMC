@@ -1,0 +1,1128 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                          ENGINE IRQ MODULE                         *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	snesmac.i
+
+	public	_RLInitIRQ
+	public	_RLIRQTop
+	public	_RLIRQBottom
+
+
+	SECTION	ENGINE
+;
+;	* * * * * * *       INITIALIZE REALITY_ENGINE IRQS       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitIRQ
+	mode	'A!'
+	stz	IRQTPhase			; Phase of TOP IRQ Operations
+	stz	IRQBPhase			; Phase of BOTTOM IRQ Operations
+	mode	'aX!'
+	ldx	#(RLHIntL)			; Horizontal Interrupt
+	stx	HTIMEL
+	ldx	#(RLVIntTop)			; Vertical Interrupt
+	stx	VTIMEL
+	ldx	#<_RLIRQTop			; Top IRQ
+	lda	#^_RLIRQTop
+	jml	InitIRQ				; Initialize IRQs
+
+
+	SECTION	ENGINE_RAMCODE
+;
+;	* * * * * * *       REALITY_ENGINE IRQ AT BOTTOM OF SCREEN       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLIRQBottom
+	mode	'a!'
+	pha
+	lda	>_SLHV				; Latch Raster Position
+	lda	>_STAT78			; Update H/V Counters
+	lda	>_OPVCT				; Get Low 8Bits VPos
+	cmp	#(RLVIntBottom)			; On Correct ScanLine? (IRQ/GSU)
+	beq	_RIB1000			; Yes!
+	cmp	#(RLVIntBottom-1)		; 1 ScanLine Above? (GSU)
+	beq	_RIB1000			; Yes!
+	xba					; (GSU)
+	pha
+	phb					; Save .DBR
+	lda	#$00
+	pha
+	plb
+	dbr	$00
+	mode	'AX!'
+	phx
+	phy
+	jmp	_RLIRQGSU
+
+;
+;	>>>   SCANLINE AT BOTTOM OF DISPLAY   <<<
+;
+	mode	'a'
+_RIB1000
+	lda	#(RLHIntR)			; Right Horizontal Interrupt
+	sta	>HTIMEL
+	lda	>sfxSFR+1			; Clear GSU Flag
+	lda	>_TIMEUP			; Clear IRQ Flag
+	lda	#$80				; Disable Display
+	wai
+	sta	>INIDISP
+;
+	xba
+	pha
+	phb
+	lda	#$00
+	pha
+	plb
+	dbr	$00
+	mode	'AX!'
+	lda	#$00ff				; Close Window Completely
+	sta	WH0
+	phx
+	phy
+	lda	#(RLVIntTop)			; Initialize Interrupt Timer
+	sta	VTIMEL
+	lda	#(RLHIntL)			; Left Horizontal Interrupt
+	sta	HTIMEL
+	lda	#<_RLIRQTop			; Set up Top IRQ
+	sta	GSUIRQRAM+1
+	bit	_TIMEUP				; Clear IRQ Flag
+;	cli					; Release Interrupts for GSU
+;
+;	>>>   IRQ PHASE DISPATCH   <<<
+;
+;_RIB3000
+	ldx	IRQBPhase			; Get Current BOTTOM IRQ Phase
+	cpx	#(3*2)				; DRAWD/MENUS?
+	bcs	_RIB3400			; Yes, don't wait for GSU
+	lda	#(rlfDraw)			; DRAW Ready?
+	tsb	RLFlags
+	bne	_RIB5000			; NO!
+_RIB3400
+	jmp	(_RIBPhaseCode,x)		; IRQ BOTTOM PhaseCode
+;
+;	* * * * * * *       IRQ BOTTOM PHASE CODE JUMP TABLE       * * * * * * *
+;
+_RIBPhaseCode
+	dc.w	<_RIBDrawA			; Draw A (Face, Keys, Arms)
+	dc.w	<_RIBDrawB			; Draw B (RGB, OAMs, Sounds)
+	dc.w	<_RIBDrawC			; Draw C (Map, Flip)
+	dc.w	<_RIBDrawD			; Draw D (Weapon)
+	dc.w	<_RIBMenus			; Menus (Arms)
+
+
+;
+;	* * * * * * *       MENUS       * * * * * * *
+;
+	mode	'AX'
+_RIBMenus
+;
+;	>>>   TRANSFER STATUS BAR PLAYER WEAPON   <<<
+;
+	ldx	!(WeaponNext+RLSNESGSUXVarsO)	; Same Next Weapon as Last?
+	cpx	WeaponNextOld
+	beq	_RIBMenus200			; Yes
+	stx	WeaponNextOld			; No!  Different!
+;
+	stz	MDMAEN				; Stop HDMAs
+	lda	>RLStatArmsDefAddr,x		; Transfer FIRST Strip
+	ldy	#(1<<7)
+	ldx	#vmARMSDEF			; VRAM Destination
+	stx	VMADDL
+	ldx	#(4*32)				; 4 Characters Wide
+	sta	DMA7A1L
+	stx	DMA7NUML
+	sty	MDMAEN
+	clc					; Transfer SECOND Strip
+	adc	#(8*4*32)
+	sta	DMA7A1L
+	stx	DMA7NUML
+	sty	MDMAEN
+;
+;	>>>   ?   <<<
+;
+_RIBMenus200
+	mode	'a!'
+	lda	HDMAEN_S			; Start HDMAs
+_RIBMenus220
+	bit	_HVBJOY				; Wait for VBlank
+	bpl	_RIBMenus220
+	sta	HDMAEN
+	jmp	_RLIRQDone
+
+
+;
+;	* * * * * * *       CALLED WHEN NOTHING ELSE PENDING       * * * * * * *
+;
+	mode	'AX'
+_RIB5000
+;
+;	>>>   TRANSFER RGB   <<<
+;
+	bit	RLRGBLock			; RGB Palettes Locked?
+	bmi	_RIB5200			; Yes!
+	lda	RLRGBPtr			; Any RGB to XFer?
+	bmi	_RIB5200			; No
+	sta	DMA5A1L
+	ora	#$8000
+	sta	RLRGBPtr
+	lda	#(256*2)			; Transfer 256 RGB Colours
+	sta	DMA5NUML
+	stz	CGADD-1
+	lda	#(1<<5)
+	sta	MDMAEN
+;
+;	>>>   HANDLE REGULAR SOUND EFFECTS   <<<
+;
+_RIB5200
+	jsr	_RLIRQUpdateSounds		; Update Regular Sound Effects
+	jmp	_RLIRQGSU
+
+
+;
+;	* * * * * * *       DRAWA,DRAWB,DRAWC TRANSFER       * * * * * * *
+;
+;	.A = VRAM Dest. Address
+;
+	mode	'AX'
+_RIBDrawXFer
+	sta	VMADDL				; VRAM Destination
+;
+	lda	#<DMA0INC			; Set DPR $4300
+	tcd
+	dpr	DMA0INC
+;
+;	>>>   TRANSFER FIRST 5 STRIPS   <<<
+;
+	ldx	#<(_RLGSUChrDef+(0*(20*64))	; Strip 1
+	stx	DMA0A1L
+	ldx	#<(_RLGSUChrDef+(1*(20*64))	; Strip 2
+	stx	DMA1A1L
+	ldx	#<(_RLGSUChrDef+(2*(20*64))	; Strip 3
+	stx	DMA2A1L
+	ldx	#<(_RLGSUChrDef+(3*(20*64))	; Strip 4
+	stx	DMA3A1L
+	ldx	#<(_RLGSUChrDef+(4*(20*64))	; Strip 5
+	stx	DMA7A1L
+	ldx	#<(_RLGSUChrDef+(5*(20*64))	; Strip 6
+	ldy	#(RLViewCharY*64)		; #Bytes
+	sty	DMA0NUML
+	sty	DMA1NUML
+	sty	DMA2NUML
+	sty	DMA3NUML
+	sty	DMA7NUML
+;
+	lda	#(($70<<8)|(%00010111))		; 160 Pixels, GSU has ROM, SNES has RAM, 256 Colour
+	mode	'a!'
+	ifn	DEBUG
+	sta	SCR_XS				; XSLV Shadow
+	endif
+	sta	sfxSCR
+	xba
+	sta	DMA7A1B
+	lda	#$8f
+	sta	MDMAEN
+;
+;	>>>   TRANSFER LAST 4 STRIPS   <<<
+;
+	stx	DMA0A1L				; Strip 6
+	ldx	#<(_RLGSUChrDef+(6*(20*64))	; Strip 7
+	stx	DMA1A1L
+	ldx	#<(_RLGSUChrDef+(7*(20*64))	; Strip 8
+	stx	DMA2A1L
+	ldx	#<(_RLGSUChrDef+(8*(20*64))	; Strip 9
+	stx	DMA3A1L
+	sty	DMA0NUML			; #Bytes
+	sty	DMA1NUML
+	sty	DMA2NUML
+	sty	DMA3NUML
+	lda	#$0f
+	sta	MDMAEN
+;
+	lda	#%00011111			; 160 Pixels, GSU has ROM/RAM, 256 Colour
+	ifn	DEBUG
+	sta	SCR_XS				; XSLV Shadow
+	endif
+	sta	sfxSCR
+;
+	lda	#$7f
+	sta	DMA7A1B
+;
+	mode	'A!'
+	lda	#0				; Set DPR $0000
+	tcd
+	dpr	0
+;
+;	>>>   DRAW COMPLETED   <<<
+;
+	mode	'A'
+_RIB4800
+	jmp	_RLIRQGSU
+
+
+;
+;	* * * * * * *       TABLE OF STATUS BAR FACES CHRDATA       * * * * * * *
+;
+RLStatFacesDefAddr
+fn	var	0
+	repeat	(8*4)
+	dc.w	<(RLStatFacesDefRAM+((fn&7)*3*32)+((fn/8)*(8*3*4*32)))
+fn	var	fn+1
+	endrep
+;
+;	* * * * * * *       TABLE OF STATUS BAR ARMS CHRDATA       * * * * * * *
+;
+RLStatArmsDefAddr
+fn	var	0
+	repeat	(8)
+	dc.w	<(RLStatArmsDefRAM+((fn&7)*4*32)
+fn	var	fn+1
+	endrep
+
+
+;
+;	* * * * * * *       DRAW A       * * * * * * *
+;
+	mode	'AX'
+_RIBDrawA
+;
+;	>>>   TRANSFER STATUS BAR PLAYER FACE   <<<
+;
+	ldx	!(PlayerFace+RLSNESGSUXVarsO)	; Same Face as Last?
+	cpx	PlayerFaceOld
+	beq	_RIBDrawA200			; Yes
+	stx	PlayerFaceOld			; No!  Different!
+;
+	lda	#vmFACEDEF			; VRAM Destination
+	sta	VMADDL
+	lda	>RLStatFacesDefAddr,x		; Transfer FIRST Strip
+	ldx	#(1<<7)				; MDMAEN / HDMAEN
+	ldy	#(3*32)				; 3 Characters Wide
+;
+	sta	DMA7A1L
+	sty	DMA7NUML
+	stx	MDMAEN
+	clc					; Transfer SECOND Strip
+	adc	#(8*3*32)
+	sta	DMA7A1L
+	sty	DMA7NUML
+	stx	MDMAEN
+;	clc					; Transfer THIRD Strip
+	adc	#(8*3*32)
+	sta	DMA7A1L
+	sty	DMA7NUML
+	stx	MDMAEN
+;	clc					; Transfer FOURTH Strip
+	adc	#(8*3*32)
+	sta	DMA7A1L
+	sty	DMA7NUML
+	stx	MDMAEN
+;
+;	>>>   TRANSFER STATUS BAR PLAYER KEYS   <<<
+;
+_RIBDrawA200
+	ldx	!(PlayerKeys+RLSNESGSUXVarsO)	; Same Keys as Last?
+	cpx	PlayerKeysOld
+	beq	_RIBDrawA400			; Yes
+	stx	PlayerKeysOld			; No!  Different!
+;
+	txa					; BLUE KEY?
+	and	#%00000011
+	beq	_RIBDrawA240			; No
+	dec	a
+	beq	_RIBDrawA220
+	lda	#32
+_RIBDrawA220
+	clc
+	adc	#<(RLStatKeysDefRAM+(0*32))
+	sta	DMA7A1L
+	lda	#(1*32)				; 1 Character Wide
+	sta	DMA7NUML
+	lda	#(vmKEYSDEF+((32*0)/2))		; VRAM Destination
+	sta	VMADDL
+	lda	#(1<<7)				; MDMAEN / HDMAEN
+	sta	MDMAEN
+;
+_RIBDrawA240
+	txa					; YELLOW KEY?
+	lsr	a
+	lsr	a
+	tax
+	and	#%00000011
+	beq	_RIBDrawA280			; No
+	dec	a
+	beq	_RIBDrawA260
+	lda	#32
+_RIBDrawA260
+	clc
+	adc	#<(RLStatKeysDefRAM+(2*32))
+	sta	DMA7A1L
+	lda	#(1*32)				; 1 Character Wide
+	sta	DMA7NUML
+	lda	#(vmKEYSDEF+((32*1)/2))		; VRAM Destination
+	sta	VMADDL
+	lda	#(1<<7)				; MDMAEN / HDMAEN
+	sta	MDMAEN
+;
+_RIBDrawA280
+	txa					; RED KEY?
+	lsr	a
+	lsr	a
+	and	#%00000011
+	beq	_RIBDrawA400			; No
+	dec	a
+	beq	_RIBDrawA300
+	lda	#32
+_RIBDrawA300
+	clc
+	adc	#<(RLStatKeysDefRAM+(4*32))
+	sta	DMA7A1L
+	lda	#(1*32)				; 1 Character Wide
+	sta	DMA7NUML
+	lda	#(vmKEYSDEF+((32*2)/2))		; VRAM Destination
+	sta	VMADDL
+	lda	#(1<<7)				; MDMAEN / HDMAEN
+	sta	MDMAEN
+;
+;	>>>   TRANSFER STATUS BAR PLAYER WEAPON   <<<
+;
+_RIBDrawA400
+	ldx	!(WeaponNext+RLSNESGSUXVarsO)	; Same Next Weapon as Last?
+	cpx	WeaponNextOld
+	beq	_RIBDrawA600			; Yes
+	stx	WeaponNextOld			; No!  Different!
+;
+	lda	#vmARMSDEF			; VRAM Destination
+	sta	VMADDL
+	lda	>RLStatArmsDefAddr,x		; Transfer FIRST Strip
+	ldx	#(1<<7)				; MDMAEN / HDMAEN
+	ldy	#(4*32)				; 4 Characters Wide
+;
+	sta	DMA7A1L
+	sty	DMA7NUML
+	stx	MDMAEN
+	clc					; Transfer SECOND Strip
+	adc	#(8*4*32)
+	sta	DMA7A1L
+	sty	DMA7NUML
+	stx	MDMAEN
+;
+;	>>>   TRANSFER DRAW A   <<<
+;
+_RIBDrawA600
+	lda	#(1*2)				; IRQ Phase 1
+	sta	IRQTPhase
+	sta	IRQBPhase
+	lda	ViewB
+	and	#$0004
+	tax
+	lda	>_RLChrDefsA,x			; .A = VRAM Dest.
+	jmp	_RIBDrawXFer
+
+
+;
+;	* * * * * * *       DRAW B       * * * * * * *
+;
+	mode	'AX'
+_RIBDrawB
+;
+;	>>>   TRANSFER RGB   <<<
+;
+	bit	RLRGBLock			; RGB Palettes Locked?
+	bmi	_RIBDrawB200			; Yes!
+	lda	RLRGBPtr			; Any RGB to XFer?
+	bmi	_RIBDrawB200			; No
+	sta	DMA5A1L
+	ora	#$8000
+	sta	RLRGBPtr
+	lda	#(256*2)			; Transfer 256 RGB Colours
+	sta	DMA5NUML
+	stz	CGADD-1
+	lda	#(1<<5)
+	sta	MDMAEN
+;
+;	>>>   TRANSFER STATUS BAR OAMS   <<<
+;
+_RIBDrawB200
+	lda	#(rlfStatus)			; STATUS Ready?
+	tsb	RLFlags
+	bne	_RIBDrawB400			; No
+	lda	#(23*2)				; Transfer OAM structure
+	sta	OAMADDL
+	lda	#<(OAMA+(23*4))
+	sta	DMA6A1L
+	lda	#(9*4)				; #Bytes to transfer
+	sta	DMA6NUML
+	lda	#(1<<6)
+	sta	MDMAEN
+;
+;	>>>   TRANSFER DRAW B   <<<
+;
+_RIBDrawB400
+	lda	#(2*2)				; IRQ Phase 2
+	sta	IRQTPhase
+	sta	IRQBPhase
+	lda	ViewB
+	and	#$0004
+	tax
+	lda	>_RLChrDefsB,x			; .A = VRAM Dest.
+	jmp	_RIBDrawXFer
+
+
+;
+;	* * * * * * *       DRAW C       * * * * * * *
+;
+	mode	'AX'
+_RIBDrawC
+;
+;	>>>   TURN OFF WEAPON SPRITES WHEN IN AUTOMAP MODE!   <<<
+;
+	mode	'a!'
+	lda	!(AutoMapMode+RLSNESGSUXVarsO)	; AutoMap On?
+	cmp	AutoMapModeOld
+	beq	_RIBDrawC400			; No
+	sta	AutoMapModeOld
+	ldx	#<(OAMA+(32*4))			; WEAPON Sprites
+	ldy	WeaponOAMBytesOld		; #Bytes to transfer
+	dec	a
+	bmi	_RIBDrawC200
+	ldx	#<(OAMB)			; BLANK Sprites
+	ldy	#(RLMaxCutSprOAMs*4)-2		; #Bytes to transfer
+_RIBDrawC200
+	jmp	_RIBDrawC480
+;
+;	>>>   TRANSFER WEAPON OAM TABLE   <<<
+;
+_RIBDrawC400
+	lda	#(rlfWeaponOAM)			; WEAPON OAM BUILT?
+	tsb	RLFlags
+	bne	_RIBDrawC600
+	lda	AutoMapModeOld			; AutoMap On?
+	bne	_RIBDrawC600			; Yes, don't transfer OAMs!
+	ldy	WeaponOAMBytes			; #Bytes to transfer
+	tyx
+	cpy	WeaponOAMBytesOld		; More than last time?
+	bcs	_RIBDrawC420			; Yes
+	ldy	WeaponOAMBytesOld		; No, must send BLANKS
+_RIBDrawC420
+	stx	WeaponOAMBytesOld		; #Bytes Transferred
+	ldx	#<(OAMA+(32*4))
+_RIBDrawC480
+	stx	DMA6A1L
+	sty	DMA6NUML
+	ldx	#(32*2)
+	stx	OAMADDL
+	lda	#(1<<6)
+	sta	MDMAEN
+;
+;	>>>   FLIP VIEW BUFFERS   <<<
+;
+_RIBDrawC600
+	mode	'A!'
+	lda	#(3*2)				; IRQ Phase 3
+	sta	IRQTPhase
+	sta	IRQBPhase
+	lda	View				; Flip Views
+	xba
+	sta	View
+	and	#$0004
+	tax
+;
+;	>>>   TRANSFER VRAM MAP   <<<
+;
+_RIBDrawC800
+	lda	#vmMAP1					 ; VRAM Destination
+	sta	VMADDL
+	lda	>_RLVMaps,x				 ; .A = VRAM Dest.
+	sta	DMA7A1L					 ; SourceData
+	lda	#(RLViewCharY*32*2)-((32-RLViewCharX)*2) ; #Bytes
+	sta	DMA7NUML
+	lda	#(1<<7)
+	sta	MDMAEN
+;
+;	>>>   TRANSFER DRAW C   <<<
+;
+	lda	#vmCHRC
+	jmp	_RIBDrawXFer
+
+
+;
+;	* * * * * * *       DRAW D       * * * * * * *
+;
+	mode	'AX'
+_RIBDrawD0
+;
+;	>>>   HANDLE REGULAR SOUND EFFECTS   <<<
+;
+	jsr	_RLIRQUpdateSounds		; Update Regular Sound Effects
+;	jmp	_RIB3000			; Convert 4-Phase to 3-Phase
+	jmp	_RLIRQGSU
+
+_RIBDrawD
+	ifn	DEBUGSCR
+;
+;	>>>   UPDATE DEBUGGING SCREEN   <<<
+;
+	lda	#(rlfDebug)			; DEBUGGING SCREEN UPDATE?
+	tsb	RLFlags
+	bne	_RIBDrawD120			; No
+	jsr	_RLDebugScreen			; YES!  Update Debugging Screen!
+_RIBDrawD120
+	endif
+;
+;	>>>   TRANSFER DONE   <<<
+;
+	stz	IRQBPhase			; IRQ Phase 0
+;	stz	IRQTPhase			; IRQ Phase 0
+;
+;	>>>   TRANSFER WEAPON DEFS   <<<
+;
+	lda	#(rlfWeaponDEF)			; WEAPON BUILT?
+	tsb	RLFlags
+	bne	_RIBDrawD0			; No
+	tsc					; Save NMI StackPointer
+	sta	_MCHRGDMASP
+	lda	#<DMA0INC			; Set DPR $4300
+	tcd
+	dpr	DMA0INC
+;
+;	>>>   TRANSFER WEAPON DEF STACK TO VRAM   <<<
+;
+	lda	WeaponDEFGDMA			; DEF GDMA Stack
+	sta	DMA7A1L
+	lda	#vmWEAPONDEF			; VRAM Address
+	sta	VMADDL
+	lda	WeaponDEFGDMABytes		; #Bytes to DMA
+	sta	DMA7NUML
+	mode	'x!'
+	ldy	#(1<<7)
+	sty	MDMAEN
+;
+;	>>>   TRANSFER VRAM COPY OF WEAPON DEF STACK TO EXECUTABLE WRAM LOCATION   <<<
+;
+	lda	#vmWEAPONDEF			; VRAM Address
+	sta	VMADDL
+	lda	_VMDATAL			; Take care of false read
+	lda	WeaponDEFGDMABytes		; #Bytes to DMA
+	sta	DMA7NUML
+	lda	#_WeaponDEFGDMAStack		; MCHR_GDMA StackPointer
+	sta	DMA7A1L
+	ldx	#^_WeaponDEFGDMAStack
+	stx	DMA7A1B
+	ldx	#%10000001			; B->A, Abs., Auto Inc,2-Add-WriteLH
+	stx	DMA7INC
+	ldx	#<_VMDATAL			; _VMDATA
+	stx	DMA7DEST
+	sty	MDMAEN
+;
+;	>>>   INITIALIZE ALL GDMA CHANNELS   <<<
+;
+	ldx	#^_CharDef			; Bank of CharacterDEF Data
+	stx	DMA0A1B
+	stx	DMA1A1B
+	stx	DMA2A1B
+	stx	DMA3A1B
+	stx	DMA4A1B
+	stx	DMA5A1B
+	stx	DMA6A1B
+	stx	DMA7A1B
+	ldx	#%00000001			; A->B, Abs., Auto Inc,2-Add-WriteLH
+	stx	DMA4INC
+	stx	DMA5INC
+	stx	DMA6INC
+	stx	DMA7INC
+	ldx	#<VMDATAL			; B Address
+	stx	DMA4DEST
+	stx	DMA5DEST
+	stx	DMA6DEST
+	stx	DMA7DEST
+;
+;	* * * * * * *       START THE GDMA       * * * * * * *
+;
+	lda	#vmWEAPONDEF			; Starting Character#
+	sta	VMADDL
+	lda	#(_WeaponDEFGDMAStack-1)	; MCHR_GDMA StackPointer
+	tcs
+	ldy	#(1*32)				; #Bytes to Transfer per Channel
+	ldx	#%11111111			; Start 8-Channel GDMA
+	rts					; Call First GDMA Transfer!
+;
+;	* * * * * * *       RETURNS HERE AFTER GDMA COMPLETED       * * * * * * *
+;
+_WDMGEndCode
+	lda	#0				; Set DPR $0000
+	tcd
+	dpr	0
+	lda	_MCHRGDMASP			; Restore StackPointer
+	tcs
+;
+;	>>>   TRANSFER WEAPON OAM TABLE   <<<
+;
+	ldx	AutoMapModeOld			; AutoMap On?
+	bne	_RIBDrawD300			; Yes, don't transfer OAMs!
+	lda	WeaponOAMBytes			; #Bytes to transfer
+	cmp	WeaponOAMBytesOld		; More than last time?
+	bcs	_RIBDrawD220			; Yes
+	lda	WeaponOAMBytesOld		; No, must send BLANKS
+_RIBDrawD220
+	sta	DMA6NUML
+	lda	#<(OAMA+(32*4))
+	sta	DMA6A1L
+	lda	#(32*2)
+	sta	OAMADDL
+	ldx	#(1<<6)
+	stx	MDMAEN
+_RIBDrawD300
+	lda	WeaponOAMBytes			; #Bytes Transferred
+	sta	WeaponOAMBytesOld
+;
+_RIBDrawD400
+	mode	'X!'
+	jmp	_RLIRQGSU
+
+
+
+;
+;	* * * * * * *       REALITY_ENGINE IRQ AT TOP OF SCREEN       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLIRQTop
+	mode	'a!'
+	pha
+	lda	>_SLHV				; Latch Raster Position
+	lda	>_STAT78			; Update H/V Counters
+	lda	>_OPVCT				; Get Low 8Bits VPos
+	cmp	#(RLVIntTop)			; On Correct ScanLine? (IRQ/GSU)
+	beq	_RIT1000			; Yes!
+	cmp	#(RLVIntTop-1)			; 1 ScanLine Above? (GSU)
+	beq	_RIT1000			; Yes!
+	xba					; (GSU)
+	pha
+	phb					; Save .DBR
+	lda	#$00
+	pha
+	plb
+	dbr	$00
+	mode	'AX!'
+	phx
+	phy
+	jmp	_RLIRQGSU
+	ifn	0
+	lda	sfxSFR				; GSU Halted?
+	and	#%0000000000100000
+	beq	_RIT200
+	HALT	#$21
+_RIT200
+	jmp	_RLIRQGSU2
+	endif
+
+;
+;	>>>   SCANLINE AT TOP OF DISPLAY   <<<
+;
+	mode	'a'
+_RIT1000
+	lda	#(RLHIntR+0)			; Right Horizontal Interrupt
+	sta	>HTIMEL
+	lda	>sfxSFR+1			; Clear GSU Flag
+	lda	>_TIMEUP			; Clear IRQ Flag
+	lda	>INIDISP_S			; Enable Display
+	wai
+	sta	>INIDISP
+;
+	xba
+	pha
+	phb
+	lda	#$00
+	pha
+	plb
+	dbr	$00
+;
+	lda	#>( ( (256-1-((256-RLPixX)/2))<<8)+( (256-RLPixX)/2) )	; Set Window Masks
+	sta	WH1
+	lda	#<( ( (256-1-((256-RLPixX)/2))<<8)+( (256-RLPixX)/2) )	; Set Window Masks
+	sta	WH0
+;
+;	>>>   TIMERS/COUNTERS   <<<
+;
+	ife	(DEBUG*WIRE)
+	inc	VBlankCount			; VBlankCounter++
+	ifn	usePAL
+	lda	VBlankCountF
+	clc
+	adc	#>((60-50)*65536/50)
+	sta	VBlankCountF
+	bcc	_RIT1100
+	inc	VBlankCount
+_RIT1100
+	endif
+	endif
+;
+	lda	#(rlfHalt>>8)			; RLEngine Halting?
+	bit	RLFlags+1
+	beq	_RIT2000			; Yes, Don't Count Time when Halted!
+;
+	inc	VBlankTotal			; VBlankCountTotal++
+;
+	dec	PlayerLevelCount		; #Ticks until 1 Second
+	bne	_RIT2000
+	lda	#60				; Count one more Second!
+	sta	PlayerLevelCount
+	mode	'A!'
+	lda	PlayerLevelTime			; At 59:59?
+	cmp	#(60*60)-1
+	beq	_RIT2000			; Yes, No Higher!
+	inc	PlayerLevelTime			; Player's LevelTimer++
+;
+_RIT2000
+	mode	'AX!'
+	phx
+	phy
+	lda	#(RLVIntBottom)			; Initialize Interrupt Timer
+	sta	VTIMEL
+	lda	#(RLHIntL)			; Left Horizontal Interrupt
+	sta	HTIMEL
+	lda	#<_RLIRQBottom			; Set up Top IRQ
+	sta	GSUIRQRAM+1
+	bit	_TIMEUP				; Clear IRQ Flag
+;	cli					; Release Interrupts for GSU
+;
+;	>>>   IRQ PHASE DISPATCH   <<<
+;
+_RIT3000
+	ldx	IRQTPhase			; Get Current IRQ TOP Phase
+	jmp	(_RITPhaseCode,x)		; IRQ TOP PhaseCode
+;
+;	* * * * * * *       IRQ TOP PHASE CODE JUMP TABLE       * * * * * * *
+;
+_RITPhaseCode
+	dc.w	<_RIT5000			; Idle
+	dc.w	<_RITDrawA			; Post Draw A
+	dc.w	<_RITDrawB			; Post Draw B (ConvertJoy)
+	dc.w	<_RITDrawC			; Post Draw C (Vars)
+	dc.w	<_RITMenus			; Menus
+
+
+;
+;	* * * * * * *       MENUS       * * * * * * *
+;
+	mode	'AX'
+_RITMenus
+	jsr	ReadJOY				; Read JOYSTICK/MOUSE
+	jsr	ConvertJOY			; Convert JOYSTICK->MOUSE
+	jmp	_RIT10000
+
+
+;
+;	* * * * * * *       DRAW A       * * * * * * *
+;
+	mode	'AX'
+_RITDrawA
+;
+;	>>>   SWAP ENGINE TRANSFER VARIABLES   <<<
+;
+	jsr	_RLSwapRLXVars
+	jmp	_RIT9000
+
+
+;
+;	* * * * * * *       DRAW B       * * * * * * *
+;
+	mode	'AX'
+_RITDrawB
+;
+;	>>>   HANDLE JOYSTICK/MOUSE   <<<
+;
+	jsr	ConvertJOY			; Convert JOYSTICK->MOUSE
+	jmp	_RIT5000
+
+
+;
+;	* * * * * * *       DRAW C       * * * * * * *
+;
+	mode	'AX'
+_RITDrawC
+;
+;	>>>   FRAME PROCESSING COMPLETED   <<<
+;
+	mode	'a!'
+	ifn	DEBUG
+	bit	FrameDone			; Did GSU Catch up with SNES?
+	bpl	.0				; No
+	HALT	#$22				; YES!!!  ERROR!!!
+.0
+	endif
+	dec	FrameDone			; Frame Completed!
+;
+;	>>>   CALCULATE FRAMES_PER_SECOND COUNT   <<<
+;
+	lda	VBlankCount			; Get #VBlanks from Last Frame
+	stz	VBlankCount
+	mode	'A!'
+	and	#$00ff
+	sta	FPSCount			; #FramesPerSecond
+;
+;	>>>   SWAP ENGINE TRANSFER VARIABLES   <<<
+;
+	jsr	_RLSwapRLXVars2
+;
+;	* * * * * * *       HANDLE PALETTE ANIMATION       * * * * * * *
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE   !!!
+;
+	mode	'AX'
+_RIT5000
+	bit	RLRGBLock			; RGB Palettes Locked?
+	bmi	_RIT6000			; Yes!
+	dec	RLRGBCount			; Time for next RGB Cycle?
+	bpl	_RIT6000			; No!
+	lda	RLRGBPtr			; RGB XFer Ready?
+	bpl	_RIT6000			; No
+	ldx	RLRGBAnim			; Get Current RGB Anim Index
+	lda	>RLRGBAnims,x			; Get Next Animation Palette
+	bne	_RIT5500			; Normal Animation Entry
+	stz	RLRGBPickCount			; ReStart Pick Counter
+	stz	RLRGBHitCount			; ReStart Hit Counter
+	ldx	RLRGBAnim0			; Get Base Animation Table
+	lda	>RLRGBAnims,x			; Get Next Animation Palette
+_RIT5500
+	sta	RLRGBPtr			; Transfer this Palette
+	lda	>RLRGBAnims+2,x			; Get Count
+	sta	RLRGBCount
+	inx
+	inx
+	inx
+	inx
+	stx	RLRGBAnim			; Save New AnimPointer
+;
+;	* * * * * * *       HANDLE WEAPON BUILDS       * * * * * * *
+;
+_RIT6000
+	ldx	WeaponIRQBuildPhase		; Build Weapon Data!
+	jsr	(WeaponIRQBuildPhaseCode,x)
+;
+;	* * * * * * *       READ JOYSTICK/MOUSE       * * * * * * *
+;
+	jsr	ReadJOY				; Read JOYSTICK/MOUSE
+;
+;	* * * * * * *       RESET TOP IRQ PHASE TO IDLE       * * * * * * *
+;
+_RIT9000
+	stz	IRQTPhase			; IRQ Phase 0
+
+;
+;	* * * * * * *       HANDLE TURBO SOUND EFFECTS       * * * * * * *
+;
+_RIT10000
+	jsr	_RLIRQUpdateTSounds		; Update Turbo Sound Effects
+
+;
+;	* * * * * * *       REALITY_ENGINE IRQ GSU START CODE       * * * * * * *
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE   !!!
+;
+	mode	'AX'
+_RLIRQGSU
+;	sei					; Lock out GSU Interrupts!
+	lda	sfxSFR				; GSU Halted?
+	and	#%0000000000100000
+	beq	_RIG200				; Yes, Start It Up!
+	ply
+	plx
+	plb
+	mode	'a!'
+	pla
+	xba
+	pla
+	rti
+	mode	'AX'
+_RIG200
+;_RLIRQGSU2
+	ldx	GSUPhase			; Get Current GSU Phase
+	lda	#rlfPhasePending		; Phase Pending
+	tsb	RLFlags				; Already Adjusted Phase?
+	bne	_RLIRQGSU3			; Yes
+;
+	ifn	DEBUG
+	lda	GSUERROR			; Any GSU Error?
+	beq	.1				; No
+	cmp	#'RL'				; Debugging Halt?
+	beq	.0				; YES!
+	HALT	#$23				; No, GSU Error!!!
+.0
+	cop	#'R'				; ***SNES HALTS HERE***
+	lda	#0				; ***RESUME EXECUTION***
+	sta	GSUERROR
+.1
+	endif
+;
+	jsr	(GSUPhasePostCode,x)		; GSU PostCode
+	inx					; Get Next GSU Phase
+	inx
+	cpx	#(MaxGSUPhase)
+	bne	_RIG400
+	ldx	#0				; Completed All Phases!
+_RIG400
+	stx	GSUPhase
+_RLIRQGSU3
+;
+;	>>>   START GSU RUNNING NEXT PHASE   <<<
+;
+	jsr	(GSUPhaseReqCode,x)		; All Requirements Met?
+	beq	_RLIRQDone			; No, can't start GSU
+;	mode	'a!'
+;	lda	>GSUPhasePCB,x			; Get Starting PCB
+;	sta	sfxPCB
+;	mode	'A!'
+	ifn	DEBUG
+	lda	#'RL'				; GSU DEBUGGING HALT CODE
+	sta	GSUERROR
+	endif
+	lda	>GSUPhaseR15,x			; Get Starting PC
+	sta	sfxR15
+	lda	#rlfPhasePending		; Phase NOT Pending
+	trb	RLFlags
+;
+;	* * * * * * *       REALITY_ENGINE IRQ COMPLETION CODE       * * * * * * *
+;
+_RLIRQDone
+	ply
+	plx
+	plb
+	mode	'a!'
+	pla
+	xba
+	pla
+	rti
+
+
+;
+;	* * * * * * *       VIEW MAP COMMON AREAS       * * * * * * *
+;
+_RLChrDefsA
+	dc.4	vmCHRA,vmCHRD
+_RLChrDefsB
+	dc.4	vmCHRB,vmCHRE
+_RLVMaps
+	dc.4	RLVMap0,RLVMap1
+
+
+;
+;	* * * * * * *       SWAP ENGINE TRANSFER VARIABLES       * * * * * * *
+;
+	dbr	0
+	dpr	0
+	mode	'AX'
+_RLSwapRLXVars
+	mode	'x!'
+	ldx	#%00010111			; 160 Pixels, GSU has ROM, SNES has RAM, 256 Colour
+	ldy	#%00011111			; 160 Pixels, GSU has ROM/RAM, 256 Colour
+;	ifn	DEBUG
+;	stx	SCR_XS				; XSLV Shadow
+;	endif
+	stx	sfxSCR
+;
+;	>>>   GET GSU VARIABLES   <<<
+;
+	lda	#<RLGSUXVars			; SourceData
+	sta	DMA4A1L
+	lda	#<RLSNESGSUXVars		; WRAM Address
+	sta	WMADDL
+	lda	#(RLGSUXVarsE-RLGSUXVars)	; #Bytes
+	sta	DMA4NUML
+	ldx	#(1<<4)
+	stx	MDMAEN
+;
+;	>>>   TRANSFER SOUND COMMAND BUFFER FROM GSU TO WRAM   <<<
+;
+	lda	!(RLNumSounds+RLSNESGSUXVarsO)	; Any Sounds to Process?
+	and	_SoundsOn			; SoundEffects Enabled?
+	beq	_RLSwapRLXVarsB			; No!
+	asl	a				; Yes, Get the SoundEffects
+	sta	DMA4NUML
+	lda	#<RLGSUSounds			; SourceData
+	sta	DMA4A1L
+	lda	#<RLSNESSounds			; WRAM Address
+	sta	WMADDL
+	stx	MDMAEN
+_RLSwapRLXVarsB
+;
+;	>>>   CHECK FOR GSU ERROR   <<<
+;
+	ifn	DEBUG
+	lda	GSUERROR			; ANY GSU ERROR?
+	beq	.3				; No
+	cmp	#'RL'				; DEBUGGING HALT?
+	beq	.3				; Yes
+	HALT	#$24				; NO, GSU ERROR!!!
+.3
+	endif
+
+;	ifn	DEBUG
+;	sty	SCR_XS				; XSLV Shadow
+;	endif
+	sty	sfxSCR
+	mode	'X!'
+;
+;	>>>   UPDATE SOUND EFFECTS QUEUES   <<<
+;
+	lda	!(RLNumSounds+RLSNESGSUXVarsO)	; Any New Sounds to Process?
+	and	_SoundsOn			; SoundEffects Enabled?
+	beq	_RLSwapRLXVarsC			; No
+	jmp	_RLIRQUpdateSoundQueues		; YES!  Add New SoundEffects to Queues
+_RLSwapRLXVarsC
+	rts
+
+
+;
+;	* * * * * * *       SWAP ENGINE TRANSFER VARIABLES       * * * * * * *
+;
+	dbr	0
+	dpr	0
+	mode	'AX'
+_RLSwapRLXVars2
+	mode	'x!'
+	ldx	#%00010111			; 160 Pixels, GSU has ROM, SNES has RAM, 256 Colour
+	ldy	#%00011111			; 160 Pixels, GSU has ROM/RAM, 256 Colour
+;	ifn	DEBUG
+;	stx	SCR_XS				; XSLV Shadow
+;	endif
+	stx	sfxSCR
+;
+;	>>>   SEND SNES VARIABLES TO GSU   <<<
+;
+	lda	FPSCount
+	sta	>(FPSCount+RLGSUSNESXVarsO)
+	lda	WeaponTypeBuilt
+	sta	>(WeaponTypeBuilt+RLGSUSNESXVarsO)
+	lda	PlayerJoy
+	sta	>(PlayerJoy+RLGSUSNESXVarsO)
+	lda	PlayerMouseX
+	sta	>(PlayerMouseX+RLGSUSNESXVarsO)
+	lda	PlayerMouseY
+	sta	>(PlayerMouseY+RLGSUSNESXVarsO)
+	lda	VBlankTotal
+	sta	>(VBlankTotal+RLGSUSNESXVarsO)
+;
+;	>>>   DEBUGGING FPS COUNTER   <<<
+;
+	ifn	(0*DEBUG)
+	lda	FPSCount
+	sta	PlayerArmor
+	endif
+
+;	ifn	DEBUG
+;	sty	SCR_XS				; XSLV Shadow
+;	endif
+	sty	sfxSCR
+	mode	'X!'
+	rts

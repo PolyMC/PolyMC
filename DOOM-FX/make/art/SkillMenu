@@ -1,0 +1,5 @@
+xg -pRLART:SkillMenu -dRLDATA:ART/SkillMenu -ms -q1 -s32,12 -c15
+delete RLDATA:ART/SkillMenu.rgb
+xc -iRLDATA:ART/SkillMenu.map0 -oRLDATA:COMP/SkillMenu.map0
+xc -iRLDATA:ART/SkillMenu.def0 -oRLDATA:COMP/SkillMenu.def0
+touch rlMenus.a

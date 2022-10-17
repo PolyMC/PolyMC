@@ -1,0 +1,55 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                          ENGINE NMI MODULE                         *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+
+	public	_RLNMI
+
+
+	SECTION	ENGINE
+;
+;	* * * * * * *       INITIALIZE REALITY_ENGINE NMIS       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitNMI
+	mode	'aX!'
+	ldx	#<_RLNMI			; ENGINE NMI Code
+	lda	#^_RLNMI
+	ifn	WIRE
+	ldy	#$81				; ENABLE NMI+JOYREAD (FOR WIRE)
+	endif
+	ife	WIRE
+	ldy	#$01				; ENABLE JOYREAD
+	endif
+	jml	InitNMI				; Initialize NMIs
+
+
+	SECTION	ENGINE_RAMCODE
+;
+;	* * * * * * *       REALITY_ENGINE NMI       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLNMI
+	ifn	(WIRE*DEBUG)
+	jsl	$7ffd00				; MONITOR
+	endif
+_RLNMI2
+	mode	'a!'
+	pha
+	lda	>_RDNMI				; Clear NMI Flag
+	ifn	WIRE
+	lda	>VBlankCount
+	inc	a
+	sta	>VBlankCount
+	endif
+	pla
+	rti

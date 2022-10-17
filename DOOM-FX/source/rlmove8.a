@@ -1,0 +1,553 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                      OBJECT MOVEMENT MODULE 8                      *
+;*                                                                    *
+;*                            ITEM PICKUPS                            *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+	include	rlweapons.i
+	include	music.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rTemp		equ	r12			; Temporary Variable
+;
+rDX		equ	r5			; DeltaX
+rDY		equ	r6			; DeltaY
+;
+rX0		equ	r7			; Initial Object X Coordinate
+rY0		equ	r8			; Initial Object Y Coordinate
+rX1		equ	r9			;   Final Object X Coordinate
+rY1		equ	r10			;   Final Object Y Coordinate
+;
+rMoveLinesPtr	equ	r11			; MoveLines Pointer
+;
+rLX0		equ	r3			; Line X0 Coordinate
+rLY0		equ	r13			; Line Y0 Coordinate
+rLDY		equ	r14			; Line Delta Y
+;
+rObj		equ	r12			; Pointer to RLObject
+rSectorData	equ	r9			; Pointer to Object's SectorData
+
+
+;
+;	* * * * * * *       BACKPACK       * * * * * * *
+;
+_IBackPack
+	move	r1,#<(BackPack)			; Give Player BackPack
+	move	r0,#1
+;	from	r0
+	stb	(r1)
+;
+	move	r4,#10
+	link	#4
+	with	r11
+	bra	_IClip3
+	to	r12
+;
+	move	r4,#4
+	link	#4
+	with	r11
+	bra	_IShells3
+	to	r12
+;
+	move	r4,#1
+	link	#4
+	with	r11
+	bra	_IRocket3
+	to	r12
+;
+	move	r4,#20
+	move	r11,#<_RM7XY8000
+	with	r11
+	bra	_ICell3
+	to	r12
+
+;
+;	* * * * * * *       CLIP       * * * * * * *
+;
+_IClip
+	move	r4,#5
+	bra	_IClip2
+	nop
+;
+;	* * * * * * *       AMMO BOX       * * * * * * *
+;
+_IAmmoBox
+	move	r4,#50
+_IClip2
+	move	r12,#<_RM7XY1000
+_IClip3
+	move	r0,#<(BackPack)			; Does Player have BackPack?
+;	to	r0
+	ldb	(r0)
+	move	r1,#200				; 200 Max. Bullets
+	dec	r0
+	bmi	_IClip4
+	with	r1				; Yes, Double the Max
+	add	r1
+_IClip4
+	move	r0,(<WeaponBullets)
+;	from	r0				; >= Max?
+	to	r1
+	sub	r1
+	bpl	_IRocket9			; Yes
+;	with	r0				; Beyond Maximum?
+	add	r4
+	with	r1
+	add	r4
+	bmi	_IClip5
+	with	r0				; Yes, Limit to Maximum!
+	sub	r1
+_IClip5
+	jmp	r11
+;	from	r0
+	sbk
+
+;
+;	* * * * * * *       SHELLS       * * * * * * *
+;
+_IShells
+	move	r4,#4
+	bra	_IShells2
+	nop
+;
+;	* * * * * * *       SHELLS BOX       * * * * * * *
+;
+_IShellsBox
+	move	r4,#20
+_IShells2
+	move	r12,#<_RM7XY1000
+_IShells3
+	move	r0,#<(BackPack)			; Does Player have BackPack?
+;	to	r0
+	ldb	(r0)
+	move	r1,#50				; 50 Max. Shells
+	dec	r0
+	bmi	_IShells4
+	with	r1				; Yes, Double the Max
+	add	r1
+_IShells4
+	move	r0,(<WeaponShells)
+;	from	r0				; >= Max?
+	to	r1
+	sub	r1
+	bpl	_IRocket9			; Yes
+;	with	r0				; Beyond Maximum?
+	add	r4
+	with	r1
+	add	r4
+	bmi	_IShells5
+	with	r0				; Yes, Limit to Maximum!
+	sub	r1
+_IShells5
+	jmp	r11
+;	from	r0
+	sbk
+
+;
+;	* * * * * * *       ROCKET       * * * * * * *
+;
+_IRocket
+	move	r4,#1
+	bra	_IRocket2
+	nop
+;
+;	* * * * * * *       ROCKETS BOX       * * * * * * *
+;
+_IRocketsBox
+	move	r4,#5
+_IRocket2
+	move	r12,#<_RM7XY1000
+_IRocket3
+	move	r0,#<(BackPack)			; Does Player have BackPack?
+;	to	r0
+	ldb	(r0)
+	move	r1,#50				; 50 Max. Rockets
+	dec	r0
+	bmi	_IRocket4
+	with	r1				; Yes, Double the Max
+	add	r1
+_IRocket4
+	move	r0,(<WeaponRockets)
+;	from	r0				; >= Max?
+	to	r1
+	sub	r1
+	bpl	_IRocket9			; Yes
+;	with	r0				; Beyond Maximum?
+	add	r4
+	with	r1
+	add	r4
+	bmi	_IRocket5
+	with	r0				; Yes, Limit to Maximum!
+	sub	r1
+_IRocket5
+	jmp	r11
+;	from	r0
+	sbk
+_IRocket9
+	jmp	r12
+	nop
+
+;
+;	* * * * * * *       CELL       * * * * * * *
+;
+_ICell
+	move	r4,#20
+	bra	_ICell2
+	nop
+;
+;	* * * * * * *       CELL PACK       * * * * * * *
+;
+_ICellPack
+	move	r4,#100
+_ICell2
+	move	r12,#<_RM7XY1000
+_ICell3
+	move	r0,#<(BackPack)			; Does Player have BackPack?
+;	to	r0
+	ldb	(r0)
+	move	r1,#300				; 300 Max. Cells
+	dec	r0
+	bmi	_ICell4
+	with	r1				; Yes, Double the Max
+	add	r1
+_ICell4
+	move	r0,(<WeaponCells)
+;	from	r0				; >= Max?
+	to	r1
+	sub	r1
+	bpl	_IRocket9			; Yes
+;	with	r0				; Beyond Maximum?
+	add	r4
+	with	r1
+	add	r4
+	bmi	_ICell5
+	with	r0				; Yes, Limit to Maximum!
+	sub	r1
+_ICell5
+	jmp	r11
+;	from	r0
+	sbk
+
+;
+;	* * * * * * *       SOUL SPHERE       * * * * * * *
+;
+_ISoulSphere
+	move	r4,#-100			; +100%
+	move	r1,#200				; Max 200%
+	move	r12,#<_RM7XY1000
+	bra	_IHealth2
+	nop
+;
+;	* * * * * * *       HEALTH BONUS       * * * * * * *
+;
+_IHealthBonus
+	move	r4,#-1				; +1%
+	move	r1,#200				; Max 200%
+	with	r11
+	bra	_IHealth2
+	to	r12
+;
+;	* * * * * * *       STIMPACK       * * * * * * *
+;
+_IStimPack
+	move	r4,#-10				; +10%
+	move	r12,#<_RM7XY1000
+	bra	_IHealth			; Max 100%
+	nop
+;
+;	* * * * * * *       MEDIKIT       * * * * * * *
+;
+_IMediKit
+	move	r4,#-25
+	move	r12,#<_RM7XY1000
+_IHealth
+	move	r1,#100				; Maximum
+_IHealth2
+;
+	ife	useMULTIPLAYER
+	move	r0,(<(PlayerObject+rloHealth))	; Get Player's Health
+	endif
+	ifn	useMULTIPLAYER
+	move	r0,#rloHealth
+	move	r2,(<MPPlayerObject)
+;	with	r0
+	add	r2
+;	to	r0
+	ldw	(r0)
+	endif
+;
+;	with	r0				; Already got Max?
+	sub	r1
+	bpl	_IHealth9			; Yes, don't add more!
+;	with	r0				; More than Max?
+	sub	r4
+	bmi	_IHealth5			; No
+	with	r4				; Yes!  Only up to Max!
+	add	r0
+_IHealth5
+	move	r15,#<_RLSubHealth
+	nop
+_IHealth9
+	jmp	r12
+	nop
+
+;
+;	* * * * * * *       ARMOR BONUS       * * * * * * *
+;
+_IArmorBonus
+	move	r4,#1				; +1%
+	move	r1,#200				; Max 200%
+	with	r11
+	bra	_IArmor2
+	to	r12
+;
+;	* * * * * * *       ARMOR GREEN       * * * * * * *
+;
+_IArmorGreen
+	move	r4,#100				; +100%
+	with	r4				; Max 100%
+	bra	_IArmor
+	to	r1
+;
+;	* * * * * * *       ARMOR BLUE       * * * * * * *
+;
+_IArmorBlue
+	move	r4,#200				; +200%
+	move	r1,r4				; Max 200%
+_IArmor
+	move	r12,#<_RM7XY1000
+_IArmor2
+	move	r0,(<PlayerArmor)		; Get Player's Armor
+;	from	r0				; >= Max?
+	to	r1
+	sub	r1
+	bpl	_IArmor9			; Yes
+;	with	r0				; Beyond Max?
+	add	r4
+	with	r1
+	add	r4
+	bmi	_IArmor5
+	with	r0				; Yes, Limit to Maximum!
+	sub	r1
+_IArmor5
+	jmp	r11
+;	from	r0
+	sbk
+_IArmor9
+	jmp	r12
+	nop
+
+;
+;	* * * * * * *       KEYS       * * * * * * *
+;
+_IKeySkullRed
+	move	r4,#%00100000			; RED SKULLKEY
+	bra	_IKey
+	nop
+_IKeySkullBlue
+	move	r4,#%00000010			; BLUE SKULLKEY
+	bra	_IKey
+	nop
+_IKeySkullYellow
+	move	r4,#%00001000			; YELLOW SKULLKEY
+	bra	_IKey
+	nop
+_IKeyCardRed
+	move	r4,#%00010000			; RED KEYCARD
+	bra	_IKey
+	nop
+_IKeyCardBlue
+	move	r4,#%00000001			; BLUE KEYCARD
+	bra	_IKey
+	nop
+_IKeyCardYellow
+	move	r4,#%00000100			; YELLOW KEYCARD
+_IKey
+	move	r6,#<(PlayerKeys)		; Give Player Key
+;	to	r0
+	ldb	(r6)
+;	with	r0
+	or	r4
+;	from	r0
+	stb	(r6)
+	jmp	r11
+	nop
+
+;
+;	* * * * * * *       WEAPONS       * * * * * * *
+;
+_IBFG9000
+	move	r4,#40				; BFG9000
+	move	r3,#wtbBFG
+	move	r2,#wtBFG
+	move	r11,#<_IWeapon
+	move	r12,r11
+	iwt	r15,#<_ICell3
+	nop
+_IPlasmaGun
+	move	r4,#40				; PLASMA GUN
+	move	r3,#wtbPlasma
+	move	r2,#wtPlasma
+	move	r11,#<_IWeapon
+	move	r12,r11
+	iwt	r15,#<_ICell3
+	nop
+_IRocketGun
+	move	r4,#2				; ROCKET LAUNCHER
+	move	r3,#wtbRocket
+	move	r2,#wtRocket
+	move	r11,#<_IWeapon
+	move	r12,r11
+	iwt	r15,#<_IRocket3
+	nop
+_IChainGun
+	move	r4,#20				; CHAINGUN
+	move	r3,#wtbChainGun
+	move	r2,#wtChainGun
+	move	r11,#<_IWeapon
+	move	r12,r11
+	iwt	r15,#<_IClip3
+	nop
+_IChainSaw
+	move	r3,#wtbChainSaw			; CHAINSAW
+	move	r2,#wtChainSaw
+	bra	_IWeapon
+	nop
+_IShotGun
+	move	r4,#4				; SHOTGUN
+	move	r3,#wtbShotGun
+	move	r2,#wtShotGun
+	move	r11,#<_IWeapon
+	move	r12,r11
+	iwt	r15,#<_IShells3
+	nop
+_IWeapon
+	move	r6,#<(PlayerArms)		; Give Player Weapon
+;	to	r0
+	ldb	(r6)
+;	from	r0
+	to	r1
+	or	r3
+;	with	r0				; Did Player Already Have Weapon?
+	and	r3
+	iwt	r11,#<_RM7XY8000
+	from	r1
+	alt1
+	beq	_IWeapon5			; No!  Switch to New Weapon!
+	stw	(r6)
+;	stb	(r6)
+	jmp	r11
+	nop
+_IWeapon5
+	move	(<WeaponNext),r2		; Switch to New Weapon!
+	iwt	r15,#<_RLDropWeapon
+	nop
+
+;
+;	* * * * * * *       BERSERK       * * * * * * *
+;
+_IBerserk
+	move	r0,#(60*60)			; VBlanks
+	move	(<BerserkCount),r0
+	ifn	useID4
+	move	(<Berserk),r0
+	endif
+	move	r1,#100				; Maximum
+	move	r4,#-100
+;
+	ife	useMULTIPLAYER
+	move	r0,(<(PlayerObject+rloHealth))	; Get Player's Health
+	endif
+	ifn	useMULTIPLAYER
+	move	r0,#rloHealth
+	move	r2,(<MPPlayerObject)
+;	with	r0
+	add	r2
+;	to	r0
+	ldw	(r0)
+	endif
+;
+;	with	r0				; Already got Max?
+	sub	r1
+	bpl	_IBerserk5			; Yes, don't add more!
+;	with	r0				; More than Max?
+	sub	r4
+	bmi	_IBerserk2			; No
+	with	r4				; Yes!  Only up to Max!
+	add	r0
+_IBerserk2
+	link	#4
+	move	r15,#<_RLSubHealth
+	nop
+_IBerserk5
+	move	r0,#wtFist			; Switch to Fist!
+	move	(<WeaponNext),r0
+	link	#4
+	iwt	r15,#<_RLDropWeapon
+	nop
+	move	r0,#rgbBerserk			; Use Berserk Strength RGBAnim
+	iwt	r15,#<_RM7XY8200
+	nop
+
+;
+;	* * * * * * *       RADIATION SUIT       * * * * * * *
+;
+_IRadiation
+	move	r0,#(60*60)			; #VBlanks
+	move	(<RadCount),r0
+	move	r0,#rgbRad			; Use Radiation Suit RGBAnim
+	iwt	r15,#<_RM7XY8200
+	nop
+
+;
+;	* * * * * * *       INVISIBILITY       * * * * * * *
+;
+_IInvisible
+	move	r0,#(60*60)			; #VBlanks
+	move	(<InvisibleCount),r0
+	jmp	r11
+	nop
+
+;
+;	* * * * * * *       INVULNERABILITY       * * * * * * *
+;
+_IInvulnerable
+	move	r0,#(60*60)			; #VBlanks
+	move	(<InvulnerableCount),r0
+	link	#4				; ReCalculate Face Animation
+	move	r15,#<_RLCalcFaceAnim
+	nop
+	iwt	r15,#<_RM7XY8000
+	nop
+
+;
+;	* * * * * * *       COMPUTER MAP       * * * * * * *
+;
+_IComputerMap
+	move	r1,#<(ComputerMap)		; Give Player ComputerMap
+	move	r0,#1
+;	from	r0
+	stb	(r1)
+	jmp	r11
+	nop
+
+;
+;	* * * * * * *       LIGHT GOGGLES       * * * * * * *
+;
+_ILightGoggles
+	move	r0,#(60*60)			; #VBlanks
+	move	(<LightGoggles),r0
+	jmp	r11
+	nop

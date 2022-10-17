@@ -1,0 +1,317 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                      ENGINE SPRITES DRAW MODULE                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLDrawSpritesA
+	public	_RLDrawSpritesB
+	public	_RLDrawSpritesC
+	public	_RLDrawSprites
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+;
+;	* * * * * * *       REALITY_ENGINE DRAW SPRITES       * * * * * * *
+;
+rSprLineDone	equ	r4			; 1 = LineDone
+rSprPixX	equ	r5			; Sprite Pixel X
+rSprData	equ	r6			; Pointer to SpriteData Table
+rNumLines	equ	r7			; Number of Pixel Lines
+rRepPixNum	equ	r8			; Number of Repeated Pixels
+rRepPixCol	equ	r9			; Colour of Repeated Pixels
+rMinPixX	equ	r10			; Minimum Pixel X
+rMaxPixX	equ	r11			; Maximum Pixel X
+rNumDrawPix	equ	r12			; #Pixels to Draw
+rNumSkipPix	equ	r13			; #Pixels to Skip
+
+
+	align	16,(_RLDrawSpritesC-_RLDrawSpritesLowAlign)&$0f
+_RLDrawSpritesC
+	move	r2,#<_RLDrawMiscC
+	bra	_RLDrawSprites
+	nop
+_RLDrawSpritesB
+	move	r2,#<_RLDrawMiscB
+	bra	_RLDrawSprites
+	nop
+_RLDrawSpritesA
+	move	r2,#<_RLDrawMiscA
+_RLDrawSprites
+	move	(<RLNextCode),r2		; Save address of Next Code Jump
+;
+	move	r0,(<PauseMode)			; PAUSE?
+	dec	r0
+	bmi	_DSP10000			; No
+	nop
+;
+_RLDrawSpritesLow
+;
+;	>>>   GET PIXEL HORIZONTAL CLIPPING REGION   <<<
+;
+	move	rMinPixX,(<RLMinPixX)		; Minimum X Coordinate
+	with	rMinPixX
+	add	rMinPixX
+	move	rMaxPixX,(<RLMaxPixX)		; Maximum X Coordinate
+	with	rMaxPixX
+	add	rMaxPixX
+	bra	_RLDrawSpritesLow200
+	nop
+;
+;	>>>   DONE DRAWING SPRITES   <<<
+;
+_DSP10000
+	move	r0,(<RLNextCode)		; Begin Execution of Next Code
+	ibt	r8,#^_RLDrawMiscA
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+_RLDrawSpritesLow200
+
+	CACHEB	_RLDrawSprites
+_RLDrawSpritesLowAlign
+;
+;	>>>   PROCESS NEXT SPRITE   <<<
+;
+	move	r2,#40				; Get Y Coordinate
+	move	rSprPixX,#73			; Get X Coordinate
+	move	r0,#^RLSpriteDefPause
+	romb
+	move	rSprData,#<RLSpriteDefPause
+;
+;	>>>   PROCESS NEXT SPRITE   <<<
+;
+_DSP3000
+	move	r14,rSprData			; Move to SpriteData
+;
+;	>>>   SPRITE OFF BOTTOM?   <<<
+;
+	move	r0,#RLViewPixY			; Bottom Pixel of Screen
+	from	r2				; SpriteTop >= BottomClip?
+	cmp	r0
+	blt	_DSP3200			; No
+	nop
+;
+;	>>>   NEXT SPRITE   <<<
+;
+_DSP9000
+	bra	_DSP10000
+	nop
+;
+;	>>>   NEXT SPRITE LINE   <<<
+;
+_DSP8000
+	from	rSprData			; Move to Next SpriteData
+	to	r14
+	add	#rlrsSize
+	move	rSprData,r14
+	dec	rNumLines			; One More Line Done
+	bne	_DSP4000			; Do Next Sprite Line
+	inc	r2				; Y++
+	bra	_DSP9000			; Next Sprite
+	nop
+;
+;	>>>   CHECK FOR ENTIRE SPRITE CLIPPED   <<<
+;
+_DSP3200
+;
+;	>>>   SPRITE OFF RIGHT?   <<<
+;
+	from	rSprPixX			; SpriteLeft >= RightClip?
+	cmp	rMaxPixX
+	bge	_DSP9000			; No
+	nop
+;
+;	>>>   SPRITE OFF LEFT?   <<<
+;
+	getb					; Get Width
+	inc	r14
+;	with	r0				; Get Right-Edge of Sprite
+	add	rSprPixX
+;	from	r0				; SpriteRight < LeftClip?
+	cmp	rMinPixX
+	blt	_DSP9000			; Yes
+	nop
+;
+;	>>>   SPRITE IS ON-SCREEN   <<<
+;
+	to	rNumLines			; Get Height
+	getb
+	inc	r14
+	move	rSprData,r14			; Save Updated Pointer
+;
+;	>>>   SPRITE BOTTOM CLIPPED?   <<<
+;
+	from	r2				; Get Bottom-Edge of Sprite
+;	to	r0
+	add	rNumLines
+	move	r1,#RLViewPixY			; Bottom Pixel of Screen
+;	with	r0
+	sub	r1
+	bmi	_DSP4000			; No Clipping
+	nop
+	with	rNumLines			; Adjust #Lines to Draw
+	sub	r0
+;
+;	>>>   NEXT SPRITE LINE   <<<
+;
+_DSP4000
+;	to	r0				; Get Offset
+	getb
+	inc	r14
+;	with	r0				; Get LeftEdge of Strip
+	add	rSprPixX
+;	from	r0				; LeftEdge > RightClip?
+	cmp	rMaxPixX
+	bge	_DSP8000			; Yes, Skip This Line!
+	nop
+	to	r1				; Get LineWidth
+	getb
+	inc	r14
+	dec	r1				; LineWidth = 0?
+	bmi	_DSP8000			; Yes, Skip This Line!
+	inc	r1
+;	with	r0				; Get RightEdge of Strip
+	add	r1
+;	from	r0				; SpriteRight < LeftClip?
+	cmp	rMinPixX
+	blt	_DSP8000			; Yes
+	nop
+	getb					; Get LineOffset
+	inc	r14
+	getbh
+	with	r14				; Move forward to LineData
+	add	r0
+;
+;	>>>   PROCESS NEXT PIXELBLOCK   <<<
+;
+_DSP5000
+;	to	r0				; Get Length of PixelBlock
+	getb
+	inc	r14
+	moves	rNumDrawPix,r0			; End of Line?
+	beq	_DSP8000			; Yes!
+	nop
+;	to	r0				; Get Offset of PixelBlock
+	getb
+	inc	r14
+;	with	r0				; R0 = Left-Pixel
+	add	rSprPixX
+;	from	r0				; LeftEdge > RightClip?
+	cmp	rMaxPixX
+	bge	_DSP8000			; Yes, End of Line!
+	nop
+;	from	r0				; Set PLOT X Coordinate
+	to	r1
+	sub	rMinPixX
+;	with	r0				; R0 = Right-Pixel
+	add	rNumDrawPix
+;
+	move	rRepPixNum,#0			; RepeatLength = 0
+	move	rSprLineDone,#0			; LineDone = 0 (NOT Done)
+;
+;	from	r0				; RightEdge < LeftClip?
+	cmp	rMinPixX
+	bge	_DSP5200			; No
+	nop
+	move	rNumSkipPix,rNumDrawPix		; SkipLength = Length
+	move	rNumDrawPix,#0			; DrawLength = 0
+	bra	_DSP6000
+	nop
+_DSP5200
+;	from	r0				; RightEdge >= RightClip?
+	cmp	rMaxPixX
+	blt	_DSP5400			; No
+;	with	r0				; R0 = #Pixels Clipped
+	sub	rMaxPixX
+	with	rNumDrawPix			; Length -= (EndPixel-ILMaxPix)
+	sub	r0
+	inc	rSprLineDone			; Finished this Line after this Block!
+_DSP5400
+	moves	r1,r1				; LeftEdge < LeftClip?
+	bpl	_DSP7000			; No
+	with	r1				; Get #Pixels Clipped
+	not
+	inc	r1
+	move	rNumSkipPix,r1			; SkipLength = (ILMinPix-StartPixel)
+	with	rNumDrawPix			; Length -= (ILMinPix-StartPixel)
+	sub	r1
+	move	r1,#0				; LeftEdge = MinPix
+;
+;	>>>   SKIP THROUGH ANY UNUSED PIXELS   <<<
+;
+_DSP6000
+	getbs					; Get Next Byte
+	inc	r14
+	inc	r0				; $FF (Repeat) ?
+	bne	_DSP6400			; No
+	dec	rNumSkipPix			; SkipLength--
+	getb					; Get RepeatLength-1
+	inc	r14
+	with	rNumSkipPix			; SkipLength -= RepeatLength
+	sub	r0
+	bpl	_DSP6200			; More to Skip
+	from	rNumSkipPix			; R0 = #Repeats Remaining
+;	to	r0
+	not
+	move	rRepPixNum,r0
+	getc					; Get RepeatColour
+	inc	r14
+	bra	_DSP6800
+	inc	rRepPixNum
+_DSP6200
+	getc					; Get RepeatColour
+	inc	r14
+	move	rNumSkipPix,rNumSkipPix
+_DSP6400
+	bne	_DSP6000			; SkipLength > 0
+	nop
+_DSP6800
+	moves	rNumDrawPix,rNumDrawPix		; Anything to Draw?
+	beq	_DSP7800			; No
+	nop
+;
+;	>>>   DRAW SPRITE PIXELDATA   <<<
+;
+_DSP7000
+	iwt	r13,#<_DSP7100			; Set Loop Address
+_DSP7100
+	dec	rRepPixNum			; Repeat > 0?
+	bpl	_DSP7700			; Yes
+	nop
+	getbs					; Get next Colour
+	inc	r14
+	inc	r0				; Repeat?
+	bne	_DSP7500			; No
+	dec	r0
+	to	rRepPixNum			; Get #Repeats
+	getb
+	inc	r14
+	getb					; Get RepeatColour
+	inc	r14
+_DSP7500
+;	from	r0
+	color
+_DSP7700
+	loop					; Plot next pixel
+	plot
+	dec	rSprLineDone			; Finished this Line?
+	bmi	_DSP6000			; No
+	nop
+_DSP7800
+	iwt	r15,#<_DSP8000			; Next Sprite Line
+	nop
+
+	CACHEE	_RLDrawSprites

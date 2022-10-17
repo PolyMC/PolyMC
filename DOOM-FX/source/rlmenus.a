@@ -1,0 +1,946 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                            MENUS MODULE                            *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	snesmac.i
+	include	rlmenus.i
+	include	rlplayer.i
+	include	rlweapons.i
+	include	rlsound.i
+	include	music.i
+
+
+	SECTION	ENGINE
+;
+;	* * * * * * *       MENUS       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLMenus
+;
+;	>>>   INITIALIZE MENU OPERATIONS   <<<
+;
+	mode	'a!'
+	lda	#(4*2)				; IRQ Phase 4 (Menus)
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	sta	IRQBPhase
+	sta	IRQTPhase
+;
+;	>>>   MENU SKULLS DATA   <<<
+;
+	mode	'A!'
+	ldx	#<RLMenuSkullsDef		; Menu Skulls Data
+	lda	#(^MenuDeCompBuffer<<8)|(^RLMenuSkullsDef)
+	ldy	#<MenuDeCompBuffer
+	jsl	DeCompress
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+;
+;	>>>   WAIT UNTIL *ALL* TURBOSOUNDS FINISHED!   <<<
+;
+_RLM200
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	mode	'a'
+	lda	#$80
+rlset	var	0
+	repeat	MaxRLTSounds
+	and	TSounds+rlsetFlags+(rlset*rlsetSize)	; TurboSound Active?
+rlset	var	rlset+1
+	endrep
+	bpl	_RLM200					; Yes -- Wait until Completed
+;
+;	>>>   FADE OUT MUSIC/SOUND EFFECTS   <<<
+;
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	mode	'AX!'
+	ifn	useSOUND
+	lda	#DCOM_FADE_AND_STOP		; Fade out Music/Sound Effects
+	ldy	#$7f01
+	jsl	_SendDriverCommandL
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	mode	'a'
+	endif
+;
+;	>>>   TRANSFER MENU SKULLS DATA   <<<
+;
+	lda	#$e8
+	sta	COLDATA
+	lda	#^MenuDeCompBuffer
+	sta	DMA0A1B
+	ldx	#<MenuDeCompBuffer
+	stx	DMA0A1L
+	ldx	#$7f80
+	stx	VMADDL
+	ldx	#(8*32)
+	stx	DMA0NUML
+	lda	#1
+	sta	MDMAEN
+;
+;	>>>   DISPLAY MAIN MENU   <<<
+;
+	mode	'A!'
+	lda	_SkillLevel			; Skill Level
+	sta	MenuSkillLevel
+	lda	#^_RLMainMenuData		; MAIN MENUDATA
+	sta	MenuData+2
+	lda	#<_RLMainMenuData
+	stz	MenuItem			; First Item
+
+;
+;	* * * * * * *       CHANGE MENUS       * * * * * * *
+;
+;	.A = MENUDATA
+;
+_RLMenus2
+	sta	MenuData			; MENUDATA
+;
+;	>>>   INITIALIZE MENU HDMA   <<<
+;
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	mode	'a'
+	ldx	#<_RLMenuHDMABG12NBAAB		; DRAWA/B or DRAWD/E?
+	lda	ViewB
+	beq	_RLM1300			; DRAWA/B
+	ldx	#<_RLMenuHDMABG12NBADE		; DRAWD/E
+_RLM1300
+	lda	#<BG12NBA			; BG12NBA
+	sta	DMA5DEST
+	stz	DMA5INC
+	stx	DMA5A1L
+	lda	#^_RLMenuHDMABG12NBAAB
+	sta	DMA5A1B
+;
+	lda	#<TM				; TM
+	sta	DMA6DEST
+	stz	DMA6INC
+	ldx	#<_RLMenuHDMATM
+	stx	DMA6A1L
+	lda	#^_RLMenuHDMATM
+	sta	DMA6A1B
+;
+	mode	'A!'
+	lda	#(MaxViewScanLines<<8)		; Remove MenuSkull
+	jsr	_RLMenuSkull2
+;
+;	>>>   MENU CHARACTER DATA   <<<
+;
+	ldy	#rlmdMenuDef			; Menu Character Data
+	lda	[MenuData],y
+	tax
+	iny
+	iny
+	mode	'a!'
+	lda	#^MenuDeCompBuffer
+	xba
+	lda	[MenuData],y
+	mode	'A!'
+	ldy	#<MenuDeCompBuffer
+	jsl	DeCompress
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	mode	'a'
+;	lda	#^MenuDeCompBuffer
+;	sta	DMA0A1B
+	ldx	#<MenuDeCompBuffer
+	stx	DMA0A1L
+	ldx	#vmCHRA				; DRAWA/B
+	lda	ViewB
+	beq	_RLM1540
+	ldx	#vmCHRD				; DRAWD/E
+_RLM1540
+	stx	VMADDL
+	sty	DMA0NUML
+	lda	#1
+	sta	MDMAEN
+;
+;	>>>   MENU MAP DATA   <<<
+;
+	mode	'A!'
+	ldx	#(((RLViewCharY-RLStatCharY)*32)-1)*2
+	lda	#0
+_RLM1600
+	sta	>MenuDeCompBuffer,x
+	dex
+	dex
+	bpl	_RLM1600
+;
+	ldy	#rlmdMenuMap			; Menu Map Data
+	lda	[MenuData],y
+	tax
+	iny
+	iny
+	mode	'a!'
+	lda	#^MenuDeCompBuffer
+	xba
+	lda	[MenuData],y
+	mode	'A!'
+	ldy	#<MenuDeCompBuffer
+	jsl	DeCompress
+	lda	ViewB				; DRAWA/B?
+	and	#$00ff
+	beq	_RLM1640			; Yes, Don't Adjust Characters
+	ldx	#(((RLViewCharY-RLStatCharY)*32)-1)*2 ; Adjust Base of Characters
+_RLM1620
+	lda	>MenuDeCompBuffer,x
+	clc
+	adc	#((vmCHRD-((vmCHRD>>12)<<12))/(32/2))
+	sta	>MenuDeCompBuffer,x
+	dex
+	dex
+	bpl	_RLM1620
+_RLM1640
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	mode	'a'
+	ldx	#<MenuDeCompBuffer
+	stx	DMA0A1L
+	ldx	#(vmMAP2+(4*32*2/2))
+	stx	VMADDL
+	ldx	#((RLViewCharY-RLStatCharY)*32*2)
+	stx	DMA0NUML
+	lda	#1
+	sta	MDMAEN
+	lda	#%01100000			; Enable HDMAs
+	sta	HDMAEN_S
+	sta	HDMAEN
+;
+	ldy	#rlmdItems			; Maximum Item#
+	lda	[MenuData],y
+	sta	MenuMaxItem
+;
+;	>>>   INITIALIZE HDMA TM   <<<
+;
+	mode	'A!'
+	ldy	#rlmdMenuHDMATM			; MENUDATA HDMATM Table
+	lda	[MenuData],y
+	sta	Temp
+	iny
+	iny
+	lda	[MenuData],y
+	sta	Temp+2
+	ldy	#128-2				; Copy HDMATM Table to RAM
+	tyx
+_RLM1720
+	lda	[Temp],y
+	sta	MenuHDMATM,x
+	dey
+	dey
+	dex
+	dex
+	bpl	_RLM1720
+;
+	pea	#<(_RLM1800-1)			; Return Address
+	ldy	#rlmdInitCode			; MENUINIT CODE
+	lda	[MenuData],y
+	pha
+	rts
+;
+;	>>>   DISPLAY MENU!   <<<
+;
+_RLM1800
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	mode	'a'
+	ldx	#<MenuHDMATM
+	stx	DMA6A1L
+	lda	#^MenuHDMATM
+	sta	DMA6A1B
+_RLM1900
+	ldx	PlayerJoy			; Wait for PAUSE Released
+	bne	_RLM1900
+	stx	MenuJoyOld			; Old Joystick Bits
+
+;
+;	* * * * * * *       MENU OPERATION       * * * * * * *
+;
+_RLM2000
+	mode	'A!'
+	lda	MenuItem			; Position MenuSkull
+	jsr	_RLMenuSkull
+	lda	JOY1Stat			; JOY1Status
+	and	#$00ff
+	beq	_RLM2200			; MOUSE?
+	lda	PlayerJoy			; Old Joystick Bits
+	cmp	#pjUSE
+	bne	_RLM2100
+	lda	#joyB
+_RLM2100
+	cmp	#pjFIRE
+	bne	_RLM2120
+	lda	#joyA
+_RLM2120
+	ldx	PlayerMouseY			; Menu Selection Change?
+	bne	_RLM2500
+	bra	_RLM2400
+_RLM2200
+	lda	JOY1
+_RLM2400
+	cmp	MenuJoyOld			; Same as Last?
+	beq	_RLM2000			; Yes, Wait for Change!
+_RLM2500
+	sta	MenuJoyOld
+;
+;	>>>   <SELECT> HELD?   <<<
+;
+	ifn	0
+	bit	#joySELECT			; SELECT Held?
+	beq	_RLM3000			; No
+	bra	_RLM2000			; Yes, IGNORE!
+	endif
+
+;
+;	* * * * * * *       ESCAPE       * * * * * * *
+;
+_RLM3000
+	bit	#joySTART			; ESCAPE?
+	bne	_RLM3800			; YES!
+;
+;	* * * * * * *       ITEM USE       * * * * * * *
+;
+	lda	MenuJoyOld			; ACCEPT?
+	bit	#(joyA)
+	beq	_RLM4000
+	lda	MenuItem			; MENUITEM * 8
+	asl	a
+	asl	a
+	asl	a
+;	clc					; Move to MENUITEM DATA
+	adc	#rlmdItemData
+	tay
+_RLM3500
+	pea	#<(_RLM3600-1)			; Return Address
+	lda	[MenuData],y			; MENUITEM CODE
+	pha
+	rts
+_RLM3600
+	bcc	_RLM2000			; MENU EXIT?
+_RLM3800
+	jmp	_RLM9000			; EXIT MENUS!
+
+;
+;	* * * * * * *       MENU BACK       * * * * * * *
+;
+_RLM4000
+	bit	#(joyB)				; MENU BACK?
+	beq	_RLM5000
+	ldy	#rlmdBackCode			; MENUBACK CODE
+	lda	[MenuData],y
+	pha
+	rts
+
+;
+;	* * * * * * *       MENU KEYS       * * * * * * *
+;
+_RLM5000
+	sta	Temp				; Save Joystick Bits
+	ldy	#rlmdItems			; Move to MenuKeys
+	lda	[MenuData],y
+	and	#$00ff
+	asl	a
+	asl	a
+	asl	a
+;	clc					; Move to MENUKEYS DATA
+	adc	#rlmdItemData
+	tay
+_RLM5200
+	lda	[MenuData],y			; End of MenuKeys?
+	beq	_RLM6000			; Yes
+	iny
+	iny
+	cmp	Temp				; Match?
+	beq	_RLM3500			; Yes!
+	iny					; No, Check Next MenuKeys
+	iny
+	bra	_RLM5200
+
+;
+;	* * * * * * *       ITEM UP       * * * * * * *
+;
+_RLM6000
+	mode	'a!'
+	lda	MenuItem			; Current MenuItem
+	ldx	PlayerMouseY			; UP?
+	bmi	_RLM6200
+	cpx	#(($03c0<<1)/2)
+	bcc	_RLM7800
+	dec	a
+	bpl	_RLM7000
+	lda	MenuMaxItem
+	dec	a
+	bra	_RLM7000
+;
+;	* * * * * * *       ITEM DOWN       * * * * * * *
+;
+_RLM6200
+	cpx	#-(($03c0<<1)/2)+1		; DOWN?
+	bcs	_RLM7800
+	inc	a
+	cmp	MenuMaxItem
+	bne	_RLM7000
+	lda	#0
+;
+;	* * * * * * *       ITEM UP/DOWN       * * * * * * *
+;
+_RLM7000
+	sta	MenuItem			; New MenuItem
+_RLM7800
+	jmp	_RLM2000			; NEXT MENU OPERATION
+
+;
+;	* * * * * * *       FINISHED WITH MENUS       * * * * * * *
+;
+_RLM9000
+	mode	'AX!'
+_RLM9020
+	lda	PlayerJoy			; Wait for Buttons Released
+	bne	_RLM9020
+;
+;	>>>   START MUSIC/SOUND EFFECTS   <<<
+;
+	ifn	useSOUND
+	lda	_MusicOn			; Music Enabled?
+	beq	_RLM9100			; No
+	ldy	_MDSong				; Get Song# to Play
+	lda	#DCOM_START_SONG
+	jsl	_SendDriverCommandL
+	jsr	_RLMenuWaitVBlank
+	jsr	_RLMenuWaitVBlank
+	mode	'A!'
+_RLM9100
+	lda	#DCOM_FADEIN			; Fade in Music/Sound Effects
+	ldy	#$7f01
+	jsl	_SendDriverCommandL
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	jsr	_RLMenuWaitVBlank
+	mode	'A!'
+	endif
+;
+;	>>>   UPDATE VARIABLES   <<<
+;
+	lda	!(WeaponNext+RLSNESGSUXVarsO)	; Next Weapon
+	sta	WeaponNext
+	lda	!(ExitLevel+RLSNESGSUXVarsO)	; Level Completed
+	sta	ExitLevel
+	jsl	CheckSumVars			; ReCalculate VARS CheckSum
+	jsl	RestoreVars			; Set VARS
+;
+;	>>>   REBUILD STATUS BAR OVERLAY   <<<
+;
+	lda	#((vmCHR2B-vmCHR2)/(32/2))+$2000	; BG2 View Overlay
+	ldx	#(((RLViewCharY-RLStatCharY)*32)-1)*2
+_RLM9200
+	sta	>MenuDeCompBuffer,x
+	dex
+	dex
+	bpl	_RLM9200
+;
+	lda	#(MaxViewScanLines<<8)		; Remove MenuSkull
+	jsr	_RLMenuSkull2
+	mode	'a!'
+	stz	HDMAEN_S			; Disable HDMAs
+	stz	HDMAEN				; Stop Active HDMAs before GDMA!
+	ldx	#<MenuDeCompBuffer
+	ldy	#(vmMAP2+(4*32*2/2))
+	lda	#$e0
+	sta	COLDATA
+	lda	#$13
+	sta	TM
+	lda	#(((vmCHR2>>12)<<4)|(vmCHR1>>12))
+	sta	BG12NBA
+	stx	DMA0A1L
+	sty	VMADDL
+	ldx	#((RLViewCharY-RLStatCharY)*32*2)
+	stx	DMA0NUML
+	lda	#1
+	sta	MDMAEN
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	mode	'a'
+;
+;	>>>   RESTORE HARDWARE   <<<
+;
+	jml	_RLInitDMA			; ReInitialize GDMA Channels
+
+
+;
+;	* * * * * * *       MENU WAIT FOR VERTICAL BLANK       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLMenuWaitVBlank
+	mode	'a!'
+_RLMWVB200
+	bit	_HVBJOY				; Wait for NOT VBlank
+	bmi	_RLMWVB200
+_RLMWVB400
+	bit	_HVBJOY				; Wait for VBlank
+	bpl	_RLMWVB400
+	rts
+
+
+;
+;	* * * * * * *       MENU SKULL       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+_RLMenuSkull
+	asl	a
+	asl	a
+	asl	a
+;	clc					; Move to MENUITEM DATA
+	adc	#(rlmdItemData+6)
+	tay
+	lda	[MenuData],y			; MENUITEM SPRITE POSITION
+_RLMenuSkull2
+	pha
+	lda	VBlankCount			; Animate MenuSkull
+	lsr	a
+	lsr	a
+	lsr	a
+	and	#$0002
+	clc
+	adc	#$00f8
+	tax
+	ldy	#((128-4)*2)
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	mode	'A!'
+	pla
+	sty	OAMADDL
+	mode	'ax!'
+;
+	sta	OAMDATA
+	xba
+	sta	OAMDATA
+	xba
+	stx	OAMDATA
+	ldy	#$31
+	sty	OAMDATA
+;
+	clc
+	adc	#8
+	sta	OAMDATA
+	xba
+	sta	OAMDATA
+	clc
+	adc	#8
+	xba
+	inx
+	stx	OAMDATA
+	sty	OAMDATA
+;
+	sta	OAMDATA
+	xba
+	sta	OAMDATA
+	xba
+	inx
+	inx
+	inx
+	inx
+	stx	OAMDATA
+	sty	OAMDATA
+;
+	sec
+	sbc	#8
+	sta	OAMDATA
+	xba
+	sta	OAMDATA
+	dex
+	stx	OAMDATA
+	sty	OAMDATA
+;
+	mode	'AX!'
+	rts
+
+
+;
+;	* * * * * * *       MENU TOGGLE       * * * * * * *
+;
+	mode	'AX'
+_RLMenuToggle
+	iny					; Get Variable to Toggle
+	iny
+	lda	[MenuData],y
+	sta	Temp
+	lda	(Temp)
+	eor	#$FFFF
+	sta	(Temp)
+_RLMenuToggle2
+	lda	[MenuData],y			; Get Variable to Update
+	sta	Temp
+	lda	(Temp)
+	and	#$0001
+	asl	a				; $00,$04
+	asl	a
+	tax
+	lda	>(MenuDeCompBuffer+(09*32*2)+0,x ; Character#
+	sta	Temp
+	lda	>(MenuDeCompBuffer+(09*32*2)+2,x ; Character#
+	sta	Temp+2
+	lda	>(MenuDeCompBuffer+(10*32*2)+0,x ; Character#
+	sta	Temp+4
+	lda	>(MenuDeCompBuffer+(10*32*2)+2,x ; Character#
+	sta	Temp+6
+	iny					; Get VRAM Address to Update
+	iny
+	lda	[MenuData],y
+	clc
+	adc	#(vmMAP2+(4*32*2/2))
+	tax
+	jsr	_RLMenuWaitVBlank		; Wait for VBlank
+	mode	'A!'
+	stx	VMADDL
+	lda	Temp
+	sta	VMDATAL
+	lda	Temp+2
+	sta	VMDATAL
+	txa
+	clc
+	adc	#((32*2)/2)
+	tax
+	stx	VMADDL
+	lda	Temp+4
+	sta	VMDATAL
+	lda	Temp+6
+	sta	VMDATAL
+	clc
+	rts
+
+
+;
+;	* * * * * * *       MAIN MENU CODE       * * * * * * *
+;
+;	>>>   INITIALIZE   <<<
+;
+	mode	'AX'
+_RLMMCInit
+	ldy	#(_RLMainMenuMusicData-_RLMainMenuData)	 ; Music On/Off
+	jsr	_RLMenuToggle2
+	ldy	#(_RLMainMenuSoundsData-_RLMainMenuData) ; Sounds On/Off
+	jmp	_RLMenuToggle2
+;
+;	>>>   RESTART LEVEL   <<<
+;
+	mode	'AX'
+_RLMMCReStartLevel
+	lda	#-1				; RESTART LEVEL!
+	sta	!(ExitLevel+RLSNESGSUXVarsO)
+	sec
+	rts
+
+	ifn	(0*DEBUG)
+;
+;	>>>   NEXT LEVEL   <<<
+;
+	mode	'AX'
+_RLMMCNextLevel
+	lda	#11				; NEXT LEVEL!
+	sta	!(ExitLevel+RLSNESGSUXVarsO)
+;	sec
+;	rts
+;
+;	>>>   HEALTH 100%   <<<
+;
+	mode	'AX'
+_RLMMCHealth
+	lda	#500				; HEALTH 100%
+	sta	PlayerObject+rloHealth
+	sec
+	rts
+	endif
+
+;
+;	>>>   NEW GAME   <<<
+;
+	mode	'AX'
+_RLMMCNewGame
+	pla					; Fix Stack
+_RLEMCSkillMenu
+	lda	MenuSkillLevel			; Item
+	sta	MenuItem
+	lda	#<_RLSkillMenuData		; SKILL MENU!
+	jmp	_RLMenus2
+;
+;	>>>   WEAPON CYCLE   <<<
+;
+	mode	'AX'
+_RLMMCWeaponCycle
+	lda	!(PlayerHealth+RLSNESGSUXVarsO)	; Player Dead?
+	beq	_RLMMCW400			; Yes, Don't Switch Weapon!
+	ldx	!(WeaponNext+RLSNESGSUXVarsO)	; Next Weapon
+	lda	PlayerArms			; Player's Weapon
+	sta	Temp
+_RLMMCW200
+	inx					; Cycle Next Weapon
+	inx
+	lda	_WeaponTypeBitsTable,x		; Does Player have this Weapon?
+	bit	Temp
+	beq	_RLMMCW200			; No
+	txa					; New Next Weapon
+	and	#15				; Limit to Maximum Weapons
+	sta	!(WeaponNext+RLSNESGSUXVarsO)
+_RLMMCW300
+	cmp	WeaponNextOld			; Wait for WeaponChange
+	bne	_RLMMCW300
+_RLMMCW400
+	clc
+	rts
+
+
+;
+;	* * * * * * *       SKILL MENU CODE       * * * * * * *
+;
+;	>>>   INITIALIZE   <<<
+;
+	mode	'AX'
+_RLSMCInit
+	rts
+;
+;	>>>   SKILL LEVEL   <<<
+;
+	mode	'AX'
+_RLSMCSkillLevel
+	pla					; Fix Stack
+	lda	MenuItem			; Remember Skill Level
+	sta	MenuSkillLevel
+	stz	MenuItem
+	lda	#<_RLEpisodeMenuData		; EPISODE MENU!
+	jmp	_RLMenus2
+;
+;	>>>   MAIN MENU   <<<
+;
+	mode	'AX'
+_RLSMCMainMenu
+	stz	MenuItem
+	lda	#<_RLMainMenuData		; MAIN MENU!
+	jmp	_RLMenus2
+
+
+;
+;	* * * * * * *       EPISODE MENU CODE       * * * * * * *
+;
+;	>>>   INITIALIZE   <<<
+;
+	mode	'AX'
+_RLEMCInit
+	mode	'a!'
+
+	ife	useIMAGINEER
+	lda	#1				; Episode1 Only
+	ldy	#(((RLViewCharY-(5+4))*8)<<8)|(RLVIntTop+((5+4)*8))
+	ldx	MenuSkillLevel			; Skill Level
+	cpx	#2
+	bcc	_RLEMCInit2
+	inc	a				; Episode1/2
+	ldy	#(((RLViewCharY-(7+4))*8)<<8)|(RLVIntTop+((7+4)*8))
+	cpx	#3
+	bcc	_RLEMCInit2
+	inc	a				; Episode1/2/3
+	endif
+	ifn	useIMAGINEER
+	lda	#3
+	endif
+	ldy	#(((RLViewCharY-(9+4))*8)<<8)|(RLVIntTop+((9+4)*8))
+
+_RLEMCInit2
+	sta	MenuMaxItem
+	mode	'A!'
+	tya
+	mode	'a!'
+	sta	MenuHDMATM+0
+	xba
+	sta	MenuHDMATM+2
+	mode	'A!'
+	rts
+;
+;	>>>   EPISODE   <<<
+;
+	mode	'AX'
+_RLEMCEpisode
+	lda	MenuSkillLevel			; Skill Level
+	sta	_SkillLevel
+	lda	MenuItem			; Episode*9
+	asl	a
+	asl	a
+	asl	a
+;	clc
+	adc	MenuItem
+	xba
+	ora	#($4c52&$00ff)			; NEW GAME!
+	sta	!(ExitLevel+RLSNESGSUXVarsO)
+	sec
+	rts
+
+
+;
+;	* * * * * * *       MENU SKULLS       * * * * * * *
+;
+RLMenuSkullsDef
+	image	RLDATA:COMP/MenuSkulls.def0
+
+
+;
+;	* * * * * * *       MENU HDMA TABLES       * * * * * * *
+;
+_RLMenuHDMATM
+	dc.b	127				; BG1+OBJ at Top
+	dc.b	$11
+	dc.b	(RLVIntBottom-RLStatPixY-127)
+	dc.b	$11
+	dc.b	$01				; BG1+BG2+OBJ at StatusBar
+	dc.b	$13
+	dc.b	$00				; END
+
+_RLMenuHDMABG12NBAAB
+	dc.b	127				; Overwrite CHRA/CHRB
+	dc.b	(((vmCHRA>>12)<<4)|(vmCHR1>>12))
+	dc.b	(RLVIntBottom-RLStatPixY-127)
+	dc.b	(((vmCHRA>>12)<<4)|(vmCHR1>>12))
+	dc.b	$01
+	dc.b	(((vmCHR2>>12)<<4)|(vmCHR1>>12))
+	dc.b	$00				; END
+_RLMenuHDMABG12NBADE
+	dc.b	127				; Overwrite CHRD/CHRE
+	dc.b	(((vmCHRD>>12)<<4)|(vmCHR1>>12))
+	dc.b	(RLVIntBottom-RLStatPixY-127)
+	dc.b	(((vmCHRD>>12)<<4)|(vmCHR1>>12))
+	dc.b	$01
+	dc.b	(((vmCHR2>>12)<<4)|(vmCHR1>>12))
+	dc.b	$00				; END
+
+
+;
+;	* * * * * * *       MENUDATA TABLES       * * * * * * *
+;
+
+;
+;	* * * * * * *       MAIN MENU       * * * * * * *
+;
+_RLMainMenuData
+	dc.l	RLMainMenuMap				; Menu VRAM Map
+	dc.l	RLMainMenuDef				; Menu VRAM Def
+	dc.l	RLMainMenuHDMATM			; Menu HDMATM Table
+	dc.w	<(_RLMMCInit-1)				; Menu InitCode
+	dc.w	<(_RLM9000-1)				; Menu BackCode
+;
+	dc.b	4					; #Items
+	dc.w	<(_RLMMCReStartLevel-1)			; ReStart Level
+	dc.w		0,0,(56<<8)+64
+	dc.w	<(_RLMMCNewGame-1)			; New Game
+	dc.w		0,0,(74<<8)+64
+	dc.w	<(_RLMenuToggle-1)			; Music On/Off
+_RLMainMenuMusicData
+	dc.w		_MusicOn,((5*32)+16),(93<<8)+64
+	dc.w	<(_RLMenuToggle-1)			; Sounds On/Off
+_RLMainMenuSoundsData
+	dc.w		_SoundsOn,((7*32)+18),(109<<8)+64
+;
+	dc.w	(pjWEAPON),<(_RLMMCWeaponCycle-1)	; Weapon Cycle
+	ifn	(0*DEBUG)
+	dc.w	(joyL|joyR),<(_RLMMCNextLevel-1)	; Next Level
+	dc.w	(joySELECT),<(_RLMMCHealth-1)		; Health 100%
+	endif
+	dc.w	0					; MenuKeys Terminator
+
+
+;
+;	* * * * * * *       SKILL MENU       * * * * * * *
+;
+_RLSkillMenuData
+	dc.l	RLSkillMenuMap				; Menu VRAM Map
+	dc.l	RLSkillMenuDef				; Menu VRAM Def
+	dc.l	RLSkillMenuHDMATM			; Menu HDMATM Table
+	dc.w	<(_RLSMCInit-1)				; Menu InitCode
+	dc.w	<(_RLSMCMainMenu-1)			; Menu BackCode
+;
+	dc.b	5					; #Items
+	dc.w	<(_RLSMCSkillLevel-1)			; I'm Too Young to Die
+	dc.w		0,0,(71<<8)+44
+	dc.w	<(_RLSMCSkillLevel-1)			; Not Too Rough
+	dc.w		0,0,(86<<8)+44
+	dc.w	<(_RLSMCSkillLevel-1)			; Hurt Me Plenty
+	dc.w		0,0,(101<<8)+44
+	dc.w	<(_RLSMCSkillLevel-1)			; Ultra-Violence
+	dc.w		0,0,(116<<8)+44
+	dc.w	<(_RLSMCSkillLevel-1)			; Nightmare
+	dc.w		0,0,(132<<8)+44
+;
+	dc.w	0					; MenuKeys Terminator
+
+
+;
+;	* * * * * * *       EPISODE MENU       * * * * * * *
+;
+_RLEpisodeMenuData
+	dc.l	RLEpisodeMenuMap			; Menu VRAM Map
+	dc.l	RLEpisodeMenuDef			; Menu VRAM Def
+	dc.l	RLEpisodeMenuHDMATM			; Menu HDMATM Table
+	dc.w	<(_RLEMCInit-1)				; Menu InitCode
+	dc.w	<(_RLEMCSkillMenu-1)			; Menu BackCode
+;
+	dc.b	3					; #Items
+	dc.w	<(_RLEMCEpisode-1)			; Knee-Deep In The Dead
+	dc.w		0,0,(80<<8)+36
+	dc.w	<(_RLEMCEpisode-1)			; The Shores Of Hell
+	dc.w		0,0,(97<<8)+36
+	dc.w	<(_RLEMCEpisode-1)			; Inferno
+	dc.w		0,0,(114<<8)+36
+;
+	dc.w	0					; MenuKeys Terminator
+
+
+;
+;	* * * * * * *       MAIN MENU DATA       * * * * * * *
+;
+	SECTION	RL_MAINMENU_DATA,RELOC,BASE=$80000000,RORG=$400000
+RLMainMenuMap
+	image	RLDATA:COMP/MainMenu.map0
+RLMainMenuDef
+	image	RLDATA:COMP/MainMenu.def0
+RLMainMenuHDMATM
+	dc.b	(RLVIntTop+((9+4)*8))		; BG1+BG2+OBJ at Top
+	dc.b	$13
+	dc.b	((RLViewCharY-(9+4))*8)		; BG1+OBJ below Bottom of Menu
+	dc.b	$11
+	dc.b	$01				; BG1+BG2+OBJ at StatusBar
+	dc.b	$13
+	dc.b	$00				; END
+
+;
+;	* * * * * * *       SKILL MENU DATA       * * * * * * *
+;
+	SECTION	RL_SKILLMENU_DATA,RELOC,BASE=$80000000,RORG=$400000
+RLSkillMenuMap
+	image	RLDATA:COMP/SkillMenu.map0
+RLSkillMenuDef
+	image	RLDATA:COMP/SkillMenu.def0
+RLSkillMenuHDMATM
+	dc.b	127				; BG1+BG2+OBJ at Top
+	dc.b	$13
+	dc.b	(RLVIntTop+((12+4)*8))-127
+	dc.b	$13
+	dc.b	((RLViewCharY-(12+4))*8)	; BG1+OBJ below Bottom of Menu
+	dc.b	$11
+	dc.b	$01				; BG1+BG2+OBJ at StatusBar
+	dc.b	$13
+	dc.b	$00				; END
+
+;
+;	* * * * * * *       EPISODE MENU DATA       * * * * * * *
+;
+	SECTION	RL_EPISODEMENU_DATA,RELOC,BASE=$80000000,RORG=$400000
+RLEpisodeMenuMap
+	image	RLDATA:COMP/EpisodeMenu.map0
+RLEpisodeMenuDef
+	image	RLDATA:COMP/EpisodeMenu.def0
+RLEpisodeMenuHDMATM
+	dc.b	(RLVIntTop+((10+4)*8))		; BG1+BG2+OBJ at Top
+	dc.b	$13
+	dc.b	((RLViewCharY-(10+4))*8)	; BG1+OBJ below Bottom of Menu
+	dc.b	$11
+	dc.b	$01				; BG1+BG2+OBJ at StatusBar
+	dc.b	$13
+	dc.b	$00				; END

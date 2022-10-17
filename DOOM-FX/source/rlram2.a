@@ -1,0 +1,31 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                                  RAM2 MEMORY       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+
+	extern	RAM2Start,RAM2End
+
+	SECTION	RAM2,LOAD=$7e2000,ORG=$7e2000,SIZE=$e000
+
+
+;
+;	* * * * * * *       RAM2 VARIABLES       * * * * * * *
+;
+RAM2Start
+
+;
+;	* * * * * * *       START OF WRAM CODE       * * * * * * *
+;
+_RLRAMCode
+
+
+;
+;	* * * * * * *       END OF RAM2 VARIABLES       * * * * * * *
+;
+RAM2End

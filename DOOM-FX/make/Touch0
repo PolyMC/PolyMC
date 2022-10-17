@@ -1,0 +1,9 @@
+.key FILE/A,TAG/A
+.bra {
+.ket }
+FailAt 21
+SEARCH >NIL: {FILE} {TAG}
+IF NOT WARN
+touch {FILE}
+ELSE
+ENDIF

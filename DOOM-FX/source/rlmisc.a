@@ -1,0 +1,183 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                      MISCELLANEOUS TASKS MODULE                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLMisc
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+	align	16,(_RLMisc-_RLMisc0)&$0f
+;
+;	* * * * * * *       REALITY_ENGINE MISCELLANEOUS TASKS       * * * * * * *
+;
+_RLMisc
+
+	CACHEB	_RLMisc
+;
+;	* * * * * * *       HANDLE GENERATION COUNTER WRAPAROUND       * * * * * * *
+;
+_RLMisc0
+	move	r0,(<RLCount)			; RLEngine Generation Counter
+	move	r6,#$f000			; Wrap at $F000
+;	with	r0
+	sub	r6
+	bcc	_RLMisc500
+;	with	r0
+	sub	r0
+	sbk					; Reset Generation Counter
+	move	r1,#<(_RLSectorData-rlsdSize+rlsdRLCount)
+	move	r13,#<_RLMisc100
+	move	r12,(<EMNUMSECTORS)
+_RLMisc100
+	with	r1				; Next SectorData
+	add	#rlsdSize
+	loop
+;	from	r0				; Reset SectorData.RLEngineCount
+	stw	(r1)
+
+;
+;	* * * * * * *       HANDLE LINE GENERATION COUNTER WRAPAROUND       * * * * * * *
+;
+_RLMisc500
+	move	r0,(<RLLineCount)		; RLEngine Line Generation Counter
+;	with	r0
+	sub	r6
+	bcc	_RLMisc1000
+;	with	r0
+	sub	r0
+	sbk					; Reset Line Generation Counter
+	move	r1,#<(_RLLineRLCounts-1)
+	move	r13,#<_RLMisc600
+	move	r12,(<EMNUMLINES)
+_RLMisc600
+	inc	r1				; Next Line
+;	from	r0				; Reset Line.RLEngineCount
+	stw	(r1)
+	loop
+	inc	r1
+
+	CACHEE	_RLMisc
+
+;
+;	* * * * * * *       GET FRAMES_PER_SECOND COUNTER       * * * * * * *
+;
+_RLMisc1000
+	move	r7,(<(FPSCount+RLGSUSNESXVarsO)) ; R7 = FPSCount
+
+;
+;	* * * * * * *       ANIMATE IMAGERY       * * * * * * *
+;
+	move	r0,(<RLFrame)			; Get Total #Frames
+;	with	r0				; Update Total
+	add	r7
+	sbk
+	inc	r0				; Round to nearest 15fps
+	inc	r0
+;	with	r0				; Animate at 15fps
+	lsr
+;	with	r0
+	lsr
+;	with	r0
+	lsr
+;	from	r0				; Anim2
+	to	r1
+	and	#$01
+;	with	r0				; Anim4
+	and	#$03
+;	with	r0
+	swap
+;	with	r0
+	add	r1
+	move	(<Anim2Frame),r0		; Anim2/Anim4
+
+;
+;	* * * * * * *       HANDLE COUNT-DOWN TIMERS       * * * * * * *
+;
+	move	r1,(<Timer1)			; 1 Second CountDown Timer
+	from	r1
+;	to	r0
+	sub	r7
+	bpl	_RLMisc1200			; Not done yet
+	nop
+	moves	r1,r1				; Previously 0?
+	bne	_RLMisc1200			; No
+;	with	r0				; =0
+	sub	r0
+	move	r0,#60				; ReStart Counter
+_RLMisc1200
+	sbk
+
+;
+;	* * * * * * *       INITIALIZE RGBANIM       * * * * * * *
+;
+	move	r0,#rgbNone			; No RGB Anim Change
+	move	(<RLRGB),r0
+
+;
+;	* * * * * * *       INITIALIZE SOUND COMMAND LIST       * * * * * * *
+;
+;	with	r0				; NO Sounds to Process!
+	sub	r0
+	move	(<RLNumSounds),r0
+;
+	move	r1,#<(PlayerHurt)		; Player NOT Hurt Yet
+	move	r0,#1
+;	from	r0
+	stb	(r1)
+
+;
+;	* * * * * * *       CALCULATE FRAMES_PER_SECOND <-> SPEED RATIO       * * * * * * *
+;
+	move	r0,#^_RLSpeedFPSRatios		; Bank of SpeedFPSRatios
+	romb
+	from	r7				; FPSCount
+;	to	r0
+	add	r7
+	move	r1,#<_RLSpeedFPSRatios		; Add Base of SpeedFPSRatios
+;	from	r0
+	to	r14
+	add	r1
+	getb					; Get SpeedFPSRatio from Table
+	inc	r14
+	getbh
+	move	(<FPSRatio),r0			; Save FPS<->Speed Ratio
+
+;
+;	* * * * * * *       HANDLE TASKS       * * * * * * *
+;
+	ife	usePATCH
+	iwt	r0,#<_RLDoTasks			; DO TASKS
+	endif
+	ifn	usePATCH
+	move	r0,(<PTRLDoTasks)		; DO TASKS
+	endif
+	ibt	r8,#^_RLDoTasks
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+
+;
+;	* * * * * * *       SPEED <-> FPS RATIOS       * * * * * * *
+;
+_RLSpeedFPSRatios
+fps	var	0
+	repeat	40
+	dc.w	(fps*20*$100)/60		; (20*fps) / 60
+fps	var	fps+1
+	endrep

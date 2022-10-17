@@ -1,0 +1,5 @@
+xg -pRLART:Status -dRLDATA:ART/Status -ms -fn -y0 -u00 -s27,4 -c15
+delete RLDATA:ART/Status.map0
+delete RLDATA:ART/Status.rgb
+xc -iRLDATA:ART/Status.def0 -oRLDATA:COMP/Status.def0
+touch rlstatus.a

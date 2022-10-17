@@ -1,0 +1,333 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                     ENEMIES HANDLING MODULE 3                      *
+;*                                                                    *
+;*                        ENEMIES TARGETTING 3                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+	include	rlenemies.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rX		equ	r2			; |DeltaX|
+rY		equ	r3			; |DeltaY|
+rDeltaX		equ	r5			; DeltaX
+rDeltaY		equ	r7			; DeltaY
+rSwap		equ	r8			; 0=DeltaX/DeltaY NOT Swapped
+rTAngle		equ	r9			; Angle to Target
+rTDistance	equ	rSwap			; Distance to Target
+;
+rEnemyData	equ	r10			; Pointer to EnemyData
+rEnemyTargets	equ	r11			; Pointer to Enemy Targetting List
+;
+rObj		equ	r12			; Pointer to RLObject
+rTObj		equ	r13			; Pointer to Target RLObject
+
+
+;
+;	* * * * * * *       ENEMIES TARGETTING       * * * * * * *
+;
+	align	16,(_RLE3T10000-_RLEnemiesTarget3Align)&$0f
+;
+;	>>>   FINISHED ENEMIES TARGETTING   <<<
+;
+_RLE3T10000
+	iwt	r0,#<_RLProjectilesMove		; HANDLE PROJECTILES MOVEMENT
+	ibt	r8,#^_RLProjectilesMove
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	>>>   START ENEMIES TARGETTING   <<<
+;
+_RLEnemiesTarget3
+	move	rEnemyTargets,#<(_RLEnemyTargets-1) ; Pointer to Enemy TargetList
+
+	CACHEB	_RLEnemiesTarget3
+_RLEnemiesTarget3Align
+;
+;	>>>   PROCESS NEXT ENEMY   <<<
+;
+_RLE3T2000
+	move	r1,#rloTObj			; Offset to rloTObj
+_RLE3T2200
+	inc	rEnemyTargets			; Move to Next Enemy
+;	to	r0				; Get Next Enemy
+	ldw	(rEnemyTargets)
+;
+;	>>>   GET TARGET OBJECT   <<<
+;
+;	from	r0				; Get TargetObject
+	to	rEnemyData
+	add	r1
+	bmi	_RLE3T10000			; No More Entries!
+;	to	r0
+	ldw	(rEnemyData)
+	dec	r0				; Discarded Earlier?
+	bmi	_RLE3T2200			; Yes!
+	inc	rEnemyTargets			; Move to Next Enemy
+;
+;	>>>   GET ANGLE TO TARGET   <<<
+;
+_RLE3T6000
+	move	r1,#-(rloTObj-(rloX+2))		; Move to ObjX
+	with	r1
+	add	rEnemyData
+	move	r2,#(rloX+2)+1			; Move to TObjX
+	with	r2
+	add	r0
+;
+;	to	r0
+	ldw	(r1)
+	to	rDeltaX				; DeltaX = (TargetX - EnemyX)
+	ldw	(r2)
+	with	rDeltaX
+	sub	r0
+;
+	move	r0,#((rloY+2)-(rloX+2))
+	with	r1
+	add	r0
+	with	r2
+	add	r0
+;	to	r0
+	ldw	(r1)				; DeltaY = (TargetY - EnemyY)
+	to	rDeltaY
+	ldw	(r2)
+	with	rDeltaY
+	sub	r0
+;
+	moves	rX,rDeltaX			; DeltaX = 0?
+	bne	_RLE3T6200			; No
+	moves	rDeltaY,rDeltaY			; Yes, Always 90 or 270 degrees
+	bpl	_RLE3T6100
+	move	rTAngle,#$c000			; 270 degrees
+	iwt	r15,#<_RLE3T6800
+	nop
+_RLE3T6100
+;	move	rTAngle,#$4000			; 90 degrees
+	dc.w	$4000
+	iwt	r15,#<_RLE3T6800
+	nop
+_RLE3T6200
+	bpl	_RLE3T6220
+	with	rX				; |DeltaX|
+	not
+	inc	rX
+_RLE3T6220
+	moves	rY,rDeltaY			; DeltaY = 0?
+	bne	_RLE3T6400
+	moves	rDeltaX,rDeltaX			; Always 0 or 180 degrees
+	with	rTAngle
+	bpl	_RLE3T6800			; 0 degrees
+	sub	rTAngle
+	move	rTAngle,#$8000			; 180 degrees
+	bra	_RLE3T6800
+_RLE3T6400
+	nop					; @FLUSH WITH IN PIPELINE@
+	bpl	_RLE3T6420+1			; Ensure Positive
+	from	rY				; |DeltaY|
+	to	rY
+	not
+	inc	rY
+;
+;	>>>   ENSURE RESULTS ARE FROM 0.0 TO 1.0   <<<
+;
+_RLE3T6420
+	from	rY				; |DeltaY| < |DeltaX|?
+;	to	r0				; @CMP@
+	sub	rX
+	bne	_RLE3T6440
+	with	rSwap				; Didn't Swap
+	move	r0,#$2000			; |DeltaY| = |DeltaX| (45 Degrees)
+	bra	_RLE3T6500
+	nop
+_RLE3T6440
+	blt	_RLE3T6460			; Yes
+	sub	rSwap
+	move	r0,rX				; No, Swap |DeltaY| / |DeltaX|
+	move	rX,rY
+	move	rY,r0
+	inc	rSwap
+;
+;	>>>   GET SLOPE |DELTAY| / |DELTAX|   <<<
+;
+_RLE3T6460
+	ibt	r0,#(^InvTable)			; Get InverseTable Entry
+	romb
+	from	rX				; Get |DeltaX|
+;	to	r0
+	add	rX
+	move	r1,#<(InvTable-2)
+;	from	r0
+	to	r14
+	add	r1
+	dec	r0
+	dec	r0
+	to	r6				; Get Inverse Value
+	getb
+	inc	r14
+;	with	r0				; Low/High Gear?
+	hib
+	with	r6
+	getbh
+	bne	_RLE3T6470			; High
+	from	rY				; Low
+;	to	r0
+	lmult
+	with	r4
+	bra	_RLE3T6480
+	to	r0
+_RLE3T6470
+;	to	r0				; <<1
+	add	rY
+;	with	r0
+	lmult
+	with	r4
+	hib
+;	with	r0
+	lob
+;	with	r0
+	swap
+;	with	r0
+	add	r4
+_RLE3T6480
+;	with	r0				; Get Index into |ArcTan| Table
+	lsr
+	lsr
+	lsr
+	lsr
+;	from	r0
+	to	r1
+	bic	#1
+	ibt	r0,#(^PArcTanTable)		; Get |ArcTan| Table Entry
+	romb
+	move	r0,#<(PArcTanTable)
+;	from	r0
+	to	r14
+	add	r1
+	getb					; Get Angle
+	inc	r14
+	dec	rSwap				; Were DeltaX/DeltaY Swapped?
+	alt1
+	bne	_RLE3T6500			; No
+	getb
+;
+;	>>>   DETERMINE QUADRANT   <<<
+;
+;	with	r0				; Yes, 90-Angle
+	not
+	inc	r0
+	move	r1,#$4000
+;	with	r0
+	add	r1
+_RLE3T6500
+	moves	rDeltaX,rDeltaX			; DeltaX >= 0?
+	bmi	_RLE3T6600			; Quad1 or Quad2
+;
+;	>>>   QUAD0 OR QUAD3   <<<
+;
+	moves	rDeltaY,rDeltaY			; DeltaY >= 0?
+	with	r0
+	bpl	_RLE3T6800			; Quad0
+	to	rTAngle
+	with	rTAngle				; Quad3 (360-Angle)
+	not
+	bra	_RLE3T6800
+	inc	rTAngle
+;
+;	>>>   QUAD1 OR QUAD2   <<<
+;
+_RLE3T6600
+;	moves	rDeltaY,rDeltaY			; DeltaY >= 0?
+	from	rDeltaY
+	bmi	_RLE3T6620			; Quad2
+	nop
+;	with	r0				; 180-Angle
+	not
+	inc	r0
+_RLE3T6620
+	move	r1,#$8000			; 180+Angle
+;	from	r0
+	to	rTAngle
+	add	r1
+;
+;	>>>   SAVE ANGLE TO TARGET   <<<
+;
+_RLE3T6800
+	move	r0,#-(rloTObj-rloAngle)		; Enemy Angle = Target Angle
+;	with	r0
+	add	rEnemyData
+	from	rTAngle
+	stw	(r0)
+
+;
+;	>>>   ESTIMATE DISTANCE TO TARGET   <<<
+;
+	moves	r0,rDeltaX			; |DeltaX|
+	bpl	_RLE3T7200
+	nop
+;	with	r0
+	not
+	inc	r0
+_RLE3T7200
+	moves	r1,rDeltaY			; |DeltaY|
+	bpl	_RLE3T7220
+	nop
+	with	r1
+	not
+	inc	r1
+_RLE3T7220
+;	from	r0				; |X| >= |Y|?
+	cmp	r1
+	bge	_RLE3T7400			; Yes
+	move	r0,r1				; |Y| > |X|
+;
+;	>>>   TOO FAR AWAY TO TARGET?   <<<
+;
+_RLE3T7400
+	move	r1,#edSightDistance		; Too Far Away?
+	with	r1
+	sub	r0
+	bmi	_RLE3T7800			; TOO FAR!  CAN'T TARGET!
+	inc	rEnemyData			; Move to Target Distance
+;
+;	>>>   IS PLAYER INVISIBLE?   <<<
+;
+_RLE3T7500
+	move	r1,#edInvisibleDistance		; Too Far Away?
+	with	r1
+	sub	r0
+	bpl	_RLE3T7900			; No!  Target Player!
+	inc	rEnemyData			; Move to Target Distance
+	move	r1,(<InvisibleCount)		; Is Player Invisibile?
+	dec	r1
+	bmi	_RLE3T7900			; No!  Target Player!
+	nop
+	dec	rEnemyData
+_RLE3T7800
+;	with	r0				; @RAM WRITE INVERTED@
+	sub	r0				; @WRITES TO TOBJ@
+;
+;	>>>   TARGET ACQUIRED!   <<<
+;
+_RLE3T7900
+	iwt	r15,#<_RLE3T2000		; Next Enemy
+;	from	r0
+	stw	(rEnemyData)
+
+	CACHEE	_RLEnemiesTarget3

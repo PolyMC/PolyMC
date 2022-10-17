@@ -1,0 +1,429 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                      ENEMIES HANDLING MODULE 6                     *
+;*                                                                    *
+;*                          ENEMIES BIRTHING                          *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+	include	rlenemies.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rEnemyBirths	equ	r6			; Pointer to Enemy Birth List
+rX		equ	r7			; Birth RLObject X Coordinate
+rY		equ	r8			; Birth RLObject Y Coordinate
+;rSector	equ	r6			; RLObject Sector
+rPObj		equ	r10			; Pointer to Parent RLObject
+rBirthCode	equ	r11			; Pointer to Enemy Birth Code
+rObj		equ	r12			; Pointer to Birth RLObject
+rMObjData	equ	r13			; Pointer to MObjData
+
+;
+;	* * * * * * *       ENEMIES BIRTHING       * * * * * * *
+;
+	align	16,(_RLEB10000-_RLEnemiesBirthAlign)&$0f
+
+;
+;	>>>   FINISHED ENEMIES BIRTHS   <<<
+;
+_RLEB10000
+	ife	usePATCH
+	iwt	r0,#<_RLPlayer			; HANDLE PLAYER
+	endif
+	ifn	usePATCH
+	move	r0,(<PTRLPlayer)		; HANDLE PLAYER
+	endif
+	ibt	r8,#^_RLPlayer
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	>>>   START ENEMIES BIRTHING   <<<
+;
+_RLEnemiesBirth
+	move	rEnemyBirths,#<_RLEnemyBirths	; Pointer to Enemy BirthList
+;
+;	>>>   PROCESS NEXT ENEMY   <<<
+;
+_RLEB2000
+;	to	r0				; Get Enemy Birth MObjData
+	ldw	(rEnemyBirths)
+	moves	rMObjData,r0
+	beq	_RLEB10000			; No More Enemies!
+	inc	rEnemyBirths
+	inc	rEnemyBirths
+	to	rPObj				; Get Parent Enemy RLObject
+	ldw	(rEnemyBirths)
+	inc	rEnemyBirths
+	inc	rEnemyBirths
+	to	rBirthCode			; Get Enemy Birth Code
+	ldw	(rEnemyBirths)
+	inc	rEnemyBirths
+	inc	rEnemyBirths
+;
+	move	r0,(<RLNumPObjs)		; Get #ProjectileRLObjects
+	move	r1,#(MaxRLMoveProjectiles-1)
+;	with	r0
+	sub	r1
+	bge	_RLEB10000
+	nop
+;
+	move	r0,(<RLNumMObjs)		; Get #MovableRLObjects
+	move	r1,#(MaxRLMObjects-8)		; Too Many RLMObjs?
+;	from	r0
+	cmp	r1
+	bge	_RLEB10000			; Yes!  Can't Add Anymore!
+	inc	r0				; MovableRLObjects++
+;	from	r0
+	sbk
+;
+;	>>>   BIRTH THIS ENEMY!   <<<
+;
+	move	r2,#<(_RLMObjects-rloSize)	; RLMovableObjects
+	move	r1,#rloSize			; Size of RLMovableObject
+	move	(<ENEnemy),rEnemyBirths		; Save Enemy Births List Index
+
+	CACHEB	_RLEnemiesBirth
+_RLEnemiesBirthAlign
+
+;
+;	>>>   FIND EMPTY MOVABLE OBJECT   <<<
+;
+_RLEB3000
+	with	r2				; Move to Next MObj
+	add	r1
+;	to	r0				; Find Empty MObj
+	ldw	(r2)
+	inc	r0
+	bne	_RLEB3000+1			; Check Next MObj
+	move	rObj,r2				; Save MObj
+;
+;	>>>   FIND EMPTY MOVABLE OBJECT PROCESSING SLOT   <<<
+;
+	move	r1,#<(_RLMObjs-1)		; MovableObjects Processing List
+_RLEB3200
+	inc	r1
+;	to	r0				; Find Empty MObj Processing Slot
+	ldw	(r1)
+	inc	r0
+	bne	_RLEB3200			; Check Next MObj
+	inc	r1
+;
+;	>>>   ADD MOVABLE OBJECT TO PROCESSING LIST   <<<
+;
+	dec	rObj				; Save RLObject
+	dec	r1
+	from	rObj
+	stw	(r1)
+	inc	rObj
+	move	r0,(<RLNumPMObjs)		; #Processing MObjs++
+	inc	r0
+;	from	r0
+	sbk
+;
+;	>>>   INITIALIZE MOVABLE OBJECT   <<<
+;
+	move	r0,#^_MObjData			; MObjData Bank
+	romb
+	from	rMObjData			; Get Birth State
+	to	r14
+	add	#rlmodBirthS
+;
+	move	r4,#rloMData			; Move to MObjData
+	with	r4
+	add	rObj
+	from	rMObjData			; MObjData
+	stw	(r4)
+	dec	r4
+	dec	r4
+	getb					; State
+	inc	r14
+	getbh
+	inc	r14
+;	from	r0
+	stw	(r4)
+	dec	r4
+	dec	r4
+;	with	r0				; AnimCount/StateCount
+	sub	r0
+;	from	r0
+	stw	(r4)
+	dec	r4
+	dec	r4
+	getb					; Animation
+	inc	r14
+	to	r2
+	getbh
+	with	r14
+	sub	#((rlmodBirthA+1)-rlmodHealth)
+	from	r2
+	stw	(r4)
+	with	r4				; Health
+	add	#(rloHealth-rloAnim)
+	getb
+	inc	r14
+	getbh
+	move	r3,#(rlmodBirthFlags-(rlmodHealth+1))
+	with	r3
+	add	r14
+	from	r2				; Get Animation First Frame
+	to	r14
+	add	#1
+;	from	r0
+	stw	(r4)
+	inc	r4
+	inc	r4
+;	with	r0				; Target RLObject
+	sub	r0
+;	from	r0
+	stw	(r4)
+	with	r4				; Image
+	sub	#(rloTObj-rloImage)
+	getb
+	move	r14,r3				; Get BirthFlags/BirthType
+;	from	r0				; Image
+	stb	(r4)
+	getb					; BirthFlags
+	inc	r14
+	getbh					; BirthType
+	from	rObj
+	to	r4
+	add	#rloFlags
+;
+;	>>>   CALL ENEMY BIRTH ROUTINE   <<<
+;
+	jmp	rBirthCode
+;	from	r0				; Flags/Type
+	stw	(r4)
+
+;
+;	>>>   ADD RLOBJECT TO NEW SECTOR   <<<
+;
+_RLEB5000
+	link	#4				; Add RLObject to Sector's ObjectList
+	iwt	r15,#<_RLAddSectorObject
+	nop
+;
+;	>>>   START SOUND EFFECT   <<<
+;
+	move	r0,#^_MObjData			; MObjData Bank
+	romb
+	move	r0,#rloMData			; Get Pointer to MObjData
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	move	r1,#rlmodBirthSound		; Get Birth Sound Effect
+;	from	r0
+	to	r14
+	add	r1
+	from	rObj				; Get Sound Origin Coordinates
+;	to	r0
+	add	#(rloX+2)
+	to	r4
+	ldw	(r0)
+	to	r3				; Get SoundEffect#
+	getb
+	inc	r14
+;	with	r0
+	add	#((rloY+2)-(rloX+2))
+	to	r6
+	ldw	(r0)
+	with	r3				; Get SoundEffect#
+	getbh
+	link	#4
+	iwt	r15,#<_RLSoundEffect
+	dec	r3
+;
+;	>>>   NEXT ENEMY BIRTH   <<<
+;
+	move	rEnemyBirths,(<ENEnemy)		; Restore Enemy Births List Index
+	iwt	r15,#<_RLEB2000+1
+;	to	r0				; Get Next Enemy
+	ldw	(rEnemyBirths)
+
+;
+;	* * * * * * *       ENEMIES BIRTHING SUBROUTINES       * * * * * * *
+;
+
+;
+;	>>>   BIRTH A MISSILE   <<<
+;
+_RLEBirthMissile
+;
+;	>>>   BIRTH A FIREBALL   <<<
+;
+_RLEBirthFireBall
+	move	r3,rPObj			; R3 = Source Object
+	move	r0,#rloTObj			; R5 = Target Object
+;	with	r0
+	add	rPObj
+	to	r5
+	ldw	(r0)
+	move	r0,#rloAngle			; Get Angle to Target
+;	with	r0
+	add	rPObj
+	link	#4
+	iwt	r15,#<_RLGetObjTObjDistance	; Get Distance from Enemy to Target
+;	to	r0
+	ldw	(r0)
+;
+;	from	r0				; R4 = Distance*2
+	to	r4
+	add	r0
+;
+	move	r3,#rloVXY			; Velocity X/Y
+	with	r3
+	add	rObj
+	move	r0,#($8000+(16>>1))
+;	from	r0
+	stw	(r3)
+	dec	r3
+	dec	r3
+;
+	ibt	r0,#(^InvTable)			; Get InverseTable Entry
+	romb
+	move	r0,#<(InvTable-2)
+;	from	r0
+	to	r14
+	add	r4
+;
+	move	r1,#rloZ			; ParentZ
+	from	r1
+;	to	r0
+	add	rPObj
+	to	r2
+	ldw	(r0)
+	move	r0,#rloTObj			; TargetObject
+;	with	r0
+	add	rPObj
+;	to	r0
+	ldw	(r0)
+;	with	r0				; TargetZ
+	add	r1
+;	to	r0
+	ldw	(r0)
+;	with	r0				; R0 = (TargetZ-ParentZ)
+	sub	r2
+;
+;	>>>   GET VELOCITY Z ((dZ*VelocityXY)/Distance)   <<<
+;
+;	with	r0				; R2 = (DZ*VelocityXY)
+	add	r0
+	add	r0
+	add	r0
+	add	r0
+;	from	r0				; <<1 for Divide
+	to	r2
+	add	r0
+;
+	getb
+	inc	r14
+	dec	r4
+	dec	r4
+	with	r4				; Low/High Gear?
+	hib
+	to	r6
+	getbh
+	bne	_RLEBirthFireBallE		; High
+	from	r2				; Low
+;	to	r0
+	alt1
+	bra	_RLEBirthFireBallR
+	fmult
+_RLEBirthFireBallE
+;	to	r0
+	add	r2
+;	with	r0
+	lmult
+_RLEBirthFireBallR
+;	from	r0				; Velocity Z
+	stw	(r3)
+	with	r3				; Z Coordinate Fraction
+	add	#(rloZF-rloVZ)
+;	with	r0
+	sub	r0
+;	from	r0
+	stw	(r3)
+;
+;	>>>   BIRTH AN ENEMY   <<<
+;
+_RLEBirthEnemy
+	from	rPObj				; R3 = Parent RLObj
+	to	r3
+	add	#(rloX+2)
+	from	rObj				; R2 = Birth RLObj
+	to	r2
+	add	#(rloX)
+;	with	r0				; X Coordinate
+	sub	r0
+;	from	r0
+	stw	(r2)
+	inc	r2
+	inc	r2
+	to	rX				; BirthX = ParentX
+	ldw	(r3)
+	from	rX
+	stw	(r2)
+	inc	r2				; Y Coordinate
+	inc	r2
+	with	r3
+	add	#((rloY+2)-(rloX+2))
+;	with	r0
+	sub	r0
+;	from	r0
+	stw	(r2)
+	inc	r2
+	inc	r2
+	to	rY				; BirthY = ParentY
+	ldw	(r3)
+	from	rY
+	stw	(r2)
+	inc	r2				; Z Coordinate
+	inc	r2
+	inc	r3
+	inc	r3
+;	to	r0				; BirthZ = ParentZ
+	ldw	(r3)
+	move	r1,#(56/2)
+;	with	r0
+	add	r1
+;	from	r0
+	stw	(r2)
+	move	r1,#(rloAngle-rloZ)		; Angle
+	with	r3
+	add	r1
+	with	r2
+	add	r1
+;	to	r0				; BirthAngle = ParentAngle
+	ldw	(r3)
+;	from	r0
+	stw	(r2)
+	move	r1,#(rloSector-rloAngle)	; Sector
+	with	r3
+	add	r1
+	with	r2
+	add	r1
+;	to	r0				; BirthSector = ParentSector
+	ldb	(r3)
+;	from	r0
+	stb	(r2)
+	iwt	r15,#<_RLEB5000			; Finish Birthing MObj
+	nop
+
+	CACHEE	_RLEnemiesBirth

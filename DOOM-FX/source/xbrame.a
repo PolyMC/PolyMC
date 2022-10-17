@@ -1,0 +1,115 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                            XBAND RAME MEMORY       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+	extern	XBRAMEStart,XBRAMEEnd
+
+	SECTION	XBRAME,LOAD=XBAND_END,ORG=XBAND_END,SIZE=$2c00-<XBAND_END
+
+;
+;	* * * * * * *       XBAND RAME VARIABLES       * * * * * * *
+;
+XBRAMEStart
+
+;
+;	* * * * * * *       GAME PATCH VARIABLES       * * * * * * *
+;
+XBTimeOut		ds	4	; TimeOut Tick Counter
+XBRegistered		ds	2	; Registered for Two Player Game
+XBEverFinish1P		ds	2	; Ever Registered During This Practice Game
+XBStartGameTicks	ds	4	; Starting Tick Counter
+;
+XBGameType		ds.w	1	; 0=Modem Two Player,1=Single Player Practice
+XBMaster		ds.w	1	; 1=Master,0=Slave
+XBPlayer		ds.w	1	; 1=Player1,0=Player2
+;
+XBFPSCount		ds.w	1	; Maximum of Master/Slave FPSCounts
+;
+XBInfoShown		ds.w	1	; 1=XBand Info Screen Shown
+
+
+	ifn	DEBUG
+XBPockyEcho		ds.b	1	; 1=Pocky Echos ALL Bytes Sent
+	endif
+
+XBKeyBufferI		ds.b	1	; KeyBoard Buffer Index Start
+XBKeyBufferE		ds.b	1	; KeyBoard Buffer Index End
+XBKeyBuffer		ds.b	256	; KeyBoard Buffer
+
+;
+;	* * * * * * *       XBAND PATCH VECTOR TABLE       * * * * * * *
+;
+	align	32,0
+XBANDPVT		ds.l	11	; 11 Patches
+
+;
+;	* * * * * * *       COMMUNICATIONS VARIABLES       * * * * * * *
+;
+XBModemBusy		ds	2
+
+XBGameLoopCounter	ds	2		; counts how many times XBSwapData is called
+XBGameLoopCounter0	ds	2		; Count on Entry to _RLMain0
+
+XBSendPacket		ds	Packet_Size	; the packet to send
+
+XBPacketOut		ds	Packet_Size	; used privately by XBGetPacket (to protect the value of XBRemotePacketOut)
+
+XBModemErr		ds	2		; set when there's an overrun or other modem error
+
+XBModemInBuffer		ds	XBModemBufferSize	; modem buffer
+XBModemInHead		ds	2			; data goes in here. Nothing can touch this besides XBReadModem
+XBModemInTail		ds	2			; data comes out here.
+
+XBModemOutBuffer	ds	XBModemBufferSize	; modem buffer
+XBModemOutHead		ds	2			; data goes in here. Nothing can touch this besides XBReadModem
+XBModemOutTail		ds	2			; data comes out here.
+
+*
+* I/O Parameters
+*
+* These are the only variables that need to be seen outside of this module.
+*
+
+XBTicks			ds	2		; READ ONLY
+
+XBLocalPacket		ds	8		; Locally Generated Packet
+XBMasterPacket		ds	8		; Master's Packet
+XBSlavePacket		ds	8		; Slave's Packet
+
+
+;
+;	* * * * * * *       END OF XBAND RAME VARIABLES       * * * * * * *
+;
+XBRAMEEnd
+
+
+	SECTION	XBANDRAM,LOAD=$00E02C88,ORG=$E02C88
+
+GR_size			ds.4	1
+GR_gameID		ds.4	1
+GR_connectPhase		ds.b	1
+GR_errorWhere		ds.b	1
+GR_gameError		ds.w	1
+GR_localPlayer1Result	ds.4	1
+GR_localPlayer2Result	ds.4	1
+GR_remotePlayer1Result	ds.4	1
+GR_remotePlayer2Result	ds.4	1
+GR_playTime		ds.4	1
+GR_dblDDataPtr		ds.4	1
+GR_dblDDataSize		ds.4	1
+
+GR_LocalGameError	ds.w	1
+GR_ErrorRecovers	ds.w	1
+GR_ChecksumErrors	ds.b	1
+GR_Timeouts		ds.b	1
+GR_FrameErrors		ds.b	1
+GR_OverrunErrors	ds.b	1	; this stuff is recorded in the server report

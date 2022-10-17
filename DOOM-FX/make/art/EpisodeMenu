@@ -1,0 +1,5 @@
+xg -pRLART:EpisodeMenu -dRLDATA:ART/EpisodeMenu -ms -q1 -s32,10 -c15
+delete RLDATA:ART/EpisodeMenu.rgb
+xc -iRLDATA:ART/EpisodeMenu.map0 -oRLDATA:COMP/EpisodeMenu.map0
+xc -iRLDATA:ART/EpisodeMenu.def0 -oRLDATA:COMP/EpisodeMenu.def0
+touch rlMenus.a

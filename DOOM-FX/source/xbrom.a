@@ -1,0 +1,34 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                               XBAND BOOT ROM       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+	SECTION	XBANDROM,LOAD=$00D00000,ORG=$D00000
+
+GR_size			ds.4	1
+GR_gameID		ds.4	1
+GR_connectPhase		ds.b	1
+GR_errorWhere		ds.b	1
+GR_gameError		ds.w	1
+GR_localPlayer1Result	ds.4	1
+GR_localPlayer2Result	ds.4	1
+GR_remotePlayer1Result	ds.4	1
+GR_remotePlayer2Result	ds.4	1
+GR_playTime		ds.4	1
+GR_dblDDataPtr		ds.4	1
+GR_dblDDataSize		ds.4	1
+
+GR_LocalGameError	ds.w	1
+GR_ErrorRecovers	ds.w	1
+GR_ChecksumErrors	ds.b	1
+GR_Timeouts		ds.b	1
+GR_FrameErrors		ds.b	1
+GR_OverrunErrors	ds.b	1	; this stuff is recorded in the server report

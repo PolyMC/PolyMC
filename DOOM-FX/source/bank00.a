@@ -1,0 +1,143 @@
+;**********************************************************************
+;*                                                                    *
+;*                      P R O J E C T :   R A G E                     *
+;*                                                                    *
+;*                        BANK00 SLOWCODE MODULE                      *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+
+	public	RESET0,RESET
+	extern	BANK00End
+
+
+	SECTION	BANK00,LOAD=$80000100,ORG=$008100
+
+;
+;	* * * * * * *       RESET VECTOR INTERRUPT       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	ife	(DEBUGSCR|(1-ROM))
+HALTERROR
+	endif
+RESET0
+	sei
+	cld
+	mode	'Eax!'			; Native Mode
+
+;
+;	* * * * * * *       MEMORY TEST       * * * * * * *
+;
+	ifn	MEMTEST
+MemTestC
+	MemTestMac	$C8000
+MemTestD
+	MemTestMac	$D8000
+MemTestE
+	MemTestMac	$E8000
+MemTestF
+	MemTestMac	$F8000
+	HALT	#0
+	endif
+
+	ifn	DEBUG
+	lda	#$00			; Disable NMIs
+	ife	NOAICESE
+	sta	>NMITIMEN_XS
+	endif
+	sta	>NMITIMEN
+	lda	#$80			; Disable DISPLAY (Prevent Glitch)
+	sta	>INIDISP
+	jml	>RESET
+	endif
+;
+	ife	DEBUG
+;	stz	NMITIMEN		; Disable NMIs
+	lda	#$80			; Disable DISPLAY (Prevent Glitch)
+	sta	INIDISP
+	jml	>RESET
+	endif
+
+
+	dc.b	'Rage/Reality Engine written by Randy Linden.',0
+	dc.b	'Special thanks to my loving wife, Jodi Harvey.',0
+
+
+;
+;	* * * * * * *       MEMORY TEST MACRO       * * * * * * *
+;
+	ifn	MEMTEST
+MemTestMac	MACRO
+	mode	'aX!'
+	ldx	#0			; Fill Memory with $FFs
+	lda	#$ff
+.0
+	sta	>@0,x
+	sta	>@0,x
+	sta	>@0,x
+	sta	>@0,x
+	inx
+	bpl	.0
+;
+	ldx	#0			; Check Memory for $FFs
+.1
+	cmp	>@0,x
+	beq	.2
+	HALT	#1
+.2
+	inx
+	bpl	.1
+;
+	ldx	#0
+.3
+	lda	#0			; Set ONE Byte of Memory to $00
+	sta	>@0,x
+	sta	>@0,x
+	sta	>@0,x
+	sta	>@0,x
+	phx
+.3a
+	mode	'A!'			; Check ALL Previous Memory for $00s
+	txa
+	sec
+	sbc	#$100
+	tax
+	mode	'a!'
+	bmi	.3e
+	lda	>@0,x
+	beq	.3a
+	HALT	#2
+.3e
+	plx
+	phx
+.4
+	mode	'A!'
+	txa
+	clc
+	adc	#$100
+	tax
+	mode	'a!'
+	bmi	.5
+	lda	>@0,x			; Check ALL Next Memory for $FFs
+	cmp	#$ff
+	beq	.4
+	HALT	#3
+.5
+	plx
+	inx				; NEXT BYTE
+	stz	CGADD
+	txa
+	sta	CGDATA
+	sta	CGDATA
+	bpl	.3
+	endmac
+	endif
+
+;
+;	* * * * * * *       END OF BANK00       * * * * * * *
+;
+BANK00End

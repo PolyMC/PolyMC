@@ -1,0 +1,106 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                        TOGGLES HANDLING MODULE                     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+
+	SECTION	LEVEL
+;
+;	* * * * * * *       INITIALIZE TOGGLES       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitToggles
+	mode	'AX!'
+	lda	#-1				; NO TOGGLES RUNNING!
+	ldx	#((MaxRLToggles-1)*rlttSize)
+_RITT200
+	sta	>_RLToggleTasks+rlttCount,x
+	dex					; Next Toggle
+	dex
+	dex
+	dex
+	bpl	_RITT200
+	rtl
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rTaskData	equ	r8			; Pointer to TaskData
+rTaskPtr	equ	r10			; Pointer to RLTask Structure
+rTaskCount	equ	r13			; TaskCounter
+
+
+;
+;	* * * * * * *       ADD A TOGGLE       * * * * * * *
+;
+;	R3 = LineFlag Address
+;
+_RLAddToggle
+	move	rTaskData,#<(_RLToggleTasks+1)	; Pointer to ToggleTaskData
+_RATT200
+;	to	r0				; Get Toggle CountDown
+	ldb	(rTaskData)
+;	with	r0				; ToggleTask Active?
+	sex
+	bmi	_RATT500			; No!
+	with	rTaskData			; Yes, Move to Next ToggleTask
+	add	#rlttSize
+	bra	_RATT200+1
+	alt1
+_RATT500
+	to	r1				; @WITH IN PIPELINE@
+	dec	rTaskData
+	move	r0,#rlttCountTime		; TOGGLE TIME
+;	from	r0
+	stw	(rTaskData)
+	inc	r1				; LINEFLAGS
+	from	r3
+	stw	(r1)
+	move	r9,#<(_TToggle-1)		; TaskCode-1
+	iwt	r15,#<_RLAddTask		; Allocate a Task
+	nop
+
+;
+;	* * * * * * *       TOGGLE TASK CODE       * * * * * * *
+;
+_TToggle
+	from	rTaskPtr			 ; Get TaskData
+;	to	r0
+	add	#rlmData
+	to	rTaskData
+	ldw	(r0)
+	move	r1,(<(FPSCount+RLGSUSNESXVarsO)) ; Get FPSCount
+;
+;	>>>   TOGGLE COUNT EXPIRED?   <<<
+;
+;	to	r0				; Get Toggle CountDown
+	ldw	(rTaskData)
+;	with	r0				; Toggle CountDown -= FPSCounter
+	sub	r1
+	bmi	_TToggle2			; Time Up!  Switch the Toggle!
+;	from	r0
+	sbk
+	jmp	r11				; Return to Caller
+_TToggle2
+	inc	rTaskData			; Get Toggle LineFlag Address
+	inc	rTaskData
+	to	r1
+	ldw	(rTaskData)
+;	to	r0				; Get LineFlags
+	ldb	(r1)
+;	with	r0				; NOT USED!
+	bic	#rllfUsed
+;	from	r0
+	stb	(r1)
+	iwt	r15,#<_RLRemTask		; Remove the Task
+	nop

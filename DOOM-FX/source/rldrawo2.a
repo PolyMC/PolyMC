@@ -1,0 +1,370 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                      ENGINE OBJECT DRAW MODULE (FASTER)            *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLDrawObjsA
+	public	_RLDrawObjsB
+	public	_RLDrawObjsC
+	public	_RLDrawObjs
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+;
+;	* * * * * * *       REALITY_ENGINE DRAW OBJECTS       * * * * * * *
+;
+;	In LOW-Detail mode, each 2-pixels wide are from a single OBJECT PLOT
+;	Strip.
+;
+
+rPixelCount	equ	r3			; Pixel SkipCount/RepeatCount
+;
+rColourMapB	equ	r4			; Bank of ColourMap Data
+rColourMap	equ	r5			; ColourMap
+;
+rPixScaleF	equ	r6			; SCN->RL Scale Fraction
+rPixScale	equ	r7			; SCN->RL Scale Integer
+;
+rObjF		equ	r8			; SCN->RL Obj Fraction
+rObj		equ	r9			; Pointer to ObjTextureData
+rObjB		equ	r10			; Bank of ObjTextureData
+;
+rPlotDataPtr	equ	r11			; Ptr within Current ObjPlotData
+
+
+	align	16,(_RLDrawObjsC-_RLDrawObjsLowAlign)&$0f
+
+_RLDrawObjsC
+	move	r2,#<_RLDrawMiscC		; _RLDrawSpritesC
+	bra	_RLDrawObjs
+	nop
+_RLDrawObjsB
+	move	r2,#<_RLDrawMiscB		; _RLDrawSpritesB
+	bra	_RLDrawObjs
+	nop
+_RLDrawObjsA
+	move	r2,#<_RLDrawMiscA		; _RLDrawSpritesA
+_RLDrawObjs
+	move	(<RLNextCode),r2		; Save address of Next Code Jump
+	move	rColourMapB,#^RLColourMaps	; Bank of ColourMap Data
+	move	rPlotDataPtr,(<TRObjPlotPtr)	; OBJ PLOT DATA END
+;
+	ibt	r0,#%00000000			; Transp.On,NoDither,8-BitColour,NoSpr.
+	cmode
+;
+	iwt	r13,#<_DOL3200+1		; ImageOffset Address
+;
+	ifn	useCHECKOBJPLOTDATA
+	move	r2,#0
+	endif
+
+;
+;	* * * * * * *       DRAW OBJS IN LOW DETAIL       * * * * * * *
+;
+_RLDrawObjsLow
+	bra	_DOL8000-1			; @SET UP CACHE@
+	nop
+
+;
+;	>>>   DRAW OBJECTS COMPLETE   <<<
+;
+_DOL1000
+	move	r0,(<RLNextCode)		; Begin Execution of Next Code
+	ibt	r8,#^_RLDrawMiscA		; _RLDrawSpritesA
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+
+	CACHEB	_RLDrawObjsLow
+_RLDrawObjsLowAlign
+;
+;	>>>   GET OBJPLOT GROUPHEADER   <<<
+;
+_DOL8000
+	dec	rPlotDataPtr			; Move to Scale
+	dec	rPlotDataPtr
+;	to	r0				; Get Scale
+	ldw	(rPlotDataPtr)
+	moves	r0,r0
+;	from	r0
+	to	rPixScale
+	beq	_DOL1000			; End of ObjPlotData!
+	hib
+;	with	r0
+	lob
+;	from	r0
+	to	rPixScaleF
+	swap
+	inc	r0
+	with	rPlotDataPtr
+	sub	#4
+;
+;	>>>   GET PIXELSTRIP PLOT INFORMATION   <<<
+;
+_DOL7000
+	dec	rPlotDataPtr			; Get WorldZFraction/#Pixels
+	dec	rPlotDataPtr
+;	to	r0
+	ldw	(rPlotDataPtr)
+
+	ifn	useCHECKOBJPLOTDATA
+	inc	r2				; Error with ObjPlotData?
+	bpl	.0
+	HALTGSU	#$21				; YES!
+.0
+	endif
+
+;	from	r0				; R12 = #Pixels To Draw
+	to	r12
+	hib
+;	from	r0				; Get WorldZ DrawFraction
+	to	rObjF
+	beq	_DOL8000			; End of ObjPlotGroup!
+	lob
+	with	rObjF
+	swap
+;
+	dec	rPlotDataPtr			; Get Bank of PixelData/ColourMap
+	dec	rPlotDataPtr
+;	to	r0
+	ldw	(rPlotDataPtr)
+	romb
+	move	rObjB,r0
+;	with	r0				; Get Address of ColourMap
+	hib
+;	from	r0
+	to	rColourMap
+	swap
+;
+	dec	rPlotDataPtr			; Get Address of PixelData
+	dec	rPlotDataPtr
+	to	r14
+	ldw	(rPlotDataPtr)
+;
+	dec	rPlotDataPtr			; Get Starting X/Y Coordinates
+	dec	rPlotDataPtr
+;	to	r0
+	ldw	(rPlotDataPtr)
+;	from	r0
+	to	r1
+	lob
+	with	r1
+	add	r1
+;	from	r0
+	to	r2
+	hib
+
+	ifn	useCHECKOBJPLOTDATA
+	move	r0,#(RLViewPixY-1)
+;	from	r0
+	cmp	r2
+	bge	.2
+	HALTGSU	#$23
+.2
+	endif
+
+	dec	rPlotDataPtr			; Get ImageOffset
+	dec	rPlotDataPtr
+;	to	r0
+	ldb	(rPlotDataPtr)
+	moves	rPixelCount,r0
+	beq	_DOL4200+1			; No ImageOffset
+	getb
+;
+;	>>>   ADJUST FOR IMAGE OFFSET   <<<
+;
+_DOL3200
+	getb					; <REPEAT>/<UNIQUE>?
+_DOL3220
+;	with	r0
+	sex
+	bmi	_DOL3600			; <REPEAT>
+	inc	r14
+;
+;	>>>   UNIQUE   <<<
+;
+	with	r14
+	add	r0
+	with	rPixelCount
+	sub	r0
+	dec	rPixelCount
+	bpl	_DOL3200
+	inc	rPixelCount
+	beq	_DOL4100
+	with	rPixelCount
+	not
+	inc	rPixelCount
+	with	r14
+	bra	_DOL4400
+	sub	rPixelCount
+;
+;	>>>   REPEAT   <<<
+;
+_DOL3600
+	inc	r14
+	with	rPixelCount			; PixelCount += -RepeatCount
+	add	r0
+	dec	rPixelCount
+	bpl	_DOL3200
+	inc	rPixelCount
+	bne	_DOL5200			; <REPEAT> RUNNING
+;
+;	>>>   STRIP PIXEL SLOW   <<<
+;
+_DOL4100
+	nop					; @FLUSH WITH IN PIPELINE@
+_DOL4200
+	getb					; <REPEAT>/<UNIQUE>?
+	inc	r14
+;	from	r0				; UniqueCount/RepeatCount
+	to	rPixelCount
+	sex
+	bmi	_DOL5400+1			; <REPEAT>
+;
+;	>>>   UNIQUE   <<<
+;
+_DOL4400
+	move	rObj,r14
+	from	rColourMapB
+	romb
+	getb					; Get Colour
+;	from	r0
+	to	r14
+	add	rColourMap
+	from	rObjB
+	romb
+	getc
+_DOL4600
+	plot					; Draw the PixelBlock
+	plot
+	dec	r1				; Move back to correct X Coordinate
+	dec	r12				; One less ScreenPixel to Draw
+	beq	_DOL9000
+	dec	r1
+	with	rObjF				; Move to next Pixel
+	add	rPixScaleF
+	from	rPixScale
+;	to	r0
+	adc	#0
+	beq	_DOL4600
+	dec	r2				; Move to next Y Coordinate
+;	from	r0
+	to	r14
+	add	rObj
+	with	rPixelCount
+	sub	r0
+	dec	rPixelCount
+	bpl	_DOL4400
+	inc	rPixelCount
+;
+;	>>>   UNIQUE DONE   <<<
+;
+	beq	_DOL4100
+	with	rPixelCount
+	not
+	inc	rPixelCount
+	with	r14
+	bra	_DOL3200
+	sub	rPixelCount
+
+;
+;	>>>   REPEAT   <<<
+;
+_DOL5200
+	dec	r14
+_DOL5400
+	move	rObj,r14
+	from	rColourMapB
+	romb
+	getb					; Get Colour
+;	with	r0				; <REPEAT>/<SKIP>?
+	lob
+	beq	_DOL6200			; <SKIP>
+;	from	r0
+	to	r14
+	add	rColourMap
+	inc	rObj
+	from	rObjB
+	romb
+	getc
+	move	r14,rObj
+_DOL5600
+	plot					; Draw the PixelBlock
+	plot
+	dec	r1				; Move back to correct X Coordinate
+	dec	r12				; One less ScreenPixel to Draw
+	beq	_DOL9000
+	dec	r1
+	with	rObjF				; Move to next Pixel
+	add	rPixScaleF
+	from	rPixScale
+;	to	r0
+	adc	#0
+	beq	_DOL5600
+	dec	r2				; Move to next Y Coordinate
+	with	rPixelCount
+	add	r0
+	bmi	_DOL5600
+	nop
+;
+;	>>>   REPEAT DONE   <<<
+;
+	beq	_DOL4200
+	getb					; <REPEAT>/<UNIQUE>?
+	iwt	r15,#<_DOL3220+1
+;	with	r0
+	sex
+
+;
+;	>>>   SKIP   <<<
+;
+_DOL6200
+	from	rObjB
+	romb
+	inc	r14
+_DOL6600
+	dec	r12				; One less ScreenPixel to Draw
+	beq	_DOL9000
+	with	rObjF				; Move to next Pixel
+	add	rPixScaleF
+	from	rPixScale
+;	to	r0
+	adc	#0
+	beq	_DOL6600
+	dec	r2				; Move to next Y Coordinate
+	with	rPixelCount
+	add	r0
+	bmi	_DOL6600
+	nop
+;
+;	>>>   REPEAT DONE   <<<
+;
+	beq	_DOL4200
+	getb					; <REPEAT>/<UNIQUE>?
+	iwt	r15,#<_DOL3220+1
+;	with	r0
+	sex
+
+;
+;	>>>   OBJDATA STRIP DONE   <<<
+;
+_DOL9000
+	iwt	r15,#<_DOL7000+1		; Next ObjectPlot
+	dec	rPlotDataPtr			; Get WorldZFraction/#Pixels
+
+
+	CACHEE	_RLDrawObjsLow

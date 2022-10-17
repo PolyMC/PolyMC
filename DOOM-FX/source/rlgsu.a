@@ -1,0 +1,307 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                           ENGINE GSU MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	rlplayer.i
+
+	public	_RLInitGSU
+	public	_RLInitGSU2
+
+
+	SECTION	ENGINE
+;
+;	* * * * * * *       INITIALIZE GSU HARDWARE       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitGSU
+	sei
+	mode	'A!'
+;
+	ifn	usePATCH
+	lda	#<_RLDoTasks			; DO TASKS
+	sta	PTRLDoTasks
+	lda	#<_RLMSObjects			; HANDLE MOVABLE OBJECTS STATES
+	sta	PTRLMSObjects
+	lda	#<_RLMAObjects			; HANDLE MOVABLE OBJECTS ANIMATIONS
+	sta	PTRLMAObjects
+	lda	#<_RLEnemiesTarget		; HANDLE ENEMY TARGETTING
+	sta	PTRLEnemiesTarget
+	lda	#<_RLPlayer			; HANDLE PLAYER
+	sta	PTRLPlayer
+	lda	#<_RLWeapons			; HANDLE WEAPONS
+	sta	PTRLWeapons
+	lda	#<_RLDoSectors			; HANDLE SECTORS
+	sta	PTRLDoSectors
+	lda	#<_RLMisc2			; DO MISCELLANEOUS TASKS 2
+	sta	PTRLMisc2
+	lda	#<_RLBuildBSP			; BUILD BSP TREE
+	sta	PTRLBuildBSP
+	lda	#<_RLBuildDone			; BUILD COMPLETED
+	sta	PTRLBuildDone
+;
+	lda	#<_RLBuildCheckObjs		; BUILD CHECKOBJECTS
+	sta	PTRLBuildCheckObjs
+	lda	#<_RLFireTarget			; BUILD PLAYER TARGETTING LIST
+	sta	PTRLFireTarget
+	lda	#<_RLFireTarget2		; BUILD PLAYER TARGETTING LIST 2
+	sta	PTRLFireTarget2
+	lda	#<_RLDamageObject0		; DAMAGE OBJECT
+	sta	PTRLDamageObject
+;
+	lda	#<_RLMAPlayerDie		; PLAYER DIE
+	sta	PTRLMAPlayerDie
+	endif
+;
+	stz	GSUPhase			; Initialize Phase
+	lda	#rlfPhasePending		; Phase Pending
+	tsb	RLFlags
+	ifn	DEBUG
+	lda	#0				; NO GSU ERROR
+	sta	GSUError
+	endif
+	stz	sfxSFR				; Clear GO bit (Clear Cache)
+	mode	'a!'
+	ifn	GSUFAST
+	lda	#%00000001			; 21.48 MHz Mode
+	sta	sfxCLK
+	endif
+	lda	#%10100000			; GSU IRQs DISABLED, HighSpeed Multiply
+	sta	sfxCONFIG
+	lda	#%00011111			; 160 Pixels, GSU has ROM/RAM, 256 Colour
+	ifn	DEBUG
+	sta	SCR_XS				; XSLV Shadow
+	endif
+	sta	sfxSCR
+	lda	#<(_RLGSUChrDef>>10)		; ScreenBase
+	sta	sfxSCBR
+	stz	sfxPCB				; ALWAYS PCBank $00
+;
+	mode	'A!'
+	lda	#<_RLGSUInit			; Get Starting PC
+	jsl	__RLCallGSU
+	rts
+
+
+	SECTION	ENGINE_RAMCODE
+;
+;	* * * * * * *       INITIALIZE GSU SOFTWARE       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'A'
+_RLInitGSU2
+	lda	#<_RLGSUInit2			; Get Starting PC
+	jmp	_RLCallGSU
+
+	dbr	?
+	dpr	0
+	mode	'A'
+_RLInitGSU3
+	mode	'a!'
+	lda	#%00100000			; GSU IRQs ENABLED, HighSpeed Multiply
+	sta	sfxCONFIG
+_RLInitGSU3A
+	bit	_HVBJOY				; Wait for NOT in VBlank Period
+	bmi	_RLInitGSU3A
+_RLInitGSU3B
+	bit	_HVBJOY				; Wait for IN VBlank Period
+	bpl	_RLInitGSU3B
+_RLInitGSU3C
+	bit	_HVBJOY				; Wait for NOT in VBlank Period
+	bmi	_RLInitGSU3C
+	lda	_RDNMI				; Clear NMI Flag
+	lda	_TIMEUP				; Clear IRQ Flag
+	ifn	(DEBUG*WIRE)
+	lda	#$b1				; ENABLE NMI+VEN+HEN+JOYREAD
+	sta	NMITIMEN_XS
+	endif
+	ife	(DEBUG*WIRE)
+	lda	#$31				; ENABLE VEN+HEN+JOYREAD
+	endif
+	sta	NMITIMEN
+	lda	_RDNMI				; Clear NMI Flag
+	lda	_TIMEUP				; Clear IRQ Flag
+	cli					; Enable IRQs!
+	rts
+
+;
+;	* * * * * * *       CALL GSU SUBROUTINE       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'A'
+__RLCallGSU
+	jsr	_RLCallGSU
+	rtl
+_RLCallGSU
+	sta	>sfxR15				; Start GSU Running!
+_RLCallGSU2
+	lda	>sfxSFR				; GSU Halted?
+	and	#%0000000000100000
+	bne	_RLCallGSU2
+	rts
+
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+;
+;	* * * * * * *       REALITY_ENGINE GSU INIT CODE       * * * * * * *
+;
+_RLGSUInit
+;
+;	>>>   INITIALIZE GSU   <<<
+;
+	move	r0,#$70				; RAM in Bank $70
+	ifn	RAMBPINTEST
+_RLRAMBPinTest
+	endif
+	ramb
+	stop
+;	nop					; @NOP BELOW@
+;
+;	* * * * * * *       REALITY_ENGINE GSU INIT CODE 2       * * * * * * *
+;
+_RLGSUInit2
+	nop					; @FLUSH PIPELINE@
+;
+;	>>>   INITIALIZE TEXT MESSAGES   <<<
+;
+;	with	r0				; NO Current Message
+	sub	r0
+	move	(<MsgCount),r0
+;
+;	>>>   INITIALIZE VOBJLIST POINTER (WEAPONS TARGETTING)   <<<
+;
+	move	(<VObjListStart),r0		; NO VISIBLE OBJECTS!
+;
+;	>>>   RAISE PLAYER'S WEAPON   <<<
+;
+	link	#4				; Pick Up Weapon
+	iwt	r15,#<_RLPickWeapon
+	nop
+;
+;	>>>   INITIALIZE PLAYER'S FACE ANIMATION   <<<
+;
+	link	#4				; ReCalculate Face Animation
+	move	r15,#<_RLCalcFaceAnim
+	nop
+;
+;	>>>   FINISHED INITIALIZING   <<<
+;
+	stop
+	nop
+
+
+
+	SECTION	ENGINE_RAMCODE
+	cpu	65816
+;
+;	* * * * * * *       GSU PHASE R15 TABLE       * * * * * * *
+;
+GSUPhaseR15
+	dc.w	<_RLMisc				; Handle Tasks
+	dc.w	<_RLDrawA				; Draw A
+	dc.w	<_RLBuildB				; Build B
+	dc.w	<_RLDrawB				; Draw B
+	dc.w	<_RLBuildC				; Build C
+	dc.w	<_RLDrawC				; Draw C
+MaxGSUPhase	equ	(*-GSUPhaseR15)
+
+
+	ifn	0
+;
+;	* * * * * * *       GSU PHASE PCB TABLE       * * * * * * *
+;
+GSUPhasePCB
+	dc.w	^_RLMisc				; Handle Tasks
+	dc.w	^_RLDrawA				; Draw A
+	dc.w	^_RLBuildB				; Build B
+	dc.w	^_RLDrawB				; Draw B
+	dc.w	^_RLBuildC				; Build C
+	dc.w	^_RLDrawC				; Draw C
+	endif
+
+
+;
+;	* * * * * * *       GSU PHASE REQUIREMENTS CODE JUMPS TABLE       * * * * * * *
+;
+GSUPhaseReqCode
+	dc.w	<_RLGSUReqMisc				; Handle Tasks
+	dc.w	<_RLGSUReqDrawA				; Draw A
+	dc.w	<_RLGSUReqNull				; Build B
+	dc.w	<_RLGSUReqDrawB				; Draw B
+	dc.w	<_RLGSUReqNull				; Build C
+	dc.w	<_RLGSUReqDrawC				; Draw C
+
+
+;
+;	* * * * * * *       GSU PHASE POST-EXECUTION CODE JUMPS TABLE       * * * * * * *
+;
+GSUPhasePostCode
+	dc.w	<_RLGSUPostNull				; Handle Tasks
+	dc.w	<_RLGSUPostDrawA			; Draw A
+	dc.w	<_RLGSUPostNull				; Build B
+	dc.w	<_RLGSUPostDrawB			; Draw B
+	dc.w	<_RLGSUPostNull				; Build C
+	dc.w	<_RLGSUPostDrawC			; Draw C
+
+
+;
+;	* * * * * * *       GSU PHASE REQUIREMENTS CODE       * * * * * * *
+;
+	mode	'A'
+_RLGSUReqNull
+	lda	#'RL'					; ALWAYS READY
+	rts
+
+	mode	'A'
+_RLGSUReqMisc
+	lda	RLFlags					; RLENGINE HALTED?
+	and	#(rlfHalt)
+	rts
+
+	mode	'A'
+_RLGSUReqDrawA
+_RLGSUReqDrawB
+_RLGSUReqDrawC
+	lda	RLFlags					; DRAW AVAILABLE?
+	and	#(rlfDraw)
+	rts
+
+
+;
+;	* * * * * * *       GSU PHASE POST-EXECUTION CODE       * * * * * * *
+;
+	mode	'AX'
+_RLGSUPostDrawC
+;
+;	>>>   PAUSE MODE   <<<
+;
+	lda	PlayerJoy				; PAUSE?
+	and	#pjPAUSE
+	beq	_RLGSUPostDrawC2			; No
+	bit	FrameCount-1				; Already Enabled Display?
+	bpl	_RLGSUPostDrawC2			; No!
+	lda	#rlfHalt				; RLEngine Halted
+	trb	RLFlags
+;	stz	PlayerJoy
+;	stz	PlayerMouseX
+;	stz	PlayerMouseY
+	mode	'AX'
+_RLGSUPostDrawC2
+_RLGSUPostDrawA
+_RLGSUPostDrawB
+	lda	#rlfDraw				; Draw Built
+	trb	RLFlags
+	mode	'AX'
+_RLGSUPostNull
+	rts

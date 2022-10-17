@@ -1,0 +1,80 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       ENEMIES HANDLING MODULE 7                    *
+;*                                                                    *
+;*                    ENEMIES DATA TABLES/STRUCTURES                  *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;
+;	* * * * * * *       VELOCITY TABLES FOR MOVEMENT       * * * * * * *
+;
+_RLMoveVelocities
+
+mvMAC	MACRO
+	dc.w	(((+@0*00000/10000)<<8)&$FF00)|((+@0*10000/10000)&$FF)	;   0
+	dc.w	(((+@0*03827/10000)<<8)&$FF00)|((+@0*09239/10000)&$FF)	;  22.5
+	dc.w	(((+@0*07071/10000)<<8)&$FF00)|((+@0*07071/10000)&$FF)	;  45
+	dc.w	(((+@0*09239/10000)<<8)&$FF00)|((+@0*03827/10000)&$FF)	;  67.5
+	dc.w	(((+@0*10000/10000)<<8)&$FF00)|((-@0*00000/10000)&$FF)	;  90
+	dc.w	(((+@0*09239/10000)<<8)&$FF00)|((-@0*03827/10000)&$FF)	; 112.5
+	dc.w	(((+@0*07071/10000)<<8)&$FF00)|((-@0*07071/10000)&$FF)	; 135
+	dc.w	(((+@0*03827/10000)<<8)&$FF00)|((-@0*09239/10000)&$FF)	; 157.5
+	dc.w	(((-@0*00000/10000)<<8)&$FF00)|((-@0*10000/10000)&$FF)	; 180
+	dc.w	(((-@0*03827/10000)<<8)&$FF00)|((-@0*09239/10000)&$FF)	; 202.5
+	dc.w	(((-@0*07071/10000)<<8)&$FF00)|((-@0*07071/10000)&$FF)	; 225
+	dc.w	(((-@0*09239/10000)<<8)&$FF00)|((-@0*03827/10000)&$FF)	; 247.5
+	dc.w	(((-@0*10000/10000)<<8)&$FF00)|((+@0*00000/10000)&$FF)	; 270
+	dc.w	(((-@0*09239/10000)<<8)&$FF00)|((+@0*03827/10000)&$FF)	; 292.5
+	dc.w	(((-@0*07071/10000)<<8)&$FF00)|((+@0*07071/10000)&$FF)	; 315
+	dc.w	(((-@0*03827/10000)<<8)&$FF00)|((+@0*09239/10000)&$FF)	; 337.5
+	ENDMAC
+
+;
+;	>>>   SOLDIER, SERGEANT, TROOPER, CACODEMON, LOSTSOUL   <<<
+;
+_RLMVSoldier
+_RLMVSergeant
+_RLMVCacoDemon
+	mvMAC	8					; EASY->HARD
+	mvMAC	16					; NIGHTMARE
+
+;
+;	>>>   BARONOFHELL, CYBERDEMON, SPIDERDEMON   <<<
+;
+_RLMVTrooper
+	ife	useID2
+_RLMVDemon
+	endif
+_RLMVBaronOfHell
+_RLMVCyberDemon
+_RLMVSpiderDemon
+	mvMAC	10					; EASY->HARD
+	mvMAC	20					; NIGHTMARE
+
+;
+;	>>>   DEMON   <<<
+;
+	ifn	useID2
+_RLMVDemon
+	mvMAC	16					; EASY->HARD
+	mvMAC	32					; NIGHTMARE
+	endif
+
+;
+;	>>>   LOST SOUL   <<<
+;
+_RLMVLostSoul
+	mvMAC	20					; EASY->HARD
+	mvMAC	40					; NIGHTMARE

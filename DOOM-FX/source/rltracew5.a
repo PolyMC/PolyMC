@@ -1,0 +1,284 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                     ENGINE TRACE WALLS MODULE 5                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildTraceWalls5
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD TRACE                        CALCULATE WALL TEXTURES  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       CALCULATE WALL TEXTURES       * * * * * * *
+;
+rRSAngle		equ	r2		; Rotated Segment Angle
+rRSPDistance		equ	r3		; Rotated Segment Perpendicular Distance
+rVTOffset		equ	r5		; Vertex Texture Offset
+rFaceOffset		equ	r7		; Offset along Face Integer
+rTextureModulo		equ	r8		; Texture Width Modulus
+rWallPlotData		equ	r9		; Pointer within WallPlotData
+rWallPlotDataEnd	equ	r10		; Pointer to End of WallPlotData
+rVSeg			equ	r11		; Pointer to Current VisibleSegment
+rVSegEnd		equ	r12		; Pointer to End of VisibleSegment List
+rWall			equ	r13		; Pointer to WallData
+
+
+	align	16,(_TRW5S9000-_TRW5S2200)&$0f
+;
+;	* * * * * * *       COMPLETED CALCULATING WALL TEXTURES       * * * * * * *
+;
+_TRW5S9000
+	iwt	r0,#<_RLBuildTraceFloors2	; BUILD TRACE FLOORS 2
+	ibt	r8,#^_RLBuildTraceFloors2
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	* * * * * * *       START CALCULATING WALL TEXTURES       * * * * * * *
+;
+_RLBuildTraceWalls5
+	move	rVSeg,#<(_RLVSegList-rlvSize+rlvXsT)	; START of VSegList
+	move	rVSegEnd,(<VSegListEnd)		    	; END of VSegList
+;	move	r0,#rlvXsT
+;	with	rVSegEnd
+;	add	r0
+
+	CACHEB	_RLBuildTraceWalls5
+;
+;	* * * * * * *       PROCESS NEXT VISIBLE SEGMENT       * * * * * * *
+;
+_TRW5S2200
+	move	r4,#(rlvSize)		 	; Offset to Next VSEG
+	move	r6,#(rlvWallPlotDataStart-rlvXsT)
+	from	rVSeg				; Move to Next VSEG
+_TRW5S2400
+	to	rVSeg				; @FROM IN PIPELINE@
+	add	r4
+	from	rVSeg				; At End?
+;	to	r0				; @CMP@
+	sub	rVSegEnd
+	beq	_TRW5S9000			; Yes!  No More VisibleSegments!
+;
+;	>>>   GET STARTING PIXEL/#PIXELS TO TRACE   <<<
+;
+;	to	r0				; Get Xs1/XsCount
+	ldw	(rVSeg)
+	inc	r0				; Clipped?
+	beq	_TRW5S2400			; Yes!
+	from	rVSeg				; Move to Next VSEG
+;
+;	>>>   MOVE TO WALLPLOTDATA START   <<<
+;
+;	to	r0
+	add	r6
+;
+;	>>>   GET WALLPLOTDATA START   <<<
+;
+	to	rWallPlotData			; WallPlotDataStart
+	ldw	(r0)
+	inc	r0
+	inc	r0
+	to	rWallPlotDataEnd		; WallPlotDataEnd
+	ldw	(r0)
+;
+;	>>>   ANY WALL PLOTS TO PROCESS?   <<<
+;
+	from	rWallPlotData			; NO WALL PLOT DATA?
+;	to	r0				; @CMP@
+	sub	rWallPlotDataEnd
+	beq	_TRW5S2400+1			; NO!  Skip this VSEG
+	with	rVSeg				; Move to Next VSEG
+;
+;	>>>   GET ROTATED SEGMENT ANGLE   <<<
+;
+	move	r0,#(rlvRSAngle-rlvXsT)		; Move to RSN
+;	with	r0
+	add	rVSeg
+	to	rRSAngle			; ROTATED SEGMENT ANGLE
+	ldw	(r0)
+;
+;	>>>   GET ROTATED SEGMENT PERPENDICULAR DISTANCE   <<<
+;
+	inc	r0				; Move to RSPD
+	inc	r0
+	to	rRSPDistance			; ROTATED SEGMENT PERPENDICULAR DISTANCE
+	ldw	(r0)
+;
+;	>>>   GET VERTEX TEXTURE OFFSET   <<<
+;
+	inc	r0				; Move to VTO
+	inc	r0
+	to	rVTOffset			; VERTEX TEXTURE OFFSET
+	ldw	(r0)
+;
+;	>>>   GET FACE OFFSET   <<<
+;
+	move	r0,#(rlvFaceOffsetX-rlvXsT)	; FaceOffsetX
+;	with	r0
+	add	rVSeg
+	to	rFaceOffset
+	ldb	(r0)
+
+;
+;	* * * * * * *       PROCESS VSEG'S WALLPLOTDATA       * * * * * * *
+;
+_TRW5S4000
+	from	rWallPlotData			; At End?
+;	to	r0				; @CMP@
+	sub	rWallPlotDataEnd
+	beq	_TRW5S2200			; Yes!  No More WallPlots
+;
+;	>>>   GET WALLPLOT VSEG TEXTUREH OFFSET   <<<
+;
+	with	rWallPlotData			; Move to VSegTextureH
+	add	#plwVSegTextureH
+;	to	r0				; Get VSegTextureH
+	ldb	(rWallPlotData)
+;
+;	>>>   GET VSEG TEXTURE ADDRESS   <<<
+;
+;	with	r0				; Move to VSeg.TextureW
+	add	rVSeg
+	inc	r0
+	to	rTextureModulo			; Get TextureWidthModulo
+	ldb	(r0)
+	inc	r0
+	to	rWall				; Get Address of Wall
+	ldw	(r0)
+	inc	rWall				; Move to WallStripPointers
+	inc	rWall
+;
+;	>>>   CALCULATE ANGLE OF INTERSECTION WITH SEGMENT   <<<
+;
+	ibt	r0,#(^ScreenXAngleTable)
+	romb
+	inc	rWallPlotData			; Move to ScreenX Coordinate
+;	to	r0
+	ldb	(rWallPlotData)
+;	with	r0
+	add	r0
+	move	r1,#<ScreenXAngleTable		; Get ScreenXAngle Offset
+;	from	r0
+	to	r14
+	add	r1
+	getb
+	inc	r14
+	getbh
+;	with	r0				; ANGLE=(VIEWANGLE-ROTATED SEGMENT ANGLE)
+	sub	rRSAngle
+;
+;	>>>   CALCULATE RSP*TAN(ANGLE)   <<<
+;
+;	from	r0				; Angle
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr					; >>5
+	lsr					; Remove lowest bit
+;	from	r0
+	to	r1
+	add	r0
+	ibt	r0,#(^TanTable)
+	romb
+	iwt	r0,#<TanTable
+;	from	r0
+	to	r14
+	add	r1
+	getb
+	inc	r14
+	to	r6				; SIIIIIII IFFFFFFF
+	getbh
+;
+;	>>>   CALCULATE VIEWANGLE INTERSECTION OFFSET   <<<
+;
+	from	rRSPDistance			; VXTOFFSET = RSPD*TAN(ANGLE)
+;	to	r0
+	lmult					; r0:SIIIIIII IIIIIIII r4:IIIIIIII.FFFFFFFF
+;	with	r0
+	lob
+	with	r4
+	hib
+;	with	r0
+	swap
+	with	r4
+	add	r0
+;
+	ibt	r0,#(^RLWallsTable)		; Get Address of WallsTable
+	romb
+;
+;	>>>   CALCULATE TEXTURE COLUMN   <<<
+;
+	from	rVTOffset			; TEXTURE COLUMN=(VTOffset-VxTOffset)
+;	to	r0
+	sub	r4
+;
+;	>>>   ADD FACE OFFSET   <<<
+;
+;	with	r0				; Add Face Offset
+	add	rFaceOffset
+;
+;	>>>   WRAP TEXTURE HORIZONTALLY   <<<
+;
+;	with	r0				; FaceOffset % TextureModulo
+	and	rTextureModulo
+;
+;	>>>   GET POINTER TO WALL TEXTURE STRIP   <<<
+;
+;	with	r0				; Get Offset to Pointer to PixelStrip
+	umult	#3
+;	from	r0				; Move to correct pointer
+	to	r14
+	add	rWall
+;
+;	>>>   GET POINTER TO WALLTEXTURESTRIP   <<<
+;
+	from	rWallPlotData			; Move to TextureData
+	to	r1
+	sub	#(plwXs-plwData)
+	getb
+	inc	r14
+;	from	r0
+	stb	(r1)
+	inc	r1
+	getb
+	inc	r14
+;	from	r0
+	stb	(r1)
+	dec	r1
+	dec	r1
+;
+;	>>>   PROCESS NEXT WALLPLOTDATA   <<<
+;
+	with	rWallPlotData			; Move to Next WallPlot
+	add	#(plwSize-plwXs)
+	getb
+;	from	r0
+;	stb	(r1)
+	alt1
+	bra	_TRW5S4000
+	stw	(r1)
+
+	CACHEE	_RLBuildTraceWalls5

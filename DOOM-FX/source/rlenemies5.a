@@ -1,0 +1,304 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                      ENEMIES HANDLING MODULE 5                     *
+;*                                                                    *
+;*                          ENEMIES ATTACKING                         *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+	include	rlenemies.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rEnemyAttacks	equ	r11			; Pointer to Enemy Attack List
+rObj		equ	r12			; Pointer to RLObject
+rTObj		equ	r13			; Pointer to Target RLObject
+
+
+;
+;	* * * * * * *       ENEMIES ATTACKING       * * * * * * *
+;
+
+;
+;	>>>   START ENEMIES ATTACKING   <<<
+;
+_RLEnemiesAttack
+	move	r0,#<_RLEnemyBirths		; Pointer to Enemy BirthList
+	move	(<ENBirthsPtr),r0
+	move	rEnemyAttacks,#<_RLEnemyAttacks	; Pointer to Enemy AttackList
+;
+;	>>>   PROCESS NEXT ENEMY   <<<
+;
+_RLEA2000
+;	to	r0				; Get Next Enemy
+	ldw	(rEnemyAttacks)
+	inc	rEnemyAttacks
+	moves	rObj,r0
+	beq	_RLEA10000-1			; No More Enemies!
+;
+;	>>>   TARGET STILL ACQUIRED?   <<<
+;
+	move	r0,#rloTObj			; Get TARGET OBJECT
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	moves	rTObj,r0
+	beq	_RLEA2000			; NO!  CAN'T ATTACK!
+	inc	rEnemyAttacks
+;
+;	>>>   CALL ENEMY ATTACK ROUTINE   <<<
+;
+	to	r10				; Get Enemy Attack Code
+	ldw	(rEnemyAttacks)
+	move	(<ENEnemy),rEnemyAttacks	; Save Enemy Attacks List Index
+	jmp	r10
+	nop
+;
+;	>>>   START SOUND EFFECT   <<<
+;
+_RLEA5000
+	move	r0,#^_MObjData			; MObjData Bank
+	romb
+	move	r0,#rloMData			; Get Pointer to MObjData
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+;	from	r0				; Get Attack Sound Effect
+	to	r14
+	add	r1
+	from	rObj				; Get Sound Origin Coordinates
+;	to	r0
+	add	#(rloX+2)
+	to	r4
+	ldw	(r0)
+	to	r3				; Get SoundEffect#
+	getb
+	inc	r14
+;	with	r0
+	add	#((rloY+2)-(rloX+2))
+	to	r6
+	ldw	(r0)
+	with	r3				; Get SoundEffect#
+	getbh
+	link	#4				; Start Sound Effect
+	iwt	r15,#<_RLSoundEffect
+	dec	r3
+;
+;	>>>   NEXT ENEMY ATTACK   <<<
+;
+_RLEA8000
+	move	rEnemyAttacks,(<ENEnemy)	; Restore Enemy Attacks List Index
+_RLEA8200
+	inc	rEnemyAttacks			; Move to Next Enemy Attack
+	inc	rEnemyAttacks
+	bra	_RLEA2000+1
+;	to	r0				; Get Next Enemy
+	ldw	(rEnemyAttacks)
+
+;
+;	>>>   FINISHED ENEMIES ATTACKS   <<<
+;
+_RLEA10000
+	move	r1,(<ENBirthsPtr)		; Terminate BirthList
+;	with	r0
+	sub	r0
+;	from	r0
+	stw	(r1)
+;
+	ifn	DEBUGSCR
+	move	r0,#<(_RLEnemyBirths-1)		; #Enemy Births
+	from	r1
+;	to	r0
+	sub	r0
+	move	r6,#((32768/6)<<1)
+;	with	r0
+	fmult
+	move	(<DebugEnemyBirths),r0
+	endif
+;
+	move	r0,#<_RLEnemiesBirth		; HANDLE ENEMY BIRTHS
+	move	r8,#^_RLEnemiesBirth
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	* * * * * * *       ENEMIES ATTACKING SUBROUTINES       * * * * * * *
+;
+
+;
+;	* * * * * * *       FIGHT WITH TARGET       * * * * * * *
+;
+_RLEAFight
+	ifn	0
+	move	r0,#rloTObj			; Get TARGET OBJECT
+;	with	r0
+	add	rObj
+	to	rTObj
+	ldw	(r0)
+	inc	r0				; Get TARGET DISTANCE
+	inc	r0
+	endif
+;
+	move	r0,#rloTDistance		; Get TARGET DISTANCE
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	move	r1,#(edFightDistance+1)		; Within Fighting Distance of Target?
+;	with	r0				; @CMP@
+	sub	r1
+	bge	_RLEA8200-1			; No!  Can't Fight!
+;
+;	>>>   ENSURE WITHIN VERTICAL DISTANCE!   <<<
+;
+	move	r1,#rloZ			; Get ENEMY Z
+	from	r1
+;	to	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	with	r1				; Get TARGET Z
+	add	rTObj
+	to	r1
+	ldw	(r1)
+	with	r1				; R1 = (ENEMY Z - TARGET Z)
+	sub	r0
+	move	r4,#(odhTarget*3/4)
+	from	r1				; WITHIN 3/4H ABOVE?
+;	to	r0
+	sub	r4
+	bge	_RLEA8200			; No!  Too Far Above!
+;	with	r0
+	not
+	inc	r0
+;	with	r0
+	lsr
+;	with	r0				; WITHIN 3/4H BELOW?
+	sub	r4
+	bge	_RLEA8200-1			; No!  Too Far Below!
+;
+;	>>>   DAMAGE TARGET RLOBJECT   <<<
+;
+	move	r4,#rlmodAttackCloseDamage	; Damage Multiplier/Range
+	link	#4
+	iwt	r15,#<_RLDamageObjectM
+	nop
+	move	r1,#rlmodAttackCloseSound	; Fighting Sound Effect
+	bra	_RLEA5000+1			; Finished Fighting Target!
+
+;
+;	* * * * * * *       SHOOT AT TARGET       * * * * * * *
+;
+_RLEAShoot
+;
+;	>>>   GET RANDOM NUMBER   <<<
+;
+	move	r0,#^RandomTable		; Get Random Number
+	romb
+	move	r0,#<RandomNumI
+	to	r14
+	ldb	(r0)
+	move	r0,r14
+	inc	r0
+;	from	r0
+	sbk
+	getb
+;	with	r0				; 1/8 Chance of Missing
+	and	#$07
+	beq	_RLEAShoot2-1			; Missed Target!
+;
+;	>>>   INACCURACY INCREASES WITH DISTANCE   <<<
+;
+	move	r4,#(rloTDistance+1)		; Get TARGET DISTANCE
+	with	r4
+	add	rObj
+	to	r4
+	ldb	(r4)
+;	with	r0				; Random < TargetDistance?
+	sub	r4
+	blt	_RLEAShoot2-1			; Missed Target!
+;
+;	>>>   DAMAGE TARGET RLOBJECT   <<<
+;
+	ifn	0
+	move	r0,#rloTObj			; Get TARGET OBJECT
+;	with	r0
+	add	rObj
+	to	rTObj
+	ldw	(r0)
+	endif
+	move	r4,#rlmodAttackFarDamage	; Damage Multiplier/Range
+	link	#4
+	iwt	r15,#<_RLDamageObjectM
+	nop
+_RLEAShoot2
+	move	r1,#rlmodAttackFarSound		; Shooting Sound Effect
+	iwt	r15,#<_RLEA5000-2		; Finished Shooting Target!
+
+;
+;	>>>   LAUNCH MISSILE AT TARGET   <<<
+;
+_RLEALaunchMissile
+	move	r0,#<modMissile			; Birth a MISSILE
+	move	r1,#<_RLEBirthMissile
+	bra	_RLEAQEnemyBirth
+	nop
+;
+;	>>>   LAUNCH FIREBALL7 AT TARGET   <<<
+;
+_RLEALaunchFireBall7
+	move	r0,#<modFireBall7		; Birth a FIREBALL7
+	bra	_RLEALaunchFireBall
+	nop
+;
+;	>>>   LAUNCH FIREBALL2 AT TARGET   <<<
+;
+_RLEALaunchFireBall2
+	move	r0,#<modFireBall2		; Birth a FIREBALL2
+	bra	_RLEALaunchFireBall
+	nop
+;
+;	>>>   LAUNCH FIREBALL1 AT TARGET   <<<
+;
+_RLEALaunchFireBall1
+	move	r0,#<modFireBall1		; Birth a FIREBALL1
+_RLEALaunchFireBall
+	move	r1,#<_RLEBirthFireBall		; Birth a FIREBALL
+;
+;	>>>   QUEUE AN ENEMY BIRTH   <<<
+;
+;	!!!   WARNING!!!   FALLS THROUGH FROM ABOVE!!!
+;
+_RLEAQEnemyBirth
+	move	r4,(<ENBirthsPtr)		; BirthList Pointer
+;	from	r0				; Birth MovableRLObject Data
+	stw	(r4)
+	inc	r4
+	inc	r4
+	from	rObj				; Parent RLObject
+	stw	(r4)
+	inc	r4
+	inc	r4
+	from	r1				; Birth Routine
+	stw	(r4)
+	inc	r4
+	inc	r4
+	move	(<ENBirthsPtr),r4
+	iwt	r15,#<_RLEA8200+1
+	inc	rEnemyAttacks			; Move to Next Enemy Attack

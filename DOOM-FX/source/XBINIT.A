@@ -1,0 +1,233 @@
+	PLIST	OFF
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                                  XBAND PATCH       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+	cpu	65816
+	mmu	snessfx
+	cpudata
+
+
+	SECTION	XBAND,LOAD=$00E00210,ORG=$E00210
+
+;
+;	* * * * * * *       REALITY_ENGINE XBAND PATCH       * * * * * * *
+;
+	mode	'AX'
+	dbr	(^*)
+	dpr	0
+XBAND
+	ifn	DEBUG
+	bra	XBAND1				; XBAND GAMEPATCH
+	bra	XBAND0				; XBAND BOOT
+	jmp	XBAND2				; XBAND GAMESYNC START
+	jmp	XBAND4				; XBAND GAMESYNC CONTINUATION
+
+;
+;	* * * * * * *       XBAND BOOT       * * * * * * *
+;
+XBAND0
+	jsr	_XBSoftToHard			; SoftHere -> HardHere
+	jml	$d00000				; Reset Machine
+	endif
+
+;
+;	* * * * * * *       XBAND GAMEPATCH       * * * * * * *
+;
+	mode	'AX'
+XBAND1
+	lda	4,s				; GamePatch Parameter
+;
+;	* * * * * * *       ONCE PER CONNECTION       * * * * * * *
+;
+;	cmp	#kGPInitGamePatch
+	bne	XBAND1000
+	lda	gTicks
+	sta	XBstartGameTicks
+	lda	gTicks+2
+	sta	XBstartGameTicks+2
+	stz	XBInfoShown			; XBand DOOM Info NOT Shown
+	bra	XBAND9000
+;
+;	* * * * * * *       PUT UP DIALOG BOX       * * * * * * *
+;
+XBAND1000
+	cmp	#kGPDisplayMessage
+	bne	XBAND3000
+	lda	#-1				; Return Code (required for call waiting, etc.)
+	tax
+	rtl
+;
+;	* * * * * * *       PLAY A MODEM GAME       * * * * * * *
+;
+XBAND3000
+	stz	XBGameType			; Playing 2 Player Modem Game
+	cmp	#kGPStartGamePatch
+	bne	XBAND5000
+XBAND2
+	ifn	usePOCKY
+	phk
+	plb
+	dbr	(^*)
+	mode	'AX!'
+	jsr	_XBInitHW2
+	endif
+	ife	usePOCKY
+	jsr	_XBInitHW			; Initialize XBand Hardware
+	endif
+	jsr	_XBInitComm			; Initialize Communications
+	ifn	usePOCKY
+	jsr	_XBSyncGamePatch		; Synchronize GamePatches
+	endif
+XBAND4
+	ifn	usePOCKY
+	jsr	_XBInitHW2			; ReInitialize XBand Hardware
+	jsr	_XBInitComm			; ReInitialize Communications
+	stz	XBGameType			; Playing 2 Player Modem Game
+	endif
+	jmp	XBAND7000			; Execute Game
+;
+;	* * * * * * *       PLAY A PRACTICE GAME       * * * * * * *
+;
+XBAND5000
+	cmp	#kGPPlaySinglePlayerGame
+	bne	XBAND9000
+	jsr	_XBInitHW			; Initialize XBand Hardware
+	lda	12,s
+	sta	XBTimeout
+	lda	14,s
+	sta	XBTimeout+2
+	ora	12,s
+	beq	XBAND5200
+	lda	#-1
+XBAND5200
+	sta	XBRegistered
+	sta	XBEverFinish1P			; if set, we finish a 1P game when Registered is clear
+	dec	XBGameType			; Playing One Player Practice Game
+	jmp	XBAND7000			; Execute Game
+
+;
+;	* * * * * * *       OTHER COMMANDS       * * * * * * *
+;
+XBAND9000
+	lda	#0				; No Error
+	tax
+	rtl
+
+;
+;	* * * * * * *       START EXECUTING GAME       * * * * * * *
+;
+XBAND7000
+	ifn	0
+	phk
+	plb
+	dbr	(^*)
+	jsr	_XBInitHW
+	endif
+;
+	sei
+	cld
+	mode	'EAX!'				; Native Mode
+	lda	#$1fff				; Set Initial STACK
+	tcs
+	lda	#$0000
+	tcd					; Set Initial DPR
+	dpr	0
+	mode	'a!'
+	pha
+	plb
+	dbr	0
+	stz	NMITIMEN
+	lda	#$80
+	sta	INIDISP
+;
+	jsl	_InitMusicDriver		; Load MUSIC Driver
+	jsl	InitSNES			; Initialize SNES
+	jsl	InitSystem			; Initialize CORE HARDWARE SYSTEM
+	jsl	RestoreVars
+;
+;	>>>   START GAME   <<<
+;
+	mode	'AX'
+	lda	#0
+	sta	XBFragCount+(XBPlayerData-XBPlayerData)
+	sta	XBFragCount+(XBPlayer2Data-XBPlayerData)
+;
+	lda	XBInfoShown			; XBAND DOOM GamePatch Info Shown yet?
+	bne	XBAND8000			; Yes
+	inc	a
+	sta	XBInfoShown			; NO!  Show It Now!
+	jsl	_XBInfo				; XBAND DOOM GamePatch Information
+;
+;	>>>   SELECT LEVEL   <<<
+;
+XBAND8000
+	jsr	_XBMenuLevel			; Get Game Level to Play
+	mode	'AX'
+
+	ifn	DEBUG
+	pha
+	lda	XBGameLoopCounter
+	sta	XBGameLoopCounter0
+	pla
+	endif
+
+	tax					; Get Level# from Menu Index
+	lda	XBMenuLevelToRLLevel,x
+	and	#$00ff
+;	lda	#0
+	sta	Level				; CURRENT LEVEL
+	jsl	_XBRLInit			; Initialize XBAND RLEngine
+	jsl	_RLInitLevel			; Initialize RLLevel
+	mode	'AX'
+	jsl	_RLMain0			; Run Reality_Engine
+	mode	'AX'
+	lda	XBGameType			; One or Two Player Game?
+	bmi	XBAND8500			; One Player
+;
+;	>>>   LEVEL OVER TWO PLAYERS   <<<
+;
+	lda	XBFragCount+(XBPlayerData-XBPlayerData)		; Player1 >= 5 Frags?
+	cmp	XBFragCount+(XBPlayer2Data-XBPlayerData)	; Player1 = Player2?
+	beq	XBAND8000					; Yes!
+	cmp	#5
+	bcs	XBAND8200					; Yes!  End Game!
+	lda	XBFragCount+(XBPlayer2Data-XBPlayerData)	; Player2 >= 5 Frags?
+	cmp	#5
+	bcc	XBAND8000					; Yes!  End Game!
+;
+;	>>>   GAME OVER TWO PLAYERS   <<<
+;
+XBAND8200
+	jsr	_XBSoftToHard			; SoftHere -> HardHere
+	phk
+	plb
+	dbr	(^*)
+	ldx	#$11ff
+	txs
+	ldx	#kOSGameOver
+	jsl	_XBOSDispatcher			; *NEVER RETURNS*
+;
+;	>>>   GAME OVER ONE PLAYER   <<<
+;
+XBAND8500
+	jsr	_XBCheck1PTimeOut		; Check If 1P Finished
+	jmp	XBAND8000
+
+
+;
+;	* * * * * * *       MENU LEVEL -> RL LEVEL       * * * * * * *
+;
+XBMenuLevelToRLLevel
+	dc.b	00, 01, 02, 03, 04, 06, 07, 08	; E1
+	dc.b	09, 11, 12, 14, 16, 17		; E2
+	dc.b	18, 19, 20, 21, 23, 24, 25, 26	; E3

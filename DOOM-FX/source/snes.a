@@ -1,0 +1,49 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                  SUPER NINTENDO HARDWARE CODE MODULE               *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+
+	public	InitSNES
+
+	SECTION	SNES,RELOC,BASE=$80000000,RORG=$400000
+
+PPUBase		equ 	$2100			; Base Address of PPU Hardware
+CPUBase		equ	$4200			; Base Address of CPU Hardware
+
+;
+;	* * * * * * *       INITIALIZE SNES HARDWARE       * * * * * * *
+;
+	dbr	?
+	dpr	0
+InitSNES
+	mode	'ax!'
+	phd				; Save .DP
+	pea	#PPUBase		; Set .DP to Base of PPU Hardware
+	pld
+	dpr	PPUBase			
+;
+	ldx	#$33
+ClearSnesLoop
+	stz	PPUBase,x		; Clear PPU Hardware
+	stz	PPUBase,x
+	cpx 	#$0c
+	bcs 	NextClearSnes
+	stz	CPUBase+1,x		; Clear CPU Hardware
+NextClearSnes	
+	dex
+	bne 	ClearSnesLoop
+;
+;	>>>   INITIALIZE SPECIFIC PPU REGISTERS   <<<
+;
+	lda	#$e0			; FixedColour
+	sta	COLDATA
+;
+	pld				; Restore .DP
+	dpr	?
+	rtl

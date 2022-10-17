@@ -1,0 +1,3 @@
+xg -pRLART:StatKeysYellow -dRLDATA:ART/StatKeysYellow -ms -fn -y0 -u00 -s2,1 -c8
+delete RLDATA:ART/StatKeysYellow.map0
+delete RLDATA:ART/StatKeysYellow.rgb

@@ -1,0 +1,703 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         ENGINE SEGS MODULE 4                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildSegList4
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD SEGMENT LIST 4            DETERMINE VISIBLE SEGMENTS  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       DETERMINE VISIBLE SEGMENTS       * * * * * * *
+;
+rXs0		equ	r12			; Vertex 1 X Screen Coordinate Original
+rXs1		equ	r13			; Vertex 1 X Screen Coordinate Clipped
+rXs2		equ	r4			; Vertex 2 X Screen Coordinate Clipped
+rCZX1		equ	r9			; ClipZone X1
+rCZX2		equ	r10			; ClipZone X2
+rSegFlags	equ	r5			; SegmentFlags
+rAreaListPtr	equ	r6			; Pointer within AreaList
+rClipZonePtr	equ	r2			; Pointer to Current ClipZone
+rClipZonePtrP	equ	r3			; Pointer to Previous ClipZone
+rClipZonePtrU	equ	rClipZonePtrP		; Pointer to Update ClipZone
+rSeg		equ	r8			; Pointer to Segment
+rVSeg		equ	r7			; Pointer to VisibleSegmentList
+rVSegTemp	equ	rCZX1			; Temporary for _RLAddVSeg
+
+
+	align	16,(_RLBuildSegList4-_BSL2200)&$0f
+
+;
+;	* * * * * * *       DETERMINE VISIBLE SEGMENTS       * * * * * * *
+;
+_RLBuildSegList4
+;
+;	>>>   INCREMENT RLENGINE COUNT   <<<
+;
+	move	r0,(<RLCount)				; RLEngineCount++
+	inc	r0
+	sbk
+;
+;	>>>   INITIALIZE CLIPZONE   <<<
+;
+	move	r1,#<(_RLClipZoneList+rlczSize)		; End of ClipZoneList
+	move	(<SLClipZoneEnd),r1
+	move	r2,#<(_RLClipZoneList+rlczX2)		; Add SINGLE ClipZone
+	move	(<SLClipZoneStart),r2			; Start of ClipZoneList
+	ifn	useHIGHDETAIL
+	move	r0,(<RLViewPixX2)
+	endif
+	ife	useHIGHDETAIL
+	move	r0,#(RLViewPixX/2)
+	endif
+	move	(<SLClipCount),r0
+	move	rVSeg,#<(_RLVSegList+rlvSeg)		; Start of VisibleSegmentList
+;	from	r0					; ClipZone OFF Screen
+	to	r1
+	swap
+;	with	r0
+	or	r1
+;
+;	from	r0					; X2/X1
+	bra	_BSL2000
+	stw	(r2)
+
+
+;
+;	* * * * * * *       FINISHED DETERMINING VISIBLE SEGMENTS       * * * * * * *
+;
+_BSL9000
+	move	r0,#(0-rlsdObjects-1)		; Terminate VisibleSectorsList
+	move	r1,(<SLVSecPtr)
+;	from	r0
+	stw	(r1)
+;
+	move	(<VSegListEnd),rVSeg		; Save End of VisibleSegmentList
+;
+	iwt	r0,#<_RLBuildVSegList1		; BUILD VISIBLE SEGMENT LIST
+	ibt	r8,#^_RLBuildVSegList1
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	* * * * * * *       START DETERMINING VISIBLE SEGMENTS       * * * * * * *
+;
+_BSL2000
+	move	r0,(<SLAreaPtr)			; AREA LIST
+	move	(<SLAreaPtrP),r0
+	move	r0,#<(EMBSP+2)			; Bank of EM Data
+	ldb	(r0)
+	romb					; Set ROM Bank
+;
+	move	r0,#<_RLVSectors		; Start of VisibleSectorsList
+	move	(<SLVSecPtr),r0
+
+	CACHEB	_RLBuildSegList4
+;
+;	* * * * * * *       HANDLE NEXT AREA       * * * * * * *
+;
+_BSL2200
+	move	rAreaListPtr,(<SLAreaPtrP)	; Move to next Area
+	moves	rAreaListPtr,rAreaListPtr
+	beq	_BSL9000			; No more Areas!
+;	to	r0
+	ldw	(rAreaListPtr)			; Get Pointer to next Area
+	inc	rAreaListPtr
+	inc	rAreaListPtr
+	to	r4				; R4 = (AREA-1).SECTOR
+	ldw	(rAreaListPtr)
+	move	(<SLAreaPtrP),r0
+	inc	rAreaListPtr
+	move	r2,#-1				; PROCESSING *NEW* AREA!
+	bra	_BSL2340
+	inc	rAreaListPtr
+;
+;	* * * * * * *       HANDLE NEXT SEGMENT       * * * * * * *
+;
+_BSL2300
+	move	r2,#0				; PROCESSING *SAME* AREA
+_BSL2320
+	with	rAreaListPtr			; Move to Next Segment
+	add	#rluSize
+_BSL2340
+;	to	r0
+	ldw	(rAreaListPtr)			; Get next Segment Address
+	moves	rSeg,r0
+	beq	_BSL2320+1			; $0000 SKIP SEGMENT
+	with	rAreaListPtr
+	dec	r0
+	beq	_BSL2200			; $0001 END OF AREA
+	inc	r0
+;
+;	>>>   ADD THIS AREA'S SECTOR TO THE LIST OF VISIBLE SECTORS   <<<
+;
+	inc	r2				; Already added this AREA'S SECTOR?
+	bne	_BSL3000+1			; Yes!
+	to	r14
+;
+	inc	r4				; GET AREA.SECTOR
+	move	r14,r4
+	move	r1,(<RLCount)			; Get RLEngineCount
+	getb
+;	with	r0				; Get SECTORDATA
+	umult	#rlsdSize
+	move	r2,#<_RLSectorData
+	with	r2
+	add	r0
+	from	r2				; Get SectorData.RLEngineCount
+;	to	r0
+	add	#rlsdRLCount
+;	to	r0
+	ldw	(r0)
+	from	r1				; SectorData.RLEngineCount=RLEngineCount
+	sbk
+;	with	r0				; Already handled?
+	sub	r1				; @CMP@
+	beq	_BSL2800+1			; Yes!
+	from	rSeg				; Get Area's First Valid Segment
+	move	r1,(<SLVSecPtr)			; Get Pointer to VisibleSectorsList
+	from	r2				; Save VisibleSectorData
+	stw	(r1)
+	inc	r1
+	inc	r1
+	move	(<SLVSecPtr),r1
+_BSL2800
+	from	rSeg				; Get Area's First Valid Segment
+
+;
+;	* * * * * * *       PROCESS NEXT SEGMENT       * * * * * * *
+;
+_BSL3000
+;
+;	>>>   GET SEGMENT DATA   <<<
+;
+;	from	r0				; Move to SegmentFlags
+	to	r14
+	add	#rlgFlags
+;
+;	>>>   GET SEGMENT'S SCREEN XS COORDINATES   <<<
+;
+	from	rAreaListPtr			; Move to Xs0
+;	to	r0
+	add	#rluXs1
+	to	rXs0				; Get Xs0
+	ldw	(r0)
+	inc	r0
+	inc	r0
+	to	rXs2				; Get Xs2
+	ldw	(r0)
+;
+;	>>>   GET SEGMENT FLAGS   <<<
+;
+	to	rSegFlags			; Get SegmentFlagsLow
+	getb
+
+	ifn	0
+;
+;	>>>   "CLEAR" SEGMENT?   <<<
+;
+	from	rSegFlags			; Clear Segment?
+;	to	r0
+	and	#rlgfClear
+	bne	_BSL2300			; Yes, NOT a REAL VisibleSegment!
+	endif
+
+	with	r14				; Move to Line
+	add	#(rlgLine-rlgFlags)
+;
+;	>>>   CALCULATE SCREEN_XS_RATIO_INDEX   <<<
+;
+	move	r0,rXs0				; Get Xs1
+	inc	r0
+;	from	r0
+	to	rXs1
+	asr
+	from	rXs2				; (Xs2-Xs0)
+;	to	r0
+	sub	rXs1
+;
+	to	r1				; R1 = Address of Segment's Line
+	getb
+	inc	r14
+;
+	inc	r0
+;	with	r0				; Word Offset
+	add	r0
+	move	(<SLXsRatioI),r0		; Save ScreenXsRatioIndex
+;
+;	>>>   GET LINE FLAGS   <<<
+;
+	move	r0,#<_RLLineFlags		; Base of LineFlags
+	with	r1
+	getbh
+;	with	r0				; Add Base of LineFlags
+	add	r1
+	to	r1				; R1 = LineFlags
+	ldb	(r0)
+;
+;	* * * * * * *       ALTERNATE TEXTURE TRANSLATION       * * * * * * *
+;
+	from	r1				; USED?
+;	to	r0
+	and	#rllfUsed
+;	with	r0				; << to convert to rlgfALTTEXTURE
+	add	r0
+;	with	r0
+	add	r0
+	with	rSegFlags
+	add	r0
+;
+;	* * * * * * *       CLOSED DOOR (SOLID)       * * * * * * *
+;
+	from	rSegFlags			; Is this Segment a DOOR?
+;	to	r0
+	and	#rlgfDoor
+	beq	_BSL3200			; No
+	from	rSegFlags			; NORMAL WALL
+	from	r1				; DOOR
+;
+;	>>>   ADD TEMPORARY SOLID BIT   <<<
+;
+_BSL3200
+;	to	r0				; Move SOLID BIT into .C
+	lsr
+	with	rSegFlags			; Add Temporary SOLID BIT (CLOSED DOORs)
+	rol
+
+;
+;	* * * * * * *       CLIP SEGMENT AGAINST CLIPZONE       * * * * * * *
+;
+;	>>>   CLIP SCREEN COORDINATES TO VISIBLE DISPLAY   <<<
+;
+	moves	rXs1,rXs1			; Xs1 = Xs0
+	bpl	_BSL3400			; X1 Off Left?
+	nop
+	move	rXs1,#0				; Yes, Clip to LEFT
+_BSL3400
+	ifn	useHIGHDETAIL
+	move	r0,#<RLViewPixX2		; X2 Off Right?
+;	to	r0
+	ldb	(r0)
+	dec	r0
+	endif
+	ife	useHIGHDETAIL
+	move	r0,#(RLViewPixX/2)-1
+	endif
+;	from	r0
+	cmp	rXs2
+	bge	_BSL3600			; No
+	move	rXs2,r0				; Yes, Clip to RIGHT
+_BSL3600
+
+;
+;	>>>   FIND FIRST CLIPZONE THAT SEGMENT OVERLAPS OR IS PAST SEGMENT   <<<
+;
+	move	rClipZonePtr,(<SLClipZoneStart)	; Beginning of ClipZone
+	move	rClipZonePtrP,#0		; NO Previous ClipZone
+	move	r1,#(rlczNext-rlczX2)		; Offset to ClipZone.Next
+_BSL4200
+;	to	r0				; Get ClipZone.X2
+	ldb	(rClipZonePtr)
+;	from	r0				; ClipZone.X2 >= NewX1?
+	cmp	rXs1
+	bge	_BSL5000			; Yes, found the ClipZone Candidate!
+	move	rClipZonePtrP,rClipZonePtr	; Save PreviousClipZone
+	inc	rClipZonePtr			; Move to ClipZone.Next
+	inc	r0				; (ClipZone.X2+1) = NewX1?
+;	from	r0
+	cmp	rXs1
+	beq	_BSL4400			; Yes, ClipZone ENDS EXACTLY at NewX1!
+	inc	rClipZonePtr			; Move to ClipZone.Next
+	to	rClipZonePtr			; Get Next ClipZone
+	bra	_BSL4200
+	ldw	(rClipZonePtr)
+_BSL4400
+	move	rClipZonePtrU,rClipZonePtr	; Save UpdateClipZone.Next
+	move	rCZX2,r0
+	bra	_BSL6500
+	dec	rCZX2
+
+;
+;	* * * * * * *       PROCESS CLIPZONE       * * * * * * *
+;
+_BSL5000
+	inc	rClipZonePtr			; Move to ClipZone.X1
+	move	rCZX2,r0			; Get ClipZone.X2
+	to	rCZX1				; Get ClipZone.X1
+	ldb	(rClipZonePtr)
+;
+;	>>>   ENTIRE SEGMENT BEFORE CLIPZONE?   <<<
+;
+	from	rXs2				; NewX2 >= ClipZone.X1?
+;	to	r0				; @CMP@
+	sub	rCZX1
+	bge	_BSL6000			; Yes, Segment OverLaps ClipZone
+;
+;	>>>   ADD NEW CLIPZONE FROM (XS TO XS2)   <<<
+;
+	from	rSegFlags			; SEGMENT SOLID?
+;	to	r0
+	lsr
+	bcc	_BSL5800			; No, Don't Add ClipZone!
+;
+;	>>>   SEGMENT ENDS EXACTLY AT CLIPZONE START?   <<<
+;
+	dec	rCZX1				; Xs2 = ClipZone.X1-1?
+	from	rXs2
+;	to	r0				; @CMP@
+	sub	rCZX1
+	bne	_BSL5400			; No, Don't Merge!
+	inc	rCZX1
+	from	rXs1				; Set New ClipZone.X1
+	stb	(rClipZonePtr)
+	bra	_BSL5800
+;
+;	>>>   ADD NEW CLIPZONE FROM (XS TO XS2)   <<<
+;
+_BSL5400
+	dec	rClipZonePtr			; Move to ClipZone.X2
+	move	r1,(<SLClipZoneEnd)		; R1 = NewClipZone
+	moves	r0,rClipZonePtrP		; Any ClipZonePrevious?
+	bne	_BSL5500			; Yes
+	inc	r0				; Move to ClipZonePrevious.X1
+	move	(<SLClipZoneStart),r1		; New Beginning of ClipZoneList
+	bra	_BSL5600+1
+	from	rXs1
+_BSL5500
+	inc	r0				; Move to ClipZonePrevious.Next
+	from	r1				; ClipZonePrevious.Next = NewClipZone.X2
+	stw	(r0)
+_BSL5600
+	from	rXs1				; Get X2.B / X1.B
+;	to	r0
+	swap
+;	with	r0
+	or	rXs2				; Save NewClipZone.X2/NewClipZone.X1
+;	from	r0
+	stw	(r1)
+	inc	r1
+	inc	r1
+	from	rClipZonePtr			; NewClipZone.Next = ClipZone.X2
+	stw	(r1)
+	inc	r1				; Move ClipZoneEndPointer past NewClipZone
+	inc	r1
+	move	(<SLClipZoneEnd),r1		; Save ClipZoneEndPointer
+;
+;	>>>   ADD VISIBLE SEGMENT FROM (XS TO XS2)   <<<
+;
+_BSL5800
+	move	r0,rXs2
+	move	r1,rXs1
+	iwt	r11,#<_BSL2300			; Finished Processing this Segment!
+	iwt	r15,#<(_RLAddVSeg+1)
+	from	rSeg
+
+;
+;	>>>   PORTION OF SEGMENT BEFORE CLIPZONE?   <<<
+;
+_BSL6000
+	move	rClipZonePtrU,rClipZonePtr	; Save UpdateClipZone.Next
+	from	rXs1				; NewX1 >= ClipZone.X1?
+;	to	r0				; @CMP@
+	sub	rCZX1
+	bge	_BSL6400			; Yes, No Portion Before!
+	inc	rClipZonePtrU
+;
+;	>>>   ADD VISIBLE SEGMENT FROM (XS TO X1-1)   <<<
+;
+	move	r1,rXs1
+	move	r0,rCZX1
+	link	#4
+	iwt	r15,#<_RLAddVSeg
+	dec	r0
+;
+;	>>>   UPDATE CLIPZONE.X1   <<<
+;
+	from	rSegFlags			; SEGMENT SOLID?
+;	to	r0
+	lsr
+	bcc	_BSL6400			; No, Don't Update ClipZone!
+	from	rXs1				; New UpdateClipZone.X1
+	stb	(rClipZonePtr)
+
+;
+;	>>>   SEGMENT TOTALLY CONTAINED WITHIN CURRENT CLIPZONE?   <<<
+;
+_BSL6400
+	from	rCZX2				; X2 >= Xs2?
+	cmp	rXs2
+	bge	_BSL6800			; Yes, Contained within this ClipZone
+	inc	rClipZonePtr			; Move to ClipZone.Next
+;
+;	>>>   MOVE TO NEXT CLIPZONE   <<<
+;
+_BSL6500
+	to	rClipZonePtr			; Get Next ClipZone
+	ldw	(rClipZonePtr)
+	inc	rClipZonePtr			; Move to ClipZone.X1
+	to	rCZX1				; Get ClipZone.X1
+	ldb	(rClipZonePtr)
+;
+;	>>>   SEGMENT OVERLAPS OR JOINS NEXT CLIPZONE?   <<<
+;
+	inc	rXs2
+	from	rXs2				; NewX2 < ClipZone.X1
+;	to	r0				; @CMP@
+	sub	rCZX1
+	move	r1,rCZX2
+	blt	_BSL7000			; No OverLap!
+	dec	rXs2
+;
+;	>>>   ADD VISIBLE SEGMENT FROM (_X2+1 TO CLIPZONE.X1-1)   <<<
+;
+	inc	r1
+	move	r0,rCZX1
+	link	#4
+	iwt	r15,#<_RLAddVSeg
+	dec	r0
+;
+	dec	rClipZonePtr			; Move to ClipZone.X2
+	to	rCZX2				; Get ClipZone.X2
+	ldb	(rClipZonePtr)
+	bra	_BSL6400
+	inc	rClipZonePtr			; Move to ClipZone.X1
+
+;
+;	>>>   SEGMENT IS CONTAINED WITHIN LAST CLIPZONE   <<<
+;
+_BSL6800
+	from	rSegFlags			; SEGMENT SOLID?
+;	to	r0
+	lsr
+	bcc	_BSL6900			; No, Don't Update ClipZone!
+	to	rClipZonePtr			; Get ClipZone.Next
+	ldw	(rClipZonePtr)
+	from	rClipZonePtr			; Save UpdateClipZone.Next
+	stw	(rClipZonePtrU)
+	dec	rClipZonePtrU			; Move to UpdateClipZone.X2
+	dec	rClipZonePtrU
+	from	rCZX2				; New UpdateClipZone.X2
+	stb	(rClipZonePtrU)
+_BSL6900
+	iwt	r15,#<_BSL2300			; Process Next Segment!
+
+;
+;	>>>   PORTION OF SEGMENT AFTER CLIPZONE?   <<<
+;
+_BSL7000
+;
+;	>>>   ADD VISIBLE SEGMENT FROM (_X2+1 TO XS2)   <<<
+;
+	move	r0,rXs2
+	link	#4
+	iwt	r15,#<_RLAddVSeg
+	inc	r1
+;
+;	>>>   UPDATE CLIPZONE   <<<
+;
+	from	rSegFlags			; SEGMENT SOLID?
+;	to	r0
+	lsr
+	bcc	_BSL7800			; No, Don't Update ClipZone!
+	dec	rClipZonePtr			; Move to ClipZone.X2
+	from	rClipZonePtr			; UpdateClipZone.Next = ClipZone.X2
+	stw	(rClipZonePtrU)
+	dec	rClipZonePtrU			; Move to UpdateClipZone.X2
+	dec	rClipZonePtrU
+	from	rXs2				; UpdateClipZone.X2 = NewX2
+	stb	(rClipZonePtrU)
+;
+;	* * * * * * *       DONE UPDATING CLIPZONES       * * * * * * *
+;
+_BSL7800
+	iwt	r15,#<_BSL2300			; Process Next Segment!
+
+
+;
+;	* * * * * * *       ADD A NEW VISIBLE SEGMENT       * * * * * * *
+;
+;	rXs0		=	Screen Xs0
+;	r1		=	Screen Xs1
+;	r0		=	Screen Xs2
+;	rSeg		=	Pointer to Current Segment
+;	rVSeg		=	Pointer to Next VisibleSegment
+;	r11		=	Return Address
+;
+_RLAddVSeg
+;
+;	>>>   CREATE NEW VISIBLE SEGMENT   <<<
+;
+	from	rSeg				; Segment
+	stw	(rVSeg)
+	inc	rVSeg
+	inc	rVSeg
+;
+	from	rSeg
+	to	r14				; Move to SegmentLine
+	add	#rlgLine
+;
+;	from	r0				; Screen Xs2
+	to	rVSegTemp
+	swap
+;
+	from	rXs0				; Screen Xs0
+	stw	(rVSeg)
+	with	rVSeg
+	add	#(rlvXs1-rlvXs0)
+;
+	with	rVSegTemp			; Screen Xs1
+	or	r1
+;	with	r0				; R0 = (#ClipStrips Added-1)
+	sub	r1
+	inc	r0				; R0 = #ClipStrips
+;
+	to	r1				; R1 = Address of Segment's Line
+	getb
+	inc	r14
+;
+	from	rVSegTemp			; ScreenXs1.B / ScreenXs2.B
+	stw	(rVSeg)
+;
+;	>>>   AUTOMAP THIS VISIBLE SEGMENT   <<<
+;
+	move	rVSegTemp,#<_RLLineFlags	; Base of LineFlags
+	with	r1
+	getbh
+	with	r1				; Add Base of LineFlags
+	add	rVSegTemp
+;
+	move	r14,r0				; r14 = #ClipStrips
+;
+;	to	r0				; Get LineFlags
+	ldb	(r1)
+;	with	r0
+	or	#rllfMapped			; Mapped
+;	from	r0
+	stb	(r1)
+;
+	move	rVSegTemp,#(rlvVertex1-rlvXs1)	; Move to VSeg.V1
+	with	rVSegTemp
+	add	rVSeg
+;
+	from	rAreaListPtr			; Move to AreaSeg.V1
+	to	r1
+	add	#rluV1
+;	to	r0
+	ldw	(r1)
+;	from	r0
+	stw	(rVSegTemp)
+;
+	inc	rVSeg				; Move to ScreenXsRatioIndex
+	inc	rVSeg
+;
+	inc	r1				; Move to V2
+	inc	r1
+	inc	rVSegTemp
+	inc	rVSegTemp
+;	to	r0
+	ldw	(r1)
+;	from	r0
+	stw	(rVSegTemp)
+;
+	from	rAreaListPtr			; Move to Y1
+;	to	r0
+	add	#rluY1
+;
+	to	r1				; Get Y1
+	ldw	(r0)
+;
+	move	rVSegTemp,(<SLXsRatioI)		; Get ScreenXsRatioIndex
+	from	rVSegTemp			; ScreenXsRatioIndex
+	stw	(rVSeg)
+	inc	rVSeg				; Move to SegmentFlags
+	inc	rVSeg
+;
+	inc	r0				; Move to Y2
+	inc	r0
+	to	rVSegTemp			; Get Y2
+	ldw	(r0)				; @PIPELINE DELAY 4@
+;
+	from	rSegFlags			; SegmentFlags
+;	to	r0				; Discard Temporary SOLID Bit
+	lsr
+;	from	r0
+	stw	(rVSeg)
+;
+	with	rVSeg				; Move to World Y1
+	add	#(rlvY1-rlvSegFlags)
+;
+	from	rVSeg				; Move to VSeg.Y2
+;	to	r0
+	add	#(rlvY2-rlvY1)
+;
+	from	r1				; World Y1
+	stw	(rVSeg)
+;
+	move	r1,#(rlvSize-rlvY1)		; Move to Next VSeg
+	with	rVSeg
+	add	r1
+;
+	from	rSegFlags			; SEGMENT SOLID?
+	to	r1
+	lsr
+;
+	from	rVSegTemp			; World Y2
+	bcc	_RLAddVSeg800			; No, Don't Update ClipCount!
+	stw	(r0)
+;
+;	>>>   UPDATE CLIPSTRIP COUNT   <<<
+;
+	move	r0,(<SLClipCount)		; Get #ClipStrips Available
+;	with	r0				; Get #ClipStrips Remaining
+	sub	r14				; Any Left?
+	beq	_RLAddVSeg900			; NO!  STOP PROCESSING SEGMENTS!!!
+	sbk					; Save #ClipStrips Remaining
+
+;
+;	* * * * * * *       FINISHED ADDING VISIBLE SEGMENT       * * * * * * *
+;
+_RLAddVSeg800
+
+	ifn	useCHECKVSEGS
+	move	r0,#<_RLVSegListE		; VSeg Overflow?
+;	with	r0
+	sub	rVSeg
+	bpl	.0
+	HALTGSU	#$a1				; YES!
+.0
+	endif
+
+	jmp	r11				; PROCESS NEXT SEGMENT
+	nop
+
+;
+;	* * * * * * *       STOP ADDING VISIBLE SEGMENTS       * * * * * * *
+;
+_RLAddVSeg900
+	move	r15,#<_BSL9000			; NO MORE CLIP STRIPS AVAILABLE!!!
+	nop
+
+	CACHEE	_RLBuildSegList4

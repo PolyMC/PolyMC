@@ -1,0 +1,16 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                               XBAND BOOT ROM       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+	SECTION	XBANDROM,LOAD=$00D00000,ORG=$D00000
+
+	image	XBAND/ROM.BIN,$00000,$80000

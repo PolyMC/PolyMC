@@ -1,0 +1,500 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                  MOVABLE OBJECT HANDLING MODULE 1                  *
+;*                                                                    *
+;*                    MOVABLE OBJECT STATE MACHINE                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+	include	rlenemies.i
+
+
+	public	_RLInitMObjects
+	public	_RLMSObjects
+
+
+	SECTION	LEVEL
+
+;
+;	* * * * * * *       REALITY_ENGINE INITIALIZE MOVABLE OBJECTS       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitMObjects
+	mode	'AX!'
+	lda	#0				; NO Movable RLObjects EXIST
+	sta	RLNumMObjs
+	sta	RLNumPMObjs			; NO Movable RLObjects to PROCESS
+;
+	ldx	#(MaxRLMObjects-1)*2		; NO Movable RLObjects are PROCESSING
+	lda	#-1
+_RIMO200
+	sta	_RLMObjs,x
+	dex
+	dex
+	bpl	_RIMO200
+;
+	ldy	#(MaxRLMObjects-1)		; ALL Movable RLObjects are FREE
+	ldx	#0
+_RIMO400
+	lda	#-1
+	sta	_RLMObjects+rloNext,x
+	lda	#rlpfMovable
+	sta	_RLMObjects+rloFlags,x
+	txa
+	clc
+	adc	#rloSize
+	tax
+	dey
+	bpl	_RIMO400
+;
+	rtl
+
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+rRandomNum		equ	r4		; Random Number
+rStateCount		equ	r6		; StateCount
+rEnemyTargets		equ	r7		; Enemy Target List
+rEnemyMoves		equ	r8		; Enemy Move List
+rProjectileMoves	equ	r5		; Projectile Move List
+rFPSCount		equ	r9		; Frames in last update
+rMObjPtr		equ	r10		; Pointer to MObjList
+rObj			equ	r12		; Pointer to RLObject
+rMObjCount		equ	r13		; Counter of MObjs
+
+
+;
+;	* * * * * * *       REALITY_ENGINE MOVABLE OBJECTS STATE MACHINE       * * * * * * *
+;
+	align	16,(_RLMS10000-_RLMSObjectsAlign)&$0f
+;
+;	>>>   FINISHED PROCESSING MOVABLE OBJECTS   <<<
+;
+_RLMS10000
+	move	r0,#0
+	stw	(rEnemyMoves)			; Terminate Enemy Movement List
+	stw	(rProjectileMoves)		; Terminate Projectile Movement List
+	ibtx	r0,#$80				; Terminate Enemy Targetting List
+	stw	(rEnemyTargets)
+;
+	ifn	DEBUGSCR
+	move	r0,#<_RLEnemyTargets		; #Enemy Targets
+	from	rEnemyTargets
+;	to	r0
+	sub	r0
+;	with	r0
+	lsr
+	move	(<DebugEnemyTargets),r0
+	move	r0,#<_RLEnemyMoves		; #Enemy Moves
+	from	rEnemyMoves
+;	to	r0
+	sub	r0
+;	with	r0
+	lsr
+	move	(<DebugEnemyMoves),r0
+	move	r0,#<_RLProjectileMoves		; #ProjectileMoves
+	from	rProjectileMoves
+;	to	r0
+	sub	r0
+;	with	r0
+	lsr
+	move	(<DebugProjectileMoves),r0
+	endif
+;
+	move	r0,#<_RLProjectileMoves		; #ProjectileMoves
+	from	rProjectileMoves
+;	to	r0
+	sub	r0
+;	with	r0
+	lsr
+	move	(<RLNumPObjs),r0
+;
+	ife	usePATCH
+	move	r0,#<_RLMAObjects		; HANDLE MOVABLE OBJECT ANIMATIONS
+	endif
+	ifn	usePATCH
+	move	r0,(<PTRLMAObjects)		; HANDLE MOVABLE OBJECT ANIMATIONS
+	endif
+	move	r8,#^_RLMAObjects
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	>>>   START PROCESSING MOVABLE OBJECTS   <<<
+;
+_RLMSObjects
+	move	rFPSCount,(<(FPSCount+RLGSUSNESXVarsO))	; Get FPSCount
+	inc	rFPSCount
+	move	rMObjPtr,#<_RLMObjs			; MovableObjects List
+	move	rMObjCount,(<RLNumPMObjs)
+	move	rEnemyTargets,#<_RLEnemyTargets		; Enemy Target List
+	move	rEnemyMoves,#<_RLEnemyMoves		; Enemy Move List
+	move	rProjectileMoves,#<_RLProjectileMoves	; Projectile Move List
+	move	r11,#<_RLMS4000
+
+	CACHEB	_RLMSObjects
+_RLMSObjectsAlign
+;
+;	>>>   NEXT MOVABLE OBJECT   <<<
+;
+_RLMSHalt
+_RLMS2200
+	dec	rMObjCount			; Any More MObjs?
+	bmi	_RLMS10000			; No
+_RLMS2300
+	to	rObj				; Get Next MovableObject
+	ldw	(rMObjPtr)
+	inc	rMObjPtr
+	inc	rObj
+	beq	_RLMS2300
+	inc	rMObjPtr
+;
+;	>>>   GET RANDOM NUMBER   <<<
+;
+	move	r0,#^RandomTable		; Get Random Number
+	romb
+	move	r0,#<RandomNumI
+	to	r14
+	ldb	(r0)
+	move	r0,r14
+	inc	r0
+;	from	r0
+	sbk
+	to	rRandomNum
+	getb
+;
+;	>>>   GET STATE/COUNT   <<<
+;
+	move	r0,#^_MObjData
+	romb
+	move	r0,#rloState			; Get State
+;	with	r0
+	add	rObj
+	to	r14
+	ldw	(r0)
+	dec	r0				; Get StateCount
+	to	rStateCount
+	ldb	(r0)
+;
+;	>>>   CALL STATE CODE   <<<
+;
+_RLMS3000
+	getb					; Get StateCode
+	inc	r14
+	to	r15				; Call StateCode
+	getbh
+	inc	r14
+_RLMS4000
+	move	r1,#rloState			; Save State
+	with	r1
+	add	rObj
+	dec	r0
+	from	r14
+	bmi	_RLMS3000
+	stw	(r1)
+;
+;	>>>   UPDATE STATE COUNTER   <<<
+;
+_RLMS6000
+	move	r0,#rloStateCount		; Save StateCount
+;	with	r0
+	add	rObj
+	from	rStateCount
+	stb	(r0)
+	bra	_RLMS2200
+	nop
+
+;
+;	* * * * * * *       MOVABLE OBJECTS STATE MACHINE SUBROUTINES       * * * * * * *
+;
+
+;
+;	>>>   QUEUE AN ENEMY MOVEMENT   <<<
+;
+_RLMSQEnemyMove
+	move	r0,#<(_RLEnemyMovesE-2)		; Move List Full?
+;	with	r0				; @CMP@
+	sub	rEnemyMoves
+	beq	_RLMSQEnemyTarget2		; Yes!  Can't Move!
+	from	rObj
+	stw	(rEnemyMoves)
+	inc	rEnemyMoves
+	inc	rEnemyMoves
+;
+;	>>>   WAIT FOR STATE EXPIRATION   <<<
+;
+_RLMSWait
+;	moves	r0,rStateCount			; Constant State?
+;	bmi	_RLMS2200			; Yes!  Don't Change State!
+	with	rStateCount			; StateCount -= FPSCount
+	sub	rFPSCount
+	bpl	_RLMS6000			; State Expired?  No!
+	nop
+	bra	_RLMS3000
+	nop
+
+;
+;	>>>   QUEUE AN ENEMY TARGET   <<<
+;
+_RLMSQEnemyTarget
+	move	r0,#rloTObj			; Previously Targetted?
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	moves	r0,r0
+	beq	_RLMSQEnemyTargetA		; No
+	from	rRandomNum
+;	to	r0
+	and	#3
+	bne	_RLMSQEnemyTargetA
+	nop
+	move	r1,#rlmodAwakeSound		; Yes!  Start Awake Sound
+	link	#4
+	iwt	r15,#<_RLMSSoundEffect
+	nop
+_RLMSQEnemyTargetA
+	move	r0,#<(_RLEnemyTargetsE-2)	; Targetting List Full?
+;	with	r0				; @CMP@
+	sub	rEnemyTargets
+	beq	_RLMSQEnemyTarget2		; Yes!  Can't Target!
+	from	rObj
+	stw	(rEnemyTargets)
+;	with	r0				; STOP STATE
+	sub	r0
+	inc	rEnemyTargets
+	inc	rEnemyTargets
+	jmp	r11
+	inc	r0				; STOP STATE
+_RLMSQEnemyTarget2
+	move	r0,#1				; STOP STATE
+	dec	r14
+	jmp	r11				; Can't Target -- Hold this State!
+	dec	r14
+
+;
+;	>>>   ENEMY AWAKE!   <<<
+;
+_RLMSEnemyAwake
+	move	r1,#rlmodAwakeSound		; Start Awake Sound
+	link	#4
+	iwt	r15,#<_RLMSSoundEffect
+	nop
+	move	rStateCount,#80			; StateCount
+	jmp	r11
+;	with	r0				; GO STATE
+	sub	r0
+
+;
+;	>>>   ENEMY SLEEPING -- AWAKEN?   <<<
+;
+_RLMSEnemySleep
+	move	r0,#rloTObj			; Has Enemy Acquired Target (Player)?
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	dec	r0
+	bpl	_RLMSEnemyAnimState		; YES!  AWAKEN!
+	with	r14				; Skip past SLEEP Data
+	add	#4
+	move	rStateCount,#90			; StateCount
+	jmp	r11
+;	with	r0				; GO STATE
+	sub	r0
+_RLMSEnemyAnimState
+	move	rStateCount,#70			; StateCount
+	getb					; Get Animation
+	inc	r14
+	move	r2,#rloAnim
+	with	r2
+	add	rObj
+	getbh
+	inc	r14
+;	from	r0
+	stw	(r2)
+	inc	r2
+	inc	r2
+;	with	r0				; AnimCount
+	sub	r0
+;	from	r0
+	stb	(r2)
+_RLMSState
+	getb					; Get State
+	inc	r14
+	to	r14
+	getbh
+	jmp	r11
+;	with	r0				; GO STATE
+	sub	r0
+
+;
+;	>>>   DECIDE TO MOVE OR ATTACK   <<<
+;
+_RLMSEnemyMove0
+	move	r2,#edInvisibleDistance		; Beyond Attack Distance?
+	move	r3,#$7fff			; Yes?  Can't Attack!
+	bra	_RLMSEnemyMove2
+	nop
+_RLMSEnemyMove
+	move	r2,#edMoveAttackDistance	; Beyond Maximum Move/Attack Distance?
+	move	r3,r2
+_RLMSEnemyMove2
+	move	r1,#rloTObj			; Has Enemy Acquired Target?
+	with	r1
+	add	rObj
+;	to	r0
+	ldw	(r1)
+	dec	r0
+	bmi	_RLMSEnemyMove9			; No
+	inc	r1				; Get Distance to Target
+	inc	r1
+;	to	r0
+	ldw	(r1)
+;	from	r0
+	cmp	r2
+	blt	_RLMSEnemyMove5			; No
+	moves	r0,r3				; Yes, Attack 70% of Time
+_RLMSEnemyMove5
+;	with	r0				; @CMP@
+	sub	rRandomNum			; RandomNumber >= Distance?
+	blt	_RLMSEnemyAnimState+1		; No, Move!
+;
+;	>>>   ATTACK TARGET   <<<
+;
+_RLMSEnemyMove9
+	move	rStateCount,#50			; StateCount
+	with	r14				; Skip past MOVE Data
+	add	#4
+	jmp	r11
+;	with	r0				; GO STATE
+	sub	r0
+
+;
+;	>>>   ENEMY HAS BEEN DAMAGED   <<<
+;
+_RLMSEnemyDamage
+	move	r0,#rloHealth			; Get Health
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	move	rStateCount,#40			; STATECOUNT
+	move	r1,#rlmodDamageSound		; _DAMAGE
+	from	r14				; Skip past DAMAGE Data
+	to	r2
+	add	#4
+	move	r3,#rloState			; Move to State
+	dec	r0
+	bpl	_RLMSEnemyDamage3+1		; Enemy Still Alive!
+	with	r3
+	inc	r1				; _DIE
+	inc	r1
+	inc	r14				; Move to Death Animation
+	inc	r14
+_RLMSEnemyDamage2
+	move	rStateCount,#255		; STATECOUNT
+_RLMSEnemyDamage3
+	with	r3
+	add	rObj
+	from	r2
+	stw	(r3)
+	dec	r3
+	getb					; Get Damage Animation
+	inc	r14
+	from	rStateCount			; StateCount/AnimCount
+	stw	(r3)
+	dec	r3
+	dec	r3
+	dec	r3
+	move	r11,#<_RLMS2200			; Hold This State!
+	getbh
+	iwt	r15,#<_RLMSSoundEffect2
+;	from	r0				; Save Damage/Death Animation
+	stw	(r3)
+
+;
+;	>>>   PROJECTILE HAS BEEN DAMAGED   <<<
+;
+_RLMSProjectileDamage
+	from	r14				; Skip past DAMAGE Data
+	to	r2
+	add	#2
+	move	r3,#rloState			; Move to State
+	move	r1,#rlmodDieSound		; _DIE
+	bra	_RLMSEnemyDamage2
+	nop
+
+;
+;	>>>   QUEUE A PROJECTILE MOVEMENT   <<<
+;
+_RLMSQProjectileMove
+	move	r0,#<(_RLProjectileMovesE-2)	; Move List Full?
+;	with	r0				; @CMP@
+	sub	rProjectileMoves
+	beq	_RLMSQProjectileMove2		; Yes!  Can't Move!
+	from	rObj
+	stw	(rProjectileMoves)
+	inc	rProjectileMoves
+	inc	rProjectileMoves
+_RLMSQProjectileMove2
+	iwt	r15,#<_RLMS2200			; Hold This State!
+	nop
+
+;
+;	>>>   ADD SOUND EFFECT   <<<
+;
+_RLMSSoundEffect
+	move	r2,r14				; Save StatePointer
+_RLMSSoundEffect2
+	move	r0,#rloMData			; Get Pointer to MObjData
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+;	from	r0				; Get Sound Effect
+	to	r14
+	add	r1
+	from	rObj				; Get Sound Origin Coordinates
+;	to	r0
+	add	#(rloX+2)
+	to	r4
+	ldw	(r0)
+	to	r3				; Get SoundEffect#
+	getb
+	inc	r14
+;	with	r0
+	add	#((rloY+2)-(rloX+2))
+	to	r6
+	ldw	(r0)
+	with	r3				; Get SoundEffect#
+	getbh
+	move	(<MOReturnAddress),r11		; Save Return Address
+	link	#4				; Start Sound Effect
+	iwt	r15,#<_RLSoundEffect
+	dec	r3
+;
+	move	r11,#<_RLMS4000
+	move	r0,#^_MObjData			; MObjData Bank
+	romb
+	move	r14,r2				; Restore StatePointer
+	move	r15,(<MOReturnAddress)
+;	with	r0				; GO STATE
+	sub	r0
+
+
+	CACHEE	_RLMSObjects

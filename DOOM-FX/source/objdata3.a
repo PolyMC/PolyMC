@@ -1,0 +1,907 @@
+;**********************************************************************
+;*                                                                    *
+;*                      P R O J E C T :   R A G E                     *
+;*                                                                    *
+;*                         OBJECT DATA MODULE 3                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	rlobjects.i
+	include	rlimages.i
+
+
+	SECTION	_MOBJECTDATA
+
+
+;
+;	* * * * * * *       PLAYER STATE TABLE       * * * * * * *
+;
+moaPLAYER_STAND
+	dc.b	6				; A1
+	dc.b	(inPlayerWalk+0)
+	dc.b	6				; B1
+	dc.b	(inPlayerWalk+1)
+	dc.b	$80
+	dc.w	<moaPLAYER_STAND
+
+moaPLAYER_MOVE
+	dc.b	6				; A1
+	dc.b	(inPlayerWalk+0)
+	dc.b	6				; B1
+	dc.b	(inPlayerWalk+1)
+	dc.b	6				; C1
+	dc.b	(inPlayerWalk+2)
+	dc.b	6				; D1
+	dc.b	(inPlayerWalk+3)
+	dc.b	$80
+	dc.w	<moaPLAYER_MOVE
+
+moaPLAYER_ATTACK
+	dc.b	6				; E1
+	dc.b	(inPlayerShoot+0)
+	dc.b	6				; F1
+	dc.b	(inPlayerShoot+1)
+	dc.b	6				; E1
+	dc.b	(inPlayerShoot+0)
+	dc.b	$80
+	dc.w	<moaPLAYER_MOVE
+
+moaPLAYER_DAMAGE
+	dc.b	20				; G1
+	dc.b	(inPlayerHit+0)
+	dc.b	$80
+	dc.w	<moaPLAYER_MOVE
+
+moaPLAYER_DIE
+	dc.b	8				; H0
+	dc.b	(inPlayerDie+0)
+	dc.b	8				; I0
+	dc.b	(inPlayerDie+1)
+	dc.b	8				; J0
+	dc.b	(inPlayerDie+2)
+	dc.b	8				; K0
+	dc.b	(inPlayerDie+3)
+	dc.b	$81				; L0
+	dc.w	<_RLMAPlayerDie
+	dc.b	1				; N0
+	dc.b	(inPlayerDie+4)
+
+
+;
+;	* * * * * * *       SOLDIER STATE TABLE       * * * * * * *
+;
+mosSOLDIER_SLEEP
+	dc.w	<_RLMSEnemySleep,<moaSOLDIER_MOVE,<mosSOLDIER_AWAKE
+mosSOLDIER_SLEEP0
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosSOLDIER_SLEEP
+moaSOLDIER_SLEEP
+	dc.b	6				; A1
+	dc.b	(inSoldierWalk+0)
+	dc.b	6				; B1
+	dc.b	(inSoldierWalk+1)
+	dc.b	$80
+	dc.w	<moaSOLDIER_SLEEP
+
+mosSOLDIER_AWAKE
+	dc.w	<_RLMSEnemyAwake
+	dc.w	<_RLMSWait
+mosSOLDIER_MOVE
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSEnemyMove,<moaSOLDIER_ATTACK,<mosSOLDIER_ATTACK
+	dc.w	<_RLMSQEnemyMove
+	dc.w	<_RLMSState,<mosSOLDIER_MOVE
+moaSOLDIER_MOVE
+	dc.b	6				; A1
+	dc.b	(inSoldierWalk+0)
+	dc.b	6				; B1
+	dc.b	(inSoldierWalk+1)
+	dc.b	6				; C1
+	dc.b	(inSoldierWalk+2)
+	dc.b	6				; D1
+	dc.b	(inSoldierWalk+3)
+	dc.b	$80
+	dc.w	<moaSOLDIER_MOVE
+
+mosSOLDIER_ATTACK
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosSOLDIER_MOVE
+moaSOLDIER_ATTACK
+	dc.b	6				; E1
+	dc.b	(inSoldierShoot+0)
+	dc.b	$81				; F1
+	dc.w	<_RLMAQEnemyAttack,<_RLEAShoot
+	dc.b	6
+	dc.b	(inSoldierShoot+1)
+	dc.b	6				; E1
+	dc.b	(inSoldierShoot+0)
+	dc.b	$80
+	dc.w	<moaSOLDIER_MOVE
+
+mosSOLDIER_DAMAGE
+	dc.w	<_RLMSEnemyDamage,<moaSOLDIER_DAMAGE,<moaSOLDIER_DIE
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosSOLDIER_MOVE
+moaSOLDIER_DAMAGE
+	dc.b	20				; G1
+	dc.b	(inSoldierHit+0)
+	dc.b	$80
+	dc.w	<moaSOLDIER_MOVE
+moaSOLDIER_DIE
+	dc.b	8				; H0
+	dc.b	(inSoldierDie+0)
+	dc.b	8				; I0
+	dc.b	(inSoldierDie+1)
+	dc.b	8				; J0
+	dc.b	(inSoldierDie+2)
+	dc.b	8				; K0
+	dc.b	(inSoldierDie+3)
+	dc.b	$81				; L0
+	dc.w	<_RLMASoldierDie
+	dc.b	1
+	dc.b	(inSoldierDie+4)
+
+
+;
+;	* * * * * * *       SERGEANT STATE TABLE       * * * * * * *
+;
+mosSERGEANT_SLEEP
+	dc.w	<_RLMSEnemySleep,<moaSERGEANT_MOVE,<mosSERGEANT_AWAKE
+mosSERGEANT_SLEEP0
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosSERGEANT_SLEEP
+moaSERGEANT_SLEEP
+	dc.b	6				; A1
+	dc.b	(inSergeantWalk+0)
+	dc.b	6				; B1
+	dc.b	(inSergeantWalk+1)
+	dc.b	$80
+	dc.w	<moaSERGEANT_SLEEP
+
+mosSERGEANT_AWAKE
+	dc.w	<_RLMSEnemyAwake
+	dc.w	<_RLMSWait
+mosSERGEANT_MOVE
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSEnemyMove,<moaSERGEANT_ATTACK,<mosSERGEANT_ATTACK
+	dc.w	<_RLMSQEnemyMove
+	dc.w	<_RLMSState,<mosSERGEANT_MOVE
+moaSERGEANT_MOVE
+	dc.b	6				; A1
+	dc.b	(inSergeantWalk+0)
+	dc.b	6				; B1
+	dc.b	(inSergeantWalk+1)
+	dc.b	6				; C1
+	dc.b	(inSergeantWalk+2)
+	dc.b	6				; D1
+	dc.b	(inSergeantWalk+3)
+	dc.b	$80
+	dc.w	<moaSERGEANT_MOVE
+
+mosSERGEANT_ATTACK
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosSERGEANT_MOVE
+moaSERGEANT_ATTACK
+	dc.b	6				; E1
+	dc.b	(inSergeantShoot+0)
+	dc.b	$81				; F1
+	dc.w	<_RLMAQEnemyAttack,<_RLEAShoot
+	dc.b	6
+	dc.b	(inSergeantShoot+1)
+	dc.b	6				; E1
+	dc.b	(inSergeantShoot+0)
+	dc.b	$80
+	dc.w	<moaSERGEANT_MOVE
+
+mosSERGEANT_DAMAGE
+	dc.w	<_RLMSEnemyDamage,<moaSERGEANT_DAMAGE,<moaSERGEANT_DIE
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosSERGEANT_MOVE
+moaSERGEANT_DAMAGE
+	dc.b	20				; G1
+	dc.b	(inSergeantHit+0)
+	dc.b	$80
+	dc.w	<moaSERGEANT_MOVE
+moaSERGEANT_DIE
+	dc.b	8				; H0
+	dc.b	(inSergeantDie+0)
+	dc.b	8				; I0
+	dc.b	(inSergeantDie+1)
+	dc.b	8				; J0
+	dc.b	(inSergeantDie+2)
+	dc.b	8				; K0
+	dc.b	(inSergeantDie+3)
+	dc.b	$81				; L0
+	dc.w	<_RLMASergeantDie
+	dc.b	1
+	dc.b	(inSergeantDie+4)
+
+
+;
+;	* * * * * * *       TROOPER STATE TABLE       * * * * * * *
+;
+mosTROOPER_SLEEP
+	dc.w	<_RLMSEnemySleep,<moaTROOPER_MOVE,<mosTROOPER_MOVE
+mosTROOPER_SLEEP0
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosTROOPER_SLEEP
+moaTROOPER_SLEEP
+	dc.b	6				; A1
+	dc.b	(inTrooperWalk+0)
+	dc.b	6				; B1
+	dc.b	(inTrooperWalk+1)
+	dc.b	$80
+	dc.w	<moaTROOPER_SLEEP
+
+mosTROOPER_MOVE
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSEnemyMove,<moaTROOPER_ATTACK,<mosTROOPER_ATTACK
+	dc.w	<_RLMSQEnemyMove
+	dc.w	<_RLMSState,<mosTROOPER_MOVE
+moaTROOPER_MOVE
+	dc.b	6				; A1
+	dc.b	(inTrooperWalk+0)
+	dc.b	6				; B1
+	dc.b	(inTrooperWalk+1)
+	dc.b	6				; C1
+	dc.b	(inTrooperWalk+2)
+	dc.b	6				; D1
+	dc.b	(inTrooperWalk+3)
+	dc.b	$80
+	dc.w	<moaTROOPER_MOVE
+
+mosTROOPER_ATTACK
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosTROOPER_MOVE
+moaTROOPER_ATTACK
+	dc.b	6				; E1
+	dc.b	(inTrooperShoot+0)
+	dc.b	6				; F1
+	dc.b	(inTrooperShoot+1)
+	dc.b	$81				; G1
+	dc.w	<_RLMAQEnemyDAttack,<_RLEAFight,<_RLEALaunchFireBall1
+	dc.b	6
+	dc.b	(inTrooperShoot+2)
+	dc.b	$80
+	dc.w	<moaTROOPER_MOVE
+
+mosTROOPER_DAMAGE
+	dc.w	<_RLMSEnemyDamage,<moaTROOPER_DAMAGE,<moaTROOPER_DIE
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosTROOPER_MOVE
+moaTROOPER_DAMAGE
+	dc.b	20				; H1
+	dc.b	(inTrooperHit+0)
+	dc.b	$80
+	dc.w	<moaTROOPER_MOVE
+moaTROOPER_DIE
+	dc.b	8				; I0
+	dc.b	(inTrooperDie+0)
+	dc.b	8				; J0
+	dc.b	(inTrooperDie+1)
+	dc.b	8				; K0
+	dc.b	(inTrooperDie+2)
+	dc.b	8				; L0
+	dc.b	(inTrooperDie+3)
+	dc.b	$81				; M0
+	dc.w	<_RLMAEnemyDie
+	dc.b	1
+	dc.b	(inTrooperDie+4)
+
+
+;
+;	* * * * * * *       DEMON STATE TABLE       * * * * * * *
+;
+mosDEMON_SLEEP
+	dc.w	<_RLMSEnemySleep,<moaDEMON_MOVE,<mosDEMON_MOVE
+mosDEMON_SLEEP0
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosDEMON_SLEEP
+moaDEMON_SLEEP
+	dc.b	6				; A1
+	dc.b	(inDemonWalk+0)
+	dc.b	6				; B1
+	dc.b	(inDemonWalk+1)
+	dc.b	$80
+	dc.w	<moaDEMON_SLEEP
+
+mosDEMON_MOVE
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSEnemyMove0,<moaDEMON_ATTACK,<mosDEMON_ATTACK
+	dc.w	<_RLMSQEnemyMove
+	dc.w	<_RLMSState,<mosDEMON_MOVE
+moaDEMON_MOVE
+	dc.b	6				; A1
+	dc.b	(inDemonWalk+0)
+	dc.b	6				; B1
+	dc.b	(inDemonWalk+1)
+	dc.b	6				; C1
+	dc.b	(inDemonWalk+2)
+	dc.b	6				; D1
+	dc.b	(inDemonWalk+3)
+	dc.b	$80
+	dc.w	<moaDEMON_MOVE
+
+mosDEMON_ATTACK
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosDEMON_MOVE
+moaDEMON_ATTACK
+	dc.b	6				; E1
+	dc.b	(inDemonBite+0)
+	dc.b	6				; F1
+	dc.b	(inDemonBite+1)
+	dc.b	$81				; G1
+	dc.w	<_RLMAQEnemyAttack,<_RLEAFight
+	dc.b	6
+	dc.b	(inDemonBite+2)
+	dc.b	$80
+	dc.w	<moaDEMON_MOVE
+
+mosDEMON_DAMAGE
+	dc.w	<_RLMSEnemyDamage,<moaDEMON_DAMAGE,<moaDEMON_DIE
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosDEMON_MOVE
+moaDEMON_DAMAGE
+	dc.b	20				; H1
+	dc.b	(inDemonHit+0)
+	dc.b	$80
+	dc.w	<moaDEMON_MOVE
+moaDEMON_DIE
+	dc.b	8				; I0
+	dc.b	(inDemonDie+0)
+	dc.b	8				; K0
+	dc.b	(inDemonDie+1)
+	dc.b	8				; L0
+	dc.b	(inDemonDie+2)
+	dc.b	$81				; N0
+	dc.w	<_RLMAEnemyDie
+	dc.b	1
+	dc.b	(inDemonDie+3)
+
+
+;
+;	* * * * * * *       CACODEMON STATE TABLE       * * * * * * *
+;
+mosCACODEMON_SLEEP
+	dc.w	<_RLMSEnemySleep,<moaCACODEMON_MOVE,<mosCACODEMON_MOVE
+mosCACODEMON_SLEEP0
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosCACODEMON_SLEEP
+
+mosCACODEMON_MOVE
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSEnemyMove,<moaCACODEMON_ATTACK,<mosCACODEMON_ATTACK
+	dc.w	<_RLMSQEnemyMove
+	dc.w	<_RLMSState,<mosCACODEMON_MOVE
+moaCACODEMON_SLEEP
+moaCACODEMON_MOVE
+	dc.b	127				; A1
+	dc.b	(inCacoDemonFloat+0)
+	dc.b	$80
+	dc.w	<moaCACODEMON_MOVE
+
+mosCACODEMON_ATTACK
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosCACODEMON_MOVE
+moaCACODEMON_ATTACK
+	dc.b	6				; B1
+	dc.b	(inCacoDemonBite+0)
+	dc.b	6				; C1
+	dc.b	(inCacoDemonBite+1)
+	dc.b	$81				; D1
+	dc.w	<_RLMAQEnemyDAttack,<_RLEAFight,<_RLEALaunchFireBall2
+	dc.b	6
+	dc.b	(inCacoDemonBite+2)
+	dc.b	$80
+	dc.w	<moaCACODEMON_MOVE
+
+mosCACODEMON_DAMAGE
+	dc.w	<_RLMSEnemyDamage,<moaCACODEMON_DAMAGE,<moaCACODEMON_DIE
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosCACODEMON_MOVE
+moaCACODEMON_DAMAGE
+	dc.b	8				; E1
+	dc.b	(inCacoDemonHit+0)
+	dc.b	20				; F1
+	dc.b	(inCacoDemonHit+1)
+	dc.b	$80
+	dc.w	<moaCACODEMON_MOVE
+moaCACODEMON_DIE
+	dc.b	9				; H0
+	dc.b	(inCacoDemonDie+0)
+	dc.b	9				; J0
+	dc.b	(inCacoDemonDie+1)
+	dc.b	9				; K0
+	dc.b	(inCacoDemonDie+2)
+	dc.b	$81				; L0
+	dc.w	<_RLMAEnemyFall
+	dc.b	1
+	dc.b	(inCacoDemonDie+3)
+
+
+;
+;	* * * * * * *       LOSTSOUL STATE TABLE       * * * * * * *
+;
+mosLOSTSOUL_SLEEP
+	dc.w	<_RLMSEnemySleep,<moaLOSTSOUL_MOVE,<mosLOSTSOUL_MOVE
+mosLOSTSOUL_SLEEP0
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosLOSTSOUL_SLEEP
+
+mosLOSTSOUL_MOVE
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSEnemyMove,<moaLOSTSOUL_ATTACK,<mosLOSTSOUL_ATTACK
+	dc.w	<_RLMSQEnemyMove
+	dc.w	<_RLMSState,<mosLOSTSOUL_MOVE
+moaLOSTSOUL_SLEEP
+moaLOSTSOUL_MOVE
+	dc.b	6				; A1
+	dc.b	(inLostSoulFloat+0)
+	dc.b	6				; B1
+	dc.b	(inLostSoulFloat+1)
+	dc.b	$80
+	dc.w	<moaLOSTSOUL_MOVE
+
+mosLOSTSOUL_ATTACK
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosLOSTSOUL_MOVE
+moaLOSTSOUL_ATTACK
+	dc.b	6				; C1
+	dc.b	(inLostSoulBite+0)
+	dc.b	6				; D1
+	dc.b	(inLostSoulBite+1)
+	dc.b	$81				; C1
+	dc.w	<_RLMAQEnemyAttack,<_RLEAFight
+	dc.b	6
+	dc.b	(inLostSoulBite+0)
+	dc.b	6				; D1
+	dc.b	(inLostSoulBite+1)
+	dc.b	$80
+	dc.w	<moaLOSTSOUL_MOVE
+
+mosLOSTSOUL_DAMAGE
+	dc.w	<_RLMSEnemyDamage,<moaLOSTSOUL_DAMAGE,<moaLOSTSOUL_DIE
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosLOSTSOUL_MOVE
+moaLOSTSOUL_DAMAGE
+	dc.b	8				; E1
+	dc.b	(inLostSoulHit+0)
+	dc.b	$80
+	dc.w	<moaLOSTSOUL_MOVE
+moaLOSTSOUL_DIE
+	dc.b	8				; F0
+	dc.b	(inLostSoulDie+0)
+	dc.b	8				; H0
+	dc.b	(inLostSoulDie+1)
+	dc.b	8				; I0
+	dc.b	(inLostSoulDie+2)
+	dc.b	$81
+	dc.w	<_RLMAEnemyDie2
+	dc.b	1				; I0
+	dc.b	(inLostSoulDie+2)
+
+
+;
+;	* * * * * * *       BARONOFHELL STATE TABLE       * * * * * * *
+;
+mosBARONOFHELL_SLEEP
+	dc.w	<_RLMSEnemySleep,<moaBARONOFHELL_MOVE,<mosBARONOFHELL_MOVE
+mosBARONOFHELL_SLEEP0
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosBARONOFHELL_SLEEP
+moaBARONOFHELL_SLEEP
+	dc.b	6				; A1
+	dc.b	(inBaronOfHellWalk+0)
+	dc.b	6				; B1
+	dc.b	(inBaronOfHellWalk+1)
+	dc.b	$80
+	dc.w	<moaBARONOFHELL_SLEEP
+
+mosBARONOFHELL_MOVE
+	dc.w	<_RLMSEnemyMove,<moaBARONOFHELL_ATTACK,<mosBARONOFHELL_ATTACK
+	dc.w	<_RLMSQEnemyMove
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosBARONOFHELL_MOVE
+moaBARONOFHELL_MOVE
+	dc.b	6				; A1
+	dc.b	(inBaronOfHellWalk+0)
+	dc.b	6				; B1
+	dc.b	(inBaronOfHellWalk+1)
+	dc.b	6				; C1
+	dc.b	(inBaronOfHellWalk+2)
+	dc.b	6				; D1
+	dc.b	(inBaronOfHellWalk+3)
+	dc.b	$80
+	dc.w	<moaBARONOFHELL_MOVE
+
+mosBARONOFHELL_ATTACK
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosBARONOFHELL_MOVE
+moaBARONOFHELL_ATTACK
+	dc.b	6				; E1
+	dc.b	(inBaronOfHellShoot+0)
+	dc.b	6				; F1
+	dc.b	(inBaronOfHellShoot+1)
+	dc.b	$81				; G1
+	dc.w	<_RLMAQEnemyDAttack,<_RLEAFight,<_RLEALaunchFireBall7
+	dc.b	6
+	dc.b	(inBaronOfHellShoot+2)
+	dc.b	$80
+	dc.w	<moaBARONOFHELL_MOVE
+
+mosBARONOFHELL_DAMAGE
+	dc.w	<_RLMSEnemyDamage,<moaBARONOFHELL_DAMAGE,<moaBARONOFHELL_DIE
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosBARONOFHELL_MOVE
+moaBARONOFHELL_DAMAGE
+	dc.b	20				; H1
+	dc.b	(inBaronOfHellHit+0)
+	dc.b	$80
+	dc.w	<moaBARONOFHELL_MOVE
+moaBARONOFHELL_DIE
+	dc.b	8				; J0
+	dc.b	(inBaronOfHellDie+0)
+	dc.b	8				; K0
+	dc.b	(inBaronOfHellDie+1)
+	dc.b	8				; L0
+	dc.b	(inBaronOfHellDie+2)
+	dc.b	$81				; M0
+	dc.w	<_RLMABaronOfHellDie
+	dc.b	1
+	dc.b	(inBaronOfHellDie+3)
+
+
+;
+;	* * * * * * *       CYBERDEMON STATE TABLE       * * * * * * *
+;
+mosCYBERDEMON_SLEEP
+	dc.w	<_RLMSEnemySleep,<moaCYBERDEMON_MOVE,<mosCYBERDEMON_MOVE
+mosCYBERDEMON_SLEEP0
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosCYBERDEMON_SLEEP
+moaCYBERDEMON_SLEEP
+	dc.b	8				; A1
+	dc.b	(inCyberDemonWalk+0)
+	dc.b	8				; B1
+	dc.b	(inCyberDemonWalk+1)
+	dc.b	$80
+	dc.w	<moaCYBERDEMON_SLEEP
+
+mosCYBERDEMON_MOVE
+	dc.w	<_RLMSEnemyMove,<moaCYBERDEMON_ATTACK,<mosCYBERDEMON_ATTACK
+	dc.w	<_RLMSQEnemyMove
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosCYBERDEMON_MOVE
+moaCYBERDEMON_MOVE
+	dc.b	8				; A1
+	dc.b	(inCyberDemonWalk+0)
+	dc.b	8				; B1
+	dc.b	(inCyberDemonWalk+1)
+	dc.b	8				; C1
+	dc.b	(inCyberDemonWalk+2)
+	dc.b	8				; D1
+	dc.b	(inCyberDemonWalk+3)
+	dc.b	$80
+	dc.w	<moaCYBERDEMON_MOVE
+
+mosCYBERDEMON_ATTACK
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosCYBERDEMON_MOVE
+moaCYBERDEMON_ATTACK
+	dc.b	8				; E1
+	dc.b	(inCyberDemonShoot+0)
+	dc.b	8				; F1
+	dc.b	(inCyberDemonShoot+1)
+	dc.b	$81				; E1
+	dc.w	<_RLMAQEnemyDAttack,<_RLEAFight,<_RLEALaunchMissile
+	dc.b	8
+	dc.b	(inCyberDemonShoot+0)
+;
+	dc.b	8				; E1
+	dc.b	(inCyberDemonShoot+0)
+	dc.b	8				; F1
+	dc.b	(inCyberDemonShoot+1)
+	dc.b	$81				; E1
+	dc.w	<_RLMAQEnemyDAttack,<_RLEAFight,<_RLEALaunchMissile
+	dc.b	8
+	dc.b	(inCyberDemonShoot+0)
+;
+	dc.b	$80
+	dc.w	<moaCYBERDEMON_MOVE
+
+mosCYBERDEMON_DAMAGE
+	dc.w	<_RLMSEnemyDamage,<moaCYBERDEMON_DAMAGE,<moaCYBERDEMON_DIE
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosCYBERDEMON_MOVE
+moaCYBERDEMON_DAMAGE
+	dc.b	20				; G1
+	dc.b	(inCyberDemonHit+0)
+	dc.b	$80
+	dc.w	<moaCYBERDEMON_MOVE
+moaCYBERDEMON_DIE
+	dc.b	8				; I0
+	dc.b	(inCyberDemonDie+0)
+	dc.b	8				; J0
+	dc.b	(inCyberDemonDie+1)
+	dc.b	8				; K0
+	dc.b	(inCyberDemonDie+2)
+	dc.b	8				; O0
+	dc.b	(inCyberDemonDie+3)
+	dc.b	$81				; P0
+	dc.w	<_RLMACyberDemonDie
+	dc.b	1
+	dc.b	(inCyberDemonDie+4)
+
+
+;
+;	* * * * * * *       SPIDERDEMON STATE TABLE       * * * * * * *
+;
+mosSPIDERDEMON_SLEEP
+	dc.w	<_RLMSEnemySleep,<moaSPIDERDEMON_MOVE,<mosSPIDERDEMON_MOVE
+mosSPIDERDEMON_SLEEP0
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosSPIDERDEMON_SLEEP
+moaSPIDERDEMON_SLEEP
+	dc.b	8				; A1
+	dc.b	(inSpiderDemonWalk+0)
+	dc.b	$80
+	dc.w	<moaSPIDERDEMON_SLEEP
+
+mosSPIDERDEMON_MOVE
+	dc.w	<_RLMSEnemyMove,<moaSPIDERDEMON_ATTACK,<mosSPIDERDEMON_ATTACK
+	dc.w	<_RLMSQEnemyMove
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosSPIDERDEMON_MOVE
+moaSPIDERDEMON_MOVE
+	dc.b	8				; A1
+	dc.b	(inSpiderDemonWalk+0)
+	dc.b	8				; B1
+	dc.b	(inSpiderDemonWalk+1)
+	dc.b	8				; A1
+	dc.b	(inSpiderDemonWalk+0)
+	dc.b	8				; C1
+	dc.b	(inSpiderDemonWalk+2)
+	dc.b	$80
+	dc.w	<moaSPIDERDEMON_MOVE
+
+mosSPIDERDEMON_ATTACK
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSQEnemyTarget
+	dc.w	<_RLMSState,<mosSPIDERDEMON_MOVE
+moaSPIDERDEMON_ATTACK
+	dc.b	8				; G1
+	dc.b	(inSpiderDemonShoot+0)
+	dc.b	$81				; H1
+	dc.w	<_RLMAQEnemyDAttack,<_RLEAFight,<_RLEAShoot
+	dc.b	8
+	dc.b	(inSpiderDemonShoot+1)
+;
+	dc.b	8				; G1
+	dc.b	(inSpiderDemonShoot+0)
+	dc.b	$81				; H1
+	dc.w	<_RLMAQEnemyDAttack,<_RLEAFight,<_RLEAShoot
+	dc.b	8
+	dc.b	(inSpiderDemonShoot+1)
+;
+	dc.b	$80
+	dc.w	<moaSPIDERDEMON_MOVE
+
+mosSPIDERDEMON_DAMAGE
+	dc.w	<_RLMSEnemyDamage,<moaSPIDERDEMON_DAMAGE,<moaSPIDERDEMON_DIE
+	dc.w	<_RLMSWait
+	dc.w	<_RLMSState,<mosSPIDERDEMON_MOVE
+moaSPIDERDEMON_DAMAGE
+	dc.b	20				; I1
+	dc.b	(inSpiderDemonHit+0)
+	dc.b	$80
+	dc.w	<moaSPIDERDEMON_MOVE
+moaSPIDERDEMON_DIE
+	dc.b	8				; K0
+	dc.b	(inSpiderDemonDie+0)
+	dc.b	8				; M0
+	dc.b	(inSpiderDemonDie+1)
+	dc.b	8				; O0
+	dc.b	(inSpiderDemonDie+2)
+	dc.b	$81				; S0
+	dc.w	<_RLMASpiderDemonDie
+	dc.b	1
+	dc.b	(inSpiderDemonDie+3)
+
+
+;
+;	* * * * * * *       FIREBALL 1 STATE TABLE       * * * * * * *
+;
+mosFIREBALL1_MOVE
+	dc.w	<_RLMSQProjectileMove
+	dc.w	<_RLMSState,<mosFIREBALL1_MOVE
+moaFIREBALL1_MOVE
+	dc.b	8				; A1
+	dc.b	(inFireBall1+0)
+	dc.b	8				; B1
+	dc.b	(inFireBall1+1)
+	dc.b	$80
+	dc.w	<moaFIREBALL1_MOVE
+
+mosFIREBALL1_DIE
+	dc.w	<_RLMSProjectileDamage,<moaFIREBALL1_DIE
+	dc.w	<_RLMSWait
+moaFIREBALL1_DIE
+	dc.b	6				; C1
+	dc.b	(inFireBall1+2)
+	dc.b	6				; D1
+	dc.b	(inFireBall1+3)
+	dc.b	$81				; E1
+	dc.w	<_RLMAProjectileDie
+	dc.b	1
+	dc.b	(inFireBall1+4)
+
+
+;
+;	* * * * * * *       FIREBALL 2 STATE TABLE       * * * * * * *
+;
+mosFIREBALL2_MOVE
+	dc.w	<_RLMSQProjectileMove
+	dc.w	<_RLMSState,<mosFIREBALL2_MOVE
+moaFIREBALL2_MOVE
+	dc.b	8				; A1
+	dc.b	(inFireBall2+0)
+	dc.b	8				; B1
+	dc.b	(inFireBall2+1)
+	dc.b	$80
+	dc.w	<moaFIREBALL2_MOVE
+
+mosFIREBALL2_DIE
+	dc.w	<_RLMSProjectileDamage,<moaFIREBALL2_DIE
+	dc.w	<_RLMSWait
+moaFIREBALL2_DIE
+	dc.b	6				; C1
+	dc.b	(inFireBall2+2)
+	dc.b	6				; D1
+	dc.b	(inFireBall2+3)
+	dc.b	$81				; E1
+	dc.w	<_RLMAProjectileDie
+	dc.b	1
+	dc.b	(inFireBall2+4)
+
+
+;
+;	* * * * * * *       FIREBALL 7 STATE TABLE       * * * * * * *
+;
+mosFIREBALL7_MOVE
+	dc.w	<_RLMSQProjectileMove
+	dc.w	<_RLMSState,<mosFIREBALL7_MOVE
+moaFIREBALL7_MOVE
+	dc.b	8				; A1A5
+	dc.b	(inFireBall7+0)
+	dc.b	8				; B1B5
+	dc.b	(inFireBall7+1)
+	dc.b	$80
+	dc.w	<moaFIREBALL7_MOVE
+
+mosFIREBALL7_DIE
+	dc.w	<_RLMSProjectileDamage,<moaFIREBALL7_DIE
+	dc.w	<_RLMSWait
+moaFIREBALL7_DIE
+	dc.b	6				; C1
+	dc.b	(inFireBall7+2)
+	dc.b	6				; D1
+	dc.b	(inFireBall7+3)
+	dc.b	$81				; E1
+	dc.w	<_RLMAProjectileDie
+	dc.b	1
+	dc.b	(inFireBall7+4)
+
+
+;
+;	* * * * * * *       BFG STATE TABLE       * * * * * * *
+;
+mosBFG_MOVE
+	dc.w	<_RLMSQProjectileMove
+	dc.w	<_RLMSState,<mosBFG_MOVE
+moaBFG_MOVE
+	dc.b	8				; A1A5
+	dc.b	(inFireBall7+0)
+	dc.b	8				; B1B5
+	dc.b	(inFireBall7+1)
+	dc.b	$80
+	dc.w	<moaBFG_MOVE
+
+mosBFG_DIE
+	dc.w	<_RLMSProjectileDamage,<moaBFG_DIE
+	dc.w	<_RLMSWait
+moaBFG_DIE
+	dc.b	6				; C1
+	dc.b	(inFireBall7+2)
+	dc.b	6				; D1
+	dc.b	(inFireBall7+3)
+	dc.b	$81				; E1
+	dc.w	<_RLMABFGDie
+	dc.b	1
+	dc.b	(inFireBall7+4)
+
+
+;
+;	* * * * * * *       MISSILE STATE TABLE       * * * * * * *
+;
+mosMISSILE_MOVE
+	dc.w	<_RLMSQProjectileMove
+	dc.w	<_RLMSState,<mosMISSILE_MOVE
+moaMISSILE_MOVE
+	dc.b	127				; A5
+	dc.b	(inMissile+0)
+	dc.b	$80
+	dc.w	<moaMISSILE_MOVE
+
+mosMISSILE_DIE
+	dc.w	<_RLMSProjectileDamage,<moaMISSILE_DIE
+	dc.w	<_RLMSWait
+moaMISSILE_DIE
+	dc.b	6				; B0
+	dc.b	(inMissile+1)
+	dc.b	6				; C0
+	dc.b	(inMissile+2)
+	dc.b	$81				; D0
+	dc.w	<_RLMAMissileDie
+	dc.b	1
+	dc.b	(inMissile+3)
+
+
+;
+;	* * * * * * *       PLASMA STATE TABLE       * * * * * * *
+;
+mosPLASMA_MOVE
+	dc.w	<_RLMSQProjectileMove
+	dc.w	<_RLMSState,<mosPLASMA_MOVE
+moaPLASMA_MOVE
+	dc.b	127				; A0
+	dc.b	(inPlasma+0)
+	dc.b	$80
+	dc.w	<moaPLASMA_MOVE
+
+mosPLASMA_DIE
+	dc.w	<_RLMSProjectileDamage,<moaPLASMA_DIE
+	dc.w	<_RLMSWait
+moaPLASMA_DIE
+	dc.b	6				; B0
+	dc.b	(inPlasma+1)
+	dc.b	6				; C0
+	dc.b	(inPlasma+2)
+	dc.b	6				; D0
+	dc.b	(inPlasma+3)
+	dc.b	6				; E0
+	dc.b	(inPlasma+4)
+	dc.b	$81				; E0
+	dc.w	<_RLMAProjectileDie
+	dc.b	1
+	dc.b	(inPlasma+4)
+
+
+;
+;	* * * * * * *       BARREL EXPLOSION STATE TABLE       * * * * * * *
+;
+mosBARRELEXP_DIE
+	dc.w	<_RLMSHalt
+moaBARRELEXP_DIE
+	dc.b	8				; C0
+	dc.b	(inBarrelExp+0)
+	dc.b	8				; D0
+	dc.b	(inBarrelExp+1)
+	dc.b	8				; E0
+	dc.b	(inBarrelExp+2)
+	dc.b	$81				; E0
+	dc.w	<_RLMABarrelDie
+	dc.b	1
+	dc.b	(inBarrelExp+2)

@@ -1,0 +1,554 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         ENGINE DOORS MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+rLineType	equ	r4			; Line Type of Door
+rSector		equ	r6			; Pointer to Sector
+rDoorStateCode	equ	r7			; Door StateCode
+;
+rTaskData	equ	r8			; Pointer to TaskData
+rSectorData	equ	r9			; Pointer to SectorData
+rDoorData	equ	r10			; Pointer to DoorData
+;
+rFPSRatio	equ	r5			; FPS Ratio
+rFPSCount	equ	r7			; FPS Counter
+rTaskData	equ	r8			; Pointer to TaskData
+rTaskPtr	equ	r10			; Pointer to RLTask
+rTaskCount	equ	r13			; TaskCounter
+
+
+;
+;	* * * * * * *       ADD A PLATFORM DOOR       * * * * * * *
+;
+;	rSector   = Sector of Door
+;	rLineType = Line Type of Door
+;
+_RLAddPlatformDoor
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb					; Set ROM Bank
+_RLAddPlatformDoor2
+;
+;	>>>   GET DOOR SECTOR'S SECTORDATA   <<<
+;
+	from	rSector
+;	to	r0
+	umult	#rlsdSize
+	move	rSectorData,#<_RLSectorData
+	with	rSectorData
+	add	r0
+;
+;	>>>   EXISTING DOOR?   <<<
+;
+	link	#3				; Find PlatformTask for this SectorData
+	iwt	r15,#<_RLFindPlatformTask
+	moves	rTaskData,rTaskData		; Door Already Running?
+	beq	_RAPD500			; No, Create A New Door!
+	nop
+;
+;	>>>   CAN THIS DOOR CHANGE IT'S DIRECTION?   <<<
+;
+	dec	rLineType			; TYPE 1 (REGULAR)
+	beq	_RAPD200
+	inc	rLineType
+	move	r0,#26				; TYPE 26 (BLUE KEY)
+	from	rLineType
+;	to	r0
+	sub	r0
+	beq	_RAPD200
+	dec	r0				; TYPE 27 (YELLOW KEY)
+	beq	_RAPD200
+	dec	r0				; TYPE 28 (RED KEY)
+	bne	_RAPD800
+	nop
+;
+;	* * * * * * *       CHANGE EXISTING DOOR'S DIRECTION       * * * * * * *
+;
+_RAPD200
+;	to	r0				; Get Door State
+	ldw	(rTaskData)
+	ifn	0
+	move	r1,#(_TPCDoorOpenClose-_TPlatformCode)
+;	with	r0
+	sub	r1
+	endif
+;	with	r0				; Open,Opening,Hold,Holding,Close,Closing,Closed
+	lsr
+	beq	_RAPD800			; (0) Open
+	dec	r0				; (1) Opening
+	beq	_RAPD320
+	dec	r0				; (2) Hold
+	beq	_RAPD300
+	dec	r0				; (3) Holding
+	beq	_RAPD300
+	dec	r0				; (4) Close
+	beq	_RAPD800
+	dec	r0				; (5) Closing
+	bne	_RAPD800			; (6) Closed
+	inc	r0				; Closing -> Opening
+	bra	_RAPD380
+	inc	r0
+_RAPD300
+	move	r0,#8				; Hold/Holding -> Close
+	bra	_RAPD380
+	nop
+_RAPD320
+	move	r0,#10				; Opening -> Closing
+_RAPD380
+	ifn	0
+;	with	r0
+	add	r1
+	endif
+	jmp	r12				; Return to Caller
+;	from	r0				; Save Updated Door State
+	sbk
+
+;
+;	* * * * * * *       CREATE A NEW DOOR       * * * * * * *
+;
+_RAPD500
+	link	#4
+	iwt	r15,#<_RLAddPlatformTask	; Allocate a PlatformTask Structure
+	nop
+;
+	from	rDoorStateCode			; DOOR STATE
+	stw	(rTaskData)
+;
+	link	#3				; FIND SECTOR'S DOORDATA
+	iwt	r15,#<_RLFindDoorData
+;
+	from	rTaskData			; DOORDATA
+	to	r6
+	add	#rlpdtDoor
+	from	rDoorData
+	stw	(r6)
+	inc	r6
+	inc	r6
+	from	rSectorData			; SECTORDATA
+	stw	(r6)
+;
+	move	r9,#<(_TPlatform-1)		; TaskCode-1
+	move	r11,r12				; Return to Caller when done
+	iwt	r15,#<_RLAddTask		; Allocate a Task
+	nop
+_RAPD800
+	jmp	r12				; Return to Caller
+	nop
+
+
+;
+;	* * * * * * *       ENEMY ADD A PLATFORM DOOR       * * * * * * *
+;
+;	rSector   = Sector of Door
+;
+_RLEnemyAddPlatformDoor
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb					; Set ROM Bank
+;
+;	>>>   GET DOOR SECTOR'S SECTORDATA   <<<
+;
+	from	rSector
+;	to	r0
+	umult	#rlsdSize
+	move	rSectorData,#<_RLSectorData
+	with	rSectorData
+	add	r0
+;
+;	>>>   EXISTING DOOR?   <<<
+;
+	link	#3				; Find PlatformTask for this SectorData
+	iwt	r15,#<_RLFindPlatformTask
+	moves	rTaskData,rTaskData		; Door Already Running?
+	beq	_RAPD500			; No, Create A New Door!
+	nop
+;
+;	* * * * * * *       CHANGE EXISTING DOOR'S DIRECTION       * * * * * * *
+;
+;	to	r0				; Get Door State
+	ldw	(rTaskData)
+	ifn	0
+	move	r1,#(_TPCDoorOpenClose-_TPlatformCode)
+;	with	r0
+	sub	r1
+	endif
+;	with	r0				; Open,Opening,Hold,Holding,Close,Closing,Closed
+	lsr
+	beq	_REAPD800			; (0) Open
+	dec	r0				; (1) Opening
+	beq	_REAPD700
+	dec	r0				; (2) Hold
+	beq	_REAPD800
+	dec	r0				; (3) Holding
+	beq	_REAPD800
+	dec	r0				; (4) Close
+	beq	_REAPD700
+	dec	r0				; (5) Closing
+	bne	_REAPD700+1			; (6) Closed
+	inc	r0				; Closing -> Opening
+	inc	r0
+	ifn	0
+;	with	r0
+	add	r1
+	endif
+	jmp	r12				; Return to Caller
+;	from	r0				; Save Updated Door State
+	sbk
+_REAPD700
+	inc	r0				; R0 = 1 = Wait and Try Again
+_REAPD800
+	jmp	r12
+	inc	r0				; R0 = 0 = Already Open!
+
+
+;
+;	* * * * * * *       FIND SECTOR'S DOORDATA       * * * * * * *
+;
+;	rSector   = Sector of Door
+;
+;	rDoorData = Pointer to DoorData
+;
+_RLFindDoorData
+	move	r14,(<EMDOORS)
+_RLFD200
+	getb					; Get Door Sector
+;	with	r0				; Matches?
+	sub	rSector				; @CMP@
+	beq	_RLFD800			; Yes!  Found the Door!
+	with	r14				; No!
+	add	#(rlpdNumLines-rlpdSector)
+	getb					; Get #Lines
+;	with	r0
+	add	r0
+	inc	r0
+	with	r14				; Next DoorData
+	bra	_RLFD200
+	add	r0
+_RLFD800
+	to	rDoorData			; Move to start of DoorData
+	jmp	r11
+	nop
+
+
+;
+;	* * * * * * *       DOOR OPEN       * * * * * * *
+;
+_TDoorOpen
+	from	rTaskData			; Get DoorData
+;	to	r0
+	add	#rlpdtDoor
+;	to	r0
+	ldw	(r0)
+;	from	r0				; Move to #Lines
+	to	r14
+	add	#rlpdNumLines
+;	from	r0				; R4 = Pointer to SoundOrigin
+	to	r4
+	add	#rlpdOriginX
+	move	r3,#<_RLLineFlags		; R3 = Base of LineFlags
+	to	r2				; R2 = #Lines
+	getb
+_TDO200
+	inc	r14				; R0 = Line#
+	getb
+	inc	r14
+	getbh
+;	from	r0				; Get LineFlags
+	to	r1
+	add	r3
+;	to	r0
+	ldb	(r1)
+;	with	r0				; Door is TRANSPARENT
+	bic	#rllfSolid
+;	from	r0
+	stb	(r1)
+	dec	r2				; Next Line
+	bne	_TDO200
+;
+	from	rTaskData			; Get DoorData
+;	to	r0
+	add	#rlpdtDoor
+	to	r1
+	ldw	(r0)
+	inc	r0
+	inc	r0
+	from	r1				; Get MaxCeilingHeight
+	to	r14
+	add	#rlpdMaxHeight
+;	to	r0				; Get SectorData
+	ldw	(r0)
+	to	r2				; MAXIMUM CEILING HEIGHT
+	getb
+;	with	r0				; Move to Ceiling Height
+	add	#rlsdCeilingHeight
+	inc	r14
+;	to	r0
+	ldw	(r0)
+	with	r2
+	getbh
+;	from	r0				; Door Already Open?
+	cmp	r2
+	beq	_TDoorOpen9			; Yes!  No Sound Effect!
+	nop
+;
+	move	r3,#<(sxDoorOpen-1)		; Sound Effect#
+	iwt	r15,#<_TPlatformSound
+	nop
+_TDoorOpen9
+	jmp	r11
+	nop
+
+
+;
+;	* * * * * * *       DOOR OPENING       * * * * * * *
+;
+_TDoorOpening
+	from	rTaskData			; Get DoorData
+;	to	r0
+	add	#rlpdtDoor
+	to	r1
+	ldw	(r0)
+	from	r1				; Get MaxCeilingHeight
+	to	r14
+	add	#rlpdMaxHeight
+	inc	r0
+	inc	r0
+	to	rSectorData			; Get SectorData
+	ldw	(r0)
+;
+	to	r2				; MAXIMUM CEILING HEIGHT
+	getb
+	inc	r14
+;
+	with	rSectorData			; Move to Ceiling Height
+	add	#rlsdCeilingHeight
+	move	r6,#rlpdMovement		; Ceiling Adjustment
+	from	rFPSRatio			; FPS Adjustment
+;	to	r0
+	lmult
+;
+	with	r2
+	getbh
+;
+;	with	r0				; Get Whole Levels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R1 = |DoorAdjustment|
+	to	r1
+	or	r4
+;
+	ldw	(rSectorData)			; Get Ceiling Height
+;	with	r0
+	add	r1
+;	from	r0
+	cmp	r2				; At Top?
+	blt	_TDO800				; No
+	moves	r0,r2				; Yes!
+_TDO800
+	jmp	r11				; Return to _TPlatform
+;	from	r0
+	sbk
+
+
+;
+;	* * * * * * *       DOOR CLOSE       * * * * * * *
+;
+_TDoorClose
+	from	rTaskData			; Get SectorData
+;	to	r0
+	add	#rlpdtSectorData
+;	to	r0
+	ldw	(r0)
+;	with	r0				; MINIMUM CEILING HEIGHT
+	add	#rlsdFloorHeight
+	to	r2
+	ldw	(r0)
+	inc	r0
+	inc	r0
+;	to	r0
+	ldw	(r0)
+;	from	r0				; Door Already Closed?
+	cmp	r2
+	beq	_TDoorClose9			; Yes!  No Sound Effect!
+;
+	from	rTaskData			; Get DoorData
+;	to	r0
+	add	#rlpdtDoor
+;	to	r0
+	ldw	(r0)
+;	from	r0				; R4 = Pointer to SoundOrigin
+	to	r4
+	add	#rlpdOriginX
+	move	r3,#<(sxDoorClose-1)		; Sound Effect#
+	iwt	r15,#<_TPlatformSound
+	nop
+_TDoorClose9
+	jmp	r11
+	nop
+
+;
+;	* * * * * * *       DOOR CLOSING       * * * * * * *
+;
+_TDoorClosing
+	from	rTaskData			; Get SectorData
+;	to	r0
+	add	#rlpdtSectorData
+	to	rSectorData
+	ldw	(r0)
+	from	rSectorData			; MINIMUM CEILING HEIGHT
+	to	r1
+	add	#rlsdFloorHeight
+	to	r2
+	ldw	(r1)
+;
+	move	r6,#rlpdMovement		; Ceiling Adjustment
+	from	rFPSRatio			; FPS Adjustment
+;	to	r0
+	lmult
+;	with	r0				; Get Whole Levels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	with	r0				; R0 = |DoorAdjustment|
+	or	r4
+	inc	r1				; Move to Ceiling Height
+	inc	r1
+	to	r3				; R3 = Ceiling Height
+	ldw	(r1)
+	with	r3				; R3 = NEW Ceiling Height
+	sub	r0
+;
+;	>>>   CHECK IF DOOR IS CLOSING ONTO SOMETHING   <<<
+;
+	link	#4
+	iwt	r15,#<_RLCheckCeiling
+;	with	r0				; 0=BLOCKING
+	sub	r0
+;
+	dec	r0				; R0 = 0 = OK, = 1 = BAD!
+	with	r3				; @"MOVE R0,R3"
+	bmi	_TDC700
+	to	r0
+;
+;	>>>   DOOR IS CLOSING ONTO SOMETHING -- REVERSE DIRECTION OR HOLD   <<<
+;
+;	to	r0				; Get Door State
+	ldw	(rTaskData)
+	move	r2,#(_TPCDoorOpenCloseE-_TPlatformCode)	; "OPEN/CLOSE" DOOR?
+;	with	r0					; @CMP@
+	sub	r2
+	bge	_TDC600					; No!  Can't Reverse Direction!
+	nop
+	move	r0,#(_TPCDoorOpenClose-_TPlatformCode)	; YES!  REVERSE DIRECTION!
+;	from	r0
+	sbk
+_TDC600
+	iwt	r15,#<_TPlatform3
+	nop
+;
+;	>>>   MOVE DOOR TO NEXT POSITION   <<<
+;
+_TDC700
+	from	rSectorData			; SectorData Ceiling Height
+	to	r1
+	add	#rlsdCeilingHeight
+;	from	r0
+	cmp	r2				; At Top?
+	bge	_TDC800				; No
+	moves	r0,r2				; Yes!
+_TDC800
+	iwt	r15,#<_TPlatform1
+;	from	r0				; New Ceiling Height
+	stw	(r1)
+
+;
+;	* * * * * * *       DOOR CLOSED       * * * * * * *
+;
+_TDoorClosed
+	from	rTaskData			; Get DoorData
+;	to	r0
+	add	#rlpdtDoor
+;	to	r0
+	ldw	(r0)
+;	from	r0				; Get #Lines
+	to	r14
+	add	#rlpdNumLines
+;
+	move	r3,#<_RLLineFlags		; R3 = Base of LineFlags
+;
+	to	r2				; R2 = #Lines
+	getb
+_TDC200
+	inc	r14				; R0 = Line#
+	getb
+	inc	r14
+	getbh
+;	from	r0				; Get LineFlags
+	to	r1
+	add	r3
+;	to	r0
+	ldb	(r1)
+;	with	r0				; Door is SOLID
+	or	#rllfSolid
+;	from	r0
+	stb	(r1)
+	dec	r2				; Next Line
+	bne	_TDC200
+	move	r2,r0				; Door Closed
+	jmp	r11
+	nop
+
+;
+;	* * * * * * *       DOOR HOLD x SECONDS       * * * * * * *
+;
+_TDoorHold30Sec
+	move	r0,#(30*60)			; 30 Seconds
+	bra	_TDoorHoldInit
+	nop
+_TDoorHold4Sec
+	move	r0,#(4*60)			; 4 Seconds
+_TDoorHoldInit
+	from	rTaskData			; Set Hold Counter
+	to	r1
+	add	#rlpdtHoldCount
+	move	r2,r0				; Hold Initialized
+	jmp	r11				; Return to _TPlatform
+;	from	r0
+	stw	(r1)
+
+
+;
+;	* * * * * * *       DOOR HOLDING       * * * * * * *
+;
+_TDoorHold
+	from	rTaskData			; Get Hold Counter
+	to	r1
+	add	#rlpdtHoldCount
+;	to	r0
+	ldw	(r1)
+;	with	r0				; Subtract FPS Counter
+	sub	rFPSCount
+	move	r2,#0				; Minimum Counter
+	bpl	_TDH800
+	moves	r0,r2				; Finished Holding!
+_TDH800
+	jmp	r11				; Return to _TPlatform
+;	from	r0
+	sbk

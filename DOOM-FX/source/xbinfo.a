@@ -1,0 +1,123 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                     XBAND INFO SCREEN MODULE       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	snesmac.i
+	include	music.i
+	include	xfer.i
+	include	xband.i
+	include	xb.i
+
+;	SECTION	XBAND
+
+
+;
+;	* * * * * * *       XBAND INFO PAGE       * * * * * * *
+;
+	dpr	0
+	dbr	?
+_XBInfo
+	jsl	ScreenOff			; Turn Screen Off
+	jsl	InitSNES
+	mode	'ax'
+;
+	mode	'X!'
+	ldx	#<LegalXFer			; Transfer XBAND Info DataBlock
+	lda	#^LegalXFer
+	jsl	XFer
+;
+	mode	'AX'
+	stz	RGBData+(0*2)
+	lda	#%000000000000111
+	sta	RGBData+(7*16*2)+(7*2)
+	lda	#%000000000011111
+	sta	RGBData+(7*16*2)+(11*2)
+	mode	'a!'
+	lda	#1				; Mode1 BG1:8x8
+	sta	BGMODE
+	lda	#$20				; BG1 Screen at $2000
+	sta	BG1SC
+	lda	#$ff				; Offset $FFFF
+	sta	BG1VOFS
+	sta	BG1VOFS
+	stz	BG1HOFS				; Offset $0000
+	stz	BG1HOFS
+	stz	BG12NBA				; BG1 @$0000
+	stz	MOSAIC
+;
+	lda	#%00001000			; PseudoH512, 224Lines
+	sta	SETINI
+	lda	#%00000010			; Colour Add Enable
+	sta	CGSWSEL
+	lda	#%01000001			; Add 1/2 Enable BG1
+	sta	CGADSUB
+	ldx	#$0101				; BG1 Only
+	stx	TM
+;
+	ldx	#<XBInfoSText			; Show XBand Info Text
+	lda	#^XBInfoSText
+	jsl	SystemText
+;
+;	>>>   SET UP PPU   <<<
+;
+	mode	'aX!'
+	ldx	#<_XBNormalNMI			; XBAND NORMAL NMI Code
+	lda	#^_XBNormalNMI
+	ldy	#$81				; ENABLE NMI+JOYREAD
+	jsl	InitNMI
+	mode	'a!'
+	lda	#$80				; Transfer RGB Palette to CGRAM
+	sta	RGBXfer
+;
+	jsl	ScreenOn
+	mode	'AX!'
+XBI200
+	lda	PlayerJoy			; Joystick pressed?
+	bne	XBI200				; Yes, wait until released
+	ldx	#(60*10)-1
+XBI300
+	lda	PlayerJoy			; Wait until pressed
+	bne	XBI400
+XBI320
+	wai
+	dex
+	bpl	XBI300
+XBI400
+	jml	ScreenOff
+
+
+XBVerTxt	equ	*+1
+	VSTRING		; Insert Version Tag Text
+XBVerTxtE
+XBVerTxtL	equ	XBVerTxtE-XBVerTxt-1
+;
+;	* * * * * * *       INFO TEXTS       * * * * * * *
+;
+XBInfoSText
+	dc.w	($2000+(2*32)+5)
+	dc.l	XBITxt0A
+	dc.b	XBITxt0AL
+	dc.w	($2000+(3*32)+7)
+	dc.l	(XBVerTxt-1)
+	dc.b	XBVerTxtL
+;
+	dc.w	($2000+(5*32)+7)
+	dc.l	XBITxt1A
+	dc.b	XBITxt1AL
+;
+	dc.w	-1
+
+XBITxt0A
+		dc.b	'XBAND',129,' DOOM',129,' GamePatch '
+XBITxt0AL	equ	*-XBITxt0A
+
+XBITxt1A
+		dc.b	'"How-To-Play" Information Goes Here.'
+XBITxt1AL	equ	*-XBITxt1A

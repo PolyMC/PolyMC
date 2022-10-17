@@ -1,0 +1,352 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                          ENGINE MAIN MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	snesmac.i
+	include	music.i
+
+
+	public	_RLMain0,_RLMain
+
+
+	SECTION	ENGINE_RAMCODE
+;
+;	* * * * * * *       REALITY_ENGINE PRE_MAIN       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'A'
+_RLMain0
+
+	ifn	RAMBPINTEST
+	mode	'a!'
+	stz	TM
+	lda	#$0f				; Enable Display!
+	sta	INIDISP
+RBPT200
+	mode	'a!'
+RBPT320
+	bit	_HVBJOY				; Wait for NOT in VBlank Period
+	bmi	RBPT320
+RBPT340
+	bit	_HVBJOY				; Wait for IN VBlank Period
+	bpl	RBPT340
+RBPT360
+	bit	_HVBJOY				; Wait for NOT in VBlank Period
+	bmi	RBPT360
+;
+	mode	'AX!'
+	ldx	#$0070
+	lda	#%111110000000000
+	ldy	JOY1L
+	beq	RBPT420
+	inx
+	lda	#%000001111100000
+;
+RBPT420
+	mode	'a!'
+RBPT440
+	bit	_HVBJOY				; Wait for IN VBlank Period
+	bpl	RBPT440
+	stz	CGADD
+	sta	CGDATA
+	xba
+	sta	CGDATA
+;
+	stx	sfxR0				; RAM BANK ($70/$71)
+	mode	'A!'
+	lda	#<_RLRAMBPinTest		; RAMBPINTEST PC
+	jsr	_RLCallGSU
+	jmp	RBPT200
+	endif
+
+	jsr	_RLSwapRLXVars2			; Swap Updated RL Transfer Variables
+	jsr	_RLInitGSU2			; Initialize GSU
+	jsr	_RLSwapRLXVars			; Swap Initial RL Transfer Variables
+
+	ifn	PROFILE
+	jmp	_RLProfileGSU			; Profile the GSU
+	endif
+
+	ifn	0
+	HALT	#0
+	endif
+
+;	mode	'A!'
+	stz	PlayerLevelTime			; Start Player's LevelTimer
+	mode	'a!'
+	stz	VBlankTotal			; ReSet VBlank Total Counter
+	stz	VBlankCount			; ReStart FPSCount
+	ifn	usePAL
+	stz	VBlankCountF
+	endif
+	lda	#2				; Wait for 2 Displays Generated
+	sta	FrameCount
+	lda	#60				; #Ticks until 1 Second
+	sta	PlayerLevelCount
+;
+	jsr	_RLInitGSU3			; Start RLEngine Running!
+
+;
+;	* * * * * * *       REALITY_ENGINE MAIN       * * * * * * *
+;
+_RLMain
+
+;
+;	* * * * * * *       WAIT FOR FRAME UPDATE       * * * * * * *
+;
+_RLMain2000
+;
+_RLMain2200
+	mode	'A!'
+	bit	FrameDone-1			; Wait for Frame Completed
+	bmi	_RLMain9800			; FRAME COMPLETED!
+;
+;	* * * * * * *       HANDLE WEAPON       * * * * * * *
+;
+	jsr	_RLUpdateWeapon			; Update Weapon
+	mode	'A'
+	bit	FrameDone-1			; Wait for Frame Completed
+	bmi	_RLMain9800			; UPDATE NOW!
+;
+;	* * * * * * *       OTHER MULTITASKING STUFF HERE       * * * * * * *
+;
+	jmp	_RLMain2200
+;
+;	* * * * * * *       FRAME UPDATE COMPLETED       * * * * * * *
+;
+_RLMain9800
+	mode	'a!'
+	stz	FrameDone			; Frame NOT Completed
+;
+	bit	FrameCount			; Already Enabled Display?
+	bmi	_RLMain12000			; Yes
+	dec	FrameCount			; Ready to Enable Display?
+	bpl	_RLMain12000			; No
+	lda	#$0f				; Yes!  Enable Display!
+	sta	INIDISP_S
+
+;
+;	* * * * * * *       HANDLE RGB PALETTE ANIMATION       * * * * * * *
+;
+_RLMain12000
+	mode	'AX!'
+	lda	!(RLRGB+RLSNESGSUXVarsO)	; Any Palette Animation Request?
+	bmi	_RLMain15000			; No
+	dec	RLRGBLock			; Lock RGB Palettes
+	cmp	#rgbPick			; Change Base?
+	bcs	_RLMain12200
+	tax					; Get New Base Animation
+	lda	>RLRGBBaseAnimTable,x
+	sta	RLRGBAnim0
+	stz	RLRGBPickCount			; ReStart Pick Counter
+	stz	RLRGBHitCount			; ReStart Hit Counter
+	jmp	_RLMain12900
+;
+;	>>>   HANDLE PICK RGB ANIMATION   <<<
+;
+_RLMain12200
+	bne	_RLMain12400
+	lda	RLRGBPickCount			; Already Picked Up 4 Items?
+	cmp	#4
+	beq	_RLMain12300			; Yes
+	inc	a
+	sta	RLRGBPickCount
+_RLMain12300
+	asl	a				; Add Base Pick Up Animation
+	clc
+	adc	#(RLRGBPickAnimTable-RLRGBAnimTable-2)
+	jmp	_RLMain12800
+;
+;	>>>   HANDLE HIT RGB ANIMATION   <<<
+;
+_RLMain12400
+	lda	RLRGBHitCount			; Already Hit 8 Times?
+	cmp	#8
+	beq	_RLMain12500			; Yes
+	inc	a
+	sta	RLRGBHitCount
+_RLMain12500
+	asl	a				; Add Base Hit Animation
+	clc
+	adc	#(RLRGBHitAnimTable-RLRGBAnimTable-2)
+_RLMain12800
+	tax					; Get New Animation Table
+_RLMain12900
+	lda	>RLRGBAnimTable,x
+	sta	RLRGBAnim
+	stz	RLRGBCount			; Change Animation Immediately
+	inc	RLRGBLock			; UnLock RGB Palettes
+
+;
+;	* * * * * * *       HANDLE WEAPON       * * * * * * *
+;
+_RLMain15000
+	jsr	_RLUpdateWeapon			; Update Weapon
+
+;
+;	* * * * * * *       HANDLE STATUS BAR       * * * * * * *
+;
+_RLMain17000
+	jsr	_RLUpdateStatusBar		; Update Status Bar
+
+	ifn	DEBUGSCR
+;
+;	* * * * * * *       HANDLE DEBUGGING SCREEN       * * * * * * *
+;
+_RLMain18000
+	jsr	_RLUpdateDebug			; Update Debugging Screen
+	endif
+
+;
+;	* * * * * * *       PAUSE MODE       * * * * * * *
+;
+_RLMain20000
+	mode	'A!'
+	lda	#rlfHalt			; RLEngine Halted? (PAUSED)
+	bit	RLFlags
+	bne	_RLMain30000			; No, Keep Running
+;
+;	>>>   WAIT FOR RLENGINE HALTED   <<<
+;
+	dec	RLRGBLock			; Lock RGB Palettes
+_RLMain20200
+	lda	IRQBPhase			; RLEngine Cycle Completed?
+	ora	IRQTPhase
+	bne	_RLMain20200			; No, Still Running
+;
+	jsl	_RLMenus			; HANDLE MENUS
+	mode	'Ax'
+;
+;	>>>   RESTART RLENGINE RUNNING   <<<
+;
+	ldx	#0
+	stx	FrameDone			; Frame NOT Completed
+	ifn	usePAL
+	stx	VBlankCountF
+	endif
+	inx
+	stx	VBlankCount			; ReStart FPSCount
+	stz	PlayerJoy			; Clear Player Joystick/Mouse Variables
+	stz	PlayerMouseX
+	stz	PlayerMouseY
+	stz	IRQBPhase			; Phase of BOTTOM IRQ Operations
+	stz	IRQTPhase			; Phase of TOP IRQ Operations
+	lda	#rlfHalt			; RLEngine Running! (UNPAUSED)
+	tsb	RLFlags
+	inc	RLRGBLock			; UnLock RGB Palettes
+
+;
+;	* * * * * * *       LEVEL COMPLETED?       * * * * * * *
+;
+_RLMain30000
+	lda	!(ExitLevel+RLSNESGSUXVarsO)	; Level Completed?
+	bne	_RLMain80000			; Yes!
+
+
+;
+;	* * * * * * *       IDLE TIMEOUT RESET?       * * * * * * *
+;
+	ifn	IDLERESET
+_RLMain40000
+	lda	IdleCount			; Idling for Approx. 30 Seconds?
+	cmp	#((60/4)*30)
+	bcs	_RLMain80000			; YES!  RESET!
+	endif
+
+;
+;	* * * * * * *       NEXT FRAME UPDATE       * * * * * * *
+;
+_RLMain50000
+
+	ifn	(0*DEBUG)
+	lda	JOY2L				; JOY2 Pressed?
+	beq	.3
+	lda	#rlfHalt			; RLEngine Halted! (PAUSED)
+	trb	RLFlags
+.0
+	wai
+	lda	JOY2L
+	bne	.0
+.1
+	wai
+	lda	JOY2L
+	beq	.1
+.2
+	wai
+	lda	JOY2L
+	bne	.2
+.3
+	lda	#rlfHalt			; RLEngine Running! (UNPAUSED)
+	tsb	RLFlags
+	endif
+
+	jmp	_RLMain2000
+
+
+
+;
+;	* * * * * * *       EXIT GAME       * * * * * * *
+;
+	mode	'A'
+_RLMain80000
+	lda	#rlfHalt			; RLEngine Halted
+	trb	RLFlags
+_RLMain80100
+	lda	IRQTPhase			; RLEngine Cycle Completed?
+	ora	IRQBPhase
+	bne	_RLMain80100			; No, Still Running
+;
+	ifn	useSOUND
+	mode	'X!'
+	lda	#DCOM_FADE_AND_STOP		; Fade out Music
+	ldy	#$0401
+	jsl	_SendDriverCommandL
+	endif
+;
+	mode	'ax!'
+	ldx	#16-1				; 16 Steps to FadeOut
+	lda	#$0f
+_RLMain80200
+	stz	FrameDone			; Frame NOT Completed
+	ldy	VBlankCount			; Wait for VBlank
+_RLMain80300
+	cpy	VBlankCount
+	beq	_RLMain80300
+	sta	INIDISP_S			; Fade Value
+	dec	a				; Next Fade Value
+	dex
+	bne	_RLMain80200
+;
+	ife	(DEBUGSCR|ROM)
+HALTERROR
+	mode	'ax!'
+	endif
+;
+	lda	#$80				; Disable Display
+	sta	INIDISP_S
+	sta	INIDISP
+	sei					; Disable Interrupts
+	lda	#$01				; DISABLE NMI,VIRQ,HIRQ
+	ifn	(DEBUG*WIRE)
+	sta	NMITIMEN_XS
+	lda	#$81
+	endif
+	sta	NMITIMEN
+	bit	_TIMEUP				; Clear IRQ Flag
+;
+	mode	'AX!'
+	stz	sfxSFR				; Clear GO bit (Halt GSU)
+_RLMain80400
+	lda	sfxSFR				; GSU Halted?
+	and	#%0000000000100000
+	bne	_RLMain80400			; No, keep waiting
+;
+	rtl

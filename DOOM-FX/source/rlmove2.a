@@ -1,0 +1,465 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       OBJECT MOVEMENT MODULE 2                     *
+;*                                                                    *
+;*                     OBJECT <-> LINE COLLISIONS 1                   *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+
+
+	public	_RLMoveXY2
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rFlags		equ	r3			; Line Flags
+rAngle		equ	r4			; Line Angle
+rFace		equ	r5			; Line Face
+rHighFloor	equ	rAngle			; Highest Floor Height
+rLowCeiling	equ	rFace			; Lowest Ceiling Height
+rBSPB		equ	r7			; Bank of BSP/VERTEXES/LINES/FACES
+rMoveLinesPtr	equ	r8			; Pointer to MoveLines List
+rLineBase	equ	r9			; Base of LINES
+rVertexBase	equ	r10			; Base of VERTEXES
+rFaceBase	equ	r12			; Base of FACES
+rRLCount	equ	r13			; RLEngine Count
+
+
+;
+;	* * * * * * *       REALITY_ENGINE MOVE RLOBJECT XY       * * * * * * *
+;
+	align	16,(_RM2XY10000-_RM2XY2000)&$0f
+;
+;	>>>   FINISHED SCANNING MOVELINES   <<<
+;
+_RM2XY10000
+	move	r1,(<MVSector)			; Terminate MoveSectorsList
+	ibtx	r0,#$80
+;	from	r0
+	stw	(r1)
+;
+	iwt	r0,#<_RLMoveXY3			; MOVE RLOBJECT XY 3
+	ibt	r13,#^_RLMoveXY3
+	ljmp	r13
+	nop
+
+;
+;	>>>   START SCANNING MOVELINES   <<<
+;
+_RLMoveXY2
+;
+;	>>>   ALWAYS PROCESS CURRENT SECTOR FOR OBJECTS   <<<
+;
+	move	r1,(<MVRObj)			; Get RLObject Pointer
+;
+	move	rRLCount,(<RLCount)		; RLEngineCount++
+	inc	rRLCount
+	from	rRLCount
+	sbk
+;
+	move	r0,#rloSector			; Get RLObject.Sector
+;	with	r0
+	add	r1
+;	to	r0
+	ldb	(r0)
+;	with	r0				; Get SectorData
+	umult	#rlsdSize
+	move	r1,#<(_RLSectorData+rlsdRLCount)
+;	with	r0
+	add	r1
+	from	rRLCount			; SectorData.RLEngineCount=RLEngineCount
+	stw	(r0)
+;	with	r0				; Move to SectorData.FloorHeight
+	sub	#(rlsdRLCount-rlsdFloorHeight)
+;
+	move	r1,#<_RLMoveSectors		; START OF MOVESECTORS LIST
+;	from	r0				; Save Pointer to SectorData.FloorHeight
+	stw	(r1)
+	inc	r1
+	inc	r1
+	move	(<MVSector),r1
+;
+	move	rMoveLinesPtr,#<_RLMoveLines	; START OF MOVELINES LIST
+	move	rLineBase,(<EMLINES)		; Base Address of LINES
+	with	rLineBase
+	sub	#rllSize
+	move	rVertexBase,(<EMVERTEXES)	; Base Address of VERTEXES
+	move	rFaceBase,(<EMFACES)		; Base Address of FACES
+	move	r6,#rllSize
+	move	r0,#<(EMBSP+2)			; Bank of EM Data
+	to	rBSPB
+	ldb	(r0)
+	move	r1,#<(MVULCount)		; #Lines Matching Trigger
+;	with	r0
+	sub	r0
+;	from	r0
+	stb	(r1)
+
+
+	CACHEB	_RLMoveXY2
+;
+;	>>>   CHECK NEXT MOVELINE   <<<
+;
+_RM2XY2000
+	to	r2				; Get Next Line#
+	ldw	(rMoveLinesPtr)
+	inc	r2
+	beq	_RM2XY10000			; No more Lines!
+;
+;	>>>   MOVE TO LINE   <<<
+;
+	from	rBSPB				; Bank of EM Data
+	romb
+	from	r2				; Move to LineData
+;	to	r0
+	lmult
+	from	r4
+	to	r14
+	add	rLineBase
+;
+;	>>>   VERTEX 1   <<<
+;
+	getb					; R1 = Vertex 1
+	inc	r14
+	getbh
+	inc	r14
+;	from	r0
+	to	r1
+	add	rVertexBase
+;
+;	>>>   VERTEX 2   <<<
+;
+	getb					; R2 = Vertex 2
+	inc	r14
+	getbh
+	inc	r14
+;	from	r0
+	to	r2
+	add	rVertexBase
+;
+;	>>>   FLAGS   <<<
+;
+	with	rMoveLinesPtr			; Move to Flags
+	add	#rlmlFlags
+;	to	rFlags				; Get Flags
+	getb
+	inc	r14
+	to	rFlags
+	getbh
+	inc	r14
+	from	rFlags
+	stw	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+;
+;	>>>   ANGLE   <<<
+;
+	getb					; Get Angle
+	inc	r14
+	to	rAngle
+	getbh
+	inc	r14
+	with	rAngle				; Line Angle
+	lsr
+	with	rAngle
+	lsr
+	with	rAngle
+	lsr
+	with	rAngle
+	lsr
+;
+;	>>>   FACE   <<<
+;
+	getb					; Get Face
+	inc	r14
+;
+	with	rAngle
+	lsr					; >>5
+	with	rAngle
+	bic	#1				; Remove lowest bit
+;
+	to	rFace
+	getbh
+;
+;	>>>   GET VERTEX 1 COORDINATES   <<<
+;
+	move	r14,r1				; Get Vertex1 X
+	with	rMoveLinesPtr
+	sub	#((rlmlFlags+1)-rlmlLX1)
+	getb
+	inc	r14
+;	from	r0
+	stb	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	getb
+	inc	r14
+;	from	r0
+	stb	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	getb					; Get Vertex1 Y
+	inc	r14
+;	from	r0
+	stb	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	getb
+	move	r14,r2
+;	from	r0
+	stb	(rMoveLinesPtr)
+	with	rMoveLinesPtr
+	add	#(rlmlLX2-(rlmlLY1+1))
+;
+;	>>>   GET VERTEX 2 COORDINATES   <<<
+;
+	getb					; Get Vertex2 X
+	inc	r14
+;	from	r0
+	stb	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	getb
+	inc	r14
+;	from	r0
+	stb	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	getb					; Get Vertex2 Y
+	inc	r14
+;	from	r0
+	stb	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	move	r2,#<SinTable			; Base Address of Sine Table
+	move	r1,#^SinTable
+	getb
+;
+;	>>>   GET LINE PERPENDICULAR COMPONENTS   <<<
+;
+	from	r1				; Bank of Sin/Cos Data
+	romb
+	from	rAngle				; Perpendicular UnitVector X
+	to	r14
+	add	r2
+;
+;	from	r0				; Vertex2 Y
+	stb	(rMoveLinesPtr)
+	with	rMoveLinesPtr
+	sub	#((rlmlLY2+1)-rlmlPUX)
+	move	r2,#<CosTable			; Base Address of CoSine Table
+;
+	getb					; Perpendicular UnitVector X
+	inc	r14
+;	from	r0
+	stb	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	getb
+;
+	from	rAngle				; Perpendicular UnitVector Y
+	to	r14
+	add	r2
+;
+;	from	r0				; Perpendicular UnitVector X
+	stb	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+;
+	getb					; Perpendicular UnitVector Y
+	inc	r14
+;	from	r0
+	stb	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+;
+	from	rBSPB				; Move to Line Face
+	romb
+;
+	getb
+;
+	from	rFace				; Move to Line Face
+	to	r14
+	add	rFaceBase
+;
+;	from	r0				; Perpendicular UnitVector Y
+	stb	(rMoveLinesPtr)
+
+;
+;	>>>   SOLID?   <<<
+;
+	from	rFlags				; Solid Wall/Impassible?
+;	to	r0
+	lsr					; and #(rllfSolid|rllfImpassible)
+	bcs	_RM2XY9000			; YES, AUTOMATIC BLOCKING!
+
+;
+;	* * * * * * *       TRANSPARENT       * * * * * * *
+;
+;	>>>   UPDATE TRIGGER LINE COUNT   <<<
+;
+	with	rMoveLinesPtr
+	add	#(rlmlHighFloorHeight-(rlmlPUY+1))
+;
+	move	r0,#<(MVULMask)			; LineFlags Type Mask
+	to	r1
+	ldb	(r0)
+;
+	with	rFlags				; Trigger Line?
+	swap
+	with	rFlags
+	and	r1
+	move	r2,#<(MVULCount)		; #Lines Matching Trigger Flags
+	dec	rFlags				; New Trigger Line?
+	to	r1				; Get #TriggerLines
+	alt1
+	bmi	_RM2XY6200			; No
+	ldw	(r2)
+;	ldb	(r2)
+	inc	r1				; #TriggerLines++
+_RM2XY6200
+	from	r1				; Update #TriggerLines
+	stb	(r2)
+;
+;	>>>   GET NEAR SECTORDATA   <<<
+;
+	getb					; Get Near Sector
+	link	#3
+	bra	_RLMoveXYAddMSector		; Add Sector to MoveSectors
+	inc	r14
+;
+;	>>>   GET NEAR FLOOR/CEILING HEIGHT   <<<
+;
+	to	rHighFloor			; Near Floor Height
+	ldw	(r2)
+	inc	r2
+	inc	r2
+	to	rLowCeiling			; Near Ceiling Height
+	ldw	(r2)
+	from	rHighFloor			; Highest Floor Height
+	stw	(rMoveLinesPtr)
+
+;
+;	>>>   GET FAR SECTORDATA   <<<
+;
+	link	#3
+	bra	_RLMoveXYAddMSector		; Add Sector to MoveSectors
+	getb
+;
+;	>>>   GET FAR FLOOR/CEILING HEIGHT   <<<
+;
+;	to	r0				; Far Floor Height
+	ldw	(r2)
+	inc	r2
+	inc	r2
+	to	r1				; Far Ceiling Height
+	ldw	(r2)
+;
+;	>>>   GET HIGHEST FLOOR   <<<
+;
+;	from	r0				; FarFloor > NearFloor?
+	cmp	rHighFloor
+	blt	_RM2XY8200			; No -- Cliff!
+	nop
+;	from	r0				; Yes!
+	stw	(rMoveLinesPtr)
+	move	r0,rHighFloor
+;
+;	>>>   GET LOWEST CEILING   <<<
+;
+_RM2XY8200
+	from	r1				; FarCeiling < NearCeiling?
+	cmp	rLowCeiling
+	bge	_RM2XY8400			; No
+	move	rLowCeiling,r1			; Yes!
+;
+;	>>>   HIGHEST FLOOR   <<<
+;
+_RM2XY8400
+	inc	rMoveLinesPtr
+	inc	rMoveLinesPtr
+;
+;	>>>   LOWEST CEILING   <<<
+;
+	from	rLowCeiling			; Lowest Ceiling Height
+	stw	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	inc	rMoveLinesPtr
+;
+;	>>>   LOWEST FLOOR   <<<
+;
+;	from	r0				; Lowest Floor Height
+	stw	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+;
+;	>>>   PROCESS NEXT LINE   <<<
+;
+	iwt	r15,#<_RM2XY2000
+	inc	rMoveLinesPtr
+
+
+;
+;	* * * * * * *       ADD SECTOR TO MOVESECTORS       * * * * * * *
+;
+;	R0 = Sector#
+;
+;	R2 = SectorData.FloorHeight
+;
+_RLMoveXYAddMSector
+;
+;	>>>   GET SECTORDATA   <<<
+;
+;	with	r0				; Get SectorData
+	umult	#rlsdSize
+	move	r2,#<(_RLSectorData+rlsdRLCount)
+	with	r2
+	add	r0
+;
+;	>>>   SECTOR ALREADY TAGGED FOR OBJECT PROCESSING?   <<<
+;
+;	to	r0				; Get SectorData.RLEngineCount
+	ldw	(r2)
+;
+	with	r2				; Move to SectorData.FloorHeight
+	sub	#(rlsdRLCount-rlsdFloorHeight)
+;
+;	with	r0				; Already Handled?
+	sub	rRLCount
+	beq	_RMXYAMS800			; Yes!
+;
+;	>>>   ADD SECTOR TO MOVEMENT SECTOR LIST   <<<
+;
+	from	rRLCount			; SectorData.RLEngineCount=RLEngineCount
+	sbk
+	move	r1,#<MVSector			; Pointer to MoveSectorsList
+;	to	r0
+	ldw	(r1)
+	from	r2				; Save Pointer to SectorData.FloorHeight
+	stw	(r0)
+	inc	r0
+	inc	r0
+;	from	r0				; Save Pointer to MoveSectorsList
+	stw	(r1)
+_RMXYAMS800
+	jmp	r11
+
+
+;
+;	* * * * * * *       SOLID       * * * * * * *
+;
+_RM2XY9000
+;
+;	>>>   GET NEAR SECTORDATA   <<<
+;
+	link	#3
+	bra	_RLMoveXYAddMSector		; Add Sector to MoveSectors
+	getb
+;
+;	>>>   PROCESS NEXT LINE   <<<
+;
+	with	rMoveLinesPtr			; Move to Next MoveLine Entry
+	add	#(rlmlSize-(rlmlPUY+1))
+	iwt	r15,#<_RM2XY2000
+	to	r2				; Get Next Line#
+
+
+	CACHEE	_RLMoveXY2

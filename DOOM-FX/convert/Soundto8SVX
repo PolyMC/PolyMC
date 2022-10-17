@@ -1,0 +1,5 @@
+.key IN/A,OUT/A,RATE/A
+.bra {
+.ket }
+sox -V -s -w -t raw -r {RATE} {IN} -x -t raw t:q{$$}
+sox -V -s -w -t raw -r {RATE} t:q{$$} -x -t 8svx {OUT}

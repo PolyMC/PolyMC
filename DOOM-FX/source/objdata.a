@@ -1,0 +1,398 @@
+;**********************************************************************
+;*                                                                    *
+;*                      P R O J E C T :   R A G E                     *
+;*                                                                    *
+;*                          OBJECT DATA MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	rlobjects.i
+	include	rlimages.i
+
+
+	public	_ObjData
+
+
+	SECTION	_OBJECTDATA,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       OBJECT DATA       * * * * * * *
+;
+
+_ObjData
+;
+;	>>>   PLAYER   <<<
+;
+	dc.w	(rlodfImage)				; Player1Start
+	dc.b	oddPlayer
+	dc.b	odhPlayer
+	dc.b	$52
+
+	dc.w	(rlodfImage)				; Player2Start
+	dc.b	oddPlayer
+	dc.b	odhPlayer
+	dc.b	$52
+
+	dc.w	(rlodfImage)				; Player3Start
+	dc.b	oddPlayer
+	dc.b	odhPlayer
+	dc.b	$52
+
+	dc.w	(rlodfImage)				; Player4Start
+	dc.b	oddPlayer
+	dc.b	odhPlayer
+	dc.b	$52
+
+	dc.w	(rlodfImage)				; DeathMatchStart
+	dc.b	oddPlayer
+	dc.b	odhPlayer
+	dc.b	$52
+
+	dc.w	0					; TeleportSpot
+	dc.b	0
+	dc.b	0
+	dc.b	$52
+
+;
+;	>>>   ENEMIES   <<<
+;
+	dc.w	(rlodfImage|rlodfKill)			; Soldier
+	dc.b	oddSoldier
+	dc.b	odhSoldier
+	dc.b	$52
+
+	dc.w	(rlodfImage|rlodfKill)			; Sergeant
+	dc.b	oddSergeant
+	dc.b	odhSergeant
+	dc.b	$52
+
+	dc.w	(rlodfImage|rlodfKill)			; Trooper
+	dc.b	oddTrooper
+	dc.b	odhTrooper
+	dc.b	$52
+
+	dc.w	(rlodfImage|rlodfKill)			; Demon
+	dc.b	oddDemon
+	dc.b	odhDemon
+	dc.b	$52
+
+	dc.w	(rlodfImage|rlodfKill|rlodfFloat)	; CacoDemon
+	dc.b	oddCacoDemon
+	dc.b	odhCacoDemon
+	dc.b	$52
+
+	dc.w	(rlodfImage|rlodfKill|rlodfFloat)	; Demon
+	dc.b	oddLostSoul
+	dc.b	odhLostSoul
+	dc.b	$52
+
+	dc.w	(rlodfImage|rlodfKill)			; BaronOfHell
+	dc.b	oddBaronOfHell
+	dc.b	odhBaronOfHell
+	dc.b	$52
+
+	dc.w	(rlodfImage|rlodfKill)			; CyberDemon
+	dc.b	oddCyberDemon
+	dc.b	odhCyberDemon
+	dc.b	$52
+
+	dc.w	(rlodfImage|rlodfKill)			; SpiderDemon
+	dc.b	oddSpiderDemon
+	dc.b	odhSpiderDemon
+	dc.b	$52
+
+;
+;	>>>   WEAPONS   <<<
+;
+	dc.w	(rlodfItem)			; ShotGun
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inShotGun
+
+	dc.w	(rlodfItem)			; ChainSaw
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inChainSaw
+
+	dc.w	(rlodfItem)			; ChainGun
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inChainGun
+
+	dc.w	(rlodfItem)			; RocketLauncher
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inRocketLauncher
+
+	dc.w	(rlodfItem)			; PlasmaGun
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inPlasmaGun
+
+	dc.w	(rlodfItem)			; BFG9000
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inBFG9000
+;
+;	>>>   KEYCARDS   <<<
+;
+	dc.w	(rlodfItem|rlodfGlow)		; RedKeyCard
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inRedKeyCard
+
+	dc.w	(rlodfItem|rlodfGlow)		; BlueKeyCard
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inBlueKeyCard
+
+	dc.w	(rlodfItem|rlodfGlow)		; YellowKeyCard
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inYellowKeyCard
+
+	dc.w	(rlodfItem|rlodfGlow)		; RedSkullKey
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inRedSkullKey
+
+	dc.w	(rlodfItem|rlodfGlow)		; YellowSkullKey
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inYellowSkullKey
+
+	dc.w	(rlodfItem|rlodfGlow)		; BlueSkullKey
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inBlueSkullKey
+;
+;	>>>   WEAPON AMMO   <<<
+;
+	dc.w	(rlodfItem|rlodfItemCount)	; BackPack
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inBackPack
+
+	dc.w	(rlodfItem)			; Clip
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inClip
+
+	dc.w	(rlodfItem)			; AmmoBox
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inAmmoBox
+
+	dc.w	(rlodfItem)			; Shells
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inShells
+
+	dc.w	(rlodfItem)			; ShellsBox
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inShellsBox
+
+	dc.w	(rlodfItem)			; Rocket
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inRocket
+
+	dc.w	(rlodfItem)			; RocketBox
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inRocketBox
+
+	dc.w	(rlodfItem)			; Cell
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inCell
+
+	dc.w	(rlodfItem)			; CellPack
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inCellPack
+;
+;	>>>   HEALTH/ARMOR PICKUPS   <<<
+;
+	dc.w	(rlodfItem)			; StimPak
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inStimPak
+
+	dc.w	(rlodfItem)			; Medikit
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inMedikit
+
+	dc.w	(rlodfItem|rlodfItemCount|rlodfAnim4)	; HealthBonus
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inHealthBonus
+
+	dc.w	(rlodfItem|rlodfItemCount|rlodfAnim4)	; ArmorBonus
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inArmorBonus
+
+	dc.w	(rlodfItem|rlodfGlow)			; ArmorGreen
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inArmorGreen
+
+	dc.w	(rlodfItem|rlodfGlow)			; ArmorBlue
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inArmorBlue
+;
+;	>>>   POWERUPS   <<<
+;
+	dc.w	(rlodfItem|rlodfAnim4|rlodfGlow) 	; SoulSphere
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inSoulSphere
+
+	dc.w	(rlodfItem|rlodfItemCount|rlodfAnim4|rlodfGlow) ; Invulnerable
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inInvulnerable
+
+	dc.w	(rlodfItem|rlodfItemCount|rlodfGlow)		; Berserk
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inBerserk
+
+	dc.w	(rlodfItem|rlodfItemCount|rlodfAnim4|rlodfGlow) ; Invisible
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inInvisible
+
+	dc.w	(rlodfItem|rlodfItemCount|rlodfGlow)		; RadiationSuit
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inRadiationSuit
+
+	dc.w	(rlodfItem|rlodfItemCount|rlodfAnim4|rlodfGlow) ; ComputerMap
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inComputerMap
+
+	dc.w	(rlodfItem|rlodfItemCount|rlodfAnim2|rlodfGlow) ; LightGoggles
+	dc.b	oddPickUp
+	dc.b	odhPickUp
+	dc.b	inLightGoggles
+;
+;	>>>   MISCELLANEOUS   <<<
+;
+	dc.w	(rlodfAnim2)			; Barrel
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inBarrel
+
+	dc.w	0				; FloorLamp
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inFloorLamp
+
+	dc.w	0				; BloodyMess
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inBloodyMess
+
+	dc.w	0				; DeadTrooper
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inBloodyMess2
+
+	dc.w	0				; DeadDemon
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	(inDemonDie+3)
+
+	dc.w	0				; SkullOnPole
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inSkullOnPole
+
+	dc.w	0				; PillarShortGreen
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inPillarShortGreen
+
+	dc.w	0				; Candle
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inCandle
+
+	dc.w	0				; Candelabra
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inCandelabra
+
+	dc.w	(rlodfAnim4)			; FlamingSkullRock
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inFlamingSkullRock
+
+	dc.w	0				; TreeGray
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inTreeGray
+
+	dc.w	(rlodfAnim4)			; FireStickTallRed
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inFireStickTallRed
+
+	dc.w	0				; ShrubBrown
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inShrubBrown
+
+	dc.w	0				; ColumnTechTall
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inColumnTechTall
+
+	dc.w	(rlodfAnim4)			; FireStickShortBlue
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	inFireStickShortBlue
+;
+;	>>>   PROJECTILES   <<<
+;
+	dc.w	(rlodfImage|rlodfProjectile|rlodfGlow|rlodfShine)	; FireBall 1
+	dc.b	oddFireBall1
+	dc.b	odhFireBall1
+	dc.b	$52
+
+	dc.w	(rlodfImage|rlodfProjectile|rlodfGlow|rlodfShine)	; FireBall 2
+	dc.b	oddFireBall2
+	dc.b	odhFireBall2
+	dc.b	$52
+
+	dc.w	(rlodfImage|rlodfProjectile|rlodfGlow|rlodfShine)	; FireBall 7
+	dc.b	oddFireBall7
+	dc.b	odhFireBall7
+	dc.b	$52
+
+	dc.w	(rlodfImage|rlodfProjectile|rlodfGlow|rlodfShine)	; Missile
+	dc.b	oddMissile
+	dc.b	odhMissile
+	dc.b	$52
+
+	dc.w	(rlodfImage|rlodfProjectile|rlodfGlow|rlodfShine)	; Plasma
+	dc.b	oddPlasma
+	dc.b	odhPlasma
+	dc.b	$52
+;
+;	>>>   MISCELLANEOUS 2   <<<
+;
+	dc.w	(rlodfImage)				; Barrel Explosion
+	dc.b	oddObstacle
+	dc.b	odhObstacle
+	dc.b	$52
+
+	LTEXT	(((*-_ObjData)/rlodSize)-otMax),"***  WARNING!  _OBJDATA INVALID!   ***"

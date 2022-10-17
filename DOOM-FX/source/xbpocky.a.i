@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	36
+DATE	MACRO
+		dc.b	'25.10.95'
+	ENDM
+VERS	MACRO
+		dc.b	'xbpocky.a 1.36'
+	ENDM
+VSTRING	MACRO
+		dc.b	'xbpocky.a 1.36 (25.10.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: xbpocky.a 1.36 (25.10.95)',0
+	ENDM

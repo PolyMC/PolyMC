@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	40
+DATE	MACRO
+		dc.b	'19.5.95'
+	ENDM
+VERS	MACRO
+		dc.b	'rlram2.a 1.40'
+	ENDM
+VSTRING	MACRO
+		dc.b	'rlram2.a 1.40 (19.5.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: rlram2.a 1.40 (19.5.95)',0
+	ENDM

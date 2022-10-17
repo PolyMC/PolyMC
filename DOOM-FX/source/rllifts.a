@@ -1,0 +1,308 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                          ENGINE LIFTS MODULE                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+rSector		equ	r6			; Pointer to Sector
+rLiftStateCode	equ	r7			; Lift StateCode
+rLiftData	equ	r10			; Pointer to LiftData
+;
+rTaskData	equ	r8			; Pointer to TaskData
+rSectorData	equ	r9			; Pointer to SectorData
+;
+rFPSRatio	equ	r5			; FPS Ratio
+rFPSCount	equ	r7			; FPS Counter
+rTaskData	equ	r8			; Pointer to TaskData
+rTaskPtr	equ	r10			; Pointer to RLTask
+rTaskCount	equ	r13			; TaskCounter
+
+
+;
+;	* * * * * * *       ADD A PLATFORM LIFT       * * * * * * *
+;
+;	rSector		= Sector of Lift
+;	rLiftStateCode	= Lift StateCode
+;	rLiftData	= LiftData
+;
+_RLAddPlatformLift
+;
+;	>>>   GET LIFT SECTOR'S SECTORDATA   <<<
+;
+	from	rSector
+;	to	r0
+	umult	#rlsdSize
+	move	rSectorData,#<_RLSectorData
+	with	rSectorData
+	add	r0
+;
+;	>>>   ANY EXISTING LIFT/MOVING FLOOR?   <<<
+;
+	link	#3				; Find PlatformTask for this SectorData
+	iwt	r15,#<_RLFindPlatformTask
+;
+;	>>>   KILLING MOVING FLOORS?   <<<
+;
+	moves	rLiftStateCode,rLiftStateCode	; -1 = Kill Moving Floor?
+	bpl	_RAPL400			; No, Creating Lift/Moving Floor
+	moves	rTaskData,rTaskData		; Yes, Moving Floor Running?
+	beq	_RAPL800			; No, Can't Remove It!
+	nop
+	move	r0,#(_TPCKillMovingFloor-_TPlatformCode)
+	jmp	r12				; Return to Caller
+;	from	r0
+	stw	(rTaskData)
+;
+;	>>>   EXISTING LIFT?   <<<
+;
+_RAPL400
+	moves	rTaskData,rTaskData		; Lift/Moving Floor Already Running?
+	bne	_RAPL800			; Yes!
+;
+;	* * * * * * *       CREATE A NEW LIFT       * * * * * * *
+;
+_RAPL500
+	link	#4
+	iwt	r15,#<_RLAddPlatformTask	; Allocate a PlatformTask Structure
+	nop
+;
+	from	rLiftStateCode			; LIFT STATE
+	stw	(rTaskData)
+;
+	from	rTaskData			; LIFTDATA
+	to	r6
+	add	#rlpltLift
+	from	rLiftData
+	stw	(r6)
+	inc	r6
+	inc	r6
+	from	rSectorData			; SECTORDATA
+	stw	(r6)
+;
+	move	r9,#<(_TPlatform-1)		; TaskCode-1
+	move	r11,r12				; Return to Caller when done
+	iwt	r15,#<_RLAddTask		; Allocate a Task
+	nop
+_RAPL800
+	jmp	r12				; Return to Caller
+	nop
+
+
+;
+;	* * * * * * *       LIFT START       * * * * * * *
+;
+_TLiftStop
+	move	r3,#<(sxLiftStop-1)		; Sound Effect#
+	bra	_TLiftStart2
+	nop
+_TLiftStart
+	move	r3,#<(sxLiftStart-1)		; Sound Effect#
+_TLiftStart2
+	from	rTaskData			; Get LiftData
+;	to	r0
+	add	#rlpltLift
+;	to	r0
+	ldw	(r0)
+;	from	r0				; R4 = Pointer to SoundOrigin
+	to	r4
+	add	#rlplsOriginX
+	iwt	r15,#<_TPlatformSound
+	nop
+
+
+;
+;	* * * * * * *       LIFT/MOVING FLOOR LOWERING       * * * * * * *
+;
+_TMovingFloorLowering
+	move	r6,#rlpmMovement		; Floor Adjustment
+	bra	_TLiftLowering2
+	nop
+_TLiftLowering
+	move	r6,#rlplMovement		; Floor Adjustment
+_TLiftLowering2
+	from	rTaskData			; Get LiftData
+;	to	r0
+	add	#rlpltLift
+	to	r1
+	ldw	(r0)
+	from	r1				; Get MinFloorHeight
+	to	r14
+	add	#rlplsMinHeight
+	inc	r0
+	inc	r0
+	to	rSectorData			; Get SectorData
+	ldw	(r0)
+;
+	to	r2				; MINIMUM FLOOR HEIGHT
+	getb
+	inc	r14
+;
+	with	rSectorData			; Move to Floor Height
+	add	#rlsdFloorHeight
+	from	rFPSRatio			; FPS Adjustment
+;	to	r0
+	lmult
+;
+	with	r2
+	getbh
+;
+;	with	r0				; Get Whole Levels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R1 = |LiftAdjustment|
+	to	r1
+	or	r4
+;
+	ldw	(rSectorData)			; Get Floor Height
+;	from	r0				; R3 = NEW Floor Height
+	to	r3
+	sub	r1
+	from	r3				; @CMP@
+;	to	r0
+	sub	r2				; At Top?
+	bge	_TLL800				; No
+	moves	r3,r2				; Yes!
+_TLL800
+
+	ifn	0
+	nop					; @WITH IN PIPELINE@
+	from	rTaskData			; (R1) = OriginX/OriginY
+;	to	r0
+	add	#rlptPlatform
+;	to	r0
+	ldw	(r0)
+;	from	r0
+	to	r1
+	add	#rlplsOriginX
+	endif
+
+	link	#4
+	iwt	r15,#<_RLCheckFloor0
+	nop
+	iwt	r15,#<_TPlatform1
+;	from	r0				; New Floor Height
+	stw	(rSectorData)
+
+
+;
+;	* * * * * * *       LIFT RISING       * * * * * * *
+;
+_TMovingFloorRising
+	move	r6,#rlpmMovement		; Floor Adjustment
+	bra	_TLiftRising2
+	nop
+_TLiftRising
+	move	r6,#rlplMovement		; Floor Adjustment
+_TLiftRising2
+	from	rTaskData			; Get LiftData
+;	to	r0
+	add	#rlpltLift
+	to	r1
+	ldw	(r0)
+	from	r1				; Get MaxFloorHeight
+	to	r14
+	add	#rlplsMaxHeight
+	inc	r0
+	inc	r0
+	to	rSectorData			; Get SectorData
+	ldw	(r0)
+;
+	to	r2				; MAXIMUM FLOOR HEIGHT
+	getb
+	inc	r14
+;
+	with	rSectorData			; Move to Floor Height
+	add	#rlsdFloorHeight
+	from	rFPSRatio			; FPS Adjustment
+;	to	r0
+	lmult
+;
+	with	r2
+	getbh
+;
+;	with	r0				; Get Whole Levels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R1 = |LiftAdjustment|
+	to	r1
+	or	r4
+;
+	ldw	(rSectorData)			; Get Floor Height
+;	from	r0				; R3 = NEW Floor Height
+	to	r3
+	add	r1
+	from	r3				; @CMP@
+;	to	r0
+	sub	r2				; At Top?
+	blt	_TLR800				; No
+	moves	r3,r2				; Yes!
+_TLR800
+
+	ifn	0
+	nop					; @WITH IN PIPELINE@
+	from	rTaskData			; (R1) = OriginX/OriginY
+;	to	r0
+	add	#rlptPlatform
+;	to	r0
+	ldw	(r0)
+;	from	r0
+	to	r1
+	add	#rlplsOriginX
+	endif
+
+	link	#4
+	iwt	r15,#<_RLCheckFloor
+	nop
+	iwt	r15,#<_TPlatform1
+;	from	r0				; New Floor Height
+	stw	(rSectorData)
+
+
+;
+;	* * * * * * *       LIFT HOLD x SECONDS       * * * * * * *
+;
+_TLiftHold3Sec
+	move	r0,#(3*60)			; 3 Seconds
+	from	rTaskData			; Set Hold Counter
+	to	r1
+	add	#rlpltHoldCount
+	move	r2,r0				; Hold Initialized
+	jmp	r11				; Return to _TPlatform
+;	from	r0
+	stw	(r1)
+
+
+;
+;	* * * * * * *       LIFT HOLDING       * * * * * * *
+;
+_TLiftHold
+	from	rTaskData			; Get Hold Counter
+	to	r1
+	add	#rlpltHoldCount
+;	to	r0
+	ldw	(r1)
+;	with	r0				; Subtract FPS Counter
+	sub	rFPSCount
+	move	r2,#0				; Minimum Counter
+	bpl	_TLH800
+	moves	r0,r2				; Finished Holding!
+_TLH800
+	jmp	r11				; Return to _TPlatform
+;	from	r0
+	sbk

@@ -1,0 +1,6 @@
+make/art/StatKeysBlue
+make/art/StatKeysYellow
+make/art/StatKeysRed
+join RLDATA:ART/StatKeysBlue.def0 RLDATA:ART/StatKeysYellow.def0 RLDATA:ART/StatKeysRed.def0 as RLDATA:ART/StatKeys.def0
+xc -iRLDATA:ART/StatKeys.def0 -oRLDATA:COMP/StatKeys.def0
+touch rlstatus.a

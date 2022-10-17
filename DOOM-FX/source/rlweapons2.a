@@ -1,0 +1,987 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                      WEAPONS HANDLING MODULE 2                     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	snes.i
+	include	rlweapons.i
+	include	rlplayer.i
+	include	music.i
+
+	public	_RLWeapons
+
+
+;
+;	* * * * * * *       WEAPONS DEFINITIONS       * * * * * * *
+;
+WeaponYBottom		equ	85			; Weapon Y Bottom
+WeaponYDelta		equ	8			; Weapon Y Movement Delta
+
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+;
+;	* * * * * * *       REALITY_ENGINE WEAPONS HANDLING       * * * * * * *
+;
+_RLWeapons
+;
+;	>>>   CALL WEAPON STATE HANDLER   <<<
+;
+	link	#4				; Call WeaponState Handler
+	iwt	r15,#<_RLDoWeaponState
+	nop
+;
+;	>>>   UPDATE WEAPON SPRITE POSITION   <<<
+;
+_RLWeapons1
+	move	r1,(<WeaponXOffset)		; Get Weapon X Coordinate Offset
+	move	r0,#127				; CutterX Center Offset from Screen
+;	with	r0
+	add	r1
+	move	r1,(<WeaponYOffset)		; Get Weapon Y Coordinate Offset
+	move	(<WeaponX),r0
+	move	r0,#(128-(256-224))		; CutterY Center Offset from Screen
+;	with	r0
+	add	r1
+	move	(<WeaponY),r0
+;
+;	>>>   UPDATE WEAPON AMMO   <<<
+;
+	move	r0,(<WeaponAmmo)		; Get Address of Ammo
+	dec	r0
+	bmi	_RLWeapons2			; Fist/ChainSaw
+	inc	r0
+;	to	r0				; Get Ammo Amount
+	ldw	(r0)
+_RLWeapons2
+	move	(<PlayerAmmo),r0		; Player's Ammo
+;
+;	>>>   HANDLE SECTORS   <<<
+;
+	ife	usePATCH
+	iwt	r0,#<_RLDoSectors		; HANDLE SECTORS
+	endif
+	ifn	usePATCH
+	move	r0,(<PTRLDoSectors)		; HANDLE SECTORS
+	endif
+	ibt	r8,#^_RLDoSectors
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+
+;
+;	* * * * * * *       DROP PLAYER'S WEAPON       * * * * * * *
+;
+_RLDropWeapon
+	move	r12,r11				; Save Return Address
+_RLDropWeapon2
+	move	r0,#wdLower			; LOWER STATE
+	iwt	r15,#<_RLSetWeaponState
+	nop
+
+
+;
+;	* * * * * * *       PICK UP PLAYER'S WEAPON       * * * * * * *
+;
+_RLPickWeapon
+	move	r12,r11				; Save Return Address
+_RLPickWeapon2
+	move	r0,#^WeaponsData		; Set ROM Bank
+	romb
+	move	r0,(<WeaponNext)		; SELECTED WEAPON
+	move	(<WeaponType),r0
+;	with	r0				; WEAPON DATA
+	umult	#(wdSize/2)
+	move	r1,#<WeaponsData
+;	with	r0
+	add	r1
+	move	(<WeaponData),r0
+;	from	r0				; AMMUNITION
+	to	r14
+	add	#wdAmmo
+	move	r0,#0				; FRAME #0
+	move	(<WeaponFrame),r0
+;
+	getb					; Get Ammo Address
+	inc	r14
+	getbh
+	move	(<WeaponAmmo),r0		; Save Address of Ammo
+;
+	move	r0,#WeaponYBottom		; Weapon Starts off Bottom
+	move	(<WeaponYOffset),r0
+;	with	r0				; Weapon X Offset
+	sub	r0
+	move	(<WeaponXOffset),r0
+;
+	move	r0,#wdRaise			; RAISE STATE
+;
+;
+;	* * * * * * *       SET WEAPON STATE       * * * * * * *
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE   !!!
+;
+_RLSetWeaponState
+	move	r1,#^WeaponsData		; Set ROM Bank
+	from	r1
+	romb
+	move	r1,(<WeaponData)		; Address of Current WeaponData
+;	from	r0				; Move to WeaponState Data Address
+	to	r14
+	add	r1
+	move	(<WeaponState),r0
+	bra	_RLDWS2200			; Handle New WeaponState
+	nop
+
+
+;
+;	* * * * * * *       CALL WEAPON STATE CODE       * * * * * * *
+;
+_RLDoWeaponState
+	move	r1,(<(FPSCount+RLGSUSNESXVarsO)) ; Subtract FPS Counter
+	move	r0,(<WeaponStateCount)		; Time to switch states?
+;	with	r0
+	sub	r1
+	sbk					; Save new Counter
+	dec	r0				; Finished this State?
+	with	r11				; Save Return Address
+	bmi	_RLDWS2000			; YES!
+	to	r12
+	jmp	r11				; Return to Caller
+	nop
+;
+;	>>>   GET NEXT WEAPON STATE   <<<
+;
+_RLDWS2000
+	move	r0,#^WeaponsData		; Set ROM Bank
+	romb
+_RLDWS2100
+	move	r0,(<WeaponStateData)		; Address of Current WeaponState
+;	from	r0				; Move to Next WeaponState
+	to	r14
+	add	#wsNextState
+_RLDWS2200
+	getb
+	inc	r14
+;	from	r0				; Move to New WeaponState
+	to	r14
+	getbh
+	move	(<WeaponStateData),r14		; Save Address of New WeaponState
+;
+;	>>>   CALL NEW STATE CODE   <<<
+;
+	getb					; Get Address of WeaponStateCode
+	inc	r14
+;	from	r0
+	to	r10
+	getbh
+	link	#2
+	jmp	r10				; Call Weapon StateCode
+	nop
+;
+;	>>>   GET #CYCLES AT NEW STATE   <<<
+;
+_RLDWS3000
+	move	r0,(<WeaponStateData)		; Get #CYCLES at this State
+;	from	r0
+	to	r14
+	add	#wsCount
+	getb
+	inc	r14
+	moves	r0,r0
+	beq	_RLDWS2100			; 0=Move to Next State Immediately
+	sex
+	move	r1,(<WeaponStateCount)		; Get Counter Underflow
+;	with	r0
+	add	r1
+	bpl	_RLDWS3400			; Underflow?
+	nop
+;	with	r0				; Yes!
+	sub	r0
+_RLDWS3400
+	sbk					; Save New Counter
+;
+;	>>>   GET SPRITE IMAGERY   <<<
+;
+	getb					; Get CutSpriteNumber
+	move	(<WeaponFrame),r0
+;
+;	>>>   FINISHED HANDLING WEAPON STATE   <<<
+;
+	jmp	r12				; Return to Caller
+	nop
+
+
+;
+;	* * * * * * *       RAISE WEAPON       * * * * * * *
+;
+_RLRaiseWeapon
+	move	r0,(<PlayerDead)		; Is Player Dead?
+	dec	r0
+	bpl	_RLRW900			; Yes, Don't Raise Weapon!
+	nop
+	move	r0,(<(WeaponTypeBuilt+RLGSUSNESXVarsO))
+	move	r1,(<WeaponType)
+;	with	r0				; Is CORRECT Weapon Built?
+	sub	r1				; @CMP@
+	bne	_RLRW900-1			; No, Don't Raise Weapon!
+;
+;	>>>   CALCULATE WEAPON SPEED DELTA   <<<
+;
+	move	r6,#-WeaponYDelta
+	move	r0,(<FPSRatio)			; Get FramesPerSecond Ratio
+;	with	r0
+	lmult
+;	with	r0				; Get Whole Pixels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	with	r0				; R0 = -WeaponYDelta
+	or	r4
+;
+	move	r1,(<WeaponYOffset)		; Get Weapon Y Offset
+	with	r1
+	add	r0
+	bpl	_RLRW800			; At Top?
+;
+;	>>>   WEAPON READY FOR USE!   <<<
+;
+;	with	r0
+	sub	r0
+	sbk					; Yes, Weapon Ready!
+	move	(<WeaponStateCount),r0		; Reset WeaponState Counter
+
+	ife	useWILLIAMS
+;
+;	>>>   MAKE SOUND EFFECT   <<<
+;
+	move	r3,#wpnup_eff			; Make WeaponUp SoundEffect
+	link	#4
+	iwt	r15,#<_RLPlayerSoundEffect
+	nop
+	endif
+
+_RLRW700
+	move	r0,#wdReady			; READY STATE
+	iwt	r15,#<_RLSetWeaponState
+	nop
+_RLRW800
+	from	r1				; Save New Weapon Y Offset
+	sbk
+_RLRW900
+	jmp	r11
+	nop
+
+
+;
+;	* * * * * * *       LOWER WEAPON       * * * * * * *
+;
+_RLLowerWeapon
+;
+;	>>>   CALCULATE WEAPON SPEED DELTA   <<<
+;
+	move	r6,#WeaponYDelta
+	move	r0,(<FPSRatio)			; Get FramesPerSecond Ratio
+;	with	r0
+	lmult
+;	with	r0				; Get Whole Pixels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	with	r0				; R0 = WeaponYDelta
+	or	r4
+;
+	move	r1,(<WeaponYOffset)		; Get Weapon Y Offset
+	with	r1				; Weapon Delta
+	add	r0
+	move	r0,#WeaponYBottom-1		; Too Low?
+;	from	r0
+	cmp	r1
+	bge	_RLLW800
+	inc	r0
+	sbk					; Yes, Weapon Ready!
+	iwt	r15,#<_RLPickWeapon2		; Pick up New Weapon
+	nop
+_RLLW800
+	from	r1				; Save New Weapon Y Offset
+	sbk
+	jmp	r11
+	nop
+
+;
+;	* * * * * * *       FIRE CHAINSAW SOUND       * * * * * * *
+;
+_RLChainSawNull
+	move	r3,#sawful_eff			; Sound Effect
+	iwt	r15,#<_RLPlayerSoundEffect
+	nop
+;
+;	* * * * * * *       READY CHAINSAW       * * * * * * *
+;
+_RLReadyChainSaw
+	move	r0,(<AutoMapMode)		; In AutoMap Mode?
+;	with	r0
+	sex
+	bne	_RLReadyChainSaw2		  ; Yes, can't use Weapon!
+	nop
+	move	r0,(<(PlayerJoy+RLGSUSNESXVarsO)) ; Get Joystick Buttons
+	move	r1,#pjFIRE			  ; <A> TO USE WEAPON
+;	with	r0
+	and	r1
+	bne	_RLReadyWeapon			; Using ChainSaw -- Don't Make Idle Sound!
+_RLReadyChainSaw2
+	move	r10,r11
+	move	r3,#sawidl_eff			; Sound Effect
+	link	#4
+	iwt	r15,#<_RLPlayerSoundEffect
+	nop
+	move	r11,r10
+;
+;	* * * * * * *       READY WEAPON       * * * * * * *
+;
+_RLReadyWeapon
+;
+;	>>>   SWAY PLAYER'S WEAPON   <<<
+;
+	move	r0,(<(VBlankTotal+RLGSUSNESXVarsO)) ; Get VBlank Counter Total
+	move	r1,#(WeaponSwayVBlanks-1)	    ; Complete Sway in #VBlanks
+;	with	r0
+	and	r1
+	move	r1,#(1024/WeaponSwayVBlanks*2)
+;	from	r0
+	to	r1
+	umult	r1
+;
+;	>>>   GET ROTATIONAL SINE/COSINE CONSTANTS   <<<
+;
+	ibt	r0,#^CosTable			; Bank of CosTable
+	romb
+	iwt	r0,#<CosTable
+;	from	r0
+	to	r14
+	add	r1
+;
+	move	r6,(<PlayerSway)		; Get Player's Sway Factor
+;
+;	to	r0				; Get COSINE
+	getb
+	inc	r14
+;
+	move	r4,#(1024/2*2)-1		; Mask SINE around UPPER HALF ONLY!
+	with	r1
+	and	r4
+	iwt	r4,#<SinTable
+;
+;	with	r0
+	getbh
+;
+	from	r4				; Move to SINE
+	to	r14
+	add	r1
+;
+;	from	r0				; Calculate Sway Weapon X
+	to	r1
+	fmult
+;
+;	to	r0				; Get SINE
+	getb
+	inc	r14
+;
+	move	(<WeaponXOffset),r1		; Save Weapon X Coordinate Offset
+;
+;	with	r0
+	getbh
+;
+;	from	r0				; Calculate Sway Weapon Y
+	to	r1
+	fmult
+;
+	move	(<WeaponYOffset),r1		; Save Weapon Y Coordinate Offset
+	move	r0,#^WeaponsData		; Set ROM Bank
+	romb
+;
+;	* * * * * * *       USE WEAPON       * * * * * * *
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE   !!!
+;
+_RLUseWeapon
+	move	r0,(<AutoMapMode)		; In AutoMap Mode?
+;	with	r0
+	sex
+	bne	_RLUW800			; Yes, can't use Weapon!
+	nop
+	move	r0,(<(PlayerJoy+RLGSUSNESXVarsO)) ; Get Joystick Buttons
+	move	r1,#pjFIRE			  ; <A> TO USE WEAPON
+;	with	r0
+	and	r1
+	beq	_RLUW800
+	nop
+	move	r0,(<WeaponAmmo)		; ANY Ammo Left?
+	dec	r0
+	bmi	_RLUseWeapon2			; Fist/ChainSaw
+	inc	r0
+;	to	r0				; Get Ammo
+	ldw	(r0)
+	moves	r0,r0				; Any Ammo Left?
+	beq	_RLNewWeapon			; NO!  PLAYER CAN'T USE WEAPON!
+	ife	useID3
+	nop
+	endif
+_RLUseWeapon2
+	ifn	useID3
+;	with	r0				; R0 = 0
+	sub	r0
+	move	(<WeaponXOffset),r0		; New Weapon X Coordinate Offset
+	move	(<WeaponYOffset),r0		; New Weapon Y Coordinate Offset
+	endif
+	move	r0,#wdUse			; USE STATE
+	iwt	r15,#<_RLSetWeaponState
+	nop
+_RLUW800
+	jmp	r11				; Return to Caller
+	nop
+;
+;	>>>   NO AMMO -- SWITCH TO NEXT MOST POWERFUL WEAPON   <<<
+;
+_RLNewWeapon
+	move	r6,#<PlayerArms			; Get Available Weapons
+	to	r6
+	ldb	(r6)
+	move	r0,#^_WeaponTypeBitsTable
+	romb
+	move	r0,#<_WeaponTypeBitsTable
+	move	r2,(<WeaponType)		; Current Weapon
+;	from	r0
+	to	r14
+	add	r2
+	to	r3				; R3 = Weapon Type Bit
+	getb
+	move	r4,r3				; R4 = Weapon Type Bit
+	move	r0,#^WeaponsData		; Set ROM Bank
+	romb
+	move	r1,#<(WeaponsData+wdAmmo)
+_RLNewWeapon2
+	inc	r2				; Next Weapon
+	inc	r2
+	with	r2				; Limit to Maximum Weapon Types
+	and	#15
+	with	r3
+	beq	_RLNewWeapon5			; No Better Weapons!
+	rol
+	from	r3				; Does Player have this Weapon?
+;	to	r0
+	and	r6
+	beq	_RLNewWeapon2			; No!  Next Weapon!
+	from	r2				; ChainSaw?
+;	to	r0
+	sub	#wtChainSaw
+	beq	_RLNewWeapon2			; Yes, Don't Take Initially!
+	from	r2				; WEAPON DATA
+;	to	r0
+	umult	#(wdSize/2)
+;	from	r0				; AMMUNITION
+	to	r14
+	add	r1
+	getb					; Get Ammo Address
+	inc	r14
+	getbh
+;	to	r0				; Any Ammo?
+	ldw	(r0)
+	dec	r0
+	bpl	_RLNewWeapon9			; Yes!  Use This Weapon!
+	nop
+	bra	_RLNewWeapon2+1
+	inc	r2				; Next Weapon
+_RLNewWeapon5
+	move	r2,(<WeaponType)		; Current Weapon
+_RLNewWeapon6
+	dec	r2				; Next Weapon
+	dec	r2
+	beq	_RLNewWeapon7			; Don't Take Fist unless No ChainSaw!
+	with	r4
+	bmi	_RLNewWeapon7			; No Worse Weapons?!
+	asr
+	from	r4				; Does Player have this Weapon?
+;	to	r0
+	and	r6
+	beq	_RLNewWeapon6			; No!  Next Weapon!
+	from	r2				; ChainSaw?
+;	to	r0
+	sub	#wtChainSaw
+	beq	_RLNewWeapon6			; Yes, Don't Take Initially!
+	from	r2				; WEAPON DATA
+;	to	r0
+	umult	#(wdSize/2)
+;	from	r0				; AMMUNITION
+	to	r14
+	add	r1
+	getb					; Get Ammo Address
+	inc	r14
+	getbh
+;	to	r0				; Any Ammo?
+	ldw	(r0)
+	dec	r0
+	bpl	_RLNewWeapon9			; Yes!  Use This Weapon!
+	nop
+	bra	_RLNewWeapon6+1
+	dec	r2				; Next Weapon
+_RLNewWeapon7
+	with	r6				; Does Player Have ChainSaw?
+	and	#wtbChainSaw
+	with	r2
+	beq	_RLNewWeapon9			; No, Use Fist!
+	sub	r2
+	move	r2,#wtChainSaw			; Yes!  Use It!
+;
+;	>>>   SELECT NEW WEAPON   <<<
+;
+_RLNewWeapon9
+	move	(<WeaponNext),r2		; YES!  NEW NEXT WEAPON!
+	iwt	r15,#<_RLDropWeapon2
+	nop
+
+
+	ifn	useWILLIAMS
+;
+;	* * * * * * *       CHAINGUN SOUND       * * * * * * *
+;
+_RLChainGunLight0
+	move	r10,r11
+	move	r3,#pistol_eff			; Make Pistol SoundEffect
+	link	#4
+	iwt	r15,#<_RLPlayerSoundEffect
+	nop
+	move	r11,r10
+	endif
+;
+;	* * * * * * *       WEAPON LIGHT 0       * * * * * * *
+;
+_RLWeaponLight0
+	move	r1,#<(WeaponLight)		; NO LIGHT CREATED BY WEAPON
+;	with	r0
+	sub	r0
+;	from	r0
+	stb	(r1)
+;
+;	* * * * * * *       WEAPON NULL       * * * * * * *
+;
+_RLWeaponNull
+	jmp	r11
+	nop
+
+
+;
+;	* * * * * * *       WEAPONS DATA TABLE       * * * * * * *
+;
+WeaponsData
+wFistData
+	dc.w	<wsFISTUP			; FIST
+	dc.w	<wsFISTDOWN
+	dc.w	<wsFIST
+	dc.w	<wsFIST1
+	dc.w	-1
+wPistolData
+	dc.w	<wsPISTOLUP			; PISTOL
+	dc.w	<wsPISTOLDOWN
+	dc.w	<wsPISTOL
+	dc.w	<wsPISTOL1
+	dc.w	<WeaponBullets
+wShotGunData
+	dc.w	<wsSHOTGUNUP			; SHOTGUN
+	dc.w	<wsSHOTGUNDOWN
+	dc.w	<wsSHOTGUN
+	dc.w	<wsSHOTGUN1
+	dc.w	<WeaponShells
+wChainSawData
+	dc.w	<wsCHAINSAWUP			; CHAINSAW
+	dc.w	<wsCHAINSAWDOWN
+	dc.w	<wsCHAINSAW
+	dc.w	<wsCHAINSAW2
+	dc.w	-1
+wChainGunData
+	dc.w	<wsCHAINGUNUP			; CHAINGUN
+	dc.w	<wsCHAINGUNDOWN
+	dc.w	<wsCHAINGUN
+	dc.w	<wsCHAINGUN1
+	dc.w	<WeaponBullets
+wRocketData
+	dc.w	<wsROCKETUP			; ROCKET
+	dc.w	<wsROCKETDOWN
+	dc.w	<wsROCKET
+	dc.w	<wsROCKET1
+	dc.w	<WeaponRockets
+wPlasmaData
+	dc.w	<wsPLASMAUP			; PLASMA
+	dc.w	<wsPLASMADOWN
+	dc.w	<wsPLASMA
+	dc.w	<wsPLASMA1
+	dc.w	<WeaponCells
+wBFGData
+	dc.w	<wsBFGUP			; BFG
+	dc.w	<wsBFGDOWN
+	dc.w	<wsBFG
+	dc.w	<wsBFG1
+	dc.w	<WeaponCells
+
+;
+;	* * * * * * *       FIST STATE TABLE       * * * * * * *
+;
+wsFISTUP
+	dc.w	<_RLRaiseWeapon			; wsFISTUP
+	dc.b	1
+	dc.b	wfPUNGA0
+	dc.w	<wsFISTUP
+
+wsFISTDOWN
+	dc.w	<_RLLowerWeapon			; wsFISTDOWN
+	dc.b	1
+	dc.b	wfPUNGA0
+	dc.w	<wsFISTDOWN
+
+wsFIST
+	dc.w	<_RLReadyWeapon			; wsFIST
+	dc.b	1
+	dc.b	wfPUNGA0
+	dc.w	<wsFIST
+wsFIST1
+	dc.w	<_RLFireFist			; wsFIST1
+	dc.b	6
+	dc.b	wfPUNFA0
+	dc.w	<wsFIST2
+wsFIST2
+	dc.w	<_RLWeaponNull			; wsFIST2
+	dc.b	6
+	dc.b	wfPUNFB0
+	dc.w	<wsFIST3
+wsFIST3
+	dc.w	<_RLWeaponNull			; wsFIST3
+	dc.b	6
+	dc.b	wfPUNFC0
+	dc.w	<wsFIST4
+wsFIST4
+	dc.w	<_RLWeaponNull			; wsFIST4
+	dc.b	6
+	dc.b	wfPUNFB0
+	dc.w	<wsFIST5
+wsFIST5
+	dc.w	<_RLWeaponNull			; wsFIST5
+	dc.b	6
+	dc.b	wfPUNFA0
+	dc.w	<wsFIST
+
+;
+;	* * * * * * *       PISTOL STATE TABLE       * * * * * * *
+;
+wsPISTOLUP
+	dc.w	<_RLRaiseWeapon			; wsPISTOLUP
+	dc.b	1
+	dc.b	wfPISGA0
+	dc.w	<wsPISTOLUP
+
+wsPISTOLDOWN
+	dc.w	<_RLLowerWeapon			; wsPISTOLDOWN
+	dc.b	1
+	dc.b	wfPISGA0
+	dc.w	<wsPISTOLDOWN
+
+wsPISTOL
+	dc.w	<_RLReadyWeapon			; wsPISTOL
+	dc.b	1
+	dc.b	wfPISGA0
+	dc.w	<wsPISTOL
+wsPISTOL1
+	dc.w	<_RLFirePistol			; wsPISTOL1
+	dc.b	12
+	dc.b	wfPISFA0
+	dc.w	<wsPISTOL2
+wsPISTOL2
+	dc.w	<_RLWeaponNull			; wsPISTOL2
+	dc.b	10
+	dc.b	wfPISFB0
+	dc.w	<wsPISTOL3
+wsPISTOL3
+	dc.w	<_RLWeaponLight0		; wsPISTOL3
+	dc.b	6
+	dc.b	wfPISGA0
+	dc.w	<wsPISTOL
+
+;
+;	* * * * * * *       SHOTGUN STATE TABLE       * * * * * * *
+;
+wsSHOTGUNUP
+	dc.w	<_RLRaiseWeapon			; wsSHOTGUNUP
+	dc.b	1
+	dc.b	wfSHTGA0
+	dc.w	<wsSHOTGUNUP
+
+wsSHOTGUNDOWN
+	dc.w	<_RLLowerWeapon			; wsSHOTGUNDOWN
+	dc.b	1
+	dc.b	wfSHTGA0
+	dc.w	<wsSHOTGUNDOWN
+
+wsSHOTGUN
+	dc.w	<_RLReadyWeapon			; wsSHOTGUN
+	dc.b	1
+	dc.b	wfSHTGA0
+	dc.w	<wsSHOTGUN
+wsSHOTGUN1
+	dc.w	<_RLWeaponNull			; wsSHOTGUN1
+	dc.b	6
+	dc.b	wfSHTFA0
+	dc.w	<wsSHOTGUN2
+wsSHOTGUN2
+	dc.w	<_RLFireShotGun			; wsSHOTGUN2
+	dc.b	6
+	dc.b	wfSHTFB0
+	dc.w	<wsSHOTGUN3
+wsSHOTGUN3
+	dc.w	<_RLWeaponNull			; wsSHOTGUN3
+	dc.b	6
+	dc.b	wfSHTFC0
+	dc.w	<wsSHOTGUN4
+wsSHOTGUN4
+	dc.w	<_RLWeaponNull			; wsSHOTGUN4
+	dc.b	8
+	dc.b	wfSHTFD0
+	dc.w	<wsSHOTGUN5
+wsSHOTGUN5
+	dc.w	<_RLWeaponLight0		; wsSHOTGUN5
+	dc.b	10
+	dc.b	wfSHTFE0
+	dc.w	<wsSHOTGUN6
+wsSHOTGUN6
+	dc.w	<_RLWeaponNull			; wsSHOTGUN6
+	dc.b	10
+	dc.b	wfSHTFD0
+	dc.w	<wsSHOTGUN7
+wsSHOTGUN7
+	dc.w	<_RLWeaponNull			; wsSHOTGUN7
+	dc.b	10
+	dc.b	wfSHTFC0
+	dc.w	<wsSHOTGUN8
+wsSHOTGUN8
+	dc.w	<_RLWeaponNull			; wsSHOTGUN8
+	dc.b	8
+	dc.b	wfSHTGA0
+	dc.w	<wsSHOTGUN
+
+;
+;	* * * * * * *       CHAINSAW STATE TABLE       * * * * * * *
+;
+wsCHAINSAWUP
+	dc.w	<_RLRaiseWeapon			; wsCHAINSAWUP
+	dc.b	1
+	dc.b	wfSAWGA0
+	dc.w	<wsCHAINSAWUP
+
+wsCHAINSAWDOWN
+	dc.w	<_RLLowerWeapon			; wsCHAINSAWDOWN
+	dc.b	1
+	dc.b	wfSAWGA0
+	dc.w	<wsCHAINSAWDOWN
+
+wsCHAINSAW
+	dc.w	<_RLReadyChainSaw		; wsCHAINSAW
+	dc.b	6
+	dc.b	wfSAWGA0
+	dc.w	<wsCHAINSAW1
+wsCHAINSAW1
+	dc.w	<_RLReadyChainSaw		; wsCHAINSAW1
+	dc.b	6
+	dc.b	wfSAWGB0
+	dc.w	<wsCHAINSAW
+wsCHAINSAW2
+	dc.w	<_RLFireChainSaw		; wsCHAINSAW2
+	dc.b	6
+	dc.b	wfSAWFA0
+	dc.w	<wsCHAINSAW3
+wsCHAINSAW3
+	dc.w	<_RLChainSawNull		; wsCHAINSAW3
+	dc.b	6
+	dc.b	wfSAWFB0
+	dc.w	<wsCHAINSAW
+
+;
+;	* * * * * * *       CHAINGUN STATE TABLE       * * * * * * *
+;
+wsCHAINGUNUP
+	dc.w	<_RLRaiseWeapon			; wsCHAINGUNUP
+	dc.b	1
+	dc.b	wfCHGGA0
+	dc.w	<wsCHAINGUNUP
+
+wsCHAINGUNDOWN
+	dc.w	<_RLLowerWeapon			; wsCHAINGUNDOWN
+	dc.b	1
+	dc.b	wfCHGGA0
+	dc.w	<wsCHAINGUNDOWN
+
+wsCHAINGUN
+	dc.w	<_RLReadyWeapon			; wsCHAINGUN
+	dc.b	1
+	dc.b	wfCHGGA0
+	dc.w	<wsCHAINGUN
+wsCHAINGUN1
+	dc.w	<_RLFireChainGun		; wsCHAINGUN1
+	dc.b	8
+	dc.b	wfCHGFA0
+	dc.w	<wsCHAINGUN2
+wsCHAINGUN2
+	ife	useWILLIAMS
+	dc.w	<_RLWeaponLight0		; wsCHAINGUN2
+	endif
+	ifn	useWILLIAMS
+	dc.w	<_RLChainGunLight0		; wsCHAINGUN2
+	endif
+	dc.b	8
+	dc.b	wfCHGFB0
+	dc.w	<wsCHAINGUN
+
+;
+;	* * * * * * *       ROCKET STATE TABLE       * * * * * * *
+;
+wsROCKETUP
+	dc.w	<_RLRaiseWeapon			; wsROCKETUP
+	dc.b	1
+	dc.b	wfMISGA0
+	dc.w	<wsROCKETUP
+
+wsROCKETDOWN
+	dc.w	<_RLLowerWeapon			; wsROCKETDOWN
+	dc.b	1
+	dc.b	wfMISGA0
+	dc.w	<wsROCKETDOWN
+
+wsROCKET
+	dc.w	<_RLReadyWeapon			; wsROCKET
+	dc.b	1
+	dc.b	wfMISGA0
+	dc.w	<wsROCKET
+wsROCKET1
+	dc.w	<_RLWeaponNull			; wsROCKET1
+	dc.b	6
+	dc.b	wfMISFA0
+	dc.w	<wsROCKET2
+wsROCKET2
+	dc.w	<_RLWeaponNull			; wsROCKET2
+	dc.b	6
+	dc.b	wfMISFB0
+	dc.w	<wsROCKET3
+wsROCKET3
+	dc.w	<_RLWeaponNull			; wsROCKET3
+	dc.b	6
+	dc.b	wfMISFC0
+	dc.w	<wsROCKET4
+wsROCKET4
+	dc.w	<_RLFireRocket			; wsROCKET4
+	dc.b	6
+	dc.b	wfMISFD0
+	dc.w	<wsROCKET5
+wsROCKET5
+	dc.w	<_RLWeaponLight0		; wsROCKET5
+	dc.b	12
+	dc.b	wfMISFE0
+	dc.w	<wsROCKET6
+wsROCKET6
+	dc.w	<_RLWeaponNull			; wsROCKET6
+	dc.b	20
+	dc.b	wfMISGA0
+	dc.w	<wsROCKET
+
+;
+;	* * * * * * *       PLASMA STATE TABLE       * * * * * * *
+;
+wsPLASMAUP
+	dc.w	<_RLRaiseWeapon			; wsPLASMAUP
+	dc.b	1
+	dc.b	wfPLSGA0
+	dc.w	<wsPLASMAUP
+
+wsPLASMADOWN
+	dc.w	<_RLLowerWeapon			; wsPLASMADOWN
+	dc.b	1
+	dc.b	wfPLSGA0
+	dc.w	<wsPLASMADOWN
+
+wsPLASMA
+	dc.w	<_RLReadyWeapon			; wsPLASMA
+	dc.b	1
+	dc.b	wfPLSGA0
+	dc.w	<wsPLASMA
+wsPLASMA1
+	dc.w	<_RLFirePlasma			; wsPLASMA1
+	dc.b	6
+	dc.b	wfPLSFA0
+	dc.w	<wsPLASMA2
+wsPLASMA2
+	dc.w	<_RLWeaponNull			; wsPLASMA2
+	dc.b	6
+	dc.b	wfPLSFB0
+	dc.w	<wsPLASMA3
+wsPLASMA3
+	dc.w	<_RLUseWeapon			; wsPLASMA3
+	dc.b	12
+	dc.b	wfPLSFC0
+	dc.w	<wsPLASMA4
+wsPLASMA4
+	dc.w	<_RLWeaponLight0		; wsPLASMA4
+	dc.b	12
+	dc.b	wfPLSFC0
+	dc.w	<wsPLASMA
+
+;
+;	* * * * * * *       BFG STATE TABLE       * * * * * * *
+;
+wsBFGUP
+	dc.w	<_RLRaiseWeapon			; wsBFGUP
+	dc.b	1
+	dc.b	wfBFGGA0
+	dc.w	<wsBFGUP
+
+wsBFGDOWN
+	dc.w	<_RLLowerWeapon			; wsBFGDOWN
+	dc.b	1
+	dc.b	wfBFGGA0
+	dc.w	<wsBFGDOWN
+
+wsBFG
+	dc.w	<_RLReadyWeapon			; wsBFG
+	dc.b	1
+	dc.b	wfBFGGA0
+	dc.w	<wsBFG
+wsBFG1
+	dc.w	<_RLWeaponNull			; wsBFG1
+	dc.b	30
+	dc.b	wfBFGGA0
+	dc.w	<wsBFG2
+wsBFG2
+	dc.w	<_RLWeaponNull			; wsBFG2
+	dc.b	8
+	dc.b	wfBFGFA0
+	dc.w	<wsBFG3
+wsBFG3
+	dc.w	<_RLFireBFG			; wsBFG3
+	dc.b	8
+	dc.b	wfBFGFB0
+	dc.w	<wsBFG4
+wsBFG4
+	dc.w	<_RLWeaponLight0		; wsBFG4
+	dc.b	6
+	dc.b	wfBFGGA0
+	dc.w	<wsBFG

@@ -1,0 +1,10 @@
+delete RLDATA:IMAGES/IMAGES.DEF?? QUIET
+delete RLDATA:WALLIMG/BANK??.DEF QUIET
+date >imgstart
+mkwall -v -i >imgtext
+date >imgend
+;
+touch rlimages.a
+;
+type imgstart
+type imgend

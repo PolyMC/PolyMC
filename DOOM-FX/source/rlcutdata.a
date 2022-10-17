@@ -1,0 +1,157 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                       CUTTER DATA BLOCK MODULE                     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+
+	public	_ImageTblFist
+	public	_CharDataFist
+	public	_MiscDataFist
+
+	public	_ImageTblPistol
+	public	_CharDataPistol
+	public	_MiscDataPistol
+
+	public	_ImageTblShotGun
+	public	_CharDataShotGun
+	public	_MiscDataShotGun
+
+	public	_ImageTblChainSaw
+	public	_CharDataChainSaw
+	public	_MiscDataChainSaw
+
+	public	_ImageTblChainGun
+	public	_CharDataChainGun
+	public	_MiscDataChainGun
+
+	public	_ImageTblRocket
+	public	_CharDataRocket
+	public	_MiscDataRocket
+
+	public	_ImageTblPlasma
+	public	_CharDataPlasma
+	public	_MiscDataPlasma
+
+	public	_ImageTblBFG
+	public	_CharDataBFG
+	public	_MiscDataBFG
+
+
+;
+;	* * * * * * *       CUTTER IMAGE/MISC/CHARDATA TABLES       * * * * * * *
+;
+
+	section	_CUTDATAFIST,RELOC,BASE=$80000000,RORG=$400000
+_ImageTblFist
+	image	RLDATA:CUT/Fist/.imagetbl
+_ImageTblFistE
+
+_MiscDataFist
+	image	RLDATA:CUT/Fist/.miscdata
+_MiscDataFistE
+
+_CharDataFist
+	image	RLDATA:CUT/Fist/.chardata
+_CharDataFistE
+
+
+	section	_CUTDATAPISTOL,RELOC,BASE=$80000000,RORG=$400000
+_ImageTblPistol
+	image	RLDATA:CUT/Pistol/.imagetbl
+_ImageTblPistolE
+
+_MiscDataPistol
+	image	RLDATA:CUT/Pistol/.miscdata
+_MiscDataPistolE
+
+_CharDataPistol
+	image	RLDATA:CUT/Pistol/.chardata
+_CharDataPistolE
+
+
+	section	_CUTDATASHOTGUN,RELOC,BASE=$80000000,RORG=$400000
+_ImageTblShotGun
+	image	RLDATA:CUT/ShotGun/.imagetbl
+_ImageTblShotGunE
+
+_MiscDataShotGun
+	image	RLDATA:CUT/ShotGun/.miscdata
+_MiscDataShotGunE
+
+_CharDataShotGun
+	image	RLDATA:CUT/ShotGun/.chardata
+_CharDataShotGunE
+
+
+	section	_CUTDATACHAINSAW,RELOC,BASE=$80000000,RORG=$400000
+_ImageTblChainSaw
+	image	RLDATA:CUT/ChainSaw/.imagetbl
+_ImageTblChainSawE
+
+_MiscDataChainSaw
+	image	RLDATA:CUT/ChainSaw/.miscdata
+_MiscDataChainSawE
+
+_CharDataChainSaw
+	image	RLDATA:CUT/ChainSaw/.chardata
+_CharDataChainSawE
+
+
+	section	_CUTDATACHAINGUN,RELOC,BASE=$80000000,RORG=$400000
+_ImageTblChainGun
+	image	RLDATA:CUT/ChainGun/.imagetbl
+_ImageTblChainGunE
+
+_MiscDataChainGun
+	image	RLDATA:CUT/ChainGun/.miscdata
+_MiscDataChainGunE
+
+_CharDataChainGun
+	image	RLDATA:CUT/ChainGun/.chardata
+_CharDataChainGunE
+
+
+	section	_CUTDATAROCKET,RELOC,BASE=$80000000,RORG=$400000
+_ImageTblRocket
+	image	RLDATA:CUT/Rocket/.imagetbl
+_ImageTblRocketE
+
+_MiscDataRocket
+	image	RLDATA:CUT/Rocket/.miscdata
+_MiscDataRocketE
+
+_CharDataRocket
+	image	RLDATA:CUT/Rocket/.chardata
+_CharDataRocketE
+
+
+	section	_CUTDATAPLASMA,RELOC,BASE=$80000000,RORG=$400000
+_ImageTblPlasma
+	image	RLDATA:CUT/Plasma/.imagetbl
+_ImageTblPlasmaE
+
+_MiscDataPlasma
+	image	RLDATA:CUT/Plasma/.miscdata
+_MiscDataPlasmaE
+
+_CharDataPlasma
+	image	RLDATA:CUT/Plasma/.chardata
+_CharDataPlasmaE
+
+
+	section	_CUTDATABFG,RELOC,BASE=$80000000,RORG=$400000
+_ImageTblBFG
+	image	RLDATA:CUT/BFG/.imagetbl
+_ImageTblBFGE
+
+_MiscDataBFG
+	image	RLDATA:CUT/BFG/.miscdata
+_MiscDataBFGE
+
+_CharDataBFG
+	image	RLDATA:CUT/BFG/.chardata
+_CharDataBFGE

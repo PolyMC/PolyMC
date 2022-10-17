@@ -1,0 +1,60 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         ENGINE SEGS MODULE 1                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildSegList1
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD SEGMENT LIST 1      INIT RLENGINE DISPLAY PROCESSING  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       INITIALIZE ROTATED VERTEXES ARRAY       * * * * * * *
+;
+	align	16,(_RLBuildSegList1-_BS1L2000)&$0f
+_RLBuildSegList1
+	move	r1,#<(_RLVertexes-4+1)		; Point to Start of Vertexes
+	move	r2,#4				; #Bytes between Rotated Vertexes
+	move	r12,(<EMNUMVERTEXES)		; Get Number of Vertexes
+	move	r13,#<_BS1L2200
+	ibtx	r0,#$80				; $80XX = Vertex NOT Rotated Yet
+	CACHEB	_RLBuildSegList1
+_BS1L2000
+	with	r1				; Next Vertex
+_BS1L2200
+	add	r2
+;	from	r0				; Mark Vertex NOT Rotated
+	stb	(r1)
+	loop
+	with	r1				; Next Vertex
+	CACHEE	_RLBuildSegList1
+
+;
+;	* * * * * * *       BEGIN RLENGINE DISPLAY PROCESSING       * * * * * * *
+;
+	iwt	r0,#<_RLBuildSegList2		; BUILD SEGMENT LIST 2
+	ibt	r8,#^_RLBuildSegList2
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop

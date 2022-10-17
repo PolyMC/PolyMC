@@ -1,0 +1,1198 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                           SCORE PAGE MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	xfer.i
+	include	music.i
+
+	ifn	useSCORE
+
+	public	Score
+
+
+	SECTION	SCORE,RELOC,BASE=$80000000,RORG=$400000
+;
+;	* * * * * * *       SCORE PAGE       * * * * * * *
+;
+	dpr	0
+	dbr	?
+	mode	'Ax'
+Score
+	jsl	ScreenOff			; Turn Screen Off
+	jsl	InitSNES
+;
+;	>>>   SCORE MUSIC   <<<
+;
+	mode	'AX!'
+	ifn	useSOUND
+	lda	#((inter_sng_MODULE<<8)|(inter_sng)) ; INTER Song
+	jsl	_PlaySong
+	endif
+;
+;	>>>   TRANSFER SCORE EPISODE-SPECIFIC DATA   <<<
+;
+	ldy	Level				; NEXT LEVEL
+	ldx	#<ScoreE1XFer			; E1M1-E1M9
+	lda	#^ScoreE1XFer
+	cpy	#10
+	bcc	SCR500
+	ldx	#<ScoreE2XFer			; E2M1-E2M9
+	lda	#^ScoreE2XFer
+	cpy	#19
+	bcc	SCR500
+	ldx	#<ScoreE3XFer			; E3M1-E3M9
+	lda	#^ScoreE3XFer
+SCR500
+	jsl	XFer
+;
+;	>>>   TRANSFER SCORE COMMON DATA   <<<
+;
+	ldx	#<ScoreXFer			; Transfer Common Score DataBlock
+	lda	#^ScoreXFer
+	jsl	XFer
+	lda	#%000000000000000
+	sta	RGBData+(96*2)+(7*2)
+	lda	#%111101111011110
+	sta	RGBData+(96*2)+(11*2)
+;
+;	>>>   BUILD SCORE DIGITS   <<<
+;
+	mode	'a!'
+	lda	#%00000001			; A->B, Abs., Auto Inc,2-Add-WriteLH
+	sta	DMA0INC
+	lda	#<VMDATAL			; VMDATA
+	sta	DMA0DEST
+	lda	#^DeCompBuffer
+	sta	DMA0A1B
+	mode	'A!'
+	lda	#10-1				; 10 Digits to Transfer
+	sta	Temp
+	lda	#<(DeCompBuffer)
+	ldy	#$6c00
+SCR1000
+	sta	DMA0A1L				; First Line
+	sty	VMADDL
+	ldx	#(2*32)
+	stx	DMA0NUML
+	ldx	#(0<<8)+(1)
+	stx	MDMAEN
+;
+	clc					; Second Line
+	adc	#(10*2*32)
+	sta	DMA0A1L
+	pha
+	tya
+	xba					; Add $100
+	inc	a
+	xba
+	sta	VMADDL
+	ldx	#(2*32)
+	stx	DMA0NUML
+	ldx	#(0<<8)+(1)
+	stx	MDMAEN
+;
+	tya					; Next VRAM Address
+	clc
+	adc	#$120
+	and	#$7ef0
+	tay
+	pla
+	sec					; Next SOURCE Data
+	sbc	#((10-1)*2)*32)
+	dec	Temp				; Next Digit
+	bpl	SCR1000
+;
+;	>>>   INITIALIZE PPU   <<<
+;
+	jsl	InitNormalNMI
+	mode	'a!'
+	lda	#$80				; Transfer RGB Palette to CGRAM
+	sta	RGBXfer
+	lda	#1				; Mode1 BG1:8x8
+	sta	BGMODE
+	lda	#$7c				; BG1 Screen at $7c00
+	sta	BG1SC
+	lda	#$78				; BG2 Screen at $7800
+	sta	BG2SC
+	lda	#$ff				; Offset $FFFF
+	sta	BG1VOFS
+	sta	BG1VOFS
+	stz	BG1HOFS				; Offset $0000
+	stz	BG1HOFS
+	sta	BG2VOFS				; Offset $FFFF
+	sta	BG2VOFS
+	stz	BG2HOFS				; Offset $0000
+	stz	BG2HOFS
+	lda	#((($6000>>12)<<4)|($0000>>12))	; BG1 Chars @$0000, BG2 Chars @$6000
+	sta	BG12NBA
+	stz	MOSAIC
+	lda	#%00001000			; PseudoH512, 224Lines
+	sta	SETINI
+	lda	#%00000010			; Colour Add Enable
+	sta	CGSWSEL
+	lda	#%01000001			; Add 1/2 Enable BG1
+	sta	CGADSUB
+	lda	#(%00000000)+($6C00>>13)	; (1x1,2x2) (8K contig.) (BaseAddr)
+	sta	OBJSEL
+	mode	'X!'
+	ldx	#$1313				; BG1+BG2+OBJ
+	stx	TM
+;
+	ldx	PlayerLevelTime			; #Seconds in Level
+	stx	WRDIVL
+	lda	#60				; #Seconds in 1 Minute
+	sta	WRDIVB
+;
+;	>>>   INITIALIZE SPRITES   <<<
+;
+	ldy	#MaxOAMs-1			; #OAMs total
+	ldx	#0				; Move All OAMs off-screen
+	lda	#MaxViewScanLines		; (256-32)
+SCR1200
+	sta	OAMA+oamsY,x
+	inx
+	inx
+	inx
+	inx
+	dey
+	bpl	SCR1200
+;
+	mode	'A!'
+	ldx	#(MaxOAMs*2/8)-2		; Set Sprites' OAMAux
+	lda	#%1010101010101010
+SCR1400
+	sta	OAMAA,x
+	dex
+	dex
+	bpl	SCR1400
+;
+	lda	Level
+	and	#$00ff
+	ldx	#<ScoreE1Text			; Finished Episode E1?
+	cmp	#9
+	beq	SCR1500
+	ldx	#<ScoreE2Text			; Finished Episode E2?
+	cmp	#18
+	beq	SCR1500
+	ldx	#<ScoreE3Text			; Finished Episode E3?
+	cmp	#27
+	bne	SCR1600
+SCR1500
+	jmp	SCR2000				; Yes, Finished an Episode!
+
+;
+;	>>>   PLAYER'S TIME   <<<
+;
+SCR1600
+	lda	_RDMPYL				; #Seconds
+	pha
+	lda	_RDDIVL				; #Minutes
+	beq	SCR1650
+	ldx	#(0*4)
+	ldy	#(188<<8)+141
+	jsr	ScoreOAMNum
+SCR1650
+	pla					; #Seconds
+	ldx	#(2*4)
+	ldy	#(188<<8)+167
+	jsr	ScoreOAMNum2
+;
+;	>>>   NUMBER OF KILLS   <<<
+;
+	mode	'a!'
+	lda	NumKills			; (#Kills*100)/TotalKills
+	sta	WRMPYA
+	lda	#100
+	sta	WRMPYB
+	lda	EMTOTALKILLS
+	nop
+	nop
+	nop
+	nop
+	ldx	_RDMPYL
+	stx	WRDIVL
+	sta	WRDIVB
+	mode	'A!'
+	ldx	#(8*4)
+	ldy	#(64<<8)+189
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	lda	_RDDIVL				; %Kills
+	jsr	ScoreOAMNum
+;
+;	>>>   NUMBER OF ITEMS   <<<
+;
+	mode	'a!'
+	lda	NumItems			; (#Items*100)/TotalItems
+	sta	WRMPYA
+	lda	#100
+	sta	WRMPYB
+	lda	EMTOTALITEMS
+	bne	SCR1700
+	inc	a
+SCR1700
+	nop
+	nop
+	nop
+	ldx	_RDMPYL
+	stx	WRDIVL
+	sta	WRDIVB
+	mode	'A!'
+	ldx	#(11*4)
+	ldy	#(84<<8)+189
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	lda	_RDDIVL				; %Items
+	jsr	ScoreOAMNum
+;
+;	>>>   NUMBER OF SECRETS   <<<
+;
+	mode	'a!'
+	lda	NumSecrets			; (#Secrets*100)/TotalSecrets
+	sta	WRMPYA
+	lda	#100
+	sta	WRMPYB
+	lda	EMTOTALSECRETS			; Any Secrets?
+	bne	SCR1800				; Yes
+	inc	a				; NO!
+SCR1800
+	nop
+	nop
+	nop
+	ldx	_RDMPYL
+	stx	WRDIVL
+	sta	WRDIVB
+	mode	'A!'
+	ldx	#(14*4)
+	ldy	#(104<<8)+189
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	lda	_RDDIVL				; %Secrets
+	jsr	ScoreOAMNum
+;
+	jsr	ScoreOAMXFer
+	jsl	FadeScreenOn
+	mode	'ax'
+;
+;	>>>   WAIT FOR JOYSTICK PRESS   <<<
+;
+	mode	'X!'
+SCR1900
+	ldx	JOY1L				; Joystick pressed?
+	bne	SCR1900				; Yes, wait until released
+SCR1950
+	ldx	JOY1L				; Wait until pressed
+	beq	SCR1950
+	jmp	SCR4000
+
+;
+;	* * * * * * *       COMPLETED AN EPISODE?       * * * * * * *
+;
+;	>>>   DISPLAY EPISODE TEXT   <<<
+;
+	mode	'AX'
+SCR2000
+	phx					; Save EpisodeText
+	ldx	#<ScoreXFer3			; Transfer Score3 DataBlock
+	lda	#^ScoreXFer3
+	jsl	XFer
+	lda	#4				; (TEMP4+4) = TextSpeed
+	sta	Temp4+4
+	lda	#$0303				; BG1+BG2
+	sta	TM
+	jsl	FadeScreenOn
+	mode	'ax'
+;
+	mode	'X!'
+	plx					; [TEMP4] = EpisodeText
+	stx	Temp4
+	lda	#^ScoreE1Text
+	sta	Temp4+2
+	ldy	#-1				; .Y = TextIndex
+SCR2200
+	lda	Temp4+4				; Wait for VBlanks
+SCR2220
+	wai
+	dec	a
+	bpl	SCR2220
+SCR2300
+	iny					; Next Byte
+	lda	[Temp4],y
+	bmi	SCR2900				; End?
+	bne	SCR2500				; Character?
+	iny					; VRAM Address
+	lda	[Temp4],y			; Next Byte
+	sta	Temp4+6
+	iny
+	lda	[Temp4],y			; Next Byte
+	sta	Temp4+6+1
+	bra	SCR2300
+SCR2500
+	sec					; Character#
+	sbc	#$20
+	xba
+	lda	#$38				; Priority,Palette#6
+	xba
+	tax
+	phy
+	ldy	Temp4+6
+	sty	VMADDL				; VRAM Address
+	stx	VMDATAL				; Character
+	iny
+	sty	Temp4+6
+	ply
+	ldx	JOY1L				; Joystick Pressed?
+	beq	SCR2200
+	stz	Temp4+4				; Yes, TextSpeed=0!
+	bra	SCR2200
+;
+;	>>>   WAIT FOR JOYSTICK PRESS   <<<
+;
+SCR2900
+	ldx	JOY1L				; Joystick pressed?
+	bne	SCR2900				; Yes, wait until released
+SCR2950
+	ldx	JOY1L				; Wait until pressed
+	beq	SCR2950
+;
+;	>>>   TRANSFER SCORE EPISODE-SPECIFIC DATA   <<<
+;
+SCR3000
+	lda	Level				; Get Next Level
+	cmp	#27				; Finished Episode E3?
+	bne	SCR3100				; No, Change Score Screen
+	mode	'A!'
+	jmp	SCR6000				; Yes, GAME OVER!
+	mode	'a'
+SCR3100
+	jsl	FadeScreenOff
+	mode	'X!'
+	ldx	#$0101				; BG1
+	stx	TM
+	lda	#$80				; Transfer RGB Palette to CGRAM
+	sta	RGBXfer
+	ldy	Level
+	ldx	#<ScoreE2XFer			; E2M1?
+	lda	#^ScoreE2XFer
+	cpy	#9
+	beq	SCR3800				; Yes, Change Score Screen
+	ldx	#<ScoreE3XFer			; E3M1?
+	lda	#^ScoreE3XFer
+SCR3800
+	jsl	XFer
+	mode	'AX'
+	stz	ScoreSecret			; Player Didn't Get Episode Secret
+	jsl	FadeScreenOn
+	mode	'X!'
+
+;
+;	* * * * * * *       SHOW SPLATS       * * * * * * *
+;
+SCR4000
+	mode	'A!'
+	lda	Level				; CURRENT LEVEL
+	asl	a
+	tax
+	ldy	#(12*4)				; .Y = Starting OAM Offset
+;
+;	>>>   NEXT SPLAT   <<<
+;
+SCR4200
+	lda	>NextSplatI,x			; Move to Next Splat
+	asl	a
+	bmi	SCR4250				; No More Splats!
+	tax
+	bcc	SCR4300				; Regular Level
+	lda	ScoreSecret			; Got Secret Level?
+	beq	SCR4200				; No!
+	bra	SCR4300
+SCR4250
+	jmp	SCR4500
+;
+;	>>>   DRAW A SPLAT   <<<
+;
+SCR4300
+	lda	>EMNUMVERTEXESTable,x		; Is this Level Valid?
+	beq	SCR4200				; NO!  DON'T DRAW A SPLAT!
+;
+	lda	>ScoreE1Splats,x		; Get X/Y Coordinates
+	sec
+	sbc	#((14<<8)+12)
+	sta	OAMA+(0*4)+oamsX,y
+	clc
+	adc	#8
+	sta	OAMA+(1*4)+oamsX,y
+	clc
+	adc	#8
+	sta	OAMA+(2*4)+oamsX,y
+	clc
+	adc	#$0800
+	sta	OAMA+(5*4)+oamsX,y
+	sec
+	sbc	#8
+	sta	OAMA+(4*4)+oamsX,y
+	sec
+	sbc	#8
+	sta	OAMA+(3*4)+oamsX,y
+	clc
+	adc	#$0800
+	sta	OAMA+(6*4)+oamsX,y
+	clc
+	adc	#8
+	sta	OAMA+(7*4)+oamsX,y
+	clc
+	adc	#8
+	sta	OAMA+(8*4)+oamsX,y
+	lda	#($30c0)			; Priority|Colour|Char#
+	sta	OAMA+(0*4)+oamsChr,y
+	inc	a
+	sta	OAMA+(1*4)+oamsChr,y
+	inc	a
+	sta	OAMA+(2*4)+oamsChr,y
+	inc	a
+	sta	OAMA+(3*4)+oamsChr,y
+	inc	a
+	sta	OAMA+(4*4)+oamsChr,y
+	inc	a
+	sta	OAMA+(5*4)+oamsChr,y
+	inc	a
+	sta	OAMA+(6*4)+oamsChr,y
+	inc	a
+	sta	OAMA+(7*4)+oamsChr,y
+	inc	a
+	sta	OAMA+(8*4)+oamsChr,y
+	tya					; Next Splat OAM
+	clc
+	adc	#(9*4)
+	tay
+	jmp	SCR4200
+;
+SCR4500
+	lda	#MaxViewScanLines		; Move Remaining OAMs OffScreen
+SCR4520
+	sta	OAMA+oamsY,y
+	iny
+	iny
+	iny
+	iny
+	cpy	#(MaxOAMs*4)
+	bne	SCR4520
+;
+	ldx	#(MaxOAMs*2/8)-2		; Set Sprites' OAMAux
+	lda	#%0000000000000000
+SCR4600
+	sta	OAMAA,x
+	dex
+	dex
+	bpl	SCR4600
+;
+;	>>>   YOU ARE HERE   <<<
+;
+	lda	Level				; NEXT LEVEL
+	asl	a
+	tax
+	lda	>ScoreE1Splats,x		; Get X Coordinate
+	and	#$00ff
+	ldy	#($30d0)			; Priority|Colour|Char#
+	cmp	#256-64
+	lda	#-((14<<8)+00)
+	bcc	SCR4800
+	ldy	#($30d2)			; Priority|Colour|Char#
+	lda	#-((14<<8)+48)
+SCR4800
+	phy
+	clc					; Adjust Coordinates
+	adc	>ScoreE1Splats,x
+	sta	OAMA+(0*4)+oamsX
+	clc
+	adc	#8
+	sta	OAMA+(1*4)+oamsX
+	clc
+	adc	#8
+	sta	OAMA+(2*4)+oamsX
+	clc
+	adc	#8
+	sta	OAMA+(3*4)+oamsX
+	clc
+	adc	#8
+	sta	OAMA+(4*4)+oamsX
+	clc
+	adc	#8
+	sta	OAMA+(5*4)+oamsX
+	clc
+	adc	#$0800
+	sta	OAMA+(11*4)+oamsX
+	sec
+	sbc	#8
+	sta	OAMA+(10*4)+oamsX
+	sec
+	sbc	#8
+	sta	OAMA+(9*4)+oamsX
+	sec
+	sbc	#8
+	sta	OAMA+(8*4)+oamsX
+	sec
+	sbc	#8
+	sta	OAMA+(7*4)+oamsX
+	sec
+	sbc	#8
+	sta	OAMA+(6*4)+oamsX
+	pla					; Priority|Colour|Char#
+	pha
+	sta	OAMA+(0*4)+oamsChr
+	inc	a
+	sta	OAMA+(1*4)+oamsChr
+	inc	a
+	sta	OAMA+(2*4)+oamsChr
+	inc	a
+	sta	OAMA+(3*4)+oamsChr
+	inc	a
+	sta	OAMA+(4*4)+oamsChr
+	inc	a
+	sta	OAMA+(5*4)+oamsChr
+	pla					; Priority|Colour|Char#
+	clc
+	adc	#$0008
+	sta	OAMA+(6*4)+oamsChr
+	inc	a
+	sta	OAMA+(7*4)+oamsChr
+	inc	a
+	sta	OAMA+(8*4)+oamsChr
+	inc	a
+	sta	OAMA+(9*4)+oamsChr
+	inc	a
+	sta	OAMA+(10*4)+oamsChr
+	inc	a
+	sta	OAMA+(11*4)+oamsChr
+;
+SCR4900
+	lda	#$0101				; BG1
+	sta	TM
+	mode	'aX!'
+	lda	#-1				; NASTY Transfers
+	sta	XFerNasty
+	ldx	#<ScoreXFer2			; Transfer Score2 DataBlock
+	lda	#^ScoreXFer2
+	jsl	XFer
+	mode	'a!'
+	stz	XFerNasty			; NICE Transfers
+	jsr	ScoreOAMXFer
+	mode	'AX'
+	lda	#$1111				; BG1+OBJ
+	sta	TM
+;
+;	>>>   WAIT FOR JOYSTICK PRESS   <<<
+;
+SCR5000
+	ldy	JOY1L				; Joystick Pressed?
+	jmp	SCR5300
+SCR5200
+	lda	OAMAA				; Blink "YOU ARE HERE"
+	eor	#%0101010101010101
+	sta	OAMAA
+	lda	OAMAA+2
+	eor	#%0000000001010101
+	sta	OAMAA+2
+	phy
+	jsr	ScoreOAMXFer
+	ply
+SCR5300
+	ldx	#20
+SCR5400
+	wai
+	tya					; Wait until Pressed
+	eor	JOY1L
+	and	JOY1L
+	bne	SCR6000
+	ldy	JOY1L
+	dex
+	bne	SCR5400
+	bra	SCR5200
+;
+;	>>>   FADE MUSIC OUT   <<<
+;
+SCR6000
+	ifn	useSOUND
+	lda	#DCOM_FADE_AND_STOP		; Fade out Music
+	ldy	#$0201
+	jsl	__SendDriverCommand
+	endif
+	jml	FadeScreenOff
+
+
+;
+;	* * * * * * *       GENERATE SCORE DIGITS INTO OAMS       * * * * * * *
+;
+;	.A = Integer to Generate
+;	.X = OAM Offset
+;	.Y = OAM Coordinates
+;
+;	Enter at ScoreOAMNum2 to ALWAYS Show 2 Digits
+;
+	mode	'AX'
+ScoreOAMNum2
+	sty	Temp				; (TEMP) = X.B/Y.B
+	ldy	#2
+	bra	SOAN200
+ScoreOAMNum
+	sty	Temp				; (TEMP) = X.B/Y.B
+	ldy	#3				; #Digits to Process
+	cmp	#100				; >=100?
+	bcs	SOAN200
+	dey
+	cmp	#10
+	bcs	SOAN200
+	dey
+SOAN200
+	sta	WRDIVL				; Dividend
+	mode	'a!'
+	lda	#10				; Divisor
+	sta	WRDIVB
+	mode	'A!'
+	lda	Temp				; X/Y Coordinates
+	sta	OAMA+oamsX,x
+	sec
+	sbc	#10
+	sta	Temp
+	lda	_RDMPYL				; Next Digit
+	cmp	#8
+	bcc	SOAN400
+;	sec
+	adc	#($10-8-1)
+SOAN400
+	asl	a
+	ora	#($30c0)			; Priority|Colour|Char#
+	sta	OAMA+oamsChr,x
+	inx
+	inx
+	inx
+	inx
+	lda	_RDDIVL
+	dey					; One less digit
+	bne	SOAN200
+	rts
+
+;
+;	* * * * * * *       TRANSFER SCORE OAMS       * * * * * * *
+;
+ScoreOAMXFer
+	jsl	WaitVBlank			; Wait for VBlank
+	mode	'Ax!'
+	stz	OAMADDL				; Transfer OAM structure
+	lda	#<OAMA				; Start Channel#0
+	sta	DMA0A1L
+	lda	#(MaxOAMs+(MaxOAMs/16))*4	; #Bytes to transfer
+	sta	DMA0NUML
+	ldx	#<OAMDATA			; OAMDATA
+	stx	DMA0DEST
+	ldx	#%00000010			; A->B, Abs., Auto Inc,1-Add-Write2x
+	stx	DMA0INC
+	ldx	#^OAMA
+	stx	DMA0A1B
+	ldx	#1				; Enable/Start Channel#0
+	stx	MDMAEN
+	mode	'AX!'
+	rts
+
+
+;
+;	* * * * * * *       SCORE COMMON TRANSFER LISTS       * * * * * * *
+;
+ScoreXFer
+	dc.w	xftVRAM16		; Transfer ScoreDef to $6000W
+	dc.4	ScoreDef
+	dc.4	$6000
+	dcb.w	3,0
+	dc.w	xftVRAMM16		; Transfer ScoreMap to $7800W
+	dc.4	ScoreMap
+	dc.4	$7800
+	dc.w	$ffff,$3c00,$0000	; AND,OR(BGPri,Palette#7),ADD
+	dc.w	xftRAM+xftRAW		; Transfer RGB
+	dc.4	ScoreRGB
+	dc.4	RGBData+(112*2)
+	dc.w	(8*2)
+	dcb.w	2,0
+	dc.w	xftRAM+xftRAW		; Transfer RGB
+	dc.4	ScoreNumRGB
+	dc.4	RGBData+(128*2)
+	dc.w	(8*2)
+	dcb.w	2,0
+	dc.w	xftRAM			; Transfer ScoreNumDef to DeCompBuffer
+	dc.4	ScoreNumDef
+	dc.4	DeCompBuffer
+	dcb.w	3,0
+	dc.w	xftEnd
+;
+ScoreXFer2
+	dc.w	xftVRAM16		; Transfer ScoreSplatDef to $6C00W
+	dc.4	ScoreSplatDef
+	dc.4	$6C00
+	dcb.w	3,0
+	dc.w	xftVRAM16		; Transfer ScoreHereDef to $6D00W
+	dc.4	ScoreHereDef
+	dc.4	$6D00
+	dcb.w	3,0
+	dc.w	xftEnd
+;
+ScoreXFer3
+	dc.w	xftVRAMF16+xftRAW	; Fill BG2 Map
+	dc.4	ScoreXFer3A
+	dc.4	$7800
+	dc.w	(28*32*2)
+ScoreXFer3A
+	dcb.w	2,0
+	dc.w	xftVRAM16		; Transfer TextFontDef to $6000W
+	dc.4	TextFontDef
+	dc.4	$6000
+	dcb.w	3,0
+	dc.w	xftEnd
+
+;
+;	* * * * * * *       SCORE E1 TRANSFER LIST       * * * * * * *
+;
+ScoreE1XFer
+	dc.w	xftVRAM16		; Transfer ScoreE1Def0 to $0000W
+	dc.4	ScoreE1Def0
+	dc.4	$0000
+	dcb.w	3,0
+	dc.w	xftVRAM16		; Transfer ScoreE1Def1 to $2000W
+	dc.4	ScoreE1Def1
+	dc.4	$2000
+	dcb.w	3,0
+	dc.w	xftVRAM16		; Transfer ScoreE1Map to $7c00W
+	dc.4	ScoreE1Map
+	dc.4	$7c00
+	dcb.w	3,0
+	dc.w	xftRAM+xftRAW		; Transfer RGB
+	dc.4	ScoreE1RGB
+	dc.4	RGBData
+	dc.w	(96*2)
+	dcb.w	2,0
+	dc.w	xftEnd
+;
+;	* * * * * * *       SCORE E2 TRANSFER LIST       * * * * * * *
+;
+ScoreE2XFer
+	dc.w	xftVRAM16		; Transfer ScoreE2Def0 to $0000W
+	dc.4	ScoreE2Def0
+	dc.4	$0000
+	dcb.w	3,0
+	dc.w	xftVRAM16		; Transfer ScoreE2Def1 to $2000W
+	dc.4	ScoreE2Def1
+	dc.4	$2000
+	dcb.w	3,0
+	dc.w	xftVRAM16		; Transfer ScoreE2Map to $7c00W
+	dc.4	ScoreE2Map
+	dc.4	$7c00
+	dcb.w	3,0
+	dc.w	xftRAM+xftRAW		; Transfer RGB
+	dc.4	ScoreE2RGB
+	dc.4	RGBData
+	dc.w	(96*2)
+	dcb.w	2,0
+	dc.w	xftEnd
+;
+;	* * * * * * *       SCORE E3 TRANSFER LIST       * * * * * * *
+;
+ScoreE3XFer
+	dc.w	xftVRAM16		; Transfer ScoreE3Def0 to $0000W
+	dc.4	ScoreE3Def0
+	dc.4	$0000
+	dcb.w	3,0
+	dc.w	xftVRAM16		; Transfer ScoreE3Def1 to $2000W
+	dc.4	ScoreE3Def1
+	dc.4	$2000
+	dcb.w	3,0
+	dc.w	xftVRAM16		; Transfer ScoreE3Map to $7c00W
+	dc.4	ScoreE3Map
+	dc.4	$7c00
+	dcb.w	3,0
+	dc.w	xftRAM+xftRAW		; Transfer RGB
+	dc.4	ScoreE3RGB
+	dc.4	RGBData
+	dc.w	(96*2)
+	dcb.w	2,0
+	dc.w	xftEnd
+
+;
+;	* * * * * * *       INDEX TO NEXT SPLAT       * * * * * * *
+;
+NextSplatI
+	dc.w	-1,  0,  1,  $8000+8,  3,  4,        5,  6,  2  ; E1
+	dc.w	-1,  9, 10, $8000+17, 12, 13,       14, 15, 11  ; E2
+	dc.w	-1, 18, 19,       20, 21, 22, $8000+26, 24, 23  ; E3
+;
+;	* * * * * * *       SCORE E1 SPLAT LIST       * * * * * * *
+;
+ScoreE1Splats
+	dc.b	($b9*$CCCC)>>16,($a4*$11eb8)>>16	; E1M1
+	dc.b	($94*$CCCC)>>16,($8f*$11eb8)>>16	; E1M2
+	dc.b	($45*$CCCC)>>16,($7a*$11eb8)>>16	; E1M3
+	dc.b	($d5*$CCCC)>>16,($66*$11eb8)>>16	; E1M4
+	dc.b	($74*$CCCC)>>16,($59*$11eb8)>>16	; E1M5
+	dc.b	($a6*$CCCC)>>16,($37*$11eb8)>>16	; E1M6
+	dc.b	($49*$CCCC)>>16,($3a*$11eb8)>>16	; E1M7
+	dc.b	($87*$CCCC)>>16,($1d*$11eb8)>>16	; E1M8
+	dc.b	($47*$CCCC)>>16,($18*$11eb8)>>16	; E1M9
+;
+;	* * * * * * *       SCORE E2 SPLAT LIST       * * * * * * *
+;
+ScoreE2Splats
+	dc.b	($fe*$CCCC)>>16,($19*$11eb8)>>16	; E2M1
+	dc.b	($61*$CCCC)>>16,($32*$11eb8)>>16	; E2M2
+	dc.b	($be*$CCCC)>>16,($42*$11eb8)>>16	; E2M3
+	dc.b	($80*$CCCC)>>16,($56*$11eb8)>>16	; E2M4
+	dc.b	($d6*$CCCC)>>16,($5c*$11eb8)>>16	; E2M5
+	dc.b	($85*$CCCC)>>16,($82*$11eb8)>>16	; E2M6
+	dc.b	($d0*$CCCC)>>16,($88*$11eb8)>>16	; E2M7
+	dc.b	126,182					; E2M8
+;	dc.b	($94*$CCCC)>>16,($8c*$11eb8)>>16	; E2M8
+	dc.b	172,135					; E2M9
+;	dc.b	($eb*$CCCC)>>16,($9e*$11eb8)>>16	; E2M9
+;
+;	* * * * * * *       SCORE E3 SPLAT LIST       * * * * * * *
+;
+ScoreE3Splats
+	dc.b	($09c*$CCCC)>>16,($a8*$11eb8)>>16	; E3M1
+	dc.b	($030*$CCCC)>>16,($9a*$11eb8)>>16	; E3M2
+	dc.b	($0ae*$CCCC)>>16,($5f*$11eb8)>>16	; E3M3
+	dc.b	($109*$CCCC)>>16,($4b*$11eb8)>>16	; E3M4
+	dc.b	($082*$CCCC)>>16,($30*$11eb8)>>16	; E3M5
+	dc.b	($117*$CCCC)>>16,($17*$11eb8)>>16	; E3M6
+	dc.b	($0c6*$CCCC)>>16,($30*$11eb8)>>16	; E3M7
+	dc.b	($08c*$CCCC)>>16,($19*$11eb8)>>16	; E3M8
+	dc.b	($119*$CCCC)>>16,($88*$11eb8)>>16	; E3M9
+
+;
+;	* * * * * * *       EPISODE E1 END TEXT       * * * * * * *
+;
+	ife	useIMAGINEER
+ScoreE1Text
+	dc.b	0
+	dc.w	($7800+(04*32)+1)
+	dc.b	"Once you beat the big badasses"
+	dc.b	0
+	dc.w	($7800+(05*32)+1)
+	dc.b	"and cleaned out the moon base"
+	dc.b	0
+	dc.w	($7800+(06*32)+1)
+	dc.b	"you're supposed to win, aren't"
+	dc.b	0
+	dc.w	($7800+(07*32)+1)
+	dc.b	"you?  Aren't you?"
+
+	dc.b	0
+	dc.w	($7800+(09*32)+1)
+	dc.b	"Where's your fat reward and"
+	dc.b	0
+	dc.w	($7800+(10*32)+1)
+	dc.b	"ticket home?  What the hell"
+	dc.b	0
+	dc.w	($7800+(11*32)+1)
+	dc.b	"is this?  It's not supposed"
+	dc.b	0
+	dc.w	($7800+(12*32)+1)
+	dc.b	"to end this way!"
+
+	dc.b	0
+	dc.w	($7800+(14*32)+1)
+	dc.b	"It stinks like rotten meat,"
+	dc.b	0
+	dc.w	($7800+(15*32)+1)
+	dc.b	"but looks like the lost Deimos"
+	dc.b	0
+	dc.w	($7800+(16*32)+1)
+	dc.b	"base.  Looks like you're stuck"
+	dc.b	0
+	dc.w	($7800+(17*32)+1)
+	dc.b	"on The Shores of Hell.  The"
+	dc.b	0
+	dc.w	($7800+(18*32)+1)
+	dc.b	"only way out is through."
+
+	dc.b	0
+	dc.w	($7800+(20*32)+1)
+	dc.b	"Continue the DOOM experience"
+	dc.b	0
+	dc.w	($7800+(21*32)+1)
+	dc.b	"and play The Shores of Hell"
+	dc.b	0
+	dc.w	($7800+(22*32)+1)
+	dc.b	"and its sequel, Inferno!"
+	dc.b	-1
+	endif
+
+	ifn	useIMAGINEER
+ScoreE1Text
+	dc.b	0
+	dc.w	($7800+(04*32)+1)
+	dc.b	"You have won over the Knee-"
+	dc.b	0
+	dc.w	($7800+(05*32)+1)
+	dc.b	"Deep in the Dead boss."
+	dc.b	0
+	dc.w	($7800+(07*32)+1)
+	dc.b	"This is not the end."
+	dc.b	0
+	dc.w	($7800+(09*32)+1)
+	dc.b	"You will now enter The Shores"
+	dc.b	0
+	dc.w	($7800+(10*32)+1)
+	dc.b	"of Hell."
+	dc.b	-1
+	endif
+
+;
+;	* * * * * * *       EPISODE E2 END TEXT       * * * * * * *
+;
+	ife	useIMAGINEER
+ScoreE2Text
+	dc.b	0
+	dc.w	($7800+(04*32)+1)
+	dc.b	"You've done it!  The hideous"
+	dc.b	0
+	dc.w	($7800+(05*32)+1)
+	dc.b	"cyberdemon lord that ruled"
+	dc.b	0
+	dc.w	($7800+(06*32)+1)
+	dc.b	"the lost Deimos moon base has"
+	dc.b	0
+	dc.w	($7800+(07*32)+1)
+	dc.b	"been slain and now you are"
+	dc.b	0
+	dc.w	($7800+(08*32)+1)
+	dc.b	"triumphant!  But...where are"
+	dc.b	0
+	dc.w	($7800+(09*32)+1)
+	dc.b	"you?  You clamber to the edge"
+	dc.b	0
+	dc.w	($7800+(10*32)+1)
+	dc.b	"of the moon and look down to"
+	dc.b	0
+	dc.w	($7800+(11*32)+1)
+	dc.b	"see the awful truth."
+
+	dc.b	0
+	dc.w	($7800+(13*32)+1)
+	dc.b	"Deimos floats above Hell"
+	dc.b	0
+	dc.w	($7800+(14*32)+1)
+	dc.b	"itself!  You've never heard"
+	dc.b	0
+	dc.w	($7800+(15*32)+1)
+	dc.b	"of anyone escaping from Hell,"
+	dc.b	0
+	dc.w	($7800+(16*32)+1)
+	dc.b	"but you'll make them sorry"
+	dc.b	0
+	dc.w	($7800+(17*32)+1)
+	dc.b	"they ever heard of you!"
+	dc.b	0
+	dc.w	($7800+(18*32)+1)
+	dc.b	"Quickly, you rappel down to"
+	dc.b	0
+	dc.w	($7800+(19*32)+1)
+	dc.b	"the surface of Hell."
+
+	dc.b	0
+	dc.w	($7800+(21*32)+1)
+	dc.b	"Now, it's on to the final"
+	dc.b	0
+	dc.w	($7800+(22*32)+1)
+	dc.b	"chapter of DOOM! -- Inferno."
+	dc.b	-1
+	endif
+
+	ifn	useIMAGINEER
+ScoreE2Text
+	dc.b	0
+	dc.w	($7800+(04*32)+1)
+	dc.b	"You have won over The Shores"
+	dc.b	0
+	dc.w	($7800+(05*32)+1)
+	dc.b	"of Hell boss."
+	dc.b	0
+	dc.w	($7800+(07*32)+1)
+	dc.b	"This is not the end."
+	dc.b	0
+	dc.w	($7800+(09*32)+1)
+	dc.b	"You will now enter Inferno."
+	dc.b	-1
+	endif
+
+
+;
+;	* * * * * * *       EPISODE E3 END TEXT       * * * * * * *
+;
+	ife	useIMAGINEER
+ScoreE3Text
+	dc.b	0
+	dc.w	($7800+(04*32)+1)
+	dc.b	"The loathsome spiderdemon that"
+	dc.b	0
+	dc.w	($7800+(05*32)+1)
+	dc.b	"masterminded the invasion of"
+	dc.b	0
+	dc.w	($7800+(06*32)+1)
+	dc.b	"the moon bases and caused so"
+	dc.b	0
+	dc.w	($7800+(07*32)+1)
+	dc.b	"much death has been beaten for"
+	dc.b	0
+	dc.w	($7800+(08*32)+1)
+	dc.b	"all time."
+
+	dc.b	0
+	dc.w	($7800+(10*32)+1)
+	dc.b	"A hidden doorway opens and you"
+	dc.b	0
+	dc.w	($7800+(11*32)+1)
+	dc.b	"enter.  You've proven far too"
+	dc.b	0
+	dc.w	($7800+(12*32)+1)
+	dc.b	"tough for Hell to contain, and"
+	dc.b	0
+	dc.w	($7800+(13*32)+1)
+	dc.b	"now Hell at last plays fair --"
+	dc.b	0
+	dc.w	($7800+(14*32)+1)
+	dc.b	"for you emerge from the door"
+	dc.b	0
+	dc.w	($7800+(15*32)+1)
+	dc.b	"to see the green fields of"
+	dc.b	0
+	dc.w	($7800+(16*32)+1)
+	dc.b	"Earth!  Home at last."
+
+	dc.b	0
+	dc.w	($7800+(18*32)+1)
+	dc.b	"I wonder what's been happening"
+	dc.b	0
+	dc.w	($7800+(19*32)+1)
+	dc.b	"on Earth while you battled the"
+	dc.b	0
+	dc.w	($7800+(20*32)+1)
+	dc.b	"evil unleashed.  It's a good"
+	dc.b	0
+	dc.w	($7800+(21*32)+1)
+	dc.b	"thing that no Hell-spawn could"
+	dc.b	0
+	dc.w	($7800+(22*32)+1)
+	dc.b	"have come through that door"
+	dc.b	0
+	dc.w	($7800+(23*32)+1)
+	dc.b	"with you ..."
+	dc.b	-1
+	endif
+
+	ifn	useIMAGINEER
+ScoreE3Text
+	dc.b	0
+	dc.w	($7800+(04*32)+1)
+	dc.b	"Congratulations!  You have"
+	dc.b	0
+	dc.w	($7800+(05*32)+1)
+	dc.b	"won over the final boss."
+	dc.b	0
+	dc.w	($7800+(07*32)+1)
+	dc.b	"You have now cleared all the"
+	dc.b	0
+	dc.w	($7800+(08*32)+1)
+	dc.b	"levels."
+	dc.b	0
+	dc.w	($7800+(10*32)+1)
+	dc.b	"Because you are now the Super"
+	dc.b	0
+	dc.w	($7800+(11*32)+1)
+	dc.b	"Soldier, you can finish here."
+	dc.b	-1
+	endif
+
+
+;
+;	* * * * * * *       SCORE DATA       * * * * * * *
+;
+	SECTION	SCORE_DATA,RELOC,BASE=$80000000,RORG=$400000
+ScoreDef
+	image	RLDATA:COMP/Score.def0
+ScoreMap
+	image	RLDATA:COMP/Score.map0
+ScoreRGB
+	image	RLDATA:ART/Score.rgb,(0*2),(8*2)
+ScoreNumDef
+	image	RLDATA:COMP/ScoreNum.def0
+ScoreNumRGB
+	image	RLDATA:ART/ScoreNum.rgb,(0*2),(8*2)
+ScoreSplatDef
+	image	RLDATA:COMP/ScoreSplat.def0
+ScoreHereDef
+	image	RLDATA:COMP/ScoreHere.def0
+
+;
+;	* * * * * * *       SCORE E1 DATA       * * * * * * *
+;
+	SECTION	SCOREE1_DATA_0,RELOC,BASE=$80000000,RORG=$400000
+ScoreE1Def0
+	image	RLDATA:COMP/ScoreE1.def.0
+
+	SECTION	SCOREE1_DATA_1,RELOC,BASE=$80000000,RORG=$400000
+ScoreE1Def1
+	image	RLDATA:COMP/ScoreE1.def.1
+
+	SECTION	SCOREE1_DATA_2,RELOC,BASE=$80000000,RORG=$400000
+ScoreE1Map
+	image	RLDATA:COMP/ScoreE1.map0
+ScoreE1RGB
+	image	RLDATA:ART/ScoreE1.rgb,(0*2),(96*2)
+;
+;	* * * * * * *       SCORE E2 DATA       * * * * * * *
+;
+	SECTION	SCOREE2_DATA_0,RELOC,BASE=$80000000,RORG=$400000
+ScoreE2Def0
+	image	RLDATA:COMP/ScoreE2.def.0
+
+	SECTION	SCOREE2_DATA_1,RELOC,BASE=$80000000,RORG=$400000
+ScoreE2Def1
+	image	RLDATA:COMP/ScoreE2.def.1
+
+	SECTION	SCOREE2_DATA_2,RELOC,BASE=$80000000,RORG=$400000
+ScoreE2Map
+	image	RLDATA:COMP/ScoreE2.map0
+ScoreE2RGB
+	image	RLDATA:ART/ScoreE2.rgb,(0*2),(96*2)
+;
+;	* * * * * * *       SCORE E3 DATA       * * * * * * *
+;
+	SECTION	SCOREE3_DATA_0,RELOC,BASE=$80000000,RORG=$400000
+ScoreE3Def0
+	image	RLDATA:COMP/ScoreE3.def.0
+
+	SECTION	SCOREE3_DATA_1,RELOC,BASE=$80000000,RORG=$400000
+ScoreE3Def1
+	image	RLDATA:COMP/ScoreE3.def.1
+
+	SECTION	SCOREE3_DATA_2,RELOC,BASE=$80000000,RORG=$400000
+ScoreE3Map
+	image	RLDATA:COMP/ScoreE3.map0
+ScoreE3RGB
+	image	RLDATA:ART/ScoreE3.rgb,(0*2),(96*2)
+
+	endif

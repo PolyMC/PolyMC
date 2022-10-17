@@ -1,0 +1,143 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                     NON-MASKABLE INTERRUPT MODULE                  *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+
+	public	InitNMI,InitNormalNMI
+	public	NormalNMI
+
+	SECTION	NMI,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       INITIALIZE NORMAL NMIS       * * * * * * *
+;
+	dbr	?
+	dpr	0
+InitNormalNMI
+	mode	'aX!'
+	ldx	#<NormalNMI			; NORMAL NMI Code
+	lda	#^NormalNMI
+	ife	NOAICESE
+	ldy	#$81				; ENABLE NMI+JOYREAD (FOR WIRE)
+	endif
+	ifn	NOAICESE
+	ldy	#$81				; ENABLE NMI+JOYREAD
+	endif
+;
+;	* * * * * * *       INITIALIZE NMI       * * * * * * *
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE!!!
+;
+	dbr	?
+	dpr	0
+	mode	'aX'
+InitNMI
+	sta	GSUNMIRAM+3
+	lda	#$5c				; JML
+	sta	GSUNMIRAM+0
+	stx	GSUNMIRAM+1			; Save pointer to NMI Code
+	stz	RGBXfer				; No RGB XFer
+	tya
+	ifn	(DEBUG*WIRE)
+	sta	NMITIMEN_XS
+	endif
+	sta	NMITIMEN
+	mode	'A!'				; Clear JOYSticks
+	stz	JOY1
+	dec	a				; Force JOY1/2 Status to INVALID
+	sta	JOY1Stat
+	rtl
+
+;
+;	* * * * * * *       NORMAL NMI CODE       * * * * * * *
+;
+	dpr	?
+	dbr	?
+NormalNMI
+	ifn	(WIRE*DEBUG)
+	jsl	$7ffd00				; MONITOR
+	endif
+NormalNMI2
+	mode	'AX!'
+	pha					; Save .A
+	phx					; Save .X
+	phy					; Save .Y
+	tdc					; Save DPR
+	pha
+	lda	#0				; Set DPR $0000
+	tcd
+	dpr	0
+	phb					; Save DB
+	pha
+	plb					; Set DB
+	dbr	0
+;
+;	>>>   TRANSFER RGB PALETTE DATA?   <<<
+;
+NNMI3000
+	bit	RGBXFer-1			; Time to transfer RGB Data?
+	bpl	NNMI9000			; No
+	mode	'x!'
+	ldx	#%00000010			; A->B, Abs., Auto Inc,1-Add-Write2x
+	stx	DMA0INC
+	ldx	#<CGDATA			; CGDATA
+	stx	DMA0DEST
+	lda	#<RGBData
+	sta	DMA0A1L
+	lda	#512				; 512 bytes to transfer
+	sta	DMA0NUML
+	ldx	#0
+	stx	CGADD				; Transfer 256 RGB Colours
+	stx	DMA0A1B
+	stx	RGBXFer				; RGB Data Transferred
+	inx					; Enable/Start Channel#0
+	stx	MDMAEN
+;
+;	>>>   READ JOYSTICK DATA   <<<
+;
+NNMI9000
+
+NNMI9020
+	lda	_HVBJOY			; Joystick Finished Reading?
+	lsr	a
+	bcs	NNMI9020		; Yes
+	mode	'AX!'
+	jsl	__ReadJOY
+
+	ifn	0
+	stz	JOY1Stat		; JOY1 is Valid
+	lda	$4016			; Input PORT0
+	lsr	a
+	bcc	NNMI9050		; Nothing Connected!
+	ldx	JOY1L			; Read Joystick Controller I
+	txa
+	and	#%00001111
+	beq	NNMI9060		; A Valid JOYStick
+NNMI9050
+	ldx	#0
+	dec	JOY1Stat		; JOY1 INVALID
+NNMI9060
+	stx	JOY1			; Joystick Controller I
+	endif
+
+;
+;	* * * * * * *       NNMI COMPLETE       * * * * * * *
+;
+NNMI10000
+	mode	'a!'
+	bit	_RDNMI			; Clear NMI Flag
+	pla				; Discard Extra DB
+	mode	'AX!'
+	plb				; Restore DB
+	pla				; Restore DPR
+	tcd
+	ply				; Restore .Y
+	plx				; Restore .X
+	pla				; Restore .A
+	rti				; Restore .SR/.PC

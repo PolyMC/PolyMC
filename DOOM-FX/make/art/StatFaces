@@ -1,0 +1,5 @@
+xg -pRLART:StatFaces -dRLDATA:ART/StatFaces -ms -fn -y0 -u00 -s24,16 -c8
+delete RLDATA:ART/StatFaces.map0
+delete RLDATA:ART/StatFaces.rgb
+xc -iRLDATA:ART/StatFaces.def0 -oRLDATA:COMP/StatFaces.def0
+touch rlstatus.a

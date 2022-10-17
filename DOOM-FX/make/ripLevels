@@ -1,0 +1,29 @@
+make/riplevel E1M1
+make/riplevel E1M2
+make/riplevel E1M3
+make/riplevel E1M4
+make/riplevel E1M5
+;make/riplevel E1M6
+make/riplevel E1M7
+make/riplevel E1M8
+make/riplevel E1M9
+
+make/riplevel E2M1
+;make/riplevel E2M2
+make/riplevel E2M3
+make/riplevel E2M4
+;make/riplevel E2M5
+make/riplevel E2M6
+;make/riplevel E2M7
+make/riplevel E2M8
+make/riplevel E2M9
+
+make/riplevel E3M1
+make/riplevel E3M2
+make/riplevel E3M3
+make/riplevel E3M4
+;make/riplevel E3M5
+make/riplevel E3M6
+make/riplevel E3M7
+make/riplevel E3M8
+make/riplevel E3M9

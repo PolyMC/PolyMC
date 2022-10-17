@@ -1,0 +1,2029 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                         XBAND PATCHES MODULE       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	rlstatus.i
+	include	rlweapons.i
+	include	rlobjects.i
+	include	rlimages.i
+	include	rlplayer.i
+	include	snes.i
+	include	snesmac.i
+	include	gsumac.i
+	include	xfer.i
+	include	xband.i
+
+	CACHER
+
+;	SECTION	XBAND
+	cpu	65816
+
+PTRAM7C4	equ	RAM7C4Start+4
+PTRAM7C3	equ	RAM7C3Start+4
+PTRAM7C6	equ	RAM7C6Start+2
+PTRAM7C5	equ	RAM7C5Start+2
+
+;
+;	* * * * * * *       XBAND ROM/RAM PATCHES       * * * * * * *
+;
+
+;
+;	>>>   XBAND PATCH:  RAGE   <<<
+;
+xbpRAGE
+	dc.l	GSUPhasePostCode+10		; RAM: Remove Pause Menu Access
+	dc.b	(.1-*-1)
+	dc.w	<_RLGSUPostDrawC2		; Draw C2
+.1
+;
+	dc.l	_RIT3000+2			; RAM: Add XBINT Call to _RLIRQTop
+	dc.b	(.2-*-1)
+	org	_RIT3000+2
+ 	phx
+	bra	_RITMenus
+	reorg
+.2
+;
+	dc.l	_RITMenus			; RAM: Add XBINT Call to _RLIRQTop
+	dc.b	(.3-*-1)
+	org	_RITMenus
+	jsl	_XBIRQTop
+	plx
+	jmp	(_RITPhaseCode,x)		; IRQ TOP PhaseCode
+	reorg
+.3
+;
+	dc.w	-1				; End
+
+
+;
+;	>>>   XBAND PATCH:  RAGE ONE PLAYER   <<<
+;
+xbpRAGE1P
+	dc.l	_RLMain20000			; RAM: Remove Pause Menu Access
+	dc.b	(.0-*-1)
+	org	_RLMain20000
+	jsl	_XBRingDetect
+	bra	_RLMain30000
+	reorg
+.0
+;
+	dc.w	-1				; End
+
+
+;
+;	>>>   XBAND PATCH:  RAGE TWO PLAYERS   <<<
+;
+xbpRAGE2P
+	dc.l	GSUPhasePostCode+0		; RAM: XBAND GSU Patch Handler
+	dc.b	(.0-*-1)
+	dc.w	<_XBRLGSUPostMisc		; Handle Tasks
+.0
+;
+	dc.l	_RIBDrawB200+7			; RAM: Add FragCount to StatusBar
+	dc.b	(.1-*-1)
+	org	_RIBDrawB200+7
+	jsr	_XBRIBDrawB200			; Transfer OAMs
+	reorg
+.1
+;
+	dc.l	_RLMain17000			; RAM: Update FragCount on StatusBar
+	dc.b	(.2-*-1)
+	org	_RLMain17000
+	jsr	_XBUpdateStatusBar
+	reorg
+.2
+;
+	dc.l	_RLIRQBottom+15			; RAM: Adjust IRQ Timing
+	dc.b	(.3-*-1)
+	org	_RLIRQBottom+15
+	mode	'a'
+	cmp	#(RLVIntBottom-5)
+	bcc	*+4
+	cmp	#(RLVIntBottom+1)
+	bcc	_RIB1000
+	reorg
+.3
+;
+	dc.l	_RLIRQTop+15			; RAM: Adjust IRQ Timing
+	dc.b	(.4-*-1)
+	org	_RLIRQTop+15
+	mode	'a'
+	cmp	#(RLVIntTop-5)
+	bcc	*+4
+	cmp	#(RLVIntTop+1)
+	bcc	_RIT1000
+	reorg
+.4
+;
+	dc.l	_RLMain0+7			; RAM: Initialize Player Copies
+	dc.b	(.5-*-1)
+	dc.w	<_XBRLMain0
+.5
+;
+	dc.l	_RLMain20000			; RAM: Exchange Master/Slave Packets
+	dc.b	(.6-*-1)
+	org	_RLMain20000
+	jsr	_XBRLMain20000
+	lda	XBExitLevel+(XBPlayerData-XBPlayerData)
+	ora	XBExitLevel+(XBPlayer2Data-XBPlayerData)
+	bmi	_RLMain50000
+	bne	_RLMain80000
+	bra	_RLMain50000
+;	bra	_RLMain30000
+	reorg
+.6
+;
+	dc.l	_RITDrawC+7			; RAM: Adjust FPSCount Method
+	dc.b	(.7-*-1)
+	nop
+	nop
+	nop
+.7
+;
+	ifn	0
+	dc.l	_RLMain2200+6			; RAM: Synchronize WeaponBuilder
+	dc.b	(.8-*-1)
+	org	_RLMain2200+6
+	nop
+	nop
+	nop
+	reorg
+.8
+	endif
+;
+	dc.l	(_RILO2100+3)>>1		; ROM: Enable DeathMatch Objects
+	dc.b	$80+(00<<1)
+	org	_RILO2100+3
+	dc.w	$eaea				; NOP/NOP
+	reorg
+;
+	dc.l	(_RILO2600+5)>>1		; ROM: Remove Enemy Objects
+	dc.b	$80+(01<<1)
+	dc.b	$5c,<_XBRILO2600		; JML _XBRILO2600
+;
+	dc.l	(_RILO2600+7)>>1		; ROM: Remove Enemy Objects
+	dc.b	$80+(02<<1)
+	dc.b	>_XBRILO2600,^_XBRILO2600
+;
+	dc.w	%0000000000000111		; HIT
+	dc.b	$52
+	dc.b	$00
+
+
+;
+;	* * * * * * *       INITIALIZE REALITY_ENGINE       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+_XBRLInit
+	lda	#100				; Player's Health
+	sta	_PlayerHealth
+	stz	_PlayerArmor			; Player's Armor
+	lda	#50				; Player's Bullets
+	sta	_PlayerBullets
+	stz	_PlayerShells			; Player's Shells
+	stz	_PlayerRockets			; Player's Rockets
+	stz	_PlayerCells			; Player's Cells
+	lda	#wtPistol			; Player's Weapon
+	sta	_PlayerWeapon
+	stz	_PlayerBackPack			; No BackPack
+;
+;	>>>   COMMON INITIALIZATION   <<<
+;
+	lda	#2				; Hurt Me Plenty Skill Level
+	sta	_SkillLevel
+	lda	#$FFFF				; Enable Music/SoundEffects
+	sta	_MusicOn
+	sta	_SoundsOn
+;
+	RICHJML	_RLInitPPU,_RLInitRAMCode-1	; Initialize PPU
+	RICHJML	_RLInitRGB,_RLInitRAMCode-1	; Initialize RGB
+	RICHJML	_RLInitRAMCode,_RLInitRAMCode-1	; Initialize RL RAM Code
+;
+;	* * * * * * *       COMMON PATCHES       * * * * * * *
+;
+	ldx	#<xbpRAGE			; Call Patcher
+	jsr	_XBPatcher
+	lda	XBGameType			; One/Two Players?
+	bpl	_XBRLI500			; Two
+;
+;	* * * * * * *       ONE PLAYER PATCHES       * * * * * * *
+;
+	ldx	#<xbpRAGE1P			; Call Patcher
+	jsr	_XBPatcher
+	lda	#((wtbFist|wtbPistol)<<8)	; Pistol/Fist / No Keys
+	sta	_PlayerKeys
+	jsl	_RLInitStatusBar		; Initialize Status Bar
+	jml	_RLInit+13			; Finish Initialization
+;
+;	* * * * * * *       TWO PLAYER PATCHES       * * * * * * *
+;
+_XBRLI500
+	ldx	#<xbpRAGE2P			; Call Patcher
+	jsr	_XBPatcher
+;
+;	>>>   GIVE PLAYER ALL KEYS   <<<
+;
+	lda	#((wtbFist|wtbPistol)<<8)+$ff	; Pistol/Fist / ALL Keys
+	sta	_PlayerKeys
+;
+;	>>>   CREATE STATUS BAR FRAG   <<<
+;
+	jsr	_XBInitStatusBar		; Initialize Status Bar
+	ldx	#(11-1)*4			; Move KEYS/STATARMS OffScreen
+	lda	#(MaxViewScanLines<<8)		; (256-32)
+_XBRLI600
+	sta	OAMA+(00*4),x
+	dex
+	dex
+	dex
+	dex
+	bpl	_XBRLI600
+;
+	lda	#((StatArmorPosY+00)<<8)+(StatArmorPosX-35+00)	; FRAG COUNT OAMs
+	sta	OAMA
+	lda	#(%00111100<<8)
+	sta	OAMA+2
+	sta	OAMA+6
+	lda	#((StatArmorPosY+00)<<8)+(StatArmorPosX-35+15)
+	sta	OAMA+4
+	lda	#%0000000000001010		; 2x2, HMsb=0
+	sta	OAMAA+0
+;
+	lda	#$0000				; Disable SoundEffects
+	sta	_SoundsOn
+;
+	jsl	_RLInit+13			; Finish Initialization
+;
+	lda	#<_pXBRLPlayer			; HANDLE PLAYER
+	sta	PTRLPlayer
+;
+	lda	#<_XBGSUReqMisc			; EXCHANGE SEMAPHORE
+	sta	GSUPhaseReqCode
+;
+	lda	#<_TRO2S2400			; PLAYER OBJECT TRACE PATCH
+	sta	PTTRO2SPlayer
+;
+	lda	#<_pXBRLBuildCheckObjs		; CHECK OBJECTS
+	sta	PTRLBuildCheckObjs
+;
+	lda	#<_pXBRLDamageObject		; DAMAGE OBJECTS
+	sta	PTRLDamageObject
+;
+	lda	XBMaster			; Show Correct Player by Default
+	sta	XBPlayer
+;
+	lda	#0
+	sta	Player1Joy
+	sta	Player1Joy0
+	sta	Player1MouseX
+	sta	Player1MouseY
+	sta	Player2Joy
+	sta	Player2Joy0
+	sta	Player2MouseX
+	sta	Player2MouseY
+;
+	lda	#3
+	sta	XBFPSCount
+;
+	rtl
+
+
+;
+;	* * * * * * *       INITIALIZE STATUS BAR FRAG       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_XBInitStatusBar
+	jsl	_RLInitStatusBar		; Initialize Status Bar
+	mode	'aX!'
+	ldx	#<StatusBarFragXFer		; Transfer StatusBar DataBlock
+	lda	#^StatusBarFragXFer
+	jsl	XFer
+	mode	'a!'
+	lda	#%00000001			; A->B, Abs., Auto Inc,2-Add-WriteLH
+	sta	DMA0INC
+	lda	#<VMDATAL			; VMDATA
+	sta	DMA0DEST
+	lda	#^DeCompBuffer
+	sta	DMA0A1B
+	mode	'A!'
+	lda	#RLStatCharY-1			; 4 Strips to Transfer
+	sta	Temp
+	lda	#<(DeCompBuffer)
+	ldy	#vmSTATDEF+(16*32/2)
+_XBISB200
+	sta	DMA0A1L				; Transfer Strip
+	sty	VMADDL
+	ldx	#(5*32)
+	stx	DMA0NUML
+	ldx	#(0<<8)+(1)
+	stx	MDMAEN
+	clc					; Move to Next Strip
+	adc	#(5*32)
+	tax
+	tya					; Next VRAM Address
+	clc
+	adc	#(RLCharX*32/2)
+	tay
+	txa
+	dec	Temp				; Next Digit
+	bpl	_XBISB200
+	rts
+;
+;	* * * * * * *       TRANSFER LISTS       * * * * * * *
+;
+	mode	'@A@X'
+StatusBarFragXFer
+	dc.w	xftRAM				; Transfer StatusBar Frag Def
+	dc.4	XBStatusBarFragDef
+	dc.4	DeCompBuffer
+	dcb.w	3,0
+;
+	dc.w	xftRAM+xftRAW			; Transfer XBAND GSU7A Patches to GSURAM
+	dc.4	_XBGSUPatches7AStart
+	dc.4	PTRAM7A
+	dc.w	(_XBGSUPatches7AEnd-_XBGSUPatches7AStart)
+	dcb.w	2,0
+;
+	dc.w	xftRAM+xftRAW			; Transfer XBAND GSU7B Patches to GSURAM
+	dc.4	_XBGSUPatches7BStart
+	dc.4	PTRAM7B
+	dc.w	(_XBGSUPatches7BEnd-_XBGSUPatches7BStart)
+	dcb.w	2,0
+;
+	dc.w	xftRAM+xftRAW			; Transfer XBAND GSU7C4 Patches to GSURAM
+	dc.4	_XBGSUPatches7C4Start
+	dc.4	PTRAM7C4
+	dc.w	(_XBGSUPatches7C4End-_XBGSUPatches7C4Start)
+	dcb.w	2,0
+;
+	dc.w	xftRAM+xftRAW			; Transfer XBAND GSU7C3 Patches to GSURAM
+	dc.4	_XBGSUPatches7C3Start
+	dc.4	PTRAM7C3
+	dc.w	(_XBGSUPatches7C3End-_XBGSUPatches7C3Start)
+	dcb.w	2,0
+;
+	dc.w	xftRAM+xftRAW			; Transfer XBAND GSU7C6 Patches to GSURAM
+	dc.4	_XBGSUPatches7C6Start
+	dc.4	PTRAM7C6
+	dc.w	(_XBGSUPatches7C6End-_XBGSUPatches7C6Start)
+	dcb.w	2,0
+;
+	dc.w	xftRAM+xftRAW			; Transfer XBAND GSU7C5 Patches to GSURAM
+	dc.4	_XBGSUPatches7C5Start
+	dc.4	PTRAM7C5
+	dc.w	(_XBGSUPatches7C5End-_XBGSUPatches7C5Start)
+	dcb.w	2,0
+;
+	dc.w	xftRAM+xftRAW			; Transfer XBAND RAM Patches to RAM2
+	dc.4	_XBRAMPatchesStart
+	dc.4	_XBRAMCode
+	dc.w	(_XBRAMPatchesEnd-_XBRAMPatchesStart)
+	dcb.w	2,0
+;
+	dc.w	xftEnd
+
+
+;
+;	* * * * * * *       REMOVE ENEMY OBJECTS       * * * * * * *
+;
+	dbr	^(_RLObjects)
+	dpr	0
+_XBRILO2600
+	bit	#rlpfMovable			; MOVABLE/FIXED?
+	beq	_XBRILO2680			; FIXED
+	cmp	#(otPlayer3Start<<8)		; Player 1/2?
+	bcc	_XBRILO2650			; Yes
+	cmp	#((otDeathMatchStart+1)<<8)	; DeathMatch?
+	bcs	_XBRILO2690			; No
+;
+;	>>>   DEATHMATCH STARTING POSITION   <<<
+;
+	ldx	Temp2				; FIXED
+	lda	#(otDeathMatchStart<<8)
+	sta	1,s
+	bra	_XBRILO2680
+;
+;	>>>   INITIALIZE MOBJ IMAGERY   <<<
+;
+_XBRILO2650
+	mode	'a!'
+	stz	Temp+4+1			; Type=Player1Start
+	lda	#(inPlayerWalk+15)		; Image
+	sta	!RAM7AStart+rloImage,x
+	mode	'A!'
+	pla					; Type=Player1Start
+	and	#$00ff
+	pha
+;
+	ifn	0
+;
+;	>>>   INITIALIZE MOBJ ANIMATION STATE MACHINE   <<<
+;
+	lda	#<mosBARRELEXP_DIE		; State
+	sta	!RAM7AStart+rloState,x
+	lda	#<moaPLAYER_STAND		; Animation
+	sta	!RAM7AStart+rloAnim,x
+	lda	#1				; AnimCount/StateCount
+	sta	!RAM7AStart+rloAnimCount,x
+;
+;	>>>   ADD MOVABLE OBJECT TO PROCESSING LIST   <<<
+;
+	phx
+	txa					; Save Pointer to RLObject
+	ldx	Temp3				; Get Index into _RLMObjs
+	dec	a
+	sta	_RLMObjs,x
+	inx
+	inx
+	stx	Temp3
+	inc	RLNumPMObjs			; NumPMObjs++
+	plx
+	endif
+_XBRILO2680
+	lda	1,s				; Get Flags/Type
+	phx					; Save Index
+	xba					; Get Type
+	jml	_RILO2600+9			; ADD
+_XBRILO2690
+	jml	_RILO2550			; No, DISCARD
+
+
+;
+;	* * * * * * *       ENGINE RAM CODE PATCHES START       * * * * * * *
+;
+_XBRAMPatchesStart
+	org	_XBRAMCode
+
+;
+;	* * * * * * *       INITIALIZE PLAYER COPIES       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_XBRLMain0
+	lda	#-2				; ReSpawn Immediately
+	sta	ExitLevel
+	ldx	#<XBPlayerData
+	jsr	_XBGetPlayer
+	ldx	#<XBPlayer2Data
+	jsr	_XBGetPlayer
+	jmp	_RLSwapRLXVars			; Swap Initial RL Transfer Variables
+
+
+;
+;	* * * * * * *       UPDATE STATUS BAR       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_XBUpdateStatusBar
+;
+;	>>>   FRAG COUNT   <<<
+;
+	mode	'AX!'
+	ldx	XBFragCount+(XBPlayerData-XBPlayerData)
+	lda	XBPlayer
+	bne	.0
+	ldx	XBFragCount+(XBPlayer2Data-XBPlayerData)
+.0
+	txa
+	and	#$7fff
+	tax
+	mode	'a!'
+	stx	WRDIVL
+	lda	#10
+	sta	WRDIVB
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	ldx	_RDDIVL
+	lda	>_RLStatNumOAMs,x
+	sta	OAMA+(00*4)+oamsChr
+	ldx	_RDMPYL
+	lda	>_RLStatNumOAMs,x
+	sta	OAMA+(01*4)+oamsChr
+	jmp	_RLUpdateStatusBar
+;
+;	* * * * * * *       TRANSFER STATUS BAR OAMS       * * * * * * *
+;
+	dbr	0
+	dpr	0
+	mode	'AX'
+_XBRIBDrawB200
+;	lda	#(0*2)				; Transfer OAM structure
+	stz	OAMADDL
+	lda	#<(OAMA+(0*4))
+	sta	DMA6A1L
+	lda	#(2*4)				; #Bytes to transfer
+	sta	DMA6NUML
+	lda	#(1<<6)
+	sta	MDMAEN
+	lda	#(23*2)				; Transfer OAM structure
+	rts
+
+
+;
+;	* * * * * * *       GSU PHASE POST-EXECUTION CODE       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+_XBRLGSUPostMisc
+	lda	sfxR15				; Get GSU Halt Address
+	sec					; Subtract Base
+	sbc	#($b6fd+2)
+	bmi	_XBRLGSUPostMisc2		; Normal GSU Halt
+	cmp	#62
+	bcs	_XBRLGSUPostMisc2		; Normal GSU Halt
+	asl	a				; Get GSU Patch Index
+	asl	a
+	asl	a
+	tax
+	phx
+	jsr	(XBGSUPhaseCode+4,x)
+	plx
+	mode	'a!'
+	lda	>XBGSUPhaseCode+2,x		; Get GSU Starting PCB
+	sta	sfxPCB
+	mode	'A!'
+	lda	>XBGSUPhaseCode,x		; Get GSU Starting PC
+	plx					; Pop Return Address
+	jmp	_RLIRQDone-8
+_XBRLGSUPostMisc2
+	jmp	_RLGSUPostNull			; Normal GSU Halt
+;
+;	>>>   GSU PATCHES LIST   <<<
+;
+_pXBRLPlayer		equ	$b6fd+00
+_pXBRLMisc2A		equ	$b6fd+01
+_pXBRLMisc2B		equ	$b6fd+02
+_pXBRLBuildCheckObjs	equ	$b6fd+03
+_pXBRLBuildCheckObjs2	equ	$b6fd+04
+_pXBRLBuildCheckObjs3	equ	$b6fd+05
+_pXBRLDamageObject	equ	$b6fd+06
+_pXBRLDamageObjectB	equ	$b6fd+07
+_pXBRLReSpawnPlayer2	equ	$b6fd+08
+_pXBRLReSpawnPlayer3	equ	$b6fd+09
+;
+;	>>>   GSU PATCHES JUMPCODE   <<<
+;
+XBGSUPhaseCode
+		dc.4	_XBRLPlayer,_XBPlayer
+		dc.4	_XBRLMisc2A,_XBMisc2A
+		dc.4	_XBRLMisc2B,_XBMisc2B
+		dc.4	_XBRLBuildCheckObjs,_XBBuildCheckObjs
+		dc.4	_XBRLBuildCheckObjs2,_XBBuildCheckObjs2
+		dc.4	_XBRLBuildCheckObjs3,_XBBuildCheckObjs3
+		dc.4	_XBRLDamageObject,_XBDamageObject
+		dc.4	_XBRLDamageObjectB,_XBDamageObjectB
+		dc.4	_XBRLReSpawnPlayer2,_XBReSpawnPlayer2
+		dc.4	_XBRLReSpawnPlayer3,_XBReSpawnPlayer3
+
+
+;
+;	* * * * * * *       HANDLE PLAYER       * * * * * * *
+;
+_XBPlayer
+	lda	#rgbNone			; No RGB Anim Change
+	sta	RLRGB
+	sta	XBRLRGB+(XBPlayerData-XBPlayerData)
+	sta	XBRLRGB+(XBPlayer2Data-XBPlayerData)
+	lda	#1				; Player NOT Hurt Yet
+	sta	PlayerHurt
+	sta	XBPlayerHurt+(XBPlayerData-XBPlayerData)
+	sta	XBPlayerHurt+(XBPlayer2Data-XBPlayerData)
+;
+	ldx	#<XBPlayerData			; GET UPDATED PLAYER 1/2
+	lda	XBPlayer
+	bne	.0
+	ldx	#<XBPlayer2Data
+.0
+	jsr	_XBGetPlayer
+;
+	lda	Player1Joy			; UPDATE PLAYER 1
+	sta	>(PlayerJoy+RLGSUSNESXVarsO)
+	lda	Player1MouseX
+	sta	>(PlayerMouseX+RLGSUSNESXVarsO)
+	lda	Player1MouseY
+	sta	>(PlayerMouseY+RLGSUSNESXVarsO)
+	lda	XBWeaponTypeBuilt+(XBPlayerData-XBPlayerData)
+	sta	>(WeaponTypeBuilt+RLGSUSNESXVarsO)
+	lda	Player1TVObj
+	sta	MVRObj
+	lda	XBPlayer			; PLAYER1/PLAYER2?
+	bne	_XBMisc2B900			; PLAYER1 -- DON'T NEED TO RECOPY!
+	ldx	#<XBPlayerData			; USE PLAYER 1
+	jmp	_XBSetPlayer
+;
+;	* * * * * * *       MISCELLANEOUS TASKS 2A       * * * * * * *
+;
+_XBMisc2A
+	ldx	#<XBPlayerData			; GET UPDATED PLAYER 1
+	jsr	_XBGetPlayer
+	lda	Player2Joy			; UPDATE PLAYER 2
+	sta	>(PlayerJoy+RLGSUSNESXVarsO)
+	lda	Player2MouseX
+	sta	>(PlayerMouseX+RLGSUSNESXVarsO)
+	lda	Player2MouseY
+	sta	>(PlayerMouseY+RLGSUSNESXVarsO)
+	lda	XBWeaponTypeBuilt+(XBPlayer2Data-XBPlayerData)
+	sta	>(WeaponTypeBuilt+RLGSUSNESXVarsO)
+	lda	Player2TVObj
+	sta	MVRObj
+	ldx	#<XBPlayer2Data			; USE PLAYER 2
+	jmp	_XBSetPlayer
+;
+;	* * * * * * *       MISCELLANEOUS TASKS 2B       * * * * * * *
+;
+_XBMisc2B
+	ldx	#<XBPlayer2Data			; GET UPDATED PLAYER 2
+	jsr	_XBGetPlayer
+	lda	XBPlayer			; PLAYER1/PLAYER2?
+	beq	_XBMisc2B900			; PLAYER2 -- DON'T NEED TO RECOPY!
+	ldx	#<XBPlayerData			; USE PLAYER 1
+	jsr	_XBSetPlayer
+	lda	#<(PlayerObject)
+	sta	MPPlayerObject
+;;	lda	XBWeaponTypeBuilt+(XBPlayerData-XBPlayerData)
+;	sta	>(WeaponTypeBuilt+RLGSUSNESXVarsO)
+;;	sta	WeaponTypeBuilt
+_XBMisc2B900
+_XBBuildCheckObjs
+_XBBuildCheckObjs2
+_XBBuildCheckObjs3
+_XBReSpawnPlayer2
+_XBReSpawnPlayer3
+	rts
+
+
+;
+;	* * * * * * *       DAMAGE OBJECT       * * * * * * *
+;
+_XBDamageObject
+	lda	MPPlayerObject			; SAVE CURRENT PLAYER
+	sta	XBMPPlayerObject
+;
+	ldy	sfxR13				; PLAYER 1/2?
+	cpy	#<(PlayerObject+(rloSize*2))
+	bcs	_XBDOT800			; No, NORMAL OBJECT
+;
+	ldx	#<XBPlayerData			; .X = CURRENT PLAYERDATA
+	cmp	#<(PlayerObject)
+	beq	_XBDOT200
+	ldx	#<XBPlayer2Data
+_XBDOT200
+	lda	#<XBPlayerData			; .A = DAMAGE PLAYER
+	cpy	#<(PlayerObject)
+	beq	_XBDOT400
+	lda	#<XBPlayer2Data
+_XBDOT400
+	stx	XBMPDPlayer+0			; .X = CURRENT PLAYER
+	sta	XBMPDPlayer+2			; .A = DAMAGE PLAYER
+	pha					; SAVE CURRENT PLAYER
+	tya					; SET DAMAGE PLAYER
+	sta	MPPlayerObject
+	jsr	_XBDamageGetPlayer
+	pla					; USE DAMAGE PLAYER
+	jmp	_XBDamageSetPlayer
+_XBDOT800
+	lda	#0				; NORMAL DAMAGE
+	sta	MPPlayerObject
+	rts
+_XBDamageObjectB
+	lda	MPPlayerObject			; NO PLAYER OBJECT?
+	beq	_XBDOTB800
+	ldx	XBMPDPlayer+2			; SAVE DAMAGE PLAYER
+	jsr	_XBDamageGetPlayer
+	ldx	XBMPDPlayer+0			; USE CURRENT PLAYER
+	jsr	_XBDamageSetPlayer
+_XBDOTB800
+	lda	XBMPPlayerObject		; RESTORE CURRENT PLAYER
+	sta	MPPlayerObject
+	rts
+
+;
+;	* * * * * * *       GET PLAYER DAMAGE VARIABLES       * * * * * * *
+;
+_XBDamageGetPlayer
+	phd
+	phx
+	pld
+	dpr	XBPlayerData
+	phb
+	pea	#^RAM7AStart
+	plb
+	dbr	^RAM7AStart
+;
+	lda	InvulnerableCount
+	sta	XBInvulnerableCount
+	lda	PlayerDead
+	sta	XBPlayerDead
+	lda	PlayerArmor
+	sta	XBPlayerArmor
+	lda	PlayerHurt
+	sta	XBPlayerHurt
+	lda	RLRGB
+	sta	XBRLRGB
+	lda	PlayerFaceAnim0
+	sta	XBPlayerFaceAnim0
+	lda	PlayerFaceAnim
+	sta	XBPlayerFaceAnim
+	lda	PlayerFaceCount
+	sta	XBPlayerFaceCount
+;
+	plb
+	plb
+	dbr	0
+	pld
+	dpr	0
+	rts
+
+;
+;	* * * * * * *       SET PLAYER DAMAGE VARIABLES       * * * * * * *
+;
+_XBDamageSetPlayer
+	phd
+	phx
+	pld
+	dpr	XBPlayerData
+	phb
+	pea	#^RAM7AStart
+	plb
+	dbr	^RAM7AStart
+;
+	lda	XBInvulnerableCount
+	sta	InvulnerableCount
+	lda	XBPlayerDead
+	sta	PlayerDead
+	lda	XBPlayerArmor
+	sta	PlayerArmor
+	lda	XBPlayerHurt
+	sta	PlayerHurt
+	lda	XBRLRGB
+	sta	RLRGB
+	lda	XBPlayerFaceAnim0
+	sta	PlayerFaceAnim0
+	lda	XBPlayerFaceAnim
+	sta	PlayerFaceAnim
+	lda	XBPlayerFaceCount
+	sta	PlayerFaceCount
+;
+	plb
+	plb
+	dbr	0
+	pld
+	dpr	0
+	rts
+
+
+;
+;	* * * * * * *       SET PLAYER VARIABLES       * * * * * * *
+;
+_XBSetPlayer
+	phd
+	phx
+	pld
+	dpr	XBPlayerData
+	phb
+	pea	#^RAM7AStart
+	plb
+	dbr	^RAM7AStart
+;
+	lda	XBPlayerAmmo
+	sta	PlayerAmmo
+	lda	XBPlayerHealth
+	sta	PlayerHealth
+	lda	XBPlayerArmor
+	ifn	DEBUG
+;	lda	XBFPSCount
+	endif
+	sta	PlayerArmor
+	lda	XBPlayerFace
+	sta	PlayerFace
+	lda	XBPlayerKeys
+	sta	PlayerKeys
+;
+	lda	XBRLRGB
+	sta	RLRGB
+;
+	lda	XBWeaponType
+	sta	WeaponType
+	lda	XBWeaponFrame
+	sta	WeaponFrame
+	lda	XBWeaponX
+	sta	WeaponX
+	lda	XBWeaponY
+	sta	WeaponY
+	lda	XBWeaponNext
+	sta	WeaponNext
+;
+	lda	XBAutoMapMode
+	sta	AutoMapMode
+	lda	XBExitLevel
+	sta	ExitLevel
+	lda	XBInvisibleCount
+	sta	InvisibleCount
+;
+	lda	XBPlayerJoyOld
+	sta	PlayerJoyOld
+;
+	lda	XBPlayerDead
+	sta	PlayerDead
+	lda	XBPlayerDeadOld
+	sta	PlayerDeadOld
+	lda	XBPlayerHeight
+	sta	PlayerHeight
+	lda	XBPlayerOnGround
+	sta	PlayerOnGround
+;
+	lda	XBPlayerFaceAnim0
+	sta	PlayerFaceAnim0
+	lda	XBPlayerFaceAnim
+	sta	PlayerFaceAnim
+	lda	XBPlayerFaceCount
+	sta	PlayerFaceCount
+;
+	lda	XBRadCount
+	sta	RadCount
+	lda	XBBerserkCount
+	sta	BerserkCount
+	lda	XBInvulnerableCount
+	sta	InvulnerableCount
+	lda	XBLightGoggles
+	sta	LightGoggles
+	lda	XBBerserk
+	sta	Berserk
+	lda	XBComputerMap
+	sta	ComputerMap
+;
+	lda	XBWeaponData
+	sta	WeaponData
+	lda	XBWeaponState
+	sta	WeaponState
+	lda	XBWeaponStateData
+	sta	WeaponStateData
+	lda	XBWeaponStateCount
+	sta	WeaponStateCount
+	lda	XBWeaponXOffset
+	sta	WeaponXOffset
+	lda	XBWeaponYOffset
+	sta	WeaponYOffset
+	lda	XBWeaponAmmo
+	sta	WeaponAmmo
+	lda	XBWeaponBullets
+	sta	WeaponBullets
+	lda	XBWeaponShells
+	sta	WeaponShells
+	lda	XBWeaponRockets
+	sta	WeaponRockets
+	lda	XBWeaponCells
+	sta	WeaponCells
+	lda	XBWeaponLight
+	sta	WeaponLight
+;
+;;	lda	XBWeaponTypeBuilt
+;;	sta	WeaponTypeBuilt
+;	sta	>(WeaponTypeBuilt+RLGSUSNESXVarsO)
+;
+	lda	XBMsgDataA
+	sta	MsgDataA
+	lda	XBMsgDataB
+	sta	MsgDataB
+	lda	XBMsgDataC
+	sta	MsgDataC
+	lda	XBMsgCount
+	sta	MsgCount
+;
+	plb
+	plb
+	dbr	0
+	pld
+	dpr	0
+	rts
+
+;
+;	* * * * * * *       GET PLAYER VARIABLES       * * * * * * *
+;
+_XBGetPlayer
+	phd
+	phx
+	pld
+	dpr	XBPlayerData
+	phb
+	pea	#^RAM7AStart
+	plb
+	dbr	^RAM7AStart
+;
+	lda	PlayerAmmo
+	sta	XBPlayerAmmo
+	lda	PlayerHealth
+	sta	XBPlayerHealth
+	lda	PlayerArmor
+	sta	XBPlayerArmor
+	lda	PlayerFace
+	sta	XBPlayerFace
+	lda	PlayerKeys
+	sta	XBPlayerKeys
+;
+	lda	RLRGB
+	sta	XBRLRGB
+;
+	lda	WeaponType
+	sta	XBWeaponType
+	lda	WeaponFrame
+	sta	XBWeaponFrame
+	lda	WeaponX
+	sta	XBWeaponX
+	lda	WeaponY
+	sta	XBWeaponY
+	lda	WeaponNext
+	sta	XBWeaponNext
+;
+	lda	AutoMapMode
+	sta	XBAutoMapMode
+	lda	ExitLevel
+	sta	XBExitLevel
+	lda	InvisibleCount
+	sta	XBInvisibleCount
+;
+	lda	PlayerJoyOld
+	sta	XBPlayerJoyOld
+;
+	lda	PlayerDead
+	sta	XBPlayerDead
+	lda	PlayerDeadOld
+	sta	XBPlayerDeadOld
+	lda	PlayerHeight
+	sta	XBPlayerHeight
+	lda	PlayerOnGround
+	sta	XBPlayerOnGround
+;
+	lda	PlayerFaceAnim0
+	sta	XBPlayerFaceAnim0
+	lda	PlayerFaceAnim
+	sta	XBPlayerFaceAnim
+	lda	PlayerFaceCount
+	sta	XBPlayerFaceCount
+;
+	lda	RadCount
+	sta	XBRadCount
+	lda	BerserkCount
+	sta	XBBerserkCount
+	lda	InvulnerableCount
+	sta	XBInvulnerableCount
+	lda	LightGoggles
+	sta	XBLightGoggles
+	lda	Berserk
+	sta	XBBerserk
+	lda	ComputerMap
+	sta	XBComputerMap
+;
+	lda	WeaponData
+	sta	XBWeaponData
+	lda	WeaponState
+	sta	XBWeaponState
+	lda	WeaponStateData
+	sta	XBWeaponStateData
+	lda	WeaponStateCount
+	sta	XBWeaponStateCount
+	lda	WeaponXOffset
+	sta	XBWeaponXOffset
+	lda	WeaponYOffset
+	sta	XBWeaponYOffset
+	lda	WeaponAmmo
+	sta	XBWeaponAmmo
+	lda	WeaponBullets
+	sta	XBWeaponBullets
+	lda	WeaponShells
+	sta	XBWeaponShells
+	lda	WeaponRockets
+	sta	XBWeaponRockets
+	lda	WeaponCells
+	sta	XBWeaponCells
+	lda	WeaponLight
+	sta	XBWeaponLight
+;
+;;	lda	WeaponTypeBuilt
+;;	sta	XBWeaponTypeBuilt
+;
+	lda	MsgDataA
+	sta	XBMsgDataA
+	lda	MsgDataB
+	sta	XBMsgDataB
+	lda	MsgDataC
+	sta	XBMsgDataC
+	lda	MsgCount
+	sta	XBMsgCount
+;
+	plb
+	plb
+	dbr	0
+	pld
+	dpr	0
+	rts
+
+
+;
+;	* * * * * * *       MAIN LINE CODE PATCHES       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_XBRLMain20000
+;
+;	>>>   GENERATE LOCAL PACKET: JOYSTICK/VBLANKS   <<<
+;
+	mode	'A!'
+	lda	JOY1Stat			; JOYSTAT into <START> Bit
+	and	#$00ff
+	beq	.0
+	lda	#$1000
+.0
+	sta	Temp
+;
+	lda	VBlankCount			; VBLANKCOUNT into UnUsed Bits
+	cmp	#10
+	bcc	.1
+	lda	#10
+.1
+	ora	Temp
+	sta	Temp
+;
+	lda	JOY1				; JOYSTICK into JoyBits
+	and	#$eff0
+	ora	Temp
+	sta	XBLocalPacket+0
+;
+;	>>>   GENERATE LOCAL PACKET: TARGETTING INFORMATION   <<<
+;
+	lda	_XBTargetList			; Save Targetting Information
+	sta	XBLocalPacket+2
+;
+;	>>>   GENERATE LOCAL PACKET: SYNC DETECT   <<<
+;
+	lda	PlayerObject+(rloSize*0)+rloX
+	clc
+	adc	PlayerObject+(rloSize*0)+rloX+2
+	clc
+	adc	PlayerObject+(rloSize*0)+rloY
+	clc
+	adc	PlayerObject+(rloSize*0)+rloY+2
+	clc
+	adc	PlayerObject+(rloSize*0)+rloZ
+	clc
+	adc	PlayerObject+(rloSize*0)+rloAngle
+	clc
+	adc	PlayerObject+(rloSize*0)+rloVX
+	clc
+	adc	PlayerObject+(rloSize*0)+rloVY
+	sta	XBLocalPacket+4
+;
+	lda	PlayerObject+(rloSize*1)+rloX
+	clc
+	adc	PlayerObject+(rloSize*1)+rloX+2
+	clc
+	adc	PlayerObject+(rloSize*1)+rloY
+	clc
+	adc	PlayerObject+(rloSize*1)+rloY+2
+	clc
+	adc	PlayerObject+(rloSize*1)+rloZ
+	clc
+	adc	PlayerObject+(rloSize*1)+rloAngle
+	clc
+	adc	PlayerObject+(rloSize*1)+rloVX
+	clc
+	adc	PlayerObject+(rloSize*1)+rloVY
+	sec
+	sbc	XBLocalPacket+4
+;
+	clc
+	adc	RandomNumI
+	and	#$ff00
+	sta	XBLocalPacket+4
+;
+	lda	WeaponTypeBuilt
+	and	#$00ff
+	ora	XBLocalPacket+4
+	sta	XBLocalPacket+4
+;
+;	>>>   EXCHANGE LOCAL/REMOTE PACKETS   <<<
+;
+	jsl	_XBExchangeData
+;
+;	>>>   VALIDATE LOCAL/REMOTE PACKETS: SYNC DETECT   <<<
+;
+	lda	XBMasterPacket+4
+	and	#$ff00
+	sta	Temp
+	lda	XBSlavePacket+4
+	and	#$ff00
+	cmp	Temp
+	beq	.8
+;
+;	>>>   UNRECOVERABLE DESYNCHRONIZATION ERROR!   <<<
+;
+	pla					; Pop Return Address
+	jmp	_RLMain80000			; Exit Level!
+	cop
+;
+;	>>>   PROCESS MASTER PACKET (PLAYER1)   <<<
+;
+.8
+	lda	XBMasterPacket+0		; PLAYER 1
+	and	#$1000
+	xba
+	sta	JOY1Stat
+	lda	XBMasterPacket+0
+	and	#$eff0
+	sta	JOY1
+	lda	Player1MouseX
+	sta	PlayerMouseX
+	lda	Player1Joy0
+	sta	PlayerJoy0
+	jsr	ConvertJoy
+	lda	PlayerMouseX
+	sta	Player1MouseX
+	lda	PlayerMouseY
+	sta	Player1MouseY
+	lda	PlayerJoy
+	sta	Player1Joy
+	lda	PlayerJoy0
+	sta	Player1Joy0
+	lda	XBMasterPacket+2
+	sta	Player1TVObj
+	lda	XBMasterPacket+4
+	and	#$00ff
+	sta	XBWeaponTypeBuilt+(XBPlayerData-XBPlayerData)
+;
+;	>>>   PROCESS SLAVE PACKET (PLAYER2)   <<<
+;
+	lda	XBSlavePacket+0			; PLAYER 2
+	and	#$1000
+	xba
+	sta	JOY1Stat
+	lda	XBSlavePacket+0
+	and	#$eff0
+	sta	JOY1
+	lda	Player2MouseX
+	sta	PlayerMouseX
+	lda	Player2Joy0
+	sta	PlayerJoy0
+	jsr	ConvertJoy
+	lda	PlayerMouseX
+	sta	Player2MouseX
+	lda	PlayerMouseY
+	sta	Player2MouseY
+	lda	PlayerJoy
+	sta	Player2Joy
+	lda	PlayerJoy0
+	sta	Player2Joy0
+	lda	XBSlavePacket+2
+	sta	Player2TVObj
+	lda	XBSlavePacket+4
+	and	#$00ff
+	sta	XBWeaponTypeBuilt+(XBPlayer2Data-XBPlayerData)
+;
+	lda	XBMasterPacket+0		; FPSCOUNT
+	and	#$000f
+	sta	Temp
+	lda	XBSlavePacket+0
+	and	#$000f
+	cmp	Temp
+	bcs	.5
+	lda	Temp
+.5
+	sta	XBFPSCount
+;
+;	>>>   RESPAWN PLAYERS   <<<
+;
+	ldx	#<(XBPlayerData-XBPlayerData)	; PLAYER 1
+	ldy	#<(XBPlayer2Data-XBPlayerData)
+	jsr	_XBRLMain24000
+	txa					; PLAYER 2
+	tyx
+	tay
+	jsr	_XBRLMain24000
+	bra	_XBRLMain24900
+_XBRLMain24000
+	lda	XBPlayerDead,x			; Dead?
+	beq	_XBRLMain24500			; No
+	lda	XBFragCount,y			; Already Counted Frag?
+	bmi	_XBRLMain24200			; Yes!
+	clc					; No, #Frags++
+	adc	#$8001
+	sta	XBFragCount,y
+_XBRLMain24200
+	rts
+_XBRLMain24500
+	lda	XBFragCount,y			; Didn't Count Frag
+	and	#$7fff
+	sta	XBFragCount,y
+	rts
+;
+;	>>>   UPDATE SERVER GAME_RECORD INFORMATION   <<<
+;
+_XBRLMain24900
+	ldx	XBFragCount+(XBPlayerData-XBPlayerData)
+	ldy	XBFragCount+(XBPlayer2Data-XBPlayerData)
+	lda	XBMaster
+	bne	_XBRLMain24520
+	txa
+	tyx
+	tay
+_XBRLMain24520
+	txa
+	sta	GR_localPlayer1Result
+	tya
+	sta	GR_remotePlayer1Result
+;
+;	>>>   EXCHANGE COMPLETE   <<<
+;
+_XBRLMain25000
+	lda	#(rlfExchange)			; PACKETS EXCHANGED
+	tsb	RLFlags
+	bne	_XBRLMain25000			; DeadLocked!
+;
+;	>>>   PROCESS KEYBOARD   <<<
+;
+	mode	'ax!'
+	phb					; Save DB
+	pea	#^XBKeyBuffer
+	plb
+	dbr	^XBKeyBuffer
+	ldx	XBKeyBufferI			; KeyBytes Queue
+_XBRLMain26000
+	cpx	XBKeyBufferE			; Any Keys?
+	beq	_XBRLMain26900			; No
+	inx
+	lda	XBKeyBuffer,x			; SPACEBAR?
+	cmp	#$20
+	bne	_XBRLMain26800
+	lda	XBPlayer			; Toggle Player
+	eor	#1
+	sta	XBPlayer
+_XBRLMain26800
+	bra	_XBRLMain26000
+_XBRLMain26900
+	stx	XBKeyBufferI			; KeyBytes Queue
+	plb					; Extra Byte Pushed
+	plb					; Restore DB
+	dbr	?
+	mode	'AX!'
+	rts
+
+
+;
+;	* * * * * * *       GSU REQUIREMENTS "MISC"       * * * * * * *
+;
+	mode	'A'
+_XBGSUReqMisc
+	lda	XBFPSCount
+	sta	>(FPSCount+RLGSUSNESXVarsO)
+	lda	#rlfExchange			; PACKETS EXCHANGED?
+	bit	RLFlags
+	beq	.0
+	trb	RLFlags
+	mode	'a!'
+	stz	VBlankCount
+	mode	'A!'
+.0
+	rts
+
+
+;
+;	* * * * * * *       ENGINE RAM CODE PATCHES END       * * * * * * *
+;
+	reorg
+_XBRAMPatchesEnd
+
+
+;
+;	* * * * * * *       GSU PATCHES 7A START       * * * * * * *
+;
+_XBGSUPatches7AStart
+	cpu	sfx
+	org	PTRAM7A
+
+;
+;	* * * * * * *       GSU PLAYER HANDLING       * * * * * * *
+;
+_XBRLPlayer
+	link	#4				; BUILD TARGETTING LIST
+	iwt	r15,#<_XBBuildTargetList
+	nop
+	move	r0,#<(PlayerObject)		; HANDLE PLAYER 1
+	move	r1,#<_pXBRLMisc2A
+	iwt	r15,#<_XBRLMisc2
+	nop
+;
+;	* * * * * * *       MISCELLANEOUS TASKS 2 B       * * * * * * *
+;
+_XBRLMisc2B
+	move	r0,#<_RLMisc2			; DO MISCELLANEOUS TASKS 2
+	iwt	r15,#<_XBRLLJMP
+	nop
+
+;
+;	* * * * * * *       GSU PATCHES 7A END       * * * * * * *
+;
+PTRAM7AEnd
+	reorg
+_XBGSUPatches7AEnd
+
+
+;
+;	* * * * * * *       GSU PATCHES 7B START       * * * * * * *
+;
+_XBGSUPatches7BStart
+	org	PTRAM7B
+
+;
+;	* * * * * * *       MISCELLANEOUS TASKS 2 A       * * * * * * *
+;
+_XBRLMisc2A
+	move	r0,#<(PlayerObject+rloSize)	; HANDLE PLAYER 2
+	move	r1,#<_pXBRLMisc2B
+_XBRLMisc2
+	iwt	r15,#<_XBRLMisc2E
+	nop
+
+;
+;	* * * * * * *       BUILD LIST OF CHECK OBJECTS       * * * * * * *
+;
+_XBRLBuildCheckObjs3
+	move	r8,(<TRFloors)
+	move	r0,(<TRVObj)			; Restore ReturnAddress
+	ibt	r11,#0
+	ljmp	r11
+	nop
+;
+;	* * * * * * *       BUILD LIST OF CHECK OBJECTS       * * * * * * *
+;
+_XBRLBuildCheckObjs
+	move	r1,(<MPPlayerObject)		; Save PlayerObject
+	move	(<TRVSeg),r1
+	move	(<TRVObj),r11			; Save ReturnAddress
+	move	(<TRFloors),r8
+	move	r1,#<PlayerObject		; Player1
+	move	r0,#<_RLBuildCheckObjs
+	move	r11,#<_pXBRLBuildCheckObjs2
+	bra	_XBRLBuildCheckObjs2A
+;
+_XBRLBuildCheckObjs2
+	move	r1,(<TRVSeg)			; Restore PlayerObject
+	move	r0,#<(_RLBCO1000+3)
+	move	r7,#<(PlayerObject+rloSize)	; Player2
+	move	r11,#<_pXBRLBuildCheckObjs3
+_XBRLBuildCheckObjs2A
+	move	(<MPPlayerObject),r1
+_XBRLLJMP
+	nop					; @FLUSH@
+	ibt	r8,#0
+	ljmp	r8
+	nop
+
+;
+;	* * * * * * *       GSU PLAYER HANDLING       * * * * * * *
+;
+rObj		equ	r12			; Pointer to RLObject
+rPObj		equ	r11			; Pointer to PlayerObject
+rX		equ	r3			; RLObject X Coordinate
+rY		equ	r5			; RLObject Y Coordinate
+rYTemp		equ	r7
+rCos		equ	r8
+;
+_XBRLMisc2E
+	move	(<MPPlayerObject),r0
+	move	(<PTRLMisc2),r1
+;
+;	>>>   CREATE DUMMY VISIBLE OBJECT LIST (TARGETTING)   <<<
+;
+	move	rObj,(<MVRObj)			; Any Targetted Object?
+	dec	rObj
+	bne	_XBRLMisc2L			; Yes!  Build Dummy VObj
+;	from	r0
+	stw	(r1)
+	iwt	r15,#<_XBRLMisc2R		; No!
+;
+;	>>>   CREATE DUMMY VISIBLE OBJECT (TARGETTING)   <<<
+;
+_XBRLMisc2L
+	from	rObj
+;	to	r0
+	add	#(rloX+2)
+	to	rX
+	ldw	(r0)
+;	with	r0
+	add	#((rloY+2)-(rloX+2))
+	to	rYTemp
+	ldw	(r0)
+	move	rPObj,(<MPPlayerObject)
+;
+	ibt	r0,#^SinTable			; Bank of SinTable
+	romb
+	move	r0,#rloAngle			; Get Player's Angle
+;	with	r0
+	add	rPObj
+;	to	r0
+	ldw	(r0)
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr					; >>5
+	lsr					; Remove lowest bit
+	add	r0
+	iwt	r1,#$200
+	from	r1
+;	to	r0
+	sub	r0
+	iwt	r1,#$7fe
+;	from	r0
+	to	r1
+	and	r1
+	iwt	r0,#<SinTable			; Add Base of SinTable
+;	from	r0
+	to	r14
+	add	r1
+	getb					; Get Sine from Table
+	inc	r14
+;	from	r0
+	to	r6
+	getbh
+;	move	r6,r0				; rSin
+	iwt	r0,#<CosTable			; Add Base of CosTable
+;	from	r0
+	to	r14
+	add	r1
+	getb					; Get CoSine from Table
+	inc	r14
+;	from	r0
+	to	rCos
+	getbh
+;
+;	move	r6,rSin				; sin(90deg.-ViewAngle)
+;
+	from	rPObj				; VertexX - ViewX
+;	to	r0
+	add	#(rloX+2)
+;	to	r0
+	ldw	(r0)
+	with	rX
+	sub	r0
+;
+	from	rPObj				; rViewY
+;	to	r0
+	add	#(rloY+2)
+;	to	r0
+	ldw	(r0)
+	with	rYTemp				; VertexY - ViewY
+	sub	r0
+;
+	iwt	r15,#<_XBRLMisc2N
+	nop
+
+;
+;	* * * * * * *       GSU PATCHES 7B END       * * * * * * *
+;
+PTRAM7BEnd
+	reorg
+_XBGSUPatches7BEnd
+
+
+;
+;	* * * * * * *       GSU PATCHES 7C4 START       * * * * * * *
+;
+_XBGSUPatches7C4Start
+	org	PTRAM7C4
+
+;
+;	* * * * * * *       GSU PLAYER HANDLING       * * * * * * *
+;
+rObj		equ	r12			; Pointer to RLObject
+rPObj		equ	r11			; Pointer to PlayerObject
+rX		equ	r3			; RLObject X Coordinate
+rY		equ	r5			; RLObject Y Coordinate
+rYTemp		equ	r7
+rCos		equ	r8
+;
+_XBRLMisc2N
+	from	rX				; *VertexX
+;	to	r0
+	fmult
+;	from	r0
+	to	rY
+	rol
+;
+	from	rYTemp				; *VertexY
+;	to	r0
+	fmult
+;	from	r0
+	to	r1
+	rol
+;
+	move	r6,rCos				; cos(90deg.-ViewAngle)
+	from	rYTemp				; *Vertex Y
+;	to	r0
+	fmult
+;	with	r0
+	rol
+	with	rY				; Rotated Y
+	add	r0
+;
+	from	rX				; *Vertex X
+;	to	r0
+	fmult
+;	with	r0
+	rol
+;	from	r0				; Rotated X
+	to	rX
+	sub	r1
+;
+	move	r2,#<_RLVObjList		; Add Dummy VObj
+	from	rY				; World Y
+	stw	(r2)
+	inc	r2				; Next VObj
+	inc	r2
+;	with	r0
+	sub	r0
+;	from	r0
+	stw	(r2)
+	inc	r2				; RLObject
+	inc	r2
+	from	rObj
+	stw	(r2)
+	inc	r2				; World X
+	inc	r2
+	from	rX
+	stw	(r2)
+;
+	inc	r2				; World Z
+	inc	r2
+	move	r1,#rloZ			; Get World Z
+	from	r1
+;	to	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	move	r4,(<PlayerHeight)		; Height of Eye above Feet
+;	with	r0
+	sub	r4
+	with	r1
+	add	rPObj
+	to	r1
+	ldw	(r1)
+;	with	r0
+	sub	r1
+;	from	r0
+	stw	(r2)
+;
+	inc	r2				; Screen X1 (rXs1)
+	inc	r2
+;	with	r0
+	sub	r0
+;	from	r0
+	stw	(r2)
+	inc	r2				; Screen X2 (rXs2)
+	inc	r2
+	move	r0,#(RLViewPixX/2)
+;	from	r0
+	stw	(r2)
+;
+	move	r0,#rloSector			; Get Sector
+;	with	r0
+	add	rObj
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r1,#<_RLSectorData
+;	with	r0
+	add	r1
+	with	r2				; Pointer to SectorData
+	add	#(rlqSectorData-rlqXs2)
+;	from	r0
+	stw	(r2)
+;
+	with	r2				; Drawn
+	add	#(rlqDrawn-rlqSectorData)
+	move	r0,#1
+;	from	r0
+	stw	(r2)
+	move	rObj,#<_RLVObjList		; Add Dummy VObj
+_XBRLMisc2R
+	move	r1,#<VObjListStart		; START of VObjList
+	from	rObj
+	stw	(r1)
+;
+;	>>>   RESPAWN PLAYER?   <<<
+;
+	move	r0,(<ExitLevel)			; ReSpawning?
+	inc	r0
+	inc	r0
+	bne	_XBRLMisc2X			; No
+	link	#4				; YES!  RESPAWN!
+	iwt	r15,#<_XBRLReSpawnPlayer
+	nop
+_XBRLMisc2X
+	move	r0,#<_RLPlayer
+_XBRLMisc2Y
+	iwt	r15,#<_XBRLLJMP
+	nop
+_XBRLReSpawnPlayer3
+	move	r0,#<_RLCalcFaceAnim
+	move	r11,#<_RLPlayer
+	bra	_XBRLMisc2Y
+	nop
+
+;
+;	* * * * * * *       GSU PATCHES 7C4 END       * * * * * * *
+;
+PTRAM7C4End
+	reorg
+_XBGSUPatches7C4End
+
+
+;
+;	* * * * * * *       GSU PATCHES 7C4 START       * * * * * * *
+;
+_XBGSUPatches7C3Start
+	org	PTRAM7C3
+
+;
+;	* * * * * * *       DAMAGE RLOBJECT       * * * * * * *
+;
+_XBRLDamageObjectB
+	move	r0,(<XBReturnAddress)		; Return to Caller
+	iwt	r15,#<_XBRLLJMP
+	nop
+
+;
+;	* * * * * * *       CREATE TARGET LIST       * * * * * * *
+;
+rrlpfFlags	var	r13			; RLObject Target/Movable Flags
+rTargetListPtr	var	r10			; Pointer to TargetList
+rObj		var	r12			; Pointer to Current RLObject
+rVObj		var	r9			; Pointer to Current VisibleObject
+;
+rMinX		var	r6			; Minimum Screen Column
+rMaxX		var	r7			; Maximum Screen Column
+
+	align	16,(_XBBT9200-_XBBuildTargetAlign)&$0f
+;
+;	>>>   FINISHED CREATING TARGET LIST   <<<
+;
+_XBBT9200
+	nop					; @FLUSH ALT2 IN PIPELINE@
+	move	r0,#1				; Terminate TargetList
+	jmp	r11
+;	from	r0
+	stw	(rTargetListPtr)
+;
+;	>>>   START CREATING TARGET LIST   <<<
+;
+_XBBuildTargetList
+	move	rrlpfFlags,#(rlpfActive|rlpfTarget|rlpfMovable)	; RLObject TARGETTING Flags
+	move	rVObj,#<(VObjListStart-1)		; START of VObjList
+	move	rTargetListPtr,#<(_XBTargetList)	; START of TargetList
+	move	rMinX,#(((RLViewPixX/2)-16)>>1)		; Minimum Screen Column>>1
+	move	rMaxX,#((RLViewPixX/2)+16)		; Maximum Screen Column
+
+	CACHEB	_XBBuildTarget
+_XBBuildTargetAlign
+;
+;	>>>   NEXT VISIBLE OBJECT   <<<
+;
+_XBBT2200
+	inc	rVObj				; Next VObj
+;	to	r0				; Get VObj.Next
+	ldw	(rVObj)
+	moves	rVObj,r0
+	beq	_XBBT9200			; No More VisibleObjects!
+;
+;	>>>   GET OBJECT   <<<
+;
+;	with	r0				; Get RLObject
+	add	#rlqObj
+	to	rObj
+	ldw	(r0)
+	from	rObj
+;	to	r0
+	add	#rloFlags
+;	to	r0				; Get RLObject Flags
+	ldb	(r0)
+;	with	r0				; VALID TARGET?
+	and	rrlpfFlags
+;	with	r0
+	sub	rrlpfFlags
+	bne	_XBBT2200			; No!
+	inc	rVObj				; Move to VObj.Next
+;
+;	>>>   WAS THIS VISIBLE OBJECT DRAWN?   <<<
+;
+	move	r0,#(rlqDrawn-(rlqY+1))		; Get VObj.Drawn
+;	with	r0
+	add	rVObj
+;	to	r0
+	ldb	(r0)
+	dec	r0				; Drawn?
+	bmi	_XBBT2200			; NO!  CAN'T TARGET IT!
+;
+;	>>>   WITHIN TARGETTING ANGLE RANGE?   <<<
+;
+	from	rVObj				; Screen X1 (rXs1)
+	to	r1
+	add	#(rlqXs1-(rlqY+1))
+;	to	r0
+	ldw	(r1)
+;	with	r0
+	sub	rMaxX
+	bpl	_XBBT2200			; Not in range
+	inc	r1				; Screen X2 (rXs2)
+	inc	r1
+;	to	r0
+	ldw	(r1)
+;	with	r0
+	sub	rMinX
+	bmi	_XBBT2200
+	inc	rObj
+;
+;	>>>   TARGET STILL ALIVE?   <<<
+;
+	move	r1,#rloHealth			; Get Object's Health
+	with	r1
+	add	rObj
+;	to	r0
+	ldw	(r1)
+	dec	r0				; Already Dead?
+	bmi	_XBBT2200
+;
+;	>>>   ADD OBJECT TO LOCAL TARGETTING LIST   <<<
+;
+	from	rObj				; TARGET OBJECT
+	stw	(rTargetListPtr)
+	inc	rTargetListPtr
+	bra	_XBBT2200			; NEXT VISIBLE OBJECT!
+	inc	rTargetListPtr
+
+	CACHEE	_XBBuildTarget
+
+;
+;	* * * * * * *       VARIABLES       * * * * * * *
+;
+	align	2,0
+_XBTargetList		dcb.w	2  ; (MaxRLVObjs+1)	; Local TargetList
+XBMPPlayerObject	dc.w	0			; Saved MPPlayerObject
+XBReturnAddress		dc.w	0			; ReturnAddress
+
+
+;
+;	* * * * * * *       GSU PATCHES 7C3 END       * * * * * * *
+;
+PTRAM7C3End
+	reorg
+_XBGSUPatches7C3End
+
+
+;
+;	* * * * * * *       GSU PATCHES 7C6 START       * * * * * * *
+;
+_XBGSUPatches7C6Start
+	org	PTRAM7C6
+
+
+;
+;	* * * * * * *       DAMAGE RLOBJECT       * * * * * * *
+;
+_XBRLDamageObject
+	move	(<XBReturnAddress),r11		; Save Return Address
+	move	r11,#<_pXBRLDamageObjectB
+	move	r0,#<(_RLDamageObject0)
+	ibt	r8,#0
+	ljmp	r8
+	nop
+
+;
+;	* * * * * * *       RESPAWN       * * * * * * *
+;
+_XBRLReSpawnPlayer
+;
+;	>>>   REMOVE RLOBJECT FROM OLD SECTOR   <<<
+;
+	move	r11,#<_pXBRLReSpawnPlayer2	; Remove RLObject from Sector's ObjectList
+	move	r0,#<_RLRemSectorObject
+	move	rObj,(<MPPlayerObject)		; Update Object Coordinates
+	iwt	r15,#<_XBRLLJMP
+	nop
+;
+;	>>>   FIND RESPAWN LOCATION   <<<
+;
+_XBRLReSpawnPlayer2
+	move	r0,#^RandomTable		; Get Random DeathMatch Spot
+	romb
+	move	r0,#<RandomNumI			; Get Random Number
+	to	r14
+	ldb	(r0)
+	move	r0,r14
+	inc	r0
+;	from	r0
+	sbk
+;	to	r0
+	getb
+	move	r4,(<MPPlayerObject)
+;	with	r0
+	add	r4
+;	from	r0				; Get Spot# 0-3
+	to	r4
+	and	#3
+;
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb
+	move	r3,#<(_RLSectorData-rlsdSize+rlsdObjects)	; R3 = SectorData
+	move	r6,#-1						; Sector#
+_GReSpawn3
+	with	r3				; Next Sector
+	add	#rlsdSize
+	inc	r6
+	move	r1,r3				; Move to Sector's RLObjects
+_GReSpawn5
+	to	r1				; Move to Next Object
+	ldw	(r1)
+	moves	r1,r1
+	beq	_GReSpawn3			; No More Objects?!
+	from	r1				; Get Object's Type
+;	to	r0
+	add	#rloType
+;	to	r0
+	ldb	(r0)
+;	with	r0				; DEATHMATCH RESPAWN SPOT?
+	sub	#otDeathMatchStart
+	bne	_GReSpawn5+1			; No
+	to	r1
+	dec	r4				; Found correct one?
+	bpl	_GReSpawn5+1			; No
+	to	r1
+;
+;	>>>   REINITIALIZE PLAYER VARIABLES   <<<
+;
+	move	r0,#rloHealth			; Player's Health
+;	with	r0
+	add	rObj
+	move	r4,#100
+	from	r4
+	stw	(r0)
+	move	(<PlayerHealth),r4
+;
+	move	r0,#wtPistol
+	move	(<WeaponNext),r0
+	move	(<WeaponType),r0
+;
+	iwt	r15,#<_XBRLReSpawnPlayer2A
+	nop
+
+;
+;	* * * * * * *       GSU PATCHES 7C6 END       * * * * * * *
+;
+PTRAM7C6End
+	reorg
+_XBGSUPatches7C6End
+
+
+;
+;	* * * * * * *       GSU PATCHES 7C5 START       * * * * * * *
+;
+_XBGSUPatches7C5Start
+	org	PTRAM7C5
+
+;
+;	* * * * * * *       RESPAWN       * * * * * * *
+;
+_XBRLReSpawnPlayer2A
+;
+;	>>>   RESPAWN AT LOCATION   <<<
+;
+	with	r1				; Get DeathMatch LevelObject
+	add	#rloLObj
+	from	rObj				; Update Object Coordinates
+	to	r2
+	add	#rloX
+;	with	r0				; Update Object X Coordinate
+	sub	r0
+	to	r14				; Move to LevelObject's Angle
+	ldw	(r1)
+;	from	r0
+	stw	(r2)
+	to	r1
+	getb
+	inc	r14
+	inc	r2
+	inc	r2
+	with	r1
+	getbh
+	inc	r14
+	from	r1
+	stw	(r2)
+	inc	r2
+	inc	r2
+;	from	r0				; Update Object Y Coordinate
+	stw	(r2)
+	getb
+	inc	r14
+	inc	r2
+	inc	r2
+	getbh
+	inc	r14
+;	from	r0
+	stw	(r2)
+	inc	r2
+	inc	r2
+	from	r3				; Update Object Z Coordinate
+;	to	r0
+	sub	#(rlsdObjects-rlsdFloorHeight)
+	to	r1
+	ldw	(r0)
+	from	r1
+	stw	(r2)
+	inc	r2
+	inc	r2
+;	with	r0				; Update Object X Velocity
+	sub	r0
+;	from	r0
+	stw	(r2)
+	inc	r2
+	inc	r2
+;	from	r0				; Update Object Y Velocity
+	stw	(r2)
+	getb
+	inc	r14
+	inc	r2
+	inc	r2
+	getbh
+;	from	r0				; Update Object Angle
+	stw	(r2)
+	inc	r2
+	inc	r2
+	from	r6				; Update Object Sector
+	stb	(r2)
+	with	r2				; Move to Z2
+	add	#(rloZ2-rloSector)
+	from	r1
+	stw	(r2)
+;
+;	>>>   REINITIALIZE PLAYER VARIABLES   <<<
+;
+;	with	r0
+	sub	r0
+	move	(<ExitLevel),r0
+	move	(<PlayerDead),r0
+;
+	move	(<PlayerArmor),r0
+	move	(<WeaponShells),r0
+	move	(<WeaponRockets),r0
+	move	(<WeaponCells),r0
+	move	(<ComputerMap),r0
+	move	(<RadCount),r0
+	move	(<BerserkCount),r0
+	move	(<InvulnerableCount),r0
+	move	(<LightGoggles),r0
+	move	(<Berserk),r0
+	move	r0,#50
+	move	(<WeaponBullets),r0
+	move	r0,#((wtbFist|wtbPistol)<<8)+$ff ; Pistol/Fist / ALL Keys
+	move	(<PlayerKeys),r0
+;
+;	>>>   ADD RLOBJECT TO NEW SECTOR   <<<
+;
+	move	r11,#<_pXBRLReSpawnPlayer3
+	move	r0,#<_RLAddSectorObject		; Add RLObject to Sector's ObjectList
+	iwt	r15,#<_XBRLLJMP
+	nop
+
+;
+;	* * * * * * *       GSU PATCHES 7C5 END       * * * * * * *
+;
+PTRAM7C5End
+	reorg
+_XBGSUPatches7C5End
+
+
+
+	LTEXT	"GSUPatch7A  $%04lx ($%04lx Free)",(_XBGSUPatches7AEnd-_XBGSUPatches7AStart),(RLGSUXVars-PTRAM7AEnd)
+	LTEXT	"GSUPatch7B  $%04lx ($%04lx Free)",(_XBGSUPatches7BEnd-_XBGSUPatches7BStart),(RAM7CStart-PTRAM7BEnd)
+	LTEXT	"GSUPatch7C4 $%04lx ($%04lx Free)",(_XBGSUPatches7C4End-_XBGSUPatches7C4Start),((RAM7C4Start+128)-PTRAM7C4End)
+	LTEXT	"GSUPatch7C3 $%04lx ($%04lx Free)",(_XBGSUPatches7C3End-_XBGSUPatches7C3Start),((RAM7C3Start+128)-PTRAM7C3End)
+	LTEXT	"GSUPatch7C6 $%04lx ($%04lx Free)",(_XBGSUPatches7C6End-_XBGSUPatches7C6Start),((RAM7C6Start+128)-PTRAM7C6End)
+	LTEXT	"GSUPatch7C5 $%04lx ($%04lx Free)",(_XBGSUPatches7C5End-_XBGSUPatches7C5Start),((RAM7C5Start+128)-PTRAM7C5End)

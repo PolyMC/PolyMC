@@ -1,0 +1,714 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                        ENGINE CEILINGS MODULE                      *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rSector			equ	r6		; Pointer to Sector
+rCeilingStateCode	equ	r7		; Ceiling StateCode
+rCeilingHeight		equ	r5		; Destination Ceiling Height
+;
+rTaskData		equ	r8		; Pointer to TaskData
+rSectorData		equ	r9		; Pointer to SectorData
+rCeilingData		equ	r10		; Pointer to CeilingData
+;
+rFPSRatio		equ	r5		; FPS Ratio
+rFPSCount		equ	r7		; FPS Counter
+rTaskData		equ	r8		; Pointer to TaskData
+rTaskPtr		equ	r10		; Pointer to RLTask
+rTaskCount		equ	r13		; TaskCounter
+;
+rObj			equ	r12		; RLObject
+
+
+;
+;	* * * * * * *       CHECK CEILING       * * * * * * *
+;
+;	R0 = 0 = BLOCKING, = 1 = CRUSHING
+;	R3 = New Ceiling Position
+;
+;	R0 = 0 = Ceiling OK, = 1 = Ceiling Blocked by RLObject(s)!
+;
+rObj			equ	r12
+rTObj			equ	r13
+
+	align	16,(_RLCheckCeiling-_RLCheckCeilingAlign)&$0f
+_RLCheckCeiling
+	move	r1,#<CeilingCrush		; 0=Ceiling NOT Blocked
+;	from	r0				; BLOCK/CRUSH Status
+	stw	(r1)
+;
+	move	r12,r11				; Save Return Address
+	from	rSectorData			; Move to Sector's RLObjects
+	to	r4
+	add	#rlsdObjects
+;
+	ifn	0
+	from	rTaskData			; (R1) = OriginX/OriginY
+;	to	r0
+	add	#rlptPlatform
+;	to	r0
+	ldw	(r0)
+;	from	r0
+	to	r1
+	add	#rlpcsOriginX
+	endif
+;
+	link	#4				; Build CheckObjectList
+	ife	usePATCH
+	move	r15,#<_RLBuildCheckObjs
+	endif
+	ifn	usePATCH
+	move	r15,(<PTRLBuildCheckObjs)
+	endif
+	nop
+	move	r11,r12				; Restore Return Address
+;
+	ibt	r0,#(^_ObjData)			; Move to _ObjData Bank
+	romb
+	move	r4,#<(_RLCheckObjs-1)		; R4 = CheckObjects List
+;
+	CACHEB	_RLCheckCeiling
+_RLCheckCeilingAlign
+;
+;	>>>   BUILD CHECK OBJECTS LIST   <<<
+;
+_RLCC1200
+	inc	r4				; Next Object
+;	to	r0				; Get Next Object
+	ldw	(r4)
+	moves	rObj,r0
+	beq	_RLCC1900			; No More Objects?!
+	inc	r4				; Next Object
+	from	rObj				; Get Object's Flags/Type
+;	to	r0
+	add	#rloFlags
+;	to	r0
+	ldw	(r0)
+;	from	r0				; Object SOLID?
+	to	r1
+	and	#rlpfSolid
+	beq	_RLCC1200			; NO!
+;
+;	>>>   GET RLOBJECT'S HEIGHT   <<<
+;
+;	with	r0				; Get Object's Type
+	hib
+;	from	r0				; Get Offset into _ObjData
+	to	r6
+	umult	#rlodSize
+	move	r0,#<(_ObjData+rlodHeight)	; Add Base of _ObjData
+;	from	r0				; Move to Object Height
+	to	r14
+	add	r6
+;
+	from	rObj				; R1 = OBJECT Z
+;	to	r0
+	add	#rloZ
+	to	r1
+	ldw	(r0)
+	getb					; R0 = OBJECT HEIGHT
+;	with	r0				; R0 = OBJECT TOP (OBJECT Z + OBJECT HEIGHT)
+	add	r1
+;
+;	>>>   OBJECT TOP < CEILING?   <<<
+;
+;	from	r0				; ObjectTop < Ceiling?
+	cmp	r3
+	blt	_RLCC1200			; Yes, Object Fits
+;
+;	>>>   CAN WE MOVE OBJECT DOWN TO FIT BETWEEN FLOOR AND NEW CEILING?   <<<
+;
+	from	r3				; R0 = (CEILING HEIGHT - OBJECT HEIGHT)
+;	to	r0
+	sub	r0
+;	with	r0
+	add	r1
+;
+	move	r1,#rloZ2			; PlayerObject?
+	with	r1
+	add	rObj
+	dec	r6
+	bmi	_RLCC1300			; Yes, Use Z2 Coordinate
+	from	rSectorData
+	to	r1
+	add	#rlsdFloorHeight
+_RLCC1300
+	to	r1				; R1 = Floor Height
+	ldw	(r1)
+;
+;	from	r0				; Object New Z < Floor?
+	cmp	r1
+	blt	_RLCC1500			; YES!  CAN'T FIT OBJECT NOW!
+	from	rObj				; R1 = OBJECT Z
+	to	r6
+	add	#rloZ
+;	from	r0				; No, Move Object Down to Fit!
+	stw	(r6)
+	bra	_RLCC1200+1			; Check Next Object
+	inc	r4				; Next Object
+;
+;	>>>   CAN'T MOVE CEILING TO THIS POSITION!   <<<
+;
+_RLCC1500
+;
+;	>>>   BLOCK OR CRUSH?   <<<
+;
+	move	r0,#<CeilingCrush		; Get CRUSH Status (0=BLOCK,1=CRUSH)
+;	to	r0
+	ldb	(r0)
+	dec	r0				; BLOCK or CRUSH?
+	bmi	_RLCC1800			; BLOCK
+;
+;	>>>   CRUSH   <<<
+;
+	inc	r6				; PlayerObject?
+	bne	_RLCC1600			; No
+	from	rSectorData			; SectorData Ceiling Height
+;	to	r0
+	add	#rlsdCeilingHeight
+;	to	r0				; R0 = OLD Ceiling Height
+	ldw	(r0)
+	move	r6,#odhPlayer			; R1 = (PlayerFloor+PlayerHeight)
+	with	r1
+	add	r6
+;	with	r0				; OLD Ceiling < Current Player Top?
+	sub	r1				; @CMP@
+	blt	_RLCC1200			; Yes!  Not really intersecting!
+;
+;	>>>   INFLICT DAMAGE   <<<
+;
+_RLCC1600
+	move	r6,r11				; Save Return Address
+	move	r7,rTaskCount			; Save TaskCount
+;
+	move	rTObj,rObj			; TargetObject to Damage
+	move	rObj,r4				; Save CheckObject Pointer
+
+	ifn	0
+	move	r1,#<CeilingBlocked		; 1=Ceiling BLOCKED!
+	move	r0,#1
+;	from	r0
+	stb	(r1)
+	endif
+
+	move	r4,#10				; 10 HitPoints per Crush
+	link	#3
+	iwt	r15,#<_RLDamageObject
+;
+	move	r4,rObj				; Restore CheckObject Pointer
+	move	rTaskCount,r7			; Restore TaskCount
+	move	r11,r6				; Restore Return Address
+;
+;	>>>   CEILING MOVEMENT IS BLOCKED   <<<
+;
+_RLCC1800
+	move	r1,#<CeilingBlocked		; Ceiling is BLOCKED
+	move	r0,#1
+;	from	r0
+	stb	(r1)
+	bra	_RLCC1200+1			; Check Next Object
+	inc	r4				; Next Object
+;
+;	>>>   RETURN BLOCKED STATUS   <<<
+;
+_RLCC1900
+	move	r0,#<CeilingBlocked		; Is Ceiling BLOCKED by RLObject(s)?
+;	to	r0
+	ldb	(r0)
+	jmp	r11				; Return to Caller
+	nop
+
+	CACHEE	_RLCheckCeiling
+
+
+;
+;	* * * * * * *       ADD A PLATFORM CEILING       * * * * * * *
+;
+;	rSector			= Sector of Ceiling
+;	rCeilingStateCode	= Ceiling StateCode
+;	rCeilingHeight		= Destination Ceiling Height
+;
+_RLAddPlatformCeiling
+;
+;	>>>   GET CEILING SECTOR'S SECTORDATA   <<<
+;
+	from	rSector
+;	to	r0
+	umult	#rlsdSize
+	move	rSectorData,#<_RLSectorData
+	with	rSectorData
+	add	r0
+;
+;	>>>   EXISTING CEILING?   <<<
+;
+	link	#3				; Find PlatformTask for this SectorData
+	iwt	r15,#<_RLFindPlatformTask
+;
+;	>>>   KILLING CRUSHING CEILINGS?   <<<
+;
+	moves	rCeilingStateCode,rCeilingStateCode ; -1 = Kill Crushing Ceiling?
+	bpl	_RAPC400			; No, Creating Ceiling/Crushing Ceiling
+	moves	rTaskData,rTaskData		; Yes, Crushing Ceiling Running?
+	beq	_RAPC800			; No, Can't Remove It!
+	nop
+	move	r0,#(_TPCKillCrushingCeiling-_TPlatformCode)
+	jmp	r12				; Return to Caller
+;	from	r0
+	stw	(rTaskData)
+;
+;	>>>   EXISTING CEILING?   <<<
+;
+_RAPC400
+	moves	rTaskData,rTaskData		; Ceiling Already Running?
+	bne	_RAPC800			; Yes!
+;
+;	* * * * * * *       CREATE A NEW CEILING       * * * * * * *
+;
+_RAPC500
+	link	#4
+	iwt	r15,#<_RLAddPlatformTask	; Allocate a PlatformTask Structure
+	nop
+;
+	from	rCeilingStateCode		; CEILING STATE
+	stw	(rTaskData)
+;
+	from	rTaskData			; Save Ceiling Parameters
+	to	r6
+	add	#rlpctHeight
+	from	rCeilingHeight			; CEILING DESTINATION HEIGHT
+	stw	(r6)
+	inc	r6
+	inc	r6
+	from	rCeilingData			; CEILINGDATA
+	stw	(r6)
+	inc	r6
+	inc	r6
+	from	rSectorData			; SECTORDATA
+	stw	(r6)
+;
+	move	r9,#<(_TPlatform-1)		; TaskCode-1
+	move	r11,r12				; Return to Caller when done
+	iwt	r15,#<_RLAddTask		; Allocate a Task
+	nop
+_RAPC800
+	jmp	r12				; Return to Caller
+	nop
+
+
+;
+;	* * * * * * *       CEILING SOUND       * * * * * * *
+;
+_TCeilingSound
+;	from	rTaskData			; Get CeilingData
+;	to	r0
+	add	#rlpctCeiling
+;	to	r0
+	ldw	(r0)
+;	from	r0				; R4 = Pointer to SoundOrigin
+	to	r4
+	add	#rlpcsOriginX
+	move	r3,#<(sxStnMove-1)		; Sound Effect#
+	iwt	r15,#<_TPlatformSound2
+	nop
+
+
+;
+;	* * * * * * *       CEILING LOWERING       * * * * * * *
+;
+_TCeilingLowering
+	link	#3				; Make Ceiling Sound
+	iwt	r15,#<_TCeilingSound
+;
+	from	rTaskData			; Get Destination Height
+;	to	r0
+	add	#rlpctHeight
+	to	r2				; Minimum Ceiling Height
+	ldw	(r0)
+;	with	r0
+	add	#(rlpctSectorData-rlpctHeight)
+;	to	r0				; Get SectorData
+	ldw	(r0)
+;	from	r0
+	to	rSectorData
+	add	#rlsdCeilingHeight
+;
+	move	r6,#rlpcMovement		; Ceiling Adjustment
+	from	rFPSRatio			; FPS Adjustment
+;	to	r0
+	lmult
+;	with	r0				; Get Whole Levels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R1 = |CeilingAdjustment|
+	to	r1
+	or	r4
+	ldw	(rSectorData)			; Get Ceiling Height
+;	with	r0
+	sub	r1
+;	from	r0
+	cmp	r2				; At Bottom?
+	bge	_TCL800				; No
+	moves	r0,r2				; Yes!
+_TCL800
+	jmp	r11				; Return to _TPlatform
+;	from	r0
+	sbk
+
+
+;
+;	* * * * * * *       CRUSHING CEILING LOWERING       * * * * * * *
+;
+_TCrushingCeilingLowering
+	link	#3				; Make Ceiling Sound
+	iwt	r15,#<_TCeilingSound
+;
+	from	rTaskData			; Get SectorData
+;	to	r0
+	add	#rlpctSectorData
+	to	rSectorData
+	ldw	(r0)
+;
+	move	r6,#rlpcMovement		; Ceiling Adjustment
+;
+	from	rFPSRatio			; FPS Adjustment
+;	to	r0
+	lmult
+;	with	r0				; Get Whole Levels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R1 = |CeilingAdjustment|
+	to	r1
+	or	r4
+;
+	from	rSectorData
+;	to	r0
+	add	#rlsdFloorHeight
+	to	r2				; R2 = Destination FloorHeight
+	ldw	(r0)
+	with	r2
+	add	#8
+	inc	r0				; Get CeilingHeight
+	inc	r0
+;	to	r0
+	ldw	(r0)
+;	from	r0				; R3 = NEW Ceiling Height
+	to	r3
+	sub	r1
+;
+;	>>>   CHECK IF CEILING IS CRUSHING SOMETHING   <<<
+;
+	move	r0,#1				; 1=CRUSHING
+	link	#4
+	iwt	r15,#<_RLCheckCeiling
+	nop
+	dec	r0				; R0 = 0 = OK, = 1 = BAD!
+	with	r3				; @"MOVE R0,R3"
+	bmi	_TCCL700
+	to	r0
+;
+;	>>>   CEILING IS CRUSHING SOMETHING -- HOLD AND CRUSH!   <<<
+;
+	iwt	r15,#<_TPlatform3
+	nop
+_TCCL700
+	from	rSectorData			; SectorData Ceiling Height
+	to	r1
+	add	#rlsdCeilingHeight
+;	from	r0
+	cmp	r2				; At Top?
+	bge	_TCCL800			; No
+	moves	r0,r2				; Yes!
+_TCCL800
+	iwt	r15,#<_TPlatform1
+;	from	r0
+	stw	(r1)
+
+
+;
+;	* * * * * * *       CRUSHING CEILING RISING       * * * * * * *
+;
+_TCrushingCeilingRising
+	link	#3				; Make Ceiling Sound
+	iwt	r15,#<_TCeilingSound
+;
+	from	rTaskData			; Get CeilingHeight
+;	to	r0
+	add	#rlpctHeight
+	to	r2
+	ldw	(r0)
+;	with	r0				; Get SectorData
+	add	#(rlpctSectorData-rlpctHeight)
+;	to	r0
+	ldw	(r0)
+;	from	r0				; Move to Ceiling Height
+	to	rSectorData
+	add	#rlsdCeilingHeight
+;
+	move	r6,#rlpcMovement		; Ceiling Adjustment
+;
+	from	rFPSRatio			; FPS Adjustment
+;	to	r0
+	lmult
+;	with	r0				; Get Whole Levels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R1 = |CeilingAdjustment|
+	to	r1
+	or	r4
+;
+	ldw	(rSectorData)			; Get Ceiling Height
+;	with	r0
+	add	r1
+;	from	r0
+	cmp	r2				; At Top?
+	blt	_TCCR800			; No
+	moves	r0,r2				; Yes!
+_TCCR800
+	iwt	r15,#<_TPlatform1
+;	from	r0
+	sbk
+
+
+;
+;	* * * * * * *       BUILD LIST OF CHECK OBJECTS       * * * * * * *
+;
+;	 R4  = SectorData.Objects
+;	(R1) = OriginX/OriginY of Sector
+;
+	align	16,(_RLBuildCheckObjs-_RLBuildCheckObjsAlign)&$0f
+_RLBuildCheckObjs
+	move	r6,#<(_RLCheckObjs)		; R6 = CheckObjects List
+	from	r4				; Move to SectorData
+;	to	r0
+	sub	#rlsdObjects
+	move	(<ULSector),r0
+;
+	CACHEB	_RLBuildCheckObjs
+_RLBuildCheckObjsAlign
+;
+;	>>>   ADD SECTOR OBJECTS TO CHECKOBJECTS LIST   <<<
+;
+_RLBCO200
+;	to	r0				; Move to Next Object
+	ldw	(r4)
+	moves	r4,r0
+	beq	_RLBCO1000			; No More Objects!
+	from	r4				; Get Object's Flags/Type
+;	to	r0
+	add	#(rloFlags+1)
+;	to	r0				; @RAM FETCH INVERTED@
+	ldw	(r0)
+;	with	r0				; MOVABLE?
+	add	r0
+	bpl	_RLBCO200			; No
+;
+;	>>>   PLAYER OBJECT?   <<<
+;
+;	with	r0				; Player Object?
+	lob
+	beq	_RLBCO200			; Yes, Don't add Player Yet!
+;
+;	>>>   ADD OBJECT TO CHECKOBJECTS LIST   <<<
+;
+	from	r4				; Add SectorObject
+	stw	(r6)
+	inc	r6
+	bra	_RLBCO200
+	inc	r6
+;
+;	>>>   ADD PLAYER OBJECT IF IN SAME SECTOR   <<<
+;
+_RLBCO1000
+	ife	useMULTIPLAYER
+	move	r7,#<PlayerObject		; Player Object in Sector?
+	endif
+	ifn	useMULTIPLAYER
+	move	r7,(<MPPlayerObject)		; Player Object in Sector?
+	endif
+	move	r0,#rloSector
+;	with	r0
+	add	r7
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r4,#<_RLSectorData
+;	with	r0
+	add	r4
+	move	r4,(<ULSector)
+;	with	r0
+	sub	r4				; Same Sector?
+	bne	_RLBCO2000			; No, Check Radius Intersections
+	nop
+	iwt	r15,#<_RLBCO6800		; Yes!
+	from	r7
+;
+;	>>>   ADD PLAYER OBJECT IF WITHIN PLAYER RADIUS OF SECTOR CENTER   <<<
+;
+_RLBCO2000
+	move	(<MVReturnAddress),r12		; Caller's Return Address
+	move	(<ULReturnAddress),r11		; Return Address
+	move	(<CCDestHeight),r2		; Destination Height
+	move	(<MVRObj),r7			; RLObject Pointer
+	move	(<MVSector),r9			; SectorData
+	move	(<MVCode),r8			; TaskCode
+	move	(<MVCount),r13			; TaskCount
+	move	(<MVMLPtr),r6			; CheckObjects List
+	move	r1,#odrPlayer			; JUST Outside of Player Radius
+	link	#3
+	bra	_RLBCO3000
+	nop
+	move	r1,#(odrPlayer/2)		; WITHIN Player Radius Up To 8 Units
+	iwt	r11,#<_RLBCO6200		; Player NOT within Range!
+;
+;	>>>   TOP LEFT   <<<
+;
+_RLBCO3000
+	move	(<CCRadius),r1			; Save Radius Adjustment
+	move	(<CCReturnAddress),r11		; Save Return Address
+	from	r7				; RLObject Pointer
+;	to	r0
+	add	#(rloX+2)
+	to	r7
+	ldw	(r0)
+;	with	r0
+	add	#((rloY+2)-(rloX+2))
+	to	r8
+	ldw	(r0)
+	with	r7
+	sub	r1
+	with	r8
+	add	r1
+	link	#4
+	iwt	r15,#<_RLGetXYSectorData	; Get SectorData
+	nop
+	move	r0,(<ULSector)			; Same SectorData?
+;	with	r0
+	sub	rSectorData
+	beq	_RLBCO6000+1			; Yes!
+;
+;	>>>   TOP RIGHT   <<<
+;
+	move	r0,(<MVRObj)			; RLObject Pointer
+;	with	r0
+	add	#(rloX+2)
+	to	r7
+	ldw	(r0)
+;	with	r0
+	add	#((rloY+2)-(rloX+2))
+	to	r8
+	ldw	(r0)
+	move	r0,(<CCRadius)
+	with	r7
+	add	r0
+	with	r8
+	add	r0
+	link	#4
+	iwt	r15,#<_RLGetXYSectorData	; Get SectorData
+	nop
+	move	r0,(<ULSector)			; Same SectorData?
+;	with	r0
+	sub	rSectorData
+	beq	_RLBCO6000+1			; Yes!
+;
+;	>>>   BOTTOM LEFT   <<<
+;
+	move	r0,(<MVRObj)			; RLObject Pointer
+;	with	r0
+	add	#(rloX+2)
+	to	r7
+	ldw	(r0)
+;	with	r0
+	add	#((rloY+2)-(rloX+2))
+	to	r8
+	ldw	(r0)
+	move	r0,(<CCRadius)
+	with	r7
+	sub	r0
+	with	r8
+	sub	r0
+	link	#4
+	iwt	r15,#<_RLGetXYSectorData	; Get SectorData
+	nop
+	move	r0,(<ULSector)			; Same SectorData?
+;	with	r0
+	sub	rSectorData
+	beq	_RLBCO6000+1			; Yes!
+;
+;	>>>   BOTTOM RIGHT   <<<
+;
+	move	r0,(<MVRObj)			; RLObject Pointer
+;	with	r0
+	add	#(rloX+2)
+	to	r7
+	ldw	(r0)
+;	with	r0
+	add	#((rloY+2)-(rloX+2))
+	to	r8
+	ldw	(r0)
+	move	r0,(<CCRadius)
+	with	r7
+	add	r0
+	with	r8
+	sub	r0
+	link	#4
+	iwt	r15,#<_RLGetXYSectorData	; Get SectorData
+	nop
+	move	r0,(<ULSector)			; Same SectorData?
+;	with	r0
+	sub	rSectorData
+	beq	_RLBCO6000+1			; Yes!
+	move	r15,(<CCReturnAddress)		; Player NOT Within Range!
+;	with	r0
+	sub	r0
+;
+;	>>>   ADD PLAYER OBJECT   <<<
+;
+_RLBCO6000
+	move	r0,(<MVRObj)			; RLObject Pointer
+_RLBCO6200
+	move	r6,(<MVMLPtr)			; CheckObject List
+	move	r12,(<MVReturnAddress)		; Caller's Return Address
+	move	r11,(<ULReturnAddress)		; Return Address
+	move	r2,(<CCDestHeight)		; Destination Height
+	move	r9,(<MVSector)			; SectorData
+	move	r8,(<MVCode)			; TaskCode
+	move	r13,(<MVCount)			; TaskCount
+_RLBCO6800
+;	from	r0				; Add Player Object!
+	stw	(r6)
+	inc	r6
+	inc	r6
+;
+;	>>>   CHECKOBJECT LIST COMPLETE   <<<
+;
+_RLBCO8000
+;	with	r0				; Terminate CheckObjects List
+	sub	r0
+	jmp	r11				; Return to Caller
+;	from	r0
+	stw	(r6)
+
+	CACHEE	_RLBuildCheckObjs

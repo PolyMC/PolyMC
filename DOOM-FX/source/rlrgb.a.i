@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	95
+DATE	MACRO
+		dc.b	'2.6.95'
+	ENDM
+VERS	MACRO
+		dc.b	'rlrgb.a 1.95'
+	ENDM
+VSTRING	MACRO
+		dc.b	'rlrgb.a 1.95 (2.6.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: rlrgb.a 1.95 (2.6.95)',0
+	ENDM

@@ -1,0 +1,6 @@
+Echo "BRU SRL..."
+rx make/sbru.rex
+make/sback
+Stack 100000
+bru -c -f :RL.BRU :RLBACK
+Delete :RLBACK ALL QUIET

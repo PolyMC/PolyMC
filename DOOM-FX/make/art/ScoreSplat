@@ -1,0 +1,4 @@
+xg -pRLART:ScoreSplat -dRLDATA:ART/ScoreSplat -ms -fn -y0 -u00 -s3,3 -c8
+delete RLDATA:ART/ScoreSplat.map0
+xc -iRLDATA:ART/ScoreSplat.def0 -oRLDATA:COMP/ScoreSplat.def0
+touch score.a

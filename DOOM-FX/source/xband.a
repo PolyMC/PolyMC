@@ -1,0 +1,89 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                     XBAND HARDWARE SUPPORT MODULE                  *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+
+	ifn	useXBAND
+	SECTION	XBAND,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       INITIALIZE XBAND HARDWARE       * * * * * * *
+;
+	dbr	?
+	dpr	0
+InitXBAND
+;
+;	>>>   CHECK FOR XBAND HARDWARE   <<<
+;
+	mode	'A!'
+	lda	>$d0ffb2			; XBAND Hardware Present?
+	cmp	#'BX'
+	bne	IXD900
+	lda	>$d0ffb4
+	cmp	#'DN'
+	bne	IXD900				; NO!
+;
+;	>>>   INITIALIZE XBAND HARDWARE   <<<
+;
+	ifn	0
+	mode	'aX!'
+	phb
+	lda	#^FRED
+	pha
+	plb
+	dbr	^FRED
+	ldx	#(($13<<8)|($08))	; (EnFixedInternal|EnSafeROM|EnTwoRAM) / (Force)
+	stx	KILL
+	ldx	#((RANDY>>1)>>8)	; MagicAddress = RANDY
+	stx	magic_address+2
+	ldx	#((RANDY>>1)&$ffff)
+	stx	magic_address
+	ldx	#((XBANDRAM>>6)&$ffff)		; RAM Base
+	stx	ram_base
+	ldx	#(((XBANDRAM+$10000)>>6)&$ffff)	; RAM Bound
+	stx	ram_bound
+	ldx	#$8000				; HitEnables (VectorEnable)
+	stx	hit_enables
+	ldx	#(($00<<8)|((%11<<2)|%11))	; (ROMHiBits | RAMHiBits) / (SRAM Protect)
+	stx	snes_control
+	lda	#((XBANDROM>>14)&$ff)		; ROM Base
+	sta	rom_base
+	lda	#(((XBANDROM+$100000)>>14)&$ff)	; ROM Bound
+	sta	rom_bound
+	lda	RANDY				; Hit Magic Address
+	plb
+	endif
+
+	ifn	DEBUG
+	mode	'A!'
+	lda	#(($aa<<8)|($ff))		; Enable LEDs (On,On,On)
+	sta	led_data
+	lda	#(12000/2400)			; 2400 Baud
+	sta	baud_count_divisor
+	mode	'a!'
+	lda	#0				; Guard Count = 0
+	sta	guard_count
+;	lda	#%00000000			; Modem Control 2
+	sta	modem_control_2
+	lda	#(mc1b_ONESTOP|mc1b_ENABLESTOP|mc1b_BIT8|mc1b_RESETSERIAL|mc1b_ENABLESERIAL)
+	sta	modem_control_1
+	lda	#(mc1b_ONESTOP|mc1b_ENABLESTOP|mc1b_BIT8|mc1b_ENABLESERIAL)
+	sta	modem_control_1
+	lda	#'R'
+	sta	modem_transmit_buffer
+	lda	#'L'
+	sta	modem_transmit_buffer
+	endif
+IXD900
+	rtl
+
+	endif

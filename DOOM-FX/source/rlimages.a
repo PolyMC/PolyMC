@@ -1,0 +1,38 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                       IMAGES DATA TABLES MODULE                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+
+	SECTION	IMAGES,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       IMAGES TABLE       * * * * * * *
+;
+;	Table of Offsets within ImagesData Structures
+;
+;	DC.W	Image0DataOffset
+;	DC.W	Image1DataOffset
+;	DC.W	ImagenDataOffset
+;
+RLImagesTable
+	image	RLDATA:IMAGES/IMAGES.TBL
+
+
+;
+;	* * * * * * *       IMAGES DATA TABLE       * * * * * * *
+;
+;	DC.W	Flags
+;	DC.B	Height
+;	DC.B	Width
+;
+;	DC.B	Bank		\ * Width Strips
+;	DC.W	Address		/
+;
+RLImagesData
+	image	RLDATA:IMAGES/IMAGES.DAT

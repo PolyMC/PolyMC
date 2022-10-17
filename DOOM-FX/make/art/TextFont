@@ -1,0 +1,5 @@
+xg -pRLART:TextFont -dRLDATA:ART/TextFont -ms -fn -y0 -c15
+delete RLDATA:ART/TextFont.map0
+delete RLDATA:ART/TextFont.rgb
+xc -iRLDATA:ART/TextFont.def0 -oRLDATA:COMP/TextFont.def0
+touch sys.a

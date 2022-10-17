@@ -1,0 +1,11 @@
+.key TAG/A
+.bra {
+.ket }
+FailAt 21
+Echo "Touching all RL Source with <{TAG}>..."
+list >t:q{$$} #?.a lformat="make/Touch0 %s%s {TAG}"
+IF NOT FAIL
+execute t:q{$$}
+ELSE
+ENDIF
+FailAt 10

@@ -1,0 +1,24 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                        EPISODE 2 MISSION MODULE                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	exmy.i
+
+;
+;	* * * * * * *       EPISODE 2       * * * * * * *
+;
+	EXMYMAC	E2M1
+	EXMYMAC	E2M2
+	EXMYMAC	E2M3
+	EXMYMAC	E2M4
+	EXMYMAC	E2M5
+	EXMYMAC	E2M6
+	EXMYMAC	E2M7
+	EXMYMAC	E2M8
+	EXMYMAC	E2M9

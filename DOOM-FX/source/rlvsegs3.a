@@ -1,0 +1,265 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                        ENGINE VSEGS MODULE 3                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildVSegList3
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD VSEGMENT LIST 3        CALCULATE VSEGMENTS' TEXTURES  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       CALCULATE VSEGMENTS' TEXTURES       * * * * * * *
+;
+rRLWallsTable		equ	r3		; Bank of RLWallsTable
+rRLWallsTableB		equ	r4		; Bank of RLWallsTable
+	ifn	useTEXTURES
+rRLTextureTable		equ	r5		; Bank of RLTextureTable
+rRLTextureTableB	equ	r6		; Bank of RLTextureTable
+	endif
+rEMFACESB		equ	r7		; Bank of EMFACES
+rFaceTexture		equ	r8		; Pointer to VisibleSegmentFaceTexture
+rVSegTexture		equ	r9		; Pointer to VisibleSegmentTexture
+rVSeg			equ	r10		; Pointer within VisibleSegment
+rVSegFlags		equ	r12		; VisibleSegment Flags
+rVSegEnd		equ	r13		; Pointer to End of VisibleSegmentList
+
+
+	align	16,(_BV3L9000-_BV3L2000)&$0f
+
+;
+;	* * * * * * *       FINISHED CALCULATING VSEGMENTS' TEXTURES       * * * * * * *
+;
+_BV3L9000
+	iwt	r0,#<_RLBuildVSegList4		; BUILD VISIBLE SEGMENT LIST 4
+	ibt	r8,#^_RLBuildVSegList4
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	* * * * * * *       START CALCULATING VSEGMENTS' TEXTURES       * * * * * * *
+;
+_RLBuildVSegList3
+	move	rVSeg,#<(_RLVSegList-rlvSize+rlvFlags)  ; START of VisibleSegmentList
+	move	rVSegEnd,(<VSegListEnd)			; END of VisibleSegmentList
+	with	rVSegEnd
+	add	#rlvFlags
+;
+	ifn	useTEXTURES
+	move	rRLTextureTable,#<(RLTextureTable)	; RLTextureTable
+	move	rRLTextureTableB,#(^RLTextureTable)
+	endif
+;
+	move	rRLWallsTable,#<(RLWallsTable)		; RLWallsTable
+	move	rRLWallsTableB,#(^RLWallsTable)
+;
+	move	r0,#<(EMBSP+2)				; Bank of EM FACES Data
+	to	rEMFACESB
+	ldb	(r0)
+	from	rEMFACESB
+	romb
+
+	CACHEB	_RLBuildVSegList3
+;
+;	* * * * * * *       HANDLE NEXT VISIBLE SEGMENT       * * * * * * *
+;
+_BV3L2000
+	move	r6,#(rlvSize)			; Offset to Next VSEG
+_BV3L2200
+	from	rVSeg				; Move to Next VSEG
+_BV3L2400
+	to	rVSeg				; @FROM IN PIPELINE@
+	add	r6
+	from	rVSeg				; At END of VisibleSegmentList?
+;	to	r0				; @CMP@
+	sub	rVSegEnd
+	beq	_BV3L9000			; Yes!  No More VisibleSegments!
+
+;
+;	* * * * * * *       PROCESS NEXT VISIBLE SEGMENT       * * * * * * *
+;
+;	>>>   GET VISIBLESEGMENT FLAGS   <<<
+;
+;	to	r0				; Get VisibleSegmentFlags
+	ldw	(rVSeg)
+	moves	rVSegFlags,r0			; DOING WALL?
+	bpl	_BV3L2400			; No!
+;
+;	>>>   MOVE TO VISIBLE SEGMENT FACE   <<<
+;
+	from	rVSeg				; Move to Next VSEG
+;	to	r0
+	add	#(rlvFace-rlvFlags)
+	to	rFaceTexture			; Get Face Address
+	ldw	(r0)
+
+;
+;	* * * * * * *       NORMAL WALL       * * * * * * *
+;
+_BV3L20000
+	from	rVSegFlags			; NORMAL?
+;	to	r0
+	lsr
+	bcc	_BV3L30000
+	inc	rFaceTexture			; Move to NormalWall/SectorFar
+	move	r14,rFaceTexture
+	move	r0,#(rlvNormalWallTexture-rlvFlags)
+;	from	r0
+	to	rVSegTexture
+	add	rVSeg
+	move	r2,#(rlvfNORMALPEGGED)		; PEGGED?
+	with	r2
+	and	rVSegFlags
+	iwt	r11,#<_BV3L2200
+	iwt	r15,#<_RLAddWallTexture
+
+;
+;	* * * * * * *       UPPER WALL       * * * * * * *
+;
+_BV3L30000
+;	with	r0				; UPPER?
+	lsr
+	bcc	_BV3L40000
+	inc	rFaceTexture			; Move to UpperWall
+	move	r14,rFaceTexture
+	move	r0,#(rlvUpperWallTexture-rlvFlags)
+;	from	r0
+	to	rVSegTexture
+	add	rVSeg
+	move	r2,#(rlvfUPPERPEGGED)		; PEGGED?
+	with	r2
+	and	rVSegFlags
+	link	#3
+	iwt	r15,#<_RLAddWallTexture
+;
+;	* * * * * * *       LOWER WALL       * * * * * * *
+;
+_BV3L40000
+	from	rVSegFlags			; LOWER?
+;	to	r0
+	and	#rlvfLOWERWALL
+	beq	_BV3L2200
+	inc	rFaceTexture			; Move to LowerWall
+	move	r14,rFaceTexture
+	move	r0,#(rlvLowerWallTexture-rlvFlags)
+;	from	r0
+	to	rVSegTexture
+	add	rVSeg
+	move	r2,#(rlvfLOWERPEGGED)		; PEGGED?
+	with	r2
+	and	rVSegFlags
+	iwt	r11,#<_BV3L2200
+;	iwt	r15,#<_RLAddWallTexture+1
+;
+;	* * * * * * *       ADD WALL TEXTURE       * * * * * * *
+;
+;	r14 (rFaceTexture)	=	Pointer to Face Texture
+;	rVSegTexture		=	Pointer to VisibleSegment WallTexture
+;	r2			=	0=NOT Pegged, != 0 = PEGGED
+;
+_RLAddWallTexture
+;
+;	>>>   GET TEXTURE   <<<
+;
+	move	r0,#rlvfALTTEXTURE		; ALTERNATE TEXTURE?
+;	with	r0
+	and	rVSegFlags
+	beq	_RLAWT200			; No
+	getb
+;
+;	>>>   TRANSLATE TEXTURE -> ALTERNATE TEXTURE   <<<
+;
+	move	r1,#<_RLTextureXLatTable	; YES!  GET ALTERNATE TEXTURE#
+;	with	r0
+	add	r1
+;	to	r0
+	ldb	(r0)
+_RLAWT200
+
+	ifn	useTEXTURES
+;
+;	>>>   GET POINTER TO TEXTURE   <<<
+;
+	from	rRLTextureTableB
+	romb
+;	from	r0
+	to	r14
+	add	rRLTextureTable
+	move	r1,#<(RLTextureData+rltPatches+rlhWall)	; Point to First Patch
+	getb						; Get Offset within TextureDataTable
+	inc	r14
+	getbh
+;	from	r0
+	to	r14
+	add	r1
+	getb
+	inc	r14
+	getbh
+	endif
+
+	from	rRLWallsTableB			; Get Address of WallsTable
+	romb
+;	from	r0
+	to	r14
+	add	rRLWallsTable
+;
+	move	r1,#<(RLWallsData+rliHeight)	; Add Base of WallsData
+	getb					; Get Offset within WallsDataTable
+	inc	r14
+	getbh
+;	from	r0
+	to	r14
+	add	r1
+;
+;	>>>   SAVE POINTER TO TEXTUREDATA   <<<
+;
+	from	r14
+	stw	(rVSegTexture)
+	dec	rVSegTexture			; Move to VSegTextureH
+	dec	rVSegTexture
+;
+;	>>>   GET DIMENSIONS OF WALL PATCH   <<<
+;
+;	to	r0				; Get Height of Wall Texture
+	getb
+	inc	r14
+	moves	r2,r2				; PEGGED Texture?
+	beq	_RLAWT800			; No
+	nop
+	inc	r0				; YES!
+_RLAWT800
+;	with	r0				; Get Width-1 of Wall Texture
+	getbh
+;
+	from	rEMFACESB
+	romb
+;
+;	>>>   SAVE DIMENSIONS OF WALL PATCH   <<<
+;
+	jmp	r11				; Return to Caller
+;	from	r0
+	stw	(rVSegTexture)
+
+	CACHEE	_RLBuildVSegList3

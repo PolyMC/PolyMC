@@ -1,0 +1,558 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       OBJECT HANDLING MODULE 2                     *
+;*                                                                    *
+;*                LEVEL OBJECT UTILITY ROUTINES/FUNCTIONS             *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlenemies.i
+	include	rlobjects.i
+
+
+	public	_RLGetXYSectorData,__RLGetXYSectorData
+	public	_RLGetXYSector
+	public	_RLGetXYArea
+	public	_RLAddSectorObject
+	public	_RLRemSectorObject,_RLRemSectorFObject
+	public	_RLBirthSectorFObject
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;
+;	* * * * * * *       GET SECTORDATA AT (X,Y)       * * * * * * *
+;
+rX		equ	r7			; X Coordinate
+rY		equ	r8			; Y Coordinate
+
+rSector		equ	r6			; Object's Sector
+rSectorData	equ	r9			; Object's SectorData
+
+__RLGetXYSectorData
+	link	#3				; Called from SNES
+	bra	_RLGetXYSectorData
+	nop
+	stop
+	nop
+_RLGetXYSectorData
+	move	r13,r11				; Save Return Address
+	link	#3				; Find (X,Y) AREA
+	iwt	r15,#<_RLGetXYArea
+;	from	r0				; Move to AREA's SECTOR
+	to	r14
+	add	#rlaSector
+	to	r6				; Get SECTOR#
+	getb
+	from	r6				; SECTORDATA
+	to	rSectorData
+	umult	#rlsdSize
+	move	r0,#<_RLSectorData
+	with	rSectorData
+	add	r0
+	jmp	r13
+	nop
+
+_RLGetXYSector
+	move	r13,r11				; Save Return Address
+	link	#3				; Find (X,Y) AREA
+	iwt	r15,#<_RLGetXYArea
+;	from	r0				; Move to AREA's SECTOR
+	to	r14
+	add	#rlaSector
+	to	rSector				; Get SECTOR#
+	getb
+	jmp	r13
+	nop
+
+
+;
+;	* * * * * * *       GET AREA AT (X,Y)       * * * * * * *
+;
+;	TRAVERSE BSP TREE TO FIND AREA CONTAINING (X,Y)
+;
+rX		equ	r7			; X Coordinate
+rY		equ	r8			; Y Coordinate
+rBSPBase	equ	r5			; Pointer to BSP BASE
+
+	align	16,(_RLGetXYArea-_RLGetXYAreaAlign)&$0f
+_RLGetXYArea
+	move	r0,#<(EMBSP+2)			; Bank of EM Data
+	ldb	(r0)
+	romb					; Set ROM Bank
+	move	rBSPBase,(<EMBSP)		; BSP Base
+	move	r0,(<EMBSPR)			; BSP Root Node
+
+	CACHEB	_RLGetXYArea
+_RLGetXYAreaAlign
+;
+;	>>>   PROCESS NEXT NODE   <<<
+;
+_RGXYA200
+;	from	r0				; Move to NODE
+	to	r14
+	add	rBSPBase
+;
+;	>>>   CALCULATE CROSS PRODUCT OF <PARTITION> AND <OBJECT>   <<<
+;
+;			   (Xa * Yb) - (Ya * Xb)
+;
+;	= (DeltaX * (ObjectY-LineY)) - (DeltaY * (ObjectX-LineX))
+;
+;
+;	>>>   (Xa * Yb)   <<<
+;
+	getb
+	inc	r14
+	getbh
+	inc	r14
+	from	rY
+	to	r1				; (ObjectY - LineY)
+	sub	r0
+;
+	to	r6				; Get Delta X
+	getb
+	inc	r14
+	with	r6
+	getbh
+	inc	r14
+;
+	with	r1				; Result in R1:R2
+	lmult
+	move	r2,r4
+;
+;	>>>   (Ya * Xb)   <<<
+;
+	getb					; Get Line X
+	inc	r14
+	getbh
+	inc	r14
+	from	rX				; (ObjectX - LineX)
+;	to	r0
+	sub	r0
+;
+	to	r6				; Get Delta Y
+	getb
+	inc	r14
+	with	r6
+	getbh
+;
+;	with	r0				; Result in R0:R4
+	lmult
+;
+;	>>>   DETERMINE DIRECTION OF NODE   <<<
+;
+;	IF RESULT >= 0, OBJECT IS TO THE LEFT OF THE NODE
+;	IF RESULT <  0, OBJECT IS TO THE RIGHT OF THE NODE
+;
+	with	r2				; Xa*Yb - Ya*Xb
+	sub	r4
+	with	r1
+	sbc	r0
+	bpl	_RGXYA400			; >= 0 = LEFT
+;
+;	>>>   OBJECT IS TO THE RIGHT OF THE NODE   <<<
+;
+_RGXYA300
+	move	r0,#(rlbRightChild-(rlbDeltaY+1)) ; Move to Right Child
+;	from	r0
+	to	r14
+	add	r14
+	getb
+	inc	r14
+	getbh
+	moves	r0,r0				; Is this NODE an AREA?
+	bpl	_RGXYA200+1			; No
+	to	r14
+	bra	_RGXYA900			; YES!
+	nop
+;
+;	>>>   OBJECT IS TO THE LEFT OF THE NODE   <<<
+;
+_RGXYA400
+;	move	r0,#(rlbLeftChild-(rlbDeltaY+1)) ; Move to Left Child
+	dc.b	(rlbLeftChild-(rlbDeltaY+1))
+;	from	r0
+	to	r14
+	add	r14
+	getb
+	inc	r14
+	getbh
+	moves	r0,r0				; Is this NODE an AREA?
+	bpl	_RGXYA200+1			; No
+	to	r14
+;
+;	* * * * * * *       FOUND THE AREA       * * * * * * *
+;
+_RGXYA900
+	move	r1,(<EMAREAS)			; AREA Base
+	jmp	r11
+;	with	r0
+	add	r1
+
+	CACHEE	_RLGetXYArea
+
+
+;
+;	* * * * * * *       ADD RLOBJECT TO SECTOR       * * * * * * *
+;
+rObj		equ	r12			; Pointer to RLObject
+
+_RLAddSectorObject
+	move	r0,#rloSector			; Get Sector
+;	with	r0
+	add	rObj
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r1,#<(_RLSectorData+rlsdObjects)
+;	with	r0
+	add	r1
+;	to	r0				; R0 = SectorData.FirstObject
+	ldw	(r0)
+	from	rObj				; SectorData.FirstObject = RLObject
+	sbk
+	move	r1,rObj
+;	from	r0				; RLObject.Next = SectorData.FirstObject
+	stw	(r1)
+	moves	r0,r0				; Any FirstObject?
+	beq	_RASO200			; No
+	inc	r0
+	inc	r0
+	from	rObj				; SectorData.FirstObject.Prev = RLObject
+	stw	(r0)
+_RASO200
+	inc	r1				; RLObject.Previous = NULL
+	inc	r1
+;	with	r0
+	sub	r0
+	jmp	r11				; Return to Caller
+;	from	r0
+	stw	(r1)
+
+
+;
+;	* * * * * * *       REMOVE RLOBJECT FROM SECTOR       * * * * * * *
+;
+;	!!!   ALSO IN RLMOBJECTS2.A   !!!
+;
+rObj			equ	r12		; Pointer to RLObject
+rTObj			equ	r13		; Pointer to Target RLObject (FIXED ONLY)
+rTObjSectorData		equ	r1		; Target RLObject SectorData (FIXED ONLY)
+
+	align	16,(_RLRemSectorFObject-_RLRemSectorObjectAlign)&$0f
+_RLRemSectorFObject
+	with	rTObjSectorData			; R1 = SectorData.FirstObject
+	add	#rlsdObjects
+	from	rTObj				; FIXED OBJECT NOW DEAD!
+;	to	r0
+	add	#rloFlags
+;	to	r0
+	ldw	(r0)
+	move	r2,#(rlpfActive|rlpfSolid|rlpfTarget)	; Neither ACTIVE, SOLID, nor TARGET!
+;	with	r0
+	bic	r2
+;	from	r0
+	sbk
+	with	rTObj
+	bra	_RLRemSectorObject2
+	to	rObj
+_RLRemSectorObject
+	move	r0,#rloSector			; Get Sector
+;	with	r0
+	add	rObj
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r1,#<(_RLSectorData+rlsdObjects) ; R1 = SectorData.FirstObject
+	with	r1
+	add	r0
+_RLRemSectorObject2
+	move	r2,rObj				; R2 = RLObject.Next
+	to	r2
+	ldw	(r2)
+
+	CACHEB	_RLRemSectorObject
+_RLRemSectorObjectAlign
+_RRSO200
+;	to	r0				; R0 = Object.Next
+	ldw	(r1)
+;	from	r0				; Object.Next = RLObject?
+	cmp	rObj
+;
+	ife	useCHECKSECTOROBJECTS
+	with	r0				; Object = Object.Next
+	bne	_RRSO200
+	to	r1
+	endif
+;
+	ifn	useCHECKSECTOROBJECTS
+	beq	_RRSO800			; YES!  Remove It!
+	nop
+	moves	r1,r0				; Object = Object.Next
+	bne	_RRSO200
+	HALTGSU	#$71				; ERROR!
+	endif
+
+_RRSO800
+	from	r2				; Object.Next = RLObject.Next
+	sbk
+	moves	r2,r2				; Any Next?
+	beq	_RRSO820			; No!
+	inc	r2				; RLObject.Next.Prev = RLObject.Prev
+	inc	r2
+	from	rObj
+;	to	r0
+	add	#rloPrev
+;	to	r0				; R0 = RLObject.Previous
+	ldw	(r0)
+;	from	r0
+	stw	(r2)
+_RRSO820
+	jmp	r11				; Return to Caller
+	nop
+
+	CACHEE	_RLRemSectorObject
+
+
+;
+;	* * * * * * *       BIRTH RLMOBJECT FROM RLFOBJECT       * * * * * * *
+;
+rTObj			equ	r13		; Pointer to Target RLObject (FIXED ONLY)
+rTObjSectorData		equ	r1		; Target RLObject SectorData (FIXED ONLY)
+;
+rMObjData		var	r10		; Birth RLObject MObjData
+rObj			var	r12		; Birth RLObject
+rSector			var	r6		; Birth RLObject Sector
+rX			var	r7		; Birth RLObject X Coordinate
+rY			var	r8		; Birth RLObject Y Coordinate
+
+	align	16,(_RLBirthSectorFObject-_RLBirthSectorFObjectAlign)&$0f
+_RLBirthSectorFObject
+	move	rMObjData,#<modBarrelExp	; Birth RLObject MObjData
+;
+	move	r4,r11				; Save Return Address
+	move	r6,rTObjSectorData		; Save RLObj SectorData
+	move	r7,rTObj			; Save RLObj Pointer
+	link	#3
+	iwt	r15,#<_RLRemSectorFObject	; Remove SectorFObject
+	move	r11,r4				; Restore Return Address
+;
+	move	r0,(<RLNumMObjs)		; Get #MovableRLObjects
+	move	r1,#(MaxRLMObjects-1)		; Too Many RLMObjs?
+;	from	r0
+	cmp	r1
+	blt	_RLBSF1200			; No!  Add this Projectile!
+	inc	r0				; MovableRLObjects++
+	jmp	r11				; YES!  TOO MANY RLMOBJECTS!
+	nop
+_RLBSF1200
+;	from	r0
+	sbk
+
+	CACHEB	_RLBirthSectorFObject
+;
+;	>>>   FIND EMPTY MOVABLE OBJECT   <<<
+;
+_RLBirthSectorFObjectAlign
+	move	r2,#<(_RLMObjects-rloSize)	; RLMovableObjects
+	move	r1,#rloSize			; Size of RLMovableObject
+_RLBSF1400
+	with	r2				; Move to Next MObj
+	add	r1
+;	to	r0				; Find Empty MObj
+	ldw	(r2)
+	inc	r0
+	bne	_RLBSF1400+1			; Check Next MObj
+	move	rObj,r2				; Save MObj
+;
+;	>>>   FIND EMPTY MOVABLE OBJECT PROCESSING SLOT   <<<
+;
+	move	r1,#<(_RLMObjs-1)		; MovableObjects Processing List
+_RLBSF1600
+	inc	r1
+;	to	r0				; Find Empty MObj Processing Slot
+	ldw	(r1)
+	inc	r0
+	bne	_RLBSF1600			; Check Next MObj
+	inc	r1
+
+	CACHEE	_RLBirthSectorFObject
+;
+;	>>>   ADD MOVABLE OBJECT TO PROCESSING LIST   <<<
+;
+	dec	rObj				; Save RLObject
+	dec	r1
+	from	rObj
+	stw	(r1)
+	inc	rObj
+	move	r0,(<RLNumPMObjs)		; #Processing MObjs++
+	inc	r0
+;	from	r0
+	sbk
+;
+;	>>>   INITIALIZE MOVABLE OBJECT   <<<
+;
+	move	r0,#^_MObjData			; MObjData Bank
+	romb
+	from	rMObjData			; Get Birth State
+	to	r14
+	add	#rlmodBirthS
+;
+	move	r4,#rloMData			; Move to MObjData
+	with	r4
+	add	rObj
+	from	rMObjData			; MObjData
+	stw	(r4)
+;
+	move	r10,r11				; Save Return Address
+;
+	dec	r4
+	dec	r4
+	getb					; State
+	inc	r14
+	getbh
+	inc	r14
+;	from	r0
+	stw	(r4)
+	dec	r4
+	dec	r4
+;	with	r0				; AnimCount/StateCount
+	sub	r0
+;	from	r0
+	stw	(r4)
+	dec	r4
+	dec	r4
+	getb					; Animation
+	inc	r14
+	to	r2
+	getbh
+	move	r1,#(rlmodBirthFlags-(rlmodBirthA+1))
+	with	r1
+	add	r14
+	from	r2				; Get Animation First Frame
+	to	r14
+	add	#1
+	from	r2
+	stw	(r4)
+	dec	r4				; Image
+	getb
+	move	r14,r1				; Get BirthFlags/BirthType
+;	from	r0				; Image
+	stb	(r4)
+	getb					; BirthFlags
+	inc	r14
+	from	rObj
+	to	r4
+	add	#rloFlags
+	getbh					; BirthType
+;	from	r0				; Flags/Type
+	stw	(r4)
+;
+;	>>>   GET COORDINATES OF FIXED OBJECT   <<<
+;
+	move	r0,#<(EMSECTORS+2)		; Bank of EM OBJECTS Data
+	ldb	(r0)
+	romb
+	from	r7				; Get LevelObject
+;	to	r0
+	add	#rloLObj
+	to	r14
+	ldw	(r0)
+;
+;	to	r0				; Get RLObject X
+	getb
+	inc	r14
+;	from	r0
+	to	rX
+	getbh
+	inc	r14
+;
+;	to	r0				; Get RLObject Y
+	getb
+	inc	r14
+;	from	r0
+	to	rY
+	getbh
+;
+	from	r6				; Fixed RLObject's SectorData
+;	to	r0				; Get SectorData.FloorHeight
+	add	#rlsdFloorHeight
+	to	r1
+	ldw	(r0)
+;
+	from	rObj				; R2 = Birth RLObj
+	to	r2
+	add	#(rloX+2)
+	from	rX				; X Coordinate
+	stw	(r2)
+	with	r2				; Y Coordinate
+	add	#((rloY+2)-(rloX+2))
+	from	rY
+	stw	(r2)
+	inc	r2				; Z Coordinate
+	inc	r2
+	from	r1
+	stw	(r2)
+;
+;	>>>   GET OBJECT'S SECTORDATA   <<<
+;
+	link	#4				; Get Object's Sector
+	iwt	r15,#<_RLGetXYSector
+	nop
+;
+	move	r0,#rloSector			; Update Object's Sector
+;	with	r0
+	add	rObj
+	from	rSector
+	stb	(r0)
+;
+;	>>>   ADD RLOBJECT TO NEW SECTOR   <<<
+;
+	link	#4				; Add RLObject to Sector's ObjectList
+	iwt	r15,#<_RLAddSectorObject
+	nop
+;
+;	>>>   START SOUND EFFECT   <<<
+;
+	move	r7,r3				; Save Original SoundEffect!
+	move	r0,#^_MObjData			; MObjData Bank
+	romb
+	move	r0,#rloMData			; Get Pointer to MObjData
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	move	r1,#rlmodBirthSound		; Get Birth Sound Effect
+;	from	r0
+	to	r14
+	add	r1
+	from	rObj				; Get Sound Origin Coordinates
+;	to	r0
+	add	#(rloX+2)
+	to	r4
+	ldw	(r0)
+	to	r3				; Get SoundEffect#
+	getb
+	inc	r14
+;	with	r0
+	add	#((rloY+2)-(rloX+2))
+	to	r6
+	ldw	(r0)
+	with	r3				; Get SoundEffect#
+	getbh
+	link	#4
+	iwt	r15,#<_RLSoundEffect
+	dec	r3
+	move	r3,r7				; Restore Original SoundEffect!
+	jmp	r10
+	nop

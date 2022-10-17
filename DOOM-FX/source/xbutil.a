@@ -1,0 +1,409 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                 XBAND PATCH UTILITIES MODULE       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+;	SECTION	XBAND
+
+
+;
+;	* * * * * * *       INITIALIZE XBAND HARDWARE       * * * * * * *
+;
+	dbr	(^*)
+_XBInitHW
+	mode	'AX!'
+	pea	#$0001				; Reset CPU/APU
+	ldx	#kResetCPU
+	jsl	$e00040
+;
+;	* * * * * * *       RE-INITIALIZE XBAND HARDWARE       * * * * * * *
+;
+_XBInitHW2
+	lda	#<(XBANDPVT>>5)			; Patch Vector Table
+	sta	vector_table_base
+;
+;	>>>   REENABLE FRED->MODEM COMMUNICATIONS -- FIXED IN OS PATCH   <<<
+;
+	lda	#130				; BCnt = 130
+	sta	baud_count_divisor
+	mode	'a!'
+	lda	#$08				; MStatus2 = MSync
+	sta	modem_control_2
+	lda	#$1d				; MStatus1 = fredStatus
+	sta	modem_control_1
+;
+	lda	#%10111111			; Enable LEDs
+	sta	enable_led
+	lda	#%00101010			; Enable LEDs (On,On,On)
+	sta	led_data
+;
+	jsr	_XBKeyBoardInit			; Initialize XBAND KeyBoard
+;
+;	jmp	_XBHardToSoft			; HardHere -> SoftHere
+
+;
+;	* * * * * * *       XBAND HARD -> SOFT HERE       * * * * * * *
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE   !!!
+;
+	dbr	?
+	dpr	?
+_XBHardToSoft
+	mode	'AX!'
+	ldx	#<_XBHardToSoftCode		; Transfer the XBAND Code
+	ldy	#<_XBHardToSoftCodeRAM
+	lda	#(_XBHardToSoftCodeEnd-_XBHardToSoftCode)
+	mvn	#((^_XBHardToSoftCode<<8)+^_XBHardToSoftCodeRAM)
+	jsl	_XBHardToSoftCodeRAM
+	phk
+	plb
+	rts
+;
+;	* * * * * * *       CODE TRANSFERRED TO WRAM       * * * * * * *
+;
+	mode	'X'
+_XBHardToSoftCode
+	org	_XBHardToSoftCodeRAM
+	mode	'a!'
+	lda	#^FRED
+	pha
+	plb
+	dbr	^FRED
+	ldx	#(($13<<8)|($08))	; (EnFixedInternal|EnSafeROM|EnTwoRAM) / (Force)
+	stx	KILL
+	ldx	#((RANDY>>1)>>8)	; MagicAddress = RANDY
+	stx	magic_address+2
+	ldx	#((RANDY>>1)&$ffff)
+	stx	magic_address
+	ldx	#((XBANDRAM>>6)&$ffff)		; RAM Base
+	stx	ram_base
+	ldx	#(((XBANDRAM+$10000)>>6)&$ffff)	; RAM Bound
+	stx	ram_bound
+	ldx	#$8000				; HitEnables (VectorEnable)
+	stx	hit_enables
+	ldx	#(($bf<<8)|((%11<<2)|%11))	; (ROMHiBits | RAMHiBits) / (SRAM Protect)
+	stx	snes_control
+	lda	#((XBANDROM>>14)&$ff)		; ROM Base
+	sta	rom_base
+	lda	#(((XBANDROM+$100000)>>14)&$ff)	; ROM Bound
+	sta	rom_bound
+	lda	RANDY				; Hit Magic Address
+	lda	$FFE0				; SoftHere=1
+	stz	hit_enables+1			; HitEnables
+	mode	'A!'
+	rtl
+	reorg
+_XBHardToSoftCodeEnd
+
+
+;
+;	* * * * * * *       XBAND SOFT -> HARD HERE       * * * * * * *
+;
+	dbr	$FF
+	dpr	?
+_XBSoftToHard
+	mode	'a!'
+	lda	#$80				; Disable Display
+	sta	INIDISP
+	lda	#$00				; No Interrupts
+	sta	NMITIMEN
+	lda	#((($DFC000)>>14)&$ff)		; ROM Bound
+	sta	rom_bound
+	mode	'A!'
+	lda	#(($bf<<8)|((%11<<2)|%11))	; (ROMHiBits | RAMHiBits) / (SRAM Protect)
+	sta	snes_control
+	lda	#((RANDY>>1)>>8)
+	sta	magic_address+2
+	lda	#((RANDY>>1)&$ffff)
+	sta	magic_address
+	lda	#$0000				; HitEnables
+	sta	hit_enables
+	mode	'a!'
+	lda	#$3b				; CONTROL
+	sta	$4f03
+	lda	#1				; KILL
+	sta	$DFC001
+	lda	RANDY
+;	lda	#$33				; CONTROL
+;	sta	CONTROL
+;	lda	#((($E00000)>>14)&$ff)		; ROM Bound
+;	sta	rom_bound
+	mode	'A!'
+;	lda	#(($bf<<8)|((%11<<2)|%11))	; (ROMHiBits | RAMHiBits) / (SRAM Protect)
+;	sta	snes_control
+	rts
+
+
+;
+;	* * * * * * *       XBAND CHECK 1P GAME TIMEOUT       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+_XBCheck1PTimeOut
+	lda	XBEverFinish1P			; Ever Registered during this Practice Game?
+	beq	_XBCPT800			; No
+	lda	XBRegistered			; Still Registered?
+	bne	_XBCPT800			; Yes
+	jsr	_XBSoftToHard			; No, Tell Player They're Done Waiting
+	phk
+	plb
+	dbr	(^*)
+	ldx	#$11ff
+	txs
+	pea	#<kSinglePlayerGameOver
+	ldx	#kOSHandleGameError
+	jsl	_XBOSDispatcher			; *NEVER RETURNS*
+_XBCPT800
+	rts
+
+
+;
+;	* * * * * * *       XBAND CODE PATCHER       * * * * * * *
+;
+	dpr	0
+	mode	'AX'
+_XBPatcher
+	phb					; Save DB
+	phk					; Set DB to PatchData
+	plb
+	dbr	(^*)
+;
+;	>>>   GET NEXT PATCH   <<<
+;
+_XBPR1000
+	mode	'A!'
+	lda	!((^*)<<16),x			; Get Address of Patch
+	sta	Temp
+	inc	a
+	beq	_XBPR8000
+	inx
+	inx
+	lda	!((^*)<<16),x
+	inx
+	inx
+	sta	Temp+2
+	and	#$ff00
+	bmi	_XBPR4000			; Hardware Patch
+	bne	_XBPR2000			; Software Patch
+;
+;	>>>   HIT ENABLES PATCH   <<<
+;
+	lda	Temp				; Get Hit Enables
+	sta	hit_enables
+	bra	_XBPR8000
+;
+;	>>>   RAM-BASED PATCH   <<<
+;
+_XBPR2000
+	ldy	#0
+	mode	'a!'
+_XBPR2200
+	lda	!((^*)<<16),x			; Copy Patch Bytes
+	sta	[Temp],y
+	inx
+	iny
+	dec	Temp+3
+	bne	_XBPR2200
+	bra	_XBPR1000
+;
+;	>>>   ROM-BASED PATCH   <<<
+;
+	mode	'A'
+_XBPR4000
+	xba					; .Y = (ROM Patch# << 1)
+	and	#$007f
+	txy
+	tax
+	lda	!((^*)<<16),y			; Patch Value
+	sta	XBANDPVT,x
+	txa
+	asl	a
+	asl	a
+	tax
+	lda	Temp				; Patch Address
+	sta	translation_address0,x
+	mode	'a!'
+	lda	Temp+2
+	sta	translation_address0+4,x
+	iny
+	iny
+	tyx
+	bra	_XBPR1000
+;
+;	>>>   PATCHING COMPLETE   <<<
+;
+_XBPR8000
+	plb					; Restore DB
+	rts
+
+
+;
+;	* * * * * * *       XBAND RING DETECTION       * * * * * * *
+;
+_XBRingDetect
+	phb					; Save DB
+	phk
+	plb
+	dbr	(^*)
+	mode	'AX!'
+	lda	XBGameType			; Playing One Player Practice Game?
+	bpl	_XBRD8000			; No
+;
+;	>>>   CHECK FOR REGISTRATION TIMEOUT   <<<
+;
+	lda	XBRegistered			; Registered to Receive Call?
+	beq	_XBRD5000			; No
+	lda	XBTimeout			; Timeout >= gTicks?
+	cmp	gTicks
+	lda	XBTimeout+2
+	sbc	gTicks+2
+	bcs	_XBRD2000			; Yes, Still Registered
+	stz	XBRegistered			; No, UnRegister This Player!
+	pea	#<kNetRegisterTimeout
+	ldx	#kOSHandleGameError
+	jsl	_XBOSDispatcher
+	ldx	#$81				; ENABLE NMIS+JOYREAD
+	lda	3,s				; ROM/RAME or RAM2 (GAME)?
+	bmi	_XBRD1200
+	ldx	#$31				; ENABLE VEN+HEN+JOYREAD
+_XBRD1200
+	mode	'a!'
+	txa
+	sta	NMITIMEN
+	mode	'AX!'
+	bra	_XBRD5000
+;
+;	>>>   CHECK FOR RING   <<<
+;
+_XBRD2000
+	mode	'a!'
+	lda	ring_check			; Check for Ring
+	mode	'A!'
+	and	#$0008
+	beq	_XBRD5000
+	jsr	_XBSoftToHard			; SoftHere -> HardHere
+	pea	#$fd3c				; kRingDetected
+	ldx	#kOSHandleGameError
+	jsl	_XBOSDispatcher			; *NEVER RETURNS*
+;
+;	>>>   SET XBAND LEDS   <<<
+;
+_XBRD5000
+	ldx	#mdBottom_LED_Mask
+	lda	XBRegistered			; Registered to Receieve Call?
+	beq	_XBRD5200			; No, Don't Blink Middle LED
+	lda	gTicks
+	and	#%10000
+	bne	_XBRD5200
+	ldx	#(mdBottom_LED_Mask|mdMiddle_LED_Mask)
+_XBRD5200
+	txa					; Bottom LED On
+	and	#$00ff
+	ora	#$bf00
+	sta	led_data
+_XBRD8000
+	plb
+	rtl
+
+
+;
+;	* * * * * * *       XBAND NORMAL NMI       * * * * * * *
+;
+_XBNormalNMI
+	mode	'AX!'
+	pha					; Save .A
+	phx					; Save .X
+	phy					; Save .Y
+	phd					; Save DPR
+	lda	#0				; Set DPR $0000
+	pha
+	pld
+	dpr	0
+	phb					; Save DB
+	pha
+	plb					; Set DB
+	dbr	0
+	jsr	_XBINT				; Handle XBAND Interrupt Code
+	jml	NNMI3000			; Normal NMI Handler
+
+
+;
+;	* * * * * * *       XBAND TOP IRQ CODE       * * * * * * *
+;
+	mode	'AX'
+	dbr	0
+	dpr	0
+_XBIRQTop
+	jsr	_XBINT				; Handle XBAND Interrupt Code
+	rtl
+
+;
+;	* * * * * * *       XBAND BOTTOM IRQ CODE       * * * * * * *
+;
+	mode	'AX'
+	dbr	0
+	dpr	0
+_XBIRQBottom
+	jsr	_XBPollModem			; Modem In/Out
+	rtl
+
+
+;
+;	* * * * * * *       XBAND INTERRUPT CODE       * * * * * * *
+;
+	dpr	?
+_XBINT
+	phb
+	phk
+	plb
+	dbr	(^*)
+	mode	'AX!'
+	inc	gTicks				; gTicks++
+	bne	_XBI1200
+	inc	gTicks+2
+_XBI1200
+	jsr	_XBPollModem			; Modem In/Out
+	jsr	_XBKeyBoardRead			; Read KeyBoard
+	mode	'AX!'
+	plb
+	rts
+
+
+;
+;	* * * * * * *       TIMEOUT ERROR       * * * * * * *
+;
+_XBTimeOut
+	sei
+	jsr	_XBSoftToHard			; SoftHere -> HardHere
+;
+	phk
+	plb
+	dbr	(^*)
+	mode	'AX!'
+	lda	#0				; Clear GO bit (Halt GSU)
+	sta	sfxSFR
+.0
+	lda	sfxSFR				; GSU Halted?
+	and	#%0000000000100000
+	bne	.0				; No, keep waiting
+;
+	ldx	#0
+.1
+	dex
+	nop
+	nop
+	bne	.1				; wait a while to allow modem bytes to flush
+	ldx	#$11ff				; or the stack sniffer might die!
+	txs
+	pea	#<kGameTimeout
+	ldx	#kOSHandleGameError
+	jsl	_XBOSDispatcher			; *NEVER RETURNS*

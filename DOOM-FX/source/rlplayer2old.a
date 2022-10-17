@@ -1,0 +1,1043 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       PLAYER HANDLING MODULE 2                     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	rlobjects.i
+	include	rlplayer.i
+	include	rlweapons.i
+	include	music.i
+
+
+	public	_RLPlayer
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+;
+;	* * * * * * *       REALITY_ENGINE PLAYER HANDLING       * * * * * * *
+;
+_RLPlayer
+;
+;	* * * * * * *       ACTIONS AFFECTING MOVEMENT/USE/OPERATION       * * * * * * *
+;
+_RLP1000
+	move	r9,(<(PlayerJoy+RLGSUSNESXVarsO)) ; Get Joystick Bits
+
+;
+;	>>>   PLAYER DEAD?   <<<
+;
+	move	r1,(<PlayerDead)		; Is Player Dead?
+	dec	r1
+	bmi	_RLP2000			; NO!
+	nop
+
+	ifn	0
+	bpl	_RLP1500-2			; YES!
+;
+;	>>>   PLAYER FALLING?   <<<
+;
+	ifn	0
+	move	r0,#<(PlayerObject+rloSector)	; Get Player's Sector
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r1,#<(_RLSectorData+rlsdFloorHeight)
+;	with	r0
+	add	r1
+	to	r1				; Get FloorHeight
+	ldw	(r0)
+	endif
+	ifn	1
+	move	r1,(<(PlayerObject+rloZ2))	; Get Player's Z2
+	endif
+
+	move	r0,(<(PlayerObject+rloZ))	; Get Player's Z
+	dec	r0
+;	with	r0				; PlayerZ >= FloorHeight?
+	sub	r1				; @CMP@
+	bge	_RLP1100			; Yes
+;	with	r0				;  0 = NOT ON Ground
+	sub	r0
+	dec	r0				; -1 = ON Ground
+_RLP1100
+	move	(<PlayerOnGround),r0
+	bmi	_RLP2000			; Player IS On Ground!
+	nop
+;
+;	>>>   PLAYER IS FALLING   <<<
+;
+	move	r15,#<_RLP5000			; Don't allow movement
+	nop
+	endif
+
+;
+;	>>>   PLAYER IS DEAD -- WAIT FOR RESTART   <<<
+;
+_RLP1500
+	move	r0,(<(PlayerJoy+RLGSUSNESXVarsO)) ; Get Joystick Bits
+	move	r1,(<PlayerJoyOld)
+	with	r1
+	sub	r0
+	beq	_RLP1600
+	nop
+	ife	useID
+	move	r1,#(pjWEAPON|pjUSE)
+	endif
+	ifn	useID
+	move	r1,#(pjWEAPON|pjUSE|pjFIRE|pjRUN)
+	endif
+;	with	r0
+	and	r1
+	ife	useID
+;	with	r0				; BOTH PRESSED?
+	sub	r1
+	bne	_RLP1600-1			; No
+	endif
+	ifn	useID
+	beq	_RLP1600-1			; ANYTHING PRESSED?
+	endif
+	move	r0,#-2				; YES, RESTART LEVEL!
+	move	(<ExitLevel),r0
+_RLP1600
+	ifn	useWILLIAMS
+;	with	r0				; Don't Die in AutoMap Mode!
+	sub	r0
+	move	(<AutoMapMode),r0
+	endif
+	move	r15,#<_RLP20000			; Don't allow anything
+	nop
+
+;
+;	>>>   PLAYER FALLING?   <<<
+;
+_RLP2000
+	move	r0,(<(PlayerObject+rloZ))	; Get Object's Z
+	move	r1,(<(PlayerObject+rloZ2))	; Get Object's Z2
+	with	r1				; FloorHeight >= ObjectZ?
+	sub	r0				; @CMP@
+	bge	_RLP2100			; Yes
+	nop
+;
+;	>>>   PLAYER IS FALLING   <<<
+;
+	move	r15,#<_RLP5000			; Yes!  Don't allow movement
+	nop
+;
+;	>>>   STRAFE LEFT/RIGHT   <<<
+;
+_RLP2100
+	move	r0,r9				; <LEFT>?
+	move	r1,#pjSTRAFELEFT
+	and	r1
+	beq	_RLP2200			; No
+	nop
+	move	r2,#$4000
+	bra	_RLP2500
+	nop
+_RLP2200
+	move	r0,r9				; <RIGHT>?
+	move	r1,#pjSTRAFERIGHT
+	and	r1
+	beq	_RLP3000			; No
+	nop
+	move	r2,#$c000
+_RLP2500
+	move	r6,(<(PlayerMouseX+RLGSUSNESXVarsO))
+	move	r0,(<FPSRatio)			; Get FPSRatio
+;	with	r0
+	lmult
+;	with	r0				; Get Whole Pixels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0
+	to	r6
+	or	r4
+;
+	move	r0,(<(PlayerObject+rloAngle))	; Get PlayerAngle
+;	with	r0				; Add Angle Offset
+	add	r2
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr					; >>5
+	lsr					; Remove lowest bit
+	to	r2
+	add	r0
+	move	r0,#^SinTable			; Bank of SinTable
+	romb
+	move	r0,#<SinTable			; Add Base of SinTable
+;	from	r0
+	to	r14
+	add	r2
+	getb					; Get Sin from Table
+	inc	r14
+	getbh
+	fmult
+	move	r1,(<(PlayerObject+rloVY))
+;	with	r0
+	add	r1
+;	from	r0
+	sbk
+;
+	move	r0,#<CosTable			; Add Base of CosTable
+;	from	r0
+	to	r14
+	add	r2
+	getb					; Get Cos from Table
+	inc	r14
+	getbh
+	fmult
+	move	r1,(<(PlayerObject+rloVX))
+;	with	r0
+	add	r1
+	bra	_RLP4000			; Don't Rotate while STRAFING!
+;	from	r0
+	sbk
+;
+;	>>>   ROTATE LEFT/RIGHT   <<<
+;
+_RLP3000
+	move	r6,(<(PlayerMouseX+RLGSUSNESXVarsO))
+	moves	r6,r6
+	beq	_RLP4000
+	nop
+;
+	move	r0,(<FPSRatio)			; Get FPSRatio
+;	with	r0
+	lmult
+;	with	r0				; Get Whole Pixels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0
+	to	r6
+	or	r4
+	move	r0,(<(PlayerObject+rloAngle))
+;	with	r0
+	add	r6
+;	with	r0
+	bic	#1
+;	from	r0
+	sbk
+;
+;	>>>   MOVE FORWARDS/BACKWARDS   <<<
+;
+_RLP4000
+	move	r6,(<(PlayerMouseY+RLGSUSNESXVarsO))
+	moves	r6,r6
+	beq	_RLP5000
+	nop
+;
+	move	r0,(<FPSRatio)			; Get FPSRatio
+;	with	r0
+	lmult
+;	with	r0				; Get Whole Pixels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0
+	to	r6
+	or	r4
+;
+	move	r0,(<(PlayerObject+rloAngle))	; Get PlayerAngle
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr					; >>5
+	lsr					; Remove lowest bit
+	to	r2
+	add	r0
+	move	r0,#^SinTable			; Bank of SinTable
+	romb
+	move	r0,#<SinTable			; Add Base of SinTable
+;	from	r0
+	to	r14
+	add	r2
+	getb					; Get Sin from Table
+	inc	r14
+	getbh
+	fmult
+	move	r1,(<(PlayerObject+rloVY))
+;	with	r0
+	add	r1
+;	from	r0
+	sbk
+;
+	move	r0,#<CosTable			; Add Base of CosTable
+;	from	r0
+	to	r14
+	add	r2
+	getb					; Get Cos from Table
+	inc	r14
+	getbh
+	fmult
+	move	r1,(<(PlayerObject+rloVX))
+;	with	r0
+	add	r1
+;	from	r0
+	sbk
+;
+;	>>>   USE/OPERATE   <<<
+;
+_RLP5000
+	move	r0,r9				; Use/Operate?
+	move	r1,#pjUSE
+	and	r1
+	beq	_RLP10000
+	nop
+	move	r0,(<PlayerJoyOld)
+	and	r1
+	bne	_RLP10000
+	nop
+	move	r1,#<MVULMask			; LineFlags Type Mask
+	move	r0,#(rllfUsable>>8)
+;	from	r0
+	stb	(r1)
+	move	r12,#<PlayerObject		; Pointer to Player's RLObject
+	link	#4
+	iwt	r15,#<_RLUseXY			; USE/OPERATE SPECIAL LINES
+	nop
+
+;
+;	* * * * * * *       ACTIONS NOT AFFECTING MOVEMENT       * * * * * * *
+;
+;	>>>   <SELECT> TO TOGGLE AUTOMAP   <<<
+;
+_RLP10000
+	move	r9,(<(PlayerJoy+RLGSUSNESXVarsO)) ; Get Joystick Bits
+	ifn	useAUTOMAP
+	move	r0,r9
+	move	r1,#pjAUTOMAP
+;	with	r0
+	sub	r1
+	bne	_RLP13000
+	nop
+	move	r0,(<PlayerJoyOld)
+	and	r1
+	bne	_RLP13000
+	nop
+	move	r0,(<AutoMapMode)		; Toggle AutoMap Mode
+	xor	#1
+	sbk
+	endif
+
+;
+;	>>>   <FIRE> TO EXPAND AUTOMAP SCALE   <<<
+;
+_RLP13000
+	move	r0,(<AutoMapMode)		; In AutoMap Mode?
+	moves	r0,r0
+	beq	_RLP17000			; No, can't Scale View!
+	nop
+	move	r0,r9
+	move	r1,#pjFIRE
+	and	r1
+	beq	_RLP14000
+	nop
+	move	r2,(<AutoMapScale)		; Get Current AutoMap Scale
+	move	r1,r2				; Get Enlargement Adjustment Value
+	with	r1
+	hib
+	move	r0,#$10
+;	with	r0
+	umult	r1
+	with	r2				; Adjust AutoMap Scale
+	add	r0
+	bpl	_RLP13200			; Ensure not too Large!
+	nop
+	move	r2,#$7fff
+_RLP13200
+	move	(<AutoMapScale),r2		; Save new AutoMap Scale
+;
+;	>>>   <WEAPON CYCLE> TO REDUCE AUTOMAP SCALE   <<<
+;
+_RLP14000
+	move	r0,r9
+	move	r1,#pjWEAPON
+	and	r1
+	beq	_RLP15000
+	nop
+	move	r2,(<AutoMapScale)		; Get Current AutoMap Scale
+	move	r1,r2				; Get Reduction Adjustment Value
+	with	r1
+	hib
+	move	r0,#$10
+;	with	r0
+	umult	r1
+	with	r2				; Adjust AutoMap Scale
+	sub	r0
+;	move	r1,#$0600			; Ensure not too Small!
+	move	r1,#$0300			; Ensure not too Small!
+	from	r2
+;	to	r0
+	sub	r1
+	bge	_RLP14200
+	nop
+	move	r2,r1
+_RLP14200
+	move	(<AutoMapScale),r2		; Save new AutoMap Scale
+
+	ifn	DEBUGSCR
+;
+;	>>>   <RUN> TO TOGGLE DEBUGGING SCREEN   <<<
+;
+_RLP15000
+	move	r0,r9
+	move	r1,#pjRUN
+	and	r1
+	beq	_RLP20000
+	nop
+	move	r0,(<PlayerJoyOld)
+	and	r1
+	bne	_RLP20000
+	nop
+	move	r0,(<DebugScreen)		; Toggle Debugging Screen
+;	with	r0
+	xor	#1
+	sbk
+	endif
+	ife	DEBUGSCR
+_RLP15000
+	endif
+	bra	_RLP20000
+	nop
+
+;
+;	>>>   <WEAPON CYCLE> TO SELECT NEXT WEAPON   <<<
+;
+_RLP17000
+	move	r0,r9
+	move	r1,#pjWEAPON
+	and	r1
+	ife	useID7
+	beq	_RLP20000
+	endif
+	ifn	useID7
+	beq	_RLP18000
+	endif
+	nop
+	move	r0,(<PlayerJoyOld)
+	and	r1
+	ife	useID7
+	bne	_RLP20000
+	endif
+	ifn	useID7
+	bne	_RLP18000
+	endif
+	nop
+	ife	useID7
+	move	r0,(<WeaponState)		; Currently Lowering Weapon?
+;	with	r0
+	sub	#wdLower
+	beq	_RLP20000			; YES!  Don't Switch!
+	nop
+	endif
+	move	r1,#<PlayerArms			; Get Available Weapons
+	to	r1
+	ldb	(r1)
+	move	r0,#^_WeaponTypeBitsTable
+	romb
+	move	r0,#<_WeaponTypeBitsTable
+	move	r2,(<WeaponNext)		; Current Next Weapon
+;	from	r0
+	to	r14
+	add	r2
+	getb					; Get Weapon Type Bit
+_RLP17200
+	inc	r2				; Next Weapon
+	inc	r2
+	with	r2				; Limit to Maximum Weapon Types
+	and	#15
+	beq	_RLP17400			; Player ALWAYS Has Fist!
+;	with	r0
+	rol
+;	from	r0				; Does Player have this Weapon?
+	to	r4
+	and	r1
+	beq	_RLP17200			; No!  Next Weapon!
+_RLP17400
+	from	r2				; YES!  NEW NEXT WEAPON!
+	sbk
+
+;
+;	>>>   SWITCH TO SELECTED WEAPON   <<<
+;
+	ifn	useID7
+_RLP18000
+	move	r0,(<WeaponType)		; Current Weapon = Next Weapon?
+	move	r1,(<WeaponNext)
+;	with	r0
+	sub	r1
+	beq	_RLP20000			; Yes!  Don't Switch Weapons!
+	nop
+	move	r0,(<WeaponState)		; Currently Lowering Weapon?
+;	with	r0
+	sub	#wdLower
+	beq	_RLP20000			; YES!  Don't Switch!
+	nop
+	link	#4
+	iwt	r15,#<_RLDropWeapon		; DROP CURRENT WEAPON!
+	nop
+	endif
+
+;
+;	* * * * * * *       COMPLETED JOYSTICK/MOUSE PROCESSING       * * * * * * *
+;
+_RLP20000
+	move	r0,(<(PlayerJoy+RLGSUSNESXVarsO)) ; JoyOld = Joy
+	move	(<PlayerJoyOld),r0
+;
+;	>>>   HANDLE PLAYER'S HEIGHT MOVEMENT   <<<
+;
+_RLP21000
+	move	r6,#6				; PlayerHeightMovement
+	move	r0,(<FPSRatio)			; Get FramesPerSecond Ratio
+;	with	r0
+	lmult
+;	with	r0				; Get Whole Pixels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R6 = |PlayerHeightMovement|
+	to	r6
+	or	r4
+;
+	move	r1,(<PlayerDead)		; Player Dead?
+	move	r0,(<PlayerHeight)		; Player's Height
+	moves	r1,r1
+	beq	_RLP21500			; Live
+	nop
+;
+;	>>>   PLAYER IS DEAD   <<<
+;
+;	with	r0				; Move Down
+	sub	r6
+	move	r1,#6				; Player's Minimum Eye Height
+;	from	r0
+	cmp	r1
+	bge	_RLP21800
+	nop
+	bra	_RLP21800
+	from	r1				; Already at Bottom
+;
+;	>>>   PLAYER IS LIVE   <<<
+;
+_RLP21500
+	move	r1,#odhPlayerEye		; Player's Maximum Eye Height
+;	with	r0				; Move Up
+	add	r6
+;	from	r0
+	cmp	r1
+	blt	_RLP21800			; Already at Top
+	nop
+	from	r1
+_RLP21800
+	sbk
+
+;
+;	>>>   HANDLE PLAYER DEATH/BIRTH   <<<
+;
+_RLP25000
+	move	r0,(<PlayerDead)		; Is Player DEAD or ALIVE?
+	move	r1,(<PlayerDeadOld)		; Was Player DEAD or ALIVE?
+;	from	r0
+	cmp	r1
+	beq	_RLP30000			; Same as Last Time!
+	nop
+	link	#4
+	iwt	r15,#<_RLDropWeapon		; Player is DEAD
+	sbk
+	move	r3,#pldeth_eff			; Make Player Death Sound Effect
+	link	#4
+	iwt	r15,#<_RLPlayerSoundEffect
+	nop
+
+;
+;	* * * * * * *       HANDLE PLAYER'S MOVEMENT       * * * * * * *
+;
+_RLP30000
+;
+;	>>>   DETERMINE MAXIMUM VELOCITY   <<<
+;
+	move	r0,(<(PlayerJoy+RLGSUSNESXVarsO)) ; Get Joystick Bits
+	move	r1,#pjRUN			  ; RUNNING?
+;	with	r0
+	and	r1
+	move	r1,#56
+	beq	_RLP30200			  ; No
+	nop
+	move	r1,#84
+_RLP30200
+;
+;	>>>   LIMIT X VELOCITY   <<<
+;
+	move	r3,#<(PlayerObject+rloVX+1)	; Get Velocity X Integer
+;	to	r0
+	ldb	(r3)
+;	from	r0
+	cmp	r1
+	blt	_RLP32000
+;	with	r0
+	sex
+	bpl	_RLP31200
+	from	r1
+	to	r2
+	not
+	inc	r2
+;	with	r0
+	sub	r2
+	bge	_RLP32000
+	from	r2
+_RLP31200
+	stb	(r3)
+;
+;	>>>   LIMIT Y VELOCITY   <<<
+;
+_RLP32000
+	move	r3,#<(PlayerObject+rloVY+1)	; Get Velocity Y Integer
+;	to	r0
+	ldb	(r3)
+;	from	r0
+	cmp	r1
+	blt	_RLP33000
+;	with	r0
+	sex
+	bpl	_RLP32200
+	from	r1
+	to	r2
+	not
+	inc	r2
+;	with	r0
+	sub	r2
+	bge	_RLP33000
+	from	r2
+_RLP32200
+	stb	(r3)
+;
+;	>>>   MOVE PLAYER   <<<
+;
+_RLP33000
+	move	r1,#<MVULMask			; LineFlags Type Mask
+	move	r0,#((rllfTrigger|rllfItem)>>8)
+;	from	r0
+	stb	(r1)
+	move	r1,#<MVIMask			; ObjectFlags Collision Mask
+	move	r0,#(rlpfSolid|rlpfItem)
+;	from	r0
+	stb	(r1)
+	move	r12,#<PlayerObject		; Pointer to Player's RLObject
+	move	r0,#<_RLMoveXY4			; MOVE RLOBJECT XY 4 (PLAYER)
+	link	#4
+	move	r15,#<_RLMoveObject		; Move Player RLObject
+	nop
+;
+;	>>>   PLAYER FALLING?   <<<
+;
+	move	r1,(<(PlayerObject+rloZ2))	; Get Object's Z2
+	move	r2,#<(PlayerObject+rloZ)	; Get Object's Z
+;	to	r0
+	ldw	(r2)
+	inc	r2				; Move to VelocityX
+	inc	r2
+	with	r1				; ObjectZ > FloorHeight?
+	sub	r0				; @CMP@
+	blt	_RLP34000-2			; Yes, No Friction!
+;
+;	>>>   HANDLE FRICTION   <<<
+;
+	move	r6,#$6000			; FRICTION COEFFICIENT (Velocity = 75%)
+	to	r1				; Get VelocityX
+	ldw	(r2)
+	inc	r2
+	inc	r2
+;	to	r0				; Get VelocityY
+	ldw	(r2)
+;	with	r0				; VelocityY *= 0.75
+	fmult
+;	with	r0
+	rol
+	sbk
+	from	r1				; VelocityX *= 0.75
+;	to	r0
+	fmult
+;	with	r0
+	rol
+	dec	r2
+	dec	r2
+;	from	r0
+	stw	(r2)
+;
+;	>>>   HANDLE FRICTION WHEN CLOSE TO STOPPING (<1.0 PIXELS)   <<<
+;
+;	to	r0
+	ldw	(r2)				; Get |Velocity X|
+	inc	r2				; Move to Velocity Y
+;	with	r0
+	hib
+;	with	r0
+	sex
+	move	r1,#(2+1)
+;	from	r0
+	cmp	r1
+	bge	_RLP34000
+	inc	r2				; Move to Velocity Y
+	move	r1,#-2
+;	with	r0
+	sub	r1
+	blt	_RLP34000
+	nop
+;
+;	to	r0				; Get |Velocity Y|
+	ldw	(r2)
+;	with	r0
+	hib
+;	with	r0
+	sex
+	move	r1,#(2+1)
+;	from	r0
+	cmp	r1
+	bge	_RLP34000-1
+	move	r1,#-2
+;	with	r0
+	sub	r1
+	blt	_RLP34000
+;
+;	with	r0				; YES!  STOP MOVEMENT!
+	sub	r0
+	sbk
+	dec	r2
+	dec	r2
+;	from	r0
+	stw	(r2)
+;
+;	>>>   PLAYER STANDING ON GROUND?   <<<
+;
+_RLP34000
+	move	r0,#<(PlayerObject+rloSector)	; Get Player's Sector
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r1,#<(_RLSectorData+rlsdFloorHeight)
+;	with	r0
+	add	r1
+	to	r1				; Get FloorHeight
+	ldw	(r0)
+	move	r0,#<(PlayerObject+rloZ)	; Get Object's Z
+;	to	r0
+	ldw	(r0)
+	with	r1				; ObjectZ > FloorHeight?
+	sub	r0				; @CMP@
+;	with	r0
+	blt	_RLP34500			;  0 = NOT ON GROUND!
+	sub	r0
+	dec	r0				; -1 = ON GROUND
+_RLP34500
+	move	(<PlayerOnGround),r0
+
+;
+;	>>>   HANDLE PLAYER'S SWAY   <<<
+;
+_RLP35000
+	move	r0,(<(PlayerObject+rloVX))	; Player's X Velocity
+;	with	r0
+	hib
+;	with	r0
+	sex
+	bpl	_RLP35200
+	nop
+;	with	r0
+	not
+_RLP35200
+;	from	r0
+	to	r1
+	mult	r0
+;
+	move	r0,(<(PlayerObject+rloVY))	; Player's Y Velocity
+;	with	r0
+	hib
+;	with	r0
+	sex
+	bpl	_RLP35400
+	nop
+;	with	r0
+	not
+_RLP35400
+;	with	r0
+	mult	r0
+
+;	with	r0				; Get Player's Sway
+	add	r1
+;	with	r0				; Sway >> 4
+	lsr
+;	with	r0
+	lsr
+;	with	r0
+	lsr
+;	with	r0
+	bic	#1
+	move	r1,#(17<<1)			; Sway > MaxSway?
+;	from	r0
+	cmp	r1
+	blt	_RLP35600
+	move	r0,r1
+_RLP35600
+	move	(<PlayerSway),r0
+
+;
+;	>>>   HANDLE RADIATION SUIT   <<<
+;
+_RLP42000
+	move	r0,(<RadCount)			; Radiation Counter
+	dec	r0
+	bmi	_RLP42500			; No Radiation Suit
+	inc	r0
+	move	r1,(<(FPSCount+RLGSUSNESXVarsO)) ; #VBlanks
+;	with	r0
+	sub	r1
+	dec	r0
+	bpl	_RLP42400			; Timer Not Expired
+	inc	r0
+	move	r0,(<RLRGB)			; rgbRad?
+;	with	r0
+	asr
+	dec	r0
+	beq	_RLP42300			; Yes, Can't Change RGB!
+	dec	r0				; rgbBerserk?
+	beq	_RLP42300-1			; Yes, Can't Change RGB!
+	move	r0,#rgbNormal			; Use Normal RGBAnim
+	sbk
+_RLP42300
+;	with	r0
+	sub	r0
+_RLP42400
+	move	(<RadCount),r0			; Save Updated Counter
+
+;
+;	>>>   HANDLE INVULNERABILITY   <<<
+;
+_RLP42500
+	move	r0,(<InvulnerableCount)		; Invulnerability Counter
+	dec	r0
+	bmi	_RLP43000			; No Invulnerability
+	inc	r0
+	move	r1,(<(FPSCount+RLGSUSNESXVarsO)) ; #VBlanks
+;	with	r0
+	sub	r1
+	dec	r0
+	bpl	_RLP42700			; Timer Not Expired
+	inc	r0
+;	with	r0				; Timer Expired!
+	sub	r0
+_RLP42700
+	move	(<InvulnerableCount),r0		; Save Updated Counter
+	bne	_RLP43000
+	link	#4
+	move	r15,#<_RLCalcFaceAnim		; ReCalculate Face Animation
+	nop
+
+;
+;	>>>   HANDLE BERSERK STRENGTH   <<<
+;
+_RLP43000
+	move	r0,(<BerserkCount)		; Berserk Counter
+	dec	r0
+	bmi	_RLP44000			; No Berserk Strength
+	inc	r0
+	move	r1,(<(FPSCount+RLGSUSNESXVarsO)) ; #VBlanks
+;	with	r0
+	sub	r1
+	dec	r0
+	bpl	_RLP43200			; Timer Not Expired
+	inc	r0
+;	with	r0				; Timer Expired!
+	sub	r0
+_RLP43200
+	move	(<BerserkCount),r0		; Save Updated Counter
+	bne	_RLP44000
+	nop
+	move	r0,(<RLRGB)			; rgbRad?
+;	with	r0
+	asr
+	dec	r0
+	beq	_RLP44000			; Yes, Can't Change RGB!
+	dec	r0				; rgbBerserk?
+	beq	_RLP44000-1			; Yes, Can't Change RGB!
+	move	r0,#rgbNormal			; Use Normal RGBAnim
+	sbk
+
+;
+;	>>>   HANDLE LIGHTING GOGGLES   <<<
+;
+_RLP44000
+	move	r0,(<LightGoggles)		; Lighting Goggles Counter
+	move	r1,(<(FPSCount+RLGSUSNESXVarsO)) ; #VBlanks
+;	with	r0
+	sub	r1
+	bpl	_RLP44100			; Timer Not Expired
+	nop
+;	with	r0
+	sub	r0
+_RLP44100
+	move	(<LightGoggles),r0		; Save Updated Counter
+
+;
+;	>>>   HANDLE INVISIBILITY   <<<
+;
+_RLP44500
+	move	r0,(<InvisibleCount)		; Invisibility Counter
+;	with	r0
+	sub	r1
+	bpl	_RLP44600			; Timer Not Expired
+	nop
+;	with	r0
+	sub	r0
+_RLP44600
+	move	(<InvisibleCount),r0		; Save Updated Counter
+
+
+	ifn	DEBUGSCR
+;
+;	* * * * * * *       DEBUG SCREEN PLAYER PROCESSING       * * * * * * *
+;
+	move	r0,(<DebugScreen)		; Debug Screen On?
+	dec	r0
+	bmi	.0
+	nop
+;
+	move	r0,(<(PlayerObject+rloX+0))	; Get Player X
+	move	(<DebugPlayerX),r0
+	move	r0,(<(PlayerObject+rloX+2))
+	move	(<(DebugPlayerX+2)),r0
+	move	r0,(<(PlayerObject+rloY+0))	; Get Player Y
+	move	(<DebugPlayerY),r0
+	move	r0,(<(PlayerObject+rloY+2))
+	move	(<(DebugPlayery+2)),r0
+	move	r0,(<(PlayerObject+rloAngle))	; Get Player Angle
+	move	(<DebugPlayerA),r0
+	move	r0,(<(PlayerObject+rloZ+0))	; Get Player Z
+	move	(<DebugPlayerZ),r0
+;
+	move	r0,(<(PlayerObject+rloSector))	; Get Player Sector
+	move	(<DebugPlayerS),r0
+.0
+	endif
+
+;
+;	* * * * * * *       PLAYER PROCESSING COMPLETE       * * * * * * *
+;
+	move	r0,#<_RLWeapons			; HANDLE WEAPONS
+	move	r8,#^_RLWeapons
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+
+	ifn	useHIGHDETAIL
+;
+;	* * * * * * *       LOW/HIGH DETAIL MESSAGES       * * * * * * *
+;
+LowDetailAMsg	dc.b	'LOW DETAI',0
+LowDetailBMsg	dc.b	'L',0
+LowDetailCMsg	dc.b	0
+
+HighDetailAMsg	dc.b	'HIGH DETA',0
+HighDetailBMsg	dc.b	'IL',0
+HighDetailCMsg	dc.b	0
+	endif
+
+
+;
+;	* * * * * * *       DAMAGE PLAYER       * * * * * * *
+;
+;	R4 = #HitPoints Damage
+;
+_RLDamagePlayer
+	move	r0,(<InvulnerableCount)		; Does Player have Invulnerability?
+	dec	r0
+	bpl	_RLDP800			; Yes, No Damage!
+	nop
+	move	r0,(<PlayerDead)		; Is Player Dead?
+	dec	r0
+	beq	_RLDP800			; Yes!
+	nop
+;
+;	>>>   ADJUST HITPOINTS BASED ON SKILL LEVEL   <<<
+;
+_RLDP200
+	move	r0,(<SkillLevel)		; Easy Difficuly Setting?
+	move	(<ULReturnAddress),r11
+	dec	r0
+	bpl	_RLDP300+1
+	from	r4
+	to	r4				; Yes, Divide Damage by 2
+	lsr
+_RLDP300
+	from	r4				; Armor takes 1/2 Points
+;	to	r0
+	lsr
+	move	r1,(<PlayerArmor)		; Any Armor?
+	with	r1
+	sub	r0
+	bpl	_RLDP400+1			; Armor took all it's points
+	from	r1				; Get #Points Armor couldn't take
+;	to	r0
+	add	r0
+	move	r1,#0
+_RLDP400
+	from	r1				; Update Armor
+	sbk
+	with	r4				; Get #Health Points to take
+	sub	r0
+	move	r0,(<RLRGB)			; Get RGB Animation
+	inc	r0				; rgbNone?
+	bne	_RLDP500-1			; No, Can't Change RGB!
+	move	r0,#rgbHit			; Player Hit RGB Animation
+	sbk
+_RLDP500
+	link	#4
+	move	r15,#<_RLSubHealth
+	nop
+;
+;	>>>   MAKE SOUND EFFECT   <<<
+;
+	move	r1,#<(PlayerHurt)		; Player Hurt Yet?
+;	to	r0
+	ldb	(r1)
+	dec	r0
+	bmi	_RLDP700+1			; Yes, don't make multiple sounds!
+;	from	r0				; Player now Hurt!
+	stb	(r1)
+	move	r3,#plpain_eff			; Make Player Hurt Sound Effect
+	link	#4
+	iwt	r15,#<_RLPlayerSoundEffect
+	nop
+_RLDP700
+	move	r11,(<ULReturnAddress)
+_RLDP800
+	jmp	r11				; Return to Caller
+	nop

@@ -1,0 +1,653 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         ENGINE SEGS MODULE 3                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildSegList3
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD SEGMENT LIST 3            CLIP SEGMENTS' COORDINATES  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       CLIP SEGMENTS' COORDINATES       * * * * * * *
+;
+rRLViewPixX2	equ	r3			; ScreenWidth/2
+rAreaSegCount	equ	r5			; Counter of #Valid Area Segments
+;
+rX1		equ	r7			; Vertex 1 X
+rY1		equ	r8			; Vertex 1 Y
+rX2		equ	r9			; Vertex 2 X
+rY2		equ	r10			; Vertex 2 Y
+rY1Temp		equ	r12			; Vertex 1 Y Rotated
+rY2Temp		equ	r13			; Vertex 2 Y Rotated
+;
+rXs1		equ	rX1			; Vertex 1 X Screen Coordinate
+rXs2		equ	rX2			; Vertex 2 X Screen Coordinate
+;
+rAreaListPtr	equ	r11			; Pointer within AreaList
+
+
+	align	16,(_BS3L9000-_BS3L2200)&$0f
+;
+;	* * * * * * *       FINISHED CLIPPING SEGMENTS' COORDINATES       * * * * * * *
+;
+_BS3L9000
+	move	r1,(<SLAreaPtrV)		; LastValidArea.Next = 0
+;	with	r0
+	sub	r0
+;	from	r0
+	stw	(r1)
+;
+	iwt	r0,#<_RLBuildSegList4		; BUILD SEGMENT LIST 4
+	ibt	r8,#^_RLBuildSegList4
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	* * * * * * *       START CLIPPING SEGMENTS' COORDINATES       * * * * * * *
+;
+_RLBuildSegList3
+	move	r0,#<SLAreaPtr			; LAST VALID AREA'S NEXT POINTER
+	move	(<SLAreaPtrV),r0
+	move	rAreaSegCount,#0		; #ValidSegments = 0
+	move	rRLViewPixX2,#(RLViewPixX/2)	; ScreenWidth/2
+	move	(<SLAreaPtrP),r0
+	ibt	r0,#(^RLSCNPixScale)		; RL->SCN Pixel Scaling Table
+	romb
+
+	CACHEB	_RLBuildSegList3
+;
+;	* * * * * * *       HANDLE NEXT AREA       * * * * * * *
+;
+_BS3L2200
+	move	rAreaListPtr,(<SLAreaPtrP)	; Get Pointer to Current Area
+	dec	rAreaSegCount			; #ValidSegments = 0?
+	bmi	_BS3L2250
+	nop
+	move	r0,(<SLAreaPtrV)		; LastValidArea = Current
+	from	rAreaListPtr
+	sbk
+	from	rAreaListPtr			; LastValidArea.Next = Current
+	stw	(r0)
+_BS3L2250
+;	to	r0
+	ldw	(rAreaListPtr)			; Get Pointer to Next Area
+	move	(<SLAreaPtrP),r0
+	moves	rAreaListPtr,r0
+	beq	_BS3L9000			; No more Areas!
+	with	rAreaListPtr
+	sub	#(rluSize-rlasSegs)
+	move	rAreaSegCount,#0		; #ValidSegments = 0
+;
+;	* * * * * * *       HANDLE NEXT SEGMENT       * * * * * * *
+;
+_BS3L2300
+	with	rAreaListPtr			; Move to Next Segment
+_BS3L2320
+	add	#rluSize
+;	to	r0
+	ldw	(rAreaListPtr)			; Get next Segment Address
+	moves	r0,r0
+	beq	_BS3L2320			; $0000 SKIP SEGMENT
+	with	rAreaListPtr
+	dec	r0
+	beq	_BS3L2200			; $0001 END OF AREA
+;
+;	* * * * * * *       PROCESS NEXT SEGMENT       * * * * * * *
+;
+_BS3L3000
+;
+;	>>>   GET VERTEX INFORMATION FOR THIS SEGMENT   <<<
+;
+	from	rAreaListPtr			; Move to VERTEX1
+;	to	r0
+	add	#rluV1
+	to	r1				; Get Address of VERTEX1
+	ldw	(r0)
+	to	rY1Temp				; Get Rotated Vertex1 Y
+	ldw	(r1)
+	inc	r1
+	inc	r1
+	to	rX1				; Get Rotated Vertex1 X
+	ldw	(r1)
+;
+	inc	r0				; Move to VERTEX2
+	inc	r0
+	to	r1				; Get Address of VERTEX1
+	ldw	(r0)
+	to	rY2Temp				; Get Rotated Vertex2 Y
+	ldw	(r1)
+	inc	r1
+	inc	r1
+	to	rX2				; Get Rotated Vertex2 X
+	ldw	(r1)
+
+;
+;	>>>   CALCULATE CROSS PRODUCT OF <SEGMENT> AND <PLAYER>   <<<
+;
+;			   (Xa * Yb) - (Ya * Xb)
+;
+;	= (DeltaX * (SegY1-PlayerY)) - (DeltaY * (SegX1-PlayerX))
+;
+;	>>>   SEGMENT VERTICES ALREADY TRANSLATED TO PLAYER ORIGIN!!!   <<<
+;
+;	>>>   (Xa * Yb)   <<<
+;
+	from	rY1Temp				; Get (SegY1 - PlayerY)
+	to	r1
+	add	#RLScreenPlane
+	from	rX2				; Get Delta X
+	to	r6
+	sub	rX1
+	with	r1				; Result in R1:R2
+	lmult
+	move	r2,r4
+;
+;	>>>   (Ya * Xb)   <<<
+;
+	move	r0,rX1				; Get (SegX1 - PlayerX)
+	from	rY2Temp				; Get Delta Y
+	to	r6
+	sub	rY1Temp
+;	with	r0				; Result in R0:R4
+	lmult
+;
+;	>>>   DETERMINE DIRECTION OF SEGMENT   <<<
+;
+;	IF RESULT >= 0, PLAYER IS TO THE LEFT OF THE SEGMENT (FRONT-FACING)
+;	IF RESULT <  0, PLAYER IS TO THE RIGHT OF THE SEGMENT (BACK-FACING)
+;
+	with	r2				; Xa*Yb - Ya*Xb
+	sub	r4
+	with	r1
+	sbc	r0
+	bpl	_BS3L4000			; >= 0 = LEFT
+;	with	r0
+	sub	r0				; Yes!
+	stw	(rAreaListPtr)			; Change to SKIP SEGMENT
+	iwt	r15,#<_BS3L2300
+
+;
+;	>>>   CLIP VERTEX_Y1 AT PLANE OF SCREEN   <<<
+;
+_BS3L4000
+	moves	r0,rY1Temp			; Y1 < 0?
+	bpl	_BS3L5000
+	nop
+;
+;	>>>   X1 = X1 +   |Y1|  * (X2-X1)	<<<
+;			-------
+;			(Y2-Y1)
+;
+	ibt	r0,#(^InvTable)			; Get InverseTable Entry
+	romb
+	from	rY2Temp				; Get Word Index
+	to	r0
+	sub	rY1Temp
+;	from	r0
+	to	r1
+	add	r0
+	move	r0,#<(InvTable-2)
+;	from	r0
+	to	r14
+	add	r1
+	dec	r1
+	dec	r1
+	getb					; Get Inverse Value
+	inc	r14
+;	from	r0
+	to	r2
+	getbh
+;
+	with	rY1Temp				; Get |Y1|
+	not
+	inc	rY1Temp
+;
+	from	rX2				; Get (X2-X1)
+	to	r6
+	sub	rX1
+	move	rY2,r6				; Save Sign
+	bpl	_BS3L4200			; Ensure Positive for Multiply
+	with	r6
+	not
+	inc	r6
+_BS3L4200
+;
+	with	rY1Temp				; rY1Temp:r4 = |Y1| * (X2-X1)
+	lmult
+;
+	with	r4				; rY1Temp (<<1):r4 (<<0)
+	add	r4
+	with	rY1Temp
+	rol
+	with	r4
+	lsr
+;
+	move	r6,r2				; * 1/(Y2-Y1)
+	from	r4
+	to	r2
+	lmult
+	move	rY1,r4				;    r2:rY1 (<<0)
+	from	rY1Temp				; r0:r4 (<<1)
+;	to	r0
+	lmult
+;
+	with	rY1				; Adjust for lost bit in InverseTable
+	add	rY1
+	with	r2
+	rol					;    r2:rY1 (<<1)
+;
+	from	r4
+	to	rY1Temp
+	add	r2
+	with	r0
+	adc	#0				; r0:rY1Temp:rY1
+;
+	with	r1				; Which "gear" of Inverse?
+	hib
+	beq	_BS3L4400			; HighGear
+;
+	with	rY1				; LowGear
+	hib
+	from	rY1Temp
+	to	r1
+	lob
+	with	r1
+	swap
+	with	rY1
+	or	r1
+	with	rY1Temp
+	hib
+;	with	r0
+	swap
+;	from	r0
+	to	rY1Temp
+	or	rY1Temp
+;
+	with	rY1
+	add	rY1
+	with	rY1Temp
+	rol
+_BS3L4400
+	moves	r0,rY2				; Sign of (X2-X1)
+	bpl	_BS3L4420
+	with	rY1Temp
+	not
+	inc	rY1Temp
+_BS3L4420
+	with	rX1				; X1 += Result
+	add	rY1Temp
+	ibt	rY1Temp,#0			; Y1 at Screen Plane
+	bra	_BS3L5800			; Y2 guaranteed >= Screen Plane
+
+;
+;	>>>   CLIP VERTEX_Y2 AT PLANE OF SCREEN   <<<
+;
+_BS3L5000
+	moves	r0,rY2Temp			; Y2 < 0?
+	bpl	_BS3L6000
+	nop
+;
+;	>>>   X2 = X2 -   |Y2|  * (X2-X1)	<<<
+;			-------
+;			(Y1-Y2)
+;
+	ibt	r0,#(^InvTable)			; Get InverseTable Entry
+	romb
+	from	rY1Temp				; Get Word Index
+	to	r0
+	sub	rY2Temp
+;	from	r0
+	to	r1
+	add	r0
+	move	r0,#<(InvTable-2)
+;	from	r0
+	to	r14
+	add	r1
+	dec	r1
+	dec	r1
+	getb					; Get Inverse Value
+	inc	r14
+;	from	r0
+	to	r2
+	getbh
+;
+	with	rY2Temp				; Get |Y2|
+	not
+	inc	rY2Temp
+;
+	from	rX2				; Get (X2-X1)
+	to	r6
+	sub	rX1
+	move	rY1,r6				; Save Sign
+	bpl	_BS3L5200			; Ensure Positive for Multiply
+	with	r6
+	not
+	inc	r6
+_BS3L5200
+;
+	with	rY2Temp				; |Y2| * (X2-X1)
+	lmult
+;
+	with	r4				; rY2Temp (<<1):r4 (<<0)
+	add	r4
+	with	rY2Temp
+	rol
+	with	r4
+	lsr
+;
+	move	r6,r2				; * 1/(Y1-Y2)
+	from	r4				; rY2Temp:r4 = |Y2| * (X2-X1)
+	to	r2
+	lmult
+	move	rY2,r4
+	from	rY2Temp
+;	to	r0
+	lmult
+;
+	with	rY2				; Adjust for lost bit in InverseTable
+	add	rY2
+	with	r2
+	rol					;    r2:rY2 (<<1)
+;
+	from	r4
+	to	rY2Temp
+	add	r2
+	with	r0
+	adc	#0				; r0:rY2Temp:rY2
+;
+	with	r1				; Which "gear" of Inverse?
+	hib
+	beq	_BS3L5400			; HighGear
+;
+	with	rY2				; LowGear
+	hib
+	from	rY2Temp
+	to	r1
+	lob
+	with	r1
+	swap
+	with	rY2
+	or	r1
+	with	rY2Temp
+	hib
+;	with	r0
+	swap
+;	from	r0
+	to	rY2Temp
+	or	rY2Temp
+;
+	with	rY2
+	add	rY2
+	with	rY2Temp
+	rol
+_BS3L5400
+	moves	r0,rY1				; Sign of (X2-X1)
+	bpl	_BS3L5420
+	with	rY2Temp
+	not
+	inc	rY2Temp
+_BS3L5420
+	with	rX2				; X2 -= Result
+	sub	rY2Temp
+	ibt	rY2Temp,#0			; Y2 at Screen Plane
+;
+_BS3L5800
+	ibt	r0,#(^RLSCNPixScale)		; RL->SCN Pixel Scaling Table
+	romb
+
+;
+;	>>>   READJUST Y1 AND Y2 INFRONT OF SCREEN PLANE   <<<
+;
+_BS3L6000
+	move	r0,#RLScreenPlane		; Plane of Screen
+	from	rY1Temp				; Adjust Y1
+	to	rY1
+	add	r0
+	from	rY2Temp				; Adjust Y2
+	to	rY2
+	add	r0
+;
+;	>>>   PERFORM PERSPECTIVE TRANSFORM ON X1/Y1 TO GET X1_SCREEN   <<<
+;
+	move	r6,#<RLAspectRatio		; Compensate for SNES<->PC Aspect Ratio
+	from	rY1
+;	to	r0
+	fmult
+;	with	r0
+	add	rY1
+;	from	r0				; Get Long Offset
+	to	r1
+	add	r0
+	with	r1
+	add	r0
+	move	r0,#<(RLSCNPixScale)
+;	from	r0
+	to	r14
+	add	r1
+	move	r6,rX1
+	getb					; Get Fraction
+	inc	r14
+	getbh
+	inc	r14
+;	with	r0				; r0:rXS1 = Fractionary Result
+	fmult
+;	from	r0
+	to	rXs1
+	rol
+	from	rXs1
+;	to	r0
+	hib
+;	with	r0
+	sex
+;	with	r0
+	hib
+;	with	r0
+	sex
+	to	r1				; Get Whole
+	getb
+	with	r1				; r1:r4 = Integer Result
+	lmult
+	with	rXs1
+	add	r4
+;	with	r0
+	adc	r1
+	with	rXs1				; Center Translated Xs1
+	add	rRLViewPixX2
+;	with	r0
+	adc	#0
+;
+	from	rXs1				; Ensure $FFFF8000-$00007FFF
+	to	r4
+	add	rXs1
+;	with	r0
+	rol
+	beq	_BS3L6400			;  $00000000-$00007FFF
+	from	rXs1				; Xs1 >= Right Edge?
+	bpl	_BS3L7300+1			; >$00008000
+	inc	r0
+	bne	_BS3L6200			;  $FFFFFFFF-$FFFF8000
+	dec	r0
+;
+	move	r0,#$e000			; <$FFFFE000
+;	with	r0				; @CMP@
+	sub	rXs1
+	blt	_BS3L6500			; No
+	with	rXs1				; Reduce Range to Reduce Precision Errors!
+	asr
+	with	rXs1
+	asr
+	with	rY1
+	add	rY1
+	with	rY1
+	bra	_BS3L6500
+	add	rY1
+_BS3L6200
+;	with	r0				; Reduce into Range
+	asr
+	with	rXs1
+	ror
+	with	rY1
+	add	rY1
+	inc	r0				; Within Range?
+	bne	_BS3L6200			; No!
+	dec	r0
+;	with	r0				; $FFFFFFFF-$FFFF8000
+	asr
+	with	rXs1
+	ror
+	with	rY1
+	bra	_BS3L6500
+	add	rY1
+_BS3L6400
+;	from	rXs1				; Xs1 >= Right Edge?
+;	to	r0
+	lsr
+;	with	r0				; @CMP@
+	sub	rRLViewPixX2
+	bge	_BS3L7320			; Yes!
+;	with	r0
+	sub	r0
+;
+;	>>>   PERFORM PERSPECTIVE TRANSFORM ON X2/Y2 TO GET X2_SCREEN   <<<
+;
+_BS3L6500
+	move	r6,#<RLAspectRatio		; Compensate for SNES<->PC Aspect Ratio
+	from	rY2
+;	to	r0
+	fmult
+;	with	r0
+	add	rY2
+;	from	r0				; Get Long Offset
+	to	r1
+	add	r0
+	with	r1
+	add	r0
+	move	r0,#<(RLSCNPixScale)		; Add Base of RL->SCN Pixel Scaling Table
+;	from	r0
+	to	r14
+	add	r1
+	move	r6,rX2
+	getb					; Get Fraction
+	inc	r14
+	getbh
+	inc	r14
+;	with	r0				; r0:rXS2 = Fractionary Result
+	fmult
+;	from	r0
+	to	rXs2
+	rol
+	from	rXs2
+;	to	r0
+	hib
+;	with	r0
+	sex
+;	with	r0
+	hib
+;	with	r0
+	sex
+	to	r1				; Get Whole
+	getb
+	with	r1				; r1:r4 = Integer Result
+	lmult
+	with	rXs2
+	add	r4
+;	with	r0
+	adc	r1
+	with	rXs2				; Center Translated Xs2
+	add	rRLViewPixX2
+;	with	r0
+	adc	#0
+	bmi	_BS3L7300			; <$00000000
+	from	rXs2				; Ensure $00000000-$00007FFF
+	to	r4
+	add	rXs2
+;	with	r0
+	rol
+	beq	_BS3L7400			;  $00000000-$00007FFF
+	from	rAreaListPtr			; Move to Xs1
+	move	rXs2,#$7fff			; >$00007fff
+	bra	_BS3L7400
+	from	rAreaListPtr			; Move to Xs1
+;
+;	>>>   DISCARD SEGMENT   <<<
+;
+_BS3L7300
+	with	r0				; Discard Segment
+	sub	r0
+_BS3L7320
+	stw	(rAreaListPtr)			; Change to SKIP SEGMENT
+	iwt	r15,#<_BS3L2320
+	with	rAreaListPtr			; Move to Next Segment
+
+;
+;	* * * * * * *       LOW-DETAIL       * * * * * * *
+;
+_BS3L7400
+;	from	rAreaListPtr			; Move to Xs1
+	to	r1
+	add	#rluXs1
+;
+	from	rXs1				; Save Xs1
+	stw	(r1)
+	inc	r1
+	inc	r1
+;
+	move	r4,rXs1				; Ensure Xs1 STARTS on EVEN Pixel
+	inc	r4
+	with	r4
+	asr
+	with	rXs2				; Ensure Xs2 ENDS on EVEN Pixel
+	lsr
+;
+;	>>>   IF Xs2 < Xs1, DISCARD SEGMENT   <<<
+;
+	from	rXs2				; Save Xs2
+	stw	(r1)
+;
+	from	rXs2				; Xs2 < Xs1?
+;	to	r0				; @CMP@
+	sub	r4
+	blt	_BS3L7300+1			; Yes!
+
+;
+;	* * * * * * *       ADD A NEW BSP SEGMENT!       * * * * * * *
+;
+_BS3L8000
+	inc	r1
+	inc	r1
+	from	rY1				; Save Y1
+	stw	(r1)
+	inc	r1
+	inc	r1
+	inc	rAreaSegCount			; AreaSegCount++
+	from	rY2				; Save Y2
+	stw	(r1)
+
+	iwt	r15,#<_BS3L2320
+	with	rAreaListPtr			; Move to Next Segment
+
+
+	CACHEE	_RLBuildSegList3

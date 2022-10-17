@@ -1,0 +1,328 @@
+;**********************************************************************
+;*                                                                    *
+;*                      P R O J E C T :   R A G E                     *
+;*                                                                    *
+;*                         OBJECT DATA MODULE 2                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	rlobjects.i
+	include	rlimages.i
+
+
+	public	_MObjData
+
+
+	SECTION	_MOBJECTDATA,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       MOVABLE OBJECT DATA       * * * * * * *
+;
+
+_MObjData
+;
+;	>>>   PLAYER   <<<
+;
+modPlayer
+	dc.w	100				; PLAYER
+	dc.w	0
+	dc.w	0				; NO STATE INFORMATION!
+;
+;	>>>   SOLDIER   <<<
+;
+modSoldier
+	dc.w	20				; SOLDIER
+	dc.w	<_RLMVSoldier
+	dc.w	<mosSOLDIER_SLEEP0
+	dc.w	<moaSOLDIER_SLEEP
+	dc.b	(85*256/100)
+	dc.w	<mosSOLDIER_DAMAGE
+	dc.w	0
+	dc.w	((3<<8)|3)
+	dc.w	<sxSoldierAwake
+	dc.w	0
+	dc.w	<sxSoldierShoot
+	dc.w	<sxSoldierDamage
+	dc.w	<sxSoldierDie
+;
+;	>>>   SERGEANT   <<<
+;
+modSergeant
+	dc.w	30				; SERGEANT
+	dc.w	<_RLMVSergeant
+	dc.w	<mosSERGEANT_SLEEP0
+	dc.w	<moaSERGEANT_SLEEP
+	dc.b	(85*256/100)
+	dc.w	<mosSERGEANT_DAMAGE
+	dc.w	0
+	dc.w	((4<<8)|3)
+	dc.w	<sxSergeantAwake
+	dc.w	0
+	dc.w	<sxSergeantShoot
+	dc.w	<sxSergeantDamage
+	dc.w	<sxSergeantDie
+;
+;	>>>   TROOPER   <<<
+;
+modTrooper
+	dc.w	60 ; 50				; TROOPER
+	dc.w	<_RLMVTrooper
+	dc.w	<mosTROOPER_SLEEP0
+	dc.w	<moaTROOPER_SLEEP
+	dc.b	(75*256/100)
+	dc.w	<mosTROOPER_DAMAGE
+	dc.w	((3<<8)|7)
+	dc.w	0
+	dc.w	<sxTrooperAwake
+	dc.w	<sxTrooperFight
+	dc.w	<sxTrooperLaunch
+	dc.w	<sxTrooperDamage
+	dc.w	<sxTrooperDie
+;
+;	>>>   DEMON   <<<
+;
+modDemon
+	dc.w	140 ; 120			; DEMON
+	dc.w	<_RLMVDemon
+	dc.w	<mosDEMON_SLEEP0
+	dc.w	<moaDEMON_SLEEP
+	dc.b	(70*256/100)
+	dc.w	<mosDEMON_DAMAGE
+	dc.w	((4<<8)|7)
+	dc.w	0
+	dc.w	<sxDemonAwake
+	dc.w	<sxDemonFight
+	dc.w	0
+	dc.w	<sxDemonDamage
+	dc.w	<sxDemonDie
+;
+;	>>>   CACODEMON   <<<
+;
+modCacoDemon
+	dc.w	550 ; 450			; CACODEMON
+	dc.w	<_RLMVCacoDemon
+	dc.w	<mosCACODEMON_SLEEP0
+	dc.w	<moaCACODEMON_SLEEP
+	dc.b	(60*256/100)
+	dc.w	<mosCACODEMON_DAMAGE
+	dc.w	((4<<8)|15)
+	dc.w	0
+	dc.w	<sxCacoDemonAwake
+	dc.w	<sxCacoDemonFight
+	dc.w	1
+	dc.w	<sxCacoDemonDamage
+	dc.w	<sxCacoDemonDie
+;
+;	>>>   LOST SOUL   <<<
+;
+modLostSoul
+	dc.w	100				; LOSTSOUL
+	dc.w	<_RLMVLostSoul
+	dc.w	<mosLOSTSOUL_SLEEP0
+	dc.w	<moaLOSTSOUL_SLEEP
+	dc.b	(95*256/100)
+	dc.w	<mosLOSTSOUL_DAMAGE
+	dc.w	((3<<8)|7)
+	dc.w	0
+	dc.w	<sxLostSoulAwake
+	dc.w	<sxLostSoulFight
+	dc.w	0
+	dc.w	<sxLostSoulDamage
+	dc.w	<sxLostSoulDie
+;
+;	>>>   BARON OF HELL   <<<
+;
+modBaronOfHell
+	dc.w	1200 ; 1000			; BARONOFHELL
+	dc.w	<_RLMVBaronOfHell
+	dc.w	<mosBARONOFHELL_SLEEP0
+	dc.w	<moaBARONOFHELL_SLEEP
+	dc.b	(64*256/100)
+	dc.w	<mosBARONOFHELL_DAMAGE
+	dc.w	((7<<8)|15)
+	dc.w	0
+	dc.w	<sxBaronOfHellAwake
+	dc.w	<sxBaronOfHellFight
+	dc.w	<sxBaronOfHellLaunch
+	dc.w	<sxBaronOfHellDamage
+	dc.w	<sxBaronOfHellDie
+;
+;	>>>   CYBERDEMON   <<<
+;
+modCyberDemon
+	dc.w	4000				; CYBERDEMON
+	dc.w	<_RLMVCyberDemon
+	dc.w	<mosCYBERDEMON_SLEEP0
+	dc.w	<moaCYBERDEMON_SLEEP
+	dc.b	(32*256/100)
+	dc.w	<mosCYBERDEMON_DAMAGE
+	dc.w	((9<<8)|15)
+	dc.w	0
+	dc.w	<sxCyberDemonAwake
+	dc.w	<sxCyberDemonFight
+	dc.w	<sxCyberDemonLaunch
+	dc.w	<sxCyberDemonDamage
+	dc.w	<sxCyberDemonDie
+;
+;	>>>   SPIDERDEMON   <<<
+;
+modSpiderDemon
+	dc.w	3500 ; 3000			; SPIDERDEMON
+	dc.w	<_RLMVSpiderDemon
+	dc.w	<mosSPIDERDEMON_SLEEP0
+	dc.w	<moaSPIDERDEMON_SLEEP
+	dc.b	(12*256/100)
+	dc.w	<mosSPIDERDEMON_DAMAGE
+	dc.w	((25<<8)|7)
+	dc.w	((4<<8)|7)
+	dc.w	<sxSpiderDemonAwake
+	dc.w	<sxSpiderDemonFight
+	dc.w	<sxSpiderDemonShoot
+	dc.w	<sxSpiderDemonDamage
+	dc.w	<sxSpiderDemonDie
+;
+;	>>>   FIREBALL 1   <<<
+;
+modFireBall1
+	dc.w	0				; FIREBALL1
+	dc.w	0
+	dc.w	<mosFIREBALL1_MOVE
+	dc.w	<moaFIREBALL1_MOVE
+	dc.b	0
+	dc.w	<mosFIREBALL1_DIE
+	dc.w	0
+	dc.w	((4<<8)|3)
+	dc.w	<sxFireBall1Launch
+	dc.w	0
+	dc.w	0
+	dc.w	0
+	dc.w	<sxFireBall1Die
+	dc.b	(rlpfMovable|rlpfActive|rlpfProjectileFast)
+	dc.b	otFireBall1
+;
+;	>>>   FIREBALL 2   <<<
+;
+modFireBall2
+	dc.w	0				; FIREBALL2
+	dc.w	0
+	dc.w	<mosFIREBALL2_MOVE
+	dc.w	<moaFIREBALL2_MOVE
+	dc.b	0
+	dc.w	<mosFIREBALL2_DIE
+	dc.w	0
+	dc.w	((6<<8)|3)
+	dc.w	<sxFireBall2Launch
+	dc.w	0
+	dc.w	0
+	dc.w	0
+	dc.w	<sxFireBall2Die
+	dc.b	(rlpfMovable|rlpfActive|rlpfProjectileFast)
+	dc.b	otFireBall2
+;
+;	>>>   FIREBALL 7   <<<
+;
+modFireBall7
+	dc.w	0				; FIREBALL7
+	dc.w	0
+	dc.w	<mosFIREBALL7_MOVE
+	dc.w	<moaFIREBALL7_MOVE
+	dc.b	0
+	dc.w	<mosFIREBALL7_DIE
+	dc.w	0
+	dc.w	((4<<8)|7)
+	dc.w	<sxFireBall7Launch
+	dc.w	0
+	dc.w	0
+	dc.w	0
+	dc.w	<sxFireBall7Die
+	dc.b	(rlpfMovable|rlpfActive)
+	dc.b	otFireBall7
+;
+;	>>>   MISSILE   <<<
+;
+modMissile
+	dc.w	0				; MISSILE
+	dc.w	0
+	dc.w	<mosMISSILE_MOVE
+	dc.w	<moaMISSILE_MOVE
+	dc.b	0
+	dc.w	<mosMISSILE_DIE
+	dc.w	0
+	ife	useID2
+	dc.w	((64<<8)|3)
+	endif
+	ifn	useID2
+	dc.w	((48<<8)|7)
+	endif
+	dc.w	<sxMissileLaunch
+	dc.w	0
+	dc.w	0
+	dc.w	0
+	dc.w	<sxMissileDie
+	dc.b	(rlpfMovable|rlpfActive)
+	dc.b	otMissile
+;
+;	>>>   BFG   <<<
+;
+modBFG
+	dc.w	0				; BFG
+	dc.w	0
+	dc.w	<mosBFG_MOVE
+	dc.w	<moaBFG_MOVE
+	dc.b	0
+	dc.w	<mosBFG_DIE
+	dc.w	0
+	dc.w	((127<<8)|7)
+	dc.w	<sxBFGLaunch
+	dc.w	0
+	dc.w	0
+	dc.w	0
+	dc.w	<sxBFGDie
+	dc.b	(rlpfMovable|rlpfActive)
+	dc.b	otFireBall7
+;
+;	>>>   PLASMA   <<<
+;
+modPlasma
+	dc.w	0				; PLASMA
+	dc.w	0
+	dc.w	<mosPLASMA_MOVE
+	dc.w	<moaPLASMA_MOVE
+	dc.b	0
+	dc.w	<mosPLASMA_DIE
+	dc.w	0
+	dc.w	((32<<8)|3)
+	dc.w	<sxPlasmaLaunch
+	dc.w	0
+	dc.w	0
+	dc.w	0
+	dc.w	<sxPlasmaDie
+	dc.b	(rlpfMovable|rlpfActive)
+	dc.b	otPlasma
+
+;
+;	>>>   BARREL EXPLOSION   <<<
+;
+modBarrelExp
+	dc.w	0				; BARREL EXPLOSION
+	dc.w	0
+	dc.w	<mosBARRELEXP_DIE
+	dc.w	<moaBARRELEXP_DIE
+	dc.b	0
+	dc.w	0
+	dc.w	0
+	ife	useID2
+	dc.w	((16<<8)|3)
+	endif
+	ifn	useID2
+	dc.w	((32<<8)|3)
+	endif
+	dc.w	<sxBarrelExplode
+	dc.w	0
+	dc.w	0
+	dc.w	0
+	dc.w	0
+	dc.b	(rlpfMovable|rlpfActive)
+	dc.b	otBarrelExp

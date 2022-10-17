@@ -1,0 +1,105 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         ENGINE LINES MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+
+
+	SECTION	LEVEL
+;
+;	* * * * * * *       INITIALIZE LINE DATA       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitLineData
+	mode	'AX!'
+	lda	EMBSP+1				; (TEMP)  = LINE.FLAGS
+	sta	Temp+1
+	sta	Temp2+1
+	lda	EMLINES
+	clc
+	adc	#rllFlags
+	sta	Temp
+;
+	lda	EMFACES				; (TEMP2) = FACE.SECTORFAR
+;	clc
+;	adc	#rlfSectorFar
+	inc	a
+	sta	Temp2
+;
+	lda	EMSECTORS+1			; (TEMP3) = SECTOR.FLOORHEIGHT
+	sta	Temp3+1
+	lda	EMSECTORS
+	clc
+	adc	#rlsFloorHeight
+	sta	Temp3
+;
+	mode	'a!'
+	lda	#rlsSize
+	sta	WRMPYA
+;
+	mode	'A!'
+	lda	EMNUMLINES			; Get #Lines
+	tay
+	phy
+	ldx	#0				; Get Index to LineFlags
+_RILD200
+	mode	'a!'
+	lda	[Temp]				; Get Line Flags
+	bit	#rllfDoor			; Is Line DOOR?
+	beq	_RILD240			; No
+	bit	#rllfSolid			; Is Line SOLID?
+	bne	_RILD240			; Yes
+	mode	'A!'
+	phy
+	ldy	#(rllFace-rllFlags)		; Get LINE.FACE
+	lda	[Temp],y
+	tay					; Get FACE.SECTORFAR
+	mode	'a!'
+	lda	[Temp2],y
+	sta	WRMPYB
+	mode	'A!'
+	nop
+	nop
+	nop
+	ldy	_RDMPYL
+	lda	[Temp3],y			; FloorHeight = CeilingHeight?
+	iny
+	iny
+	cmp	[Temp3],y
+	bne	_RILD220			; NO, DOOR NOT CLOSED!
+	lda	[Temp]				; YES!  SOLID!
+	ora	#rllfSolid
+	bra	_RILD230
+_RILD220
+	lda	[Temp]				; Get Line Flags
+_RILD230
+	mode	'a!'
+	ply
+_RILD240
+	and	#(rllfSolid|rllfMapped)
+	sta	>_RLLineFlags,x			; Save Line Flags
+	inx
+	mode	'A!'
+	lda	Temp				; Move to next Line
+	clc
+	adc	#rllSize
+	sta	Temp
+	dey					; One less Line
+	bne	_RILD200
+;
+	ply					; Get #Lines
+	ldx	#0				; Get Index to LineRLCounts
+	txa
+_RILD400
+	sta	>_RLLineRLCounts,x		; Initialize LineRLCount
+	inx
+	inx
+	dey					; One less Line
+	bne	_RILD400
+	rts

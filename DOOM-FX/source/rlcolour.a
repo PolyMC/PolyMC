@@ -1,0 +1,22 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       COLOUR REMAPPING MODULE                      *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+
+
+	public	RLColourMaps
+
+
+;
+;	* * * * * * *       COLOUR MAPS       * * * * * * *
+;
+	SECTION	COLOUR_MAPS,RELOC,BASE=$80000000,RORG=$400000,ALIGN=$100
+RLColourMaps
+	image	RLDATA:COLOUR/COLOURMAPS,0,(33*256)
+	image	RLDATA:COLOUR/COLOURMAPS,(32*256),256

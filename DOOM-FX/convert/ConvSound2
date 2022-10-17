@@ -1,0 +1,121 @@
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPISTOL -t 8svx hd3:RLDATA/MUSIC/PISTOL
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSHOTGN -t 8svx hd3:RLDATA/MUSIC/SHOTGN
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSGCOCK -t 8svx hd3:RLDATA/MUSIC/SGCOCK
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSAWUP -t 8svx hd3:RLDATA/MUSIC/SAWUP
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSAWIDL -t 8svx hd3:RLDATA/MUSIC/SAWIDL
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSAWFUL -t 8svx hd3:RLDATA/MUSIC/SAWFUL
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSAWHIT -t 8svx hd3:RLDATA/MUSIC/SAWHIT
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSRLAUNC -t 8svx hd3:RLDATA/MUSIC/RLAUNC
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSRXPLOD -t 8svx hd3:RLDATA/MUSIC/RXPLOD
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSFIRSHT -t 8svx hd3:RLDATA/MUSIC/FIRSHT
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSFIRXPL -t 8svx hd3:RLDATA/MUSIC/FIRXPL
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPSTART -t 8svx hd3:RLDATA/MUSIC/PSTART
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPSTOP -t 8svx hd3:RLDATA/MUSIC/PSTOP
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSDOROPN -t 8svx hd3:RLDATA/MUSIC/DOROPN
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSDORCLS -t 8svx hd3:RLDATA/MUSIC/DORCLS
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSTNMOV -t 8svx hd3:RLDATA/MUSIC/STNMOV
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSWTCHN -t 8svx hd3:RLDATA/MUSIC/SWTCHN
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSWTCHX -t 8svx hd3:RLDATA/MUSIC/SWTCHX
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPLPAIN -t 8svx hd3:RLDATA/MUSIC/PLPAIN
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSDMPAIN -t 8svx hd3:RLDATA/MUSIC/DMPAIN
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPOPAIN -t 8svx hd3:RLDATA/MUSIC/POPAIN
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSLOP -t 8svx hd3:RLDATA/MUSIC/SLOP
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSITEMUP -t 8svx hd3:RLDATA/MUSIC/ITEMUP
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSWPNUP -t 8svx hd3:RLDATA/MUSIC/WPNUP
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSOOF -t 8svx hd3:RLDATA/MUSIC/OOF
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSTELEPT -t 8svx hd3:RLDATA/MUSIC/TELEPT
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPOSIT1 -t 8svx hd3:RLDATA/MUSIC/POSIT1
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPOSIT2 -t 8svx hd3:RLDATA/MUSIC/POSIT2
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPOSIT3 -t 8svx hd3:RLDATA/MUSIC/POSIT3
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSBGSIT1 -t 8svx hd3:RLDATA/MUSIC/BGSIT1
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSBGSIT2 -t 8svx hd3:RLDATA/MUSIC/BGSIT2
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSGTSIT -t 8svx hd3:RLDATA/MUSIC/SGTSIT
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSBRSSIT -t 8svx hd3:RLDATA/MUSIC/BRSSIT
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSGTATK -t 8svx hd3:RLDATA/MUSIC/SGTATK
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSCLAW -t 8svx hd3:RLDATA/MUSIC/CLAW
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPLDETH -t 8svx hd3:RLDATA/MUSIC/PLDETH
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPODTH1 -t 8svx hd3:RLDATA/MUSIC/PODTH1
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPODTH2 -t 8svx hd3:RLDATA/MUSIC/PODTH2
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPODTH3 -t 8svx hd3:RLDATA/MUSIC/PODTH3
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSBGDTH1 -t 8svx hd3:RLDATA/MUSIC/BGDTH1
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSBGDTH2 -t 8svx hd3:RLDATA/MUSIC/BGDTH2
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSGTDTH -t 8svx hd3:RLDATA/MUSIC/SGTDTH
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSBRSDTH -t 8svx hd3:RLDATA/MUSIC/BRSDTH
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPOSACT -t 8svx hd3:RLDATA/MUSIC/POSACT
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSBGACT -t 8svx hd3:RLDATA/MUSIC/BGACT
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSDMACT -t 8svx hd3:RLDATA/MUSIC/DMACT
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSNOWAY -t 8svx hd3:RLDATA/MUSIC/NOWAY
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSBAREXP -t 8svx hd3:RLDATA/MUSIC/BAREXP
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPUNCH -t 8svx hd3:RLDATA/MUSIC/PUNCH
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSPLASMA -t 8svx hd3:RLDATA/MUSIC/PLASMA
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSBFG -t 8svx hd3:RLDATA/MUSIC/BFG
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSCACSIT -t 8svx hd3:RLDATA/MUSIC/CACSIT
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSCYBSIT -t 8svx hd3:RLDATA/MUSIC/CYBSIT
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSPISIT -t 8svx hd3:RLDATA/MUSIC/SPISIT
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSKLATK -t 8svx hd3:RLDATA/MUSIC/SKLATK
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSCACDTH -t 8svx hd3:RLDATA/MUSIC/CACDTH
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSKLDTH -t 8svx hd3:RLDATA/MUSIC/SKLDTH
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSCYBDTH -t 8svx hd3:RLDATA/MUSIC/CYBDTH
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSSPIDTH -t 8svx hd3:RLDATA/MUSIC/SPIDTH
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSHOOF -t 8svx hd3:RLDATA/MUSIC/HOOF
+
+sox -V -s -t raw -b -r 11025 hd3:doom/sound/DSMETAL -t 8svx hd3:RLDATA/MUSIC/METAL

@@ -1,0 +1,16 @@
+.key CUT/A
+.bra {
+.ket }
+
+stack 20000
+avail >NIL: flush
+avail >NIL: flush
+date >RLDATA:CUT/{CUT}/StartTime
+RL:CUTTER/Cutter RL:CUT/CutList{CUT}
+date >RLDATA:CUT/{CUT}/EndTime
+;
+touch rlcutdata.a
+touch rlcutdef.a
+;
+type RLDATA:CUT/{CUT}/StartTime
+type RLDATA:CUT/{CUT}/EndTime

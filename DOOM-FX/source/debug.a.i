@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	105
+DATE	MACRO
+		dc.b	'17.10.95'
+	ENDM
+VERS	MACRO
+		dc.b	'debug.a 1.105'
+	ENDM
+VSTRING	MACRO
+		dc.b	'debug.a 1.105 (17.10.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: debug.a 1.105 (17.10.95)',0
+	ENDM

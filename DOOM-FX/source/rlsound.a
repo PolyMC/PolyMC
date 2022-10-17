@@ -1,0 +1,559 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         ENGINE SOUND MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	snes.i
+	include	rlsound.i
+	include	music.i
+
+
+	SECTION	LEVEL
+
+;
+;	* * * * * * *       INITIALIZE GSU SOUND COMMANDS       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitSound
+	mode	'A!'
+	lda	#0				; NO Sounds to Process
+	sta	RLNumSounds
+;
+;	>>>   INITIALIZE MUSIC DRIVER SEMAPHORE LOCKS   <<<
+;
+	stz	_MDLocks			; MusicDriver Semaphore Locks
+;
+;	>>>   INITIALIZE REGULAR SOUND EFFECTS   <<<
+;
+	stz	SoundQueueI			; Empty Regular SoundEffects Queue
+	stz	SoundQueueE
+;
+;	>>>   INITIALIZE TURBO SOUND EFFECTS   <<<
+;
+	lda	#($FF<<8)|(rlsetfIdle)		; BWAVE# / IDLE
+rlset	var	0
+	repeat	MaxRLTSounds
+	sta	TSounds+rlsetFlags+(rlset*rlsetSize)
+rlset	var	rlset+1
+	endrep
+
+rlset	var	0
+rlapu	var	BlastBufferAddress
+	repeat	MaxRLTSounds
+	lda	#<rlapu				; APUBASE
+	sta	TSounds+rlsetAPUBase+(rlset*rlsetSize)
+rlset	var	rlset+1
+rlapu	var	rlapu+((BlastBufferSize/MaxRLTSounds)/9*9)
+	endrep
+
+rlset	var	0
+	repeat	MaxRLTSounds
+	lda	#(rlset*rlsetSize)		; PRIORITY INDEX ORDER
+	sta	TSoundsI+(rlset*2)
+rlset	var	rlset+1
+	endrep
+;
+	rtl
+
+
+
+	SECTION	ENGINE_RAMCODE
+
+;
+;	* * * * * * *       HANDLE TURBO SOUND EFFECTS       * * * * * * *
+;
+	dbr	0
+	dpr	0
+	mode	'AX'
+_RLIRQUpdateTSounds
+;
+;	>>>   ANY TURBO SOUNDS TO PROCESS?   <<<
+;
+	bit	_MDLocks			; MusicDriver Locked?
+	bmi	_RIUTS800			; Yes, Can't Activate Turbo!
+;
+rlset	var	0
+	repeat	MaxRLTSounds
+	bit	TSounds+rlsetFlags-1+(rlset*rlsetSize)	; TurboSound Active?
+	bmi	*+5
+	lda	TSounds+rlsetBytes+(rlset*rlsetSize)	; #Bytes Remaining to Transfer
+	bne	_RIUTS1000				; ACTIVATE TURBO!
+rlset	var	rlset+1
+	endrep
+	bra	_RIUTS2000			; UPDATE TURBO SOUNDS NOW
+_RIUTS800
+	rts
+;
+;	>>>   ACTIVATE TURBO   <<<
+;
+_RIUTS1000
+	mode	'a!'
+	lda	#DCOM_SLOW_BLAST		; Activate Turbo
+	xba
+	lda	_MDSerialNum			; Get New Serial#
+	inc	a
+	bmi	_RIUTS1100
+	lda	#$80
+_RIUTS1100
+	sta	_MDSerialNum			; Save New Serial#
+	sta	_MDLocks			; Activate Turbo
+	mode	'A!'
+	ldx	#(BlastBufferAddress+BlastBufferSize-3)	; APU ADDRESS
+	sta	APUIO2
+	stx	APUIO0
+;
+;	>>>   PROCESS TURBO SOUNDS   <<<
+;
+_RIUTS2000
+	mode	'x!'
+rlset	var	0
+	repeat	MaxRLTSounds
+	ldy	TSounds+rlsetFlags+(rlset*rlsetSize)	; TurboSound Active?
+	bmi	*+5					; No
+	ldx	#(rlset*rlsetSize)
+	jsr	_RLIRQUpdateTSound			; Process TurboSound Effect
+rlset	var	rlset+1
+	endrep
+;
+;	>>>   DEACTIVATE TURBO   <<<
+;
+	ldx	_MDLocks			; Turbo Activated?
+	beq	_RIUTS2800			; No!
+	stz	_MDLocks			; Yes, DeActivate Turbo
+	stx	_MDSerialNum			; Restore Turbo Serial#
+	stz	APUIO0
+	stx	APUIO2
+_RIUTS2800
+	mode	'X!'
+	rts
+
+
+;
+;	* * * * * * *       HANDLE ONE TURBO SOUND EFFECT       * * * * * * *
+;
+;	.X = Offset into TSounds
+;
+	dbr	0
+	dpr	0
+	mode	'Ax'
+_RIUT1000
+	jmp	_RIUT6000
+_RLIRQUpdateTSound
+;
+;	>>>   ANY MORE DATA TO LOAD?   <<<
+;
+;_RIUT2000
+	lda	TSounds+rlsetBytes,x		; #Bytes Remaining to Transfer
+	beq	_RIUT1000			; Nothing to Transfer!
+	cmp	#111 ; 126			; > Max #Bytes to Transfer?
+	bcc	_RIUT2200			; No
+	lda	#111				; Yes!  Use Max #Bytes
+_RIUT2200
+	pha					; Save #Bytes to Transfer
+;
+;	>>>   SEND TRANSFER ADDRESS   <<<
+;
+;_RIUT3000
+	ldy	_MDSerialNum			; Get Serial#
+_RIUT3200
+	cpy	APUIO2				; Wait for MusicDriver
+	bne	_RIUT3200
+	iny					; New Serial#
+	bmi	_RIUT3300
+	ldy	#$80
+_RIUT3300
+	lda	TSounds+rlsetAPU,x		; APU ADDRESS
+	sta	APUIO0
+	sty	APUIO2
+	lda	TSounds+rlsetData,x		; DATA ADDRESS
+	sta	_TSData
+_RIUT3400
+	cpy	APUIO2				; Wait for Acknowledge
+	bne	_RIUT3400
+	ldy	TSounds+rlsetData+2,x		; DATA BANK
+	sty	_TSData+2
+;
+;	>>>   TRANSFER NEXT BLOCK   <<<
+;
+;_RIUT4000
+	pla					; Get #Bytes to Transfer
+	sta	_TSBytes
+;
+	ldy	#%00001111			; 160 Pixels, GSU has RAM, SNES has ROM, 256 Colour
+;	ifn	DEBUG
+;	sty	SCR_XS				; XSLV Shadow
+;	endif
+	sty	sfxSCR
+;
+	ldy	#0				; Data Index
+_RIUT4200
+	lda	[_TSData],y			; Bytes 0/1
+	sta	APUIO0
+	iny
+	iny
+	mode	'a!'
+	lda	[_TSData],y			; Byte 2
+	sta	APUIO3
+	iny
+	sty	APUIO2				; Serial#
+	mode	'A!'
+_RIUT4400
+	cpy	APUIO2				; Wait for Acknowledge
+	bne	_RIUT4400
+	cpy	_TSBytes			; Finished Block?
+	bne	_RIUT4200			; No, Keep Transferring
+	sty	_MDSerialNum			; Yes, Save New Synchronized Serial#
+;
+	ldy	#%00011111			; 160 Pixels, GSU has ROM/RAM, 256 Colour
+;	ifn	DEBUG
+;	sty	SCR_XS				; XSLV Shadow
+;	endif
+	sty	sfxSCR
+;
+;	>>>   UPDATE #BYTES REMAINING   <<<
+;
+;_RIUT5000
+	lda	TSounds+rlsetBytes,x		; #Bytes -= #Bytes Transferred
+	sec
+	sbc	_TSBytes
+	sta	TSounds+rlsetBytes,x
+	beq	_RIUT6000			; Finished Transferring!
+;
+;	>>>   UPDATE TRANSFER VARIABLES   <<<
+;
+	ldy	_TSBytes			; APUAddress += #Bytes Transferred
+	tya
+	clc
+	adc	TSounds+rlsetAPU,x
+	sta	TSounds+rlsetAPU,x
+;
+	tya					; DataAddress += #Bytes Transferred
+;	clc
+	adc	_TSData
+	sta	TSounds+rlsetData,x
+	bcc	_RIUT5600
+	inc	TSounds+rlsetData+2,x
+_RIUT5600
+	ldy	TSounds+rlsetFlags,x		; Ready to Start Playing?
+	cpy	#4				; #Minimum LoadCycles
+	bcc	_RIUT8000			; No
+
+;
+;	>>>   START PLAYING TURBO SOUND EFFECT   <<<
+;
+_RIUT6000
+	bit	TSounds+rlsetFlags-1,x		; Already Playing Sound?
+	bvs	_RIUT8000			; Yes
+;
+	mode	'X!'
+	phx
+	txa					; Queue TurboSound Initialization
+	ora	#$8000
+	jsr	_RLIRQQueueSound
+	plx
+	bcs	_RIUT9000			; Queue Full!
+;
+	phx
+	lda	TSounds+rlsetPriority,x		; Queue Priority/Effect#
+	jsr	_RLIRQQueueSound
+	plx
+	bcs	_RIUT9000			; Queue Full!
+;
+	mode	'ax!'
+	lda	#(rlsetfPlaying)		; Now Playing Sound!
+	sta	TSounds+rlsetFlags,x
+	mode	'A!'
+;
+;	>>>   WAIT FOR SOUND TO FINISH PLAYING   <<<
+;
+_RIUT8000
+	inc	TSounds+rlsetFlags,x		; PlayCycle++
+	rts
+;
+;	>>>   CAN'T QUEUE SOUND EFFECT!   <<<
+;
+_RIUT9000
+	mode	'x!'
+	rts
+
+
+;
+;	* * * * * * *       HANDLE REGULAR SOUND EFFECTS       * * * * * * *
+;
+	dbr	0
+	dpr	0
+	mode	'AX'
+_RLIRQUpdateSounds
+	bit	_MDLocks			; MusicDriver Locked?
+	bmi	_RIUSS900			; Yes
+	lda	#4				; Maximum #SoundEffects to Send
+	sta	_TSBytes
+	ldx	SoundQueueI			; Regular SoundEffects Queue Index
+_RIUSS200
+	cpx	SoundQueueE			; Any More Regular SoundEffects Queued?
+	beq	_RIUSS900			; No
+	ldy	SoundQueue+rlserPriority,x	; Regular/TURBO SoundEffect?
+	bpl	_RIUSS500			; REGULAR
+;
+;	>>>   TURBO SOUNDEFFECT INITIALIZATION   <<<
+;
+	tyx					; APU BASEADDRESS
+	ldy	!(TSounds+rlsetAPUBase+$8000),x
+	lda	#DCOM_BLAST_ADDR
+	jsl	_SendDriverCommandQuick
+	bcs	_RIUSS800			; TimeOut!  Don't Empty from Queue!
+;
+	ldy	SoundQueueI			; BWAVE#
+	ldx	SoundQueue+rlserPriority,y
+	ldy	!(TSounds+rlsetBWave+$8000),x
+	lda	#DCOM_SETWAVEASBLAST
+	jsl	_SendDriverCommandQuick
+	bcc	_RIUSS700
+	bra	_RIUSS800			; TimeOut!  Don't Empty from Queue!
+;
+;	>>>   REGULAR SOUNDEFFECT   <<<
+;
+_RIUSS500
+	lda	#DCOM_SET_NEXT_EFFECT_VOL	; VOLUME LEVEL
+	jsl	_SendDriverCommandQuick
+	bcs	_RIUSS800			; TimeOut!  Don't Empty from Queue!
+	ldx	SoundQueueI
+	ldy	SoundQueue+rlserEffect,x	; EFFECT NUMBER
+	lda	#DCOM_START_EFFECT
+	jsl	_SendDriverCommandQuick
+	bcs	_RIUSS800			; TimeOut!  Don't Empty from Queue!
+;
+;	>>>   NEXT REGULAR SOUNDEFFECT   <<<
+;
+_RIUSS700
+	ldx	SoundQueueI			; Empty SoundEffect from Queue
+	inx
+	inx
+	cpx	#<(SoundQueueEnd-SoundQueue)	; WrapAround?
+	bne	_RIUSS750			; No
+	ldx	#0				; Yes!
+_RIUSS750
+	stx	SoundQueueI
+	dec	_TSBytes			; One More SoundEffect Queued
+	bne	_RIUSS200			; We Can Send More!
+;
+;	>>>   TIMEOUT ERROR!   <<<
+;
+_RIUSS800
+;
+;	>>>   ALL SOUNDEFFECTS HANDLED   <<<
+;
+_RIUSS900
+	rts
+
+
+;
+;	* * * * * * *       UPDATE SOUND EFFECTS QUEUES       * * * * * * *
+;
+	dbr	0
+	dpr	0
+	mode	'AX'
+_RLIRQUpdateSoundQueues
+	ldy	#0				; .Y = SoundEffects Index
+_RIUSQ2000
+	lda	RLSNESSounds+rlseEffect,y	; Get SoundEffect Effect#
+	and	#$00ff
+	asl	a				; .X = TurboTable Index
+	sta	_TSBytes
+	asl	a
+;	clc
+	adc	_TSBytes
+	tax
+	lda	_MusicTurboTable+rlsettBWave,x	; Regular/Turbo?
+	bne	_RIUSQ3000			; Turbo
+	jmp	_RIUSQ8000			; Regular
+
+;
+;	* * * * * * *       QUEUE A TURBO SOUNDEFFECT       * * * * * * *
+;
+_RIUSQ3000
+	phy					; Save SoundEffect Index
+	txy					; .Y = TurboTable Index
+	mode	'a!'
+
+;
+;	>>>   CHECK ALL TURBO SOUNDS FOR MATCHING BWAVE   <<<
+;
+rlset	var	0
+	repeat	MaxRLTSounds
+	ldx	#(rlset*rlsetSize)		; .X = TurboSound Index
+	cmp	TSounds+rlsetBWave,x		; Same BWAVE Number?
+	beq	_RIUSQ3800			; Yes!
+rlset	var	rlset+1
+	endrep
+
+;
+;	>>>   FIND A FREE TURBOSOUND   <<<
+;
+rlset	var	0
+	repeat	MaxRLTSounds
+	ldx	TSoundsI+(rlset*2)		; Get Priority Order Index
+	bit	TSounds+rlsetFlags,x		; Is TurboSound Idle?
+	bmi	_RIUSQ5000			; Yes!
+rlset	var	rlset+1
+	endrep
+
+;
+;	>>>   NO FREE TURBOSOUNDS!   <<<
+;
+	ply					; Restore SoundEffect Index
+;_RIUSQ3600
+	jmp	_RIUSQ9000			; No TurboSounds Free!
+;
+;	>>>   EXISTING TURBOSOUND EFFECT MATCHES BWAVE NUMBER   <<<
+;
+_RIUSQ3800
+	jsr	_RIUSQ4000			; Update Priority Order Index
+	jmp	_RIUSQ7000
+
+;
+;	>>>   UPDATE PRIORITY INDEX   <<<
+;
+;	.X = TSound Index to Use
+;
+_RIUSQ4000
+	phy					; Save _MusicTurboTable Index
+	stx	_TSBytes
+	phx					; Most Recently Used
+	ldy	#((MaxRLTSounds-1)*2)
+_RIUSQ4200
+	ldx	TSoundsI,y			; Get Priority Order Index
+	cpx	_TSBytes			; Our New Top Priority?
+	beq	_RIUSQ4300			; Yes, Don't Add Twice!
+	phx					; No, Add This Older Priority!
+_RIUSQ4300
+	dey
+	dey
+	bpl	_RIUSQ4200
+
+rlset	var	0
+	repeat	MaxRLTSounds
+	plx					; Get Priority Order Index
+	stx	TSoundsI+(rlset*2)
+rlset	var	rlset+1
+	endrep
+	ply					; Restore _MusicTurboTable Index
+	rts
+
+;
+;	>>>   INITIALIZE NEW TURBOSOUND   <<<
+;
+_RIUSQ5000
+	jsr	_RIUSQ4000			; Update Priority Order Index
+	stz	TSounds+rlsetFlags,x		; Cycle
+	mode	'A!'
+	sta	TSounds+rlsetBWave,x		; BWave# / Data Address Low
+	lda	_MusicTurboTable+rlsettData+1,y	; Data Address High/Bank
+	sta	TSounds+rlsetData+1,x
+	lda	_MusicTurboTable+rlsettBytes,y	; #Bytes to Transfer
+	sta	TSounds+rlsetBytes,x
+	ply					; Restore SoundEffect Index
+	lda	RLSNESSounds+rlsePriority,y	; Priority/Effect#
+	sta	TSounds+rlsetPriority,x
+	lda	TSounds+rlsetAPUBase,x		; APU BaseAddress
+	sta	TSounds+rlsetAPU,x		; APU
+	bra	_RIUSQ9500
+
+;
+;	>>>   MATCHING TURBO SOUND EXISTS!   <<<
+;
+	mode	'a'
+_RIUSQ7000
+	ply					; Restore SoundEffect Index
+	lda	RLSNESSounds+rlsePriority,y	; Get New Priority
+;
+	bit	TSounds+rlsetFlags,x		; Is TurboSound Idle?
+	bpl	_RIUSQ7200			; No, Playing or Loading
+;
+;	>>>   TURBOSOUND IS IDLE   <<<
+;
+	sta	TSounds+rlsetPriority,x		; Yes, Force New Priority!
+	bra	_RIUSQ7500
+;
+;	>>>   TURBOSOUND IS LOADING/PLAYING   <<<
+;
+_RIUSQ7200
+	cmp	TSounds+rlsetPriority,x		; New Priority >= Old Priority?
+	bcc	_RIUSQ7300			; No
+	sta	TSounds+rlsetPriority,x		; Yes!  Use New Priority!
+;
+;	>>>   TURBOSOUND NOT PLAYING YET -- WAIT FOR NORMAL LOAD PROCESS   <<<
+;
+_RIUSQ7300
+	bvc	_RIUSQ9000			; TurboSound NOT Playing -- Wait
+;
+;	>>>   TURBOSOUND LOADED!  QUEUE REGULAR SOUNDEFFECT TO PLAY TURBOSOUND   <<<
+;
+_RIUSQ7500
+	lda	#(rlsetfPlaying)		; ReStart PlayCycle
+	sta	TSounds+rlsetFlags,x
+	mode	'A!'
+	ifn	0
+	txa					; Queue TurboSound Initialization
+	ora	#$8000
+	jsr	_RLIRQQueueSound
+	bcs	_RIUSQ9500			; Queue Full!
+	endif
+;
+;	* * * * * * *       QUEUE A REGULAR SOUNDEFFECT       * * * * * * *
+;
+_RIUSQ8000
+	lda	RLSNESSounds+rlsePriority,y	; Get SoundEffect Priority/Effect#
+	jsr	_RLIRQQueueSound
+;
+;	>>>   ONE MORE SOUNDEFFECT QUEUED   <<<
+;
+_RIUSQ9000
+	mode	'A!'
+_RIUSQ9500
+	iny					; Next SoundEffect
+	iny
+	dec	!(RLNumSounds+RLSNESGSUXVarsO)	; Any More SoundEffects to Queue?
+	beq	_RIUSQ9900			; No
+	jmp	_RIUSQ2000			; Yes
+_RIUSQ9900
+	rts
+
+
+;
+;	* * * * * * *       QUEUE A REGULAR SOUND EFFECT       * * * * * * *
+;
+;	.A = Priority/Effect
+;	.A = TurboSound Index + $8000
+;
+;	.C = 0 = SoundEffect Queued
+;	   = 1 = Queue Full!
+;
+	dbr	0
+	dpr	0
+	mode	'AX'
+_RLIRQQueueSound
+	ldx	SoundQueueE			; SoundEffect Queue Full?
+	inx
+	inx
+	cpx	#<(SoundQueueEnd-SoundQueue)	; WrapAround?
+	bne	_RIQS200
+	ldx	#0
+_RIQS200
+	cpx	SoundQueueI
+	beq	_RIQS900			; YES!  CAN'T QUEUE SOUNDEFFECT!
+	phx
+	ldx	SoundQueueE			; Queue SoundEffect
+	sta	SoundQueue+rlserPriority,x
+	plx
+	stx	SoundQueueE
+	clc
+_RIQS900
+	rts

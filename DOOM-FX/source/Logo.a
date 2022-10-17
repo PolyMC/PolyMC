@@ -1,0 +1,110 @@
+;**********************************************************************
+;*                                                                    *
+;*                      P R O J E C T :   R A G E                     *
+;*                                                                    *
+;*                           LOGO PAGE MODULE                         *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	xfer.i
+
+	ifn	useLOGO
+
+	public	Logo
+
+
+	SECTION	LOGO,RELOC,BASE=$80000000,RORG=$8000
+;
+;	* * * * * * *       LOGO PAGE       * * * * * * *
+;
+	dpr	0
+	dbr	?
+Logo
+	jsl	InitNormalNMI
+;
+	mode	'aX!'
+	ldx	#<LogoXFer			; Transfer Logo DataBlock
+	lda	#^LogoXFer
+	jsl	XFer
+;
+	jsl	InitSNES			; Initialize Hardware
+	mode	'ax'
+	lda	#$80				; Transfer RGB Palette to CGRAM
+	sta	RGBXfer
+	stz	BGMODE				; Mode0 BG1:8x8
+	lda	#$7c				; BG1 Screen at $7c00
+	sta	BG1SC
+	lda	#$ff				; Offset $FFFF
+	sta	BG1VOFS
+	sta	BG1VOFS
+	stz	BG1HOFS				; Offset $0000
+	stz	BG1HOFS
+	stz	BG12NBA				; BG1 @$0000
+	stz	MOSAIC
+	lda	#%00001000			; PseudoH512, 224Lines
+	sta	SETINI
+	lda	#%00000010			; Colour Add Enable
+	sta	CGSWSEL
+	lda	#%01000001			; Add 1/2 Enable BG1
+	sta	CGADSUB
+	lda	#$01				; BG1
+	sta	TM
+	sta	TS
+;
+	jsl	ScreenOn
+;
+	ifn	useSOUND
+	jsl	_InitMusicDriver		; Load MUSIC Driver
+	endif
+;
+	mode	'A!'
+LGO200
+	lda	JOY1L				; Joystick pressed?
+	bne	LGO200				; Yes, wait until released
+LGO400
+	lda	JOY1L				; Wait until pressed
+	beq	LGO400
+LGO600
+	lda	JOY1L				; Joystick pressed?
+	bne	LGO600				; Yes, wait until released
+;
+	jml	ScreenOff
+
+
+;
+;	* * * * * * *       TRANSFER LIST       * * * * * * *
+;
+	mode	'@A@X'
+LogoXFer
+	dc.w	xftVRAM16		; Transfer LogoDef0 to $0000W
+	dc.4	LogoDef0
+	dc.4	$0000
+	dcb.w	3,0
+;
+	dc.w	xftVRAM16		; Transfer LogoMap to $7c00W
+	dc.4	LogoMap
+	dc.4	$7c00
+	dcb.w	3,0
+;
+	dc.w	xftRAM			; Transfer RGB
+	dc.4	LogoRGB
+	dc.4	RGBData
+	dc.w	512
+	dcb.w	2,0
+;
+	dc.w	xftEnd
+
+
+;
+;	* * * * * * *       LOGO DATA       * * * * * * *
+;
+	SECTION	LOGO_DATA_0,RELOC,BASE=$80000000,RORG=$8000
+LogoDef0
+	image	RLDATA:COMP/Logo.def0
+LogoMap
+	image	RLDATA:COMP/Logo.map0
+LogoRGB
+	image	RLDATA:COMP/Logo.rgb
+	endif

@@ -1,0 +1,316 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                  SYSTEM O/S AND DIAGNOSTICS MODULE                 *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	xfer.i
+
+	public	InitSystem
+
+
+	SECTION	SYS,RELOC,BASE=$80000000,RORG=$400000
+;
+;	* * * * * * *       INITIALIZE SYSTEM       * * * * * * *
+;
+	dpr	0
+	dbr	?
+	mode	'@A@X'
+InitSystem
+	jsl	InitNormalIRQ		; Initialize IRQ Code
+	jsl	InitNormalNMI		; Initialize NMI Code
+	jsl	InitSNES		; Initialize SuperNES
+;	mode	'a'
+	stz	XFerNasty		; Transfers are NOT NASTY
+	ifn	useXBAND
+	jml	InitXBAND		; Initialize XBAND Hardware
+	endif
+	ife	useXBAND
+	rtl
+	endif
+
+
+;
+;	* * * * * * *       SYSTEM TEXT       * * * * * * *
+;
+;	.X/.A	= pointer to SysTextStructure
+;
+;	DC.W	VRAMPointer (or -1 for End)
+;	DC.L	ADDRESS of Text
+;	DC.B	Size of Text
+;
+	dbr	?
+	dpr	0
+	mode	'aX'
+SystemText
+	stx	Temp			; Save pointer to SysTextStruct
+	sta	Temp+2
+	lda	#$80
+	sta	VMAINC
+STT200
+	mode	'A!'
+	ldy	#0
+	lda	[Temp],y		; VRAM PTR
+	bmi	STT900			; No, done!
+	sta	VMADDL
+	iny
+	iny
+	lda	[Temp],y
+	sta	Temp2
+	iny
+	iny
+	lda	[Temp],y
+	sta	Temp2+2
+	xba
+	and	#$00ff			; .X = Length
+	tax
+	lda	Temp			; Bump SysTextPtr
+	clc
+	adc	#6
+	sta	Temp
+	mode	'a!'
+	ldy	#0
+STT300
+	lda	[Temp2],y		; Get next character
+	sta	VMDATAL			; Send to VRAM
+	lda	#$3c
+	sta	VMDATAH
+	iny
+	dex
+	bne	STT300
+	bra	STT200			; Handle next text piece
+STT900
+	rtl
+
+
+	ifn	useSYSINFO
+;
+;	* * * * * * *       SYSTEM INFORMATION       * * * * * * *
+;
+	dpr	0
+	dbr	?
+DebugWarnInfo
+	mode	'aX!'
+	ldx	#<DebugWarnInfoSText		; Show DebugWarn Text
+	lda	#^DebugWarnInfoSText
+	ldy	#%000000000011111
+	jmp	SystemInfo2
+SystemInfo
+	mode	'aX!'
+	ldx	#<SysInfoSText			; Show System Text
+	lda	#^SysInfoSText
+	ldy	#%000000000000000
+SystemInfo2
+	phx
+	pha
+	phy
+;
+	jsl	ScreenOff			; Turn Screen Off
+	jsl	InitNormalNMI
+;
+	mode	'aX!'
+	ldx	#<SysInfoXFer			; Transfer SysInfo DataBlock
+	lda	#^SysInfoXFer
+	jsl	XFer
+;
+	mode	'AX'
+	ldx	#%001110011100111
+	ldy	#%111111111111111
+	pla					; System Info/Debug Warn?
+	beq	SIO100				; System Info
+	ldx	#%000000000011111
+	ldy	#%000000000000000
+SIO100
+	sta	RGBData+(0*2)
+	stx	RGBData+(7*16*2)+(7*2)
+	sty	RGBData+(7*16*2)+(11*2)
+;
+	mode	'a!'
+	lda	#$80				; Transfer RGB Palette to CGRAM
+	sta	RGBXfer
+	lda	#1				; Mode1 BG1:8x8
+	sta	BGMODE
+	lda	#$20				; BG1 Screen at $2000
+	sta	BG1SC
+	lda	#$ff				; Offset $FFFF
+	sta	BG1VOFS
+	sta	BG1VOFS
+	stz	BG1HOFS				; Offset $0000
+	stz	BG1HOFS
+	stz	BG12NBA				; BG1 @$0000
+	stz	MOSAIC
+;
+	lda	#%00001000			; PseudoH512, 224Lines
+	sta	SETINI
+	lda	#%00000010			; Colour Add Enable
+	sta	CGSWSEL
+	lda	#%01000001			; Add 1/2 Enable BG1
+	sta	CGADSUB
+	ldx	#$0101				; BG1 Only
+	stx	TM
+;
+	pla					; Pointer to SystemText
+	plx
+	jsl	SystemText
+;
+	jsl	ScreenOn
+;
+	mode	'AX!'
+SIO200
+	lda	JOY1L				; Joystick pressed?
+	bne	SIO200				; Yes, wait until released
+	ldx	#(60*2)-1
+SIO300
+	lda	JOY1L				; Joystick pressed?
+	bne	SIO400				; Yes, exit now
+	wai
+	dex
+	bpl	SIO300
+	lda	RGBData				; Debug Warning?
+	bne	SIO300				; Yes, Don't Time Out!
+SIO400
+	lda	JOY1L				; Wait until released
+	bne	SIO400
+	jml	ScreenOff
+
+
+;
+;	* * * * * * *       TRANSFER LIST       * * * * * * *
+;
+	mode	'@A@X'
+SysInfoXFer
+	dc.w	xftVRAMF16+xftRAW	; Fill $0000W-$2FFFW with $00
+	dc.4	SysInfoXFerA
+	dc.4	$0000
+	dc.w	($3000*2)
+SysInfoXferA
+	dcb.w	2,0
+;
+	dc.w	xftVRAM16		; Transfer SysFontDef to $0200W
+	dc.4	SysFontDef
+	dc.4	$0200
+	dcb.w	3,0
+;
+	dc.w	xftEnd
+
+
+;
+;	* * * * * * *       SYSTEM TEXTS       * * * * * * *
+;
+SysInfoSText
+	dc.w	($2000+(3*32)+((32-SI0TxtL)/2))
+	dc.l	SI0Txt
+	dc.b	SI0TxtL
+
+	dc.w	($2000+(7*32)+((32-CFGTxtL)/2))
+	dc.l	TTLTxt
+	dc.b	TTLTxtL
+
+	dc.w	($2000+(9*32)+((32-CFGTxtL)/2))
+	dc.l	VerTxt
+	dc.b	VerTxtL
+
+	dc.w	($2000+(11*32)+((32-CFGTxtL)/2))
+	dc.l	CPUTxt
+	dc.b	CPUTxtL
+
+	dc.w	($2000+(12*32)+((32-CFGTxtL)/2))
+	dc.l	CPUTxt2
+	dc.b	CPUTxt2L
+
+	dc.w	($2000+(14*32)+((32-CFGTxtL)/2))
+	dc.l	CFGTxt
+	dc.b	CFGTxtL
+
+	dc.w	($2000+(15*32)+((32-CFGTxtL)/2))
+	dc.l	CFHTxt
+	dc.b	CFHTxtL
+
+	dc.w	($2000+(17*32)+((32-CFGTxtL)/2))
+	dc.l	PRGTxt
+	dc.b	PRGTxtL
+
+	dc.w	($2000+(19*32)+((32-CFGTxtL)/2))
+	dc.l	RAMTxt
+	dc.b	RAMTxtL
+
+	dc.w	($2000+(23*32)+((32-DATTxtL)/2))
+	dc.l	DATTxt
+	dc.b	DATTxtL
+
+;	dc.w	($2000+(25*32)+((32-CP0TxtL)/2))
+;	dc.l	CP0Txt
+;	dc.b	CP0TxtL
+
+;	dc.w	($2000+(26*32)+((32-CP1TxtL)/2))
+;	dc.l	CP1Txt
+;	dc.b	CP1TxtL
+
+	dc.w	-1
+
+SI0Txt
+	dc.b	'System Information'
+SI0TxtL	equ	*-SI0Txt
+
+CP0Txt
+	dc.b	127,'1994/5 Entertainment Dynamics'
+CP0TxtL equ	*-CP0Txt
+
+CP1Txt
+	dc.b	'All Rights Reserved.'
+CP1TxtL equ	*-CP1Txt
+
+
+;
+;	* * * * * * *       DEBUG WARNING TEXTS       * * * * * * *
+;
+DebugWarnInfoSText
+	dc.w	($2000+(7*32)+((32-DWI0TxtL)/2))
+	dc.l	DWI0Txt
+	dc.b	DWI0TxtL
+
+	dc.w	($2000+(10*32)+((32-DWI1TxtL)/2))
+	dc.l	DWI1Txt
+	dc.b	DWI1TxtL
+
+	dc.w	($2000+(11*32)+((32-DWI1TxtL)/2))
+	dc.l	DWI2Txt
+	dc.b	DWI2TxtL
+
+	dc.w	($2000+(14*32)+((32-DWI3TxtL)/2))
+	dc.l	DWI3Txt
+	dc.b	DWI3TxtL
+
+	dc.w	-1
+
+DWI0Txt
+	dc.b	'* * *  W A R N I N G  * * *'
+DWI0TxtL equ	*-DWI0Txt
+
+DWI1Txt
+	dc.b	'This version for Sculptured'
+DWI1TxtL equ	*-DWI1Txt
+
+DWI2Txt
+	dc.b	'Internal Test/Debug ONLY!'
+DWI2TxtL equ	*-DWI2Txt
+
+DWI3Txt
+	dc.b	'DO NOT DISTRIBUTE!'
+DWI3TxtL equ	*-DWI3Txt
+
+	endif
+
+
+;
+;	* * * * * * *       SYSTEM FONT DATA       * * * * * * *
+;
+	SECTION	TEXTFONT_DATA,RELOC,BASE=$80000000,RORG=$400000
+RLDebugFontDef
+SysFontDef
+TextFontDef
+	image	RLDATA:COMP/TextFont.def0

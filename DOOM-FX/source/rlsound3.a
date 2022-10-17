@@ -1,0 +1,301 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                        ENGINE SOUND MODULE 3                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlsound.i
+	include	music.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;
+;	* * * * * * *       SOUND EFFECT DATA       * * * * * * *
+;
+_RLSoundEffects
+;
+;	>>>   DOORS   <<<
+;
+sxDoorOpen
+	dc.b	$80				; Door Opening
+	dc.b	doorope3_eff
+	dc.b	$d0
+	dc.b	doorope2_eff
+	dc.b	$ff
+	dc.b	dooropen_eff
+
+sxDoorClose
+	dc.b	$80				; Door Closing
+	dc.b	doorclo3_eff
+	dc.b	$d0
+	dc.b	doorclo2_eff
+	dc.b	$ff
+	dc.b	doorclos_eff
+
+;
+;	>>>   PLATFORMS   <<<
+;
+sxLiftStart
+	dc.b	$80				; Lift Start
+	dc.b	pstart3_eff
+	dc.b	$d0
+	dc.b	pstart2_eff
+	dc.b	$ff
+	dc.b	pstart_eff
+
+sxLiftStop
+	dc.b	$80				; Lift Stop
+	dc.b	pstop3_eff
+	dc.b	$d0
+	dc.b	pstop2_eff
+	dc.b	$ff
+	dc.b	pstop_eff
+
+sxStnMove
+	dc.b	$80				; Standard Move
+	dc.b	stnmov3_eff
+	dc.b	$d0
+	dc.b	stnmov2_eff
+	dc.b	$ff
+	dc.b	stnmov_eff
+
+;
+;	>>>   TELEPORT   <<<
+;
+sxTeleport
+	dc.b	$80				; Teleporter
+	dc.b	telept3_eff
+	dc.b	$d0
+	dc.b	telept2_eff
+	dc.b	$ff
+	dc.b	telept_eff
+
+;
+;	>>>   SOLDIER   <<<
+;
+sxSoldierAwake
+sxSergeantAwake
+	dc.b	$80				; Soldier Awake
+	dc.b	posit13_eff
+	dc.b	$d0
+	dc.b	posit12_eff
+	dc.b	$ff
+	dc.b	posit1_eff
+sxSoldierShoot
+	dc.b	$80				; Soldier Shoot
+	dc.b	pistol3_eff
+	dc.b	$d0
+	dc.b	pistol2_eff
+	dc.b	$ff
+	dc.b	pistol_eff
+
+;
+;	>>>   SERGEANT   <<<
+;
+sxSergeantShoot
+	dc.b	$80				; Sergeant Shoot
+	dc.b	shotgn3_eff
+	dc.b	$d0
+	dc.b	shotgn2_eff
+	dc.b	$ff
+	dc.b	shotgn_eff
+sxSoldierDamage
+sxSergeantDamage
+sxTrooperDamage
+sxDemonDamage
+	dc.b	$80				; Sergeant Damage
+	dc.b	popain3_eff
+	dc.b	$d0
+	dc.b	popain2_eff
+	dc.b	$ff
+	dc.b	popain_eff
+sxSoldierDie
+sxSergeantDie
+	dc.b	$80				; Sergeant Die
+	dc.b	podth33_eff
+	dc.b	$d0
+	dc.b	podth32_eff
+	dc.b	$ff
+	dc.b	podth3_eff
+
+;
+;	>>>   TROOPER   <<<
+;
+sxTrooperAwake
+	dc.b	$80				; Trooper Awake
+	dc.b	bgsit13_eff
+	dc.b	$d0
+	dc.b	bgsit12_eff
+	dc.b	$ff
+	dc.b	bgsit1_eff
+
+;
+;	>>>   DEMON   <<<
+;
+sxDemonAwake
+	dc.b	$80				; Demon Awake
+	dc.b	sgtsit3_eff
+	dc.b	$d0
+	dc.b	sgtsit2_eff
+	dc.b	$ff
+	dc.b	sgtsit_eff
+sxTrooperDie
+sxDemonDie
+	dc.b	$80				; Demon Die
+	dc.b	bgdth13_eff
+	dc.b	$d0
+	dc.b	bgdth12_eff
+	dc.b	$ff
+	dc.b	bgdth1_eff
+
+;
+;	>>>   CACODEMON   <<<
+;
+sxCacoDemonAwake
+	dc.b	$80				; CacoDemon Awake
+	dc.b	cacsit3_eff
+	dc.b	$d0
+	dc.b	cacsit2_eff
+	dc.b	$ff
+	dc.b	cacsit_eff
+sxTrooperFight
+sxDemonFight
+sxBaronOfHellFight
+sxCyberDemonFight
+sxCacoDemonFight
+	dc.b	$80				; CacoDemon Fight
+	dc.b	claw3_eff
+	dc.b	$d0
+	dc.b	claw2_eff
+	dc.b	$ff
+	dc.b	claw_eff
+sxCacoDemonDie
+	dc.b	$80				; CacoDemon Die
+	dc.b	cacdth3_eff
+	dc.b	$d0
+	dc.b	cacdth2_eff
+	dc.b	$ff
+	dc.b	cacdth_eff
+
+;
+;	>>>   LOST SOUL   <<<
+;
+sxLostSoulAwake
+	dc.b	$80				; LostSoul Awake
+	dc.b	dmact3_eff
+	dc.b	$d0
+	dc.b	dmact2_eff
+	dc.b	$ff
+	dc.b	dmact_eff
+sxLostSoulFight
+	dc.b	$80				; LostSoul Fight
+	dc.b	sklatk3_eff
+	dc.b	$d0
+	dc.b	sklatk2_eff
+	dc.b	$ff
+	dc.b	sklatk_eff
+sxLostSoulDie
+	dc.b	$80				; LostSoul Die
+	dc.b	skldth3_eff
+	dc.b	$d0
+	dc.b	skldth2_eff
+	dc.b	$ff
+	dc.b	skldth_eff
+
+;
+;	>>>   BARON OF HELL   <<<
+;
+sxBaronOfHellAwake
+	dc.b	$80				; BaronOfHell Awake
+	dc.b	brssit3_eff
+	dc.b	$d0
+	dc.b	brssit2_eff
+	dc.b	$ff
+	dc.b	brssit_eff
+
+;
+;	>>>   CYBERDEMON   <<<
+;
+sxCyberDemonAwake
+	dc.b	$80				; CyberDemon Awake
+	dc.b	cybsit3_eff
+	dc.b	$d0
+	dc.b	cybsit2_eff
+	dc.b	$ff
+	dc.b	cybsit_eff
+
+;
+;	>>>   SPIDERDEMON   <<<
+;
+sxSpiderDemonAwake
+sxSpiderDemonFight
+	dc.b	$80				; SpiderDemon Fight
+	dc.b	spisit3_eff
+	dc.b	$d0
+	dc.b	spisit2_eff
+	dc.b	$ff
+	dc.b	spisit_eff
+sxSpiderDemonShoot
+	dc.b	$80				; SpiderDemon Shoot
+	dc.b	pistol3_eff
+	dc.b	$d0
+	dc.b	pistol2_eff
+	dc.b	$ff
+	dc.b	pistol_eff
+sxCacoDemonDamage
+sxLostSoulDamage
+sxBaronOfHellDamage
+sxCyberDemonDamage
+sxSpiderDemonDamage
+	dc.b	$80				; SpiderDemon Damage
+	dc.b	dmpain3_eff
+	dc.b	$d0
+	dc.b	dmpain2_eff
+	dc.b	$ff
+	dc.b	dmpain_eff
+sxBaronOfHellDie
+sxCyberDemonDie
+sxSpiderDemonDie
+	dc.b	$80				; SpiderDemon Die
+	dc.b	brsdth3_eff
+	dc.b	$d0
+	dc.b	brsdth2_eff
+	dc.b	$ff
+	dc.b	brsdth_eff
+
+sxTrooperLaunch
+sxBaronOfHellLaunch
+sxCyberDemonLaunch
+sxFireBall1Launch
+sxFireBall2Launch
+sxFireBall7Launch
+sxBFGLaunch
+sxMissileLaunch
+sxPlasmaLaunch
+	dc.b	$80				; Plasma Launch
+	dc.b	firsht3_eff
+	dc.b	$d0
+	dc.b	firsht2_eff
+	dc.b	$ff
+	dc.b	firsht_eff
+sxFireBall1Die
+sxFireBall2Die
+sxFireBall7Die
+sxBFGDie
+sxBarrelExplode
+sxPlasmaDie
+sxMissileDie
+	dc.b	$80				; Plasma Die
+	dc.b	firxpl3_eff
+	dc.b	$d0
+	dc.b	firxpl2_eff
+	dc.b	$ff
+	dc.b	firxpl_eff

@@ -1,0 +1,376 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                      OBJECT HANDLING MODULE 1                      *
+;*                                                                    *
+;*                    LEVEL OBJECT INITIALIZATION                     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	rlobjects.i
+	include	snes.i
+	include	snesmac.i
+
+
+	public	_RLInitObjects
+
+
+	SECTION	LEVEL
+
+;
+;	* * * * * * *       REALITY_ENGINE INITIALIZE OBJECTS       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitObjects
+	mode	'AX!'
+	ldy	#(MaxRLFObjects-1)		; ALL Fixed RLObjects are FREE
+	ldx	#0
+_RILO400
+	lda	#0
+	sta	_RLObjects+rloFlags,x
+	txa
+	clc
+	adc	#rloSize0
+	tax
+	dey
+	bpl	_RILO400
+;
+;	>>>   SCAN LEVEL OBJECT LIST AND CREATE RLOBJECTS   <<<
+;
+	mode	'a!'
+	phb					; Save .DB
+	lda	#^_RLObjects
+	pha
+	plb
+	dbr	^(_RLObjects)
+;
+	lda	#0				; BARON OF HELL COUNTER (E1M8 SPECIAL)
+	sta	BaronOfHellCount
+;
+	lda	EMSECTORS+2			; Get Pointer to OBJECTS
+	sta	Temp4+2
+;
+;	>>>   GET SKILLLEVEL MASK   <<<
+;
+	mode	'A!'
+	ldx	SkillLevel			; 0=Easy,1=Med,2=Hard,3=UltraViolence,4=Nightmare
+	lda	>RLObjSkillMask,x
+	and	#$00ff
+	sta	Temp4+6				; (TEMP4+6) = SKILLLEVEL MASK
+;
+;	>>>   COUNT LEVEL ITEM/KILL TOTALS   <<<
+;
+	stz	EMTOTALITEMS			; Number of ITEMS
+	stz	NumItems
+	stz	EMTOTALKILLS			; Number of KILLS
+	stz	NumKills
+;
+;	>>>   MOVABLE OBJECT INDEX   <<<
+;
+	stz	Temp3				; (TEMP3) = Index to _RLMObjs
+;
+;	>>>   START PROCESSING LEVEL OBJECTS   <<<
+;
+	lda	#<_RLObjects			; (TEMP2) = Offset to _RLObjects
+	sta	Temp2
+	lda	#<_RLMObjects			; (TEMP2+2) = Offset to _RLMObjects
+	sta	Temp2+2
+	lda	EMOBJECTS			; Get Pointer to OBJECTS
+;
+;	>>>   PROCESS NEXT LEVEL OBJECT   <<<
+;
+_RILO2000
+	sta	Temp4				; Save Updated Pointer to LevelObjects
+;	ldy	#rlpFlags			; Flags/Type
+	lda	[Temp4]				; Any more Objects?
+	bne	_RILO2100			; Yes
+	jmp	_RILO9000			; NO!
+;
+;	>>>   LEVEL OBJECT PRESENT AT THIS SKILL LEVEL?   <<<
+;
+_RILO2100
+	bit	#rlpfMultiPlayer		; MultiPlayer Mode Only?
+	bne	_RILO2180			; Yes!
+	bit	Temp4+6				; Object Present?
+	bne	_RILO2200			; YES!
+_RILO2120
+	ife	useMULTIPLAYER
+_RILO2180
+	endif
+	jmp	_RILO8000			; NO!
+
+	ifn	useMULTIPLAYER
+;
+;	>>>   MULTIPLAYER OBJECT   <<<
+;
+_RILO2180
+	jmp	_RILO8000			; NO!
+	nop
+	endif
+
+;
+;	>>>   FIXED OR MOVABLE OBJECT?   <<<
+;
+_RILO2200
+	pha					; Save Flags/Type
+	bit	#rlpfMovable			; MOVABLE/FIXED?
+	beq	_RILO2500			; FIXED
+	ldx	Temp2+2				; MOVABLE
+	cpx	#<(_RLMObjectsE-(16*rloSize))	; Too Many MOVABLE Objects?
+	bne	_RILO2600
+	bra	_RILO2550			; YES!
+_RILO2500
+	ldx	Temp2				; FIXED
+	cpx	#<_RLObjectsE			; Too Many FIXED Objects?
+	bne	_RILO2600
+_RILO2550
+	ifn	(0*DEBUG)
+	HALT	#$30				; YES!!!  ERROR!!!
+	endif
+	pla
+	jmp	_RILO8000			; YES!
+;
+;	>>>   LINK THIS RLOBJECT INTO A SECTOR   <<<
+;
+_RILO2600
+	and	#(($ff<<8)|(rlpfMovable|rlpfActive|rlpfSolid|rlpfTarget))
+	sta	Temp+4
+;
+;	>>>   DOES THIS OBJECT COUNT FOR ITEM/KILL TOTALS?   <<<
+;
+	lda	1,s				; Get Flags/Type
+	phx					; Save Index
+	xba					; Get Type
+	and	#$00ff
+	asl	a
+	tax
+	lda	_ObjDataO,x			; Get _ObjData Offset
+	tax
+	lda	_ObjData+rlodHeight,x		; Get _ObjData Height
+	and	#$00ff
+	sta	Temp+2
+	lda	_ObjData+rlodFlags,x		; Get _ObjData Flags
+	sta	Temp
+;
+	bit	#(rlodfItemCount)		; Is Object an "ITEM"?
+	beq	_RILO2700
+	inc	EMTOTALITEMS			; Number of ITEMS++
+_RILO2700
+	bit	#(rlodfKill)			; Is Object a "KILL"?
+	beq	_RILO2800
+	inc	EMTOTALKILLS			; Number of KILLS++
+_RILO2800
+;
+	plx					; Restore Index
+	lda	Temp				; Add _ObjData Flags
+	and	#(rlodfItem)
+	ora	Temp+4
+	sta	!RAM7AStart+rloFlags,x		; Flags/Type
+	ldy	#rlpX				; X Coordinate
+	lda	[Temp4],y
+	sta	sfxR7
+	ldy	#rlpY				; Y Coordinate
+	lda	[Temp4],y
+	sta	sfxR8
+;
+	lda	#<__RLGetXYSectorData		; Call GSU to Find SectorData
+	jsl	__RLCallGSU
+;
+	lda	sfxR9				; Get SECTORDATA
+	tay
+	lda	!RAM7AStart+rlsdObjects,y	; Get SectorData.FirstObject
+	pha
+	txa
+	sta	!RAM7AStart+rlsdObjects,y	; SectorData.FirstObject = NewObject
+;
+	ply					; .Y = FirstObject
+	beq	_RILO3200			; No FirstObject!
+	sta	!RAM7AStart+rloPrev,y		; FirstObject.Previous=NewObject
+_RILO3200
+	tya
+	sta	!RAM7AStart+rloNext,x		; NewObject.Next = FirstObject
+	stz	!RAM7AStart+rloPrev,x		; NewObject.Previous = NULL
+;
+	lda	Temp4				; LevelObject
+	clc
+	adc	#rlpX
+	sta	!RAM7AStart+rloLObj,x
+;
+;	>>>   FIXED OR MOVABLE OBJECT?   <<<
+;
+	pla					; Flags/Type
+	bit	#rlpfMovable			; MOVABLE OBJECT?
+	bne	_RILO5000			; YES!
+;
+	txa					; Move to next RLObject
+	clc
+	adc	#rloSize0
+	sta	Temp2
+	jmp	_RILO8000
+
+;
+;	* * * * * * *       CREATE A MOVABLE RLOBJECT       * * * * * * *
+;
+_RILO5000
+	pha						; Save Type
+	lda	sfxR7					; X Coordinate
+	sta	!RAM7AStart+rloX+2,x
+	lda	sfxR8					; Y Coordinate
+	sta	!RAM7AStart+rloY+2,x
+	stz	!RAM7AStart+rloX,x			; X Coordinate Fraction
+	stz	!RAM7AStart+rloY,x			; Y Coordinate Fraction
+	stz	!RAM7AStart+rloVX,x			; X Velocity
+	stz	!RAM7AStart+rloVY,x			; Y Velocity
+;
+	lda	sfxR6					; Sector
+	mode	'a!'
+	sta	!RAM7AStart+rloSector,x
+	mode	'A!'
+;
+	lda	sfxR9					; SectorData
+	tay
+	lda	Temp					; ObjData Flags
+	bit	#rlodfFloat				; Does Object FLOAT?
+	beq	_RILO5300				; No
+	lda	!RAM7AStart+rlsdFloorHeight,y		; Z Coordinate
+	clc
+	adc	#32	; Temp+2
+	bra	_RILO5400
+_RILO5300
+	lda	!RAM7AStart+rlsdFloorHeight,y		; Z Coordinate
+_RILO5400
+	sta	!RAM7AStart+rloZ,x			; Z Coordinate
+	sta	!RAM7AStart+rloZ2,x			; Z2 Coordinate
+	lda	!RAM7AStart+rlsdCeilingHeight,y		; C2 Coordinate
+	sta	!RAM7AStart+rloC2,x
+;
+	ldy	#rlpAngle				; Angle
+	lda	[Temp4],y
+	sta	!RAM7AStart+rloAngle,x
+;
+	txy
+	pla						; Get Type
+	xba
+	and	#$00ff
+	asl	a
+	tax
+;
+	inc	RLNumMObjs				; NumMObjs++
+;
+;	>>>   GET MOVABLE OBJECT DATA   <<<
+;
+	lda	>RLMObjData,x				; MObjData
+	sta	!RAM7AStart+rloMData,y
+	tax
+;
+;	>>>   INITIALIZE MOBJ HEALTH   <<<
+;
+	lda	>(^_MObjData<<16)+rlmodHealth,x		; Health
+	sta	!RAM7AStart+rloHealth,y
+;
+;	>>>   INITIALIZE MOBJ STATE MACHINE   <<<
+;
+	lda	>(^_MObjData<<16)+rlmodSleepS,x		; State
+	beq	_RILO7800				; NO STATE (PLAYER)
+	sta	!RAM7AStart+rloState,y
+;
+;	>>>   INITIALIZE MOBJ ANIMATION STATE MACHINE   <<<
+;
+	lda	>(^_MObjData<<16)+rlmodSleepA,x		; Animation
+	sta	!RAM7AStart+rloAnim,y
+	tya						; StateCount (SLEEP0)
+	and	#$007f					; Maximum of 127 ticks (2 secs.)
+	xba
+	sta	!RAM7AStart+rloAnimCount,y		; AnimCount/StateCount
+;
+;	>>>   INITIALIZE MOBJ ENEMY LOGIC   <<<
+;
+	lda	#0					; No Target
+	sta	!RAM7AStart+rloTObj,y
+;
+;	>>>   ADD MOVABLE OBJECT TO PROCESSING LIST   <<<
+;
+	ldx	Temp3					; Get Index into _RLMObjs
+	tya						; Save Pointer to RLObject
+	dec	a
+	sta	_RLMObjs,x
+	inx
+	inx
+	stx	Temp3
+	inc	RLNumPMObjs				; NumPMObjs++
+;
+;	>>>   FINISHED CREATING MOVABLE RLOBJECT   <<<
+;
+_RILO7800
+	lda	Temp2+2					; Move to next RLMObject
+	clc
+	adc	#rloSize
+	sta	Temp2+2
+;
+;	* * * * * * *       PROCESS NEXT LEVEL OBJECT       * * * * * * *
+;
+_RILO8000
+	ldy	#rlpType				; Type
+	lda	[Temp4],y
+	and	#$00ff
+	ldy	#rlpSize0
+	cmp	#(otAngular+1)				; ANGULAR OBJECT?
+	bcs	_RILO8200				; NO!
+	ldy	#rlpSize				; YES!
+_RILO8200
+	tya
+	clc
+	adc	Temp4					; Next LEVEL Object
+	jmp	_RILO2000
+;
+;	* * * * * * *       FINISHED INITIALIZING LEVEL OBJECTS       * * * * * * *
+;
+_RILO9000
+	plb						; Restore .DB
+	rts
+
+
+
+;
+;	* * * * * * *       TABLE OF MASK BITS FOR SKILL LEVEL       * * * * * * *
+;
+RLObjSkillMask
+	dc.b	rlpfSkill12,rlpfSkill12,rlpfSkill3,rlpfSkill45,rlpfSkill45
+
+
+;
+;	* * * * * * *       TABLE OF OFFSETS TO OBJECT DATA       * * * * * * *
+;
+_ObjDataO
+odo	var	0
+	REPEAT	otMax
+	dc.w	odo
+odo	var	odo+rlodSize
+	ENDREP
+
+
+;
+;	* * * * * * *       TABLE OF MOVABLE OBJECTS' DATA       * * * * * * *
+;
+RLMObjData
+	dc.w	<modPlayer			; Player1 Start
+	dc.w	<modPlayer			; Player2 Start
+	dc.w	<modPlayer			; Player3 Start
+	dc.w	<modPlayer			; Player4 Start
+	dc.w	0				; DeathMatch Start
+	dc.w	0				; Teleport
+	dc.w	<modSoldier			; Soldier
+	dc.w	<modSergeant			; Sergeant
+	dc.w	<modTrooper			; Trooper
+	dc.w	<modDemon			; Demon
+;	dc.w	<modSpectre			; Spectre (Invisible Demon)
+	dc.w	<modCacoDemon			; CacoDemon
+	dc.w	<modLostSoul			; LostSoul
+	dc.w	<modBaronOfHell			; BaronOfHell
+	dc.w	<modCyberDemon			; CyberDemon
+	dc.w	<modSpiderDemon			; SpiderDemon
+	LTEXT	(((*-RLMObjData)/2)-(otMObj+1)),"***  WARNING!  RLMOBJDATA INVALID!   ***"

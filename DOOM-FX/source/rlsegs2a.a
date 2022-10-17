@@ -1,0 +1,955 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         ENGINE SEGS MODULE 2                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildSegList2
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD SEGMENT LIST 2             ROTATE SEGMENTS' VERTEXES  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       ROTATE SEGMENTS' VERTEXES       * * * * * * *
+;
+rVBase		equ	r2			; Pointer to ROM Vertexes Base
+rViewY		equ	r3			; View Y
+rCos		equ	r5			; CoSine Constant
+;
+rV1		equ	r7			; Pointer to Vertex 1
+rV2		equ	r8			; Pointer to Vertex 2
+rYTemp		equ	r9			; Vertex Y Rotated
+rAreaListPtr	equ	r10			; Pointer within AreaList
+rY1		equ	r11			; Vertex 1 Y
+rY2		equ	r12			; Vertex 2 Y
+rX		equ	r13			; Vertex X
+
+
+	align	16,(_RLBuildSegList2-_BS2L2200)&$0f
+;
+;	* * * * * * *       START ROTATING SEGMENTS' VERTEXES       * * * * * * *
+;
+_RLBuildSegList2
+	move	r1,#<(_RLAngleClipZoneList+rlaczSize)	; End of ClipZoneList
+	move	(<SLClipZoneEnd),r1
+	move	r2,#<(_RLAngleClipZoneList+rlaczAMax)	; Add SINGLE ClipZone
+	move	(<SLClipZoneStart),r2			; Start of ClipZoneList
+	move	r0,#$6000				; ClipZone OFF Screen
+;	from	r0
+	stw	(r2)
+	inc	r2
+	inc	r2
+;	from	r0
+	stw	(r2)
+;
+	ibt	r0,#^SinTable			; Bank of SinTable
+	romb
+	move	rVBase,(<EMVERTEXES)		; Get Base Address of ROM Vertexes Table
+	move	r0,(<ViewAngle)			; Get ViewAngle
+	move	rViewY,(<ViewY)			; View Y
+	move	r1,#<SLAreaPtr			; LAST VALID AREA'S NEXT POINTER
+	move	(<SLAreaPtrP),r1
+;
+;	>>>   GET ROTATIONAL SINE/COSINE CONSTANTS   <<<
+;
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr					; >>5
+	lsr					; Remove lowest bit
+	add	r0
+	move	(<SLAreaPtrV),r1
+	iwt	r1,#$200
+	from	r1
+;	to	r0
+	sub	r0
+	iwt	r1,#$7fe
+;	from	r0
+	to	r1
+	and	r1
+	iwt	r0,#<SinTable			; Add Base of SinTable
+;	from	r0
+	to	r14
+	add	r1
+	getb					; Get Sine from Table
+	inc	r14
+	getbh
+	move	(<RLSin),r0
+	iwt	r0,#<CosTable			; Add Base of CosTable
+;	from	r0
+	to	r14
+	add	r1
+	getb					; Get CoSine from Table
+	inc	r14
+;	from	r0
+	to	rCos
+	getbh
+;
+	move	r0,#<(EMBSP+2)			; Bank of EM VERTEXES/SEGMENTS Data
+	ldb	(r0)
+	romb
+;
+	move	(<RLCos),rCos			; COSINE CONSTANT
+;
+	move	r1,#<SLAreaSegCount		; AreaSegCount=0
+;	with	r0
+	sub	r0
+;	from	r0
+	alt1
+	bra	_BS2L2000
+;	stb	(r1)
+	stw	(r1)
+
+;
+;	* * * * * * *       FINISHED ROTATING SEGMENTS' VERTEXES       * * * * * * *
+;
+_BS2L9000
+	move	r1,(<SLAreaPtrV)		; LastValidArea.Next = 0
+;	with	r0
+	sub	r0
+;	from	r0
+	stw	(r1)
+;
+	iwt	r0,#<_RLBuildSegList3		; BUILD SEGMENT LIST 3
+	ibt	r8,#^_RLBuildSegList3
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	* * * * * * *       HANDLE NEXT AREA       * * * * * * *
+;
+_BS2L2000
+	CACHEB	_RLBuildSegList2
+_BS2L2200
+	move	rAreaListPtr,(<SLAreaPtrP)	; Get Pointer to Current Area
+	move	r1,#<SLAreaSegCount		; AreaSegCount=0
+;	to	r0
+	ldb	(r1)
+	dec	r0				; #ValidSegments = 0?
+	bmi	_BS2L2250			; Yes, Discard Area!
+;	with	r0
+	sub	r0
+;	from	r0
+	stb	(r1)
+	move	r0,(<SLAreaPtrV)		; LastValidArea = Current
+	from	rAreaListPtr
+	sbk
+	from	rAreaListPtr			; LastValidArea.Next = Current
+	stw	(r0)
+_BS2L2250
+;	to	r0
+	ldw	(rAreaListPtr)			; Get Pointer to Next Area
+	moves	rAreaListPtr,r0
+	beq	_BS2L9000			; No more Areas!
+	with	rAreaListPtr
+	sub	#(rluSize-rlasSegs)
+	move	(<SLAreaPtrP),r0
+;
+;	* * * * * * *       HANDLE NEXT SEGMENT       * * * * * * *
+;
+_BS2L2300
+	with	rAreaListPtr			; Move to Next Segment
+	add	#rluSize
+	to	r14				; Get next Segment Address
+	ldw	(rAreaListPtr)
+_BS2L2320
+	move	r0,r14
+	dec	r0				; $0001 END OF AREA
+	beq	_BS2L2200
+;
+;	>>>   GET VERTEX INFORMATION   <<<
+;
+	getb					; Get Address of VERTEX1
+	inc	r14
+;	from	r0
+	to	rV1
+	getbh
+	inc	r14
+;
+	to	rY1				; Is Vertex1 Rotated Yet?
+	ldw	(rV1)
+;
+	to	rV2
+	getb					; Get Address of VERTEX2
+	inc	r14
+	from	rY1
+;	to	r0
+	hib
+;	with	r0
+	sex
+	ibtx	r1,#$80				; Vertex NOT Rotated Value
+	with	rV2
+	getbh
+;
+;	* * * * * * *       GET VERTEX 1       * * * * * * *
+;
+;	from	r0
+	cmp	r1
+	bne	_BS2L2500			; Yes!
+;
+;	>>>   GET UNROTATED VERTEX 1 AND TRANSLATE TO VIEW COORDINATE SYSTEM   <<<
+;
+;	>>>   ROTATE VERTEX1 BY (90DEGREES-VIEWANGLE)   <<<
+;
+;	ROTATED_Y = 	 sin(90deg.-ViewAngle) * (VertexX)
+;			+cos(90deg.-ViewAngle) * (VertexY)
+;
+;	ROTATED_X = 	 cos(90deg.-ViewAngle) * (VertexX)
+;			-sin(90deg.-ViewAngle) * (VertexY)
+;
+	from	rV1				; VERTEX 1
+	to	r14
+	add	rVBase
+;
+	move	r0,(<ViewX)			; ViewX
+	to	rX
+	getb					; Vertex 1 X
+	inc	r14
+	move	r6,(<RLSin)			; sin(90deg.-ViewAngle)
+	with	rX
+	getbh
+	inc	r14
+	with	rX				; Vertex1X
+	sub	r0
+;
+	from	rX				; *Vertex X1
+;	to	r0
+	fmult
+;	from	r0
+	to	rY1
+	rol
+;
+;	to	r0
+	getb					; Vertex 1 Y
+	inc	r14
+;	with	r0
+	getbh
+;	from	r0
+	to	rYTemp				; Vertex1Y
+	sub	rViewY
+;
+	from	rYTemp				; *Vertex Y1
+;	to	r0
+	fmult
+;	from	r0
+	to	r1
+	rol
+;
+	move	r6,rCos				; cos(90deg.-ViewAngle)
+	from	rYTemp				; *Vertex Y1
+;	to	r0
+	fmult
+;	with	r0
+	rol
+	with	rY1				; Rotated Y1
+	add	r0
+	move	r0,#RLScreenPlane		; Plane of Screen
+	with	rY1				; Adjust Y1
+	sub	r0
+;
+;	>>>   SAVE ROTATED VERTEX 1 Y   <<<
+;
+	from	rY1
+	stw	(rV1)
+	inc	rV1
+	inc	rV1
+;
+	from	rX				; *Vertex X1
+;	to	r0
+	fmult
+;	with	r0
+	rol
+;	with	r0				; Rotated X1
+	sub	r1
+;
+;	>>>   SAVE ROTATED VERTEX 1 X   <<<
+;
+;	from	r0
+	stw	(rV1)
+	dec	rV1
+	dec	rV1
+
+;
+;	* * * * * * *       GET VERTEX 2       * * * * * * *
+;
+_BS2L2500
+	ibtx	r1,#$80				; Vertex NOT Rotated Value
+	to	rY2				; Is Vertex2 Rotated Yet?
+	ldw	(rV2)
+	from	rY2
+;	to	r0
+	hib
+;	with	r0
+	sex
+;	from	r0
+	cmp	r1
+	bne	_BS2L2700			; Yes!
+;
+;	>>>   GET UNROTATED VERTEX 2 AND TRANSLATE TO VIEW COORDINATE SYSTEM   <<<
+;
+;	>>>   ROTATE VERTEX2 BY (90DEGREES-VIEWANGLE)   <<<
+;
+;	ROTATED_Y = 	 sin(90deg.-ViewAngle) * (VertexX)
+;			+cos(90deg.-ViewAngle) * (VertexY)
+;
+;	ROTATED_X = 	 cos(90deg.-ViewAngle) * (VertexX)
+;			-sin(90deg.-ViewAngle) * (VertexY)
+;
+	from	rV2				; VERTEX 2
+	to	r14
+	add	rVBase
+;
+	move	r0,(<ViewX)			; ViewX
+	to	rX
+	getb					; Vertex 2 X
+	inc	r14
+	move	r6,(<RLSin)			; sin(90deg.-ViewAngle)
+	with	rX
+	getbh
+	inc	r14
+	with	rX				; Vertex2X
+	sub	r0
+;
+	from	rX				; *Vertex X2
+;	to	r0
+	fmult
+;	from	r0
+	to	rY2
+	rol
+;
+;	to	r0
+	getb					; Vertex 2 Y
+	inc	r14
+;	with	r0
+	getbh
+;	from	r0				; Vertex2Y
+	to	rYTemp
+	sub	rViewY
+;
+	from	rYTemp				; *Vertex Y2
+;	to	r0
+	fmult
+;	from	r0
+	to	r1
+	rol
+;
+	move	r6,rCos				; cos(90deg.-ViewAngle)
+	from	rYTemp				; *Vertex Y2
+;	to	r0
+	fmult
+;	with	r0
+	rol
+	with	rY2				; Rotated Y2
+	add	r0
+	move	r0,#RLScreenPlane		; Plane of Screen
+	with	rY2				; Adjust Y2
+	sub	r0
+;
+;	>>>   SAVE ROTATED VERTEX 2 Y   <<<
+;
+	from	rY2
+	stw	(rV2)
+	inc	rV2
+	inc	rV2
+;
+	from	rX				; *Vertex X2
+;	to	r0
+	fmult
+;	with	r0
+	rol
+;	with	r0				; Rotated X2
+	sub	r1
+;
+;	>>>   SAVE ROTATED VERTEX 2 X   <<<
+;
+;	from	r0
+	stw	(rV2)
+	dec	rV2
+	dec	rV2
+
+;
+;	>>>   IF BOTH ROTATED_Y1/Y2 < SCREEN_PLANE, DISCARD SEGMENT   <<<
+;
+_BS2L2700
+	from	rY1				; Both Behind Screen_Plane?
+;	to	r0
+	and	rY2
+	bpl	_BS2L3000			; No!
+_BS2L2750
+;	with	r0
+	sub	r0				; Yes!  Discard this SEGMENT!
+	move	r1,rAreaListPtr
+	with	rAreaListPtr			; Move to Next Segment
+	add	#rluSize
+	to	r14
+	ldw	(rAreaListPtr)			; Get next Segment Address
+;	from	r0
+	stw	(r1)				; Change to SKIP SEGMENT
+	iwt	r15,#<_BS2L2320+1
+	with	r14
+
+;
+;	* * * * * * *       POTENTIAL BSP SEGMENT!       * * * * * * *
+;
+_BS2L3000
+;	to	r0				; Get Segment Address
+	ldw	(rAreaListPtr)
+;	from	r0
+	to	r14
+	add	#rlgFlags
+;
+	move	r1,#<SLAreaSegCount		; AreaSegCount++
+;	to	r0
+	ldb	(r1)
+	inc	r0
+;	from	r0
+	stb	(r1)
+	from	rAreaListPtr			; Move to V1
+;	to	r0
+	add	#rluV1
+	from	rV1				; Save V1
+	stw	(r0)
+	inc	r0
+	inc	r0
+	from	rV2				; Save V2
+	stw	(r0)
+;
+	getb					; Get Segment Flags
+;	with	r0
+	lsr
+	bcc	_BS2L3800			; NOT SOLID
+;
+;	>>>   SOLID SEGMENT -- UPDATE CLIPZONE   <<<
+;
+;	>>>   ENSURE VERTEX1 IN VIEW   <<<
+;
+	link	#4				; Get Angle to Vertex1
+	with	rV1
+	bra	_BS2L8000
+	to	r0
+	move	r1,#$2000			; Vertex1 Between 270 and 45 Degrees?
+;	from	r0
+	cmp	r1
+	bge	_BS2L3200+1
+	move	r1,#$c000
+;	from	r0
+	cmp	r1
+	bge	_BS2L3900-2			; Yes, Discard Segment!
+	move	r0,#$6000
+_BS2L3200
+	move	r1,#$6000			; >135 Degrees?
+;	from	r0
+	cmp	r1
+	blt	_BS2L3300			; No
+	move	r0,r1				; Yes, Limit to Screen Edge
+;
+;	>>>   ENSURE VERTEX2 IN VIEW   <<<
+;
+_BS2L3300
+	move	(<SLV1Angle),r0			; Save Angle to Vertex1
+	link	#4				; Get Angle to Vertex2
+	with	rV2
+	bra	_BS2L8000
+	to	r0
+	move	r1,#$6000			; Vertex2 Between 135 and 270 Degrees?
+;	from	r0
+	cmp	r1
+	blt	_BS2L3400+1
+	move	r1,#$c000
+;	from	r0
+	cmp	r1
+	blt	_BS2L3900-2			; Yes, Discard Segment!
+_BS2L3400
+	move	r1,#$2000			; <45 Degrees?
+;	from	r0
+	cmp	r1
+	bge	_BS2L3500			; No
+	move	r0,r1				; Yes, Limit to Screen Edge
+;
+;	>>>   UPDATE CLIPZONE   <<<
+;
+_BS2L3500
+	with	r0				; Get Range $0000-$4000
+	sub	r1
+;	from	r0
+	to	rXs2
+	hib
+	move	r0,(<SLV1Angle)
+;	with	r0
+	sub	r1
+;	from	r0
+	to	rXs1
+	hib
+	from	rXs2
+	cmp	rXs1
+	move	r0,#<(EMBSP+2)			; Bank of EM VERTEXES/SEGMENTS Data
+	ldb	(r0)
+	romb
+	blt	_BS2L3800+1
+	iwt	r15,#<_BS2L4000
+	nop
+;
+;	>>>   PROCESS NEXT SEGMENT   <<<
+;
+_BS2L3800
+	iwt	r15,#<_BS2L2300+1
+	with	rAreaListPtr			; Move to Next Segment
+;
+;	>>>   DISCARD SEGMENT   <<<
+;
+_BS2L3900
+	move	r0,#<(EMBSP+2)			; Bank of EM VERTEXES/SEGMENTS Data
+	ldb	(r0)
+	romb
+	iwt	r15,#<_BS2L2750
+	nop
+
+;
+;	* * * * * * *       GET ANGLE TO VERTEX       * * * * * * *
+;
+rDeltaX	equ	r1
+rDeltaY	equ	rY2
+rSwap	equ	rYTemp
+rY	equ	rV1
+
+_BS2L8000
+	to	rDeltaY				; Get (VertexY-ViewY)
+	ldw	(r0)
+	inc	r0
+	inc	r0
+	to	rDeltaX				; Get (VertexX-ViewX)
+	ldw	(r0)
+;
+	moves	rX,rDeltaX			; DeltaX = 0?
+	bne	_BS2L8200			; No
+	moves	rDeltaY,rDeltaY			; Yes, Always 90 or 270 degrees
+	bpl	_BS2L8100
+	move	r0,#$c000			; 270 degrees
+	jmp	r11
+	nop
+_BS2L8100
+;	move	r0,#$4000			; 90 degrees
+	dc.w	$4000
+_BS2L8150
+	jmp	r11
+	nop
+_BS2L8200
+	bpl	_BS2L8220
+	with	rX				; |DeltaX|
+	not
+	inc	rX
+_BS2L8220
+	moves	rY,rDeltaY			; DeltaY = 0?
+	bne	_BS2L8400
+	moves	rDeltaX,rDeltaX			; Always 0 or 180 degrees
+	bpl	_BS2L8150			; 0 degrees
+;	with	r0
+	sub	r0
+	move	r0,#$8000			; 180 degrees
+	jmp	r11
+	nop
+_BS2L8400
+	bpl	_BS2L8420+1			; Ensure Positive
+	with	rY				; |DeltaY|
+	not
+	inc	rY
+_BS2L8420
+;
+;	>>>   ENSURE RESULTS ARE FROM 0.0 TO 1.0   <<<
+;
+	from	rY				; |DeltaY| < |DeltaX|?
+	cmp	rX
+	bne	_BS2L8440
+	with	rSwap				; Didn't Swap
+	move	r0,#$2000			; |DeltaY| = |DeltaX| (45 Degrees)
+	bra	_BS2L8500
+	nop
+_BS2L8440
+	blt	_BS2L8460			; Yes
+	sub	rSwap
+	move	r0,rX				; No, Swap |DeltaY| / |DeltaX|
+	move	rX,rY
+	move	rY,r0
+	inc	rSwap
+;
+;	>>>   GET SLOPE |DELTAY| / |DELTAX|   <<<
+;
+_BS2L8460
+	ibt	r0,#(^InvTable)			; Get InverseTable Entry
+	romb
+	from	rX				; Get |DeltaX|
+;	to	r0
+	add	rX
+	move	r4,#<(InvTable-2)
+;	from	r0
+	to	r14
+	add	r4
+	dec	r0
+	dec	r0
+	to	r6				; Get Inverse Value
+	getb
+	inc	r14
+;	with	r0				; Low/High Gear?
+	hib
+	with	r6
+	getbh
+	bne	_BS2L8470			; High
+	from	rY				; Low
+;	to	r0
+	lmult
+	with	r4
+	bra	_BS2L8480
+	to	r0
+_BS2L8470
+;	to	r0				; <<1
+	add	rY
+;	with	r0
+	lmult
+	with	r4
+	hib
+;	with	r0
+	lob
+;	with	r0
+	swap
+;	with	r0
+	add	r4
+_BS2L8480
+;	with	r0				; Get Index into |ArcTan| Table
+	lsr
+	lsr
+	lsr
+	lsr
+;	from	r0
+	to	r4
+	bic	#1
+	ibt	r0,#(^PArcTanTable)		; Get |ArcTan| Table Entry
+	romb
+	move	r0,#<(PArcTanTable)
+;	from	r0
+	to	r14
+	add	r4
+	getb					; Get Angle
+	inc	r14
+	dec	rSwap				; Were DeltaX/DeltaY Swapped?
+	getbh
+;
+;	>>>   DETERMINE QUADRANT   <<<
+;
+	bne	_BS2L8500			; No
+	nop
+;	with	r0				; Yes, 90-Angle
+	not
+	inc	r0
+	move	r4,#$4000
+;	with	r0
+	add	r4
+_BS2L8500
+	moves	rDeltaX,rDeltaX			; DeltaX >= 0?
+	bmi	_BS2L8600			; Quad1 or Quad2
+;
+;	>>>   QUAD0 OR QUAD3   <<<
+;
+	moves	rDeltaY,rDeltaY			; DeltaY >= 0?
+	bpl	_BS2L8800			; Quad0
+	with	r0				; Quad3 (360-Angle)
+	not
+	jmp	r11
+	inc	r0
+;
+;	>>>   QUAD1 OR QUAD2   <<<
+;
+_BS2L8600
+;	moves	rDeltaY,rDeltaY			; DeltaY >= 0?
+	from	rDeltaY
+	bmi	_BS2L8620			; Quad2
+	nop
+;	with	r0				; 180-Angle
+	not
+	inc	r0
+_BS2L8620
+	move	r4,#$8000			; 180+Angle
+;	with	r0
+	add	r4
+;
+;	>>>   SAVE ANGLE TO TARGET   <<<
+;
+_BS2L8800
+	jmp	r11
+	nop
+
+
+;
+;	* * * * * * *       UPDATE CLIPZONE       * * * * * * *
+;
+
+rXs1		equ	r4			; Vertex 1 X Screen Coordinate Clipped
+rXs2		equ	r6			; Vertex 2 X Screen Coordinate Clipped
+rCZX1		equ	rX			; ClipZone X1
+rCZX2		equ	rYTemp			; ClipZone X2
+rClipZonePtr	equ	rV1			; Pointer to Current ClipZone
+rClipZonePtrP	equ	rV2			; Pointer to Previous ClipZone
+rClipZonePtrU	equ	rClipZonePtrP		; Pointer to Update ClipZone
+;
+;	>>>   FIND FIRST CLIPZONE THAT SEGMENT OVERLAPS OR IS PAST SEGMENT   <<<
+;
+_BS2L4000
+	move	rClipZonePtr,(<SLClipZoneStart)	; Beginning of ClipZone
+	move	rClipZonePtrP,#0		; NO Previous ClipZone
+	move	r1,#(rlczNext-rlczX2)		; Offset to ClipZone.Next
+_BS2L4200
+;	to	r0				; Get ClipZone.X2
+	ldb	(rClipZonePtr)
+;	from	r0				; ClipZone.X2 >= NewX1?
+	cmp	rXs1
+	bge	_BS2L5000			; Yes, found the ClipZone Candidate!
+	move	rClipZonePtrP,rClipZonePtr	; Save PreviousClipZone
+	inc	rClipZonePtr			; Move to ClipZone.Next
+	inc	r0				; (ClipZone.X2+1) = NewX1?
+;	from	r0
+	cmp	rXs1
+	beq	_BS2L4400			; Yes, ClipZone ENDS EXACTLY at NewX1!
+	inc	rClipZonePtr			; Move to ClipZone.Next
+	to	rClipZonePtr			; Get Next ClipZone
+	bra	_BS2L4200
+	ldw	(rClipZonePtr)
+_BS2L4400
+	move	rClipZonePtrU,rClipZonePtr	; Save UpdateClipZone.Next
+	move	rCZX2,r0
+	bra	_BS2L6500
+	dec	rCZX2
+
+;
+;	* * * * * * *       PROCESS CLIPZONE       * * * * * * *
+;
+_BS2L5000
+	inc	rClipZonePtr			; Move to ClipZone.X1
+	move	rCZX2,r0			; Get ClipZone.X2
+	to	rCZX1				; Get ClipZone.X1
+	ldb	(rClipZonePtr)
+;
+;	>>>   ENTIRE SEGMENT BEFORE CLIPZONE?   <<<
+;
+	from	rXs2				; NewX2 >= ClipZone.X1?
+	cmp	rCZX1
+	bge	_BS2L6000			; Yes, Segment OverLaps ClipZone
+	nop
+;
+;	>>>   ADD NEW CLIPZONE FROM (XS TO XS2)   <<<
+;
+;	>>>   SEGMENT ENDS EXACTLY AT CLIPZONE START?   <<<
+;
+	dec	rCZX1				; Xs2 = ClipZone.X1-1?
+	from	rXs2
+	cmp	rCZX1
+	bne	_BS2L5400			; No, Don't Merge!
+	inc	rCZX1
+	from	rXs1				; Set New ClipZone.X1
+	stb	(rClipZonePtr)
+	bra	_BS2L5800
+;
+;	>>>   ADD NEW CLIPZONE FROM (XS TO XS2)   <<<
+;
+_BS2L5400
+	dec	rClipZonePtr			; Move to ClipZone.X2
+	move	r1,(<SLClipZoneEnd)		; R1 = NewClipZone
+	moves	r0,rClipZonePtrP		; Any ClipZonePrevious?
+	bne	_BS2L5500			; Yes
+	inc	r0				; Move to ClipZonePrevious.X1
+	move	(<SLClipZoneStart),r1		; New Beginning of ClipZoneList
+	bra	_BS2L5600+1
+	from	rXs1
+_BS2L5500
+	inc	r0				; Move to ClipZonePrevious.Next
+	from	r1				; ClipZonePrevious.Next = NewClipZone.X2
+	stw	(r0)
+_BS2L5600
+	from	rXs1				; Get X2.B / X1.B
+;	to	r0
+	swap
+;	with	r0
+	or	rXs2				; Save NewClipZone.X2/NewClipZone.X1
+;	from	r0
+	stw	(r1)
+	inc	r1
+	inc	r1
+	from	rClipZonePtr			; NewClipZone.Next = ClipZone.X2
+	stw	(r1)
+	inc	r1				; Move ClipZoneEndPointer past NewClipZone
+	inc	r1
+	move	(<SLClipZoneEnd),r1		; Save ClipZoneEndPointer
+;
+;	>>>   ADD VISIBLE SEGMENT FROM (XS TO XS2)   <<<
+;
+_BS2L5800
+	move	r0,rXs2
+	move	r1,rXs1
+	iwt	r11,#<_BS2L2300			; Finished Processing this Segment!
+	iwt	r15,#<_RLClipSegment
+	nop
+;
+;	>>>   PORTION OF SEGMENT BEFORE CLIPZONE?   <<<
+;
+_BS2L6000
+	move	rClipZonePtrU,rClipZonePtr	; Save UpdateClipZone.Next
+	inc	rClipZonePtrU
+	from	rXs1				; NewX1 >= ClipZone.X1?
+	cmp	rCZX1
+	bge	_BS2L6400			; Yes, No Portion Before!
+	nop
+;
+;	>>>   ADD VISIBLE SEGMENT FROM (XS TO X1-1)   <<<
+;
+	move	r1,rXs1
+	move	r0,rCZX1
+	link	#4
+	iwt	r15,#<_RLClipSegment
+	dec	r0
+;
+;	>>>   UPDATE CLIPZONE.X1   <<<
+;
+	from	rXs1				; New UpdateClipZone.X1
+	stb	(rClipZonePtr)
+
+;
+;	>>>   SEGMENT TOTALLY CONTAINED WITHIN CURRENT CLIPZONE?   <<<
+;
+_BS2L6400
+	from	rCZX2				; X2 >= Xs2?
+	cmp	rXs2
+	bge	_BS2L6800			; Yes, Contained within this ClipZone
+	inc	rClipZonePtr			; Move to ClipZone.Next
+;
+;	>>>   MOVE TO NEXT CLIPZONE   <<<
+;
+_BS2L6500
+	to	rClipZonePtr			; Get Next ClipZone
+	ldw	(rClipZonePtr)
+	inc	rClipZonePtr			; Move to ClipZone.X1
+	to	rCZX1				; Get ClipZone.X1
+	ldb	(rClipZonePtr)
+;
+;	>>>   SEGMENT OVERLAPS OR JOINS NEXT CLIPZONE?   <<<
+;
+	inc	rXs2
+	from	rXs2				; NewX2 < ClipZone.X1
+	cmp	rCZX1
+	move	r1,rCZX2
+	blt	_BS2L7000			; No OverLap!
+	dec	rXs2
+;
+;	>>>   ADD VISIBLE SEGMENT FROM (_X2+1 TO CLIPZONE.X1-1)   <<<
+;
+	inc	r1
+	move	r0,rCZX1
+	link	#4
+	iwt	r15,#<_RLClipSegment
+	dec	r0
+;
+	dec	rClipZonePtr			; Move to ClipZone.X2
+	to	rCZX2				; Get ClipZone.X2
+	ldb	(rClipZonePtr)
+	bra	_BS2L6400
+	inc	rClipZonePtr			; Move to ClipZone.X1
+
+;
+;	>>>   SEGMENT IS CONTAINED WITHIN LAST CLIPZONE   <<<
+;
+_BS2L6800
+	to	rClipZonePtr			; Get ClipZone.Next
+	ldw	(rClipZonePtr)
+	from	rClipZonePtr			; Save UpdateClipZone.Next
+	stw	(rClipZonePtrU)
+	dec	rClipZonePtrU			; Move to UpdateClipZone.X2
+	dec	rClipZonePtrU
+	from	rCZX2				; New UpdateClipZone.X2
+	stb	(rClipZonePtrU)
+	iwt	r15,#<_BS2L2300+1		; Process Next Segment!
+	with	rAreaListPtr			; Move to Next Segment
+
+;
+;	>>>   PORTION OF SEGMENT AFTER CLIPZONE?   <<<
+;
+_BS2L7000
+;
+;	>>>   ADD VISIBLE SEGMENT FROM (_X2+1 TO XS2)   <<<
+;
+	move	r0,rXs2
+	link	#4
+	iwt	r15,#<_RLClipSegment
+	inc	r1
+;
+;	>>>   UPDATE CLIPZONE   <<<
+;
+	dec	rClipZonePtr			; Move to ClipZone.X2
+	from	rClipZonePtr			; UpdateClipZone.Next = ClipZone.X2
+	stw	(rClipZonePtrU)
+	dec	rClipZonePtrU			; Move to UpdateClipZone.X2
+	dec	rClipZonePtrU
+	from	rXs2				; UpdateClipZone.X2 = NewX2
+	stb	(rClipZonePtrU)
+;
+;	* * * * * * *       DONE UPDATING CLIPZONES       * * * * * * *
+;
+	iwt	r15,#<_BS2L2300+1		; Process Next Segment!
+	with	rAreaListPtr			; Move to Next Segment
+
+
+;
+;	* * * * * * *       ADD A CLIP SEGMENT       * * * * * * *
+;
+;	r1	=	Screen Xs1
+;	r0	=	Screen Xs2
+;	r11	=	Return Address
+;
+_RLClipSegment
+;	with	r0				; R0 = (#ClipStrips Added-1)
+	sub	r1
+	inc	r0				; R0 = #ClipStrips
+;
+;	>>>   UPDATE CLIPSTRIP COUNT   <<<
+;
+	move	r1,(<SLClipCount)		; Get #ClipStrips Available
+	from	r1				; Get #ClipStrips Remaining
+;	to	r0
+	sub	r0				; Any Left?
+	bne	_RLClipSegment900		; NO!  STOP PROCESSING SEGMENTS!!!
+	sbk					; Save #ClipStrips Remaining
+;
+;	* * * * * * *       STOP PROCESSING AFTER THIS AREA       * * * * * * *
+;
+	move	r1,(<SLAreaPtrP)		; Get Pointer to Current Area
+;	with	r0
+	sub	r0
+;	from	r0				; No More Areas!
+	stw	(r1)
+;
+;	* * * * * * *       FINISHED ADDING SEGMENT       * * * * * * *
+;
+_RLClipSegment900
+	jmp	r11
+	nop
+
+
+	CACHEE	_RLBuildSegList2

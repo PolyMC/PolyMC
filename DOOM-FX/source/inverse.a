@@ -1,0 +1,24 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         INVERSE TABLE MODULE                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+
+	public	InvTable
+
+
+	SECTION	INVERSE,RELOC,BASE=$80000000,RORG=$8000
+
+;
+;	* * * * * * *       INVERSE TABLE       * * * * * * *
+;
+;	Format:	1/n	->	  1 <= n <= 128		         .0FFFFFFFFFFFFFFF
+;				128 <= n <= 16384	.00000000 0FFFFFFFFFFFFFFF
+;
+	image	InverseTable.bin,0,2
+InvTable
+	image	InverseTable.bin,2,32768-2

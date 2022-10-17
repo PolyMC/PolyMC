@@ -1,0 +1,11 @@
+delete RLDATA:WALLS/WALLS.DEF?? QUIET
+delete RLDATA:IMAGES/IMAGES.DEF?? QUIET
+delete RLDATA:WALLIMG/BANK??.DEF QUIET
+date >wallstart
+mkwall -v >walltext
+date >wallend
+;
+touch rlwalls.a
+;
+type wallstart
+type wallend

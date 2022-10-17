@@ -1,0 +1,94 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                     MISCELLANEOUS TASKS MODULE 2                   *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+
+	public	_RLMisc2
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;
+;	* * * * * * *       REALITY_ENGINE MISCELLANEOUS TASKS 2       * * * * * * *
+;
+_RLMisc2
+;
+;	>>>   SET VIEW TO PLAYER   <<<
+;
+	ife	useMULTIPLAYER
+	move	r2,#<PlayerObject
+	endif
+	ifn	useMULTIPLAYER
+	move	r2,(<MPPlayerObject)
+	endif
+	with	r2				; Get Player X
+	add	#(rloX+2)
+;	to	r0
+	ldw	(r2)
+	move	(<ViewX),r0
+	with	r2				; Get Player Y
+	add	#((rloY+2)-(rloX+2))
+;	to	r0
+	ldw	(r2)
+	move	(<ViewY),r0
+	inc	r2				; Get Player Z
+	inc	r2
+;	to	r0
+	ldw	(r2)
+	move	r1,(<PlayerHeight)		; Height of Eye above Feet
+;	with	r0
+	add	r1
+	move	(<ViewZ),r0
+	with	r2				; Get Player Angle
+	add	#(rloAngle-rloZ)
+;	to	r0
+	ldw	(r2)
+	move	(<ViewAngle),r0
+	with	r2				; Get Player Health
+	add	#(rloHealth-rloAngle)
+;	to	r0
+	ldw	(r2)
+	move	(<PlayerHealth),r0
+;
+;	>>>   LIGHTING ADJUSTMENTS   <<<
+;
+	move	r0,(<LightGoggles)		; Light Goggles?
+	dec	r0
+	move	r0,#<(WeaponLight)		; Get Weapon Light Adjustment
+;	to	r0
+	alt1
+	bmi	_RLMisc2E			; No
+	ldw	(r0)
+;	ldb	(r0)
+	ibtx	r0,#$ff				; YES!  Everything's Bright!
+_RLMisc2E
+	move	r1,#<(LightAdjust)		; Save Light Adjustment
+;	from	r0
+	stb	(r1)
+;
+;	>>>   BUILD BSP TREE   <<<
+;
+	ife	usePATCH
+	iwt	r0,#<_RLBuildBSP		; BUILD BSP TREE
+	endif
+	ifn	usePATCH
+	move	r0,(<PTRLBuildBSP)		; BUILD BSP TREE
+	endif
+	ibt	r8,#^_RLBuildBSP
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop

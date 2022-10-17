@@ -1,0 +1,1544 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                      OBJECT MOVEMENT MODULE 7                      *
+;*                                                                    *
+;*                            LINE TRIGGERS                           *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+	include	music.i
+
+
+	public	_RLMoveXY7
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rTemp		equ	r12			; Temporary Variable
+;
+rDX		equ	r5			; DeltaX
+rDY		equ	r6			; DeltaY
+;
+rX0		equ	r7			; Initial Object X Coordinate
+rY0		equ	r8			; Initial Object Y Coordinate
+rX1		equ	r9			;   Final Object X Coordinate
+rY1		equ	r10			;   Final Object Y Coordinate
+;
+rMoveLinesPtr	equ	r11			; MoveLines Pointer
+;
+rLX0		equ	r3			; Line X0 Coordinate
+rLY0		equ	r13			; Line Y0 Coordinate
+rLDY		equ	r14			; Line Delta Y
+;
+rObj		equ	r12			; Pointer to RLObject
+rSectorData	equ	r9			; Pointer to Object's SectorData
+
+
+	align	16,(_RM7XY10000-_RM7XY2000)&$0f
+
+;
+;	* * * * * * *       FINISHED MOVEMENT!       * * * * * * *
+;
+_RM7XY10000
+	move	rObj,(<MVRObj)			; Get RLObject Pointer
+	move	r15,(<MVReturnAddress)		; Return to Caller
+;	with	r0				; R0 = 0 = MOVEMENT!
+	sub	r0
+
+;
+;	* * * * * * *       REALITY_ENGINE MOVE RLOBJECT XY       * * * * * * *
+;
+_RLMoveXY7
+	move	r0,(<MVIPercent)		; Percentage of Movement Without Collision
+	dec	r0
+	bmi	_RM7XY10000			; NO MOVEMENT!
+	nop
+_RLMoveXY7A
+	move	r0,#<(MVULCount)		; #Lines Matching Trigger Flags
+;	to	r0
+	ldb	(r0)
+	dec	r0
+	bmi	_RM7XY10000			; NO MATCHING LINES!
+	nop
+;
+;	>>>   INITIALIZE MOVELINES LIST POINTER   <<<
+;
+	move	r0,#<(_RLMoveLines-rlmlSize)	; Start of MoveLines List
+	move	(<MVMLPtr),r0			; MoveLines Pointer
+;
+;	>>>   GET OBJECT MOVEMENT COORDINATES   <<<
+;
+_RM7XY1000
+	move	rX0,(<MVRX)			; Initial Object X Coordinate
+	move	rY0,(<MVRY)			; Initial Object Y Coordinate
+	move	r0,(<MVRObj)			; Pointer to Object
+;	with	r0				; Move to X Coordinate
+	add	#(rloX+2)
+	to	rX1				; Final Object X Coordinate
+	ldw	(r0)
+;	with	r0
+	add	#((rloY+2)-(rloX+2))
+	to	rY1				; Final Object Y Coordinate
+	ldw	(r0)
+;
+	move	r0,#<(EMBSP+2)			; Bank of EM Data
+	ldb	(r0)
+	romb
+
+;
+;	* * * * * * *       CHECK MOVEMENT AGAINST LINELIST       * * * * * * *
+;
+	CACHEB	_RLMoveXY7
+_RM7XY2000
+;
+;	>>>   CHECK NEXT MOVELINE   <<<
+;
+_RM7XY2100
+	move	r4,#<MVULMask			; LineFlags Type Mask
+	to	r4
+	ldb	(r4)
+	move	rMoveLinesPtr,(<MVMLPtr)	; MoveLines Pointer
+	move	r6,#rlmlSize			; Size of MoveLines Entry
+_RM7XY2200
+	with	rMoveLinesPtr			; Move to Next Line
+	add	r6
+	to	r2				; Get Next Line#
+	ldw	(rMoveLinesPtr)
+	inc	r2				; End of MoveLines?
+	beq	_RM7XY10000			; Yes!
+;
+;	>>>   GET LINE FLAGS   <<<
+;
+	from	rMoveLinesPtr			; Move to LineFlags
+;	to	r0
+	add	#(rlmlFlags+1)
+;	to	r0
+	ldb	(r0)
+;	with	r0				; TRIGGER Line?
+	and	r4
+	beq	_RM7XY2200+1			; No
+	with	rMoveLinesPtr			; Move to Next Line
+
+;
+;	* * * * * * *       DOES LINE CROSS MOVEMENT?       * * * * * * *
+;
+	move	(<MVMLPtr),rMoveLinesPtr	; Save MoveLines Pointer
+	from	rX1				; Delta X
+	to	rDX
+	sub	rX0
+	from	rY1				; Delta Y
+	to	rDY
+	sub	rY0
+;
+;	>>>   GET LINE VERTEXES   <<<
+;
+	from	rMoveLinesPtr			; Move to Vertex X1
+;	to	r0
+	add	#rlmlLX1
+	to	rLX0
+	ldw	(r0)
+	inc	r0
+	inc	r0
+	to	rLY0
+	ldw	(r0)
+	from	rLX0				; R0 = (LineX0 - ObjectX)
+;	to	r0
+	sub	rX0
+	move	r1,rLY0				; R1 = (LineY0 - ObjectY)
+	link	#4
+	with	r1
+	bra	_RM7XY4000
+	sub	rY0
+;
+;	>>>   VERTEX 2   <<<
+;
+	move	rTemp,r0			; Save SIDE1
+	from	rY1				; Delta Y
+	to	rDY
+	sub	rY0
+	move	r0,(<MVMLPtr)			; Move to Vertex Y2
+;	with	r0
+	add	#rlmlLY2
+	to	r1
+	ldw	(r0)
+	dec	r0
+	dec	r0
+;	to	r0
+	ldw	(r0)
+;	with	r0				; R0 = (LineX1 - ObjectX)
+	sub	rX0
+	link	#4
+	with	r1				; R1 = (LineY1 - ObjectY)
+	bra	_RM7XY4000
+	sub	rY0
+;
+;	with	r0				; On Opposite Sides?
+	xor	rTemp
+	bpl	_RM7XY2100			; No, Same Side!
+	nop
+
+;
+;	* * * * * * *       DOES MOVEMENT CROSS LINE?       * * * * * * *
+;
+	move	r0,(<MVMLPtr)			; Move to Vertex X2
+;	with	r0
+	add	#rlmlLX2
+	to	r1
+	ldw	(r0)
+	from	r1				; DeltaX
+	to	rDX
+	sub	rLX0
+	inc	r0
+	inc	r0
+;	to	r0				; DeltaY
+	ldw	(r0)
+;	from	r0
+	to	rDY
+	sub	rLY0
+	move	rLDY,rDY
+;
+	from	rY0				; R1 = (ObjectY0 - LineY)
+	to	r1
+	sub	rLY0
+	link	#4
+	from	rX0				; R0 = (ObjectX0 - LineX)
+;	to	r0
+	bra	_RM7XY4000
+	sub	rLX0
+;
+	moves	rTemp,r0			; Save SIDE1
+;	bmi	_RM7XY3800			; Only Trigger RIGHT->LEFT!
+;
+	from	rY1				; R1 = (ObjectY1 - LineY)
+	to	r1
+	sub	rLY0
+	move	rDY,rLDY
+	link	#4
+	from	rX1				; R0 = (ObjectX1 - LineX)
+;	to	r0
+	bra	_RM7XY4000
+	sub	rLX0
+;
+;	with	r0				; On Opposite Sides?
+	xor	rTemp
+	bmi	_RM7XY5000			; YES!  TRIGGERED!
+	nop
+_RM7XY3800
+	iwt	r15,#<_RM7XY2100		; No, Not Triggered
+	nop
+
+;
+;	* * * * * * *       GET DIRECTION OF COORDINATE RELATIVE TO LINE       * * * * * * *
+;
+_RM7XY4000
+;	with	r0				; Result in R0:R2
+	lmult
+	move	r2,r4
+	move	r6,r5				; Result in R1:R4
+	with	r1
+	lmult
+	with	r2
+	sub	r4
+;	with	r0				; R0:R2 = SIDE
+	sbc	r1
+	jmp	r11
+	nop
+_RM7XY4900
+	iwt	r15,#<_RM7XY2100		; Line Triggered Already!
+	nop
+
+;
+;	* * * * * * *       FOUND A TRIGGERABLE LINE/ITEM       * * * * * * *
+;
+_RM7XY5000
+	move	r0,(<MVMLPtr)			; MoveLines Pointer
+	to	r2				; Get TRIGGER LINE/ITEM RLOBJECT
+	ldw	(r0)
+;
+;	with	r0				; Move to LineFlags
+	add	#(rlmlFlags-rlmlLine)
+;	to	r0				; TRIGGER LINE/ITEM?
+	ldw	(r0)
+	inc	r0
+	bmi	_RM7XY7000			; ITEM
+	dec	r0
+;
+;	* * * * * * *       FOUND A TRIGGERABLE LINE       * * * * * * *
+;
+_RM7XY6000
+;
+;	>>>   HAS THIS LINE BEEN TRIGGERED ALREADY?   <<<
+;
+	move	r3,#<_RLLineFlags		; Base of LineFlags
+	with	r3
+	add	r2
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	and	#rllfUsed			; USED?
+	bne	_RM7XY3800-1			; Yes, Can't REUSE It!
+;
+;	>>>   GET LINE TYPE   <<<
+;
+	move	r6,#rllSize			; Move to LINE
+	from	r2
+;	to	r0
+	lmult
+	move	r1,(<EMLINES)			; Get Base Address of Lines Table
+	with	r1
+	add	#(rllType)
+	from	r4
+	to	r14
+	add	r1
+	move	(<MVLine),r14			; Save Pointer to Line
+	getb					; R4 = Type.B / Tag.B
+	inc	r14
+	to	r4
+	getbh
+	move	(<MVType),r4
+;
+;	* * * * * * *       TRIGGER!       * * * * * * *
+;
+;	>>>   CALL TRIGGER LINE CODE   <<<
+;
+	move	r0,#^_RLTriggerCode		; Bank of Trigger Line Code
+	romb
+	move	r1,#<_RLTriggerCode
+	from	r4
+;	to	r0
+	lob
+;	with	r0
+	add	r0
+;	from	r0
+	to	r14
+	add	r1
+	getb
+	inc	r14
+	to	r15				; Call Trigger Line Code
+	getbh
+	nop
+
+;
+;	* * * * * * *       FOUND AN ITEM!       * * * * * * *
+;
+;	>>>   CALL ITEM CODE   <<<
+;
+_RM7XY7000
+	dec	r0				; SOLID ITEM?
+	bmi	_RM7XY7050			; YES!  CAN'T PICK IT UP!
+	nop
+	move	r0,(<PlayerDead)		; Is Player Dead?
+	dec	r0
+	bmi	_RM7XY7100			; No
+	nop
+_RM7XY7050
+	iwt	r15,#<_RM7XY1000		; YES!  Can't Pick Up SOLID Items?!
+	nop
+_RM7XY7100
+	move	r0,#^_RLItemCode		; Bank of Item Code
+	romb
+	from	r2				; Get Item Type
+;	to	r0
+	add	#rloType
+;	to	r0
+	ldb	(r0)
+	move	(<MVType),r0			; Save Item Type
+	move	r1,#<_RLItemCode
+;	with	r0
+	add	r0
+;	from	r0
+	to	r14
+	add	r1
+	move	(<MVLine),r2			; Save Item RLObject
+	getb
+	inc	r14
+	link	#4				; Return Address
+	to	r15				; Call Item Code
+	getbh
+	nop
+;
+;	>>>   COMPLETED GETTING ITEM   <<<
+;
+_RM7XY8000
+	move	r0,(<RLRGB)			; rgbNone?
+	inc	r0
+	bne	_RM7XY8300+1			; No!  Can't Change RGB!
+	move	r0,#rgbPick			; Use PickUp RGBAnim
+_RM7XY8200
+	move	(<RLRGB),r0
+;
+;	>>>   DISPLAY MESSAGE   <<<
+;
+_RM7XY8300
+	move	r0,#^_RLItemCode		; Bank of Item Code
+	romb
+	move	r0,(<MVType)			; Get Item Type
+	move	r1,#<_RLItemMsgA
+;	with	r0
+	add	r0
+;	from	r0
+	to	r14
+	add	r1
+	move	r1,#<(_RLItemMsgB-_RLItemMsgA-1)
+	getb					; MessageA
+	inc	r14
+	getbh
+	with	r14
+	add	r1
+	move	(<MsgDataA),r0
+	getb					; MessageB
+	inc	r14
+	getbh
+	with	r14
+	add	r1
+	move	(<MsgDataB),r0
+	getb					; MessageC
+	inc	r14
+	getbh
+	move	(<MsgDataC),r0
+	move	r0,#(3*60)			; Display Message for 3 Seconds
+	move	(<MsgCount),r0
+;
+;	>>>   MAKE SOUND EFFECT   <<<
+;
+	move	r3,#itemup_eff			; Make Item SoundEffect
+	link	#4
+	iwt	r15,#<_RLPlayerSoundEffect
+	nop
+;
+;	>>>   MOVABLE RLOBJECT CONVERTED TO ITEM?   <<<
+;
+_RM7XY8400
+	move	rObj,(<MVLine)			; Get Item RLObject
+	from	rObj
+	to	r2
+	add	#rloFlags
+	to	r1				; R1 = RLObject.Flags
+	ldb	(r2)
+	from	r1
+;	to	r0
+	swap
+;	with	r0				; Movable?
+	add	r0
+	with	r1
+	bpl	_RM7XY8600			; No
+	to	r0
+;
+;	>>>   CONVERT MOVABLE RLOBJECT ITEM BACK   <<<
+;
+_RM7XY8500
+	move	r1,#rlpfItem
+;	with	r0
+	bic	r1
+;	from	r0
+	stb	(r2)
+	move	r15,#<_RM7XY1000		; Check Next Trigger Line/Item
+	nop
+;
+;	>>>   ONE MORE PICKED UP ITEM   <<<
+;
+_RM7XY8600
+	ibt	r0,#(^_ObjData)			; Move to _ObjData Bank
+	romb
+	move	r0,(<MVType)			; Get Item Type
+;	with	r0				; Get Offset into _ObjData
+	umult	#rlodSize
+	move	r1,#<(_ObjData+rlodFlags)	; Add Base of _ObjData
+;	from	r0				; Move to Object Flags
+	to	r14
+	add	r1
+	move	r1,#rlodfItemCount		; Does Item Count towards TOTAL?
+	getb
+;	with	r0
+	and	r1
+	beq	_RM7XY8800+1			; NO!
+;
+	move	r0,(<NumItems)			; Number of ITEMS++
+	inc	r0
+;	from	r0
+	sbk
+;
+;	>>>   REMOVE RLOBJECT   <<<
+;
+_RM7XY8800
+	move	r1,(<MVMLPtr)			; MoveLines Pointer
+	move	r0,#rlmlSectorData		; Get MoveObject SectorData
+;	with	r0
+	add	r1
+	to	r1				; R1 = SectorData.Objects
+	ldw	(r0)
+	move	r11,#<_RM7XY1000		; Check Next Trigger Line/Item
+	iwt	r15,#<_RLRemSectorObject2	; Remove RLObject
+	nop
+
+	CACHEE	_RLMoveXY7
+
+
+;
+;	* * * * * * *       ITEM CODE JUMPTABLE       * * * * * * *
+;
+_RLItemCode
+	dc.w	0				; Player1Start
+	dc.w	0				; Player2Start
+	dc.w	0				; Player3Start
+	dc.w	0				; Player4Start
+	dc.w	0				; DeathMatchStart
+	dc.w	0				; TeleportSpot
+;
+	dc.w	<(_IClip)			; Soldier
+	dc.w	<(_IShotGun)			; Sergeant
+	dc.w	0				; Trooper
+	dc.w	0				; Demon
+	dc.w	0				; CacoDemon
+	dc.w	0				; LostSoul
+	dc.w	0				; BaronOfHell
+	dc.w	0				; CyberDemon
+	dc.w	0				; SpiderDemon
+;
+	dc.w	<(_IShotGun)			; ShotGun
+	dc.w	<(_IChainSaw)			; ChainSaw
+	dc.w	<(_IChainGun)			; ChainGun
+	dc.w	<(_IRocketGun)			; RocketLauncher
+	dc.w	<(_IPlasmaGun)			; PlasmaGun
+	dc.w	<(_IBFG9000)			; BFG9000
+	dc.w	<(_IKeyCardRed)			; RedKeyCard
+	dc.w	<(_IKeyCardBlue)		; BlueKeyCard
+	dc.w	<(_IKeyCardYellow)		; YellowKeyCard
+	dc.w	<(_IKeySkullRed)		; RedSkullKey
+	dc.w	<(_IKeySkullYellow)		; YellowSkullKey
+	dc.w	<(_IKeySkullBlue)		; BlueSkullKey
+	dc.w	<(_IBackPack)			; BackPack
+	dc.w	<(_IClip)			; Clip
+	dc.w	<(_IAmmoBox)			; AmmoBox
+	dc.w	<(_IShells)			; Shells
+	dc.w	<(_IShellsBox)			; ShellsBox
+	dc.w	<(_IRocket)			; Rocket
+	dc.w	<(_IRocketsBox)			; RocketBox
+	dc.w	<(_ICell)			; Cell
+	dc.w	<(_ICellPack)			; CellPack
+	dc.w	<(_IStimPack)			; StimPack
+	dc.w	<(_IMediKit)			; Medikit
+	dc.w	<(_IHealthBonus)		; HealthBonus
+	dc.w	<(_IArmorBonus)			; ArmorBonus
+	dc.w	<(_IArmorGreen)			; ArmorGreen
+	dc.w	<(_IArmorBlue)			; ArmorBlue
+	dc.w	<(_ISoulSphere)			; SoulSphere
+	dc.w	<(_IInvulnerable)		; Invulnerable
+	dc.w	<(_IBerserk)			; Berserk
+	dc.w	<(_IInvisible)			; Invisible
+	dc.w	<(_IRadiation)			; RadiationSuit
+	dc.w	<(_IComputerMap)		; ComputerMap
+	dc.w	<(_ILightGoggles)		; LightGoggles
+
+;
+;	* * * * * * *       TRIGGER LINE CODE JUMPTABLE       * * * * * * *
+;
+_RLTriggerCode
+	dc.w	0				; 000
+	dc.w	0				; 001
+	dc.w	<(_GRDoorOpenOnce)		; 002
+	dc.w	<(_GRDoorCloseOnce)		; 003
+	dc.w	0				; 004
+	dc.w	<(_GFloorOnce)			; 005
+	dc.w	0				; 006
+	dc.w	0				; 007
+	dc.w	<(_GStairs)			; 008
+	dc.w	0				; 009
+;
+	dc.w	<(_GLiftOnce)			; 010
+	dc.w	0				; 011
+	dc.w	0				; 012
+	dc.w	<(_GLightOnOnce)		; 013
+	dc.w	0				; 014
+	dc.w	0				; 015
+	dc.w	<(_GRDoorCloseOpenOnce)		; 016
+	dc.w	0				; 017
+	dc.w	0				; 018
+	dc.w	<(_GFloorOnce)			; 019
+;
+	dc.w	0				; 020
+	dc.w	0				; 021
+	dc.w	<(_GFloorOnce)			; 022
+	dc.w	0				; 023
+	dc.w	0				; 024
+	dc.w	0				; 025
+	dc.w	0				; 026
+	dc.w	0				; 027
+	dc.w	0				; 028
+	dc.w	0				; 029
+;
+	dc.w	<(_GFloorOnce)			; 030
+	dc.w	0				; 031
+	dc.w	0				; 032
+	dc.w	0				; 033
+	dc.w	0				; 034
+	dc.w	<(_GLightOffOnce)		; 035
+	dc.w	<(_GFloorOnce)			; 036
+	dc.w	<(_GFloorOnce)			; 037
+	dc.w	<(_GFloorOnce)			; 038
+	dc.w	<(_GTeleportOnce)		; 039*
+;
+	dc.w	0				; 040
+	dc.w	0				; 041
+	dc.w	0				; 042
+	dc.w	0				; 043
+	dc.w	0				; 044
+	dc.w	0				; 045
+	dc.w	0				; 046
+	dc.w	0				; 047
+	dc.w	0				; 048
+	dc.w	0				; 049
+;
+	dc.w	0				; 050
+	dc.w	0				; 051
+	dc.w	<(_GExit)			; 052
+	dc.w	0				; 053
+	dc.w	0				; 054
+	dc.w	0				; 055
+	dc.w	<(_GFloorOnce)			; 056
+	dc.w	0				; 057
+	dc.w	<(_GFloorOnce)			; 058
+	dc.w	<(_GFloorOnce)			; 059
+;
+	dc.w	0				; 060
+	dc.w	0				; 061
+	dc.w	0				; 062
+	dc.w	0				; 063
+	dc.w	0				; 064
+	dc.w	0				; 065
+	dc.w	0				; 066
+	dc.w	0				; 067
+	dc.w	0				; 068
+	dc.w	0				; 069
+;
+	dc.w	0				; 070
+	dc.w	0				; 071
+	dc.w	0				; 072
+	dc.w	<(_GCeilingStart)		; 073
+	dc.w	<(_GCeilingStop)		; 074
+	dc.w	<(_GRDoorClose)			; 075
+	dc.w	0				; 076
+	dc.w	<(_GCeilingStart)		; 077
+	dc.w	0				; 078
+	dc.w	0				; 079
+;
+	dc.w	0				; 080
+	dc.w	0				; 081
+	dc.w	<(_GFloor)			; 082
+	dc.w	0				; 083
+	dc.w	0				; 084
+	dc.w	0				; 085
+	dc.w	<(_GRDoorOpen)			; 086
+	dc.w	<(_GMovingFloorStart)		; 087
+	dc.w	<(_GLift)			; 088*
+	dc.w	<(_GMovingFloorStop)		; 089
+;
+	dc.w	<(_GRDoorOpenClose)		; 090
+	dc.w	<(_GFloor)			; 091
+	dc.w	0				; 092
+	dc.w	0				; 093
+	dc.w	0				; 094
+	dc.w	0				; 095
+	dc.w	0				; 096
+	dc.w	<(_GTeleport)			; 097*
+	dc.w	<(_GFloor)			; 098
+
+;
+;	* * * * * * *       TABLE OF ITEM MESSAGE A TEXTS       * * * * * * *
+;
+_RLItemMsgA
+	dc.w	0				; Player1Start
+	dc.w	0				; Player2Start
+	dc.w	0				; Player3Start
+	dc.w	0				; Player4Start
+	dc.w	0				; DeathMatchStart
+	dc.w	0				; TeleportSpot
+	dc.w	<ClipMsgA			; Soldier
+	dc.w	<ShotGunMsgA			; Sergeant
+	dc.w	0				; Trooper
+	dc.w	0				; Demon
+	dc.w	0				; CacoDemon
+	dc.w	0				; LostSoul
+	dc.w	0				; BaronOfHell
+	dc.w	0				; CyberDemon
+	dc.w	0				; SpiderDemon
+	dc.w	<ShotGunMsgA			; ShotGun
+	dc.w	<ChainSawMsgA			; ChainSaw
+	dc.w	<ChainGunMsgA			; ChainGun
+	dc.w	<RocketGunMsgA			; RocketLauncher
+	dc.w	<PlasmaGunMsgA			; PlasmaGun
+	dc.w	<BFGMsgA			; BFG9000
+	dc.w	<RedKeyCardMsgA			; RedKeyCard
+	dc.w	<BlueKeyCardMsgA		; BlueKeyCard
+	dc.w	<YellowKeyCardMsgA		; YellowKeyCard
+	dc.w	<RedKeyCardMsgA			; RedSkullKey
+	dc.w	<YellowKeyCardMsgA		; YellowSkullKey
+	dc.w	<BlueKeyCardMsgA		; BlueSkullKey
+	dc.w	<BackPackMsgA			; BackPack
+	dc.w	<ClipMsgA			; Clip
+	dc.w	<BulletsBoxMsgA			; AmmoBox
+	dc.w	<ShellsMsgA			; Shells
+	dc.w	<ShellsBoxMsgA			; ShellsBox
+	dc.w	<RocketMsgA			; Rocket
+	dc.w	<RocketsBoxMsgA			; RocketBox
+	dc.w	<CellMsgA			; Cell
+	dc.w	<CellPackMsgA			; CellPack
+	dc.w	<StimPackMsgA			; StimPack
+	dc.w	<MediKitMsgA			; Medikit
+	dc.w	<HealthBonusMsgA		; HealthBonus
+	dc.w	<ArmorBonusMsgA			; ArmorBonus
+	dc.w	<MegaArmorMsgA			; ArmorGreen
+	dc.w	<MegaArmorMsgA			; ArmorBlue
+	dc.w	<SuperChargeMsgA		; SoulSphere
+	dc.w	<InvulnerableMsgA		; Invulnerable
+	dc.w	<BerserkMsgA			; Berserk
+	dc.w	<InvisibleMsgA			; Invisible
+	dc.w	<RadSuitMsgA			; RadiationSuit
+	dc.w	<ComputerMapMsgA		; ComputerMap
+	dc.w	<LightGogglesMsgA		; LightGoggles
+;
+;	* * * * * * *       TABLE OF ITEM MESSAGE B TEXTS       * * * * * * *
+;
+_RLItemMsgB
+	dc.w	0				; Player1Start
+	dc.w	0				; Player2Start
+	dc.w	0				; Player3Start
+	dc.w	0				; Player4Start
+	dc.w	0				; DeathMatchStart
+	dc.w	0				; TeleportSpot
+	dc.w	<ClipMsgB			; Soldier
+	dc.w	<ShotGunMsgB			; Sergeant
+	dc.w	0				; Trooper
+	dc.w	0				; Demon
+	dc.w	0				; CacoDemon
+	dc.w	0				; LostSoul
+	dc.w	0				; BaronOfHell
+	dc.w	0				; CyberDemon
+	dc.w	0				; SpiderDemon
+	dc.w	<ShotGunMsgB			; ShotGun
+	dc.w	<ChainSawMsgB			; ChainSaw
+	dc.w	<ChainGunMsgB			; ChainGun
+	dc.w	<RocketGunMsgB			; RocketLauncher
+	dc.w	<PlasmaGunMsgB			; PlasmaGun
+	dc.w	<BFGMsgB			; BFG9000
+	dc.w	<RedKeyCardMsgB			; RedKeyCard
+	dc.w	<BlueKeyCardMsgB		; BlueKeyCard
+	dc.w	<YellowKeyCardMsgB		; YellowKeyCard
+	dc.w	<RedKeyCardMsgB			; RedSkullKey
+	dc.w	<YellowKeyCardMsgB		; YellowSkullKey
+	dc.w	<BlueKeyCardMsgB		; BlueSkullKey
+	dc.w	<BackPackMsgB			; BackPack
+	dc.w	<ClipMsgB			; Clip
+	dc.w	<BulletsBoxMsgB			; AmmoBox
+	dc.w	<ShellsMsgB			; Shells
+	dc.w	<ShellsBoxMsgB			; ShellsBox
+	dc.w	<RocketMsgB			; Rocket
+	dc.w	<RocketsBoxMsgB			; RocketBox
+	dc.w	<CellMsgB			; Cell
+	dc.w	<CellPackMsgB			; CellPack
+	dc.w	<StimPackMsgB			; StimPack
+	dc.w	<MediKitMsgB			; Medikit
+	dc.w	<HealthBonusMsgB		; HealthBonus
+	dc.w	<ArmorBonusMsgB			; ArmorBonus
+	dc.w	<MegaArmorMsgB			; ArmorGreen
+	dc.w	<MegaArmorMsgB			; ArmorBlue
+	dc.w	<SuperChargeMsgB		; SoulSphere
+	dc.w	<InvulnerableMsgB		; Invulnerable
+	dc.w	<BerserkMsgB			; Berserk
+	dc.w	<InvisibleMsgB			; Invisible
+	dc.w	<RadSuitMsgB			; RadiationSuit
+	dc.w	<ComputerMapMsgB		; ComputerMap
+	dc.w	<LightGogglesMsgB		; LightGoggles
+;
+;	* * * * * * *       TABLE OF ITEM MESSAGE C TEXTS       * * * * * * *
+;
+_RLItemMsgC
+	dc.w	0				; Player1Start
+	dc.w	0				; Player2Start
+	dc.w	0				; Player3Start
+	dc.w	0				; Player4Start
+	dc.w	0				; DeathMatchStart
+	dc.w	0				; TeleportSpot
+	dc.w	<ClipMsgC			; Soldier
+	dc.w	<ShotGunMsgC			; Sergeant
+	dc.w	0				; Trooper
+	dc.w	0				; Demon
+	dc.w	0				; CacoDemon
+	dc.w	0				; LostSoul
+	dc.w	0				; BaronOfHell
+	dc.w	0				; CyberDemon
+	dc.w	0				; SpiderDemon
+	dc.w	<ShotGunMsgC			; ShotGun
+	dc.w	<ChainSawMsgC			; ChainSaw
+	dc.w	<ChainGunMsgC			; ChainGun
+	dc.w	<RocketGunMsgC			; RocketLauncher
+	dc.w	<PlasmaGunMsgC			; PlasmaGun
+	dc.w	<BFGMsgC			; BFG9000
+	dc.w	<RedKeyCardMsgC			; RedKeyCard
+	dc.w	<BlueKeyCardMsgC		; BlueKeyCard
+	dc.w	<YellowKeyCardMsgC		; YellowKeyCard
+	dc.w	<RedKeyCardMsgC			; RedSkullKey
+	dc.w	<YellowKeyCardMsgC		; YellowSkullKey
+	dc.w	<BlueKeyCardMsgC		; BlueSkullKey
+	dc.w	<BackPackMsgC			; BackPack
+	dc.w	<ClipMsgC			; Clip
+	dc.w	<BulletsBoxMsgC			; AmmoBox
+	dc.w	<ShellsMsgC			; Shells
+	dc.w	<ShellsBoxMsgC			; ShellsBox
+	dc.w	<RocketMsgC			; Rocket
+	dc.w	<RocketsBoxMsgC			; RocketBox
+	dc.w	<CellMsgC			; Cell
+	dc.w	<CellPackMsgC			; CellPack
+	dc.w	<StimPackMsgC			; StimPack
+	dc.w	<MediKitMsgC			; Medikit
+	dc.w	<HealthBonusMsgC		; HealthBonus
+	dc.w	<ArmorBonusMsgC			; ArmorBonus
+	dc.w	<MegaArmorMsgC			; ArmorGreen
+	dc.w	<MegaArmorMsgC			; ArmorBlue
+	dc.w	<SuperChargeMsgC		; SoulSphere
+	dc.w	<InvulnerableMsgC		; Invulnerable
+	dc.w	<BerserkMsgC			; Berserk
+	dc.w	<InvisibleMsgC			; Invisible
+	dc.w	<RadSuitMsgC			; RadiationSuit
+	dc.w	<ComputerMapMsgC		; ComputerMap
+	dc.w	<LightGogglesMsgC		; LightGoggles
+
+
+;
+;	* * * * * * *       TELEPORT       * * * * * * *
+;
+_GTeleport0
+	move	r15,#<_RM7XY1000
+_GTeleportOnce
+	moves	rTemp,rTemp			; Teleport RIGHT->LEFT?
+	bmi	_GTeleport0			; NO!  Can't Teleport LEFT->RIGHT!
+	nop
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+_GTeleport
+	moves	rTemp,rTemp			; Teleport RIGHT->LEFT?
+	bmi	_GTeleport0			; NO!  Can't Teleport LEFT->RIGHT!
+	nop
+;
+;	>>>   MAKE SOUND EFFECT   <<<
+;
+	move	r0,(<MVRObj)			; Get Object Coordinates
+;	with	r0
+	add	#(rloX+2)
+	to	r4
+	ldw	(r0)
+;	with	r0
+	add	#((rloY+2)-(rloX+2))
+	to	r6
+	ldw	(r0)
+	move	r3,#<(sxTeleport-1)		; Sound Effect#
+	link	#4
+	iwt	r15,#<_RLSoundEffect
+	nop
+;
+;	>>>   REMOVE RLOBJECT FROM OLD SECTOR   <<<
+;
+	move	rObj,(<MVRObj)			; Update Object Coordinates
+	link	#4				; Remove RLObject from Sector's ObjectList
+	iwt	r15,#<_RLRemSectorObject
+	nop
+;
+;	>>>   FIND DESTINATION SECTOR   <<<
+;
+	move	r4,(<MVType)			; LineTag
+	with	r4
+	hib
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb
+	move	r14,(<EMSECTORS)		; Base of Sectors
+	move	r3,#<(_RLSectorData-rlsdSize)	; R3 = SectorData
+	move	r6,#-1				; Sector#
+_GTeleport3
+	with	r14				; Get SectorTag
+	add	#rlsTag
+	with	r3
+	add	#rlsdSize
+	inc	r6
+	getb
+	inc	r14
+;	with	r0				; SectorTag = LineTag?
+	sub	r4				; @CMP@
+	bne	_GTeleport3			; No
+	from	r3				; Move to Sector's RLObjects
+	to	r1
+	add	#rlsdObjects
+_GTeleport5
+	to	r1				; Move to Next Object
+	ldw	(r1)
+	moves	r1,r1
+	beq	_GTeleport3			; No More Objects?!
+	from	r1				; Get Object's Type
+;	to	r0
+	add	#rloType
+;	to	r0
+	ldb	(r0)
+;	with	r0				; TYPE 1 (TELEPORT SPOT)?
+	sub	#otTeleportSpot
+	bne	_GTeleport5+1			; No
+	to	r1
+;
+	with	r1				; Get Teleport LevelObject
+	add	#rloLObj
+	from	rObj				; Update Object Coordinates
+	to	r2
+	add	#rloX
+;	with	r0				; Update Object X Coordinate
+	sub	r0
+	to	r14				; Move to LevelObject's Angle
+	ldw	(r1)
+;	from	r0
+	stw	(r2)
+	to	r1
+	getb
+	inc	r14
+	inc	r2
+	inc	r2
+	with	r1
+	getbh
+	inc	r14
+	from	r1
+	stw	(r2)
+	inc	r2
+	inc	r2
+;	from	r0				; Update Object Y Coordinate
+	stw	(r2)
+	getb
+	inc	r14
+	inc	r2
+	inc	r2
+	getbh
+	inc	r14
+;	from	r0
+	stw	(r2)
+	inc	r2
+	inc	r2
+	from	r3				; Update Object Z Coordinate
+;	to	r0
+	add	#rlsdFloorHeight
+	to	r1
+	ldw	(r0)
+	from	r1
+	stw	(r2)
+	inc	r2
+	inc	r2
+;	with	r0				; Update Object X Velocity
+	sub	r0
+;	from	r0
+	stw	(r2)
+	inc	r2
+	inc	r2
+;	from	r0				; Update Object Y Velocity
+	stw	(r2)
+	getb
+	inc	r14
+	inc	r2
+	inc	r2
+	getbh
+;	from	r0				; Update Object Angle
+	stw	(r2)
+	inc	r2
+	inc	r2
+	from	r6				; Update Object Sector
+	stb	(r2)
+	with	r2				; Move to Z2/TObj
+	add	#(rloZ2-rloSector)
+	from	rObj				; Get Object Type
+;	to	r0
+	add	#rloType
+;	to	r0
+	ldb	(r0)
+	dec	r0				; Player Object?
+	bmi	_GTeleport6
+	from	r1				; Yes!  Update Z2
+	from	r0				; No!  Update TObj
+_GTeleport6
+;	from	r0				; rloZ2/rloTObj
+	stw	(r2)
+;
+;	>>>   ADD RLOBJECT TO NEW SECTOR   <<<
+;
+	move	r11,#<_RM7XY1000		; Add RLObject to Sector's ObjectList
+	iwt	r15,#<_RLAddSectorObject
+	nop
+
+
+;
+;	* * * * * * *       EXIT TO NEXT LEVEL       * * * * * * *
+;
+_GExit
+;
+;	>>>   MAKE SOUND EFFECT   <<<
+;
+	move	(<ExitLevel),r4			; 11=GO TO NEXT LEVEL, 51=GO TO SECRET LEVEL
+	move	r3,#swtchx_eff			; Sound Effect#
+	move	r11,#<_RM7XY1000
+	iwt	r15,#<_RLPlayerSoundEffect
+	nop
+
+
+;
+;	* * * * * * *       REMOTE DOORS       * * * * * * *
+;
+_GRDoorCloseOnce
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+_GRDoorClose
+	move	r7,#(_TPCDoorClose-_TPlatformCode)
+	bra	_GRDoors
+	nop
+
+_GRDoorOpenOnce
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+_GRDoorOpen
+	move	r7,#(_TPCDoorOpen-_TPlatformCode)
+	bra	_GRDoors
+	nop
+
+_GRDoorCloseOpenOnce
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+	move	r7,#(_TPCDoorCloseOpen-_TPlatformCode)
+	bra	_GRDoors
+	nop
+
+_GRDoorOpenClose
+	move	r7,#(_TPCDoorOpenClose-_TPlatformCode)
+;
+;	>>>   COMMON REMOTE DOOR CODE   <<<
+;
+_GRDoors
+	move	r0,(<EMDOORS)			; Base of Doors
+	move	(<MVSector),r0
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb
+_GRDoors2
+	move	r14,(<MVSector)			; Door Sector
+	move	r1,#<(MVTag)			; Get LineTag
+	to	r1
+	ldb	(r1)
+	move	r11,(<EMSECTORS)		; R11 = Base of Sectors
+	with	r11
+	add	#rlsTag
+_GRDoors3
+	to	r6				; Get Sector
+	getb
+	from	r6				; End of Door Sectors?
+;	to	r0
+	sex
+	inc	r0
+	beq	_GRDoors9			; Yes!
+	with	r14				; No
+	add	#(rlpdNumLines-rlpdSector)
+	getb					; Get #Lines
+;	with	r0
+	add	r0
+	inc	r0
+	from	r14				; Next DoorData
+	to	r12
+	add	r0
+	from	r6				; Get Sector Tag
+;	to	r0
+	umult	#rlsSize
+;	from	r0
+	to	r14
+	add	r11
+	getb
+;	with	r0				; SectorTag = LineTag?
+	sub	r1				; @CMP@
+	with	r12
+	bne	_GRDoors3			; Yes!  Add this Door!
+	to	r14
+	move	r4,#<(MVType)			; Get LineType
+	to	r4
+	ldb	(r4)
+	move	(<MVSector),r12			; Door Sector
+	iwt	r12,#<_GRDoors2
+	iwt	r15,#<_RLAddPlatformDoor2
+	nop
+_GRDoors9
+	move	r15,#<_RM7XY1000
+	nop
+
+
+;
+;	* * * * * * *       LIGHTING       * * * * * * *
+;
+_GLightOffOnce
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+	ibtx	r1,#$f7				; LightLevel = $F7 = OFF
+	bra	_GLights
+	nop
+
+_GLightOnOnce
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+	ibtx	r1,#$00				; LightLevel = $00 = ON
+;
+;	>>>   COMMON LIGHTING CODE   <<<
+;
+_GLights
+	with	r4				; R4 = LineTag
+	hib
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb
+	move	r14,(<EMSECTORS)				; Base of Sectors
+	move	r3,#<(_RLSectorData+rlsdLightLevel-rlsdSize)	; R3 = SectorData
+	move	r2,#$4C						; END OF SECTORS MARKER
+_GLights3
+	with	r3				; Next Sector
+	add	#rlsdSize
+	getb					; Get SectorType
+;	with	r0
+	sub	r2
+	beq	_GLights9
+	with	r14				; Get SectorTag
+	add	#rlsTag
+	getb
+	inc	r14
+;	with	r0				; SectorTag = LineTag?
+	sub	r4				; @CMP@
+	bne	_GLights3			; No
+	from	r1				; Set New LightLevel
+	alt1
+	bra	_GLights3
+;	stb	(r3)
+	stw	(r3)
+_GLights9
+	move	r15,#<_RM7XY1000
+	nop
+
+
+;
+;	* * * * * * *       COMPLEX FLOORS       * * * * * * *
+;
+_GFloorOnce
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+_GFloor
+	from	r4				; R1 = LineTag.B
+	to	r1
+	hib
+	with	r4				; R4 = LineType.B
+	lob
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb
+	move	r14,(<EMFLOORS)			; Base of FloorData
+_GFloor3
+	getb					; Get FloorTag
+;	with	r0				; FloorTag = LineTag?
+	sub	r1				; @CMP@
+	bne	_GFloor4			; No!
+	inc	r14
+	getb					; Get FloorType
+;	with	r0				; FloorType = LineType?
+	sub	r4				; @CMP@
+	beq	_GFloor5
+_GFloor4
+	inc	r14
+	getb					; Get #Sectors
+;	with	r0
+	umult	#rlpfsSize
+	inc	r0
+	with	r14				; Next FloorData
+	bra	_GFloor3
+	add	r0
+_GFloor5
+	move	(<MVSector),r14			; Save FloorData Pointer
+;	to	r0				; R0 = #SECTORS
+	getb
+	move	(<MVCount),r0			; Save Counter
+	iwt	r12,#<_GFloor6
+_GFloor6
+	move	r0,(<MVCount)			; Get Counter
+	dec	r0
+	bmi	_GFloor9
+;	from	r0				; Update Counter
+	sbk
+	move	r14,(<MVSector)			; Get FloorData Pointer
+	inc	r14
+	move	r10,r14				; R10 = FLOORDATA
+	to	r6				; R6 = SECTOR
+	getb
+	inc	r14
+	getb					; R5 = DESTINATION HEIGHT
+	inc	r14
+	to	r5
+	getbh
+	from	r14
+;	to	r0
+	add	#(rlpfsSize-(rlpfsHeight+1)-1)
+;	from	r0				; Update FloorData Pointer
+	sbk
+	from	r6				; R9 = SECTORDATA
+;	to	r0
+	umult	#rlsdSize
+	move	r9,#<_RLSectorData
+	with	r9
+	add	r0
+;
+;	>>>   DOES THIS FLOOR SECTOR CHANGE IT'S TEXTURE/TYPE?   <<<
+;
+	from	r4				; R0 = LineType.B
+;	to	r0
+	lob
+	move	r7,#22				; LineType = 22?
+;	with	r0				; @CMP@
+	sub	r7
+	beq	_GFloor7-1
+	move	r7,#(37-22)			; LineType = 37?
+;	with	r0				; @CMP@
+	sub	r7
+	beq	_GFloor7-1
+	move	r7,#(59-37)			; LineType = 59?
+;	with	r0				; @CMP@
+	sub	r7
+	bne	_GFloor8			; No, Don't Change FloorTexture
+;
+;	>>>   CHANGE FLOOR TEXTURE/TYPE   <<<
+;
+_GFloor7
+	with	r14				; Get ModelSector
+	add	#(rlpfsModelSector-(rlpfsHeight+1))
+	getb
+;	with	r0
+	umult	#rlsSize
+	move	r1,(<EMSECTORS)			; R1 = Base of Sectors
+;	with	r0				; Get ModelSector.FloorTexture
+	add	#rlsFloorTexture
+;	from	r0				; R1 = ModelSector.FloorTexture
+	to	r14
+	add	r1
+	to	r1
+	getb
+	with	r14				; Get ModelSector.Type
+	sub	#(rlsFloorTexture-rlsType)
+	from	r9				; SET NEW FLOORTEXTURE
+;	to	r0
+	add	#rlsdFloorTexture
+	from	r1
+	stb	(r0)
+	move	r1,#rlsdfTypeNormal		; Type now NORMAL
+	getb
+;	with	r0				; Get SectorType
+	lsr
+;	with	r0
+	lsr
+;	with	r0
+	sub	#4
+	beq	_GFloor7C			; Type=4?
+	dec	r0
+	beq	_GFloor7C			; Type=5?
+	dec	r0
+	dec	r0
+	beq	_GFloor7C-1			; Type=7?
+;	with	r0
+	sub	#(16-7)
+	bne	_GFloor7E			; Type=16?
+	nop
+_GFloor7C
+	move	r1,#rlsdfTypeNukage		; Type now NUKAGE
+_GFloor7E
+;	to	r0				; MARK SECTOR TYPE CHANGED
+	ldb	(r9)
+;	with	r0
+	or	r1
+;	from	r0
+	stb	(r9)
+_GFloor8
+	move	r7,#(_TPCFloorLower-_TPlatformCode)
+	from	r9				; Get Current FloorHeight
+;	to	r0
+	add	#rlsdFloorHeight
+;	to	r0
+	ldw	(r0)
+;	with	r0				; Destination < Current?
+	sub	r5				; @CMP@
+	bge	_GFloor8E			; Yes, Lower Floor
+	nop					;  No, Raise Floor
+	move	r7,#(_TPCFloorRise-_TPlatformCode)
+_GFloor8E
+	iwt	r15,#<_RLAddPlatformFloor2
+	nop
+_GFloor9
+	move	r15,#<_RM7XY1000
+	nop
+
+
+;
+;	* * * * * * *       STAIRS       * * * * * * *
+;
+_GStairs
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+	with	r4				; LineTag
+	hib
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb
+	move	r14,(<EMSTAIRS)			; Base of StairData
+	move	r7,#(_TPCStairRise-_TPlatformCode)
+_GStairs3
+	getb					; Get StairTag
+;	with	r0				; StairTag = LineTag?
+	sub	r4				; @CMP@
+	beq	_GStairs5			; Yes!
+	with	r14				; No!
+	add	#(rlpsNumSectors-rlpsTag)
+	getb					; Get #Sectors
+	inc	r0
+	with	r14				; Next StairData
+	bra	_GStairs3
+	add	r0
+_GStairs5
+;	with	r14				; R5 = STARTING HEIGHT
+	add	#(rlpsHeight-rlpsTag)
+	move	(<MVCode),r14			; STAIRDATA
+	getb
+	inc	r14
+	to	r5
+	getbh
+	inc	r14
+	move	(<MVSector),r14			; Save StairData Pointer
+;	to	r0				; R0 = #SECTORS
+	getb
+	move	(<MVCount),r0			; Save Counter
+	iwt	r12,#<_GStairs6
+_GStairs6
+	move	r0,(<MVCount)			; Get Counter
+	dec	r0
+	bmi	_GStairs9
+;	from	r0				; Update Counter
+	sbk
+	with	r5				; FloorHeight += 8
+	add	#8
+	move	r10,(<MVCode)			; R10 = STAIRDATA
+	move	r14,(<MVSector)			; Get StairData Pointer
+	inc	r14
+	from	r14				; Update StairData Pointer
+	sbk
+	to	r6				; R6 = SECTOR
+	getb
+	iwt	r15,#<_RLAddPlatformFloor
+	nop
+_GStairs9
+	move	r15,#<_RM7XY1000
+	nop
+
+
+;
+;	* * * * * * *       LIFTS       * * * * * * *
+;
+_GLiftOnce
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+_GLift
+	move	r7,#(_TPCLift-_TPlatformCode)	; R7 = LIFTSTATECODE
+_GLift1
+	from	r4				; R1 = LineType.B
+	to	r1
+	lob
+	with	r4				; R4 = LineTag.B
+	hib
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb
+	move	r14,(<EMLIFTS)			; Base of LiftData
+_GLift3
+	getb					; Get LiftTag
+;	with	r0				; LiftTag = LineTag?
+	sub	r4				; @CMP@
+	bne	_GLift4				; No!
+	inc	r14
+	getb					; Get LiftType
+;	from	r0				; LiftType = LineType?
+	cmp	r1
+	beq	_GLift5
+_GLift4
+	inc	r14
+	getb					; Get #Sectors
+;	with	r0
+	umult	#rlplsSize
+	inc	r0
+	with	r14				; Next LiftData
+	bra	_GLift3
+	add	r0
+_GLift5
+	move	(<MVSector),r14			; Save LiftData Pointer
+;	to	r0				; R0 = #SECTORS
+	getb
+	move	(<MVCount),r0			; Save Counter
+	iwt	r12,#<_GLift6
+_GLift6
+	move	r0,(<MVCount)			; Get Counter
+	dec	r0
+	bmi	_GLift9
+;	from	r0				; Update Counter
+	sbk
+	move	r14,(<MVSector)			; Get LiftData Pointer
+	inc	r14
+	move	r10,r14				; R10 = LIFTDATA
+	to	r6				; R6 = LIFTSECTOR
+	getb
+	from	r14
+;	to	r0
+	add	#(rlplsSize-rlplsSector-1)
+;	from	r0				; Update LiftData Pointer
+	sbk
+	iwt	r15,#<_RLAddPlatformLift
+	nop
+_GLift9
+	move	r15,#<_RM7XY1000
+	nop
+
+
+;
+;	* * * * * * *       MOVING FLOORS       * * * * * * *
+;
+_GMovingFloorStart
+	move	r7,#(_TPCMovingFloor-_TPlatformCode)	; R7 = LIFTSTATECODE
+	bra	_GLift1
+	nop
+_GMovingFloorStop
+	move	r7,#-1					; R7 = LIFTSTATECODE
+	bra	_GLift1
+	nop
+
+
+;
+;	* * * * * * *       CRUSHING CEILINGS       * * * * * * *
+;
+_GCeilingStart
+	move	r7,#(_TPCCrushingCeiling-_TPlatformCode) ; R7 = CEILINGSTATECODE
+	bra	_GCeiling
+	nop
+_GCeilingStop
+	move	r7,#-1				; R7 = CEILINGSTATECODE
+;
+;	* * * * * * *       COMMON CEILINGS       * * * * * * *
+;
+_GCeiling
+	from	r4				; R1 = LineType.B
+	to	r1
+	lob
+	with	r4				; R4 = LineTag.B
+	hib
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb
+	move	r14,(<EMCEILINGS)		; Base of CeilingData
+_GCeiling3
+	getb					; Get CeilingTag
+;	with	r0				; CeilingTag = LineTag?
+	sub	r4				; @CMP@
+	bne	_GCeiling4			; No!
+	inc	r14
+	getb					; Get CeilingType
+;	with	r0				; CeilingType = LineType?
+	sub	r1				; @CMP@
+	beq	_GCeiling5
+_GCeiling4
+	inc	r14
+	to	r2				; R2 = #Sectors
+	getb
+_GCeiling4E
+	with	r14				; Get #Lines in this Sector
+	add	#(rlpcsNumLines+1)
+	getb
+;	with	r0				; Skip LineList
+	add	r0
+	dec	r2				; One less Sector
+	with	r14
+	bne	_GCeiling4E
+	add	r0
+	bra	_GCeiling3			; Next CeilingData
+	inc	r14
+_GCeiling5
+	move	(<MVSector),r14			; Save CeilingData Pointer
+;	to	r0				; R0 = #SECTORS
+	getb
+	move	(<MVCount),r0			; Save Counter
+	iwt	r12,#<_GCeiling6
+_GCeiling6
+	move	r0,(<MVCount)			; Get Counter
+	dec	r0
+	bmi	_GCeiling9
+;	from	r0				; Update Counter
+	sbk
+	move	r14,(<MVSector)			; Get CeilingData Pointer
+	inc	r14
+	move	r10,r14				; R10 = CEILINGDATA
+	to	r6				; R6 = CEILINGSECTOR
+	getb
+	inc	r14
+	getb					; R5 = MAXIMUM CEILING HEIGHT
+	inc	r14
+	to	r5
+	getbh
+	with	r14				; Get #Lines
+	add	#(rlpcsNumLines-(rlpcsMaxHeight+1))
+	getb
+;	with	r0
+	add	r0
+;	with	r0
+	add	r14
+	iwt	r15,#<_RLAddPlatformCeiling
+;	from	r0				; Update CeilingData Pointer
+	sbk
+_GCeiling9
+	move	r15,#<_RM7XY1000
+	nop

@@ -1,0 +1,38 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                        WALLS DATA TABLES MODULE                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+
+	SECTION	WALLS,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       WALLS TABLE       * * * * * * *
+;
+;	Table of Offsets within WallsData Structures
+;
+;	DC.W	Wall0DataOffset
+;	DC.W	Wall1DataOffset
+;	DC.W	WallnDataOffset
+;
+RLWallsTable
+	image	RLDATA:WALLS/WALLS.TBL
+
+
+;
+;	* * * * * * *       WALLS DATA TABLE       * * * * * * *
+;
+;	DC.W	Flags
+;	DC.B	Height
+;	DC.B	Modulo (Width-1)
+;
+;	DC.B	Bank		\ * Width Strips
+;	DC.W	Address		/
+;
+RLWallsData
+	image	RLDATA:WALLS/WALLS.DAT

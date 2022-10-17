@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	149
+DATE	MACRO
+		dc.b	'5.6.95'
+	ENDM
+VERS	MACRO
+		dc.b	'e2my.a 1.149'
+	ENDM
+VSTRING	MACRO
+		dc.b	'e2my.a 1.149 (5.6.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: e2my.a 1.149 (5.6.95)',0
+	ENDM

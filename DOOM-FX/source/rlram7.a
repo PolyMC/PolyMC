@@ -1,0 +1,697 @@
+    PLIST    ON
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                                  RAM7 MEMORY (GSU) *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+
+	extern	RAM7AStart,RAM7AEnd
+	extern	RAM7BStart,RAM7BEnd
+	extern	RAM7CStart,RAM7CEnd
+	extern	RAM7DStart,RAM7DEnd
+
+	public	_RLVClipZone
+
+
+;
+;	* * * * * * *       RAM7 SHORT PAGE VARIABLES       * * * * * * *
+;
+	SECTION	RAM7A,LOAD=$700000,ORG=$700000,SIZE=$200
+RAM7AStart
+;
+;	>>>   REALITY_ENGINE VARIABLES   <<<
+;
+SkillLevel		ds.w	1		; 0=Easy,1=Med,2=Hrd,3=UltVio,4=Ngtmre
+	ifn	useHIGHDETAIL
+DetailLevel		ds.w	1		; Level of Detail (0=HIGH,1=LOW)
+	endif
+RandomNumI		ds.w	1		; Random Number Index
+Timer1			ds.w	1		; CountDown Timer for 1 second
+Anim2Frame		ds.b	1		; Anim2 FrameCounter
+Anim4Frame		ds.b	1		; Anim4 FrameCounter
+FPSRatio		ds.w	1		; FramesPerSecond Ratio
+;
+RLMinPixX		ds.w	1		; Minimum PixX Coordinate
+RLMaxPixX		ds.w	1		; Maximum PixX Coordinate
+	ifn	useHIGHDETAIL
+RLMinPixX2		ds.w	1		; Minimum PixX  (/2 if LOW)
+RLMaxPixX2		ds.w	1		; Maximum PixX  (/2 if LOW)
+RLViewPixX2		ds.w	1		; Maximum ViewPixX (/2 if LOW)
+	endif
+RLSin			ds.w	1		; Sine Constant (90-PlayerAngle)
+RLCos			ds.w	1		; CoSine Constant (90-PlayerAngle)
+RLNextCode		ds.w	1		; Address of Next RLEngine Code
+;
+RLCount			ds.w	1		; RLEngine Generation Counter
+RLFrame			ds.w	1		; RLEngine Total Frames
+;
+RLLineCount		ds.w	1		; RLEngine Generation LineCounter
+
+
+;
+;	>>>   MESSAGE VARIABLES   <<<
+;
+MsgDataA		ds.w	1		; MessageText
+MsgDataB		ds.w	1
+MsgDataC		ds.w	1
+MsgCount		ds.w	1		; Message Display Counter
+
+
+;
+;	>>>   VIEW VARIABLES   <<<
+;
+ViewX			ds.w	1		; View X
+ViewY			ds.w	1		; View Y
+ViewZ			ds.w	1		; View Z
+ViewAngle		ds.w	1		; View Angle
+
+
+;
+;	>>>   PLAYER VARIABLES   <<<
+;
+PlayerJoyOld		ds.w	1		; Player's Old JoyStick Bits
+;
+PlayerDead		ds.w	1		; Player's Status
+PlayerDeadOld		ds.w	1		; Player's Previous Status
+PlayerHeight		ds.w	1		; Player's Height
+PlayerOnGround		ds.w	1		; Player is ON Ground!
+;
+PlayerSway		ds.w	1		; Player's Sway Factor
+;
+PlayerFaceAnim0		ds.w	1		; Pointer to "Normal" FaceAnim
+PlayerFaceAnim		ds.w	1		; Pointer to FaceAnim
+PlayerFaceCount		ds.w	1		; Counter for Current Face
+;
+RadCount		ds.w	1		; Countdown for Radiation Suit
+BerserkCount		ds.w	1		; Countdown for Berserk
+InvulnerableCount	ds.w	1		; Countdown for Invulnerability
+LightGoggles		ds.w	1		; Countdown for Light Goggles
+Berserk			ds.w	1		; Berserk
+ComputerMap		ds.b	1		; ComputerMap
+BackPack		ds.b	1		; BackPack
+PlayerHurt		ds.b	1		; Player Hurt (SoundEffect)
+			ds.b	1
+;
+NumItems		ds.w	1		; Number of ITEMS
+NumKills		ds.w	1		; Number of KILLS
+NumSecrets		ds.w	1		; Number of SECRETS
+
+
+;
+;	>>>   WEAPON VARIABLES   <<<
+;
+WeaponData		ds.w	1		; Address of WeaponData (wd)
+WeaponState		ds.w	1		; WeaponState (wdType)
+WeaponStateData		ds.w	1		; Address of WeaponStateData (ws)
+WeaponStateCount	ds.w	1		; #Cycles Left in Current State
+WeaponXOffset		ds.w	1		; X Offset
+WeaponYOffset		ds.w	1		; Y Offset
+WeaponAmmo		ds.w	1		; Address of Ammo (-1=Fist/ChainSaw)
+WeaponBullets		ds.w	1		; #Bullets (Pistol/ChainGun)
+WeaponShells		ds.w	1		; #Shells (ShotGun)
+WeaponRockets		ds.w	1		; #Rockets (Rocket)
+WeaponCells		ds.w	1		; #Cells (Plasma/BFG)
+WeaponLight		ds.b	1		; Light Created by Weapon
+LightAdjust		ds.b	1		; Light Adjustment (Weapons/LightGoggles)
+
+
+;
+;	>>>   AUTOMAP VARIABLES   <<<
+;
+AutoMapScale		ds.w	1			; AutoMap Scaling Factor
+AMLevelTextPtr		ds.w	1			; Address of LevelText
+AMObjX1			ds.w	1			; Object Triangle X1
+AMObjY1			ds.w	1			; Object Triangle Y1
+AMObjX2			ds.w	1			; Object Triangle X2
+AMObjY2			ds.w	1			; Object Triangle Y2
+AMObjX3			ds.w	1			; Object Triangle X3
+AMObjY3			ds.w	1			; Object Triangle Y3
+AMMObjPtr		ds.w	1			; Pointer to MObjList
+
+
+;
+;	>>>   EPISODE/MISSION VARIABLES   <<<
+;
+EMNUM			ds.w	1		; EPISODE.B / MISSION.B
+;
+EMBSP			ds.4	1		; Pointer to BSP
+EMBSPR			ds.w	1		; Pointer to BSPROOT
+EMAREAS			ds.w	1		; Pointer to AREAS
+EMVERTEXES		ds.w	1		; Pointer to VERTEXES
+EMLINES			ds.w	1		; Pointer to LINES
+EMSEGS			ds.w	1		; Pointer to SEGS
+EMSEGS2			ds.w	1		; Pointer to SEGS2
+EMREJECT		ds.w	1		; Pointer to REJECT
+EMNUMVERTEXES		ds.w	1		; Number of VERTEXES
+EMNUMLINES		ds.w	1		; Number of LINES
+EMNUMSEGS		ds.w	1		; Number of SEGS
+EMFACES			ds.w	1		; Pointer to FACES
+;
+EMSECTORS		ds.4	1		; Pointer to SECTORS
+EMNUMSECTORS		ds.w	1		; Number of SECTORS
+EMOBJECTS		ds.w	1		; Pointer to OBJECTS
+EMBLOCKMAP		ds.w	1		; Pointer to BLOCKMAP
+EMDOORS			ds.w	1		; Pointer to DOORS
+EMSTAIRS		ds.w	1		; Pointer to STAIRS
+EMFLOORS		ds.w	1		; Pointer to FLOORS
+EMCEILINGS		ds.w	1		; Pointer to CEILINGS
+EMLIFTS			ds.w	1		; Pointer to LIFTS
+;
+EMBLOCKMAPORIGIN	ds.4	1		; BLOCKMAP X,Y Origin (X.W/Y.W)
+EMBLOCKMAPDIM		ds.w	1		; BLOCKMAP Dimensions (W.B/H.B)
+;
+EMTOTALITEMS		ds.w	1		; Number of ITEMS
+EMTOTALKILLS		ds.w	1		; Number of KILLS
+EMTOTALSECRETS		ds.w	1		; Number of SECRETS
+
+
+;
+;	>>>   BUILD BSP VARIABLES   <<<
+;
+BBBSPPtr		ds.w	1		; Saved BSP Pointer
+BBBSPStack		ds.w	1		; Saved BSP StackPointer
+BBAreaPtr		ds.w	1		; Saved AREA Pointer
+BBSegCount					; #BSP AREA SEGMENTS
+BBAreaPtrP		ds.w	1		; Saved AREA PointerPrevious
+BBOutSightCode		ds.w	1		; Address of OutSight Code
+BBInSightCode		ds.w	1		; Address of InSight Code
+
+
+;
+;	>>>   SEGMENT LIST VARIABLES   <<<
+;
+SLAreaPtr		ds.w	1		; Pointer to Start of AREA List
+SLAreaPtrP		ds.w	1		; Pointer to Previous AREA Group
+SLAreaPtrV		ds.w	1		; Pointer to Last Valid AREA Group
+SLAreaSegCount		ds.w	1		; Counter of Segments in AREA
+;
+SLClipZoneStart		ds.w	1		; ClipZone Start
+SLClipZoneEnd		ds.w	1		; ClipZone End
+SLClipCount		ds.w	1		; #Clipped PixelStrips
+SLV1Angle		ds.w	1		; Segment Vertex1 Angle
+;
+SLXsRatioI		ds.w	1		; ScreenXRatioIndex (rXs3-rXs0+1)
+;
+SLVSecPtr		ds.w	1		; Pointer to End of VSECTORS List
+
+
+;
+;	>>>   VISIBLE SEGMENT LIST VARIABLES   <<<
+;
+VSegListEnd		ds.w	1		; End of VisibleSegmentList
+VSegMaxY		ds.w	1		; Maximum VisibleSegment WorldY
+
+
+;
+;	>>>   VISIBLE OBJECT LIST VARIABLES   <<<
+;
+VObjListStart		ds.w	1		; Start of VisibleObjectList
+VObjListEnd		ds.w	1		; End of VisibleObjectList
+VObjListMaxY		ds.w	1		; VisibleObject with Maximum Y
+VObjMaxY		ds.w	1		; Maximum VisibleObject Y
+;
+VObjSectorData		ds.w	1		; VisibleObject SectorData
+VObjZ			ds.w	1		; VisibleObject Z Coordinate
+VObjHeight		ds.b	1		; VisibleObject Height
+VObjWidth		ds.b	1		; VisibleObject Width
+VObjImage		ds.w	1		; Pointer to Imagery
+
+
+;
+;	>>>   TRACE VARIABLES   <<<
+;
+TRVSeg			ds.w	1		; Pointer to Current VisibleSegment
+TRVObj			ds.w	1		; Pointer to Current VisibleObject
+;
+TRFloors		ds.w	1		; Start of FloorsData
+TRFloorsEnd		ds.w	1		; End of FloorsData
+TRFloorKey		ds.w	1		; Current FloorKey
+TRCeilingKey		ds.w	1		; Current CeilingKey
+TRFloorCeilingKey	ds.w	1		; Key for Floor/Ceiling Data
+TRFloorsPtr0		ds.w	1		; Start of Current FloorsData
+;
+TRPixScale		ds.w	1		; SCN->RL Pixel Scale
+TRTextureHeight		ds.b	1		; Height of Texture
+			ds.b	1		; UNUSED!
+;
+TRPreWallPlotPtr0	ds.w	1		; Pointer to End of PreWallPlotData
+TRPreWallPlotPtr	ds.w	1		; Pointer to Current PreWallPlotData
+TRWallPlotPtr		ds.w	1		; Pointer to End of WallPlotData
+TRObjPlotPtr		ds.w	1		; Pointer to End of ObjPlotData
+;
+TRWallPlot		ds.w	1		; Pointer to Current WallPlots
+TRClipRangePtr0		ds.w	1		; Pointer to Current ClipRange
+TRClipRangePtr		ds.w	1		; Pointer in Current ClipRange
+TRClipZonePtr0		ds.w	1		; Pointer to Current ClipZone
+TRClipZonePtr		ds.w	1		; Pointer in Current ClipZone
+;
+TRXsT			ds.w	1		; Current X/#Pixels Left
+TRYs0			ds.w	1		; Y Coordinate at Bottom of Wall
+TRCeilingY		ds.w	1		; Y Coordinate at Ceiling
+;
+TRFloorPlotPtr		ds.w	1		; Pointer to End of FloorPlotData
+
+
+;
+;	>>>   DRAW WALLS VARIABLES   <<<
+;
+DWPlotPtr		ds.w	1		; Pointer to Next PlotDataStart
+
+
+;
+;	>>>   MOVEMENT VARIABLES   <<<
+;
+MVReturnAddress		ds.w	1		; Return Address
+MVRObj			ds.w	1		; RLObject Pointer
+MVRX			ds.w	1		; RLObject X Coordinate
+MVRY			ds.w	1		; RLObject Y Coordinate
+;
+MVULMask		ds.b	1		; LineFlag Mask for Trigger/Use/Operate
+MVULCount		ds.b	1		; #Lines that match LineFlag Mask
+;
+MVObjD			ds.w	1		; Object Diameter
+MVCount			ds.w	1		; Movement Remainder ReScan Count
+MVMLPtr			ds.w	1		; MoveLines Pointer
+MVLine			ds.w	1		; Line Pointer/Item RLObject
+MVVX			ds.w	1		; Velocity X
+MVVY			ds.w	1		; Velocity Y
+MVVZ			ds.w	1		; Velocity Z (Projectiles Only)
+;
+MVLRX			ds.w	1		; Line UnitVector Radius X
+MVLRY			ds.w	1		; Line UnitVector Radius Y
+MVLPRX			ds.w	1		; Line Perpendicular Radius X
+MVLPRY			ds.w	1		; Line Perpendicular Radius Y
+MVLPUX			ds.w	1		; Line Perpendicular UnitVector X
+MVLPUY			ds.w	1		; Line Perpendicular UnitVector Y
+;
+MVIPercent		ds.w	1		; Intersection Percentage
+MVIPUX			ds.w	1		; Intersection Perp. UnitVector X
+MVIPUY			ds.w	1		; Intersection Perp. UnitVector Y
+MVIZ			ds.w	1		; Intersection Near Z
+MVIZ2			ds.w	1		; Intersection Near Z2
+;MVIZ2S			ds.w	1		; Intersection Near Z2 Start
+MVIC2			ds.w	1		; Intersection Near C2
+;MVIC2S			ds.w	1		; Intersection Near C2 Start
+MVIMLPtr		ds.w	1		; Intersection MoveLines Pointer
+;
+MVBlock						; Line Blocks Movement IF Crossed
+MVType			ds.b	1		; Type of Line
+MVTag			ds.b	1		; Line Tag Value
+MVSector		ds.w	1		; Pointer to Sector Triggered
+MVCode			ds.w	1		; Code to call for each Sector
+;
+MVIMask			ds.b	1		; ObjectFlag Mask for Collisions
+			ds.b	1
+
+
+;
+;	>>>   USE LINES VARIABLES   <<<
+;
+ULReturnAddress		ds.w	1		; Return Address
+ULObjX0			ds.w	1		; Object Top-Left
+ULObjY0			ds.w	1
+ULObjX1			ds.w	1		; Object Bottom-Right
+ULObjY1			ds.w	1
+;
+ULLine			ds.w	1		; Pointer to Line Used/Operated
+ULType			ds.b	1		; Type of Line
+ULTag			ds.b	1		; Line Tag Value
+ULSector		ds.w	1		; Pointer to Sector Used/Operated
+ULCount			ds.w	1		; Counter
+ULCode			ds.w	1		; Code to call for each Sector
+
+;
+;	>>>   TASKS VARIABLES   <<<
+;
+RLNumTasks		ds.w	1		; Number of Allocated Tasks
+
+;
+;	>>>   CHECK CEILINGS/FLOORS VARIABLES   <<<
+;
+CeilingCrush		ds.b	1		; 1=Ceiling Crushes RLObject(s)
+CeilingBlocked		ds.b	1		; 1=Ceiling Blocked by RLObject(s)
+CCDestHeight		ds.w	1		; Destination Floor/Ceiling Height
+CCRadius		ds.w	1		; Radius to Check for Player
+CCReturnAddress		ds.w	1		; Return Address
+
+;
+;	>>>   MOVABLE OBJECTS VARIABLES   <<<
+;
+RLNumMObjs		ds.w	1		; Number of Allocated MovableObjects
+RLNumPMObjs		ds.w	1		; Number of Processing MovableObjects
+RLNumPObjs		ds.w	1		; Number of Projectile MovableObjects
+
+;
+;	>>>   ENEMIES VARIABLES   <<<
+;
+ENEnemy			ds.w	1		; Pointer to Current Enemy
+ENTObj			ds.w	1		; Pointer to Current Target RLObject
+ENBirthsPtr		ds.w	1		; Enemy Births Pointer
+
+;
+;	>>>   RADIUS DAMAGE VARIABLES   <<<
+;
+ENRadiusPtr		ds.w	1		; Radius Damages Pointer
+ENRadiusLine		ds.w	1		; Radius Line#
+
+;
+;	>>>   MOVE OBJECTS VARIABLES   <<<
+;
+MOReturnAddress		ds.w	1		; Return Address
+
+;
+;	>>>   TARGETTING VARIABLES   <<<
+;
+TGZ			ds.w	1		; Object Z Coordinate
+TGdZUpper		ds.w	1		; Upper DeltaZ Bounds
+TGdZLower		ds.w	1		; Lower DeltaZ Bounds
+
+
+
+;
+;	* * * * * * *       PATCH VARIABLES       * * * * * * *
+;
+;
+;	>>>   MISCELLANEOUS VARIABLES   <<<
+;
+BaronOfHellCount	ds.b	1		; BaronOfHell Counter (E1M8 Special)
+			ds.b	1		; UNUSED
+;
+;	* * * * * * *       MULTIPLAYER VARIABLES       * * * * * * *
+;
+	ifn	useMULTIPLAYER
+MPPlayerObject		ds.w	1		; Player Object
+MPEnemyTarget		ds.w	1		; Enemy Target
+	endif
+;
+;	* * * * * * *       PATCH VARIABLES       * * * * * * *
+;
+	ifn	usePATCH
+PTRLDoTasks		ds.w	1		; _RLDoTasks
+PTRLMSObjects		ds.w	1		; _RLMSObjects
+PTRLMAObjects		ds.w	1		; _RLMAObjects
+PTRLEnemiesTarget	ds.w	1		; _RLEnemiesTarget
+PTRLPlayer		ds.w	1		; _RLPlayer
+PTRLWeapons		ds.w	1		; _RLWeapons
+PTRLDoSectors		ds.w	1		; _RLDoSectors
+PTRLMisc2		ds.w	1		; _RLMisc2
+PTRLBuildBSP		ds.w	1		; _RLBuildBSP
+PTRLBuildDone		ds.w	1		; _RLBuildDone
+;
+PTRLBuildCheckObjs	ds.w	1		; _RLBuildCheckObjs
+PTRLFireTarget		ds.w	1		; _RLFireTarget
+PTRLFireTarget2		ds.w	1		; _RLFireTarget2
+PTRLDamageObject	ds.w	1		; _RLDamageObject
+;
+PTRLMAPlayerDie		ds.w	1		; _RLMAPlayerDie
+PTTRO2SPlayer		ds.w	1		; _RLBuildTraceObjs2Player
+;
+	ifn	1
+PTRAM7A			ds.b	32		; PatchVariables 
+	endif
+	endif
+;
+;	* * * * * * *       VARIABLE BLOCK TRANSFERRED TO SNES       * * * * * * *
+;
+RLGSUXVars
+	ifn	DEBUG
+GSUERROR		ds.w	1		; GSU ERROR CODE
+	endif
+;
+PlayerAmmo		ds.w	1		; Player's Ammo
+PlayerHealth		ds.w	1		; Player's Health
+PlayerArmor		ds.w	1		; Player's Armor
+PlayerFace		ds.w	1		; Player's Face
+PlayerKeys		ds.b	1		; Player's Keys
+PlayerArms		ds.b	1		; Player's Weapons
+;
+RLRGB			ds.w	1		; Current Desired RGB
+;
+WeaponType		ds.w	1		; Type of Weapon (wtType)
+WeaponFrame		ds.w	1		; Weapon Frame
+WeaponX			ds.w	1		; Weapon Sprite X Coordinate
+WeaponY			ds.w	1		; Weapon Sprite Y Coordinate
+WeaponNext		ds.w	1		; Next Selected Weapon (wtType)
+;
+AutoMapMode		ds.w	1		; -1 = AUTOMAP ON
+ExitLevel		ds.w	1		; 11=Next,51=Secret,-1=ReStart,$52=New
+InvisibleCount		ds.w	1		; Countdown for Invisibility
+;
+RLNumSounds		ds.w	1		; #Sound Effects to Process
+
+	ifn	DEBUGSCR
+DebugScreen		ds.w	1		; 0=DEBUG OFF,1=DEBUG ON
+DebugPlayerX		ds.4	1
+DebugPlayerY		ds.4	1
+DebugPlayerA		ds.w	1
+;
+DebugPlayerS		ds.w	1
+DebugPlayerZ		ds.w	1
+;
+DebugClipZonePtrA	ds.w	1
+DebugPreWallPtrA	ds.w	1
+DebugWallPlotPtrA	ds.w	1
+DebugFloorPlotPtrA	ds.w	1
+DebugObjPlotPtrA	ds.w	1
+DebugFloorsSizeA	ds.w	1
+;
+DebugClipZonePtrB	ds.w	1
+DebugPreWallPtrB	ds.w	1
+DebugWallPlotPtrB	ds.w	1
+DebugFloorPlotPtrB	ds.w	1
+DebugObjPlotPtrB	ds.w	1
+DebugFloorsSizeB	ds.w	1
+;
+DebugClipZonePtrC	ds.w	1
+DebugPreWallPtrC	ds.w	1
+DebugWallPlotPtrC	ds.w	1
+DebugFloorPlotPtrC	ds.w	1
+DebugObjPlotPtrC	ds.w	1
+DebugFloorsSizeC	ds.w	1
+;
+DebugVSegSize		ds.w	1
+DebugVObjSize		ds.w	1
+DebugBSPPtr		ds.w	1
+DebugRLNumTasks		ds.w	1
+DebugRLNumMObjs		ds.w	1
+DebugVSecNum		ds.w	1
+;
+DebugEnemyTargets	ds.w	1
+DebugEnemyMoves		ds.w	1
+DebugEnemyAttacks	ds.w	1
+DebugEnemyBirths	ds.w	1
+DebugProjectileMoves	ds.w	1
+	endif
+;
+RLGSUXVarsE
+
+;
+;	* * * * * * *       VARIABLE BLOCK TRANSFERRED FROM SNES       * * * * * * *
+;
+RLGSUSNESXVars		ds.b	(RLSNESXVarsE-RLSNESXVars)
+RLGSUSNESXVarsO		equ	RLGSUSNESXVars-RLSNESXVars	; to get SNES from GSU
+;
+;	* * * * * * *       RAM7 SHORT PAGE VARIABLES END       * * * * * * *
+;
+RAM7AEnd
+
+
+
+;
+;	* * * * * * *       RAM7 MEDIUM PAGE VARIABLES       * * * * * * *
+;
+	SECTION	RAM7B,LOAD=$700200,ORG=$700200,SIZE=$200
+RAM7BStart
+_RLSlopeYInvTable	ds.w	(RLViewPixY)			; Slope Y Inverse Table
+RLGSUSounds		ds.b	(MaxRLSounds*rlseSize)		; GSU Sound Effects Table
+_RLProjectileMoves	ds.w	(MaxRLMoveProjectiles+1)	; Moving Projectiles
+_RLProjectileMovesE
+
+;	org $700340
+	ifn	usePATCH
+PTRAM7B			ds.b	64
+	endif
+;
+
+
+RAM7BEnd
+
+
+;
+;	* * * * * * *       RAM7 CHARDEF MEMORY       * * * * * * *
+;
+	SECTION	RAM7C,LOAD=$700400,ORG=$700400,SIZE=(RLCharX/3*20*64)-((20-RLViewCharY)*64)
+RAM7CStart
+_RLGSUChrDef		;ds.b	(RLCharX/3*20*64)			 ; Draw ChrDef
+_RLGSUChrDefEnd		equ	_RLGSUChrDef+(RLCharX/3*20*64)-((20-RLViewCharY)*64)
+RAM7CEnd		equ	_RLGSUChrDefEnd
+
+
+;
+;	* * * * * * *       RAM7 UNUSED CHARDEF MEMORY       * * * * * * *
+;
+RAM7CnSIZE		equ	((20-RLViewCharY)*64)
+
+	SECTION	RAM7C0,LOAD=RAM7CStart+(RLViewCharY*64),ORG=RAM7CStart+(RLViewCharY*64),SIZE=RAM7CnSIZE
+RAM7C0Start
+AMLevelText		ds.w	((RLCharX+3+1)/2)		; Overlay ASCII Text
+SingleBitArray		ds.b	8				; Single Bit Array
+RAM7C0End
+
+	SECTION	RAM7C1,LOAD=RAM7C0Start+(20*64),ORG=RAM7C0Start+(20*64),SIZE=RAM7CnSIZE
+RAM7C1Start
+_RLMoveSectors							; Movement Sectors List
+_RLCheckObjs							; CheckFloor/CheckCeiling Objects
+_RLVSectors		ds.w	(MaxRLVSectors+1)		; Visible Sectors List
+RAM7C1End
+
+	SECTION	RAM7C2,LOAD=RAM7C1Start+(20*64),ORG=RAM7C1Start+(20*64),SIZE=RAM7CnSIZE
+RAM7C2Start
+_RLUseLines		ds.w	(MaxRLUseLines+1)		; Maximum Use Lines
+RAM7C2End
+
+	SECTION	RAM7C3,LOAD=RAM7C2Start+(20*64),ORG=RAM7C2Start+(20*64),SIZE=RAM7CnSIZE
+RAM7C3Start
+_RLEnemyTargets		ds.w	(MaxRLTargetEnemies+1)		; Targetting Enemies
+_RLEnemyTargetsE
+RAM7C3End
+
+	SECTION	RAM7C4,LOAD=RAM7C3Start+(20*64),ORG=RAM7C3Start+(20*64),SIZE=RAM7CnSIZE
+RAM7C4Start
+_RLEnemyMoves		ds.w	(MaxRLMoveEnemies+1)		; Moving Enemies
+_RLEnemyMovesE
+RAM7C4End
+
+	SECTION	RAM7C5,LOAD=RAM7C4Start+(20*64),ORG=RAM7C4Start+(20*64),SIZE=RAM7CnSIZE
+RAM7C5Start
+_RLEnemyAttacks		ds.4	(MaxRLAttackEnemies+1)		; Attacking Enemies
+_RLEnemyAttacksE
+RAM7C5End
+
+	SECTION	RAM7C6,LOAD=RAM7C5Start+(20*64),ORG=RAM7C5Start+(20*64),SIZE=RAM7CnSIZE
+RAM7C6Start
+_RLEnemyBirths		ds.b	(MaxRLBirthEnemies+1)*6		; Birthing Enemies
+RAM7C6End
+
+	SECTION	RAM7C7,LOAD=RAM7C6Start+(20*64),ORG=RAM7C6Start+(20*64),SIZE=RAM7CnSIZE
+RAM7C7Start
+_RLRadiusDamages	ds.b	(MaxRLRadiusDamages+1)*6	; Radius Damages
+_RLRadiusDamagesE
+RAM7C7End
+
+
+;
+;	* * * * * * *       REGULAR RAM7 VARIABLES       * * * * * * *
+;
+	SECTION	RAM7D,LOAD=RAM7CEnd,ORG=RAM7CEnd,SIZE=($710000-RAM7CEnd)
+RAM7DStart
+;
+;	>>>   THE FOLLOWING BLOCKS ARE ORDER/SIZE SPECIFIC !!!   <<<
+;
+_RLSectorData		ds.b	(MaxRLSectors*rlsdSize)	;!MUST BE FIRST! ; Sector Data Block
+_RLVertexes		ds.4	(MaxRLVertexes)				 ; Rotated Vertexes
+
+;
+;	>>>   THE FOLLOWING BLOCKS ARE NOT SPECIFIC   <<<
+;
+_RLTextureXLatTable	ds.b	<(RLTextureXLatTableE-RLTextureXLatTable) ; TEXTURE->ALTTEXTURE
+;
+_RLTasks		ds.b	(MaxRLTasks*rlmSize)		; Task Data
+;
+_RLLineFlags		ds.b	(MaxRLLines)			; Line Flags
+_RLLineRLCounts		ds.w	(MaxRLLines)			; RLEngine Count
+;
+PlayerObject							; Player's Object
+_RLMObjects		ds.b	(MaxRLMObjects*rloSize)		; Movable Objects
+_RLMObjectsE
+_RLObjects		ds.b	(MaxRLFObjects*rloSize0)	; Fixed Objects
+_RLObjectsE
+;
+_RLPlatTasks		ds.b	(MaxRLMPlats*rlptSize)		; Platform Task Data
+;
+_RLToggleTasks		ds.b	(MaxRLToggles*rlttSize)		; Toggle Task Data
+;
+_RLMObjs		ds.w	(MaxRLMObjects+1)		; Movable Objects
+;
+RAM7DEnd
+
+;
+;	>>>   RLENGINE RAM OVERLAY 1   <<<
+;
+			org	RAM7DEnd
+			load	RAM7DEnd
+_RLTargetList		;ds.b	((MaxRLVObjs+1)*6)		; Player TargetList
+
+;
+;	>>>   RLENGINE RAM OVERLAY 1   <<<
+;
+			org	RAM7DEnd
+			load	RAM7DEnd
+_RLMoveLines		;ds.b	((MaxRLMoveLines+1)*rlmlSize)	; Movement Lines Data
+
+;
+;	>>>   RLENGINE RAM OVERLAY 1   <<<
+;
+			org	RAM7DEnd
+			load	RAM7DEnd
+_RLBSPStack							; Stack for BSP
+
+;
+;	>>>   RLENGINE RAM OVERLAY 1   <<<
+;
+			org	RAM7DEnd
+			load	RAM7DEnd
+_RLVSegList		ds.b	(MaxRLVSegs*rlvSize)		; Visible Segment List
+_RLVSegListE
+RAM7DEnd2
+
+
+;
+;	>>>   RLENGINE RAM OVERLAY 2   <<<
+;
+			org	RAM7DEnd2
+			load	RAM7DEnd2
+_RLClipZoneList		ds.b	(MaxRLClipZones*rlczSize)	; ClipZone List
+			ds.b	(((*-$708000)>>31)*($708000-*))		     ; PAD TO $8000!
+_RLAreaSegList		;ds.b	((MaxRLVAreas*rlasSize)+(MaxRLSegs*rluSize)) ; Area/Segment List
+_RLAreaSegListE
+
+;
+;	>>>   RLENGINE RAM OVERLAY 2   <<<
+;
+			org	RAM7DEnd2
+			load	RAM7DEnd2
+_RLVObjList		ds.b	(MaxRLVObjs*rlqSize)		; Visible Object List
+;
+_RLWallPlots							; Wall Plots
+			ifn	useHIGHDETAIL
+			ds.w	(RLViewPixX/3)
+			endif
+			ife	useHIGHDETAIL
+			ds.w	(RLViewPixX/3/2)
+			endif
+_RLClipRange							; X Clipping Range
+			ifn	useHIGHDETAIL
+			;ds.w	(RLViewPixX/3)
+			endif
+			ife	useHIGHDETAIL
+			;ds.w	(RLViewPixX/3/2)
+			endif
+_RLFloorStart		ds.b	(RLViewPixY+2)			; Y Drawing Starts
+
+_RLFloors		ds.b	(MaxRLVFloors*rlfdSize)		; Floors/Ceilings
+_RLWalls							; Wall PlotData
+
+_RLVClipZone		equ	$710000				; VSeg ClipZone
+
+
+;
+;	* * * * * * *       VARIOUS RANGE CHECKS AND WARNINGS       * * * * * * *
+;
+	LTEXT	((_RLMObjectsE-$700000)>>15),"***  WARNING!  _RLMOBJECTS OVERFLOW!   ***"
+	LTEXT	((_RLAreaSegListE>>16)-$70),"***  WARNING!  _RLAREASEGLIST OVERFLOW!   ***"

@@ -1,0 +1,678 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                        ENGINE VOBJS MODULE 1                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	rlobjects.i
+	include	gsumac.i
+
+	public	_RLBuildVObjList1
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD VOBJECT LIST 1                       PROCESS OBJECTS  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       PROCESS OBJECTS       * * * * * * *
+;
+rViewX		equ	r2			; View X
+rViewY		equ	r3			; View Y
+rScaleF		equ	r5			; RL->SCN Scaling Fraction
+rROMB		equ	r7			; ROMB for LEVELOBJECTS
+rVObjFree	equ	r7			; #Free VisibleObjects
+rX		equ	r8			; Vertex X
+rY		equ	r9			; Vertex Y
+rObj		equ	r10			; Pointer to RLObject
+rVSec		equ	r11			; Pointer in VisibleSectorList
+rSin		equ	r12			; Sine Constant
+rCos		equ	r13			; CoSine Constant
+rYTemp		equ	r14			; Rotation Temporary Variable
+rScale		equ	r14			; RL->SCN Scaling Integer
+;
+rVObj		equ	r6			; Pointer to NEW VisibleObject
+rVObjPtr	equ	r4			; Pointer to Current VisibleObject
+rVObjPtrP	equ	r1			; Pointer to Previous VisibleObject
+rVObj0		equ	rScaleF			; Pointer to NEW VisibleObject
+
+
+	align	16,(_BOL9000-_BOL2000)&$0f
+;
+;	* * * * * * *       FINISHED PROCESSING OBJECTS       * * * * * * *
+;
+_BOL9000
+	iwt	r0,#<_RLBuildA			; BUILD TRACE A!
+	ibt	r8,#^_RLBuildA
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	* * * * * * *       START PROCESSING OBJECTS       * * * * * * *
+;
+_RLBuildVObjList1
+	move	rViewX,(<ViewX)			; Get View X
+	move	rViewY,(<ViewY)			; Get View Y
+;
+	move	rSin,(<RLSin)			; Get Sine
+	move	rCos,(<RLCos)			; Get CoSine
+;
+	move	r0,#<(EMSECTORS+2)		; Bank of EM OBJECTS Data
+	ldb	(r0)
+	romb
+	move	rVObjFree,#(MaxRLVObjs<<8)
+;	from	r0
+	to	rROMB
+	or	rVObjFree
+;
+;	with	r0				; Start of VisibleObjectList
+	sub	r0
+	move	(<VObjListStart),r0
+	move	(<VObjListMaxY),r0		; VisibleObject with Maximum Y
+	move	(<VObjMaxY),r0			; Maximum VisibleObject Y
+;
+	move	rVSec,#<_RLVSectors		; Start of VisibleSectorList
+;
+	move	r0,#<_RLVObjList		; End of VisibleObjectList
+	move	(<VObjListEnd),r0
+
+
+	CACHEB	_RLBuildVObjList1
+;
+;	* * * * * * *       PROCESS NEXT VISIBLE SECTOR       * * * * * * *
+;
+_BOL2000
+;	to	r0				; Get Next VisibleSector
+	ldw	(rVSec)
+;	from	r0				; At End?
+	to	rObj
+	add	#rlsdObjects
+	bmi	_BOL9000			; Yes!  No More Visible Sectors!
+	inc	rVSec				; No!  Process this Sector's Objects!
+	move	(<VObjSectorData),r0		; Save Pointer to SectorData
+	inc	rVSec
+;
+;	* * * * * * *       PROCESS NEXT RLOBJECT       * * * * * * *
+;
+_BOL3000
+;	to	r0				; Move to Next Object
+	ldw	(rObj)
+	moves	rObj,r0				; Any more Objects?
+	beq	_BOL2000			; No!
+;
+;	>>>   GET RLOBJECT'S FLAGS   <<<
+;
+	from	rObj				; Move to RLObject Flags
+	to	r1
+	add	#rloFlags
+;	to	r0				; Get Flags
+	ldb	(r1)
+;	with	r0				; Is RLObject ACTIVE?
+	swap
+	bpl	_BOL3000			; NO!  DISCARD IT!
+;	with	r0				; Is RLObject MOVABLE?
+	add	r0
+	bpl	_BOL3200			; No!
+	inc	r1				; Move to RLObject Type
+;
+;	>>>   GET MOVABLE OBJECT'S WORLD COORDINATES   <<<
+;
+	with	r1				; Move to RLObject X
+	add	#(rloX+2-rloType)
+	to	rX				; Get RLObject X
+	ldw	(r1)
+	with	r1				; Move to RLObject Y
+	add	#((rloY+2)-(rloX+2))
+	to	rY				; Get RLObject Y
+	ldw	(r1)
+	with	r1				; Move to RLObject Z
+	add	#(rloZ-(rloY+2))
+	bra	_BOL4000
+;	to	r0				; Get RLObject Z
+	ldw	(r1)
+
+;
+;	>>>   GET FIXED OBJECT'S WORLD COORDINATES   <<<
+;
+_BOL3200
+	inc	r1				; Move to LevelObject
+	to	r14				; Get LevelObject
+	ldw	(r1)
+;
+;	to	r0				; Get RLObject X
+	getb
+	inc	r14
+;	from	r0
+	to	rX
+	getbh
+	inc	r14
+;
+;	to	r0				; Get RLObject Y
+	getb
+	inc	r14
+;	from	r0
+	to	rY
+	getbh
+;
+	move	r0,(<VObjSectorData)		; Get Pointer to SectorData
+;	with	r0				; Get SectorData.FloorHeight
+	add	#rlsdFloorHeight
+;	to	r0
+	ldw	(r0)
+
+;
+;	>>>   SAVE OBJECT Z COORDINATE   <<<
+;
+_BOL4000
+	move	(<VObjZ),r0			; RLObject Z = SectorData.FloorHeight
+
+;
+;	>>>   TRANSLATE VERTEX TO VIEW COORDINATE SYSTEM   <<<
+;
+;	>>>   ROTATE VERTEX BY (90DEGREES-VIEWANGLE)   <<<
+;
+;	ROTATED_Y = 	 sin(90deg.-ViewAngle) * (VertexX)
+;			+cos(90deg.-ViewAngle) * (VertexY)
+;
+;	ROTATED_X = 	 cos(90deg.-ViewAngle) * (VertexX)
+;			-sin(90deg.-ViewAngle) * (VertexY)
+;
+	move	r6,rSin				; sin(90deg.-ViewAngle)
+;
+	with	rX				; VertexX - ViewX
+	sub	rViewX
+	move	r1,rY				; VertexY
+;
+	from	rX				; *VertexX
+;	to	r0
+	fmult
+;	from	r0
+	to	rY
+	rol
+;
+	from	r1				; VertexY - ViewY
+	to	rYTemp
+	sub	rViewY
+;
+	from	rYTemp				; *VertexY
+;	to	r0
+	fmult
+;	from	r0
+	to	r1
+	rol
+;
+	move	r6,rCos				; cos(90deg.-ViewAngle)
+	from	rYTemp				; *Vertex Y
+;	to	r0
+	fmult
+;	with	r0
+	rol
+	with	rY				; Rotated Y
+	add	r0
+;
+	from	rY				; Adjust Y
+;	to	r0
+	sub	#RLScreenPlane
+	bmi	_BOL3000			; BEFORE VIEWPLANE!  DISCARD IT!
+	nop
+	iwt	r0,#(RLMaxViewDistance-1)	; Maximum Distance Away
+;	with	r0				; Object >= MaxDistance?
+	sub	rY				; @CMP@
+	blt	_BOL3000			; YES!  DISCARD IT!
+	nop
+;
+	from	rX				; *Vertex X
+;	to	r0
+	fmult
+;	with	r0
+	rol
+;	from	r0				; Rotated X
+	to	rX
+	sub	r1
+;
+;	>>>   GET IMAGERY   <<<
+;
+	ibt	r0,#(^_ObjData)			; Move to _ObjData Bank
+	romb
+	from	rObj				; Move to RLObject Type
+;	to	r0
+	add	#rloType
+;	to	r0				; Get RLObject Type
+	ldb	(r0)
+;	with	r0				; Get Offset into _ObjData
+	umult	#rlodSize
+	move	r1,#<(_ObjData+rlodFlags+1)	; Add Base of _ObjData
+;	from	r0				; Move to Object Flags
+	to	r14
+	add	r1
+	getb					; Get RLObject.Flags
+;	from	r0				; Does RLObject has Imagery?
+	to	r1
+	and	#(rlodfImage>>8)
+	beq	_BOL4400			; No
+	with	r14				; Move to Image#
+;
+;	>>>   GET RLOBJECT IMAGE NUMBER   <<<
+;
+	move	r0,#rloImage			; Yes!  Get RLObject Image#
+;	with	r0
+	add	rObj
+;	to	r0
+	alt1
+	bra	_BOL4500
+	ldw	(r0)
+;	ldb	(r0)
+;
+;	>>>   GET FIXED IMAGE NUMBER   <<<
+;
+_BOL4400
+;	with	r14				; Move to Image#
+	add	#(rlodImage-(rlodFlags+1))
+;	with	r0				; Anim2/Anim4?
+	and	#((rlodfAnim2>>8)+(rlodfAnim4>>8))
+	with	r1
+	beq	_BOL4420			; No
+	sub	r1
+	move	r1,#<(Anim2Frame-1)		; Get Anim2/Anim4 Frame#
+;	with	r0
+	add	r1
+	to	r1				; Get Frame#
+	ldb	(r0)
+_BOL4420
+	getb					; Get Image#
+;	with	r0				; Add Frame#
+	add	r1
+;
+;	>>>   GET IMAGE DIMENSIONS   <<<
+;
+_BOL4500
+;	from	r0				; R1 = (Image#<<1)
+	to	r1
+	add	r0
+	move	r0,#^RLImagesTable		; Get Address of ImageTable
+	romb
+	move	r0,#<RLImagesTable
+;	from	r0
+	to	r14
+	add	r1
+;
+	move	r1,#<(RLImagesData+rliHeight)	; Add Base of ImageData
+	getb					; Get Offset within ImageDataTable
+	inc	r14
+	getbh
+;	from	r0
+	to	r14
+	add	r1
+	move	(<VObjImage),r14		; Save Pointer to Imagery
+;
+;	>>>   PERFORM PERSPECTIVE TRANSFORM ON RADIUS TO GET RADIUS_SCREEN   <<<
+;
+	move	r6,#<RLAspectRatio		; Compensate for SNES<->PC Aspect Ratio
+	from	rY
+;	to	r0
+	fmult
+;
+	to	r6				; Get Object Height
+	getb
+	inc	r14
+;
+;	with	r0				; R0 = WorldY AspectAdjusted
+	add	rY
+;	from	r0				; Get Long Offset
+	to	r1
+	add	r0
+	with	r1
+	add	r0
+;
+	with	r6				; Height / Width
+	getbh
+	move	(<VObjHeight),r6
+;
+	to	r6				; Get Object Diameter
+	getb
+;
+;	>>>   RL->SCN PIXEL SCALE   <<<
+;
+	ibt	r0,#(^RLSCNPixScale)		; RL->SCN Pixel Scaling Table
+	romb
+	move	r0,#<(RLSCNPixScale)
+;	from	r0
+	to	r14
+	add	r1
+;
+	getb					; Get Fraction
+	inc	r14
+	to	rScaleF
+	getbh
+	inc	r14
+;
+	from	rScaleF				; r0:r4 = Fraction
+;	to	r0
+	fmult
+;	with	r0
+	rol
+	to	rScale				; r4 = Integer
+	getb
+	from	rScale
+	to	r4
+	umult	r6
+;
+	move	r6,rX				; Transform Rotated X
+;
+;	from	r0				; RX = DIAMETER #SCREEN PIXELS
+	to	rX
+	add	r4
+;
+;	>>>   PERFORM PERSPECTIVE TRANSFORM ON ROTATED X/Y TO GET X_SCREEN   <<<
+;
+	from	rScaleF				; r1 = Integer
+;	to	r0
+	fmult
+;	from	r0
+	to	r1
+	rol
+	from	rScale				; r0 = Integer
+;	to	r0
+	lmult
+	with	r1
+	add	r4
+;
+	with	r4				; $FFFF8000 <= X <= $00007FFF
+	add	r4
+;	from	r0
+	to	r4
+	rol
+;	with	r0
+	sub	r4
+	bne	_BOL5800-1			; *WAY* OFF SCREEN!  DISCARD IT!
+;
+;	>>>   CENTER TRANSLATED X_SCREEN   <<<
+;
+	move	r0,#(RLViewPixX/2)		; ScreenWidth/2
+;	with	r0
+	add	r1
+;
+;	>>>   GET SCREEN SPAN OF OBJECT   <<<
+;
+	from	rX				; R1 = RADIUS #SCREEN PIXELS EVEN
+	to	r1
+	lsr
+;	from	r0				; RX = (X_SCREEN + RADIUS_SCREEN + ODD -1)
+	to	rX
+	adc	r1
+	dec	rX
+	bmi	_BOL5800			; OFF LEFT OF SCREEN!  DISCARD IT!
+;	from	r0				; R4 = (X_SCREEN - RADIUS_SCREEN)
+	to	r4
+	sub	r1
+;
+;	>>>   ENSURE OBJECT IS ON SCREEN   <<<
+;
+	move	r1,r4				; Ensure Xs1 STARTS on EVEN Pixel
+	inc	r1
+	with	r1
+	asr
+	with	rX				; Ensure Xs2 ENDS on EVEN Pixel
+	asr
+	from	rX				; Xs2 < Xs1?
+;	to	r0				; @CMP@
+	sub	r1
+	blt	_BOL5800-1			; Yes!  Can't Draw It!
+	move	r0,#(RLViewPixX/2)
+	from	r1				; ObjectLeft >= ScreenRight?
+;	to	r0				; @CMP@
+	sub	r0
+	blt	_BOL6200
+	from	rVObjFree			; Number of Free VisibleObjects
+_BOL5800
+	iwt	r15,#<_BOL8000			; OFF RIGHT OF SCREEN!  DISCARD IT!
+
+;
+;	* * * * * * *       ADD A NEW VISIBLE OBJECT!       * * * * * * *
+;
+_BOL6200
+;
+;	>>>   CREATE VISIBLE OBJECT   <<<
+;
+;	from	rVObjFree			; Number of Free VisibleObjects
+;	to	r0
+	hib
+	bne	_BOL6600+1			; At Least One Free!
+;
+;	>>>   OVERLAY FURTHEST VISIBLE OBJECT   <<<
+;
+	move	r0,(<VObjMaxY)			; Get Maximum WorldY
+	from	rY				; WorldY >= Maximum WorldY?
+;	to	r0				; @CMP@
+	sub	r0
+	bge	_BOL5800
+	nop
+	move	r1,(<VObjListStart)		; Start of VObjList
+	move	r0,#(MaxRLVObjs-2)
+	inc	r1				; Move to VObj.Next
+_BOL6300
+	inc	r1				; Move to VObj.Next
+	to	r1
+	ldw	(r1)
+	dec	r0
+	bne	_BOL6300
+	inc	r1				; Move to VObj.Next
+;
+	inc	r1				; Move to VObj.Next
+	to	rVObj0				; Get VObj.Next (LAST!)
+	ldw	(r1)
+;	with	r0				; VObj.Next = NULL
+	sub	r0
+;	from	r0
+	sbk
+	dec	r1				; Move to VObj.WorldY
+	dec	r1
+;	to	r0				; Get VObj.WorldY
+	ldw	(r1)
+	move	(<VObjMaxY),r0			; New Maximum WorldY
+	move	(<VObjListMaxY),r1		; New Maximum WorldY VObj
+	bra	_BOL6700+1
+	with	rVObj0
+;
+;	>>>   CREATE NEW VISIBLE OBJECT   <<<
+;
+_BOL6600
+	move	rVObj0,(<VObjListEnd)		; End of VisibleObjectList
+_BOL6700
+	move	r1,rVObj0			; Save Start of VObj
+;
+	from	rY				; Save World Y
+	stw	(r1)
+	with	r1
+	add	#(rlqObj-rlqY)
+;
+	from	rObj				; Save RLObject
+	stw	(r1)
+	inc	r1
+	inc	r1
+;
+	from	r6				; Save World X
+	stw	(r1)
+	inc	r1
+	inc	r1
+;
+;	>>>   ADJUST OBJECT Z COORDINATE BY EYE HEIGHT   <<<
+;
+	move	r0,(<VObjZ)			; Get World Z
+	move	r6,(<ViewZ)			; Get View Z Coordinate
+;	with	r0
+	sub	r6
+;	from	r0				; Save World Z
+	stw	(r1)
+	inc	r1
+	inc	r1
+;
+	from	r4				; Save Xs1
+	stw	(r1)
+	inc	r1
+	inc	r1
+;
+	from	rX				; Save Xs2
+	stw	(r1)
+	inc	r1
+	inc	r1
+;
+	move	r0,(<VObjHeight)		; Get World Height/Width
+;	from	r0				; WorldHeight.B / WorldWidth.B
+	stw	(r1)
+	inc	r1
+	inc	r1
+;
+	move	r0,(<VObjSectorData)		; Save SectorData
+;	from	r0
+	stw	(r1)
+	inc	r1
+	inc	r1
+;
+	move	r0,(<VObjImage)			; Save Imagery Pointer
+;	from	r0
+	stw	(r1)
+	inc	r1
+	inc	r1
+;
+;	with	r0				; Image NOT Drawn
+	sub	r0
+;	from	r0
+	stb	(r1)
+;
+	from	rVObjFree			; Number of Free VisibleObjects
+;	to	r0
+	hib
+;
+	move	r0,(<VObjMaxY)			; Get Maximum WorldY
+;
+	with	rVObj0				; Get Start of New VObj
+	beq	_BOL7100			; NONE!  OVERWRITING!
+	to	rVObj
+;
+	with	r1				; Move to next VObj
+	add	#(rlqSize-rlqDrawn)
+	move	(<VObjListEnd),r1		; Save Updated Pointer
+;
+;	>>>   IS THIS VOBJ FARTHER THAN THE FURTHEST VOBJ SO FAR?   <<<
+;
+_BOL7100
+	from	rY				; WorldY >= Maximum WorldY?
+;	to	r0				; @CMP@
+	sub	r0
+	blt	_BOL7400+1			; No
+;
+;	>>>   YES!  APPEND TO END OF VOBJ LIST!   <<<
+;
+	move	r0,(<VObjListMaxY)		; Get Maximum WorldY VObj
+	from	rVObj				; Save NEW Maximum WorldY VObj
+	sbk
+	moves	r0,r0				; Any Previous Maximum WorldY VObj?
+	beq	_BOL7200			; No!
+	inc	r0				; Yes, Previous.Next = New
+	inc	r0
+	from	rVObj
+	bra	_BOL7300
+	stw	(r0)
+_BOL7200
+	move	(<VObjListStart),rVObj		; New Start!
+_BOL7300
+	inc	rVObj				; New.Next = 0
+	inc	rVObj
+;	with	r0
+	sub	r0
+	move	(<VObjMaxY),rY			; Save Updated Maximum WorldY
+	bra	_BOL7900
+;	from	r0
+	stw	(rVObj)
+;
+;	>>>   LINK THE VISIBLE OBJECT INTO THE LIST IN INCREASING WORLD Y ORDER   <<<
+;
+_BOL7400
+	move	rVObjPtr,(<VObjListStart)	; Start of VObjList
+	move	rVObjPtrP,#0			; NO Previous VObj
+_BOL7500
+;	to	r0				; Get Current VObj.WorldY
+	ldw	(rVObjPtr)
+;	with	r0				; Current >= New?
+	sub	rY				; @CMP@
+	bge	_BOL7600			; Yes!  Insert It!
+	move	rVObjPtrP,rVObjPtr		; Previous = Current
+	inc	rVObjPtr			; Move to Current.Next
+	inc	rVObjPtr
+;
+	ifn	GSUREV2
+	to	rVObjPtr			; Current = Current.Next
+	bra	_BOL7500
+	ldw	(rVObjPtr)
+	endif
+;
+	ifn	(1-GSUREV2)
+	to	rVObjPtr			; Current = Current.Next
+	ldw	(rVObjPtr)
+	bra	_BOL7500
+	nop
+	endif
+;
+_BOL7600
+	moves	rVObjPtrP,rVObjPtrP		; Any Previous?
+	bne	_BOL7700			; Yes
+	inc	rVObjPtrP			; Move to Previous.Next
+	move	(<VObjListStart),rVObj		; No, New Start!
+	bra	_BOL7800
+_BOL7700
+	inc	rVObjPtrP			; Move to Previous.Next
+	from	rVObj				; Previous.Next = New
+	stw	(rVObjPtrP)
+_BOL7800
+	inc	rVObj				; Move to New.Next
+	inc	rVObj				; Move to New.Next
+	from	rVObjPtr			; New.Next = Current
+	stw	(rVObj)
+;
+;	>>>   ONE MORE VISIBLE OBJECT ADDED   <<<
+;
+_BOL7900
+	from	rVObjFree			; Number of Free VisibleObjects
+;	to	r0
+	hib
+	beq	_BOL8000+1			; NONE FREE!
+	with	rROMB
+	lob
+	dec	r0
+;	with	r0
+	swap
+	with	rROMB
+	add	r0
+;
+;	* * * * * * *       RLOBJECT COMPLETED       * * * * * * *
+;
+_BOL8000
+;
+;	>>>   PROCESS NEXT RLOBJECT   <<<
+;
+	with	rROMB				; Use LEVELOBJECTS ROM Bank
+	romb
+;
+	iwt	r15,#<_BOL3000+1		; Process Next RLObject
+;	to	r0				; Move to Next Object
+	ldw	(rObj)
+
+	CACHEE	_RLBuildVObjList1

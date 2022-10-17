@@ -1,0 +1,12 @@
+Echo "Archiving RL..."
+rx make/arc.rex
+make/back
+Stack 100000
+cpu nocache
+Cipher + DF0
+cpu cache
+bru -c :RLBACK
+cpu nocache
+Cipher - DF0
+cpu cache
+Delete :RLBACK ALL QUIET

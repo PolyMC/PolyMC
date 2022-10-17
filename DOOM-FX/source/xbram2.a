@@ -1,0 +1,38 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                            XBAND RAM2 MEMORY       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+	extern	XBRAM2Start,XBRAM2End
+
+	SECTION	XBRAM2,LOAD=_RLRAMCodeEnd,ORG=_RLRAMCodeEnd,SIZE=$FFFF-<_RLRAMCodeEnd
+
+;
+;	* * * * * * *       XBAND RAM2 VARIABLES       * * * * * * *
+;
+XBRAM2Start
+
+;
+;	>>>   HARDHERE -> SOFTHERE XBAND CODE   <<<
+;
+_XBHardToSoftCodeRAM
+	ds.b	(_XBHardToSoftCodeEnd-_XBHardToSoftCode)
+
+;
+;	>>>   ENGINE 65816 RAMCODE   <<<
+;
+_XBRAMCode
+
+
+;
+;	* * * * * * *       END OF XBAND RAM2 VARIABLES       * * * * * * *
+;
+XBRAM2End

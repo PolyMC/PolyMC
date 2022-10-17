@@ -1,0 +1,23 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                  FLOORS/CEILINGS TEXTURE DATA MODULE               *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+
+	ifn	useFLOORS
+	public	RLFloorsDef
+
+	SECTION	FLOORSDEF,LOAD=$801F0000,ORG=$005F0000
+
+;
+;	* * * * * * *       FLOORS/CEILINGS PIXEL DEFINITIONS       * * * * * * *
+;
+;	PixelData for Floor/Ceiling Textures
+;
+RLFloorsDef
+	image	RLDATA:FLOORS/FLOORS.DEF
+	endif

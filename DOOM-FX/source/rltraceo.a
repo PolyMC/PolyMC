@@ -1,0 +1,811 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                     ENGINE TRACE OBJECTS MODULE                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildTraceObjs
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD TRACE                 TRACE OBJECTS A - CALCULATIONS  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       TRACE VISIBLE OBJECTS       * * * * * * *
+;
+rXs		equ	r12		; Pixel X Coordinate
+rYs		equ	r14		; Pixel Y Coordinate
+rNumDrawPixF	equ	r5		; #Screen Pixels FractionCounter
+rScale		equ	r7		; RL->SCN Pixel Scaling Integer
+rScaleF		equ	r8		; RL->SCN Pixel Scaling Fraction
+;rPixScale	equ	..		; SCN->RL Pixel Scaling Integer
+;rPixScaleF	equ	..		; SCN->RL Pixel Scaling Fraction
+rClipRangePtr	equ	r9		; Pointer to current ClipRange
+rObjPlotPtr	equ	r10		; Pointer within ObjPlotData
+;
+rVSeg		equ	r2		; Pointer to Current VisibleSegment
+rVObj		equ	r3		; Pointer to Current VisibleObject
+rClipRangePtr	equ	r9		; Pointer to Current ClipRange
+rClipRange	equ	r13		; Current ClipRange
+rVObjY		equ	rClipRange	; VisibleObject WorldY
+rVSegXs1	equ	r7		; VisibleSegment Xs1
+rVSegXs2	equ	r8		; VisibleSegment Xs2
+rXs2		equ	r5		; VisibleObject Xs2
+rXsT		equ	r2		; #Pixels to Scan
+rVSegEnd	equ	r14		; Pointer to End of VisibleSegmentList
+rVSegMaxY	equ	r12		; VisibleSegment Maximum WorldY
+
+
+;	align	16,(_RLBuildTraceObjs-_TROS2000)&$0f
+;
+;	* * * * * * *       START TRACING VISIBLE OBJECTS       * * * * * * *
+;
+_RLBuildTraceObjs
+;
+;	* * * * * * *       INITIALIZE OBJPLOTDATA POINTER       * * * * * * *
+;
+	move	rObjPlotPtr,(<TRWallPlotPtr)	; END of WallPlotData (FREE MEMORY)
+;	with	r0				; ObjPlotData End Terminator
+	sub	r0
+;	from	r0
+	stw	(rObjPlotPtr)
+	inc	rObjPlotPtr
+	inc	rObjPlotPtr
+;
+	move	rVObj,#<(VObjListStart-2)	; Start of VObjList
+;
+	move	r11,#<_TROS2200
+	bra	_RLAddObjPlot0
+	nop
+
+
+	align	16,(_TROS9000-_RLAddObjPlotAlign)&$0f
+;
+;	* * * * * * *       FINISHED TRACING VISIBLE OBJECTS       * * * * * * *
+;
+_TROS9000
+	dec	rObjPlotPtr			; Save End of ObjPlotData
+	dec	rObjPlotPtr
+	move	(<TRObjPlotPtr),rObjPlotPtr
+;
+	iwt	r0,#<_RLBuildTraceObjs2		; BUILD TRACE OBJS 2
+	ibt	r8,#^_RLBuildTraceObjs2
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+
+;
+;	* * * * * * *       ADD OBJ PLOT       * * * * * * *
+;
+;	r6	=	World Z Bottom of Object
+;	r1	=	World Height of Object
+;
+_RLAddObjPlot0
+	CACHEB	_RLAddObjPlot
+_RLAddObjPlotAlign
+_RLAO9000
+	jmp	r11				; Return to Caller
+_RLAddObjPlot
+;
+;	>>>   CALCULATE PIXEL OFFSET TO BOTTOM OF OBJECT   <<<
+;
+	from	rScaleF				; Scale * WorldZ
+;	to	r0
+	lmult					; rYs:r4 = Fractionary Result
+	from	r4
+	to	rNumDrawPixF			; Save #Fractionary Pixels to Draw
+	add	r4
+;	from	r0
+	to	rYs
+	rol
+;
+	from	rScale				; r0 = Integer result
+;	to	r0
+	lmult
+	with	r4				; r4 = #Screen Pixels
+	add	rYs
+;
+	move	rYs,#(RLViewPixY-1)/2		; Add Yb, Flip around Center
+;	with	r0
+	sub	r0
+;	from	r0
+	to	rNumDrawPixF
+	sub	rNumDrawPixF
+	with	rYs
+	sbc	r4
+;
+;	>>>   CLIP ABOVE TOP   <<<
+;
+_RLAO3000
+	from	rClipRange			; Get ClipRangeTop
+;	to	r0
+	lob
+	from	rYs
+;	to	r0				; @CMP@
+	sub	r0
+	blt	_RLAO9000			; BOTTOM OF OBJECT IS OFF TOP OF SCREEN!
+
+;
+;	>>>   CLIP BELOW BOTTOM   <<<
+;
+_RLAO3200
+	from	rClipRange			; Get ClipRangeBottom
+;	to	r0
+	hib
+	from	rYs				; Get #Pixels off Bottom
+	to	r6
+	sub	r0
+	dec	r6
+	bmi	_RLAO5000			; None are off Bottom!
+;	with	r0				; Default to NO PIXELS CLIPPED
+	sub	r0
+
+;
+;	>>>   MOVE THROUGH OBJECT IMAGE TO CORRECT POSITION   <<<
+;
+_RLAO4000
+	inc	r6
+	move	r4,#<(TRPixScale+1)		; Get SCN->RL Pixel Scaling Integer
+;	to	r0
+	ldb	(r4)
+;	with	r0				; r0 = Integer Result
+	lmult
+	move	rYs,r4				; RYS = #World Pixels Off Bottom
+;
+	move	r0,#<(TRPixScale)		; Get SCN->RL Pixel Scaling Fraction
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	swap
+;	with	r0
+	lsr
+;	with	r0				; r0:r4 = Fraction
+	lmult
+	with	r4
+	add	r4
+;	with	r0
+	rol
+;
+	with	rNumDrawPixF			; Add #Fractionary Pixels Off Bottom
+	add	r4
+;	with	r0				; #Integer Pixels Off Bottom
+	adc	rYs
+;
+	from	rClipRange			; Start Drawing at Bottom of Screen
+	to	rYs
+	hib
+
+;
+;	* * * * * * *       ADD OBJPLOT       * * * * * * *
+;
+;	R0 = OBJPLOT IMAGE PIXEL OFFSET
+;
+_RLAO5000
+;
+;	>>>   GET NUMBER OF WORLD PIXELS TO PLOT   <<<
+;
+	from	r1				; Adjust Height of this Object Piece
+	to	r6
+	sub	r0
+	dec	r6
+	bmi	_RLAO9000			; NOTHING TO DRAW!
+;
+;	>>>   BUILD OBJPLOT (IMAGE OFFSET)   <<<
+;
+	from	r0				; @FROM IN PIPELINE TO AVOID ALT1@
+	stb	(rObjPlotPtr)
+	inc	rObjPlotPtr
+	inc	rObjPlotPtr
+;
+;	>>>  GET #PIXELS TO PLOT   <<<
+;
+	from	rScale				; r1 = Integer Result
+	to	r1
+	umult	r6
+;
+;	>>>   BUILD OBJPLOT (XS)   <<<
+;
+	from	rXs
+	stb	(rObjPlotPtr)
+;
+	from	rScaleF				; r0:r4 = Fractionary Result
+;	to	r0
+	fmult
+;	with	r0
+	rol
+;
+;	with	r0
+	add	r1
+	dec	r0
+	bmi	_RLAO8200			; DONE!
+;
+;	>>>   CLIP #PIXELS TO PLOT AT TOP OF CLIPRANGE   <<<
+;
+	from	rClipRange			; R1 = ClipRange Top
+	to	r1
+	lob
+;
+;	>>>   BUILD OBJPLOT (YS)   <<<
+;
+	inc	rObjPlotPtr
+	from	rYs
+	stb	(rObjPlotPtr)
+	with	rObjPlotPtr
+	add	#(ploObjF-ploYs)
+;
+;	>>>   CLIP #PIXELS TO PLOT AT TOP OF CLIPRANGE   <<<
+;
+	from	rYs				; R1 = #Pixels from Current Y to ClipTop
+	to	r1
+	sub	r1
+;
+;	>>>   BUILD OBJPLOT (WORLD_Z DRAW FRACTION)   <<<
+;
+	with	rNumDrawPixF			; WorldZ DrawFraction
+	hib
+	from	rNumDrawPixF
+	stb	(rObjPlotPtr)
+	inc	rObjPlotPtr
+;
+;	from	r0				; Trying to plot too many pixels?
+	cmp	r1
+	blt	_RLAO6600			; No
+	move	r0,r1				; Yes, Use Maximum #Pixels Left
+_RLAO6600
+;
+;	>>>   BUILD OBJPLOT (NUMPIX)   <<<
+;
+	inc	r0				; R0 = #Pixels to Plot
+;	from	r0
+	stb	(rObjPlotPtr)
+	jmp	r11				; Return to Caller
+	inc	rObjPlotPtr
+;
+;	* * * * * * *       FINISHED THIS OBJPLOT       * * * * * * *
+;
+_RLAO8200
+	dec	rObjPlotPtr			; Discard this ObjPlot
+	jmp	r11
+	dec	rObjPlotPtr
+
+
+;
+;	* * * * * * *       DISPLAY THIS VISIBLE OBJECT!       * * * * * * *
+;
+_TROS8000
+;
+;	>>>   GET SCALE_INDEX   <<<
+;
+	ibt	r0,#(^RLSCNPixScale)		; Bank of RL<->SCN Pixel Scaling Tables
+	romb
+	to	r1				; World Y
+	ldw	(rVObj)
+	from	r1
+;	to	r0
+	add	r1
+
+	ifn	0
+;
+;	>>>   GET SCN->RL PIXEL SCALE   <<<
+;
+	ibt	r0,#(^SCNRLPixScale)		; Move to SCN->RL Pixel Scaling Table
+	romb
+	move	r0,#<(SCNRLPixScale)
+;	from	r0
+	to	r14
+	add	r4
+	getb					; Get SCN->RL Pixel Scale
+	inc	r14
+	getbh
+	endif
+
+;
+;	>>>   GET RL->SCN PIXEL SCALE   <<<
+;
+	move	r4,#<(RLSCNPixScale)		; Add Base of RL->SCN Pixel Scaling Table
+	with	r1
+	add	r0
+	from	r4
+	to	r14
+	add	r1
+;
+	ifn	useHIGHDETAIL
+	move	r1,(<RLMinPixX2)		; Get Offset from Start of Draw
+	endif
+	ife	useHIGHDETAIL
+	move	r1,(<RLMinPixX)			; Get Offset from Start of Draw
+	endif
+;
+	move	(<TRPixScale),r0
+;
+	getb					; Get RL->SCN Pixel Scale
+	inc	r14
+	to	rScaleF
+	getbh
+	inc	r14
+	to	rScale
+	getb
+;
+	from	rXs2				; Get #Pixels to Scan
+	to	rXsT
+	sub	rXs
+	inc	rXsT
+	with	rXs				; Offset Starting Pixel
+	sub	r1
+;
+;	* * * * * * *       PROCESS NEXT OBJSTRIP       * * * * * * *
+;
+	move	rClipRangePtr,#<(_RLClipRange-2) ; Point to Start of ClipRange
+_TROS8200
+	inc	rClipRangePtr			; Move to Next ClipRange
+	inc	rClipRangePtr
+	to	rClipRange			; Get Next ClipRange
+	ldw	(rClipRangePtr)
+	inc	rClipRange			; View Closed?
+	beq	_TROS8800			; Yes
+	dec	rClipRange
+;
+	from	rVObj				; Get Object's Z Coordinate
+;	to	r0
+	add	#rlqWZ
+	to	r6
+	ldw	(r0)
+;
+;	with	r0				; Get Object's Height
+	add	#(rlqHeight-rlqWZ)
+	to	r1
+	ldb	(r0)
+;
+	link	#4
+	move	r15,#<_RLAddObjPlot		; AddObject
+	nop
+_TROS8800
+	dec	rXsT
+	bne	_TROS8200
+	inc	rXs				; Next Pixel
+;
+;	>>>   SAVE POINTER TO END OF OBJPLOTDATA   <<<
+;
+	move	r0,#rlqObjPlotDataEnd
+;	with	r0
+	add	rVObj
+;	to	r0
+	ldw	(r0)
+;	with	r0				; Any ObjPlots?
+	sub	rObjPlotPtr
+	beq	_TROS2300			; No!
+	from	rObjPlotPtr
+	sbk
+;
+;	>>>   SAVE OBJPLOT GROUPHEADER (RL->SCN PIXEL SCALE/SCN->RL PIXEL SCALE)   <<<
+;
+	from	rScaleF				; RL->SCN Pixel Scale
+	stw	(rObjPlotPtr)
+	inc	rObjPlotPtr
+	inc	rObjPlotPtr
+	from	rScale
+	stb	(rObjPlotPtr)
+	inc	rObjPlotPtr
+	inc	rObjPlotPtr
+	move	r0,(<TRPixScale)		; SCN->RL Pixel Scale
+;	from	r0
+	stw	(rObjPlotPtr)
+	inc	rObjPlotPtr
+	inc	rObjPlotPtr
+
+;
+;	* * * * * * *       HANDLE NEXT VISIBLE OBJECT       * * * * * * *
+;
+;	>>>   OBJPLOT GROUP TERMINATOR   <<<
+;
+_TROS2200
+	inc	rObjPlotPtr			; Mark End of ObjPlot Group
+;	with	r0
+	sub	r0
+;	from	r0
+	stb	(rObjPlotPtr)
+	inc	rObjPlotPtr
+_TROS2300
+	ifn	useHIGHDETAIL
+	move	r0,#<RLMinPixX2			; Get LEFT EDGE
+	endif
+	ife	useHIGHDETAIL
+	move	r0,#<RLMinPixX			; Get LEFT EDGE
+	endif
+	to	r4
+	ldb	(r0)
+	ifn	useHIGHDETAIL
+	move	r0,#<RLMaxPixX2			; Get RIGHT EDGE
+	endif
+	ife	useHIGHDETAIL
+	move	r0,#<RLMaxPixX			; Get RIGHT EDGE
+	endif
+	to	r6
+	ldb	(r0)
+	move	rVSegMaxY,(<VSegMaxY)		; VisibleSegment Maximum WorldY
+_TROS2400
+	inc	rVObj				; Move to VObj.Next
+	inc	rVObj
+;	to	r0
+	ldw	(rVObj)				; Get VObj.Next
+	moves	rVObj,r0
+	bne	_TROS3000			; Process Next VisibleObject
+	to	rVObjY				; Get VObj.Y
+	iwt	r15,#<_TROS9000			; No More VisibleObjects!
+;
+;	>>>   GET VISIBLE OBJECT Y   <<<
+;
+_TROS3000
+;	to	rVObjY				; Get VObj.Y
+	ldw	(rVObj)
+;
+;	>>>   SAVE POINTER TO START OF OBJPLOTDATA   <<<
+;
+	move	r0,#rlqObjPlotDataStart
+;	with	r0
+	add	rVObj
+	from	rObjPlotPtr
+	stw	(r0)
+	inc	r0
+	inc	r0
+;
+;	>>>   CLIP VISIBLE OBJECT AGAINST SIGHT DISTANCE   <<<
+;
+	from	rVObjY				; VObj.Y >= VSegMaxY?
+	cmp	rVSegMaxY
+;
+;	>>>   SAVE POINTER TO END OF OBJPLOTDATA   <<<
+;
+	from	rObjPlotPtr
+	bge	_TROS2400			; Yes, Clip to AHEAD
+	stw	(r0)
+;
+;	>>>   CLIP VISIBLE OBJECT AGAINST SCREEN   <<<
+;
+	from	rVObj				; Get Xs1
+	to	r1
+	add	#rlqXs1
+;
+;	>>>   GET VISIBLE OBJECT X1/X2   <<<
+;
+;	to	r0
+	ldw	(r1)
+	inc	r0
+;	with	r0
+	asr
+;	from	r0				; X1 Off Right?
+	cmp	r6
+	bge	_TROS2400			; Yes
+	inc	r1				; Get Xs2
+	inc	r1
+	to	rXs2
+	ldw	(r1)
+	from	rXs2				; X2 Off Left?
+	cmp	r4
+	blt	_TROS2400			; Yes
+	from	rXs2				; X2 Off Right?
+	cmp	r6
+	blt	_TROS3300			; No
+	dec	r6
+	move	rXs2,r6				; Yes, Clip to RIGHT
+_TROS3300
+;	from	r0				; X1 Off Left?
+	cmp	r4
+	bge	_TROS3400			; No
+	with	r0
+	with	r4				; Yes, Clip to LEFT
+_TROS3400
+	to	rXs				; @WITH IN PIPELINE@
+;
+;	>>>   INITIALIZE CLIPRANGE   <<<
+;
+	move	r1,#<_RLClipRange		; Point to Start of ClipRange
+	move	r0,#( ((RLViewPixY-1)<<8)| $00)	; Bottom.B / Top.B
+	from	rXs2				; Get #ClipRanges to Initialize
+	to	r4
+	sub	rXs
+	inc	r4
+_TROS3800
+;	from	r0				; Default ClipRange
+	stw	(r1)
+	inc	r1				; Next ClipRangeEntry
+	dec	r4
+	bne	_TROS3800
+	inc	r1				; Next ClipRangeEntry
+;
+;	* * * * * * *       PROCESS NEXT VISIBLE SEGMENT       * * * * * * *
+;
+	move	rVSeg,#<(_RLVSegList-rlvSize+rlvXsT) ; START of VisibleSegmentList
+	move	rVSegEnd,(<VSegListEnd)		     ; Get END of VisibleSegmentList
+_TROS4200
+	move	r4,#rlvSize		 	; Offset to Next VSEG
+_TROS4400
+	with	rVSeg				; Move to Next VSEG
+	add	r4
+	from	rVSeg				; At End?
+;	to	r0				; @CMP@
+	sub	rVSegEnd
+	bne	_TROS4600
+;	to	r0				; Get Xs1/XsCount
+	ldw	(rVSeg)
+;
+	iwt	r15,#<_TROS8000			; No More VisibleSegments!
+;
+;	>>>   GET STARTING PIXEL/#PIXELS TO TRACE   <<<
+;
+_TROS4600
+;;	to	r0				; Get Xs1/XsCount
+;	ldw	(rVSeg)
+	moves	r6,r0
+	bmi	_TROS4400			; THIS SEGMENT IS CLIPPED!
+;
+;	>>>   GET VISIBLE SEGMENT FLAGS   <<<
+;
+	from	rVSeg
+;	to	r0
+	add	#(rlvFlags-rlvXsT)
+;	to	r0
+	ldw	(r0)
+;
+;	>>>   IS THIS VISIBLE SEGMENT A CLIPPING SEGMENT?   <<<
+;
+	move	r1,#(rlvfWALL|rlvfUPPERCLIP|rlvfLOWERCLIP)
+;	from	r0
+	to	r1
+	and	r1
+	beq	_TROS4400			; NO!
+;
+;	>>>   DOES THIS VISIBLE SEGMENT OVERLAP THE OBJECT?   <<<
+;
+	from	r6				; Get VSeg.Xs1
+	to	rVSegXs1
+	lob
+	from	r6				; R0 = VSeg.XsT
+;	to	r0
+	hib
+;	from	r0				; Get VSeg.Xs2
+	to	rVSegXs2
+	add	rVSegXs1
+	dec	rVSegXs2
+	from	rVSegXs2			; VSeg.Xs2 < VObj.Xs1?
+;	to	r0				; @CMP@
+	sub	rXs
+	blt	_TROS4400			; Yes!
+	from	rXs2				; VObj.Xs2 < VSeg.Xs1?
+;	to	r0				; @CMP@
+	sub	rVSegXs1
+	blt	_TROS4400			; Yes!
+;
+;	>>>   IS THIS VISIBLE SEGMENT BEHIND THE OBJECT?   <<<
+;
+	from	rVSeg				; Get VSeg.Y1
+	to	r1
+	add	#(rlvY1-rlvXsT)
+;	to	r0
+	ldw	(r1)
+	inc	r1				; Move to VSeg.Y2
+	inc	r1
+;
+;	with	r0				; VSeg.Y1 > VObj.Y?
+	sub	rVObjY				; @CMP@
+;	to	r0				; Get VSeg.Y2
+	ldw	(r1)
+;	with	r0				; VSeg.Y2 > VObj.Y?
+	blt	_TROS5200
+	sub	rVObjY				; @CMP@
+;
+	bge	_TROS4400+1
+	with	rVSeg				; Move to Next VSEG
+	bra	_TROS5400			; Y1>=VY, Y2<=VY
+	nop
+;
+;	>>>   IS THIS VISIBLE SEGMENT INFRONT OF THE OBJECT?   <<<
+;
+_TROS5200
+;	with	r0				; VSeg.Y2 < VObj.Y?
+;	sub	rVObjY				; @CMP@
+	bge	_TROS5400			; No, It MAY Clip
+
+;
+;	* * * * * * *       THIS VISIBLE SEGMENT CLIPS THE OBJECT       * * * * * * *
+;
+_TROS7000
+	from	rVSeg				; Get Pointer to ClipZone
+;	to	r0
+	add	#(rlvClipZoneP-rlvXsT)
+	to	r4
+	ldw	(r0)
+;
+;	>>>   IS THIS VISIBLE SEGMENT A SPRITE CLIPPING SEGMENT?   <<<
+;
+	from	rVSeg				; Get Flags
+;	to	r0
+	add	#(rlvFlags-rlvXsT)
+;	to	r0
+	ldw	(r0)
+	move	r1,#(rlvfNORMALSPRCLIP|rlvfUPPERSPRCLIP|rlvfLOWERSPRCLIP)
+;	with	r0
+	and	r1
+;
+	from	rXs2				; Get #ClipRanges to Copy
+	to	r1
+	beq	_TROS7100
+	sub	rXs
+	with	r4				; Move to ClipZone.ClipRangePostVSeg
+	add	#rlvczClipRange2
+_TROS7100
+	move	r6,#<_RLClipRange		; Destination ClipRange Area
+	move	r11,#rlvczSize
+	from	rVSegXs1			; VObj Starts Before VSeg?
+;	to	r0
+	sub	rXs
+	dec	r0
+	bmi	_TROS7200
+	inc	r0
+	with	r1				; Width -= (VSeg-VObj)
+	sub	r0
+;	with	r0				; ClipRange += (VSeg-VObj)
+	add	r0
+	with	r6
+	bra	_TROS7400
+	add	r0
+_TROS7200
+	beq	_TROS7400			; VObj Starts AT VSeg!
+;	with	r0
+	not
+	inc	r0
+;	with	r0				; ClipZone += (VObj-VSeg)
+	umult	r11
+	with	r4
+	add	r0
+_TROS7400
+	from	rXs2				; VObj Ends After VSeg?
+;	to	r0
+	sub	rVSegXs2
+	dec	r0
+	bmi	_TROS7800
+	inc	r0
+	with	r1				; Width -= (VObj-VSeg)
+	sub	r0
+;
+;	>>>   COPY CLIPPING RANGE FROM VISIBLE SEGMENT   <<<
+;
+_TROS7800
+	ldw	(r4)				; Copy Next ClipRange
+	stw	(r6)
+	inc	r6
+	with	r4
+	add	r11
+	dec	r1
+	bpl	_TROS7800
+	inc	r6
+
+
+	IFN	0
+	If ClipRange[x] is -1, decrement TotalCount
+	If TotalCount=0, This VOBJ is CLIPPED
+	ENDIF
+
+
+;
+;	>>>   PROCESS NEXT VISIBLE SEGMENT   <<<
+;
+_TROS7900
+	iwt	r15,#<_TROS4200-1
+
+;
+;	>>>   IS THE SEGMENT INFRONT OF THE OBJECT?   <<<
+;
+_TROS5400
+;
+;	>>>   CALCULATE CROSS PRODUCT OF <PARTITION> AND <OBJECT>   <<<
+;
+;			   (Xa * Yb) - (Ya * Xb)
+;
+;	= (DeltaX * (ObjectY-LineY)) - (DeltaY * (ObjectX-LineX))
+;
+	move	r0,#(rlvVertex1-rlvXsT)		; Get Vertex1
+;	with	r0
+	add	rVSeg
+	to	r1
+	ldw	(r0)
+	inc	r0				; Get Vertex2
+	inc	r0
+	to	r11
+	ldw	(r0)
+;
+;	to	r0				; Get Vertex1 Y
+	ldw	(r1)
+	inc	r1
+	inc	r1
+	to	r6				; Get Vertex1 X
+	ldw	(r1)
+;
+	inc	r11
+	inc	r11
+	to	r1				; Get Vertex2 X
+	ldw	(r11)
+	from	r1				; Get Delta X
+	to	r6
+	sub	r6
+;
+;	>>>   (Xa * Yb)   <<<
+;
+	to	r1				; Get VObj.WorldY
+	ldw	(rVObj)
+;
+	with	r1				; (ObjectY - LineY)
+	sub	r0
+	with	r1				; Result in R1:R4
+	lmult
+;
+	dec	r11				; Get Vertex2 Y
+	dec	r11
+	to	r6
+	ldw	(r11)
+	with	r6				; Get DeltaY
+	sub	r0
+;
+	move	r0,#(rlvVertex1-rlvXsT)		; Get Vertex1
+;	with	r0
+	add	rVSeg
+;	to	r0
+	ldw	(r0)
+;
+	move	r11,r4				; Result in R1:R11
+;
+	inc	r0				; Get Vertex1X
+	inc	r0
+;	to	r0
+	ldw	(r0)
+;
+	from	rVObj				; Get VObj.WorldX
+	to	r4
+	add	#rlqWX
+	to	r4				; R4 = ObjectX
+	ldw	(r4)
+;
+;	>>>   (Ya * Xb)   <<<
+;
+	from	r4				; (ObjectX - LineX)
+;	to	r0
+	sub	r0
+;	with	r0				; Result in R0:R4
+	lmult
+;
+;	>>>   DETERMINE DIRECTION OF NODE   <<<
+;
+;	IF RESULT >= 0, OBJECT IS TO THE LEFT OF THE NODE
+;	IF RESULT <  0, OBJECT IS TO THE RIGHT OF THE NODE
+;
+	with	r11				; Xa*Yb - Ya*Xb
+	sub	r4
+	with	r1
+	sbc	r0
+;	dec	r1
+	bmi	_TROS7900+1			; < 0 RIGHT
+	iwt	r15,#<_TROS7000+1		; >= 0 = LEFT
+	from	rVSeg				; Get Pointer to ClipZone
+
+
+	CACHEE	_RLAddObjPlot

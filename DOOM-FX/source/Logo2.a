@@ -1,0 +1,152 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                           LOGO 2 PAGE MODULE                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	xfer.i
+	include	music.i
+
+	ifn	useLOGO2
+
+	public	Logo2
+
+
+	SECTION	LOGO2,RELOC,BASE=$80000000,RORG=$400000
+;
+;	* * * * * * *       LOGO2 PAGE       * * * * * * *
+;
+	dpr	0
+	dbr	?
+Logo2
+	jsl	ScreenOff			; Turn Screen Off
+	jsl	InitSNES
+	mode	'ax'
+;
+	mode	'X!'
+	ldx	#<Logo2XFer			; Transfer Logo2 DataBlock
+	lda	#^Logo2XFer
+	jsl	XFer
+;
+	ifn	useSOUND
+	mode	'AX!'
+	lda	#((e1m2_sng_MODULE<<8)|e1m2_sng) ; E1M2 Song
+	jsl	_PlaySong
+	endif
+;
+	jsl	InitNormalNMI
+	mode	'a!'
+	lda	#$80				; Transfer RGB Palette to CGRAM
+	sta	RGBXfer
+	lda	#1				; Mode1 BG1:8x8
+	sta	BGMODE
+	lda	#$7c				; BG1 Screen at $7c00
+	sta	BG1SC
+	lda	#$ff				; Offset $FFFF
+	sta	BG1VOFS
+	sta	BG1VOFS
+	stz	BG1HOFS				; Offset $0000
+	stz	BG1HOFS
+	stz	BG12NBA				; BG1 @$0000
+	stz	MOSAIC
+	lda	#%00001000			; PseudoH512, 224Lines
+	sta	SETINI
+	lda	#%00000010			; Colour Add Enable
+	sta	CGSWSEL
+	lda	#%01000001			; Add 1/2 Enable BG1
+	sta	CGADSUB
+	lda	#$01				; BG1
+	sta	TM
+	sta	TS
+;
+	jsl	FadeScreenOn
+	mode	'AX!'
+LG2O200
+;	lda	JOY1L				; Joystick pressed?
+;	bne	LG2O200				; Yes, wait until released
+	ldx	#(60*3)-1
+LG2O300
+;	lda	JOY1L				; Wait until pressed
+;	bne	LG2O400
+	wai
+	dex
+	bpl	LG2O300
+LG2O400
+;
+;	>>>   FADE MUSIC OUT   <<<
+;
+	ifn	useSOUND
+	lda	#DCOM_FADE_AND_STOP		; Fade out Music
+	ldy	#$0201
+	jsl	__SendDriverCommand
+	endif
+;
+	jml	FadeScreenOff
+
+
+;
+;	* * * * * * *       TRANSFER LIST       * * * * * * *
+;
+	mode	'@A@X'
+Logo2XFer
+	dc.w	xftVRAM16		; Transfer Logo2Def0 to $0000W
+	dc.4	Logo2Def0
+	dc.4	$0000
+	dcb.w	3,0
+;
+	dc.w	xftVRAM16		; Transfer Logo2Map to $7c00W
+	dc.4	Logo2Map
+	dc.4	$7c00
+	dcb.w	3,0
+;
+	dc.w	xftRAM			; Transfer RGB
+	dc.4	Logo2RGB
+	dc.4	RGBData
+	dc.w	512
+	dcb.w	2,0
+;
+	dc.w	xftEnd
+
+
+;
+;	* * * * * * *       LOGO2 DATA       * * * * * * *
+;
+	SECTION	LOGO2_DATA_0,RELOC,BASE=$80000000,RORG=$400000
+Logo2Def0
+	ife	(useOCEAN+useIMAGINEER)
+	image	RLDATA:COMP/Logo2.def0
+	endif
+	ifn	useOCEAN
+	image	RLDATA:COMP/Logo3.def0
+	endif
+	ifn	useIMAGINEER
+	image	RLDATA:COMP/Logo4.def0
+	endif
+
+	SECTION	LOGO2_DATA_1,RELOC,BASE=$80000000,RORG=$400000
+Logo2Map
+	ife	(useOCEAN+useIMAGINEER)
+	image	RLDATA:COMP/Logo2.map0
+	endif
+	ifn	useOCEAN
+	image	RLDATA:COMP/Logo3.map0
+	endif
+	ifn	useIMAGINEER
+	image	RLDATA:COMP/Logo4.map0
+	endif
+Logo2RGB
+	ife	(useOCEAN+useIMAGINEER)
+	image	RLDATA:COMP/Logo2.rgb
+	endif
+	ifn	useOCEAN
+	image	RLDATA:COMP/Logo3.rgb
+	endif
+	ifn	useIMAGINEER
+	image	RLDATA:COMP/Logo4.rgb
+	endif
+
+	endif

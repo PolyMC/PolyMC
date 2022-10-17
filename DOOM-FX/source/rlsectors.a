@@ -1,0 +1,374 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         ENGINE SECTOR MODULE                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+
+	public	_RLDoSectors
+
+
+	SECTION	LEVEL
+;
+;	* * * * * * *       INITIALIZE SECTORS/SECTORDATA       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RIS900
+	rts
+_RLInitSectors
+	mode	'AX!'
+	lda	EMSECTORS+1				; Get Pointer to Sectors
+	sta	Temp4+1
+	lda	EMSECTORS
+	sta	Temp4
+	lda	#<_RLSectorData				; Pointer to SectorData
+	sta	Temp3
+	stz	Temp3+2
+;
+;	>>>   COUNT LEVEL SECRET TOTALS   <<<
+;
+	lda	#0					; Number of SECRETS
+	sta	EMTOTALSECRETS
+	sta	NumSecrets
+;
+;	>>>   INITIALIZE NEXT SECTOR   <<<
+;
+_RIS200
+	lda	[Temp4]					; Get Pointer to SectorData
+	cmp	#$524c
+	beq	_RIS900					; No more Sectors!
+	ldx	Temp3
+	mode	'a!'
+;
+;	>>>   CALCULATE SECTORDATA FLAGS   <<<
+;
+	ldy	#rlsCeilingTexture			; Get CeilingTexture
+	lda	[Temp4],y
+;	cmp	#$ff					; SKY?
+	inc	a
+	bne	_RIS320					; No!
+	lda	#rlsdfCeilingSky			; Yes!
+	jmp	_RIS340
+_RIS320
+	lda	#0
+_RIS340
+	sta	>RAM7AStart+rlsdFlags,x
+;
+;	>>>   COPY SECTOR PARAMETERS INTO SECTORDATA   <<<
+;
+	ldy	#rlsLightLevel				; Get Light Level
+	lda	[Temp4],y
+	sta	>RAM7AStart+rlsdLightLevel,x
+	mode	'A!'
+	ldy	#rlsCeilingHeight			; Get Ceiling Height
+	lda	[Temp4],y
+	sta	>RAM7AStart+rlsdCeilingHeight,x
+	ldy	#rlsFloorHeight				; Get Floor Height
+	lda	[Temp4],y
+	sta	>RAM7AStart+rlsdFloorHeight,x
+	lda	#1					; Default Counter
+	sta	>RAM7AStart+rlsdData,x
+	ldy	#rlsFloorTexture			; Get Floor/Ceiling Texture
+	lda	[Temp4],y
+	sta	>RAM7AStart+rlsdFloorTexture,x
+	lda	#0					; SectorData.RLEngineCount=0
+	sta	>RAM7AStart+rlsdRLCount,x
+;	lda	#0					; No Objects in this Sector Yet!
+	sta	>RAM7AStart+rlsdObjects,x
+;
+;	>>>   ADD RLTASK FOR SPECIAL SECTORS   <<<
+;
+	lda	[Temp4]					; Get SectorType
+	and	#$00ff
+	beq	_RIS800					; Normal Sector, NO TASKCODE!
+;
+	cmp	#(09*4)					; SECRET?
+	bne	_RIS520
+	pha
+	lda	EMTOTALSECRETS				; Yes, Total Secrets++
+	inc	a
+	sta	EMTOTALSECRETS
+	pla
+_RIS520
+;
+	cmp	#(05*4)					; RANDOM Lights?
+	bcs	_RIS700					; No
+	pha
+	txa						; Yes, RANDOM Counter
+	and	#$007f
+	sta	>RAM7AStart+rlsdData,x
+	pla
+;
+_RIS700
+	lsr	a
+	tax
+	lda	>(_RLSectorTaskCode-2),x		; Get Pointer to TaskCode
+	beq	_RIS800					; NO TASKCODE!
+	tay
+	ldx	Temp3+2					; Sector#
+	jsl	__RLAddTaskSNES				; Add Sector Task
+;
+_RIS800
+	lda	Temp4					; Move to next Sector
+	clc
+	adc	#rlsSize
+	sta	Temp4
+	lda	Temp3					; Move to next SectorData
+	clc
+	adc	#rlsdSize
+	sta	Temp3
+	inc	Temp3+2
+	jmp	_RIS200
+
+
+;
+;	* * * * * * *       SECTOR TASK CODE JUMP TABLE       * * * * * * *
+;
+_RLSectorTaskCode
+	dc.w	<(_TLightOffRandom-1)		; (01) Light Blinks Off Randomly
+	dc.w	<(_TLightOnA0-1)		; (02) Light Blinks On Every 0.5 Seconds
+	dc.w	<(_TLightOnB-1)			; (03) Light Blinks On Every 1.0 Seconds
+	dc.w	<(_TLightOnA0-1)		; (04) Max.Damage10%/20% + LightBlink 0.5
+	dc.w	0				; (05) Medium Damage 5%/10%
+	dc.w	0				; (06) Normal Sector
+	dc.w	0				; (07) Minimum Damage 2%/5%
+	dc.w	<(_TLightOsc-1)			; (08) Light Oscillates SYNC
+	dc.w	0				; (09) Secret Sector
+	dc.w	0				; (10) Normal Sector
+	dc.w	0				; (11) Normal Sector
+	dc.w	<(_TLightOnB-1)			; (12) Light Blinks On Every 1.0 Seconds SYNC
+	dc.w	<(_TLightOnA0-1)		; (13) Light Blinks On Every 0.5 Seconds SYNC
+	dc.w	0				; (14) Normal Sector
+	dc.w	0				; (15) Normal Sector
+	dc.w	0				; (16) Maximum Damage 10%/20%
+
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rSectorData0	equ	r9			; Pointer to SectorData Base
+rSectorData	equ	r8			; Pointer to SectorData
+rFPSCount	equ	r7			; FPS Counter
+rFPSRatio	equ	r5			; FPS Ratio
+
+
+;
+;	* * * * * * *       REALITY_ENGINE HANDLE SECTORS       * * * * * * *
+;
+_RLDoSectors
+	move	rFPSCount,(<(FPSCount+RLGSUSNESXVarsO))	; Get FPSCount
+	move	rFPSRatio,(<FPSRatio)			; Get FPSRatio
+;
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb					; Set ROM Bank
+;
+	ife	useMULTIPLAYER
+	move	r0,#<(PlayerObject+rloSector)	; Get Player's Sector
+	endif
+	ifn	useMULTIPLAYER
+	move	r1,#rloSector
+	move	r0,(<MPPlayerObject)
+;	with	r0
+	add	r1
+	endif
+;
+;	to	r0
+	ldb	(r0)
+	move	r1,(<EMSECTORS)			; Base of SECTORS
+;	from	r0				; SECTORDATA
+	to	rSectorData0
+	umult	#rlsdSize
+;	with	r0				; SECTOR
+	umult	#rlsSize
+;	from	r0
+	to	r14
+	add	r1
+	move	r0,#<_RLSectorData
+	with	rSectorData0
+	add	r0
+	move	rSectorData,rSectorData0
+;
+	iwt	r1,#<_RLDoSectorCode		; Base Address of JumpTable
+	getb					; Get Sector Type
+;	from	r0
+	to	r13
+	add	r1
+	link	#2
+	jmp	r13				; Call SectorCode
+	nop
+;
+;	>>>   HANDLE MISCELLANEOUS 2   <<<
+;
+	ife	usePATCH
+	iwt	r0,#<_RLMisc2			; DO MISCELLANEOUS TASKS 2
+	endif
+	ifn	usePATCH
+	move	r0,(<PTRLMisc2)			; DO MISCELLANEOUS TASKS 2
+	endif
+	ibt	r8,#^_RLMisc2
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+
+;
+;	* * * * * * *       SECTOR CODE JUMP TABLE       * * * * * * *
+;
+_RLDoSectorCode
+	iwt	r15,#<_RLDSNormal		; (00) Normal Sector
+	nop
+	iwt	r15,#<_RLDSNormal		; (01) Light Blinks Off Randomly
+	nop
+	iwt	r15,#<_RLDSNormal		; (02) Light Blinks On Every 0.5 Seconds
+	nop
+	iwt	r15,#<_RLDSNormal		; (03) Light Blinks On Every 1.0 Seconds
+	nop
+	iwt	r15,#<_RLDSDamageMax		; (04) Max.Damage10%/20% + LightBlink 0.5
+	nop
+	iwt	r15,#<_RLDSDamageMed		; (05) Medium Damage 5%/10%
+	nop
+	iwt	r15,#<_RLDSNormal		; (06) Normal Sector
+	nop
+	iwt	r15,#<_RLDSDamageMin		; (07) Minimum Damage 2%/5%
+	nop
+	iwt	r15,#<_RLDSNormal		; (08) Light Oscillates
+	nop
+	iwt	r15,#<_RLDSSecret		; (09) Secret Sector
+	nop
+	iwt	r15,#<_RLDSNormal		; (10) Normal Sector
+	nop
+	iwt	r15,#<_RLDSDamageMaxExit	; (11) Maximum Damage 10%/20% and EXIT!
+	nop
+	iwt	r15,#<_RLDSNormal		; (12) Light Blinks On Every 1.0 Seconds
+	nop
+	iwt	r15,#<_RLDSNormal		; (13) Light Blinks On Every 0.5 Seconds
+	nop
+	iwt	r15,#<_RLDSNormal		; (14) Normal Sector
+	nop
+	iwt	r15,#<_RLDSNormal		; (15) Normal Sector
+	nop
+	iwt	r15,#<_RLDSDamageMax		; (16) Maximum Damage 10%/20%
+	nop
+
+
+;
+;	* * * * * * *       NORMAL SECTOR       * * * * * * *
+;
+_RLDSNormal
+;	to	r0				; Is Sector now NUKAGE?
+	ldb	(rSectorData)
+;	with	r0
+	and	#rlsdfTypeNukage
+	bne	_RLDSDamageMed			; Yes, now Causes Damage!
+	nop
+	jmp	r11				; Return to Caller
+	nop
+
+;
+;	* * * * * * *       DAMAGE AND EXIT       * * * * * * *
+;
+_RLDSDamageMaxExit
+	move	r13,r11				; Save Return Address
+	link	#3
+	bra	_RLDSDamageMax
+	nop
+_RLDSDamageMaxExit2
+;
+	ife	useMULTIPLAYER
+	move	r0,(<(PlayerObject+rloHealth))	; Get Player's Health
+	endif
+	ifn	useMULTIPLAYER
+	move	r0,#rloHealth
+	move	r1,(<MPPlayerObject)
+;	with	r0
+	add	r1
+;	to	r0
+	ldw	(r0)
+	endif
+;
+	move	r1,#11				; < 11% Health?
+;	with	r0
+	sub	r1
+	bge	_RLDSDamageMaxExit9		; No, keep dying!
+	nop
+	move	(<ExitLevel),r1			; 11=GO TO NEXT LEVEL!
+;	dec	r1
+;	move	(<(PlayerObject+rloHealth)),r1	; Player's Health = 10%
+_RLDSDamageMaxExit9
+	jmp	r13				; Return to Caller
+	nop
+;
+;	* * * * * * *       DAMAGE TO HEALTH       * * * * * * *
+;
+_RLDSDamageMax
+	move	r4,#20				; 20% Health
+	bra	_RLDSDamage
+	nop
+_RLDSDamageMed
+	move	r4,#10				; 10% Health
+	bra	_RLDSDamage
+	nop
+_RLDSDamageMin
+	move	r4,#5				; 5% Health
+_RLDSDamage
+	move	r0,(<PlayerOnGround)		; Player ON Ground ($FFFF)?
+	inc	r0
+	move	r1,(<RadCount)			; Radiation Suit?
+;	with	r0
+	or	r1
+	move	r1,(<PlayerDead)		; Is Player Dead?
+;	with	r0
+	or	r1
+	bne	_RLDSDamage800			; Can't be hurt!
+	nop
+;	to	r0				; Is Sector now NORMAL?
+	ldb	(rSectorData)
+;	with	r0
+	and	#rlsdfTypeNormal
+	bne	_RLDSDamage800			; Yes, doesn't cause damage!
+	nop
+	move	r0,(<Timer1)			; 1 Second Timer Expired?
+	dec	r0
+	bpl	_RLDSDamage800			; No, don't add Damage!
+	nop
+	iwt	r15,#<_RLDamagePlayer
+	nop
+_RLDSDamage800
+	jmp	r11				; Return to Caller
+	nop
+
+
+;
+;	* * * * * * *       SECRET SECTOR       * * * * * * *
+;
+_RLDSSecret
+;	to	r0				; Get SectorData.Flags
+	ldb	(rSectorData0)
+;	from	r0				; Secret already found?
+	to	r1
+	and	#rlsdfSecret
+	bne	_RLDSDamage800			; Yes
+	nop
+;	with	r0				; NO!  Found it now!
+	or	#rlsdfSecret
+;	from	r0
+	stb	(rSectorData0)
+	move	r0,(<NumSecrets)		; #Secrets Found++
+	inc	r0
+	jmp	r11
+;	from	r0
+	sbk

@@ -1,0 +1,186 @@
+@database SFX.guide
+@rem $VER:SFX.guide 1.0 © 1994 Randy Linden
+@node MAIN
+@title "SFX Command Set/Register Usage"
+@font IBM.FONT 8
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ SFX Register Usage (all but PC may be used as general purpose registers)   ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ 0  accumulator   ³ 4  lmult low dest  ³ 8  merge src low  ³ 12  loop cnt   ³
+³ 1  plot x adrs   ³ 5                  ³ 9                 ³ 13  loop adrs  ³
+³ 2  plot y adrs   ³ 6  f/lmult src     ³ 10                ³ 14  rom adrs   ³
+³ 3                ³ 7  merge src high  ³ 11 link rts adrs  ³ 15  PC         ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Add, Subtract, etc.             Cache Cycles  V S C Z      Opcode          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ adc Rn          Rd = Rs + Rn + C      2       * * * *       3D 5n          ³
+³ adc #n          Rd = Rs + #n + C      2       * * * *       3F 5n          ³
+³ add Rn          Rd = Rs + Rn          1       * * * *       5n             ³
+³ add #n          Rd = Rs + #n          2       * * * *       3E 5n          ³
+³ cmp Rn          Rs - Rn               2       * * * *       3F 6n          ³
+³ dec Rn  {0:14}  Rn = Rn - 1           1       - * - *       En      {0:14} ³
+³ inc Rn  {0:14}  Rn = Rn + 1           1       - * - *       Dn      {0:14} ³
+³ sbc Rn          Rd = Rs - Rn - C      2       * * * *       3D 6n          ³
+³ sub Rn          Rd = Rs - Rn          1       * * * *       6n             ³
+³ sub #n          Rd = Rs - #n          2       * * * *       3E 6n          ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ And, Or, etc.                   Cache Cycles  V S C Z      Opcode          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ and Rn  {1:15}  Rd = Rs & Rn          1       - * - *       7n      {1:15} ³
+³ and #n  {1:15}  Rd = Rs & #n          2       - * - *       3E 7n   {1:15} ³
+³ bic Rn  {1:15}  Rd = Rs & ~Rn         2       - * - *       3D 7n   {1:15} ³
+³ bic #n  {1:15}  Rd = Rs & ~#n         2       - * - *       3F 7n   {1:15} ³
+³ not             Rd = ~Rs              1       - * - *       4F             ³
+³ or  Rn  {1:15}  Rd = Rs | Rn          1       - * - *       Cn      {1:15} ³
+³ or  #n  {1:15}  Rd = Rs | #n          2       - * - *       3E Cn   {1:15} ³
+³ xor Rn  {1:15}  Rd = Rs ^ Rn          2       - * - *       3D Cn   {1:15} ³
+³ xor #n  {1:15}  Rd = Rs ^ #n          2       - * - *       3F Cn   {1:15} ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Shifts                          Cache Cycles  V S C Z      Opcode          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ asr             Rd = asr(Rs)          1       - * * *       96             ³
+³ div2            Rd = asr(Rs)          2       - * * *       3D 96          ³
+³                   {if -1 then = 0}                                         ³
+³ lsr             Rd = lsr(Rs)          1       - 0 * *       03             ³
+³ rol             Rd = rol(Rs)          1       - * * *       04             ³
+³ ror             Rd = ror(Rs)          1       - * * *       97             ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Multiply {speed set by bit 5 of Config}                                    ³
+³                          (Fast) Cache Cycles  V S C Z      Opcode          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ fmult {notR4} Rd = Rs * R6 {hi word}  4       - * * *       9F             ³
+³                 C = sign of lo word                                        ³
+³ lmult {notR4} Rd:R4 = Rs * R6         5       - * * *       3D 9F          ³
+³                 C = sign of lo word                                        ³
+³ mult Rn       Rd = Rs{lo, sign ext}   1       - * - *       8n             ³
+³                 * Rn{lo, sign ext}                                         ³
+³ mult #n       Rd = Rs{lo, sign ext}   2       - * - *       3E 8n          ³
+³                 * #n                                                       ³
+³ umult Rn      Rd = Rs{lo} * Rn{lo}    2       - * - *       3D 8n          ³
+³ umult #n      Rd = Rs{lo} * #n        2       - * - *       3F 8n          ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Load #, Moves                  Cache Cycles   V S C Z      Opcode          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ ibt Rn,#xx    Rn = #xx {sign ext}     2       - - - -       An xx          ³
+³ iwt Rn,#xxxx  Rn = #xxxx              3       - - - -       Fn xx xx       ³
+³ hib           Rd = Rs{hi}             1       - * - *       c0             ³
+³ link #n {1:4} R11 = R15 + #n          1       - - - -       9n      {1:4}  ³
+³ lob           Rd = Rs{lo}             1       - * - *       9E             ³
+³ merge         Rd = R7{hi}<<8 | R8{hi} 1       * * * *       70             ³
+³                 S = (b15|b7)                                               ³
+³                 V = (b15|b14|b7|b6)                                        ³
+³                 C = (b15|b14|b13|b7|b6|b5)                                 ³
+³                 Z = (b15|b14|b13|b12|b7|b6|b5|b4)                          ³
+³ move Rm,Rn    Rm = Rn  (with:to)      2       - - - -       2n 1m          ³
+³ moves Rm,Rn   Rm = Rn  (with:from)    2       * * - *       2m Bn          ³
+³                 V = b7                                                     ³
+³ ramb          RamB = Rs               2       - - - -       3E DF          ³
+³ romb          RomB = Rs               2       - - - -       3F DF          ³
+³ sex           Rd = Rs{lo, sign ext}   1       - * - *       95             ³
+³ swap          Rd = Rs{lo}<<8 | Rs{hi} 1       - * - *       4D             ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Read Ram                        Cache Cycles  V S C Z      Opcode          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ ldb (Rn)  {0:11}  Rd = (Rn){byte}     8       - - - -       3D 4n   {0:11} ³
+³ ldw (Rn)  {0:11}  Rd = (Rn){word}     11      - - - -       4n      {0:11} ³
+³ lm  Rn,(xxxx)     Rn = (xxxx){word}   14      - - - -       3D Fn xx xx    ³
+³ lms Rn,(xxx)      Rn = (xxx){word}    13      - - - -       3D An xxx/2    ³
+³                     {xxx = 0,2,...,510}                                    ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Write Ram                       Cache Cycles  V S C Z      Opcode          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ sbk               (last ram adrs)     1:10    - - - -       90             ³
+³                     = Rs{word}                                             ³
+³ sm  (xxxx),Rn     (xxxx) = Rn{word}   4:12    - - - -       3E Fn xx xx    ³
+³ sms (xxx),Rn      (xxx) = Rn{word}    3:11    - - - -       3E An xxx/2    ³
+³                     {xxx = 0,2,...,510}                                    ³
+³ stb (Rn)  {0:11}  (Rn) = Rs{byte}     2:6     - - - -       3D 3n   {0:11} ³
+³ stw (Rn)  {0:11}  (Rn) = Rs{word}     1:10    - - - -       3n      {0:11} ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Read Rom, Write Color           Cache Cycles  V S C Z      Opcode          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ color         Color = Rs              1       - - - -       4E             ³
+³ getc          Color = RomBuf          1:8     - - - -       DF             ³
+³ getb          Rd = RomBuf             1:8     - - - -       EF             ³
+³ getbh         Rd = RomBuf<<8 | Rs{lo} 2:8     - - - -       3D EF          ³
+³ getbl         Rd = Rs{hi}<<8 | RomBuf 2:8     - - - -       3E EF          ³
+³ getbs         Rd = RomBuf {sign ext}  2:8     - - - -       3F EF          ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Branches etc.  {if branch etc. done, then following pipeline byte executed}³
+³   xx = -128:127,                                                           ³
+³   if branch: R15 = R15 + xx     Cache Cycles  V S C Z      Opcode          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ bcs xx          if C=1, branch        2       - - - -       0D xx          ³
+³ bcc xx          if C=0, branch        2       - - - -       0C xx          ³
+³ beq xx          if Z=1, branch        2       - - - -       09 xx          ³
+³ bne xx          if Z=0, branch        2       - - - -       08 xx          ³
+³ bmi xx          if S=1, branch        2       - - - -       0B xx          ³
+³ bpl xx          if S=0, branch        2       - - - -       0A xx          ³
+³ bvs xx          if V=1, branch        2       - - - -       0F xx          ³
+³ bvc xx          if V=0, branch        2       - - - -       0E xx          ³
+³ blt xx          if (S ^ V)=1, branch  2       - - - -       07 xx          ³
+³ bge xx          if (S ^ V)=0, branch  2       - - - -       06 xx          ³
+³ bra xx          branch                2       - - - -       05 xx          ³
+³ jmp  Rn {8:13}  R15 = Rn              1       - - - -       9n      {8:13} ³
+³ ljmp Rn {8:13}  PCB:R15 = Rn:Rs       2       - - - -       3D 9n   {8:13} ³
+³                   CBR = Rs & 0fff0h                                        ³
+³                   cache flags cleared                                      ³
+³ loop            R12 = R12 - 1, then   1       - * - *       3C             ³
+³                   if Z=0, R15 = R13                                        ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Misc.                           Cache Cycles  V S C Z      Opcode          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ from Rn      set Rs {after 'with':    1       - - - -       Bn             ³
+³                becomes 'moves'}                                            ³
+³ to   Rn      set Rd {after 'with':    1       - - - -       1n             ³
+³                becomes 'move'}                                             ³
+³ with Rn      set Rs, Rd {before a     1       - - - -       2n             ³
+³                'to' or 'from': becomes                                     ³
+³                'move' or 'moves'}                                          ³
+³ plot         plot Color at (R1,R2),   1:80    - - - -       4C             ³
+³                R1 = R1 + 1                                                 ³
+³ rpix         Rd = pixel at (R1,R2)    ?:?     - * - *       3D 4C          ³
+³ alt1         misc. opcode prefix      1       - - - -       3D             ³
+³                {after alt2: alt3}                                          ³
+³ alt2         misc. opcode prefix      1       - - - -       3E             ³
+³                {after alt1: alt3}                                          ³
+³ alt3         misc. opcode prefix      1       - - - -       3F             ³
+³ cache        if CBR ~= (R15 & 0fff0h) 1       - - - -       02             ³
+³              then CBR = R15 & 0fff0h)                                      ³
+³                   cache flags cleared                                      ³
+³ cmode        PlotOpt = Rs             2       - - - -       3D 4E          ³
+³ nop          {will zap 'with' etc.}   1       - - - -       01             ³
+³ stop         GoFlag = 0,              1       - - - -       00             ³
+³                make SNES IRQ                                               ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+@endnode

@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	249
+DATE	MACRO
+		dc.b	'18.9.95'
+	ENDM
+VERS	MACRO
+		dc.b	'rage.a 1.249'
+	ENDM
+VSTRING	MACRO
+		dc.b	'rage.a 1.249 (18.9.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: rage.a 1.249 (18.9.95)',0
+	ENDM

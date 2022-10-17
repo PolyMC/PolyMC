@@ -1,0 +1,630 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       ENGINE WALL DRAW MODULE                      *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLDrawWallsA
+	public	_RLDrawWallsB
+	public	_RLDrawWallsC
+	public	_RLDrawWalls
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+;
+;	* * * * * * *       REALITY_ENGINE DRAW WALLS       * * * * * * *
+;
+;	In LOW-Detail mode, each 2-pixels wide are from a single WALL PLOT
+;	Strip.
+;
+
+rStripCount	equ	r3			; #Strips to Draw
+rColourMapB	equ	r4			; Bank of ColourMap Data
+rColourMap	equ	r5			; ColourMap
+;
+rPixScaleF	equ	r6			; SCN->RL Scale Fraction
+rPixScale	equ	r7			; SCN->RL Scale Integer
+;
+rWallF		equ	r8			; SCN->RL Wall Fraction
+rWall		equ	r9			; Pointer to WallTextureData
+rWallB		equ	r10			; Bank of WallTextureData
+;
+rPlotDataPtr	equ	r11			; Ptr within Current WallPlotData
+rPixelCount	equ	r13			; Pixel SkipCount/RepeatCount
+
+
+	align	16,(_RLDrawWallsC-_RLDrawWallsLowAlign)&$0f
+
+_RLDrawWallsC
+	move	r2,#<_RLDrawFloorsC
+	bra	_RLDrawWalls
+	nop
+_RLDrawWallsB
+	move	r2,#<_RLDrawFloorsB
+	bra	_RLDrawWalls
+	nop
+_RLDrawWallsA
+	move	r2,#<_RLDrawFloorsA
+_RLDrawWalls
+	move	(<RLNextCode),r2		; Save address of Next Code Jump
+	move	rColourMapB,#^RLColourMaps	; Bank of ColourMap Data
+;
+	ifn	useCHECKWALLPLOTDATA
+	move	r2,#0
+	endif
+
+;
+;	* * * * * * *       DRAW WALLS IN LOW DETAIL       * * * * * * *
+;
+_RLDrawWallsLow
+	move	r0,#<(_RLWallPlots-2)			; WALL PLOT DATA START
+	move	(<DWPlotPtr),r0
+	move	r1,#((RLViewPixX/3)*0)-2		; X Coordinate
+	move	rStripCount,#(RLViewPixX/3/2)+1		; #Wall Strips to Draw
+;
+	CACHEB	_RLDrawWallsLow
+_RLDrawWallsLowAlign
+;
+;	>>>   DO NEXT PIXELSTRIP   <<<
+;
+_DWL1000
+	move	rPlotDataPtr,(<DWPlotPtr)	; Get WallPlotDataPtr
+	inc	rPlotDataPtr			; Move to Next WallPlotDataPtr
+	inc	rPlotDataPtr
+	from	rPlotDataPtr			; Save Updated WallPlotDataPtr
+	sbk
+	inc	r1				; Move to next PixelStrip's X Coordinate
+	dec	rStripCount			; One less strip to do
+	beq	_DWL1200			; No More Left!
+	inc	r1				; Move to next PixelStrip's X Coordinate
+;
+	from	r1				; Starting of PixelBlock?
+;	to	r0
+	and	#7
+	beq	_DWL1100			; No
+	iwt	r15,#<_DWL9000+1
+;	to	r0				; Get Next WallPlotPtr
+	ldw	(rPlotDataPtr)
+_DWL1100
+;	iwt	r15,#<_DWL9500+1
+	dc.w	<(_DWL9500+1)
+;	to	r0				; Get Next WallPlotPtr
+	ldw	(rPlotDataPtr)
+
+;
+_DWL1200
+	move	r0,(<RLNextCode)		; Begin Execution of Next Code
+	ibt	r8,#^_RLDrawFloorsA
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	>>>   ADJUST FOR IMAGE OFFSET   <<<
+;
+_DWL3200
+	getb					; <REPEAT>/<UNIQUE>?
+_DWL3220
+;	with	r0
+	sex
+	bmi	_DWL3600			; <REPEAT>
+	inc	r14
+;
+;	>>>   UNIQUE   <<<
+;
+	with	r14
+	add	r0
+	with	rPixelCount
+	sub	r0
+	dec	rPixelCount
+	bpl	_DWL3200
+	inc	rPixelCount
+	beq	_DWL4100
+	with	rPixelCount
+	not
+	inc	rPixelCount
+	with	r14
+	bra	_DWL4400
+	sub	rPixelCount
+;
+;	>>>   REPEAT   <<<
+;
+_DWL3600
+	inc	r14
+	with	rPixelCount			; PixelCount += -RepeatCount
+	add	r0
+	dec	rPixelCount
+	bpl	_DWL3200
+	inc	rPixelCount
+	bne	_DWL5200			; <REPEAT> RUNNING
+;
+;	>>>   STRIP PIXEL SLOW   <<<
+;
+_DWL4100
+	nop					; @FLUSH WITH IN PIPELINE@
+_DWL4200
+	getb					; <REPEAT>/<UNIQUE>?
+	inc	r14
+;	from	r0				; UniqueCount/RepeatCount
+	to	rPixelCount
+	sex
+	bmi	_DWL5400+1			; <REPEAT>
+;
+;	>>>   UNIQUE   <<<
+;
+_DWL4400
+	move	rWall,r14
+	from	rColourMapB
+	romb
+	getb					; Get Colour
+;	from	r0
+	to	r14
+	add	rColourMap
+	from	rWallB
+	romb
+	getc
+_DWL4600
+	plot					; Draw the PixelBlock
+	plot
+	dec	r1				; Move back to correct X Coordinate
+	dec	r12				; One less ScreenPixel to Draw
+	beq	_DWL9000
+	dec	r1
+	with	rWallF				; Move to next Pixel
+	add	rPixScaleF
+	from	rPixScale
+;	to	r0
+	adc	#0
+	beq	_DWL4600
+	dec	r2				; Move to next Y Coordinate
+;	from	r0
+	to	r14
+	add	rWall
+	with	rPixelCount
+	sub	r0
+	dec	rPixelCount
+	bpl	_DWL4400
+	inc	rPixelCount
+;
+;	>>>   UNIQUE DONE   <<<
+;
+	beq	_DWL4100
+	with	rPixelCount
+	not
+	inc	rPixelCount
+	with	r14
+	bra	_DWL3200
+	sub	rPixelCount
+
+;
+;	>>>   REPEAT   <<<
+;
+_DWL5200
+	dec	r14
+_DWL5400
+	move	rWall,r14
+	from	rColourMapB
+	romb
+	getb					; Get Colour
+;	from	r0
+	to	r14
+	add	rColourMap
+	inc	rWall
+	from	rWallB
+	romb
+	getc
+	move	r14,rWall
+_DWL5600
+	plot					; Draw the PixelBlock
+	plot
+	dec	r1				; Move back to correct X Coordinate
+	dec	r12				; One less ScreenPixel to Draw
+	beq	_DWL9000
+	dec	r1
+	with	rWallF				; Move to next Pixel
+	add	rPixScaleF
+	from	rPixScale
+;	to	r0
+	adc	#0
+	beq	_DWL5600
+	dec	r2				; Move to next Y Coordinate
+	with	rPixelCount
+	add	r0
+	bmi	_DWL5600
+	nop
+;
+;	>>>   REPEAT DONE   <<<
+;
+	beq	_DWL4200
+	getb					; <REPEAT>/<UNIQUE>?
+	iwt	r15,#<_DWL3220+1
+;	with	r0
+	sex
+
+
+;
+;	* * * * * * *       NEXT STRIP       * * * * * * *
+;
+_DWL9090
+	iwt	r15,#<_DWL1000			; Next PixelStrip!
+	nop
+;
+;	* * * * * * *       NEXT STRIP FAST       * * * * * * *
+;
+_DWL9000
+;	to	r0				; Get Next WallPlotPtr
+	ldw	(rPlotDataPtr)
+
+	ifn	useCHECKWALLPLOTDATA
+	inc	r2				; Error with WallPlotData?
+	bpl	.0
+	HALTGSU	#$11				; YES!
+.0
+	endif
+
+	moves	rPlotDataPtr,r0			; Any Next?
+	beq	_DWL9090			; No!
+;	to	r0				; Get #Pixels To Draw / ColourMap
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr
+	inc	rPlotDataPtr
+;
+;	from	r0				; #Pixels To Draw
+	to	r12
+	lob
+
+	ifn	useCHECKWALLPLOTDATA
+	bne	.1				; Error with WallPlotData?
+	HALTGSU	#$12				; YES!
+.1
+	endif
+
+;	with	r0				; Get HighByte of ColourMap
+	hib
+;	from	r0
+	to	rColourMap
+	swap
+;
+;	to	r0				; Get Scaling Value
+	ldw	(rPlotDataPtr)
+;	from	r0
+	to	rPixScale
+	hib
+;	with	r0
+	lob
+;	from	r0
+	to	rPixScaleF
+	swap
+;
+	inc	rPlotDataPtr
+	inc	rPlotDataPtr
+;
+;	to	r0				; Starting Y Coordinate / Bank of PixelData
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr
+	inc	rPlotDataPtr
+;
+;	from	r0				; Get Starting Y Coordinate
+	to	r2
+	lob
+
+;	with	r0				; Get Bank of PixelData
+	hib
+	romb
+	move	rWallB,r0
+;
+	ifn	useCHECKWALLPLOTDATA
+	move	r0,#(RLViewPixY-1)
+;	with	r0
+	sub	r2
+	bge	.3
+	HALTGSU	#$13
+.3
+	endif
+
+	to	r14				; Get Address of PixelData
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr
+	inc	rPlotDataPtr
+;
+;	to	r0				; Get WallFraction
+	ldw	(rPlotDataPtr)
+;	from	r0
+	to	rWallF
+	lob
+	with	rWallF
+	swap
+;
+	with	rPlotDataPtr			; Move to next WallPlot
+	add	#(plwNext-plwWallF)
+;
+;	>>>   STRIP PIXEL SLOW   <<<
+;
+;	from	r0				; Any ImageOffset?
+	to	rPixelCount
+	hib
+	bne	_DWL9200+1			; Yes!
+	iwt	r15,#<_DWL4200+1
+	getb					; <REPEAT>/<UNIQUE>?
+_DWL9200
+	iwt	r15,#<_DWL3200+1
+	getb					; <REPEAT>/<UNIQUE>?
+
+
+;
+;	>>>   ADJUST FOR IMAGE OFFSET   <<<
+;
+_DWL6200
+	getb					; <REPEAT>/<UNIQUE>?
+_DWL6220
+;	with	r0
+	sex
+	bmi	_DWL6600			; <REPEAT>
+	inc	r14
+;
+;	>>>   UNIQUE   <<<
+;
+	with	r14
+	add	r0
+	with	rPixelCount
+	sub	r0
+	dec	rPixelCount
+	bpl	_DWL6200
+	inc	rPixelCount
+	beq	_DWL7100
+	with	rPixelCount
+	not
+	inc	rPixelCount
+	with	r14
+	bra	_DWL7400
+	sub	rPixelCount
+;
+;	>>>   REPEAT   <<<
+;
+_DWL6600
+	inc	r14
+	with	rPixelCount			; PixelCount += -RepeatCount
+	add	r0
+	dec	rPixelCount
+	bpl	_DWL6200
+	inc	rPixelCount
+	bne	_DWL8200			; <REPEAT> RUNNING
+;
+;	>>>   STRIP PIXEL SLOW   <<<
+;
+_DWL7100
+	nop					; @FLUSH WITH IN PIPELINE@
+_DWL7200
+	getb					; <REPEAT>/<UNIQUE>?
+	inc	r14
+;	from	r0				; UniqueCount/RepeatCount
+	to	rPixelCount
+	sex
+	bmi	_DWL8400+1			; <REPEAT>
+;
+;	>>>   UNIQUE   <<<
+;
+_DWL7400
+	move	rWall,r14
+	from	rColourMapB
+	romb
+	getb					; Get Colour
+;	from	r0
+	to	r14
+	add	rColourMap
+	from	rWallB
+	romb
+	getc
+_DWL7600
+	plot					; Draw the PixelBlock
+	plot
+	plot
+	plot
+	plot
+	plot
+	plot
+	plot
+	with	r1				; Move back to correct X Coordinate
+	sub	#8
+	dec	r12				; One less ScreenPixel to Draw
+	with	rWallF				; Move to next Pixel
+	beq	_DWL9500
+	add	rPixScaleF
+	from	rPixScale
+;	to	r0
+	adc	#0
+	beq	_DWL7600
+	dec	r2				; Move to next Y Coordinate
+;	from	r0
+	to	r14
+	add	rWall
+	with	rPixelCount
+	sub	r0
+	dec	rPixelCount
+	bpl	_DWL7400
+	inc	rPixelCount
+;
+;	>>>   UNIQUE DONE   <<<
+;
+	beq	_DWL7100
+	with	rPixelCount
+	not
+	inc	rPixelCount
+	with	r14
+	bra	_DWL6200
+	sub	rPixelCount
+
+;
+;	>>>   REPEAT   <<<
+;
+_DWL8200
+	dec	r14
+_DWL8400
+	move	rWall,r14
+	from	rColourMapB
+	romb
+	getb					; Get Colour
+;	from	r0
+	to	r14
+	add	rColourMap
+	inc	rWall
+	from	rWallB
+	romb
+	getc
+	move	r14,rWall
+_DWL8600
+	plot					; Draw the PixelBlock
+	plot
+	plot
+	plot
+	plot
+	plot
+	plot
+	plot
+	with	r1				; Move back to correct X Coordinate
+	sub	#8
+	dec	r12				; One less ScreenPixel to Draw
+	with	rWallF				; Move to next Pixel
+	beq	_DWL9500
+	add	rPixScaleF
+	from	rPixScale
+;	to	r0
+	adc	#0
+	beq	_DWL8600
+	dec	r2				; Move to next Y Coordinate
+	with	rPixelCount
+	add	r0
+	bmi	_DWL8600
+	nop
+;
+;	>>>   REPEAT DONE   <<<
+;
+	beq	_DWL7200
+	getb					; <REPEAT>/<UNIQUE>?
+	iwt	r15,#<_DWL6220+1
+;	with	r0
+	sex
+
+
+;
+;	* * * * * * *       NEXT STRIP       * * * * * * *
+;
+_DWL9590
+	iwt	r15,#<_DWL1000			; Next PixelStrip!
+	nop
+;
+;	* * * * * * *       NEXT STRIP FAST       * * * * * * *
+;
+_DWL9500
+;	to	r0				; Get Next WallPlotPtr
+	ldw	(rPlotDataPtr)
+
+	ifn	useCHECKWALLPLOTDATA
+	inc	r2				; Error with WallPlotData?
+	bpl	.0
+	HALTGSU	#$19				; YES!
+.0
+	endif
+;
+	moves	rPlotDataPtr,r0			; Any Next?
+	beq	_DWL9590			; No!
+;	to	r0				; Get #Pixels To Draw / ColourMap
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr
+	inc	rPlotDataPtr
+;
+;	from	r0				; #Pixels To Draw
+	to	r12
+	lob
+
+	ifn	useCHECKWALLPLOTDATA
+	bne	.1				; Error with WallPlotData?
+	HALTGSU	#$1A				; YES!
+.1
+	endif
+
+;	with	r0				; Get HighByte of ColourMap
+	hib
+;	from	r0
+	to	rColourMap
+	swap
+;
+;	to	r0				; Get Scaling Value
+	ldw	(rPlotDataPtr)
+;	from	r0
+	to	rPixScale
+	hib
+;	with	r0
+	lob
+;	from	r0
+	to	rPixScaleF
+	swap
+;
+	inc	rPlotDataPtr
+	inc	rPlotDataPtr
+;
+;	to	r0				; Starting Y Coordinate / Bank of PixelData
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr
+	inc	rPlotDataPtr
+;
+;	from	r0				; Get Starting Y Coordinate
+	to	r2
+	lob
+
+;	with	r0				; Get Bank of PixelData
+	hib
+	romb
+	move	rWallB,r0
+;
+	ifn	useCHECKWALLPLOTDATA
+	move	r0,#(RLViewPixY-1)
+;	with	r0
+	sub	r2
+	bge	.3
+	HALTGSU	#$1B
+.3
+	endif
+
+	to	r14				; Get Address of PixelData
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr
+	inc	rPlotDataPtr
+;
+;	to	r0				; Get WallFraction
+	ldw	(rPlotDataPtr)
+;	from	r0
+	to	rWallF
+	lob
+	with	rWallF
+	swap
+;
+	with	rPlotDataPtr			; Move to next WallPlot
+	add	#(plwNext-plwWallF)
+;
+;	>>>   STRIP PIXEL FAST   <<<
+;
+;	from	r0				; Any ImageOffset?
+	to	rPixelCount
+	hib
+	bne	_DWL9600+1			; Yes!
+	iwt	r15,#<_DWL7200+1
+	getb					; <REPEAT>/<UNIQUE>?
+_DWL9600
+	iwt	r15,#<_DWL6200+1
+	getb					; <REPEAT>/<UNIQUE>?
+
+
+	CACHEE	_RLDrawWallsLow

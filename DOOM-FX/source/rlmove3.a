@@ -1,0 +1,520 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       OBJECT MOVEMENT MODULE 3                     *
+;*                                                                    *
+;*                     OBJECT <-> OBJECT COLLISIONS                   *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+
+
+	public	_RLMoveXY3
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rY			equ	r4		; |DeltaY|
+rX			equ	r6		; |DeltaX|
+rDeltaX			equ	r2		; DeltaX
+rDeltaY			equ	r3		; DeltaY
+rSwap			equ	r1		; 0=DeltaX/DeltaY NOT Swapped
+;
+rMoveSectorsPtr		equ	r5		; Pointer to MoveSectors List
+rMoveLinesPtr		equ	r8		; Pointer to MoveLines List (RLMOVE2.A)
+rMObj			equ	r7		; MoveObject
+rMObjX			equ	r9		; MoveObject X
+rMObjY			equ	r10		; MoveObject Y
+rObj			equ	r11		; Object
+rObjX			equ	r12		; Object X
+rObjY			equ	r13		; Object Y
+
+
+;
+;	* * * * * * *       REALITY_ENGINE MOVE RLOBJECT XY       * * * * * * *
+;
+	align	16,(_RM3XY10000-_RM3XY2000)&$0f
+;
+;	>>>   FINISHED SCANNING MOVESECTORS   <<<
+;
+_RM3XY10000
+	move	r0,#-1				; MoveLines List Terminator
+;	from	r0
+	stw	(rMoveLinesPtr)
+	move	r15,(<MVCode)			; MOVE RLOBJECT (PLAYER/ENEMIES/PROJECTILES)
+	nop
+
+;
+;	>>>   START SCANNING MOVESECTORS   <<<
+;
+_RLMoveXY3
+	move	r0,#<(EMSECTORS+2)		; Bank of EM OBJECTS Data
+	ldb	(r0)
+	romb
+;
+	move	rObj,(<MVRObj)			; Get Object Pointer
+	from	rObj				; Get Object X
+;	to	r0
+	add	#(rloX+2)
+	to	rObjX
+	ldw	(r0)
+;	with	r0				; Get Object Y
+	add	#((rloY+2)-(rloX+2))
+	to	rObjY
+	ldw	(r0)
+;
+	move	rMoveSectorsPtr,#<(_RLMoveSectors-2) ; START OF MOVESECTORS LIST
+
+	CACHEB	_RLMoveXY3
+;
+;	>>>   CHECK NEXT MOVESECTOR   <<<
+;
+_RM3XY2000
+	inc	rMoveSectorsPtr			; Next MoveSector
+	inc	rMoveSectorsPtr			; Next MoveSector
+;	to	r0				; Get Next SectorData
+	ldw	(rMoveSectorsPtr)
+;	from	r0				; At End?
+	to	rMObj
+	add	#(rlsdObjects-rlsdFloorHeight)
+	bmi	_RM3XY10000-2			; No more Sectors!
+;
+;	>>>   PROCESS NEXT MOVEOBJECT   <<<
+;
+_RM3XY3000
+	move	r6,#<MVIMask			; ObjectType Collision Mask
+	to	r6
+	ldb	(r6)
+_RM3XY3200
+;	to	r0				; Move to Next Object
+	ldw	(rMObj)
+	moves	rMObj,r0			; Any more Objects?
+	beq	_RM3XY2000			; No!
+;
+;	>>>   COLLISION OBJECT?   <<<
+;
+	from	rMObj				; Get MoveObject Flags
+;	to	r0
+	add	#rloFlags
+;	to	r0
+	ldb	(r0)
+;	from	r0				; COLLISION OBJECT?
+	to	r1
+	and	r6
+	beq	_RM3XY3200			; No
+;
+;	>>>   MOVEOBJECT = OBJECT?   <<<
+;
+	from	rMObj				; MoveObject = Object?
+	cmp	rObj
+	beq	_RM3XY3200
+;
+;	>>>   MOVABLE/FIXED?   <<<
+;
+;	with	r0				; MOVABLE/FIXED?
+	swap
+;	with	r0
+	add	r0
+	bpl	_RM3XY3400			; FIXED
+;
+;	>>>   GET MOVABLE OBJECT'S WORLD COORDINATES   <<<
+;
+	from	rMObj				; Get Object Coordinates
+;	to	r0
+	add	#(rloX+2)
+	to	rMObjX				; Get Object X
+	ldw	(r0)
+;	with	r0
+	add	#((rloY+2)-(rloX+2))
+	to	rMObjY				; Get Object Y
+	bra	_RM3XY3600
+	ldw	(r0)
+;
+;	>>>   GET FIXED OBJECT'S WORLD COORDINATES   <<<
+;
+_RM3XY3400
+;	from	rMObj				; Get LevelObject
+;	to	r0
+	add	#(rloLObj)
+	to	r14
+	ldw	(r0)
+;
+;	to	r0				; Get Object X
+	getb
+	inc	r14
+;	from	r0
+	to	rMObjX
+	getbh
+	inc	r14
+;
+;	to	r0				; Get Object Y
+	getb
+	inc	r14
+;	from	r0
+	to	rMObjY
+	getbh
+;
+;	>>>   OBJECT WITHIN COLLISION DISTANCE?   <<<
+;
+_RM3XY3600
+	from	rMObjX				; (MoveObjectX-ObjectX)
+	to	rDeltaX
+	sub	rObjX
+	from	rDeltaX
+	bpl	_RM3XY3650			; >= $0100 Away?
+;	to	r0
+	hib
+;	with	r0				; >= $FF00 Away?
+	sex
+	inc	r0
+_RM3XY3650
+	bne	_RM3XY3200			; Yes!  Too Far Away!
+;
+	from	rMObjY				; (MoveObjectY-ObjectY)
+	to	rDeltaY
+	sub	rObjY
+	from	rDeltaY
+	bpl	_RM3XY3750			; >= $0100 Away?
+;	to	r0
+	hib
+;	with	r0				; >= $FF00 Away?
+	sex
+	inc	r0
+_RM3XY3750
+	bne	_RM3XY3200			; Yes!  Too Far Away!
+	nop
+
+;
+;	>>>   CONVERT RLOBJECT -> MOVEOBJECT -> MOVELINE   <<<
+;
+_RM3XY4000
+;
+;	>>>   GET ANGLE FROM OBJECT -> MOVEOBJECT   <<<
+;
+	moves	rX,rDeltaX			; DeltaX = 0?
+	bne	_RM3XY4200			; No
+	moves	rDeltaY,rDeltaY			; Yes, Always 90 or 270 degrees
+	bpl	_RM3XY4100
+	move	r0,#$c000			; 270 degrees
+	iwt	r15,#<_RM3XY5000
+	nop
+_RM3XY4100
+;	move	r0,#$4000			; 90 degrees
+	dc.w	$4000
+	iwt	r15,#<_RM3XY5000
+	nop
+_RM3XY4200
+	bpl	_RM3XY4220
+	with	rX				; |DeltaX|
+	not
+	inc	rX
+_RM3XY4220
+	moves	rY,rDeltaY			; DeltaY = 0?
+	bne	_RM3XY4400
+	moves	rDeltaX,rDeltaX			; Always 0 or 180 degrees
+;	with	r0
+	bpl	_RM3XY5000			; 0 degrees
+	sub	r0
+	move	r0,#$8000			; 180 degrees
+	bra	_RM3XY5000
+	nop
+_RM3XY4400
+	bpl	_RM3XY4420+1			; Ensure Positive
+	with	rY				; |DeltaY|
+	not
+	inc	rY
+;
+;	>>>   ENSURE RESULTS ARE FROM 0.0 TO 1.0   <<<
+;
+_RM3XY4420
+	from	rY				; |DeltaY| < |DeltaX|?
+	cmp	rX
+	bne	_RM3XY4440
+	with	rSwap				; Didn't Swap
+	move	r0,#$2000			; |DeltaY| = |DeltaX| (45 Degrees)
+	bra	_RM3XY4500
+	nop
+_RM3XY4440
+	blt	_RM3XY4460			; Yes
+	sub	rSwap
+	move	r0,rX				; No, Swap |DeltaY| / |DeltaX|
+	move	rX,rY
+	move	rY,r0
+	inc	rSwap
+;
+;	>>>   GET SLOPE |DELTAY| / |DELTAX|   <<<
+;
+_RM3XY4460
+	ibt	r0,#(^InvTable)			; Get InverseTable Entry
+	romb
+	from	rX				; Get |DeltaX|
+;	to	r0
+	add	rX
+	move	r14,#<(InvTable-2)
+	with	r14
+	add	r0
+	dec	r0
+	dec	r0
+	to	r6				; Get Inverse Value
+	getb
+	inc	r14
+;	with	r0				; Low/High Gear?
+	hib
+	with	r6
+	getbh
+	bne	_RM3XY4470			; High
+	from	rY				; Low
+;	to	r0
+	lmult
+	with	r4
+	bra	_RM3XY4480
+	to	r0
+_RM3XY4470
+;	to	r0				; <<1
+	add	rY
+;	with	r0
+	lmult
+	with	r4
+	hib
+;	with	r0
+	lob
+;	with	r0
+	swap
+;	with	r0
+	add	r4
+_RM3XY4480
+;	with	r0				; Get Index into |ArcTan| Table
+	lsr
+	lsr
+	lsr
+	lsr
+;	from	r0
+	to	r4
+	bic	#1
+	ibt	r0,#(^PArcTanTable)		; Get |ArcTan| Table Entry
+	romb
+	move	r0,#<(PArcTanTable)
+;	from	r0
+	to	r14
+	add	r4
+	getb					; Get Angle
+	inc	r14
+	dec	rSwap				; Were DeltaX/DeltaY Swapped?
+	alt1
+	bne	_RM3XY4500			; No
+	getb
+;
+;	>>>   DETERMINE QUADRANT   <<<
+;
+;	with	r0				; Yes, 90-Angle
+	not
+	inc	r0
+	move	r1,#$4000
+;	with	r0
+	add	r1
+_RM3XY4500
+	moves	rDeltaX,rDeltaX			; DeltaX >= 0?
+	bmi	_RM3XY4600			; Quad1 or Quad2
+;
+;	>>>   QUAD0 OR QUAD3   <<<
+;
+	moves	rDeltaY,rDeltaY			; DeltaY >= 0?
+	bpl	_RM3XY5000			; Quad0
+	nop
+;	with	r0				; Quad3 (360-Angle)
+	not
+	bra	_RM3XY5000
+	inc	r0
+;
+;	>>>   QUAD1 OR QUAD2   <<<
+;
+_RM3XY4600
+;	moves	rDeltaY,rDeltaY			; DeltaY >= 0?
+	from	rDeltaY
+	bmi	_RM3XY4620			; Quad2
+	nop
+;	with	r0				; 180-Angle
+	not
+	inc	r0
+_RM3XY4620
+	move	r1,#$8000			; 180+Angle
+;	with	r0
+	add	r1
+;
+;	>>>   GET LINE PERPENDICULAR COMPONENTS   <<<
+;
+_RM3XY5000
+;	with	r0				; Object->MoveObject Angle
+	lsr
+;	with	r0
+	lsr
+;	with	r0
+	lsr
+;	with	r0
+	lsr
+;	with	r0
+	lsr					; >>5
+;	from	r0
+	to	r1
+	bic	#1				; Remove lowest bit
+;
+	move	r0,#^CosTable			; Base Address of CosSine Table
+	romb
+	move	r0,#<CosTable
+;	from	r0
+	to	r14
+	add	r1
+	move	r0,#<SinTable			; Base Address of Sine Table
+	with	r1
+	add	r0
+	getb					; R1 = Perpendicular UnitVector X
+	inc	r14
+;
+	from	rMObj				; Save RLObject
+	stw	(rMoveLinesPtr)
+	with	rMoveLinesPtr
+	add	#(rlmlPUX-rlmlLine)
+;
+	getbh
+;
+	move	r14,r1				; R2 = Perpendicular UnitVector Y
+;	from	r0
+	to	r1
+	not
+	inc	r1
+	from	r1
+	stw	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	inc	rMoveLinesPtr
+;
+	getb
+	inc	r14
+;
+	move	r6,#<(_ObjData+rlodDiameter)	; Add Base of _ObjData
+;
+	getbh
+;	from	r0
+	stw	(rMoveLinesPtr)
+	move	r2,r0
+	with	rMoveLinesPtr
+	sub	#(rlmlPUY-rlmlLX1)
+;
+;	>>>   GET DIAMETER OF MOVEOBJECT   <<<
+;
+	ibt	r0,#(^_ObjData)			; Move to _ObjData Bank
+	romb
+	from	rMObj				; Get MObject Flags/Type
+;	to	r0
+	add	#(rloFlags+1)
+	to	r4				; @RAM FETCH INVERTED@
+	ldw	(r0)
+	from	r4				; Get Offset into _ObjData
+;	to	r0
+	umult	#rlodSize
+;	from	r0				; Move to Object Diameter
+	to	r14
+	add	r6
+;
+	move	r0,#<(EMSECTORS+2)		; Bank of EM OBJECTS Data
+	ldb	(r0)
+;
+	to	r6				; R6 = Object Diameter
+	getb
+;
+	romb					; Bank of EM OBJECTS Data
+;
+;	>>>   CALCULATE MOVELINE VERTEXES   <<<
+;
+	with	r1				; R1 = Perpendicular UnitVector X
+	fmult
+	with	r2				; R2 = Perpendicular UnitVector Y
+	fmult
+;
+;	>>>   MOVE VERTEXES TOWARDS OBJECT   <<<
+;
+	with	rMObjX				; MObjX
+	add	r1
+	with	rMObjY				; MObjY
+	sub	r2
+;
+;	>>>   VERTEX 1   <<<
+;
+	from	rMObjX				; V1X = MObjX
+;	to	r0
+	sub	r2
+;	from	r0
+	stw	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	inc	rMoveLinesPtr
+	from	rMObjY				; V1Y = MObjY
+;	to	r0
+	sub	r1
+	move	r6,#(rlpfItem<<8)
+;	from	r0
+	stw	(rMoveLinesPtr)
+	with	rMoveLinesPtr			; Move to MoveLineFlags
+	add	#(rlmlFlags-rlmlLY1)
+;
+;	>>>   FLAGS   <<<
+;
+	from	r4				; Is this MObject an ITEM?
+;	to	r0
+	and	r6
+	move	r0,#rllfItem			; (rllfItem|rllfSolid)
+	beq	_RM3XY5200
+	inc	r0				; rllfSolid
+	move	r4,#<(MVULCount)		; Flag Item Matching Trigger
+;	from	r0
+	stb	(r4)
+	dec	r0				; (rllfItem)
+_RM3XY5200
+;	from	r0
+	stw	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	inc	rMoveLinesPtr
+;
+;	>>>   VERTEX 2   <<<
+;
+	from	rMObjX				; V2X = MObjX
+;	to	r0
+	add	r2
+;
+	to	r6				; R6 = MoveObject SectorData
+	ldw	(rMoveSectorsPtr)
+;
+;	from	r0
+	stw	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	inc	rMoveLinesPtr
+	from	rMObjY				; V2Y = MObjY
+;	to	r0
+	add	r1
+;	from	r0
+	stw	(rMoveLinesPtr)
+	inc	rMoveLinesPtr
+	inc	rMoveLinesPtr
+;
+;	>>>   SECTORDATA.OBJECTS   <<<
+;
+	from	r6				; R0 = SectorData.Objects
+;	to	r0
+	add	#(rlsdObjects-rlsdFloorHeight)
+;	from	r0
+	stw	(rMoveLinesPtr)
+;
+;	>>>   NEXT MOVEOBJECT   <<<
+;
+	with	rMoveLinesPtr			; Move to Next MoveLineEntry
+	add	#(rlmlSize-rlmlSectorData)
+	iwt	r15,#<_RM3XY3000		; Process Next MoveObject
+	nop
+
+
+	CACHEE	_RLMoveXY3

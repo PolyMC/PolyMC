@@ -1,0 +1,396 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                      ENEMIES HANDLING MODULE 4                     *
+;*                                                                    *
+;*                          ENEMIES MOVEMENT                          *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+	include	rlenemies.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rEnemyMoves	equ	r11			; Pointer to Enemy Movement List
+rObj		equ	r12			; Pointer to RLObject
+
+
+;
+;	* * * * * * *       ENEMIES MOVEMENT       * * * * * * *
+;
+	align	16,(_RLEM10000-_RLEnemiesMoveAlign)&$0f
+;
+;	>>>   FINISHED ENEMIES MOVEMENT   <<<
+;
+_RLEM10000
+	move	r0,#<_RLEnemiesAttack		; HANDLE ENEMY ATTACKS
+	move	r8,#^_RLEnemiesAttack
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	* * * * * * *       START ENEMIES MOVEMENT       * * * * * * *
+;
+_RLEnemiesMove
+	move	r1,#<MVULMask			; LineFlags Type Mask
+	move	r0,#(rllfTriggerE>>8)
+;	from	r0
+	stb	(r1)
+	move	r1,#<MVIMask			; ObjectFlags Collision Mask
+	move	r0,#(rlpfSolid)
+;	from	r0
+	stb	(r1)
+	move	rEnemyMoves,#<_RLEnemyMoves	; Pointer to Enemy MoveList
+;
+;	* * * * * * *       PROCESS NEXT ENEMY       * * * * * * *
+;
+_RLEM2000
+	CACHEB	_RLEnemiesMove
+_RLEnemiesMoveAlign
+_RLEM2200
+;	to	r0				; Get Next Enemy
+	ldw	(rEnemyMoves)
+	inc	rEnemyMoves
+	moves	rObj,r0
+	beq	_RLEM10000			; No More Enemies!
+	inc	rEnemyMoves
+;
+	move	r0,#^_MObjData			; MObjData Bank
+	romb
+	move	r0,#rloMData			; Get Pointer to MObjData
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+;	from	r0				; Get MOVEVELOCITIES
+	to	r14
+	add	#rlmodMoveVelocities
+	move	(<ENEnemy),rEnemyMoves		; Save Enemy Movement List Index
+;
+	move	r4,#rloTDistance		; Get TARGET DISTANCE
+	with	r4
+	add	rObj
+	move	r1,#edFightDistance		; Within Fighting Distance of Target?
+;	to	r0
+	ldw	(r4)
+;	with	r0				; @CMP@
+	sub	r1
+	blt	_RLEM2200			; Yes, Don't Move Closer!
+;
+	getb
+	inc	r14
+	move	r4,#rloAngle			; Get TARGET ANGLE
+	with	r4
+	add	rObj
+	to	r2
+	getbh
+	from	rObj				; Was Enemy Movement Blocked?
+;	to	r0
+	add	#rloFlags
+;	to	r0
+	ldw	(r0)
+;	with	r0
+	and	#rlpfEnemyBlocked
+	to	r4				; Get TARGET ANGLE
+	beq	_RLEM4800			; NO
+	ldw	(r4)
+;
+;	>>>   REDIRECT ENEMY MOVEMENT   <<<
+;
+	umult	#($20>>2)			; Multiple of $2000 Degrees
+;	with	r0
+	add	r0
+;	with	r0
+	add	r0
+;	from	r0
+	to	r6
+	swap
+	move	r0,#^RandomTable		; Get Random Number
+	romb
+	move	r0,#<RandomNumI
+	to	r14
+	ldb	(r0)
+	move	r0,r14
+	inc	r0
+;	from	r0
+	sbk
+	getb
+;	from	r0
+	to	r1
+	and	#7
+	bne	_RLEM4200+1
+	with	r4
+	ibtx	r1,#$f0
+;	with	r0
+	and	r1
+;	from	r0
+	to	r6
+	swap
+_RLEM4200
+	with	r4
+	add	r6
+	move	r0,#rloTObj			; Get TARGET OBJECT
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	dec	r0				; Any Target?
+	bpl	_RLEM4800-1			; YES!
+	move	r0,#rloAngle			; NO!  RESET ANGLE!
+;	with	r0
+	add	rObj
+	from	r4
+	stw	(r0)
+_RLEM4800
+	link	#4
+	iwt	r15,#<_RLMoveObject2
+	from	r4
+;
+;	>>>   WAS ENEMY BLOCKED?   <<<
+;
+	move	r0,(<MVIPercent)		; Percentage of Movement Allowed
+	dec	r0
+	bmi	_RLEM5000
+	nop
+	iwt	r15,#<_RLEM9000			; Movement NOT Blocked
+	nop
+
+;
+;	* * * * * * *       ENEMY MOVEMENT BLOCKED       * * * * * * *
+;
+_RLEM5000
+	move	r2,(<MVMLPtr)			; Get Blocking Line's Flags
+	from	r2
+;	to	r0
+	add	#rlmlFlags
+;	to	r0
+	ldb	(r0)
+;
+;	>>>   SOLID WALL?   <<<
+;
+;	with	r0				; SOLID?
+	lsr
+	bcc	_RLEM5200			; TRANSPARENT -- Try to Use/Operate!
+	nop
+	iwt	r15,#<_RLEM8000			; Yes, Can't Use/Operate!
+	nop
+;
+;	>>>   DOOR?   <<<
+;
+_RLEM5200
+;	with	r0				; DOOR?
+	and	#(rllfDoor>>1)
+	beq	_RLEM7000			; No
+	nop
+
+;
+;	* * * * * * *       OPEN DOOR       * * * * * * *
+;
+_RLEM6000
+	move	r0,#<(EMBSP+2)			; Bank of EM Data
+	ldb	(r0)
+	romb
+;	from	r2				; LINE_TYPE = 1 (DOOR ENEMIES CAN OPEN)?
+;;	to	r0
+;	add	#rlmlLine
+;	to	r0
+	ldw	(r2)
+	move	r6,#rllSize
+;	with	r0
+	lmult
+	move	r0,(<EMLINES)			; Base Address of LINES
+;	with	r0
+	add	r4
+;	from	r0				; Get Line Type
+	to	r14
+	add	#rllType
+	getb					; LineType = 1?
+	dec	r0
+	bne	_RLEM7000			; NO!  TRY FIND ANOTHER ROUTE
+;
+;	>>>   GET LINE FACE   <<<
+;
+	with	r14				; Move to Face
+	sub	#(rllType-rllFace)
+	move	r1,(<EMFACES)			; Add Base of Faces
+	getb					; Get Line's Face
+	inc	r14
+	getbh
+	with	r1
+	add	r0
+	inc	r1				; Move to SectorFar
+	move	r14,r1				; Get SectorFar
+	move	r12,#<_RLEM6500
+	to	r6				; Sector
+	getb
+	move	r7,#(_TPCDoorOpenClose-_TPlatformCode)
+;
+;	>>>   OPEN DOOR IF CLOSED/CLOSING   <<<
+;
+	iwt	r15,#<_RLEnemyAddPlatformDoor
+	nop
+_RLEM6500
+	move	r1,(<ENEnemy)			; Restore Enemy Movement List Index
+	dec	r1
+	dec	r1
+	moves	r0,r0				; Now Opening/Already Opening?
+	to	rObj				; Get Current Enemy
+	beq	_RLEM6600			; Yes, Wait Until Open!
+	ldw	(r1)
+	iwt	r15,#<_RLEM9000			; Yes, Wait Until Open!
+	nop
+_RLEM6600
+	move	r2,(<MVMLPtr)			; Get Blocking Line
+
+;
+;	* * * * * * *       FLOATING ENEMY       * * * * * * *
+;
+_RLEM7000
+	ibt	r0,#(^_ObjData)			; Move to _ObjData Bank
+	romb
+	from	rObj				; Move to RLObject Type
+;	to	r0
+	add	#rloType
+;	to	r0				; Get RLObject Type
+	ldb	(r0)
+;	with	r0				; Get Offset into _ObjData
+	umult	#rlodSize
+	move	r1,#<(_ObjData+rlodFlags)	; Add Base of _ObjData
+;	from	r0				; Move to Object Flags
+	to	r14
+	add	r1
+	getb					; Get Object Flags
+;	with	r0				; Does this Object FLOAT?
+	and	#rlodfFloat
+	beq	_RLEM8000-1			; NO!
+;
+;	>>>   MOVE UP/DOWN TO PASS THROUGH OPENING   <<<
+;
+	move	r0,#rlmlHighFloorHeight		; R1 = Blocking Line's HighFloor
+	with	r2
+	add	r0
+	with	r14				; Move to Object Height
+	add	#(rlodHeight-rlodFlags)
+	to	r1
+	ldw	(r2)
+	to	r3				; R3 = Object Height
+	getb
+	from	rObj				; R0 = Object Z
+	to	r6
+	add	#rloZ
+;	to	r0
+	ldw	(r6)
+	with	r3				; R3 = (Object Z + Object Height)
+	add	r0
+	move	r4,#8				; Move Upwards
+;	from	r0				; Z < HighFloor?
+	cmp	r1
+	with	r1
+	blt	_RLEM7400			; Yes, Move Upwards!
+	add	r4
+;	from	r0				; Close to Target Z?
+	cmp	r1
+	blt	_RLEM8000			; Yes, Don't Move!
+	inc	r2
+	inc	r2
+	to	r1				; R1 = Blocking Line's LowCeiling
+	ldw	(r2)
+	from	r3				; (Z+Height) >= LowCeiling?
+	cmp	r1
+	blt	_RLEM8000-1			; No
+	move	r4,#-8				; Move Downwards
+_RLEM7400
+	with	r3				; R3 = ObjectZ+Height+Movement
+	add	r4
+	with	r4				; R4 = ObjectZ+Movement
+	add	r0
+;
+;	>>>   ENSURE OBJECT FITS WITHIN SECTOR HEIGHTS   <<<
+;
+	move	r0,#rloSector			; Get Sector
+;	with	r0
+	add	rObj
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r1,#<(_RLSectorData+rlsdFloorHeight)
+	with	r1
+	add	r0
+;
+;	to	r0				; Get FloorHeight
+	ldw	(r1)
+;	from	r0				; ObjectZ+Movement < Floor?
+	cmp	r4
+	bge	_RLEM7800			; Yes!  Move to Floor!
+	inc	r1
+	inc	r1
+;	to	r0				; Get CeilingHeight
+	ldw	(r1)
+;	from	r0				; ObjectZ+Height+Movement <= Ceiling?
+	cmp	r3
+	blt	_RLEM9000			; No!  Can't Move!
+	from	r4				; Update Object's Z
+_RLEM7800
+	bra	_RLEM9000
+	stw	(r6)
+
+;
+;	* * * * * * *       ENEMY MOVEMENT BLOCKED!       * * * * * * *
+;
+_RLEM8000
+	from	rObj				; Mark ENEMY MOVEMENT BLOCKED!
+;	to	r0
+	add	#rloFlags
+;	to	r0
+	ldw	(r0)
+;	from	r0
+	to	r1
+	bic	#(rlpfEnemyBlocked)
+	inc	r0
+;	with	r0
+	and	#(rlpfEnemyBlocked)
+;	with	r0
+	add	r1
+	bra	_RLEM9500
+;	from	r0
+	sbk
+
+;
+;	* * * * * * *       ENEMY MOVEMENT NOT BLOCKED!       * * * * * * *
+;
+_RLEM9000
+	from	rObj				; Clear ENEMY MOVEMENT BLOCKED!
+;	to	r0
+	add	#rloFlags
+;	to	r0
+	ldw	(r0)
+;	with	r0
+	bic	#(rlpfEnemyBlocked)
+;	from	r0
+	sbk
+
+;
+;	* * * * * * *       NEXT ENEMY       * * * * * * *
+;
+_RLEM9500
+	move	rEnemyMoves,(<ENEnemy)		; Restore Enemy Movement List Index
+_RLEM9700
+	iwt	r15,#<_RLEM2000
+	nop
+
+
+	CACHEE	_RLEnemiesMove

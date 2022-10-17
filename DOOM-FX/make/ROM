@@ -1,0 +1,3 @@
+make/touch ROM
+make/touch DEBUG
+make/touch PROFILE

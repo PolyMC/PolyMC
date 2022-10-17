@@ -1,0 +1,136 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                          COMMON CODE MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+
+	public	WaitVBlank
+	public	ScreenOff,ScreenOn
+	public	FadeScreenOff,FadeScreenOn
+
+
+	SECTION	COMMON,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       WAIT FOR VBLANK/NMI       * * * * * * *
+;
+	dbr	?
+	dpr	?
+	mode	'@X'
+WaitVBlank
+	php
+	mode	'a!'
+WaitVBlank2
+	bit	_HVBJOY			; Wait for NOT in VBlank Period
+	bmi	WaitVBlank2
+WaitVBlank3
+	bit	_HVBJOY			; Wait for IN VBlank Period
+	bpl	WaitVBlank3
+	plp
+	rtl
+
+
+;
+;	* * * * * * *       TURN SCREEN ON       * * * * * * *
+;
+	dbr	?
+	dpr	?
+	mode	'@X'
+ScreenOn
+	mode	'a!'
+	lda	#$81				; ENABLE NMI
+	ifn	(DEBUG*WIRE)
+	sta	NMITIMEN_XS
+	endif
+	sta	NMITIMEN
+	jsl	WaitVBlank			; Wait for VBlank
+SON200
+	bit	RGBXFer				; Wait for first RGB Transfer
+	bmi	SON200
+	lda	#$0f				; Enable Display
+	sta	INIDISP_S
+	sta	INIDISP
+	rtl
+
+
+;
+;	* * * * * * *       FADE SCREEN ON       * * * * * * *
+;
+	dbr	?
+	dpr	?
+	mode	'@X'
+FadeScreenOn
+	mode	'ax!'
+	stz	INIDISP_S
+	stz	INIDISP
+	lda	#$81				; ENABLE NMI
+	ifn	(DEBUG*WIRE)
+	sta	NMITIMEN_XS
+	endif
+	sta	NMITIMEN
+	jsl	WaitVBlank			; Wait for VBlank
+FON200
+	bit	RGBXFer				; Wait for first RGB Transfer
+	bmi	FON200
+	ldx	#16-1				; 16 Steps to FadeIn
+	lda	#$00
+FON500
+	wai
+	wai
+	inc	a				; Next Fade Value
+	sta	INIDISP_S
+	sta	INIDISP				; Fade Value
+	dex
+	bne	FON500
+	rtl
+
+
+;
+;	* * * * * * *       FADE SCREEN OFF       * * * * * * *
+;
+	dbr	?
+	dpr	?
+	mode	'@X'
+FadeScreenOff
+	mode	'ax!'
+	ldx	#16-1				; 16 Steps to FadeIn
+	lda	#$0f
+FOF200
+	wai
+	wai
+	dec	a				; Next Fade Value
+	sta	INIDISP_S
+	sta	INIDISP				; Fade Value
+	dex
+	bne	FOF200
+;	jmp	ScreenOff
+;
+;	* * * * * * *       TURN SCREEN OFF       * * * * * * *
+;
+;	!!!   WARNING!!!   FALLS THROUGH FROM ABOVE   !!!
+;
+	dbr	?
+	dpr	?
+	mode	'@X'
+ScreenOff
+	mode	'a!'
+	lda	#$80				; Disable Display
+	sta	INIDISP_S
+	jsl	WaitVBlank			; Wait for VBlank
+	sta	INIDISP
+	lda	#$01				; DISABLE NMI,VIRQ,HIRQ
+	ifn	(DEBUG*WIRE)
+	sta	NMITIMEN_XS
+	lda	#$81
+	endif
+	sta	NMITIMEN
+	stz	HDMAEN
+	bit	_TIMEUP				; Clear IRQ Flag
+	lda	#$e0				; FixedColour
+	sta	COLDATA
+	jml	WaitVBlank			; Wait for VBlank

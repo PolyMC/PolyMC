@@ -1,0 +1,29 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                            XBAND RAM0 MEMORY       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+	extern	XBRAM0Start,XBRAM0End
+
+	SECTION	XBRAM0,LOAD=RAM0End,ORG=RAM0End,SIZE=$0100-RAM0End
+
+;
+;	* * * * * * *       XBAND RAM0 VARIABLES       * * * * * * *
+;
+XBRAM0Start
+
+XBEntryTicks		ds.w	1
+XBLocalTimeout		ds.w	1
+
+;
+;	* * * * * * *       END OF XBAND RAM0 VARIABLES       * * * * * * *
+;
+XBRAM0End

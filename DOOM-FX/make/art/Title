@@ -1,0 +1,7 @@
+xg -pRLART:Title -dRLDATA:ART/Title -ms -y0 -c8
+split RLDATA:ART/Title.def0 RLDATA:ART/Title.def 16384
+xc -v -iRLDATA:ART/Title.def.0 -oRLDATA:COMP/Title.def.0
+xc -v -iRLDATA:ART/Title.def.1 -oRLDATA:COMP/Title.def.1
+xc -v -iRLDATA:ART/Title.map0 -oRLDATA:COMP/Title.map0
+xc -v -iRLDATA:ART/Title.rgb -oRLDATA:COMP/Title.rgb
+touch title.a

@@ -1,0 +1,4 @@
+xg -pRLART:MenuSkulls -dRLDATA:ART/MenuSkulls -ms -fn -y0 -u00 -s4,2 -c8
+delete RLDATA:ART/MenuSkulls.map0
+xc -iRLDATA:ART/MenuSkulls.def0 -oRLDATA:COMP/MenuSkulls.def0
+touch rlMenus.a

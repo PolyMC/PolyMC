@@ -1,0 +1,116 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                                  RAM0 MEMORY       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	rlsound.i
+
+	extern	RAM0Start,RAM0End
+
+	SECTION	RAM0,LOAD=$000000,ORG=$000000,SIZE=$0100
+
+;
+;	* * * * * * *       RAM0 VARIABLES       * * * * * * *
+;
+RAM0Start
+
+Temp			ds.b	8		; Temporary Variable
+Temp2			ds.b	8		; Temporary Variable2
+Temp3			ds.b	8		; Temporary Variable3
+Temp4			ds.b	8		; Temporary Variable4
+ITemp			ds.b	8		; Temporary IRQ Variable
+
+;
+;	>>>   TRANSFER VARIABLES   <<<
+;
+XFerPtr			ds.l	1		; Pointer to XFER DataTable
+
+;
+;	>>>   REALITY_ENGINE VARIABLES   <<<
+;
+RLFlags			ds.w	1		; Engine Flags
+IRQTPhase		ds.w	1		; Phase of TOP IRQ Operation
+IRQBPhase		ds.w	1		; Phase of BOTTOM IRQ Operation
+GSUPhase		ds.w	1		; Phase of GSU Operation
+FrameDone		ds.b	1		; Frame Completed Flag
+FrameCount		ds.b	1		; Initial Frame Counter
+
+
+;
+;	>>>   MUSIC DRIVER VARIABLES   <<<
+;
+_MDChunkPtr		ds.l	1		; Pointer within _MusicChunks
+
+
+;
+;	>>>   SOUND VARIABLES   <<<
+;
+_TSBytes		ds.w	1		; #Bytes Transferred (>0 = Turbo Active!)
+_TSData			ds.l	1		; Pointer to Data
+SoundQueueI		ds.w	1		; Regular SoundEffects Queue Index
+SoundQueueE		ds.w	1		; Regular SoundEffects Queue End
+TSoundsI		ds.w	MaxRLTSounds	; Turbo SoundEffects Priority Index Order
+
+
+;
+;	>>>   CUTTER SPRITE VARIABLES   <<<
+;
+_CDOfst			ds.w	1		; CharData Index
+_CDSP			ds.w	1		; CharData StackPointer
+_CDMode			ds.w	1		; CharData DeCompressor Mode
+_CDNumDups		ds.w	1		; CharData Number of Duplicates
+_CDNumReps		ds.w	1		; CharData Number of Repeats
+_CDCharNum		ds.w	1		; CharData Character Number
+_CDCharNumNT		ds.w	1		; CharData Character Number (Non-Transparent)
+_OAMI			ds.w	1		; OAM/OAMData Index
+_CHRNum			ds.w	1		; Current VRAM Character#
+_DEFGDMASP		ds.w	1		; MCHR DEF GDMA StackPointer
+
+;
+;	>>>   WEAPON VARIABLES   <<<
+;
+WeaponTypeOld		ds.w	1		; OLD Type of Weapon (wtType)
+WeaponFrameOld		ds.w	1		; OLD Weapon Frame (CutSprite#)
+WeaponXOld		ds.w	1		; OLD Weapon X Coordinate
+WeaponYOld		ds.w	1		; OLD Weapon Y Coordinate
+WeaponNextOld		ds.w	1		; OLD Next Weapon (wtType)
+WeaponDEFGDMA		ds.w	1		; Address of GDMA Stack for DEFs
+WeaponDEFGDMABytes	ds.w	1		; #Bytes of GDMAStackData to DMA
+WeaponOAMBytes		ds.w	1		; #Bytes of OAM Data to DMA
+WeaponOAMBytesOld	ds.w	1		; OLD #Bytes of OAM Data to DMA
+WeaponIRQBuildPhase	ds.w	1		; Index into WeaponIRQBuildPhaseCode Table
+WeaponBuildPhase	ds.w	1		; Index into WeaponBuildPhaseCode Table
+WeaponBuildList		ds.w	1		; Pointer to WeaponFrame List
+WeaponBuildFrame	ds.w	1		; Current WeaponFrame Being Built
+WeaponBuildLeft		ds.w	1		; #Frames Left to Build
+;
+WeaponCharDefSize	ds.w	1		; #Bytes of WeaponData .CHARDEF Remaining
+WeaponCharDefAddr	ds.l	1		; Address of WeaponData .CHARDEF
+WeaponCharDefWAddr	ds.w	1		; Address of WeaponData .CHARDEF WRAM
+
+;
+;	>>>   AUTOMAP VARIABLES   <<<
+;
+AutoMapModeOld		ds.w	1		; OLD AutoMapMode
+	ifn	DEBUGSCR
+DebugScreenOld		ds.w	1		; OLD Debugging Screen
+	endif
+
+;
+;	>>>   MENU VARIABLES   <<<
+;
+MenuData		ds.4	1		; Pointer to MenuData
+MenuItem		ds.w	1		; Current Menu Item
+MenuJoyOld		ds.w	1		; Old Joystick Bits
+MenuMaxItem		ds.b	1		; Maximum Menu Item
+
+
+;
+;	* * * * * * *       END OF RAM0 VARIABLES       * * * * * * *
+;
+RAM0End

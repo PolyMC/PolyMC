@@ -1,0 +1,97 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                                  RAM3 MEMORY       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	rlcut.i
+
+	extern	RAM3Start,RAM3End
+
+	ifn	DEBUG
+	SECTION	RAM3,LOAD=$7f0000,ORG=$7f0000,SIZE=$FD00
+	endif
+	ife	DEBUG
+	SECTION	RAM3,LOAD=$7f0000,ORG=$7f0000,SIZE=$10000
+	endif
+
+
+;
+;	* * * * * * *       RAM3 VARIABLES       * * * * * * *
+;
+RAM3Start
+;
+;	>>>   PROFILER DATA BLOCK   <<<
+;
+	ifn	PROFILE
+RLProfileData						; Profile DataBlock
+	endif
+
+;
+;	>>>   ALL VARIABLES THAT MUST REMAIN AVAILABLE DURING DECOMP   <<<
+;
+	ds.w	1					; DECOMP MUST NOT START AT $0000!
+
+;
+;	>>>   ALL VARIABLES THAT CAN BE OVERWRITTEN DURING DECOMP   <<<
+;
+DeCompBuffer						; DeComp Buffer (MUST NOT START AT $0000!!!)
+;
+RLVMap0			ds.w	(RLViewCharY*32)	; VRAM Map for View0
+RLVMap1			ds.w	(RLViewCharY*32)	; VRAM Map for View1
+RLStatFacesDefRAM	ds.b	(4*8)*(3*4*32)		; Faces Sprites
+RLStatKeysDefRAM	ds.b	(6*32)			; KeyCards Sprites
+RLStatArmsDefRAM	ds.b	8*(4*2*32)		; Arms Sprites
+
+;
+;	>>>   WEAPONS DATA BLOCKS   <<<
+;
+_WeaponOAMTable		ds.4	(MaxCutImages)			 ; OAM DataIndex per Frame
+_WeaponDEFGDMATable	ds.4	(MaxCutImages)			 ; CHR DataStart per Frame
+;
+_WeaponOAMData		ds.b	(MaxCutImages*RLMaxCutSprOAMs*6) ; OAM DataBlocks per Frame
+_WeaponDEFGDMAData
+	ds.b	(MaxCutImages)*((RLMaxCutSprCHRs/8)+1)*((8*2)+2) ; CHR DataBlocks per Frame
+
+;
+;	>>>   CUTTER MEMORY BLOCKS   <<<
+;
+_CDStack		ds.b	256			; CharData Stack
+_CDStackEnd
+_ImageTbl		ds.b	(MaxCutImages*itsSize)	; CUTTER _ImageTbl
+_CharData		ds.b	MaxCutCharData		; CUTTER _CharData
+_MiscData		ds.b	MaxCutMiscData		; CUTTER _MiscData
+	align	32					; MUST BE ON 32-BYTE BOUNDARY!
+_CharDef		ds.b	MaxCutCharDef		; CUTTER _CharDef
+
+
+;
+;	>>>   MUSIC DRIVER DECOMPRESSION BUFFER   <<<	
+;
+_MDDeCompBuffer		ds.b	$4000			; Music DeCompression Buffer
+_MDDeCompBuffer2					; Music DeCompression Buffer
+
+
+;
+;	>>>   MENU DATA BLOCKS   <<<
+;
+MenuHDMATM		ds.b	128			; HDMA TM Data
+MenuDeCompBuffer	ds.b	8192			; Menu DeComp Buffer
+
+
+	ifn	0
+;
+;	>>>   DEMO MEMORY BLOCKS   <<<
+;
+DemoData		ds.b	4096			; Recorded Joystick DemoData
+	endif
+
+
+;
+;	* * * * * * *       END OF RAM3 VARIABLES       * * * * * * *
+;
+RAM3End

@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	529
+DATE	MACRO
+		dc.b	'7.5.95'
+	ENDM
+VERS	MACRO
+		dc.b	'rltrace.a 1.529'
+	ENDM
+VSTRING	MACRO
+		dc.b	'rltrace.a 1.529 (7.5.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: rltrace.a 1.529 (7.5.95)',0
+	ENDM

@@ -1,0 +1,31 @@
+	PLIST	OFF
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                                          MONITOR/BOOT MEMORY       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+
+	cpu	65816
+	mmu	snessfx
+	cpudata
+
+	ifn	(WIRE*DEBUG)
+	SECTION	MONITOR,LOAD=$80007000,ORG=$0000F000,SIZE=$1000,ALLOC
+	endif
+
+	ifn	(WIRE*GSUREV1)
+	SECTION	MEMORYERROR00,LOAD=$80067DFF,ORG=$000CFDFF,SIZE=1,ALLOC
+	SECTION	MEMORYERROR01,LOAD=$80072E1F,ORG=$000EAE1F,SIZE=1,ALLOC
+	SECTION	MEMORYERROR02,LOAD=$80067FBF,ORG=$000CFFBF,SIZE=1,ALLOC
+	SECTION	MEMORYERROR03,LOAD=$80072FFF,ORG=$000EAFFF,SIZE=1,ALLOC
+	SECTION	MEMORYERROR04,LOAD=$8007040F,ORG=$000E840F,SIZE=1,ALLOC
+	SECTION	MEMORYERROR05,LOAD=$8007041F,ORG=$000E841F,SIZE=1,ALLOC
+	SECTION	MEMORYERROR06,LOAD=$8007043E,ORG=$000E843E,SIZE=1,ALLOC
+	SECTION	MEMORYERROR07,LOAD=$8007044E,ORG=$000E844E,SIZE=1,ALLOC
+	SECTION	MEMORYERROR08,LOAD=$8007045E,ORG=$000E845E,SIZE=1,ALLOC
+	SECTION	MEMORYERROR09,LOAD=$8007045F,ORG=$000E845F,SIZE=1,ALLOC
+	endif

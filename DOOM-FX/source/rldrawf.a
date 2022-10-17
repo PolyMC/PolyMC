@@ -1,0 +1,267 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                      ENGINE FLOOR DRAW MODULE        SOLID FLOORS  *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLDrawFloorsA
+	public	_RLDrawFloorsB
+	public	_RLDrawFloorsC
+	public	_RLDrawFloors
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+	ife	useFLOORS
+;
+;	* * * * * * *       REALITY_ENGINE DRAW FLOORS       * * * * * * *
+;
+;	In LOW-Detail mode, each 2-pixels wide are drawn
+;
+
+rColourMapB	equ	r8			; Bank of ColourMaps
+rColourMap	equ	r9			; ColourMap
+rSectorData	equ	r10			; Pointer to SectorData
+rPlotDataPtr	equ	r11			; Ptr within Current FloorPlotData
+
+
+	align	16,(_RLDrawFloorsC-_RLDrawFloorsLowAlign)&$0f
+_RLDrawFloorsC
+	move	r2,#<_RLDrawObjsC
+	bra	_RLDrawFloors
+	nop
+_RLDrawFloorsB
+	move	r2,#<_RLDrawObjsB
+	bra	_RLDrawFloors
+	nop
+_RLDrawFloorsA
+	move	r2,#<_RLDrawObjsA
+_RLDrawFloors
+	move	(<RLNextCode),r2		; Save address of Next Code Jump
+;
+	move	rColourMapB,#^RLColourMaps
+	from	rColourMapB
+	romb
+;
+	move	rPlotDataPtr,(<TRObjPlotPtr)	; Start of FloorPlotData
+;
+;	* * * * * * *       DRAW FLOORS IN LOW DETAIL       * * * * * * *
+;
+_RLDrawFloorsLow
+
+	CACHEB	_RLDrawFloorsLow
+_RLDrawFloorsLowAlign
+	iwt	r13,#<_DFL5400			; Default Loop Address
+	bra	_DFL8000+1			; Start Drawing Floors
+;	to	r0				; Get #Pixels To Draw/ColourMap
+	ldw	(rPlotDataPtr)
+
+;
+;	>>>   DRAW FLOORS COMPLETE   <<<
+;
+_DFL1000
+	move	r0,(<RLNextCode)		; Begin Execution of Next Code
+	ibt	r8,#^_RLDrawFloorsA
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	>>>   NORMAL STRIP DITHERED   <<<
+;
+_DFL5000
+;	to	r0				; Get SectorData
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr			; Move to Next Pointer
+	inc	rPlotDataPtr
+;
+	ldb	(r0)				; Get PixelColour
+;	from	r0
+	to	r14
+	add	rColourMap
+;
+	ifn	useCHECKFLOORPLOTDATA
+	from	r1
+;	to	r0
+	add	r12
+;	with	r0
+	add	r12
+	move	r4,#(RLViewPixX/3)
+	from	r4
+;	to	r0
+	sub	r0
+	bge	.0
+	HALTGSU	#$44
+.0
+	move	r0,#(RLViewPixY-1)
+;	with	r0
+	sub	r2
+	bge	.1
+	HALTGSU	#$45
+.1
+	endif
+
+	to	r4				; Get FIRST Colour
+	getb
+	move	r0,#$100			; Move to NEXT DARKEST Level
+	with	r14
+	add	r0
+	from	r2				; .C 0=Leave Order, 1=Swap Order
+;	to	r0
+	xor	r1
+	lsr
+	bcc	_DFL5200			; Leave or Change Order?
+	to	r0				; Leave
+	move	r0,r4				; Change
+	to	r4
+_DFL5200
+	getb
+_DFL5400
+;	from	r0
+	color
+	plot					; Draw the PixelPair
+	from	r4
+	color
+	loop
+	plot
+;
+;	>>>   GET PIXELSTRIP PLOT INFORMATION   <<<
+;
+_DFL8000
+;	to	r0				; Get #Pixels To Draw/ColourMap
+	ldw	(rPlotDataPtr)
+;	from	r0
+	to	r12
+	lob
+	beq	_DFL1000			; End of FloorPlotData!
+;
+;	with	r0				; Get ColourMap
+	hib
+;	from	r0
+	to	rColourMap
+	swap
+;
+	inc	rPlotDataPtr			; Get Starting X/Y Coordinates
+	inc	rPlotDataPtr
+;	to	r0
+	ldw	(rPlotDataPtr)
+;
+;	from	r0				; Starting Y Coordinate
+	to	r2
+	hib
+;	with	r0				; Starting X Coordinate
+	lob
+;	from	r0
+	to	r1
+	add	r0
+;
+	inc	rPlotDataPtr
+	moves	rColourMap,rColourMap		; SKY has ColourMap=0
+	bne	_DFL5000			; No, Normal Floor/Ceiling!
+	inc	rPlotDataPtr
+
+;
+;	>>>   SKY   <<<
+;
+_DFL7000
+	inc	rPlotDataPtr			; Move to Next Pointer
+	inc	rPlotDataPtr
+;
+	iwt	r13,#<_DFL7200			; Reset Loop Address
+	move	r5,(<EMNUM)			; Get Episode/Mission
+	move	r0,#1				; Bank $01 for _SKY1/_SKY2
+	romb
+	move	r0,(<ViewAngle)			; Get ViewAngle
+;	with	r0				; (0-ViewAngle)
+	not
+	inc	r0
+;	with	r0				; (ViewAngle << 2)
+	add	r0
+;	with	r0
+	add	r0
+;	with	r0				; $00-$FF
+	hib
+	move	r4,(<RLMinPixX)			; Add Base X Coordinate
+	with	r4
+	add	r4
+;	with	r0
+	add	r4
+;	with	r0				; Add X Coordinate
+	add	r1
+;	with	r0				; Get $00-$FF
+	lob
+;	with	r0				; Get $00-$7F
+	lsr
+;	with	r0				; *128 Pixels per Strip
+	swap
+;	with	r0
+	lsr
+;	with	r0				; Sub Y Coordinate
+	sub	r2
+	move	r14,#<$007f			; Base Address of Walls (SKY1 FIRST)
+	with	r14
+	add	r0
+;
+	move	r3,#$0080			; R3=Distance to next PixelStrip
+	move	r4,#$bfff			; R4=WallData .AND. Value
+	from	r5				; 0=E1, 1=E2, 1=E3
+;	to	r0
+	lsr
+;	with	r0
+	lsr
+	move	r0,#0				; $0000=E1, $4000=E2, $4000=$E3
+;	with	r0
+	ror
+;	with	r0
+	lsr
+	with	r4
+	add	r0
+	move	r5,#$8000			; R5=WallData .OR.  Value
+	with	r5
+	add	r0
+	from	r14				; Wrap around SKY WallData
+;	to	r0
+	and	r4
+;	from	r0
+	to	r14
+	or	r5
+;
+_DFL7200
+	getc					; Get Next Pixel
+;
+	from	r14				; Move to next Pixel
+;	to	r0
+	add	r3
+;	with	r0				; Wrap around SKY WallData
+	and	r4
+;	from	r0
+	to	r14
+	or	r5
+;
+	plot					; Draw the PixelPair
+	loop
+	plot
+	from	rColourMapB
+	romb
+;
+	iwt	r13,#<_DFL5400			; Default Loop Address
+;
+	iwt	r15,#<_DFL8000+1
+;	to	r0				; Get #Pixels To Draw/ColourMap
+	ldw	(rPlotDataPtr)
+
+
+	CACHEE	_RLDrawFloorsLow
+	endif

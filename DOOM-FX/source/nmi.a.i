@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	119
+DATE	MACRO
+		dc.b	'17.10.95'
+	ENDM
+VERS	MACRO
+		dc.b	'nmi.a 1.119'
+	ENDM
+VSTRING	MACRO
+		dc.b	'nmi.a 1.119 (17.10.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: nmi.a 1.119 (17.10.95)',0
+	ENDM

@@ -1,0 +1,338 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                    ENGINE TRACE OBJECTS MODULE 2                   *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	rlobjects.i
+	include	gsumac.i
+
+	public	_RLBuildTraceObjs2
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD TRACE                       CALCULATE OBJ COLOURMAPS  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       CALCULATE OBJ COLOURMAPS       * * * * * * *
+;
+rScaleF			equ	r2		; RL->SCN Pixel Scaling Fraction
+rScale			equ	r3		; RL->SCN Pixel Scaling Integer
+rSectorLightMin		equ	r5		; Minimum LightingLevel
+rSectorLightMax		equ	r7		; Maximum LightingLevel
+rSectorNearData		equ	r8		; Pointer to SectorNearData
+rObjPlotData		equ	r9		; Pointer within ObjPlotData
+rObjPlotDataEnd		equ	r10		; Pointer to End of ObjPlotData
+rVObj			equ	r11		; Pointer to Current VisibleObject
+rGlowLightLevel		equ	r12		; Glowing LightingLevel
+rInvulnerableCount	equ	r13		; Invulnerability Count
+
+
+	align	16,(_TRO2S9000-_TRO2S2200)&$0f
+;
+;	* * * * * * *       COMPLETED CALCULATING OBJ COLOURMAPS       * * * * * * *
+;
+_TRO2S9000
+	iwt	r0,#<_RLBuildTraceObjs3		; BUILD TRACE OBJS 3
+	ibt	r8,#^_RLBuildTraceObjs3
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	* * * * * * *       BEGIN CALCULATING OBJ COLOURMAPS       * * * * * * *
+;
+_RLBuildTraceObjs2
+	move	rVObj,#<(VObjListStart-1)	; START of VObjList
+;
+	ibt	r0,#(^_ObjData)			; Move to _ObjData Bank
+	romb
+	move	r0,(<RLFrame)			; Get Total #Frames
+;	with	r0
+	add	r0
+;	with	r0
+	add	r0
+	move	r2,#$70
+;	with	r0				; $00,$10,$20,$30,$40,$50,$60,$70
+	and	r2
+	move	r1,#$40
+;	from	r0				; $00,$10,$20,$30
+	cmp	r1
+	blt	_TRO2S1200
+	from	r2				;		  $30,$20,$10,$00
+;	to	r0
+	sub	r0
+_TRO2S1200
+;	from	r0				; $00,$20,$40,$60,$60,$40,$20,$00
+	to	rGlowLightLevel
+	add	r0
+;
+	move	rInvulnerableCount,(<InvulnerableCount)	; Invulnerability
+
+
+	CACHEB	_RLBuildTraceObjs2
+;
+;	* * * * * * *       PROCESS NEXT VISIBLE OBJECT       * * * * * * *
+;
+_TRO2S2200
+	inc	rVObj				; Move to VObj.Next
+;	to	r0
+	ldw	(rVObj)				; Get VObj.Next
+	moves	rVObj,r0
+	beq	_TRO2S9000			; No More VisibleObjects!
+;
+;	>>>   GET OBJECT   <<<
+;
+;	from	r0				; R2 = RLObject
+	to	r2
+	add	#rlqObj
+;
+;	>>>   GET OBJPLOTDATA START/END   <<<
+;
+	move	r1,#rlqObjPlotDataStart
+;	with	r0
+	add	r1
+	to	rObjPlotData			; ObjPlotDataStart
+	ldw	(r0)
+	inc	r0
+	inc	r0
+	to	rObjPlotDataEnd			; ObjPlotDataEnd
+	ldw	(r0)
+;
+;	>>>   ANY OBJ PLOTS TO PROCESS?   <<<
+;
+	from	rObjPlotData			; ANY OBJ PLOT DATA?
+;	to	r0
+	sub	rObjPlotDataEnd
+	beq	_TRO2S2200			; NO!  Skip this VOBJ
+	inc	rVObj
+;
+;	>>>   GET OBJECT TYPE   <<<
+;
+	to	r1				; Get RLObject
+	ldw	(r2)
+	from	r1
+;	to	r0
+	add	#rloType
+;	to	r0				; Get RLObject Type
+	ldb	(r0)
+;	with	r0				; Get Offset into _ObjData
+	umult	#rlodSize
+;
+;	>>>   GET OBJECT FLAGS   <<<
+;
+	move	r1,#<(_ObjData+rlodFlags+1)	; Add Base of _ObjData
+;	from	r0				; Move to Object Flags
+	to	r14
+	add	r1
+;
+;	>>>   PLAYER OBJECT?   <<<
+;
+	dec	r0				; Player Object?
+	with	r1
+	bpl	_TRO2S2400			; No, FlipWidth = 0!
+	sub	r1
+	move	r15,(<PTTRO2SPlayer)		; Yes, Determine FlipWidth
+	nop
+;
+;	>>>   VISIBLE OBJECT IS DRAWN!   <<<
+;
+_TRO2S2400
+	move	r0,#((rlodfGlow|rlodfShine)>>8)	; Glow/Shine Flags
+	with	r1				; Add Flags
+	add	r0
+	move	r0,#(rlqDrawn-rlqObj)		; Move to VObj.Drawn/FlipWidth
+;	with	r0
+	add	r2
+	from	r1				; Mark VObj Drawn/FlipWidth!
+	stw	(r0)
+;
+;	>>>   NORMAL/GLOWING OBJECT?   <<<
+;
+	getb					; Get RLObject.Flags
+;	with	r0				; Does RLObject Glow/Shine?
+	and	r1
+	beq	_TRO2S3000			; Yes!
+	from	r2				; Move to SectorDataNear
+;
+;	>>>   GLOWING OBJECT   <<<
+;
+	with	r0				; GLOWING/SHINING?
+	bic	#(rlodfGlow>>8)
+	with	rSectorLightMin
+	bne	_TRO2S2500			; SHINING
+	sub	rSectorLightMin
+	move	rSectorLightMin,rGlowLightLevel	; GLOWING
+_TRO2S2500
+	with	rSectorLightMin
+	bra	_TRO2S4000
+	to	rSectorLightMax
+
+;
+;	>>>   NORMAL OBJECT   <<<
+;
+_TRO2S3000
+;
+;	>>>   GET SECTORNEAR_DATA   <<<
+;
+;	from	r2				; Move to SectorDataNear
+;	to	r0
+	add	#(rlqSectorData-rlqObj)
+	to	rSectorNearData
+	ldw	(r0)
+;
+;	>>>   CALCULATE LIGHT LEVEL RANGE   <<<
+;
+	inc	rSectorNearData			; Move to LightLevel
+	to	rSectorLightMax			; Get Maximum LightLevel
+	ldb	(rSectorNearData)
+;
+;	>>>   LIGHT CREATED BY WEAPON   <<<
+;
+	move	r0,#<(LightAdjust)		; Get Light Adjustment
+;	to	r0
+	ldb	(r0)
+	with	rSectorLightMax
+	sub	r0
+	bpl	_TRO2S3200+1
+	from	rSectorLightMax			; Minimum Light Level
+	move	rSectorLightMax,#0
+_TRO2S3200
+	from	rSectorLightMax			; Get (Level-BrightestLevel)/2
+;	to	r0
+	lsr
+;	from	r0
+	to	r4
+	lsr
+;	with	r0
+	add	r4
+;	from	r0				; Minimum Light Level
+	to	rSectorLightMin			;    = (Level+(LowLevel))
+	add	rSectorLightMax
+;
+	from	rSectorLightMin			; Underflow Darkness?
+;	to	r0
+	hib
+	beq	_TRO2S3400			; No
+	nop
+	move	rSectorLightMin,#255		; Yes!
+_TRO2S3400
+	from	rSectorLightMin			; R6 = Range Light Level
+	to	r6
+	sub	rSectorLightMax
+;
+;	>>>   GET OBJPLOT RL->SCN PIXEL SCALE   <<<
+;
+	to	rScaleF
+	ldw	(rObjPlotDataEnd)
+	inc	rObjPlotDataEnd
+	inc	rObjPlotDataEnd
+	to	rScale
+	ldb	(rObjPlotDataEnd)
+	dec	rObjPlotDataEnd
+	dec	rObjPlotDataEnd
+
+;
+;	* * * * * * *       PROCESS VOBJ'S OBJPLOTDATA       * * * * * * *
+;
+_TRO2S4000
+	from	rObjPlotData			; At End?
+;	to	r0
+	sub	rObjPlotDataEnd
+	with	rObjPlotData			; Move to ColourMap
+	beq	_TRO2S2200-1			; Yes!  No More ObjPlots
+	add	#ploColourMap
+;
+;	>>>   INVULNERABILITY?   <<<
+;
+	dec	rInvulnerableCount		; Invulnerability?
+	bmi	_TRO2S4100			; No
+	inc	rInvulnerableCount		; YES!
+	ibtx	r0,#<((>RLColourMaps)+32)	; Invulnerable ColourMap
+	bra	_TRO2S4800+1
+	alt1
+
+;
+;	>>>   LIGHT_LEVEL = (MINIMUM_LEVEL - (SCALE * RANGE_LEVEL)) + (RANGE_LEVEL/4)   <<<
+;
+_TRO2S4100
+	from	rScaleF				; (Scale * RangeLevel)
+;	to	r0
+	fmult					; r0 = Fractionary Result
+;	with	r0
+	rol
+	from	rScale
+	to	r4
+	umult	r6				; r4 = Integer Result
+;	with	r0
+	add	r4
+;
+	from	rSectorLightMin			; (Minimum Level - (Scale*RangeLevel))
+;	to	r0
+	sub	r0
+;
+	from	r6				; +(RangeLevel/4)
+	to	r1
+	lsr
+	with	r1
+	lsr
+;	with	r0
+	add	r1
+;
+;	>>>   ENSURE LIGHTING WITHIN RANGE   <<<
+;
+;	from	r0				; < Minimum Light Level?
+	cmp	rSectorLightMin
+	blt	_TRO2S4400
+	moves	r0,rSectorLightMin
+_TRO2S4400
+;	from	r0				; > Maximum Light Level?
+	cmp	rSectorLightMax
+	bge	_TRO2S4600
+	moves	r0,rSectorLightMax
+_TRO2S4600
+;
+;	>>>   ADJUST LIGHT LEVEL TO COLOURMAP RANGE   <<<
+;
+;	with	r0				; Adjust to ColourMap Range
+	lsr
+;	with	r0
+	lsr
+;	with	r0
+	lsr
+	ibtx	r1,#<(>RLColourMaps))		; Add Base of ColourMaps
+;	with	r0
+	add	r1
+;
+;	>>>   SAVE COLOURMAP   <<<
+;
+_TRO2S4800
+;	from	r0				; Save Calculated ColourMap
+	stb	(rObjPlotData)
+;
+;	>>>   PROCESS NEXT OBJPLOTDATA   <<<
+;
+	with	rObjPlotData			; Move to next ObjPlotData
+	add	#(ploSize-ploColourMap)
+	bra	_TRO2S4000+1
+	from	rObjPlotData			; At End?
+
+
+	CACHEE	_RLBuildTraceObjs2

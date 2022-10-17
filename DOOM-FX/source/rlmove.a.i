@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	59
+DATE	MACRO
+		dc.b	'31.5.95'
+	ENDM
+VERS	MACRO
+		dc.b	'rlmove.a 1.59'
+	ENDM
+VSTRING	MACRO
+		dc.b	'rlmove.a 1.59 (31.5.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: rlmove.a 1.59 (31.5.95)',0
+	ENDM

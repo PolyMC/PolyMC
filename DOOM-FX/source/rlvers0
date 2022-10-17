@@ -1,0 +1,12 @@
+.key rlvers0
+.bra {
+.ket }
+FailAt 21
+Echo >rl.ver "Project REALITY_ENGINE Software Versions"
+XV >>rl.ver RLOBJ:RL.
+list >t:q{$$} #?.a.i lformat="XV >>rl.ver %s%s"
+IF NOT FAIL
+execute t:q{$$}
+ELSE
+ENDIF
+FailAt 10

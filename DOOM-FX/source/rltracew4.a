@@ -1,0 +1,248 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                     ENGINE TRACE WALLS MODULE 4                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildTraceWalls4
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD TRACE                      CALCULATE WALL COLOURMAPS  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       CALCULATE WALL COLOURMAPS       * * * * * * *
+;
+rScaleF			equ	r2		; RL->SCN Pixel Scaling Fraction
+rScale			equ	r3		; RL->SCN Pixel Scaling Integer
+rSectorLightMin		equ	r5		; Minimum LightingLevel
+rSectorLightMax		equ	r7		; Maximum LightingLevel
+rSectorNearData		equ	r8		; Pointer to SectorNearData
+rWallPlotData		equ	r9		; Pointer within WallPlotData
+rWallPlotDataEnd	equ	r10		; Pointer to End of WallPlotData
+rVSeg			equ	r11		; Pointer to Current VisibleSegment
+rVSegEnd		equ	r12		; Pointer to End of VisibleSegment List
+rInvulnerableCount	equ	r13		; Invulnerability Count
+
+
+	align	16,(_RLBuildTraceWalls4-_TRW4S2200)&$0f
+_RLBuildTraceWalls4
+	move	rVSeg,#<(_RLVSegList-rlvSize+rlvXsT)	; START of VSegList
+	move	rVSegEnd,(<VSegListEnd)		    	; END of VSegList
+;	move	r0,#rlvXsT
+;	with	rVSegEnd
+;	add	r0
+	move	rInvulnerableCount,(<InvulnerableCount)	; Invulnerability
+;
+	CACHEB	_RLBuildTraceWalls4
+;
+;	* * * * * * *       PROCESS NEXT VISIBLE SEGMENT       * * * * * * *
+;
+_TRW4S2200
+	move	r4,#(rlvSize)		 	; Offset to Next VSEG
+	move	r1,#(rlvWallPlotDataEnd-rlvSectorNearData)
+	move	r6,#(rlvWallPlotDataStart-rlvXsT)
+	from	rVSeg				; Move to Next VSEG
+_TRW4S2400
+	to	rVSeg				; @FROM IN PIPELINE@
+	add	r4
+	from	rVSeg				; At End?
+;	to	r0				; @CMP@
+	sub	rVSegEnd
+	beq	_TRW4S9000			; Yes!  No More VisibleSegments!
+;
+;	>>>   GET STARTING PIXEL/#PIXELS TO TRACE   <<<
+;
+;	to	r0				; Get Xs1/XsCount
+	ldw	(rVSeg)
+	inc	r0
+	beq	_TRW4S2400
+;
+;	>>>   MOVE TO WALLPLOTDATA START   <<<
+;
+	from	rVSeg
+;	to	r0
+	add	r6
+;
+;	>>>   GET WALLPLOTDATA START   <<<
+;
+	to	rWallPlotData			; WallPlotDataStart
+	ldw	(r0)
+	inc	r0
+	inc	r0
+	to	rWallPlotDataEnd		; WallPlotDataEnd
+	ldw	(r0)
+;
+;	>>>   ANY WALL PLOTS TO PROCESS?   <<<
+;
+	from	rWallPlotData			; NO WALL PLOT DATA?
+	cmp	rWallPlotDataEnd
+	beq	_TRW4S2400+1			; NO!  Skip this VSEG
+	with	rVSeg				; Move to Next VSEG
+;
+;	>>>   MOVE TO SECTORNEAR_DATA   <<<
+;
+	with	r0
+	sub	r1
+;
+;	>>>   GET SECTORNEAR_DATA   <<<
+;
+	to	rSectorNearData
+	ldw	(r0)
+;
+;	>>>   CALCULATE LIGHT LEVEL RANGE   <<<
+;
+	inc	rSectorNearData			; Move to LightLevel
+	to	rSectorLightMax			; Get Maximum LightLevel
+	ldb	(rSectorNearData)
+;
+;	>>>   LIGHT CREATED BY WEAPON   <<<
+;
+	move	r0,#<(LightAdjust)		; Get Light Adjustment
+;	to	r0
+	ldb	(r0)
+	with	rSectorLightMax
+	sub	r0
+	bpl	_TRW4S3100+1
+	from	rSectorLightMax			; Minimum Light Level
+	move	rSectorLightMax,#0
+_TRW4S3100
+	from	rSectorLightMax			; Minimum Light Level
+	to	rSectorLightMin			;    = (Level+(LowLevel))
+	add	rSectorLightMax
+;
+	from	rSectorLightMin			; Underflow Darkness?
+;	to	r0
+	hib
+	beq	_TRW4S3200			; No
+	nop
+	move	rSectorLightMin,#255		; Yes!
+_TRW4S3200
+	from	rSectorLightMin			; R6 = Range Light Level
+;	to	r0
+	sub	rSectorLightMax
+;	from	r0
+	to	r6
+	sub	#8
+	bpl	_TRW4S4000+1
+	from	rWallPlotData			; At End?
+	move	r6,#0
+
+;
+;	* * * * * * *       PROCESS VSEG'S WALLPLOTDATA       * * * * * * *
+;
+_TRW4S4000
+	from	rWallPlotData			; At End?
+;	to	r0				; @CMP@
+	sub	rWallPlotDataEnd
+	beq	_TRW4S2200			; Yes!  No More WallPlots
+;
+;	>>>   GET WALLPLOT RL->SCN PIXEL SCALING INTEGER   <<<
+;
+	with	rWallPlotData			; Get Scale
+	add	#plwScale
+;
+	dec	rInvulnerableCount		; Invulnerability?
+	bmi	_TRW2S4100			; No
+	inc	rInvulnerableCount		; YES!
+	ibtx	r0,#<((>RLColourMaps)+32)	; Invulnerable ColourMap
+	with	rWallPlotData			; Move to ColourMap
+	sub	#(plwScale-plwColourMap)
+	bra	_TRW2S4800
+;
+_TRW2S4100
+	to	rScale
+	ldb	(rWallPlotData)
+;
+	dec	rScale
+	bpl	_TRW4S4500
+	inc	rWallPlotData
+;
+;	>>>   GET WALLPLOT RL->SCN PIXEL SCALING FRACTION   <<<
+;
+;	to	rScaleF				; Get ScaleF
+	ldw	(rWallPlotData)
+;
+;	>>>   LIGHT_LEVEL = (MINIMUM_LEVEL - (SCALE * RANGE_LEVEL))   <<<
+;
+;	from	rScaleF				; (Scale * RangeLevel)
+;	to	r0
+	fmult					; r0 = Integer Result
+;	with	r0
+	rol
+;
+	from	rSectorLightMin			; (Minimum Level - (Scale*RangeLevel))
+;	to	r0
+	sub	r0
+;
+;	>>>   ENSURE LIGHTING WITHIN RANGE   <<<
+;
+;	from	r0				; < Minimum Light Level?
+	cmp	rSectorLightMin
+	blt	_TRW4S4400
+	moves	r0,rSectorLightMin
+_TRW4S4400
+;	from	r0				; > Maximum Light Level?
+	cmp	rSectorLightMax
+	bge	_TRW4S4600
+_TRW4S4500
+	moves	r0,rSectorLightMax
+_TRW4S4600
+;
+;	>>>   ADJUST LIGHT LEVEL TO COLOURMAP RANGE   <<<
+;
+;	with	r0				; Adjust to ColourMap Range
+	lsr
+;	with	r0
+	lsr
+;	with	r0
+	lsr
+	ibtx	r1,#<(>RLColourMaps))		; Add Base of ColourMaps
+;	with	r0
+	add	r1
+;
+;	>>>   SAVE COLOURMAP   <<<
+;
+	with	rWallPlotData			; Move to ColourMap
+	sub	#(plwScaleF-plwColourMap)
+_TRW2S4800
+;	from	r0				; Save Calculated ColourMap
+	stb	(rWallPlotData)
+;
+;	>>>   PROCESS NEXT WALLPLOTDATA   <<<
+;
+	with	rWallPlotData			; Move to next WallPlotData
+	add	#(plwSize-plwColourMap)
+	bra	_TRW4S4000+1
+	from	rWallPlotData			; At End?
+
+;
+;	* * * * * * *       COMPLETED CALCULATING WALL COLOURMAPS       * * * * * * *
+;
+_TRW4S9000
+	iwt	r0,#<_RLBuildTraceWalls5	; BUILD TRACE WALLS 5
+	ibt	r8,#^_RLBuildTraceWalls5
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+	CACHEE	_RLBuildTraceWalls4

@@ -1,0 +1,4 @@
+xg -pRLART:rlfont -dRLDATA:ART/rlfont -ms -fn -y0 -c27
+delete RLDATA:ART/rlfont.map0
+delete RLDATA:ART/rlfont.rgb
+touch rltext.a

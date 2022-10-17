@@ -1,0 +1,242 @@
+split hd2:doom/wad.data/music/DSPISTOL ram:a 9
+copy ram:a.1 hd3:doom/sound/DSPISTOL
+
+split hd2:doom/wad.data/music/DSSHOTGN ram:a 8
+copy ram:a.1 hd3:doom/sound/DSSHOTGN
+
+
+split hd2:doom/wad.data/music/DSSGCOCK ram:a 8
+copy ram:a.1 hd3:doom/sound/DSSGCOCK
+
+
+split hd2:doom/wad.data/music/DSSAWUP ram:a 9
+copy ram:a.1 hd3:doom/sound/DSSAWUP
+
+
+split hd2:doom/wad.data/music/DSSAWIDL ram:a 9
+copy ram:a.1 hd3:doom/sound/DSSAWIDL
+
+
+split hd2:doom/wad.data/music/DSSAWFUL ram:a 8
+copy ram:a.1 hd3:doom/sound/DSSAWFUL
+
+
+split hd2:doom/wad.data/music/DSSAWHIT ram:a 8
+copy ram:a.1 hd3:doom/sound/DSSAWHIT
+
+
+split hd2:doom/wad.data/music/DSRLAUNC ram:a 9
+copy ram:a.1 hd3:doom/sound/DSRLAUNC
+
+
+split hd2:doom/wad.data/music/DSRXPLOD ram:a 9
+copy ram:a.1 hd3:doom/sound/DSRXPLOD
+
+
+split hd2:doom/wad.data/music/DSFIRSHT ram:a 8
+copy ram:a.1 hd3:doom/sound/DSFIRSHT
+
+
+split hd2:doom/wad.data/music/DSFIRXPL ram:a 8
+copy ram:a.1 hd3:doom/sound/DSFIRXPL
+
+
+split hd2:doom/wad.data/music/DSPSTART ram:a 8
+copy ram:a.1 hd3:doom/sound/DSPSTART
+
+
+split hd2:doom/wad.data/music/DSPSTOP ram:a 9
+copy ram:a.1 hd3:doom/sound/DSPSTOP
+
+
+split hd2:doom/wad.data/music/DSDOROPN ram:a 9
+copy ram:a.1 hd3:doom/sound/DSDOROPN
+
+
+split hd2:doom/wad.data/music/DSDORCLS ram:a 8
+copy ram:a.1 hd3:doom/sound/DSDORCLS
+
+
+split hd2:doom/wad.data/music/DSSTNMOV ram:a 8
+copy ram:a.1 hd3:doom/sound/DSSTNMOV
+
+
+split hd2:doom/wad.data/music/DSSWTCHN ram:a 8
+copy ram:a.1 hd3:doom/sound/DSSWTCHN
+
+
+split hd2:doom/wad.data/music/DSSWTCHX ram:a 8
+copy ram:a.1 hd3:doom/sound/DSSWTCHX
+
+
+split hd2:doom/wad.data/music/DSPLPAIN ram:a 8
+copy ram:a.1 hd3:doom/sound/DSPLPAIN
+
+
+split hd2:doom/wad.data/music/DSDMPAIN ram:a 9
+copy ram:a.1 hd3:doom/sound/DSDMPAIN
+
+
+split hd2:doom/wad.data/music/DSPOPAIN ram:a 9
+copy ram:a.1 hd3:doom/sound/DSPOPAIN
+
+
+split hd2:doom/wad.data/music/DSSLOP ram:a 9
+copy ram:a.1 hd3:doom/sound/DSSLOP
+
+
+split hd2:doom/wad.data/music/DSITEMUP ram:a 9
+copy ram:a.1 hd3:doom/sound/DSITEMUP
+
+
+split hd2:doom/wad.data/music/DSWPNUP ram:a 9
+copy ram:a.1 hd3:doom/sound/DSWPNUP
+
+
+split hd2:doom/wad.data/music/DSOOF ram:a 8
+copy ram:a.1 hd3:doom/sound/DSOOF
+
+
+split hd2:doom/wad.data/music/DSTELEPT ram:a 8
+copy ram:a.1 hd3:doom/sound/DSTELEPT
+
+
+split hd2:doom/wad.data/music/DSPOSIT1 ram:a 9
+copy ram:a.1 hd3:doom/sound/DSPOSIT1
+
+
+split hd2:doom/wad.data/music/DSPOSIT2 ram:a 9
+copy ram:a.1 hd3:doom/sound/DSPOSIT2
+
+
+split hd2:doom/wad.data/music/DSPOSIT3 ram:a 8
+copy ram:a.1 hd3:doom/sound/DSPOSIT3
+
+
+split hd2:doom/wad.data/music/DSBGSIT1 ram:a 9
+copy ram:a.1 hd3:doom/sound/DSBGSIT1
+
+
+split hd2:doom/wad.data/music/DSBGSIT2 ram:a 8
+copy ram:a.1 hd3:doom/sound/DSBGSIT2
+
+
+split hd2:doom/wad.data/music/DSSGTSIT ram:a 8
+copy ram:a.1 hd3:doom/sound/DSSGTSIT
+
+
+split hd2:doom/wad.data/music/DSBRSSIT ram:a 9
+copy ram:a.1 hd3:doom/sound/DSBRSSIT
+
+
+split hd2:doom/wad.data/music/DSSGTATK ram:a 9
+copy ram:a.1 hd3:doom/sound/DSSGTATK
+
+
+split hd2:doom/wad.data/music/DSCLAW ram:a 8
+copy ram:a.1 hd3:doom/sound/DSCLAW
+
+
+split hd2:doom/wad.data/music/DSPLDETH ram:a 8
+copy ram:a.1 hd3:doom/sound/DSPLDETH
+
+
+split hd2:doom/wad.data/music/DSPODTH1 ram:a 9
+copy ram:a.1 hd3:doom/sound/DSPODTH1
+
+
+split hd2:doom/wad.data/music/DSPODTH2 ram:a 8
+copy ram:a.1 hd3:doom/sound/DSPODTH2
+
+
+split hd2:doom/wad.data/music/DSPODTH3 ram:a 9
+copy ram:a.1 hd3:doom/sound/DSPODTH3
+
+
+split hd2:doom/wad.data/music/DSBGDTH1 ram:a 8
+copy ram:a.1 hd3:doom/sound/DSBGDTH1
+
+
+split hd2:doom/wad.data/music/DSBGDTH2 ram:a 8
+copy ram:a.1 hd3:doom/sound/DSBGDTH2
+
+
+split hd2:doom/wad.data/music/DSSGTDTH ram:a 9
+copy ram:a.1 hd3:doom/sound/DSSGTDTH
+
+
+split hd2:doom/wad.data/music/DSBRSDTH ram:a 8
+copy ram:a.1 hd3:doom/sound/DSBRSDTH
+
+
+split hd2:doom/wad.data/music/DSPOSACT ram:a 9
+copy ram:a.1 hd3:doom/sound/DSPOSACT
+
+
+split hd2:doom/wad.data/music/DSBGACT ram:a 9
+copy ram:a.1 hd3:doom/sound/DSBGACT
+
+
+split hd2:doom/wad.data/music/DSDMACT ram:a 8
+copy ram:a.1 hd3:doom/sound/DSDMACT
+
+
+split hd2:doom/wad.data/music/DSNOWAY ram:a 8
+copy ram:a.1 hd3:doom/sound/DSNOWAY
+
+
+split hd2:doom/wad.data/music/DSBAREXP ram:a 9
+copy ram:a.1 hd3:doom/sound/DSBAREXP
+
+
+split hd2:doom/wad.data/music/DSPUNCH ram:a 8
+copy ram:a.1 hd3:doom/sound/DSPUNCH
+
+
+split hd2:doom/wad.data/music/DSPLASMA ram:a 8
+copy ram:a.1 hd3:doom/sound/DSPLASMA
+
+
+split hd2:doom/wad.data/music/DSBFG ram:a 8
+copy ram:a.1 hd3:doom/sound/DSBFG
+
+
+split hd2:doom/wad.data/music/DSCACSIT ram:a 8
+copy ram:a.1 hd3:doom/sound/DSCACSIT
+
+
+split hd2:doom/wad.data/music/DSCYBSIT ram:a 9
+copy ram:a.1 hd3:doom/sound/DSCYBSIT
+
+
+split hd2:doom/wad.data/music/DSSPISIT ram:a 9
+copy ram:a.1 hd3:doom/sound/DSSPISIT
+
+
+split hd2:doom/wad.data/music/DSSKLATK ram:a 8
+copy ram:a.1 hd3:doom/sound/DSSKLATK
+
+
+split hd2:doom/wad.data/music/DSCACDTH ram:a 8
+copy ram:a.1 hd3:doom/sound/DSCACDTH
+
+
+split hd2:doom/wad.data/music/DSSKLDTH ram:a 8
+copy ram:a.1 hd3:doom/sound/DSSKLDTH
+
+
+split hd2:doom/wad.data/music/DSCYBDTH ram:a 9
+copy ram:a.1 hd3:doom/sound/DSCYBDTH
+
+
+split hd2:doom/wad.data/music/DSSPIDTH ram:a 8
+copy ram:a.1 hd3:doom/sound/DSSPIDTH
+
+
+split hd2:doom/wad.data/music/DSHOOF ram:a 9
+copy ram:a.1 hd3:doom/sound/DSHOOF
+
+
+split hd2:doom/wad.data/music/DSMETAL ram:a 8
+copy ram:a.1 hd3:doom/sound/DSMETAL
+

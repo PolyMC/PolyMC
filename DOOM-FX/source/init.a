@@ -1,0 +1,85 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                         INITIALIZATION MODULE                      *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+
+	public	RESET
+	public	InitSystem
+	public	RAGE
+
+
+	SECTION	INIT,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       RESET       * * * * * * *
+;
+RESET
+	mode	'A!'
+	lda	#$1fff				; Set Initial STACK
+	tcs
+	lda	#$0000				; Set Initial DPR
+	tcd
+	dpr	0
+	mode	'ax!'
+	pha					; Set Initial DBR
+	plb
+	dbr	0
+;
+	jsl	InitSystem			; Initialize CORE HARDWARE SYSTEM
+;
+	mode	'A!'
+	lda	RandSentry			; COLD or WARM/HOT boot?
+	cmp	#'AR'
+	bne	ColdBoot			; COLD
+	lda	RandSentry+2
+	cmp	#'DN'
+	beq	HotBoot				; WARM/HOT
+;
+;	* * * * * * *       COLD BOOT THE SYSTEM       * * * * * * *
+;
+;	Code executed upon <POWER_UP> of the MACHINE HARDWARE
+;
+ColdBoot
+	ifn	(0*DEBUGSCR)
+	jsl	DebugWarnInfo			; Display DEBUG WARNING PAGE
+	endif
+	ifn	useSYSINFO
+	jsl	SystemInfo			; Display SYSTEM INFORMATION
+	endif
+	ifn	useLEGAL
+	jsl	Legal				; Display LEGAL PAGE
+	endif
+WarmBoot
+	ifn	useLOGO
+	jsl	Logo				; Display LOGO PAGE
+	endif
+	ifn	useLOGO2
+	jsl	Logo2				; Display LOGO2 PAGE
+	endif
+	ifn	useSCULPT
+	jsl	SculpturedLightDemo		; Display SCULPTURED PAGE
+	endif
+	jmp	HotBoot2
+;
+;	* * * * * * *       HOT BOOT THE SYSTEM       * * * * * * *
+;
+;	Code executed upon a <RESET> of the MACHINE HARDWARE
+;
+HotBoot
+	ifn	useSOUND
+	jsl	_InitMusicDriver		; Load MUSIC Driver
+	endif
+HotBoot2
+	jsl	RestoreVars			; Restore Saved Variables
+	mode	'AX'
+	inc	_ResetCount			; Reset Count++
+	jsl	CheckSumVars
+;
+;	* * * * * * *       SYSTEM RUNNING       * * * * * * *
+;
+	jml	RAGE				; Start RAGE!

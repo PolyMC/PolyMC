@@ -1,0 +1,378 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         ENGINE LINES MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rRLLineCount	equ	r2			; RLEngine Line Counter
+
+rNumX		equ	r3			; Number of BlockMap X Repetitions
+rNumY		equ	r4			; Number of BlockMap Y Repetitions
+rDeltaX		equ	r5			; Coordinates/BlockMap Delta X
+rDeltaY		equ	r6			; Coordinates/BlockMap Delta Y
+
+rObj		equ	r12			; Pointer to Object's Data
+
+rTemp		equ	r13			; Temporary Variable
+rBlockMapPtr	equ	r13			; Pointer to Current BlockMapBlock
+
+rUseLinesPtr	equ	r9			; Pointer to UseLines List
+rLineRLCountsP	equ	r10			; Base of LineRLCounts Table
+
+
+	align	16,(_RLUseXY-_RUXY5000)&$0f
+;
+;	* * * * * * *       REALITY_ENGINE USE LINES       * * * * * * *
+;
+;	rObj	=	Pointer to RLObject
+;
+_RLUseXY
+;
+;	>>>   GET CURRENT OBJECT COORDINATES   <<<
+;
+	from	rObj				; Move to X Coordinate
+;	to	r0
+	add	#(rloX+2)
+	to	r1				; r1 = X Coordinate
+	ldw	(r0)
+;	with	r0				; r2 = Y Coordinate
+	add	#((rloY+2)-(rloX+2))
+	to	r2
+	ldw	(r0)
+;	with	r0				; r0 = Angle
+	add	#(rloAngle-(rloY+2))
+;	to	r0
+	ldw	(r0)
+;
+	move	(<ULReturnAddress),r11		; Save Return Address
+;
+;	>>>   GET DIRECTIONAL VECTOR COMPONENTS   <<<
+;
+	lsr					; Object Angle
+	lsr
+	lsr
+	lsr
+	lsr					; >>5
+	lsr					; Remove lowest bit
+;	from	r0
+	to	r4
+	add	r0
+;
+	move	(<ULObjX0),r1
+;
+	ibt	r0,#^CosTable			; Bank of CosTable
+	romb
+;
+	move	r0,#<CosTable			; UnitVector X
+;	from	r0
+	to	r14
+	add	r4
+	getb
+	inc	r14
+	to	r6
+	getbh
+;
+	move	(<ULObjY0),r2
+;
+	move	r0,#<SinTable			; UnitVector Y
+;	from	r0
+	to	r14
+	add	r4
+	move	rTemp,#(odrUseXY<<1)		; Use/Operate Intersection Radius
+	from	rTemp
+;	to	r0
+	fmult
+;
+	from	r1				; X Coordinate Integer
+	to	r3
+	add	r0
+	move	(<ULObjX1),r3
+	moves	r0,r0
+	move	rDeltaX,#+2
+	to	r6
+	getb
+	bpl	_RUXY2200
+	inc	r14
+	move	rDeltaX,#-2
+_RUXY2200
+;
+;	>>>   INCREMENT RLENGINE_LINE_COUNT   <<<
+;
+	move	r0,(<RLLineCount)		; RLEngineLineCount++
+	inc	r0
+	sbk
+;
+	with	r6
+	getbh
+	from	rTemp				; Y Coordinate Integer
+;	to	r0
+	fmult
+	from	r2
+	to	r4
+	add	r0
+	move	(<ULObjY1),r4
+	moves	r0,r0
+	move	rDeltaY,#+2
+	bpl	_RUXY2400
+	nop
+	move	rDeltaY,#-2
+_RUXY2400
+
+;
+;	* * * * * * *       DETERMINE ENDPOINT BLOCKMAP LOCATIONS       * * * * * * *
+;
+	move	r0,(<EMBLOCKMAPORIGIN)		; Adjust to MapOriginX
+	with	r1
+	sub	r0
+	bpl	_RUXY3240+1
+	with	r1
+	sub	r1
+_RUXY3240
+	with	r1				; X Coordinate / 128
+	add	r1
+	with	r1
+	hib
+;
+	with	r3
+	sub	r0
+	bpl	_RUXY3260+1
+	with	r3
+	sub	r3
+_RUXY3260
+	with	r3				; X Coordinate / 128
+	add	r3
+	with	r3
+	hib
+;
+	move	r0,(<(EMBLOCKMAPORIGIN+2))	; Adjust to MapOriginY
+	with	r2
+	sub	r0
+	bpl	_RUXY3440+1
+	with	r2
+	sub	r2
+_RUXY3440
+	with	r2				; Y Coordinate / 128
+	add	r2
+	with	r2
+	hib
+;
+	with	r4
+	sub	r0
+	bpl	_RUXY3460+1
+	with	r4
+	sub	r4
+_RUXY3460
+	with	r4				; Y Coordinate / 128
+	add	r4
+	with	r4
+	hib
+;
+;	>>>   ENSURE WITHIN BLOCKMAP BOUNDARIES   <<<
+;
+	move	rTemp,(<EMBLOCKMAPDIM)		; Get Dimensions of BlockMap
+;
+	from	rTemp				; Get Y Dimension
+;	to	r0
+	hib
+	dec	r0
+;	from	r0				; Ensure within boundary of BlockMap
+	cmp	r2
+	bge	_RUXY3620
+	move	r2,r0
+_RUXY3620
+;	from	r0
+	cmp	r4
+	bge	_RUXY3640
+	move	r4,r0
+_RUXY3640
+	dec	rTemp
+	from	rTemp				; Get X Dimension
+;	to	r0
+	lob
+;	from	r0				; Ensure within boundary of BlockMap
+	cmp	r1
+	bge	_RUXY3660
+	move	r1,r0
+_RUXY3660
+;	from	r0
+	cmp	r3
+	bge	_RUXY3680
+	move	r3,r0
+_RUXY3680
+;
+;	>>>   GET #BYTES PER BLOCKMAP LINE   <<<
+;
+	inc	r0				; RTEMP = #Bytes per BlockMap Line
+;	from	r0
+	to	rTemp
+	add	r0
+;
+;	>>>   CALCULATE NUMBER OF BLOCKMAP ITERATIONS   <<<
+;
+	from	r3				; Get #BlockMap X Iterations
+	to	rNumX
+	sub	r1
+	bpl	_RUXY4200
+	with	rNumX
+	not
+	inc	rNumX
+_RUXY4200
+	inc	rNumX
+;
+	from	r4				; Get #BlockMap Y Iterations
+	to	rNumY
+	sub	r2
+	bpl	_RUXY4400
+	with	rNumY
+	not
+	inc	rNumY
+_RUXY4400
+	inc	rNumY
+;
+;	>>>   CALCULATE #BYTES BETWEEN BLOCKMAP LINES   <<<
+;
+	moves	rDeltaY,rDeltaY			; #Bytes to next BlockMap Line
+	with	rTemp
+	bpl	_RUXY4600
+	to	rDeltaY
+	with	rDeltaY
+	not
+	inc	rDeltaY
+_RUXY4600
+	from	rNumX				; #Bytes per BlockMap Line USED
+;	to	r0
+	mult	rDeltaX
+	with	rDeltaY				; #Bytes per BlockMap Line UNUSED
+	sub	r0
+;
+;	>>>   CALCULATE STARTING ADDRESS WITHIN BLOCKMAP OFFSETS   <<<
+;
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb					; Set ROM Bank
+;
+	from	rTemp				; Get (WidthOfBlockMap * Y0)
+;	to	r0
+	mult	r2
+	move	rTemp,(<EMBLOCKMAP)		; Get Base of BlockMap
+;	with	r0				; Get (X0 * 2)
+	add	r1
+;	with	r0
+	add	r1
+;	from	r0
+	to	r14
+	add	rTemp
+;
+	move	rUseLinesPtr,#<(_RLUseLines-2)	 ; START OF USELINES LIST
+	move	rLineRLCountsP,#<_RLLineRLCounts ; Base of RLLineCounts
+	move	rRLLineCount,(<RLLineCount)	 ; Get RLEngineLineCount
+
+
+	CACHEB	_RLUseLines
+;
+;	* * * * * * *       GENERATE USE BLOCKLIST OF LINES       * * * * * * *
+;
+;	>>>   NEXT BLOCKMAP LINE   <<<
+;
+_RUXY5000
+	from	rNumX				; #Blocks on this Line
+;	to	r0
+	swap
+	with	rNumX
+	add	r0
+;
+;	>>>   NEXT BLOCKMAP BLOCK   <<<
+;
+_RUXY5200
+	move	rBlockMapPtr,r14		; Save Current BlockMap Pointer
+	getb					; Get Offset to LineList
+	inc	r14
+	getbh
+	with	r14				; Move to LineList
+	add	r0
+;
+;	>>>   NEXT LINE   <<<
+;
+_RUXY5400
+	getb					; Get LINE#
+	inc	r14
+	getbh
+	inc	r14				; Move to next Line
+	inc	r0				; End of LineList?
+	beq	_RUXY7200			; Yes!
+	dec	r0
+;
+;	>>>   LINE ALREADY ADDED?   <<<
+;
+;	from	r0				; R1 = Line#*2
+	to	r1
+	add	r0
+	with	r1
+	add	rLineRLCountsP
+	to	r1				; Get RLLineCount
+	ldw	(r1)
+	with	r1				; Already included?
+	sub	rRLLineCount			; @CMP@
+	beq	_RUXY5400			; Yes!
+	from	rRLLineCount			; NO!  INCLUDE IT!
+	sbk
+;
+;	>>>   ADD THIS LINE   <<<
+;
+_RUXY6800
+	inc	rUseLinesPtr			; Move to next Line
+	inc	rUseLinesPtr
+	bra	_RUXY5400			; Check Next Line!
+;	from	r0				; LINE#
+	stw	(rUseLinesPtr)
+
+;
+;	>>>   NEXT BLOCKMAP X ITERATION   <<<
+;
+_RUXY7200
+	dec	rNumX				; NumX--
+	from	rNumX
+;	to	r0
+	lob
+	from	rBlockMapPtr			; Move to next BlockMap Block
+	to	r14
+	bne	_RUXY5200			; Not Finished this BlockMap Line!
+	add	rDeltaX
+;
+;	>>>   NEXT BLOCKMAP Y ITERATION   <<<
+;
+_RUXY8200
+	dec	rNumY				; NumY--
+	beq	_RUXY9000			; Finished BlockMap!
+	with	r14				; Move to next BlockMap Line
+	bra	_RUXY5000
+	add	rDeltaY
+
+;
+;	* * * * * * *       USE BLOCKLIST IS COMPLETED!       * * * * * * *
+;
+_RUXY9000
+	inc	rUseLinesPtr			; Move to next Line
+	inc	rUseLinesPtr
+	move	r0,#-1				; UseLines List Terminator
+;	from	r0
+	stw	(rUseLinesPtr)
+;
+	iwt	r0,#<_RLUseXY2			; USE/OPERATE XY 2
+	ibt	r8,#^_RLUseXY2
+	ljmp	r8
+	nop
+
+	CACHEE	_RLUseXY

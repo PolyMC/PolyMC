@@ -1,0 +1,969 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                     ENGINE USE/OPERATE MODULE 2                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+	include	music.i
+
+
+	public	_RLUseXY2
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rLX0		equ	r3			; Line Coordinate (Top-Left)
+rLY0		equ	r5			; Line Coordinate
+rLX1		equ	r12			; Line Coordinate (Bottom-Right)
+rLY1		equ	r13			; Line Coordinate
+rX0		equ	r7			; Object Coordinate (Top-Left)
+rY0		equ	r8			; Object Coordinate
+rX1		equ	r9			; Object Coordinate (Bottom-Right)
+rY1		equ	r10			; Object Coordinate
+;
+rUseLinesPtr	equ	r11			; UseLines Pointer
+rLineFlagsMask	equ	rLX0			; LineFlags Mask
+
+
+	align	16,(_RU2XY10000-_RU2XY2000)&$0f
+
+;
+;	* * * * * * *       SWITCH WEAPONS?       * * * * * * *
+;
+_RU2XY10000
+	ife	useID7
+	move	r0,(<WeaponType)		; Current Weapon = Next Weapon?
+	move	r1,(<WeaponNext)
+;	with	r0
+	sub	r1
+	beq	_RU2XY12000			; Yes!  Don't Switch Weapons!
+	nop
+	move	r11,(<ULReturnAddress)
+	iwt	r15,#<_RLDropWeapon		; DROP CURRENT WEAPON!
+	nop
+	endif
+;
+;	* * * * * * *       USE/OPERATE!       * * * * * * *
+;
+_RU2XY11000
+	move	r3,#swtchn_eff
+	bra	_RU2XY15000
+	nop
+;
+;	* * * * * * *       NOTHING TO USE/OPERATE!       * * * * * * *
+;
+_RU2XY12000
+	move	r3,#noway_eff
+;
+;	* * * * * * *       MAKE SOUND EFFECT       * * * * * * *
+;
+_RU2XY15000
+	move	r11,(<ULReturnAddress)		; Get Return Address
+	iwt	r15,#<_RLPlayerSoundEffect
+	nop
+
+;
+;	* * * * * * *       REALITY_ENGINE USE LINES 2       * * * * * * *
+;
+_RLUseXY2
+;
+;	>>>   CALCULATE OBJECT USE/OPERATE BOUNDING BOX COORDINATES   <<<
+;
+	move	rX0,(<ULObjX0)			; Get Object Initial X
+	move	rY0,(<ULObjY0)			; Get Object Initial Y
+	move	rX1,(<ULObjX1)			; Get Object Projected X
+	move	rY1,(<ULObjY1)			; Get Object Projected Y
+;
+	from	rX1				; X1 >= X0?
+;	to	r0				; @CMP@
+	sub	rX0
+	bge	_RU2XY1200
+	nop
+	move	r0,rX0
+	move	rX0,rX1
+	move	rX1,r0
+_RU2XY1200
+	from	rY0				; Y0 >= Y1?
+;	to	r0				; @CMP@
+	sub	rY1
+	bge	_RU2XY1400
+	nop
+	move	r0,rY0
+	move	rY0,rY1
+	move	rY1,r0
+_RU2XY1400
+;
+	move	r0,#<(EMBSP+2)			; Bank of EM Data
+	ldb	(r0)
+	romb
+;
+	move	rUseLinesPtr,#<_RLUseLines	; Start of UseLines List
+
+;
+;	* * * * * * *       CHECK USE/OPERATE AGAINST LINELIST       * * * * * * *
+;
+	CACHEB	_RLUseXY2
+_RU2XY2000
+;
+;	>>>   CHECK NEXT USELINE   <<<
+;
+_RU2XY2200
+	move	r0,#<MVULMask			; LineFlags Type Mask
+	to	rLineFlagsMask
+	ldb	(r0)
+_RU2XY2300
+	to	r2				; Get Next Line#
+	ldw	(rUseLinesPtr)
+	inc	r2				; End of UseLines?
+	ife	useID7
+	beq	_RU2XY10000			; Yes!
+	endif
+	ifn	useID7
+	beq	_RU2XY12000			; Yes!
+	endif
+	dec	r2
+;
+;	>>>   GET LINE FLAGS   <<<
+;
+	move	r6,#rllSize			; Move to LINE
+	from	r2
+;	to	r0
+	lmult
+	move	r1,(<EMLINES)			; Get Base Address of Lines Table
+	with	r1
+	add	#(rllFlags+1)
+	from	r4
+	to	r14
+	add	r1
+;
+;	>>>   GET LINE FLAGS   <<<
+;
+	inc	rUseLinesPtr			; Move to next UseLine
+	getb					; Get LineFlags
+;	with	r0				; USABLE Line?
+	and	rLineFlagsMask
+	beq	_RU2XY2300			; No
+	inc	rUseLinesPtr			; Move to next UseLine
+
+;
+;	* * * * * * *       DOES OBJECT BOX INTERSECT LINE BOX?       * * * * * * *
+;
+;	>>>   GET LINE VERTEXES   <<<
+;
+	with	r14				; Move to Vertex1
+	sub	#((rllFlags+1)-rllVertex1)
+	move	r1,(<EMVERTEXES)		; Base Address of Vertexes Table
+	getb					; Get Vertex1
+	inc	r14
+	getbh
+	inc	r14
+	to	r2				; Get Vertex2
+	getb
+	inc	r14
+	with	r2
+	getbh
+;
+;	>>>   VERTEX 1   <<<
+;
+;	from	r0				; Get Vertex1 Coordinates
+	to	r14
+	add	r1
+	getb					; Vertex1 X
+	inc	r14
+	to	rLX0
+	getbh
+	inc	r14
+	getb					; Vertex1 Y
+	inc	r14
+	to	rLY0
+	getbh
+;
+;	>>>   VERTEX 2   <<<
+;
+	from	r2				; Get Vertex2 Coordinates
+	to	r14
+	add	r1
+	getb					; Vertex2 X
+	inc	r14
+	to	rLX1
+	getbh
+	inc	r14
+	getb					; Vertex2 Y
+	inc	r14
+	to	rLY1
+	getbh
+
+;
+;	>>>   ENSURE BOUNDING BOXES INTERSECT   <<<
+;
+	from	rLX0				; Both Line X Coordinates < X0?
+;	to	r0				; @CMP@
+	sub	rX0
+	bge	_RU2XY3200
+	from	rLX1
+;	to	r0				; @CMP@
+	sub	rX0
+	blt	_RU2XY2200			; Yes, Boxes Don't Intersect!
+_RU2XY3200
+	from	rLX0				; Both Line X Coordinates > X1?
+;	to	r0				; @CMP@
+	sub	rX1
+	blt	_RU2XY3400
+	from	rLX1
+;	to	r0				; @CMP@
+	sub	rX1
+	bge	_RU2XY2200			; Yes, Boxes Don't Intersect!
+_RU2XY3400
+	from	rLY0				; Both Line Y Coordinates > Y0?
+;	to	r0				; @CMP@
+	sub	rY0
+	blt	_RU2XY3600
+	from	rLY1
+;	to	r0				; @CMP@
+	sub	rY0
+	bge	_RU2XY2200			; Yes, Boxes Don't Intersect!
+_RU2XY3600
+	from	rLY0				; Both Line Y Coordinates < Y1?
+;	to	r0				; @CMP@
+	sub	rY1
+	bge	_RU2XY3800
+	from	rLY1
+;	to	r0				; @CMP@
+	sub	rY1
+	blt	_RU2XY2200			; Yes, Boxes Don't Intersect!
+_RU2XY3800
+	nop
+
+;
+;	>>>   DETERMINE DIRECTION LINE IS CROSSED (R->L OR L->R)   <<<
+;
+_RU2XY4000
+	move	r1,(<ULObjY0)			; R1 = (ObjectY0 - LineY)
+	with	r1
+	sub	rLY0
+	move	r0,(<ULObjX0)			; R0 = (ObjectX0 - LineX)
+;	with	r0
+	sub	rLX0
+	from	rLY1				; Result in R0:R2
+	to	r6
+	sub	rLY0
+;	with	r0
+	lmult
+	move	r2,r4
+	from	rLX1				; Result in R1:R4
+	to	r6
+	sub	rLX0
+	with	r1
+	lmult
+	with	r2
+	sub	r4
+;	with	r0				; R0:R2 = SIDE
+	sbc	r1
+	bpl	_RU2XY5000
+	nop
+_RU2XY4800
+	iwt	r15,#<_RU2XY2200		; Line Used/Operated from Wrong Side!
+	nop
+_RU2XY4900
+	move	r11,(<ULReturnAddress)
+	iwt	r15,#<_RU2XY12000		; Line Used/Operated Already!
+	nop
+
+
+	CACHEE	_RLUseXY2
+;
+;	* * * * * * *       FOUND A USABLE/OPERABLE LINE       * * * * * * *
+;
+_RU2XY5000
+	dec	rUseLinesPtr			; Move to USED Line
+	dec	rUseLinesPtr
+	to	r2				; Get USED Line#
+	ldw	(rUseLinesPtr)
+;
+;	>>>   HAS THIS LINE BEEN USED ALREADY?   <<<
+;
+	move	r3,#<_RLLineFlags		; Base of LineFlags
+	with	r3
+	add	r2
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	and	#rllfUsed			; USED?
+	bne	_RU2XY4900-1			; Yes, Can't REUSE It!
+;
+;	>>>   GET LINE TYPE   <<<
+;
+	move	r6,#rllSize			; Move to LINE
+	from	r2
+;	to	r0
+	lmult
+	move	r1,(<EMLINES)			; Get Base Address of Lines Table
+	with	r1
+	add	#(rllType)
+	from	r4
+	to	r14
+	add	r1
+	move	(<ULLine),r14			; Save Pointer to Line
+	getb					; R4 = Type.B / Tag.B
+	inc	r14
+	to	r4
+	getbh
+	move	(<ULType),r4
+;
+;	* * * * * * *       USE/OPERATE!       * * * * * * *
+;
+;	>>>   CALL USABLE LINE CODE   <<<
+;
+	move	r0,#^_RLUseCode			; Get Address of Usable Line Code
+	romb
+	move	r1,#<_RLUseCode
+	from	r4
+;	to	r0
+	lob
+;	with	r0
+	add	r0
+;	from	r0
+	to	r14
+	add	r1
+	getb
+	inc	r14
+	to	r15				; Call Usable Line Code
+	getbh
+	nop
+
+
+;
+;	* * * * * * *       USABLE LINE CODE JUMPTABLE       * * * * * * *
+;
+_RLUseCode
+	dc.w	0				; 000
+	dc.w	<(_UDoorOpenClose)		; 001*
+	dc.w	0				; 002
+	dc.w	0				; 003
+	dc.w	0				; 004
+	dc.w	0				; 005
+	dc.w	0				; 006
+	dc.w	<(_UStairs)			; 007
+	dc.w	0				; 008
+	dc.w	<(_UFloorOnce)			; 009
+;
+	dc.w	0				; 010
+	dc.w	<(_UExit)			; 011
+	dc.w	0				; 012
+	dc.w	0				; 013
+	dc.w	<(_UFloorOnce)			; 014
+	dc.w	0				; 015
+	dc.w	0				; 016
+	dc.w	0				; 017
+	dc.w	<(_UFloorOnce)			; 018
+	dc.w	0				; 019
+;
+	dc.w	<(_UFloorOnce)			; 020
+	dc.w	<(_ULiftOnce)			; 021
+	dc.w	0				; 022
+	dc.w	<(_UFloorOnce)			; 023
+	dc.w	0				; 024
+	dc.w	0				; 025
+	dc.w	<(_UDoorBOpenClose)		; 026
+	dc.w	<(_UDoorYOpenClose)		; 027
+	dc.w	<(_UDoorROpenClose)		; 028
+	dc.w	<(_URDoorOpenCloseOnce)		; 029
+;
+	dc.w	0				; 030
+	dc.w	<(_UDoorOpen)			; 031
+	dc.w	<(_UDoorBOpen)			; 032
+	dc.w	<(_UDoorROpen)			; 033
+	dc.w	<(_UDoorYOpen)			; 034
+	dc.w	0				; 035
+	dc.w	0				; 036
+	dc.w	0				; 037
+	dc.w	0				; 038
+	dc.w	0				; 039
+;
+	dc.w	0				; 040
+	dc.w	0				; 041
+	dc.w	<(_URDoorClose)			; 042!
+	dc.w	0				; 043
+	dc.w	0				; 044
+	dc.w	0				; 045
+	dc.w	0				; 046
+	dc.w	0				; 047
+	dc.w	0				; 048
+	dc.w	0				; 049
+;
+	dc.w	0				; 050
+	dc.w	<(_UExitSecret)			; 051
+	dc.w	0				; 052
+	dc.w	0				; 053
+	dc.w	0				; 054
+	dc.w	0				; 055
+	dc.w	0				; 056
+	dc.w	0				; 057
+	dc.w	0				; 058
+	dc.w	0				; 059
+;
+	dc.w	0				; 060
+	dc.w	<(_URDoorOpen)			; 061!
+	dc.w	<(_ULift)			; 062!
+	dc.w	<(_URDoorOpenClose)		; 063!
+	dc.w	0				; 064
+	dc.w	0				; 065
+	dc.w	0				; 066
+	dc.w	0				; 067
+	dc.w	0				; 068
+	dc.w	0				; 069
+;
+	dc.w	<(_UFloor)			; 070!
+	dc.w	0				; 071
+	dc.w	0				; 072
+	dc.w	0				; 073
+	dc.w	0				; 074
+	dc.w	0				; 075
+	dc.w	0				; 076
+	dc.w	0				; 077
+	dc.w	0				; 078
+	dc.w	0				; 079
+;
+	dc.w	0				; 080
+	dc.w	0				; 081
+	dc.w	0				; 082
+	dc.w	0				; 083
+	dc.w	0				; 084
+	dc.w	0				; 085
+	dc.w	0				; 086
+	dc.w	0				; 087
+	dc.w	0				; 088
+	dc.w	0				; 089
+;
+	dc.w	0				; 090
+	dc.w	0				; 091
+	dc.w	0				; 092
+	dc.w	0				; 093
+	dc.w	0				; 094
+	dc.w	0				; 095
+	dc.w	0				; 096
+	dc.w	0				; 097
+	dc.w	0				; 098
+	dc.w	0				; 099
+;
+	dc.w	0				; 100
+	dc.w	0				; 101
+	dc.w	<(_UFloorOnce)			; 102
+	dc.w	<(_URDoorOpenOnce)		; 103
+
+
+;
+;	* * * * * * *       DOORS/REMOTE DOORS       * * * * * * *
+;
+_URDoorOpenOnce
+	move	r7,#(_TPCDoorOpen-_TPlatformCode)
+	bra	_URDoors2
+	nop
+_URDoorOpenCloseOnce
+	move	r7,#(_TPCDoorOpenClose-_TPlatformCode)
+	bra	_URDoors2
+	nop
+
+_URDoorClose
+	move	r7,#(_TPCDoorClose-_TPlatformCode)
+	bra	_URDoors
+	nop
+_URDoorOpen
+	move	r7,#(_TPCDoorOpen-_TPlatformCode)
+	bra	_URDoors
+	nop
+_URDoorOpenClose
+	move	r7,#(_TPCDoorOpenClose-_TPlatformCode)
+;
+;	>>>   COMMON REMOTE DOOR CODE   <<<
+;
+_URDoors
+	link	#4				; Add Switch Toggle Task
+	iwt	r15,#<_RLAddToggle
+	nop
+_URDoors2
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+	move	r0,(<EMDOORS)			; Base of Doors
+	move	(<ULSector),r0
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb
+_URDoors5
+	move	r14,(<ULSector)			; Door Sector
+	move	r1,#<(ULTag)			; Get LineTag
+	to	r1
+	ldb	(r1)
+	move	r11,(<EMSECTORS)		; R11 = Base of Sectors
+	with	r11
+	add	#rlsTag
+_URDoors6
+	to	r6				; Get Sector
+	getb
+	from	r6				; End of Door Sectors?
+;	to	r0
+	sex
+	inc	r0
+	beq	_URDoors9			; Yes!
+	with	r14				; No
+	add	#(rlpdNumLines-rlpdSector)
+	getb					; Get #Lines
+;	with	r0
+	add	r0
+	inc	r0
+;	from	r0				; Next DoorData
+	to	r12
+	add	r14
+	from	r6				; Get Sector Tag
+;	to	r0
+	umult	#rlsSize
+;	from	r0
+	to	r14
+	add	r11
+	getb
+;	with	r0				; SectorTag = LineTag?
+	sub	r1				; @CMP@
+	with	r12
+	bne	_URDoors6			; Yes!  Add this Door!
+	to	r14
+	move	r4,#<(ULType)			; Get LineType
+	to	r4
+	ldb	(r4)
+	move	(<ULSector),r12			; Door Sector
+	iwt	r12,#<_URDoors5
+	iwt	r15,#<_RLAddPlatformDoor2
+	nop
+_URDoors9
+	move	r15,#<_RU2XY11000
+	nop
+
+_UDoorLocked
+	move	(<MsgDataA),r6			; Door Locked!
+	move	(<MsgDataB),r7
+	move	(<MsgDataC),r8
+	move	r0,#(3*60)			; Display Message for 3 Seconds
+	move	(<MsgCount),r0
+	move	r15,#<_RU2XY12000
+	nop
+
+_UDoorBOpen
+	move	r1,#%00000011			; BLUE KEYS
+	move	r6,#<DoorBlueLockedMsgA
+	move	r7,#<DoorBlueLockedMsgB
+	move	r8,#<DoorBlueLockedMsgC
+	bra	_UDoorKOpen
+	nop
+_UDoorROpen
+	move	r1,#%00110000			; RED KEYS
+	move	r6,#<DoorRedLockedMsgA
+	move	r7,#<DoorRedLockedMsgB
+	move	r8,#<DoorRedLockedMsgC
+	bra	_UDoorKOpen
+	nop
+_UDoorYOpen
+	move	r1,#%00001100			; YELLOW KEYS
+	move	r6,#<DoorYellowLockedMsgA
+	move	r7,#<DoorYellowLockedMsgB
+	move	r8,#<DoorYellowLockedMsgC
+_UDoorKOpen
+	move	r0,#<PlayerKeys			; Does Player Have Key?
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	and	r1
+	beq	_UDoorLocked			; No!
+	nop
+_UDoorOpen
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+	move	r7,#(_TPCDoorOpen-_TPlatformCode)
+	bra	_UDoors
+	nop
+
+_UDoorBOpenClose
+	move	r1,#%00000011			; BLUE KEYS
+	move	r6,#<DoorBlueLockedMsgA
+	move	r7,#<DoorBlueLockedMsgB
+	move	r8,#<DoorBlueLockedMsgC
+	bra	_UDoorKOpenClose
+	nop
+_UDoorROpenClose
+	move	r1,#%00110000			; RED KEYS
+	move	r6,#<DoorRedLockedMsgA
+	move	r7,#<DoorRedLockedMsgB
+	move	r8,#<DoorRedLockedMsgC
+	bra	_UDoorKOpenClose
+	nop
+_UDoorYOpenClose
+	move	r1,#%00001100			; YELLOW KEYS
+	move	r6,#<DoorYellowLockedMsgA
+	move	r7,#<DoorYellowLockedMsgB
+	move	r8,#<DoorYellowLockedMsgC
+_UDoorKOpenClose
+	move	r0,#<PlayerKeys			; Does Player Have Key?
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	and	r1
+	beq	_UDoorLocked			; No!
+	nop
+_UDoorOpenClose
+	move	r7,#(_TPCDoorOpenClose-_TPlatformCode)
+;
+;	>>>   COMMON DOOR CODE   <<<
+;
+_UDoors
+;
+;	>>>   GET LINE FACE   <<<
+;
+	move	r0,#<(EMBSP+2)			; Bank of EM Data
+	ldb	(r0)
+	romb
+	move	r0,(<ULLine)			; Get Pointer to Line
+;	from	r0
+	to	r14
+	sub	#(rllType-rllFace)
+	move	r1,(<EMFACES)			; Add Base of Faces
+	getb					; Get Line's Face
+	inc	r14
+	getbh
+	with	r1
+	add	r0
+	inc	r1				; Move to SectorFar
+	move	r14,r1				; Get SectorFar
+	move	r12,(<ULReturnAddress)		; Get Return Address
+;	move	r12,#<_RU2XY15000
+	with	r4				; LineType
+	lob
+	to	r6				; Sector
+	getb
+	iwt	r15,#<_RLAddPlatformDoor
+	nop
+
+
+;
+;	* * * * * * *       EXIT TO NEXT/SECRET LEVEL       * * * * * * *
+;
+_UExitSecret
+_UExit
+	move	(<ExitLevel),r4			; 11=GO TO NEXT LEVEL, 51=GO TO SECRET LEVEL
+	move	r3,#swtchx_eff
+	move	r15,#<_RU2XY15000
+	nop
+
+
+;
+;	* * * * * * *       STAIRS       * * * * * * *
+;
+_UStairs
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+	with	r4				; LineTag
+	hib
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb
+	move	r14,(<EMSTAIRS)			; Base of StairData
+	move	r7,#(_TPCStairRise-_TPlatformCode)
+_UStairs3
+	getb					; Get StairTag
+;	with	r0				; StairTag = LineTag?
+	sub	r4				; @CMP@
+	beq	_UStairs5			; Yes!
+	with	r14				; No!
+	add	#(rlpsNumSectors-rlpsTag)
+	getb					; Get #Sectors
+	inc	r0
+	with	r14				; Next StairData
+	bra	_UStairs3
+	add	r0
+_UStairs5
+;	with	r14				; R5 = STARTING HEIGHT
+	add	#(rlpsHeight-rlpsTag)
+	move	(<ULCode),r14			; STAIRDATA
+	getb
+	inc	r14
+	to	r5
+	getbh
+	inc	r14
+	move	(<ULSector),r14			; Save StairData Pointer
+;	to	r0				; R0 = #SECTORS
+	getb
+	move	(<ULCount),r0			; Save Counter
+	iwt	r12,#<_UStairs6
+_UStairs6
+	move	r0,(<ULCount)			; Get Counter
+	dec	r0
+	bmi	_UStairs9
+;	from	r0				; Update Counter
+	sbk
+	with	r5				; FloorHeight += 8
+	add	#8
+	move	r10,(<ULCode)			; R10 = STAIRDATA
+	move	r14,(<ULSector)			; Get StairData Pointer
+	inc	r14
+	from	r14				; Update StairData Pointer
+	sbk
+	to	r6				; R6 = SECTOR
+	getb
+	iwt	r15,#<_RLAddPlatformFloor
+	nop
+_UStairs9
+	move	r15,#<_RU2XY11000
+	nop
+
+
+;
+;	* * * * * * *       COMPLEX FLOORS       * * * * * * *
+;
+_UFloor
+	link	#4				; Add Switch Toggle Task
+	iwt	r15,#<_RLAddToggle
+	nop
+_UFloorOnce
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+;
+	from	r4				; R1 = LineTag.B
+	to	r1
+	hib
+	with	r4				; R4 = LineType.B
+	lob
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb
+	move	r14,(<EMFLOORS)			; Base of FloorData
+_UFloor3
+	getb					; Get FloorTag
+;	with	r0				; FloorTag = LineTag?
+	sub	r1				; @CMP@
+	bne	_UFloor4			; No!
+	inc	r14
+	getb					; Get FloorType
+;	with	r0				; FloorType = LineType?
+	sub	r4				; @CMP@
+	beq	_UFloor5
+_UFloor4
+	inc	r14
+	getb					; Get #Sectors
+;	with	r0
+	umult	#rlpfsSize
+	inc	r0
+	with	r14				; Next FloorData
+	bra	_UFloor3
+	add	r0
+_UFloor5
+	move	(<ULSector),r14			; Save FloorData Pointer
+;	to	r0				; R0 = #SECTORS
+	getb
+	move	(<ULCount),r0			; Save Counter
+	iwt	r12,#<_UFloor6
+_UFloor6
+	move	r0,(<ULCount)			; Get Counter
+	dec	r0
+	bmi	_UFloor9
+;	from	r0				; Update Counter
+	sbk
+	move	r14,(<ULSector)			; Get FloorData Pointer
+	inc	r14
+	move	r10,r14				; R10 = FLOORDATA
+	to	r6				; R6 = SECTOR
+	getb
+	inc	r14
+	getb					; R5 = DESTINATION HEIGHT
+	inc	r14
+	to	r5
+	getbh
+	from	r14				; Update FloorData Pointer
+;	to	r0
+	add	#(rlpfsSize-(rlpfsHeight+1)-1)
+;	from	r0
+	sbk
+	from	r6				; R9 = SECTORDATA
+;	to	r0
+	umult	#rlsdSize
+	move	r9,#<_RLSectorData
+	with	r9
+	add	r0
+;
+;	>>>   DOES THIS FLOOR SECTOR CHANGE IT'S TEXTURE?   <<<
+;
+	from	r4				; R0 = LineType.B
+;	to	r0
+	lob
+;	with	r0				; LineType = 9?
+	sub	#9
+	beq	_UFloor6C
+;	with	r0				; LineType = 20?
+	sub	#(20-9)
+	bne	_UFloor8			; No, Don't Change FloorTexture
+;
+;	>>>   CHANGE FLOOR TEXTURE/TYPE   <<<
+;
+_UFloor6C
+	with	r14				; Get ModelSector
+	add	#(rlpfsModelSector-(rlpfsHeight+1))
+	getb
+;	with	r0
+	umult	#rlsSize
+	move	r1,(<EMSECTORS)			; R1 = Base of Sectors
+;	with	r0				; Get ModelSector.FloorTexture
+	add	#rlsFloorTexture
+;	from	r0				; R1 = ModelSector.FloorTexture
+	to	r14
+	add	r1
+	to	r1
+	getb
+	with	r14				; Get ModelSector.Type
+	sub	#(rlsFloorTexture-rlsType)
+	from	r9				; SET NEW FLOORTEXTURE
+;	to	r0
+	add	#rlsdFloorTexture
+	from	r1
+	stb	(r0)
+	move	r1,#rlsdfTypeNormal		; Type now NORMAL
+	getb
+;	with	r0				; Get SectorType
+	lsr
+;	with	r0
+	lsr
+;	with	r0
+	sub	#4
+	beq	_UFloor7C			; Type=4?
+	dec	r0
+	beq	_UFloor7C			; Type=5?
+	dec	r0
+	dec	r0
+	beq	_UFloor7C			; Type=7?
+;	with	r0
+	sub	#(16-7)
+	bne	_UFloor7E			; Type=16?
+	nop
+_UFloor7C
+	move	r1,#rlsdfTypeNukage		; Type now NUKAGE
+_UFloor7E
+;	to	r0				; MARK SECTOR TYPE CHANGED
+	ldb	(r9)
+;	with	r0
+	or	r1
+;	from	r0
+	stb	(r9)
+;
+;	>>>   DETERMINE DIRECTION OF FLOOR MOVEMENT   <<<
+;
+_UFloor8
+	move	r7,#(_TPCFloorLower-_TPlatformCode)
+	from	r9				; Get Current FloorHeight
+;	to	r0
+	add	#rlsdFloorHeight
+;	to	r0
+	ldw	(r0)
+;	with	r0				; Destination < Current?
+	sub	r5				; @CMP@
+	bge	_UFloor8E			; Yes, Lower Floor
+	nop					;  No, Raise Floor
+	move	r7,#(_TPCFloorRise-_TPlatformCode)
+_UFloor8E
+	iwt	r15,#<_RLAddPlatformFloor2
+	nop
+_UFloor9
+	move	r15,#<_RU2XY11000
+	nop
+
+
+;
+;	* * * * * * *       LIFTS       * * * * * * *
+;
+_ULift
+	link	#4				; Add Switch Toggle Task
+	iwt	r15,#<_RLAddToggle
+	nop
+_ULiftOnce
+;	to	r0				; Get LineFlags
+	ldb	(r3)
+;	with	r0
+	or	#rllfUsed			; USED
+;	from	r0
+	stb	(r3)
+;
+	from	r4				; R1 = LineType.B
+	to	r1
+	lob
+	with	r4				; R4 = LineTag.B
+	hib
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb
+	move	r14,(<EMLIFTS)			; Base of LiftData
+_ULift3
+	getb					; Get LiftTag
+;	with	r0				; LiftTag = LineTag?
+	sub	r4				; @CMP@
+	bne	_ULift4				; No!
+	inc	r14
+	getb					; Get LiftType
+;	with	r0				; LiftType = LineType?
+	sub	r1				; @CMP@
+	beq	_ULift5
+_ULift4
+	inc	r14
+	getb					; Get #Sectors
+;	with	r0
+	umult	#rlplsSize
+	inc	r0
+	with	r14				; Next LiftData
+	bra	_ULift3
+	add	r0
+;
+_ULift5
+	move	(<ULSector),r14			; Save LiftData Pointer
+;	to	r0				; R0 = #SECTORS
+	getb
+	move	(<ULCount),r0			; Save Counter
+	iwt	r12,#<_ULift6
+_ULift6
+	move	r0,(<ULCount)			; Get Counter
+	dec	r0
+	bmi	_ULift9
+;	from	r0				; Update Counter
+	sbk
+	move	r14,(<ULSector)			; Get LiftData Pointer
+	inc	r14
+	move	r10,r14				; R10 = LIFTDATA
+	to	r6				; R6 = LIFTSECTOR
+	getb
+	from	r14
+;	to	r0
+	add	#(rlplsSize-rlplsSector-1)
+;	from	r0				; Update LiftData Pointer
+	sbk
+	move	r7,#(_TPCLift-_TPlatformCode)	; R7 = LIFTSTATECODE
+	iwt	r15,#<_RLAddPlatformLift
+	nop
+_ULift9
+	move	r15,#<_RU2XY11000
+	nop

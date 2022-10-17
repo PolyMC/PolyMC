@@ -1,0 +1,72 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                      CUTTER CHARDEF BLOCKS MODULE                  *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+
+	public	_CharDefFist
+	public	_CharDefPistol
+	public	_CharDefShotGun
+	public	_CharDefChainSaw
+	public	_CharDefChainGun
+	public	_CharDefRocket
+	public	_CharDefPlasma
+	public	_CharDefBFG
+
+
+;
+;	* * * * * * *       CUTTER IMAGERY PIXEL DEFINITIONS       * * * * * * *
+;
+;	Blocks of 8x8 Character Data (32 Bytes per character)
+;
+
+	section	_CHARDEFFIST,RELOC,BASE=$80000000,RORG=$400000
+_CharDefFist
+	image	RLDATA:CUT/Fist/.chardef
+_CharDefFistE
+
+
+	section	_CHARDEFPISTOL,RELOC,BASE=$80000000,RORG=$400000
+_CharDefPistol
+	image	RLDATA:CUT/Pistol/.chardef
+_CharDefPistolE
+
+
+	section	_CHARDEFSHOTGUN,RELOC,BASE=$80000000,RORG=$400000
+_CharDefShotGun
+	image	RLDATA:CUT/ShotGun/.chardef
+_CharDefShotGunE
+
+
+	section	_CHARDEFCHAINSAW,RELOC,BASE=$80000000,RORG=$400000
+_CharDefChainSaw
+	image	RLDATA:CUT/ChainSaw/.chardef
+_CharDefChainSawE
+
+
+	section	_CHARDEFCHAINGUN,RELOC,BASE=$80000000,RORG=$400000
+_CharDefChainGun
+	image	RLDATA:CUT/ChainGun/.chardef
+_CharDefChainGunE
+
+
+	section	_CHARDEFROCKET,RELOC,BASE=$80000000,RORG=$400000
+_CharDefRocket
+	image	RLDATA:CUT/Rocket/.chardef
+_CharDefRocketE
+
+
+	section	_CHARDEFPLASMA,RELOC,BASE=$80000000,RORG=$400000
+_CharDefPlasma
+	image	RLDATA:CUT/Plasma/.chardef
+_CharDefPlasmaE
+
+
+	section	_CHARDEFBFG,RELOC,BASE=$80000000,RORG=$400000
+_CharDefBFG
+	image	RLDATA:CUT/BFG/.chardef
+_CharDefBFGE

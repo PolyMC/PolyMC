@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	282
+DATE	MACRO
+		dc.b	'17.10.95'
+	ENDM
+VERS	MACRO
+		dc.b	'init.a 1.282'
+	ENDM
+VSTRING	MACRO
+		dc.b	'init.a 1.282 (17.10.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: init.a 1.282 (17.10.95)',0
+	ENDM

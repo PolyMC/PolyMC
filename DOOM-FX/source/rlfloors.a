@@ -1,0 +1,508 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         ENGINE FLOORS MODULE                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+rSector		equ	r6			; Pointer to Sector
+rFloorStateCode	equ	r7			; Floor StateCode
+rFloorHeight	equ	r5			; Destination Floor Height
+;
+rTaskData	equ	r8			; Pointer to TaskData
+rSectorData	equ	r9			; Pointer to SectorData
+rFloorData	equ	r10			; Pointer to FloorData
+;
+rFPSRatio	equ	r5			; FPS Ratio
+rFPSCount	equ	r7			; FPS Counter
+rTaskData	equ	r8			; Pointer to TaskData
+rTaskPtr	equ	r10			; Pointer to RLTask
+rTaskCount	equ	r13			; TaskCounter
+;
+rObj		equ	r12			; RLObject
+
+
+;
+;	* * * * * * *       ADD A PLATFORM FLOOR       * * * * * * *
+;
+;	rSector		= Sector of Floor
+;	rFloorStateCode	= Floor StateCode
+;	rFloorHeight	= Destination Floor Height
+;	rFloorData	= FloorData
+;
+_RLAddPlatformFloor
+;
+;	>>>   GET FLOOR SECTOR'S SECTORDATA   <<<
+;
+	from	rSector
+;	to	r0
+	umult	#rlsdSize
+	move	rSectorData,#<_RLSectorData
+	with	rSectorData
+	add	r0
+;
+;	>>>   EXISTING FLOOR?   <<<
+;
+_RLAddPlatformFloor2
+	link	#3				; Find PlatformTask for this SectorData
+	iwt	r15,#<_RLFindPlatformTask
+	moves	rTaskData,rTaskData		; Floor Already Running?
+	bne	_RAPF800			; Yes!
+	nop
+;
+;	* * * * * * *       CREATE A NEW FLOOR       * * * * * * *
+;
+_RAPF500
+	link	#4
+	iwt	r15,#<_RLAddPlatformTask	; Allocate a PlatformTask Structure
+	nop
+;
+	from	rFloorStateCode			; FLOOR STATE
+	stw	(rTaskData)
+;
+;	link	#4				; FIND SECTOR'S FLOORDATA
+;	iwt	r15,#<_RLFindFloorData
+;	nop
+;
+	from	rTaskData			; Save Floor Parameters
+	to	r6
+	add	#rlpftHeight
+	from	rFloorHeight			; FLOOR DESTINATION HEIGHT
+	stw	(r6)
+	inc	r6
+	inc	r6
+	from	rFloorData			; FLOORDATA
+	stw	(r6)
+	inc	r6
+	inc	r6
+	from	rSectorData			; SECTORDATA
+	stw	(r6)
+;
+	move	r9,#<(_TPlatform-1)		; TaskCode-1
+	move	r11,r12				; Return to Caller when done
+	iwt	r15,#<_RLAddTask		; Allocate a Task
+	nop
+_RAPF800
+	jmp	r12				; Return to Caller
+	nop
+
+
+;
+;	* * * * * * *       FLOOR SOUND       * * * * * * *
+;
+_TFloorSound
+;	from	rTaskData			; Get FloorData
+;	to	r0
+	add	#rlpftFloor
+;	to	r0
+	ldw	(r0)
+;	from	r0				; R4 = Pointer to SoundOrigin
+	to	r4
+	add	#rlpfsOriginX
+	move	r3,#<(sxStnMove-1)		; Sound Effect#
+	iwt	r15,#<_TPlatformSound2
+	nop
+
+
+;
+;	* * * * * * *       FLOOR RISING       * * * * * * *
+;
+_TFloorRising
+	link	#3				; Make Floor Sound
+	iwt	r15,#<_TFloorSound
+;
+	from	rTaskData			; Get Destination Height
+;	to	r0
+	add	#rlpftHeight
+	to	r2				; Maximum Floor Height
+	ldw	(r0)
+;	with	r0
+	add	#(rlpftSectorData-rlpftHeight)
+;	to	r0				; Get SectorData
+	ldw	(r0)
+;	from	r0
+	to	rSectorData
+	add	#rlsdFloorHeight
+;
+	move	r6,#rlpfMovement		; Floor Adjustment
+	from	rFPSRatio			; FPS Adjustment
+;	to	r0
+	lmult
+;	with	r0				; Get Whole Levels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R1 = |FloorAdjustment|
+	to	r1
+	or	r4
+;
+	ldw	(rSectorData)			; Get Floor Height
+;	from	r0				; R3 = NEW Floor Height
+	to	r3
+	add	r1
+	from	r3				; @CMP@
+;	to	r0
+	sub	r2				; At Top?
+	blt	_TFR800				; No
+	moves	r3,r2				; Yes!
+_TFR800
+
+	ifn	0
+	nop					; @WITH IN PIPELINE@
+	from	rTaskData			; (R1) = OriginX/OriginY
+;	to	r0
+	add	#rlptPlatform
+;	to	r0
+	ldw	(r0)
+;	from	r0
+	to	r1
+	add	#rlpfsOriginX
+	endif
+
+	link	#3
+	bra	_RLCheckFloor
+	nop
+	iwt	r15,#<_TPlatform1
+;	from	r0				; New Floor Height
+	stw	(rSectorData)
+
+
+;
+;	* * * * * * *       CHECK FLOOR 0       * * * * * * *
+;
+;	R3 = New Floor Height
+;
+;	R0 = New Floor Height
+;
+	align	16,(_RLCheckFloor0-_RLCheckFloorAlign)&$0f
+_RLCheckFloor0
+	move	r12,r11				; Save Return Address
+	from	rSectorData			; Move to Sector's RLObjects
+	to	r4
+	add	#(rlsdObjects-rlsdFloorHeight)
+	link	#4				; Build CheckObjectList
+	ife	usePATCH
+	move	r15,#<_RLBuildCheckObjs
+	endif
+	ifn	usePATCH
+	move	r15,(<PTRLBuildCheckObjs)
+	endif
+	nop
+	ibt	r0,#(^_ObjData)			; Move to _ObjData Bank
+	romb
+	with	r12				; Restore Return Address
+	bra	_RLCF1500
+	to	r11
+;
+;	* * * * * * *       CHECK FLOOR       * * * * * * *
+;
+;	R3 = New Floor Height
+;
+;	R0 = New Floor Height
+;
+_RLCheckFloor
+	move	r12,r11				; Save Return Address
+	from	rSectorData			; Move to Sector's RLObjects
+	to	r4
+	add	#(rlsdObjects-rlsdFloorHeight)
+	link	#4				; Build CheckObjectList
+	ife	usePATCH
+	move	r15,#<_RLBuildCheckObjs
+	endif
+	ifn	usePATCH
+	move	r15,(<PTRLBuildCheckObjs)
+	endif
+	nop
+	move	r11,r12				; Restore Return Address
+;
+	ibt	r0,#(^_ObjData)			; Move to _ObjData Bank
+	romb
+	move	r4,#<(_RLCheckObjs-1)		; R4 = CheckObjects List
+;
+	CACHEB	_RLCheckFloor
+_RLCheckFloorAlign
+_RLCF1300
+	inc	r4				; Next Object
+;	to	r0				; Move to Next Object
+	ldw	(r4)
+	moves	rObj,r0
+	beq	_RLCF1500			; No More Objects?!
+	inc	r4				; Next Object
+	from	rObj				; Get Object's Flags/Type
+;	to	r0
+	add	#rloFlags
+;	to	r0
+	ldw	(r0)
+;	from	r0				; Object SOLID?
+	to	r1
+	and	#rlpfSolid
+	beq	_RLCF1300			; NO!
+;
+;	>>>   GET RLOBJECT'S HEIGHT   <<<
+;
+;	with	r0				; Get RLObject Type
+	hib
+;	with	r0				; Get Offset into _ObjData
+	umult	#rlodSize
+	move	r1,#<(_ObjData+rlodHeight)	; Add Base of _ObjData
+;	from	r0				; Move to Object Height
+	to	r14
+	add	r1
+;
+;	>>>   GET RLOBJECT'S SECTOR'S CEILING   <<<
+;
+	move	r6,#rloC2			; PlayerObject?
+	with	r6
+	add	rObj
+	dec	r0
+	bmi	_RLCF1350-1			; Yes, Use C2 Coordinate
+	move	r0,#rloSector			; Get RLObject's SectorData
+;	with	r0
+	add	rObj
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r6,#<(_RLSectorData+rlsdCeilingHeight)
+	with	r6
+	add	r0
+_RLCF1350
+	to	r6				; R6 = Ceiling Height
+	ldw	(r6)
+	inc	r6
+;
+;	>>>   OBJECT TOP < CEILING?   <<<
+;
+	getb					; R0 = OBJECT HEIGHT
+;	with	r0				; R0 = OBJECT TOP (FLOOR Z + OBJECT HEIGHT)
+	add	r3
+;	with	r0				; ObjectTop < Ceiling?
+	sub	r6				; @CMP@
+	blt	_RLCF1300+1			; Yes, Object Fits
+	inc	r4				; Next Object
+;
+;	>>>   CAN'T MOVE FLOOR TO THIS POSITION!   <<<
+;
+_RLCF1400
+	jmp	r11
+;	to	r0				; R0 = OLD FloorHeight
+	ldw	(rSectorData)
+
+	CACHEE	_RLCheckFloor
+
+;
+;	>>>   MOVE ALL OBJECTS TO NEW FLOOR POSITION   <<<
+;
+	align	16,(_RLCF1500-_RLCF1600)&$0f
+_RLCF1500
+	to	r6				; R6 = OLD FloorHeight
+	ldw	(rSectorData)
+	inc	r6
+	move	r4,#<(_RLCheckObjs-1)		; R4 = CheckObjects List
+;
+	CACHEB	_RLCheckFloor2
+_RLCF1600
+	inc	r4				; Next Object
+;	to	r0				; Move to Next Object
+	ldw	(r4)
+	moves	rObj,r0
+	beq	_RLCF1900			; No More Objects?!
+;
+;	>>>   PLAYER RLOBJECT?   <<<
+;
+	from	rObj				; Get Object's Type
+;	to	r0
+	add	#rloType
+;	to	r0
+	ldb	(r0)
+;	with	r0				; Player Object?
+	lob
+	beq	_RLCF1600			; YES!  DON'T ADJUST!
+	inc	r4				; Next Object
+;
+;	>>>   GET RLOBJECT'S Z   <<<
+;
+	from	rObj				; R0 = OBJECT Z
+;	to	r0
+	add	#rloZ
+;	to	r0
+	ldw	(r0)
+;
+;	>>>   OBJECT Z < FLOOR Z?   <<<
+;
+;	from	r0				; ObjectZ < Floor?
+	cmp	r3
+	blt	_RLCF1700			; Yes, Move Object to Floor
+;
+;	>>>   OBJECT Z = PREVIOUS FLOOR Z?   <<<
+;
+;	with	r0				; ObjectZ On Previous Floor?
+	sub	r6				; @CMP@
+	bge	_RLCF1600			; No
+;
+;	>>>   MOVE OBJECT TO FLOOR   <<<
+;
+_RLCF1700
+	from	r3				; No, Move Object Down to Fit!
+	sbk
+	bra	_RLCF1600+1			; Check Next Object
+	inc	r4				; Next Object
+;
+;	>>>   FINISHED ADJUSTING OBJECTS   <<<
+;
+_RLCF1900
+	move	r0,r3				; R0 = NEW FloorHeight
+	jmp	r11				; Return to Caller
+	nop
+
+	CACHEE	_RLCheckFloor2
+
+
+;
+;	* * * * * * *       FLOOR LOWERING       * * * * * * *
+;
+_TFloorLowering
+	link	#3				; Make Floor Sound
+	iwt	r15,#<_TFloorSound
+;
+	from	rTaskData			; Get Destination Height
+;	to	r0
+	add	#rlpftHeight
+	to	r2				; Minimum Floor Height
+	ldw	(r0)
+;	with	r0
+	add	#(rlpftSectorData-rlpftHeight)
+;	to	r0				; Get SectorData
+	ldw	(r0)
+;	from	r0
+	to	rSectorData
+	add	#rlsdFloorHeight
+;
+	move	r6,#rlpfMovement		; Floor Adjustment
+	from	rFPSRatio			; FPS Adjustment
+;	to	r0
+	lmult
+;	with	r0				; Get Whole Levels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R1 = |FloorAdjustment|
+	to	r1
+	or	r4
+	ldw	(rSectorData)			; Get Floor Height
+;	from	r0				; R3 = NEW Floor Height
+	to	r3
+	sub	r1
+	from	r3				; @CMP@
+;	to	r0
+	sub	r2				; At Bottom?
+	bge	_TFL800				; No
+	moves	r3,r2				; Yes!
+_TFL800
+
+	ifn	0
+	nop					; @WITH IN PIPELINE@
+	from	rTaskData			; (R1) = OriginX/OriginY
+;	to	r0
+	add	#rlptPlatform
+;	to	r0
+	ldw	(r0)
+;	from	r0
+	to	r1
+	add	#rlpfsOriginX
+	endif
+
+	link	#4
+	iwt	r15,#<_RLCheckFloor0
+	nop
+	iwt	r15,#<_TPlatform1
+;	from	r0				; New Floor Height
+	stw	(rSectorData)
+
+
+;
+;	* * * * * * *       STAIR RISING       * * * * * * *
+;
+_TStairRising
+	from	rTaskData			; Get FloorData
+;	to	r0
+	add	#rlpftFloor
+;	to	r0
+	ldw	(r0)
+;	from	r0				; R4 = Pointer to SoundOrigin
+	to	r4
+	sub	#(rlpsHeight-rlpsOriginX)
+	move	r3,#<(sxStnMove-1)		; Sound Effect#
+	link	#3
+	iwt	r15,#<_TPlatformSound2
+;
+	from	rTaskData			; Get Destination Height
+;	to	r0
+	add	#rlpftHeight
+	to	r2				; Maximum Floor Height
+	ldw	(r0)
+;	with	r0
+	add	#(rlpftSectorData-rlpftHeight)
+;	to	r0				; Get SectorData
+	ldw	(r0)
+;	from	r0
+	to	rSectorData
+	add	#rlsdFloorHeight
+;
+	move	r6,#rlpsMovement		; Floor Adjustment
+	from	rFPSRatio			; FPS Adjustment
+;	to	r0
+	lmult
+;	with	r0				; Get Whole Levels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R1 = |FloorAdjustment|
+	to	r1
+	or	r4
+;
+	ldw	(rSectorData)			; Get Floor Height
+;	from	r0				; R3 = NEW Floor Height
+	to	r3
+	add	r1
+	from	r3				; @CMP@
+;	to	r0
+	sub	r2				; At Top?
+	blt	_TSR800				; No
+	moves	r3,r2				; Yes!
+_TSR800
+
+	ifn	0
+	nop					; @WITH IN PIPELINE@
+	from	rTaskData			; (R1) = OriginX/OriginY
+;	to	r0
+	add	#rlptPlatform
+;	to	r0
+	ldw	(r0)
+;	from	r0
+	to	r1
+	add	#rlpsOriginX
+	endif
+
+	link	#4
+	iwt	r15,#<_RLCheckFloor
+	nop
+	iwt	r15,#<_TPlatform1
+;	from	r0				; New Floor Height
+	stw	(rSectorData)

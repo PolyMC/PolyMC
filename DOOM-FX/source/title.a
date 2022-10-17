@@ -1,0 +1,483 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                           TITLE PAGE MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rl.i
+	include	snes.i
+	include	xfer.i
+	include	music.i
+
+	ifn	useTITLE
+
+	public	Title
+
+
+	SECTION	TITLE,RELOC,BASE=$80000000,RORG=$400000
+;
+;	* * * * * * *       TITLE PAGE       * * * * * * *
+;
+	dpr	0
+	dbr	?
+Title
+	jsl	ScreenOff			; Turn Screen Off
+	jsl	InitSNES
+	mode	'ax'
+;
+	mode	'X!'
+	ldx	#<TitleXFer			; Transfer Title DataBlock
+	lda	#^TitleXFer
+	jsl	XFer
+	mode	'AX'
+;
+	ifn	useSOUND
+	lda	#((intro_sng_MODULE<<8)|(intro_sng)) ; INTRO Song
+	jsl	_PlaySong
+	endif
+;
+	ife	usePAL
+	mode	'AX'
+	inc	_TitleCount			; Title Count++
+	jsl	CheckSumVars
+	endif
+;
+	jsl	InitNormalNMI
+	mode	'ax!'
+	lda	#$80				; Transfer RGB Palette to CGRAM
+	sta	RGBXfer
+	lda	#1				; Mode1 BG1:8x8
+	sta	BGMODE
+	lda	#$7c				; BG1 Screen at $7c00
+	sta	BG1SC
+	lda	#$71				; BG2 Screen at $7000, SC0/SC1
+	sta	BG2SC
+	lda	#$ff				; Offset $FFFF
+	sta	BG1VOFS
+	sta	BG1VOFS
+	stz	BG1HOFS				; Offset $0000
+	stz	BG1HOFS
+	sta	BG2VOFS				; Offset $FFFF
+	sta	BG2VOFS
+	stz	BG2HOFS				; Offset $0000
+	stz	BG2HOFS
+	lda	#((($6000>>12)<<4)|($0000>>12))	; BG1 Chars @$0000, BG2 Chars @$6000
+	sta	BG12NBA
+	stz	MOSAIC
+	lda	#%00001000			; PseudoH512, 224Lines
+	sta	SETINI
+	lda	#%01000001			; Add 1/2 Enable BG1
+	sta	CGADSUB
+;
+	ldx	#%00000010			; Colour Add Enable SUB
+	ldy	#$03				; BG1+BG2
+;	ldy	#$01				; BG1
+	lda	_TitleCount			; Every 4th Title
+	and	#$03
+	bne	TTL100
+	ldx	#%10000000			; Colour Sub Enable FIXED
+	lda	#%11000001			; Sub 1/2 Enable BG1
+	sta	CGADSUB
+	ldy	#$03				; BG1+BG2
+	lda	_TitleCount			; Every 8th Title
+	and	#$04
+	bne	TTL100
+	stz	BG2HOFS				; Offset $0100
+	lda	#1
+	sta	BG2HOFS
+TTL80
+	lda	#$2c
+	sta	COLDATA
+	lda	#$c7
+	sta	COLDATA
+TTL100
+	stx	CGSWSEL
+	sty	TM
+	sty	TS
+;
+	mode	'X!'
+	ldx	#<TitleSText			; Show Title Text
+	lda	_TitleCount			; Every 4th Title
+	and	#$03
+	bne	TTL150
+	ldx	#<CreditsSText			; Show Credits Text
+TTL150
+	lda	#^CreditsSText
+	jsl	SystemText
+;
+	jsl	ScreenOn
+;
+	mode	'AX!'
+	ifn	useDEMO
+	stz	DemoIndex			; NOT Using Demo
+	endif
+TTL200
+	lda	PlayerJoy			; Joystick pressed?
+	bne	TTL200				; Yes, wait until released
+	ldx	#(60*6)-1
+	ifn	usePAL
+	lda	_TitleCount
+	and	#$03
+	bne	TTL300
+	ldx	#(60*10)-1
+	endif
+TTL300
+	ifn	usePAL
+	lda	_TitleCount
+	and	#$03
+	beq	TTL320
+	endif
+	lda	PlayerJoy			; Wait until pressed
+	bne	TTL400
+TTL320
+	wai
+	dex
+	bpl	TTL300
+	ifn	useDEMO
+	inc	DemoIndex			; Use Demo!
+	lda	#1
+	sta	DemoCount
+	endif
+TTL400
+;	lda	PlayerJoy			; Joystick pressed?
+;	bne	TTL400				; Yes, wait until released
+
+;
+;	>>>   FADE MUSIC OUT   <<<
+;
+	ifn	useSOUND
+	lda	#DCOM_FADE_AND_STOP		; Fade out Music
+	ldy	#$0201
+	jsl	__SendDriverCommand
+	endif
+
+	ifn	0
+;
+;	>>>   FADE SCREEN TO RED   <<<
+;
+	mode	'a!'
+	lda	#^(_RLRGBs+(01*512))		; Set up DMA for ColourRAM Transfer
+	sta	DMA0A1B
+	lda	#%00000010			; A->B, Abs., Auto Inc,1-Add-Write2x
+	sta	DMA0INC
+	lda	#<CGDATA
+	sta	DMA0DEST
+	mode	'A!'
+TTL1000
+	ldx	#8				; 8 Steps to ColourFade
+	lda	#<(_RLRGBs+(01*512))
+TTL1100
+	wai					; Wait for VBlank
+	sta	DMA0A1L
+	clc					; Next Palette
+	adc	#(256*2)
+	ldy	#(256*2)			; Transfer 256 RGB Colours
+	sty	DMA0NUML
+	stz	CGADD-1
+	ldy	#(1<<0)
+	sty	MDMAEN
+	wai
+	dex
+	bne	TTL1100
+	endif
+
+;
+;	>>>   FADE SCREEN TO BLACK   <<<
+;
+TTL2000
+	ldx	#16-1				; 16 Steps to FadeOut
+	lda	#$0f
+TTL2100
+	wai
+	wai
+	sta	INIDISP				; Fade Value
+	dec	a				; Next Fade Value
+	dex
+	bne	TTL2100
+;
+	jml	ScreenOff
+
+
+;
+;	* * * * * * *       TRANSFER LIST       * * * * * * *
+;
+	mode	'@A@X'
+TitleXFer
+	dc.w	xftVRAM16		; Transfer TitleDef0 to $0000W
+	dc.4	TitleDef0
+	dc.4	$0000
+	dcb.w	3,0
+;
+	dc.w	xftVRAM16		; Transfer TitleDef1 to $2000W
+	dc.4	TitleDef1
+	dc.4	$2000
+	dcb.w	3,0
+;
+	dc.w	xftVRAM16		; Transfer TitleMap to $7c00W
+	dc.4	TitleMap
+	dc.4	$7c00
+	dcb.w	3,0
+;
+	dc.w	xftRAM			; Transfer RGB
+	dc.4	TitleRGB
+	dc.4	RGBData
+	dc.w	512
+	dcb.w	2,0
+;
+	dc.w	xftVRAMF16+xftRAW	; Fill BG2 Maps
+	dc.4	TitleXFerA
+	dc.4	$7000
+	dc.w	(32*32*2)*2
+TitleXFerA
+	dc.w	$0020,0
+	dc.w	xftVRAM16		; Transfer TextFontDef to $6200W
+	dc.4	TextFontDef
+	dc.4	$6200
+	dcb.w	3,0
+;
+	dc.w	xftEnd
+
+
+;
+;	* * * * * * *       CREDITS TEXTS       * * * * * * *
+;
+TitleSText
+	ifn	0
+	dc.w	($7000+(24*32)+21)
+	dc.l	TTLTxt0A
+	dc.b	TTLTxt0AL
+	dc.w	($7000+(25*32)+21)
+	dc.l	(VerTxt-1)+7
+	dc.b	9
+	endif
+	dc.w	-1
+
+;TTLTxt0A	dc.b	'E3 BETA'
+;TTLTxt0A	dc.b	'PROTO'
+TTLTxt0A	dc.b	'RELEASE'
+TTLTxt0AL	equ	*-TTLTxt0A
+
+
+;
+;	* * * * * * *       CREDITS TEXTS       * * * * * * *
+;
+CreditsSText
+	dc.w	($7000+(2*32)+9)
+	dc.l	CRDTxt2A
+	dc.b	CRDTxt2AL
+	dc.w	($7000+(3*32)+9)
+	dc.l	CRDTxt1A
+	dc.b	CRDTxt2AL
+	dc.w	($7000+(4*32)+9)
+	dc.l	CRDTxt0A
+	dc.b	CRDTxt0AL
+;
+	dc.w	($7000+(6*32)+9)
+	dc.l	CRDTxt2B
+	dc.b	CRDTxt2BL
+	dc.w	($7000+(7*32)+9)
+	dc.l	CRDTxt1A
+	dc.b	CRDTxt2BL
+	dc.w	($7000+(8*32)+9)
+	dc.l	CRDTxt0A
+	dc.b	CRDTxt0AL
+	dc.w	($7000+(9*32)+9)
+	dc.l	CRDTxt0E
+	dc.b	CRDTxt0EL
+	dc.w	($7000+(10*32)+9)
+	dc.l	CRDTxt0F
+	dc.b	CRDTxt0FL
+;
+	dc.w	($7000+(12*32)+9)
+	dc.l	CRDTxt2C
+	dc.b	CRDTxt2CL
+	dc.w	($7000+(13*32)+9)
+	dc.l	CRDTxt1A
+	dc.b	CRDTxt2CL
+	dc.w	($7000+(14*32)+9)
+	dc.l	CRDTxt0A
+	dc.b	CRDTxt0AL
+	dc.w	($7000+(15*32)+9)
+	dc.l	CRDTxt0D
+	dc.b	CRDTxt0DL
+;
+	dc.w	($7000+(17*32)+9)
+	dc.l	CRDTxt2D
+	dc.b	CRDTxt2DL
+	dc.w	($7000+(18*32)+9)
+	dc.l	CRDTxt1A
+	dc.b	CRDTxt2DL
+	dc.w	($7000+(19*32)+9)
+	dc.l	CRDTxt0G
+	dc.b	CRDTxt0GL
+	dc.w	($7000+(20*32)+9)
+	dc.l	CRDTxt0I
+	dc.b	CRDTxt0IL
+	dc.w	($7000+(21*32)+9)
+	dc.l	CRDTxt0J
+	dc.b	CRDTxt0JL
+;
+	dc.w	($7000+(23*32)+9)
+	dc.l	CRDTxt2E
+	dc.b	CRDTxt2EL
+	dc.w	($7000+(24*32)+9)
+	dc.l	CRDTxt1A
+	dc.b	CRDTxt2EL
+	dc.w	($7000+(25*32)+9)
+	dc.l	CRDTxt0K
+	dc.b	CRDTxt0KL
+	dc.w	($7000+(26*32)+9)
+	dc.l	CRDTxt0L
+	dc.b	CRDTxt0LL
+;
+	dc.w	($7400+(2*32)+8)
+	dc.l	CRDTxt2F
+	dc.b	CRDTxt2FL
+	dc.w	($7400+(3*32)+8)
+	dc.l	CRDTxt1A
+	dc.b	CRDTxt2FL
+	dc.w	($7400+(4*32)+8)
+	dc.l	CRDTxt0D
+	dc.b	CRDTxt0DL
+;
+	dc.w	($7400+(6*32)+8)
+	dc.l	CRDTxt2G
+	dc.b	CRDTxt2GL
+	dc.w	($7400+(7*32)+8)
+	dc.l	CRDTxt1A
+	dc.b	CRDTxt2GL
+	dc.w	($7400+(8*32)+8)
+	dc.l	CRDTxt0F
+	dc.b	CRDTxt0FL
+	dc.w	($7400+(10*32)+8)
+	dc.l	CRDTxt0M
+	dc.b	CRDTxt0ML
+	dc.w	($7400+(11*32)+8)
+	dc.l	CRDTxt0N
+	dc.b	CRDTxt0NL
+	dc.w	($7400+(12*32)+8)
+	dc.l	CRDTxt0O
+	dc.b	CRDTxt0OL
+	dc.w	($7400+(13*32)+8)
+	dc.l	CRDTxt0P
+	dc.b	CRDTxt0PL
+	dc.w	($7400+(14*32)+8)
+	dc.l	CRDTxt0Q
+	dc.b	CRDTxt0QL
+;
+	dc.w	($7400+(16*32)+8)
+	dc.l	CRDTxt2H
+	dc.b	CRDTxt2HL
+	dc.w	($7400+(17*32)+8)
+	dc.l	CRDTxt1A
+	dc.b	CRDTxt2HL
+	dc.w	($7400+(18*32)+8)
+	dc.l	CRDTxt0R
+	dc.b	CRDTxt0RL
+;
+	dc.w	($7400+(20*32)+8)
+	dc.l	CRDTxt2I
+	dc.b	CRDTxt2IL
+	dc.w	($7400+(21*32)+8)
+	dc.l	CRDTxt1A
+	dc.b	CRDTxt2IL
+	dc.w	($7400+(22*32)+8)
+	dc.l	CRDTxt0B
+	dc.b	CRDTxt0BL
+	dc.w	($7400+(23*32)+8)
+	dc.l	CRDTxt0C
+	dc.b	CRDTxt0CL
+	dc.w	($7400+(24*32)+8)
+	dc.l	CRDTxt0H
+	dc.b	CRDTxt0HL
+	dc.w	($7400+(25*32)+8)
+	dc.l	CRDTxt0S
+	dc.b	CRDTxt0SL
+;
+	dc.w	-1
+
+CRDTxt0A	dc.b	'Randy Linden'
+CRDTxt0AL	equ	*-CRDTxt0A
+CRDTxt0B	dc.b	'Jodi Harvey'
+CRDTxt0BL	equ	*-CRDTxt0B
+CRDTxt0C	dc.b	'George Metos'
+CRDTxt0CL	equ	*-CRDTxt0C
+CRDTxt0D	dc.b	'Ron Stagg'
+CRDTxt0DL	equ	*-CRDTxt0D
+CRDTxt0E	dc.b	'Kelly Zmak'
+CRDTxt0EL	equ	*-CRDTxt0E
+CRDTxt0F	dc.b	'Vince Bracken'
+CRDTxt0FL	equ	*-CRDTxt0F
+CRDTxt0G	dc.b	'Michael Hunter'
+CRDTxt0GL	equ	*-CRDTxt0G
+CRDTxt0H	dc.b	'Kevin Kralian'
+CRDTxt0HL	equ	*-CRDTxt0H
+CRDTxt0I	dc.b	'Bryan Jacobs'
+CRDTxt0IL	equ	*-CRDTxt0I
+CRDTxt0J	dc.b	'Virginia Sargent'
+CRDTxt0JL	equ	*-CRDTxt0J
+CRDTxt0K	dc.b	'Paul Webb'
+CRDTxt0KL	equ	*-CRDTxt0K
+CRDTxt0L	dc.b	'Bob Dayley'
+CRDTxt0LL	equ	*-CRDTxt0L
+CRDTxt0M	dc.b	'Gary Rowberry'
+CRDTxt0ML	equ	*-CRDTxt0M
+CRDTxt0N	dc.b	'Chris Olson'
+CRDTxt0NL	equ	*-CRDTxt0N
+CRDTxt0O	dc.b	'Chandler Holbrook'
+CRDTxt0OL	equ	*-CRDTxt0O
+CRDTxt0P	dc.b	'Garon Galloway'
+CRDTxt0PL	equ	*-CRDTxt0P
+CRDTxt0Q	dc.b	'Ben Nielson'
+CRDTxt0QL	equ	*-CRDTxt0Q
+CRDTxt0R	dc.b	'John Coffey'
+CRDTxt0RL	equ	*-CRDTxt0R
+CRDTxt0S	dc.b	'John Morgan'
+CRDTxt0SL	equ	*-CRDTxt0S
+
+CRDTxt1A	dc.b	'_______________'
+
+CRDTxt2A	dc.b	'Architect'
+CRDTxt2AL	equ	*-CRDTxt2A
+CRDTxt2B	dc.b	'Foremen'
+CRDTxt2BL	equ	*-CRDTxt2B
+CRDTxt2C	dc.b	'Carpenters'
+CRDTxt2CL	equ	*-CRDTxt2C
+CRDTxt2D	dc.b	'Electricians'
+CRDTxt2DL	equ	*-CRDTxt2D
+CRDTxt2E	dc.b	'Plumbing'
+CRDTxt2EL	equ	*-CRDTxt2E
+CRDTxt2F	dc.b	'Renovations'
+CRDTxt2FL	equ	*-CRDTxt2F
+CRDTxt2G	dc.b	'Masons'
+CRDTxt2GL	equ	*-CRDTxt2G
+CRDTxt2H	dc.b	'Doom Is My Life'
+CRDTxt2HL	equ	*-CRDTxt2H
+CRDTxt2I	dc.b	'Special Thanks'
+CRDTxt2IL	equ	*-CRDTxt2I
+		dc.b	'R'
+
+
+;
+;	* * * * * * *       TITLE DATA       * * * * * * *
+;
+	SECTION	TITLE_DATA_0,RELOC,BASE=$80000000,RORG=$400000
+TitleDef0
+	image	RLDATA:COMP/title.def.0
+
+	SECTION	TITLE_DATA_1,RELOC,BASE=$80000000,RORG=$400000
+TitleDef1
+	image	RLDATA:COMP/title.def.1
+
+	SECTION	TITLE_DATA_2,RELOC,BASE=$80000000,RORG=$400000
+TitleMap
+	image	RLDATA:COMP/title.map0
+
+	SECTION	TITLE_DATA_3,RELOC,BASE=$80000000,RORG=$400000
+TitleRGB
+	image	RLDATA:COMP/title.rgb
+
+	endif

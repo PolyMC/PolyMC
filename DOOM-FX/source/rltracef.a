@@ -1,0 +1,518 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                      ENGINE TRACE FLOORS MODULE                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildTraceFloors
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD TRACE                  TRACE FLOOR/CEILING VSEGMENTS  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       TRACE FLOOR/CEILING VISIBLE SEGMENTS       * * * * * * *
+;
+rVSeg			equ	r10		; Pointer within VisibleSegment
+rVSegEnd		equ	r12		; Pointer to End of VisibleSegment List
+rVSegFlags		equ	r13		; VisibleSegment Flags
+;
+rXs			equ	r4		; Current Pixel X Coordinate
+rXsT			equ	r6		; PixelStep Counter
+;
+rClipZonePtr		equ	r9		; Pointer within ClipZoneData
+rClipRange		equ	r8		; Current ClipRange Bottom.B / Top.B
+rFloorY			equ	r7		; FloorY.W
+rCeilingY		equ	rFloorY		; CeilingY.W
+;
+rFloorCeilingPtr	equ	r5		; Pointer to Current Floor/Ceiling
+rFloorCeilingRange	equ	r14		; Range of Floor/Ceiling Data
+rCeilingPtr		equ	r2		; Pointer to CeilingData
+rFloorPtr		equ	r3		; Pointer to FloorData
+
+
+	align	16,(_RLBuildTraceFloors-_RLAddFloorAlign)&$0f
+;
+;	* * * * * * *       INITIALIZE CLIPRANGE       * * * * * * *
+;
+_RLBuildTraceFloors
+;
+;	* * * * * * *       INITIALIZE FLOORS/CEILINGS       * * * * * * *
+;
+	move	r0,#<_RLFloors			; NO Floors/Ceilings Yet
+	move	(<TRFloorsEnd),r0
+;	with	r0				; NO Starting Floor Yet
+	sub	r0
+	move	(<TRFloors),r0
+
+;
+;	* * * * * * *       INITIALIZE TRACING FLOOR/CEILING VISIBLE SEGMENTS       * * * * * * *
+;
+	move	rVSeg,#<(_RLVSegList-rlvSize+rlvXsT)	; START of VSegList
+	move	rVSegEnd,(<VSegListEnd)		    	; END of VSegList
+;	move	r0,#rlvXsT
+;	with	rVSegEnd
+;	add	r0
+;
+	move	r11,#<_TRFS2200
+
+_RLAddFloor0
+	CACHEB	_RLAddFloor
+_RLAddFloorAlign
+	jmp	r11
+;
+;	* * * * * * *       ADD FLOOR RANGE       * * * * * * *
+;
+;	r0	=	BottomY.B / TopY.B
+;
+;
+;	* * * * * * *       ADD CEILING RANGE       * * * * * * *
+;
+;	r0	=	BottomY.B / TopY.B
+;
+_RLAddFloor
+_RLAddCeiling
+;
+;	* * * * * * *       ADD FLOOR/CEILING RANGE       * * * * * * *
+;
+	moves	rFloorCeilingPtr,rFloorCeilingPtr ; Pointer Already Valid?
+	with	r0				  ; Set up Floor/Ceiling Range
+	bne	_RLAF3000			  ; Yes
+	to	rFloorCeilingRange
+	move	rFloorCeilingPtr,#<(TRFloors+2)	  ; No, Scan from First Floor/Ceiling!
+;
+;	>>>   SCAN ALL AVAILABLE FLOORS   <<<
+;
+_RLAF2000
+	move	r1,(<TRFloorCeilingKey)		; Get Key
+_RLAF2200
+	dec	rFloorCeilingPtr		; Move to Next Floor/Ceiling
+	dec	rFloorCeilingPtr
+;	to	r0
+	ldw	(rFloorCeilingPtr)
+	moves	r0,r0				; Floor/Ceiling Pointer Valid?
+	beq	_RLAF4000			; No
+;
+;	>>>   CORRECT FLOOR/CEILING?   <<<
+;
+	move	rFloorCeilingPtr,r0
+;	with	r0				; Move to Key
+	sub	#(rlfdMinX-rlfdKey)
+;	to	r0				; Get Floor/Ceiling Key
+	ldw	(r0)
+;	with	r0				; Key Matches?
+	sub	r1				; @CMP@
+	bne	_RLAF2200			; No, Try Next Floor/Ceiling!
+;
+;	>>>   CHECK X COORDINATE RANGE OF FLOOR/CEILING   <<<
+;
+_RLAF3000
+	to	r1				; Get Minimum X Coordinate
+	ldb	(rFloorCeilingPtr)
+	from	rXs				; X Within Range?
+;	to	r0				; @CMP@
+	sub	r1
+	bge	_RLAF3200			; Yes
+	from	rXs				; No, New Range
+	stb	(rFloorCeilingPtr)
+	bra	_RLAF5000+1
+	from	rXs				; Get X Coordinate
+_RLAF3200
+	inc	rFloorCeilingPtr		; Get Maximum X Coordinate
+	to	r1
+	ldb	(rFloorCeilingPtr)
+	from	r1				; X Within Range?
+;	to	r0				; @CMP@
+	sub	rXs
+	bge	_RLAF6000			; Yes
+	from	rXs				; No, New Range
+	stb	(rFloorCeilingPtr)
+	bra	_RLAF5000
+	dec	rFloorCeilingPtr
+
+;
+;	>>>   CREATE A NEW FLOOR/CEILING   <<<
+;
+_RLAF4000
+	move	r0,(<TRFloorsEnd)		; Get Pointer to End of FloorsData
+;	from	r0				; Save Pointer in Previous Floor/Ceiling
+	to	r1
+	add	#rlfdMinX
+	from	r1
+	stw	(rFloorCeilingPtr)
+	move	rFloorCeilingPtr,r0
+;
+	move	r0,(<TRFloorCeilingKey)		; Get Key
+;	from	r0
+	stw	(rFloorCeilingPtr)
+	inc	rFloorCeilingPtr
+	inc	rFloorCeilingPtr
+;
+;	with	r0				; No Next Pointer!
+	sub	r0
+;	from	r0
+	stw	(rFloorCeilingPtr)
+;
+	from	rFloorCeilingPtr		; Move to RangeData
+	to	r1
+	add	#(rlfdRange-rlfdNext)
+;
+;	>>>   INITIALIZE FLOOR/CEILING RANGE DATA   <<<
+;
+	ife	useHIGHDETAIL
+	move	rFloorCeilingPtr,#((RLViewPixX/3/2)+1)	; #Range Entries to Initialize
+	endif
+	ifn	useHIGHDETAIL
+	move	rFloorCeilingPtr,#((RLViewPixX/3)+1)	; #Range Entries to Initialize
+	endif
+	move	r0,#-1				 	; UnUsed Range Value
+_RLAF4800
+	stw	(r1)
+	inc	r1
+	dec	rFloorCeilingPtr
+	bne	_RLAF4800
+	inc	r1
+;
+	move	rFloorCeilingPtr,(<TRFloorsEnd)	; Get Pointer to New Floor/Ceiling Data
+	move	r0,#rlfdSize
+;	with	r0
+	add	rFloorCeilingPtr
+;	from	r0				; Save Updated Floors/Ceilings Pointer
+	sbk
+;
+;	>>>   GET HEIGHT OF FLOOR/CEILING   <<<
+;
+	with	rFloorCeilingPtr		; Move to Floor/Ceiling Height
+	add	#rlfdHeight
+	move	r0,(<TRFloorCeilingKey)		; Get Key
+;	from	r0				; Get Pointer to SectorData
+	to	r1
+	lsr
+;	with	r0				; Floor (0) or Ceiling (1)?
+	and	#1
+;	with	r0				; Floor (0) or Ceiling (2)
+	add	r0
+	inc	r0				; Skip SectorData Flags/LightLevel
+	inc	r0
+;	with	r0
+	add	r1
+;	to	r0				; Get Height of Floor/Ceiling
+	ldw	(r0)
+;
+;	>>>   ADJUST HEIGHT TO VIEW   <<<
+;
+	move	r1,(<ViewZ)			; Get View Z Coordinate
+;	with	r0
+	sub	r1
+;	from	r0
+	stw	(rFloorCeilingPtr)
+;
+;	>>>   SET MINIMUM/MAXIMUM X COORDINATE RANGE   <<<
+;
+	from	rXs				; Get X Coordinate
+;	to	r0
+	swap
+;	with	r0
+	add	rXs
+	dec	rFloorCeilingPtr
+	dec	rFloorCeilingPtr
+;	from	r0
+	stw	(rFloorCeilingPtr)
+
+;
+;	>>>   ADD THIS RANGE TO THE FLOOR/CEILING   <<<
+;
+_RLAF5000
+	from	rXs				; Get X Coordinate
+;	to	r0
+	add	rXs
+;	with	r0
+	add	rFloorCeilingPtr
+;	with	r0				; Skip Min/Max X Coordinates
+	add	#(rlfdRange-rlfdMinX)
+	from	rFloorCeilingRange		; Get Floor/Ceiling Range
+	stw	(r0)
+	jmp	r11				; Return to Caller!
+	nop
+
+;
+;	>>>   DOES THIS FLOOR ALREADY HAVE A RANGE?   <<<
+;
+_RLAF6000
+;	from	rXs
+;	to	r0
+	add	rXs
+	dec	rFloorCeilingPtr
+;	with	r0
+	add	rFloorCeilingPtr
+;	with	r0				; Skip Min/Max X Coordinates
+	add	#(rlfdRange-rlfdMinX)
+;
+;	>>>   IS THIS FLOOR/CEILING RANGE AVAILABLE?   <<<
+;
+	to	r1				; Get Floor/Ceiling Range
+	ldw	(r0)
+	inc	r1
+	beq	_RLAF7000
+	nop
+	iwt	r15,#<_RLAF2000			; Used!
+
+;
+;	>>>   ADD THIS RANGE TO THE FLOOR/CEILING   <<<
+;
+_RLAF7000
+	from	rFloorCeilingRange		; Get Floor/Ceiling Range
+	sbk
+	jmp	r11				; Return to Caller!
+	nop
+
+
+;
+;	* * * * * * *       FINISHED TRACING FLOOR/CEILING VISIBLE SEGMENTS       * * * * * * *
+;
+_TRFS9000
+	iwt	r0,#<_RLBuildTraceWalls4	; BUILD TRACE WALLS 4
+	ibt	r8,#^_RLBuildTraceWalls4
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+
+;
+;	* * * * * * *       PROCESS NEXT VISIBLE SEGMENT       * * * * * * *
+;
+_TRFS2200
+	move	r4,#(rlvSize)		 	; Offset to Next VSEG
+_TRFS2400
+	with	rVSeg				; Move to Next VSEG
+	add	r4
+	from	rVSeg				; At End?
+;	to	r0				; @CMP@
+	sub	rVSegEnd
+	beq	_TRFS9000			; Yes!  No More VisibleSegments!
+;
+;	>>>   GET STARTING PIXEL/#PIXELS TO TRACE   <<<
+;
+;	to	r0				; Get Xs1/XsCount
+	ldw	(rVSeg)
+	moves	rXsT,r0
+	bmi	_TRFS2400			; THIS SEGMENT IS CLIPPED!
+;	from	r0				; Get Xs1
+	to	rXs
+	lob
+	with	rXsT				; Get XsCount
+	hib
+	ifn	useHIGHDETAIL
+	move	r0,(<RLMinPixX2)		; Get Offset from Start of Draw
+	endif
+	ife	useHIGHDETAIL
+	move	r0,(<RLMinPixX)			; Get Offset from Start of Draw
+	endif
+	with	rXs
+	sub	r0
+;
+;	>>>   GET VISIBLE SEGMENT FLAGS   <<<
+;
+	move	r0,#rlvFlags			; Get VSegFlags
+;	with	r0
+	add	rVSeg
+	to	rVSegFlags
+	ldw	(r0)
+;
+;	>>>   GET SECTORNEAR_DATA   <<<
+;
+	move	r0,#rlvSectorNearData		; Get SectorNearData
+;	with	r0
+	add	rVSeg
+;	to	r0
+	ldw	(r0)
+;
+;	>>>   CREATE FLOOR/CEILING KEYS   <<<
+;
+;	from	r0				; Get (SectorData << 1)
+	to	r1
+	add	r0
+	move	(<TRFloorKey),r1		; FLOOR KEY
+	inc	r1				; CEILING KEY
+;
+;	>>>   GET CLIPZONE POINTER   <<<
+;
+	move	r0,#rlvClipZoneP		; Get ClipZoneP
+;	with	r0
+	add	rVSeg
+	move	rFloorPtr,#0			; NO Current FLOOR
+	to	rClipZonePtr
+	ldw	(r0)
+;
+;	>>>   SETUP FOR ADDFLOOR/ADDCEILING   <<<
+;
+	move	(<TRCeilingKey),r1		; CEILING KEY
+	with	rFloorPtr			; NO Current CEILING
+	bra	_TRFS10000
+	to	rCeilingPtr
+
+
+;
+;	* * * * * * *       NEXT TRACE STEP       * * * * * * *
+;
+_TRFS90000
+	dec	rXsT				; PixelCount--
+	beq	_TRFS2200			; NO!  Finished this Segment!!
+	inc	rXs				; Move to next Pixel
+	with	rClipZonePtr			; Move to next ClipZone
+	add	#rlvczSize
+
+;
+;	* * * * * * *       MASTER TRACE PROCESSING LOOP       * * * * * * *
+;
+_TRFS10000
+	to	rClipRange			; Get Current ClipRange
+	ldw	(rClipZonePtr)
+	inc	rClipRange
+	beq	_TRFS90000			; View Closed!  Next Step!
+	dec	rClipRange
+
+;
+;	* * * * * * *       TRACE CEILINGS/FLOORS       * * * * * * *
+;
+_TRFS20000
+
+;
+;	* * * * * * *       TRACE CEILING       * * * * * * *
+;
+_TRFS30000
+	move	r1,#(rlvfADDCEILING)
+	from	rVSegFlags			; Adding Ceiling?
+;	to	r0
+	and	r1
+	beq	_TRFS40000
+;
+;	>>>   GET CEILING SCREEN Y   <<<
+;
+	from	rClipZonePtr
+;	to	r0
+	add	#rlvczCeilingY
+	to	rCeilingY			; Get CeilingY.W
+	ldw	(r0)
+;
+;	>>>   CLIP CEILING TO VIEW BOTTOM   <<<
+;
+	from	rClipRange			; Get Bottom of View
+;	to	r0
+	hib
+;	from	r0				; Bottom of View >= Top of Wall?
+	cmp	rCeilingY
+	bge	_TRFS32000			; Yes
+	move	rCeilingY,r0			; No!  Clip Against Bottom of View!
+;
+;	>>>   CLIP CEILING TO VIEW TOP   <<<
+;
+_TRFS32000
+	from	rClipRange			; Get Top of View
+;	to	r0
+	lob
+	from	rCeilingY			; Top of View <= Top of Wall?
+	cmp	r0
+	blt	_TRFS40000			; No!  Clipped!
+;
+;	>>>   DETERMINE CEILING RANGE   <<<
+;
+	from	rCeilingY			; R1 = (Bottom.B << 8)
+	to	r1
+	swap
+;
+;	>>>   SETUP FOR CEILING   <<<
+;
+	move	rFloorCeilingPtr,rCeilingPtr
+	move	r11,(<TRCeilingKey)
+	move	(<TRFloorCeilingKey),r11
+;
+	link	#4
+	iwt	r15,#<_RLAddCeiling		; AddCeiling
+;	with	r0				; R0 = ((BottomY << 8) | TopY)
+	or	r1
+;
+	move	rCeilingPtr,rFloorCeilingPtr
+
+
+;
+;	* * * * * * *       TRACE FLOOR       * * * * * * *
+;
+_TRFS40000
+	move	r1,#(rlvfADDFLOOR)
+	from	rVSegFlags			; Adding Floor?
+;	to	r0
+	and	r1
+	beq	_TRFS90000
+;
+;	>>>   GET FLOOR SCREEN Y   <<<
+;
+	from	rClipZonePtr			; Get FloorY.W
+;	to	r0
+	add	#rlvczFloorY
+	to	rFloorY
+	ldw	(r0)
+;
+;	>>>   CLIP FLOOR TO VIEW TOP   <<<
+;
+	from	rClipRange			; Get Top of View
+;	to	r0
+	lob
+	from	rFloorY				; Bottom of Wall >= Top of View?
+	cmp	r0
+	bge	_TRFS42000			; Yes
+	move	rFloorY,r0			; No!  Clip Against Top of View!
+;
+;	>>>   CLIP FLOOR TO VIEW BOTTOM   <<<
+;
+_TRFS42000
+	from	rClipRange			; Get Bottom of View
+;	to	r0
+	hib
+;	from	r0				; Bottom of Wall <= Bottom of View?
+	cmp	rFloorY
+	blt	_TRFS90000			; No!  Clipped!
+;
+;	>>>   DETERMINE FLOOR RANGE   <<<
+;
+;	from	r0				; R1 = (Bottom.B << 8)
+	to	r1
+	swap
+	move	r0,rFloorY
+;
+;	>>>   SETUP FOR FLOOR   <<<
+;
+	move	rFloorCeilingPtr,rFloorPtr
+	move	r11,(<TRFloorKey)
+	move	(<TRFloorCeilingKey),r11
+;
+	link	#4
+	iwt	r15,#<_RLAddFloor		; AddFloor
+;	with	r0				; R0 = ((BottomY << 8) | TopY)
+	or	r1
+;
+	move	rFloorPtr,rFloorCeilingPtr
+	iwt	r15,#<_TRFS90000+1
+	dec	rXsT				; PixelCount--
+
+
+	CACHEE	_RLAddFloor

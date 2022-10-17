@@ -1,0 +1,104 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       ENGINE BUILD VIEW MODULE                     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+
+	public	_RLBuildA
+	public	_RLBuildB
+	public	_RLBuildC
+	public	_RLBuild
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+;
+;	* * * * * * *       REALITY_ENGINE BUILD       * * * * * * *
+;
+_RLBuildC
+	ifn	useHIGHDETAIL
+	move	r3,#((RLViewPixX/3)*2)		; Minimum X Coordinate
+	move	r4,#((RLViewPixX/3)*3)		; Maximum X Coordinate
+	endif
+	ife	useHIGHDETAIL
+	move	r3,#((RLViewPixX/3)*2)/2	; Minimum X Coordinate
+	move	r4,#((RLViewPixX/3)*3)/2	; Maximum X Coordinate
+	endif
+	bra	_RLBuild
+	nop
+
+_RLBuildB
+	ifn	useHIGHDETAIL
+	move	r3,#((RLViewPixX/3)*1)		; Minimum X Coordinate
+	move	r4,#((RLViewPixX/3)*2)		; Maximum X Coordinate
+	endif
+	ife	useHIGHDETAIL
+	move	r3,#((RLViewPixX/3)*1)/2	; Minimum X Coordinate
+	move	r4,#((RLViewPixX/3)*2)/2	; Maximum X Coordinate
+	endif
+	bra	_RLBuild
+	nop
+
+_RLBuildA
+	ifn	useHIGHDETAIL
+	move	r3,#((RLViewPixX/3)*0)		; Minimum X Coordinate
+	move	r4,#((RLViewPixX/3)*1)		; Maximum X Coordinate
+	endif
+	ife	useHIGHDETAIL
+	move	r3,#((RLViewPixX/3)*0)/2	; Minimum X Coordinate
+	move	r4,#((RLViewPixX/3)*1)/2	; Maximum X Coordinate
+	endif
+
+;
+;	>>>   REALITY_ENGINE BUILD DISPLAY   <<<
+;
+_RLBuild
+	move	r0,(<AutoMapMode)		; AUTOMAP Active?
+	ifn	useHIGHDETAIL
+	move	r1,(<DetailLevel)		; DETAIL Level
+	endif
+	move	(<RLMinPixX),r3			; Save Minimum X Coordinate
+	move	(<RLMaxPixX),r4			; Save Maximum X Coordinate
+	ifn	useHIGHDETAIL
+	dec	r1				; Low/High Detail?
+	bmi	_RLBuild200			; High
+	with	r3				; Low
+	lsr
+	with	r4
+	lsr
+_RLBuild200
+	move	(<RLMinPixX2),r3		; Save Minimum X Coordinate for LOWDETAIL
+	move	(<RLMaxPixX2),r4		; Save Maximum X Coordinate for LOWDETAIL
+	endif
+	dec	r0
+	move	r0,#<_RLBuildTrace		; BUILD DISPLAY
+	ibt	r8,#^_RLBuildTrace		; Begin Execution of Next Code
+	bmi	_RLBuild800			; No
+	nop
+	ifn	DEBUG
+	move	r0,#0				; NO ERROR!
+	move	(<GSUERROR),r0
+	endif
+	stop					; AUTOMAP ACTIVE!
+	nop
+_RLBuild800
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	* * * * * * *       BUILD COMPLETED       * * * * * * *
+;
+_RLBuildDone
+	stop
+	nop

@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	27
+DATE	MACRO
+		dc.b	'28.4.95'
+	ENDM
+VERS	MACRO
+		dc.b	'rldrawf2.a 1.27'
+	ENDM
+VSTRING	MACRO
+		dc.b	'rldrawf2.a 1.27 (28.4.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: rldrawf2.a 1.27 (28.4.95)',0
+	ENDM

@@ -1,0 +1,457 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         MUSIC DRIVER MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	snesmac.i
+	include	rlsound.i
+	include	music.i
+
+
+	SECTION	MUSIC_DRIVER,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       MUSIC BOOT       * * * * * * *
+;
+_MusicBoot
+	image	RLDATA:MUSIC/MUSIC_B.C
+
+;
+;	* * * * * * *       MUSIC DRIVER       * * * * * * *
+;
+_MusicDriver
+	image	RLDATA:MUSIC/MUSIC_D.C
+
+;
+;	* * * * * * *       MUSIC CHUNKINDEX       * * * * * * *
+;
+_MusicChunkIndex
+	image	RLDATA:MUSIC/MUSIC_I
+
+;
+;	* * * * * * *       MUSIC CHUNKLISTS       * * * * * * *
+;
+_MusicChunkLists
+	image	RLDATA:MUSIC/MUSIC_L
+
+;
+;	* * * * * * *       MUSIC CHUNKTABLE       * * * * * * *
+;
+_MusicChunkTable
+	image	RLDATA:MUSIC/MUSIC_T
+
+;
+;	* * * * * * *       MUSIC TURBO SOUNDEFFECTS TABLE       * * * * * * *
+;
+__MusicTurboTable
+	image	RLDATA:MUSIC/MUSIC_O.C
+
+
+;
+;	* * * * * * *       INITIALIZE MUSIC DRIVER       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_InitMusicDriver
+	mode	'AX!'
+	phb
+	ldx	#<__MusicTurboTable			; DeCompress TURBOTABLE
+	lda	#(^_MusicTurboTable<<8)|(^__MusicTurboTable)
+	ldy	#<_MusicTurboTable
+	jsl	DeCompress
+;
+	ldx	#<_MusicBoot				; DeCompress BOOT Code
+	lda	#(^_MDDeCompBuffer<<8)|(^_MusicBoot)
+	ldy	#<_MDDeCompBuffer
+	jsl	DeCompress
+	plb
+	tyx						; Upload BOOT Code
+	ldy	#<_MDDeCompBuffer
+	lda	#^_MDDeCompBuffer
+	jsr	_APUUploadRun0
+;
+	mode	'AX!'
+	phb
+	ldx	#<_MusicDriver			; DeCompress DRIVER Code
+	lda	#(^_MDDeCompBuffer<<8)|(^_MusicDriver)
+	ldy	#<_MDDeCompBuffer
+	jsl	DeCompress
+	plb
+	tyx					; Upload DRIVER Code
+	ldy	#<_MDDeCompBuffer
+	lda	#^_MDDeCompBuffer
+	jsr	_APUUploadRun0
+;
+	mode	'A!'				; Upload Common Module
+	lda	#0
+	jsl	_LoadModule2
+_IMD900
+	rtl
+
+
+;
+;	* * * * * * *       LOAD A SOUND MODULE       * * * * * * *
+;
+;	.A = Module#
+;
+	dbr	?
+	dpr	0
+	mode	'X'
+_LoadModule
+	mode	'A!'
+	and	#$00ff				; Module Resident?
+	cmp	_MDModule
+	beq	_IMD900				; Yes!  Don't ReLoad!
+_LoadModule2
+	sta	_MDModule			; Save Module# Loaded
+	asl	a				; Get Offset into ChunkIndex
+	tax
+	lda	>_MusicChunkIndex,x		; Get ChunkList Index
+	pha
+;
+;	>>>   TELL DRIVER TO SWITCH TO LOAD MODE   <<<
+;
+	lda	#DCOM_RELOAD
+	jsl	__SendDriverCommand
+;
+;	>>>   LOAD A CHUNKLIST   <<<
+;
+_LoadChunkList
+	plx					; .X = ChunkList Index
+	lda	>_MusicChunkLists,x		; .A = APU Destination Address
+	tay
+	jsr	_APUUploadInit			; Initialize APU Upload
+	bra	_LCL500
+;
+;	>>>   NEXT CHUNKLIST GROUP   <<<
+;
+_LCL200
+	inx					; Next ChunkList Group
+	inx
+	mode	'a!'
+	pla					; Restore Serial#
+_LCL220
+	inc	a				; Next Serial#
+	beq	_LCL220
+	pha					; Save Serial#
+	mode	'A!'
+	lda	>_MusicChunkLists,x		; .A = APU Destination Address
+	beq	_LCL800				; End of ChunkList!
+	tay
+	mode	'a!'				; Restore Serial#
+	pla
+	jsr	_APUUploadInit2			; Initialize APU Upload
+	bra	_LCL500
+;
+;	>>>   NEXT CHUNKLIST CHUNK   <<<
+;
+	mode	'a'
+_LCL400
+	plx					; Restore ChunkList Index
+_LCL500
+	pha					; Save Serial#
+	mode	'A!'
+	inx					; Next ChunkList Chunk
+	inx
+	lda	>_MusicChunkLists,x		; .A = Chunk#
+	bmi	_LCL200				; End of ChunkList Group!
+;
+	txy					; Save ChunkList Index
+	sta	_MDChunkPtr			; Multiply by 5 (LOAD.L/SIZE.W)
+	asl	a
+	asl	a
+;	clc
+	adc	_MDChunkPtr
+	tax
+	lda	>_MusicChunkTable+3,x		; Get SIZE.W
+	pha
+	lda	>_MusicChunkTable+0,x		; Get LOAD.L
+	sta	_MDChunkPtr
+	mode	'a!'
+	lda	>_MusicChunkTable+2,x
+	sta	_MDChunkPtr+2
+	plx					; .X = #Bytes
+	bpl	_LCL700				; UnCompressed
+	phy
+	jsl	UnPackRL0			; RLC COMPRESSED!
+	tyx					; .X = #Bytes
+	ply
+	mode	'a!'
+_LCL700
+	pla					; Restore Serial#
+	phy					; Save ChunkList Index
+	jsr	_APUUpload			; APU Upload Block
+	bra	_LCL400
+;
+;	>>>   START DRIVER RUNNING   <<<
+;
+_LCL800
+	mode	'a!'				; Restore Serial#
+	pla
+	jsr	_APUUploadRun			; Start Driver Running!
+	lda	#DCOM_RUN
+	jml	__SendDriverCommand
+
+
+;
+;	* * * * * * *       UPLOAD TO APU AND RUN       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'aX'
+_APUUploadRun0
+	pea	#<(_APUUploadRun-1)		; Start APU Running
+	sty	_MDChunkPtr			; Save Pointer to ChunkData
+	sta	_MDChunkPtr+2
+	pea	#<(_APUUpload-1)		; Upload APU Block
+	ldy	#$0700				; APU Destination Address
+	mode	'A!'
+;
+;	* * * * * * *       UPLOAD TO APU INITIALIZE       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+_APUUploadInit
+	lda	#$BBAA				; APU ReadyState Sentry
+_AUI120
+	cmp	APUIO0
+	bne	_AUI120
+	mode	'a!'
+	sei					; Disable IRQs
+	stz	NMITIMEN			; Disable NMIs
+	lda	#$CC				; CPU ReadyState Sentry
+_APUUploadInit2
+	sty	APUIO2				; Send APU Destination Address
+	sta	APUIO1
+	sta	APUIO0
+_AUI140
+	cmp	APUIO0				; Wait for Acknowledge
+	bne	_AUI140
+	lda	#0
+	rts
+;
+;	* * * * * * *       UPLOAD TO APU       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'aX'
+_APUUpload
+	ldy	#0				; .Y = ChunkData Index
+_AUU200
+	xba					; .B = Serial#
+	lda	[_MDChunkPtr],y			; Send Byte
+	sta	APUIO1
+	xba					; Send Serial#
+	sta	APUIO0
+	iny
+_AUU220
+	cmp	APUIO0				; Wait for Acknowledge
+	bne	_AUU220
+	inc	a				; Next Serial#
+	dex					; Next Byte
+	bne	_AUU200
+	rts
+;
+;	* * * * * * *       START APU RUNNING AFTER UPLOAD       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'aX'
+_APUUploadRun
+	ldx	#$0700				; Send JumpVector
+	stx	APUIO2
+	stz	APUIO1
+_AUR120
+	inc	a				; Next Serial#
+	beq	_AUR120
+	sta	APUIO0				; Send Serial#
+_AUR140
+	cmp	APUIO0				; Wait for Acknowledge
+	bne	_AUR140
+	stz	APUIO0				; Clear Ports
+	stz	APUIO1
+	stz	APUIO2
+	stz	APUIO3
+	lda	#1				; Initialize Serial#
+	sta	_MDSerialNum
+	ldx	#0				; Delay for Music Driver to Initialize
+_AUR160
+	dex
+	bne	_AUR160
+	rts
+
+
+;
+;	* * * * * * *       LOAD AND PLAY A SONG       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+_PlaySong
+	sta	_MDSong				; Save Song#/Module# to Play
+	jsl	_LoadSong			; Load Song
+	ldy	_MDSong				; Get Song# to Play
+	lda	#DCOM_START_SONG
+	jsl	__SendDriverCommand
+	lda	#DCOM_FADEIN			; Fade in Music
+	ldy	#$7f01
+	jml	__SendDriverCommand
+
+
+;
+;	* * * * * * *       LOAD A SONG       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+_LoadSong
+;
+;	>>>   SHUT OFF EVERYTHING   <<<
+;
+	lda	#DCOM_STOP_SONG
+	ldy	#$0000
+	jsl	__SendDriverCommand
+	lda	#DCOM_STOP_SOUND
+	ldy	#$8080
+	jsl	__SendDriverCommand
+;
+;	>>>   CONTROL CLICKS AND POPS   <<<
+;
+	lda	#DCOM_FADE_AND_STOP
+	ldy	#$7f01
+	jsl	__SendDriverCommand
+	ldx	#$4000				; Wait 4 Driver Ticks?!
+_LSG200
+	dex
+	bne	_LSG200
+;
+;	>>>   LOAD MODULE FOR DESIRED SONG, IF NECESSARY   <<<
+;
+	lda	_MDSong				; Module Already Loaded?
+	xba
+	jsl	_LoadModule			; Load Module if Necessary
+	ldx	#$4000				; Wait for Driver to Init
+_LSG300
+	dex
+	bne	_LSG300
+;
+;	>>>   FADE MUSIC IN/OUT (DRIVER USUALLY? FADES THEM IN)   <<<
+;
+	lda	#DCOM_FADE_AND_STOP
+	ldy	#$7f01
+	jsl	__SendDriverCommand
+	ldx	#$4000				; Wait for Fade to Complete
+_LSG500
+	dex
+	bne	_LSG500
+	rtl
+
+
+
+	SECTION	ENGINE_RAMCODE
+;
+;	* * * * * * *       SEND MUSIC DRIVER COMMAND       * * * * * * *
+;
+;	.A = Command
+;	.Y = Parameter
+;
+;	.C = 0 = OK, = 1 = TIMEOUT!
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+
+;
+;	* * * * * * *       SEND DRIVER COMMAND LOCK       * * * * * * *
+;
+_SendDriverCommandL
+	pha					; Save Command
+	lda	#mdlLock			; Lock MusicDriver
+	tsb	_MDLocks
+_SDCL400
+	lda	1,s				; Get Command
+	jsl	_SendDriverCommand		; Send Command
+	bcs	_SDCL400			; TimeOut!  ReSend!
+	mode	'a!'
+;	lda	_MDSerialNum			; .A = Serial#
+_SDCL600
+	cmp	APUIO2				; Wait for Acknowledge
+	bne	_SDCL600
+	mode	'A!'
+	lda	#mdlLock			; UnLock MusicDriver
+	trb	_MDLocks
+	pla					; Discard Command
+	rtl
+
+;
+;	* * * * * * *       SEND DRIVER COMMAND       * * * * * * *
+;
+_SendDriverCommand
+;__SendDriverCommand	equ	((**&$00ff8000)<<1)+(**&$7fff)+$8000
+__SendDriverCommand	equ	((**&$00ffffff)+$400000)
+	ldx	#$2800				; .X = TimeOut Counter
+;
+;	>>>   DCOM_RELOAD / DCOM_RUN?   <<<
+;
+	mode	'a!'
+	cmp	#DCOM_RELOAD			; RELOAD Command?
+	beq	_SDC200				; Yes
+	cmp	#DCOM_RUN			; RUN Command?
+	bne	_SDC500				; No
+_SDC200
+	xba					; .B = Command
+	lda	_MDSerialNum			; .A = Serial#
+_SDC220
+	cmp	APUIO2				; Wait for Acknowledge, NO TIMEOUT!
+	bne	_SDC220
+	bra	_SDC700
+
+;
+;	* * * * * * *       SEND DRIVER COMMAND QUICK       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_SendDriverCommandQuick
+;__SendDriverCommandQuick	equ	((**&$00ff8000)<<1)+(**&$7fff)+$8000
+__SendDriverCommandQuick	equ	((**&$00ffffff)+$400000)
+	ife	usePAL
+	ldx	#40				; .X = TimeOut Counter
+	endif
+	ifn	usePAL
+	ldx	#100				; .X = TimeOut Counter
+	endif
+	mode	'a!'
+;
+;	>>>   SYNCHRONIZE WITH MUSIC DRIVER   <<<
+;
+_SDC500
+	xba					; .B = Command
+	lda	_MDSerialNum			; .A = Serial#
+_SDC520
+	cmp	APUIO2				; Wait for Acknowledge
+	beq	_SDC700
+	dex					; TimeOut?
+	bne	_SDC520
+	mode	'A!'				; Yes!  Error!
+	sec					; .C = 1 = Command NOT Sent!
+	rtl
+;
+;	>>>   SEND COMMAND/PARAMETERS/SERIAL# TO MUSIC DRIVER   <<<
+;
+	mode	'a'
+_SDC700
+	inc	a				; Next Serial#
+	beq	_SDC700				; Skip Serial# $00
+	sta	_MDSerialNum			; Save New Serial#
+	mode	'A!'
+	sty	APUIO0				; Send Parameter
+	sta	APUIO2				; Send Command/Serial#
+	clc					; .C = 0 = Command Sent
+	rtl

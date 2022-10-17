@@ -1,0 +1,19 @@
+RIPDOOM
+-------
+	-V	Verbose
+	-Q	Quiet
+
+	-L	Level BaseDirectory Name
+	-D	Width,Height,#Planes for IFF Image of Level
+
+	-R	Rip DOOM.WAD data into seperate files
+
+	-F	FloorName
+
+	-I	ImageName
+
+	-O	OutputName
+		(IFF for Floors/Images)
+		(BaseDirectory Name for Level)
+
+	-T	Convert TEXTURE1,TEXTURE2,PNAMES

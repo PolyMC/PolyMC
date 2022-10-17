@@ -1,0 +1,5 @@
+xg -pRLART:sysfont -dRLDATA:ART/sysfont -ms -fn -y0 -c0
+delete RLDATA:ART/sysfont.map0
+delete RLDATA:ART/sysfont.rgb
+xc -v -iRLDATA:ART/sysfont.def0 -oRLDATA:COMP/sysfont.def0
+touch sys.a

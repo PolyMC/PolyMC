@@ -1,0 +1,233 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                        PROJECTILES MOVEMENT                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+	include	rlenemies.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rProjectileMoves	equ	r11		; Pointer to Projectile Movement List
+rObj			equ	r12		; Pointer to RLObject
+rTObj			equ	r13		; Pointer to Target RLObject
+rTObjSectorData		equ	r1		; Target RLObject SectorData (FIXED ONLY)
+
+
+;
+;	* * * * * * *       PROJECTILES MOVEMENT       * * * * * * *
+;
+	align	16,(_RLPM10000-_RLProjectilesMoveAlign)&$0f
+;
+;	>>>   FINISHED PROJECTILES MOVEMENT   <<<
+;
+_RLPM10000
+	move	r0,#<_RLRadiusDamage		; HANDLE RADIUS DAMAGES
+	move	r8,#^_RLRadiusDamage
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	* * * * * * *       START PROJECTILES MOVEMENT       * * * * * * *
+;
+_RLProjectilesMove
+	move	r1,#<MVULMask			; LineFlags Type Mask
+;	with	r0
+	sub	r0
+;	from	r0
+	stb	(r1)
+	move	r1,#<MVIMask			; ObjectFlags Collision Mask
+	move	r0,#(rlpfSolid)
+;	from	r0
+	stb	(r1)
+	move	rProjectileMoves,#<_RLProjectileMoves	; Pointer to Projectile MoveList
+;
+;	* * * * * * *       PROCESS NEXT PROJECTILE       * * * * * * *
+;
+_RLPM2000
+	CACHEB	_RLProjectilesMove
+_RLProjectilesMoveAlign
+;	to	r0				; Get Next Projectile
+	ldw	(rProjectileMoves)
+	inc	rProjectileMoves
+	moves	rObj,r0
+	beq	_RLPM10000			; No More Projectiles!
+	inc	rProjectileMoves
+;
+	move	(<ENEnemy),rProjectileMoves	; Save Projectile Movement List Index
+	link	#4
+	iwt	r15,#<_RLMoveObject3
+	nop
+;
+;	>>>   IS PROJECTILE FAST ALREADY?   <<<
+;
+_RLPM4000
+	from	rObj				; Get Projectile's Flags
+;	to	r0
+	add	#rloFlags
+;	to	r0
+	ldw	(r0)
+;	with	r0				; rlpfProjectileFast?
+	lsr
+	bcs	_RLPM4800			; Yes
+;	with	r0				; No, Make Projectile Fast!
+	add	r0
+	inc	r0
+;	from	r0
+	sbk
+	move	r0,#rloVXY			; Double X/Y Velocity
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+;	with	r0
+	add	r0
+;	from	r0
+	sbk
+	move	r0,#rloVZ			; Double Z Velocity
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+;	with	r0
+	add	r0
+;	from	r0
+	sbk
+_RLPM4800
+;
+;	>>>   WAS PROJECTILE BLOCKED?   <<<
+;
+	move	r0,(<MVIPercent)		; Percentage of Movement Allowed
+	inc	r0
+	bpl	_RLPM5000-1			; Movement BLOCKED!
+;
+;	>>>   DID PROJECTILE HIT FLOOR/CEILING?   <<<
+;
+	move	r0,#rloSector			; Get Sector
+;	with	r0
+	add	rObj
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r1,#<(_RLSectorData+rlsdFloorHeight)
+	with	r1
+	add	r0
+	to	r2				; Get FloorHeight
+	ldw	(r1)
+	move	r0,#rloZ			; Get Projectile Z
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+;	from	r0				; Below Floor?
+	cmp	r2
+	blt	_RLPM8000			; YES!
+	inc	r1
+	inc	r1
+	to	r2				; Get CeilingHeight
+	ldw	(r1)
+;	with	r0				; Above Ceiling?
+	sub	r2				; @CMP@
+	blt	_RLPM9000			; NO!
+	nop
+	bra	_RLPM8000			; YES!
+	nop
+;
+;	* * * * * * *       PROJECTILE MOVEMENT BLOCKED       * * * * * * *
+;
+_RLPM5000
+	move	r2,(<MVMLPtr)			; Get Blocking Line's Flags
+	from	r2
+;	to	r0
+	add	#rlmlFlags
+;	to	r0
+	ldw	(r0)
+	inc	r0				; OBJECT/WALL?
+	bpl	_RLPM8000			; WALL
+;
+;	>>>   GET BLOCKING RLOBJECT   <<<
+;
+	to	rTObj				; Get RLObject
+	ldw	(r2)
+	from	rTObj				; Get RLObject.Flags
+;	to	r0
+	add	#(rloFlags+1)
+;	to	r0				; @RAM FETCH INVERTED@
+	ldw	(r0)
+;	with	r0				; rlpfMovable -> .S
+	add	r0
+;	with	r0				; rlpfMovable -> .C
+	add	r0
+	bpl	_RLPM8000			; NOT A TARGET!
+	nop
+	bcs	_RLPM6000-1			; MOVABLE!
+;
+	move	r0,#rlmlSectorData		; FIXED!
+;	with	r0
+	add	r2
+;	to	r0				; Get RLObject.SectorData.Objects
+	ldw	(r0)
+;	from	r0				; Move Back to SectorData
+	to	rTObjSectorData
+	sub	#rlsdObjects
+;
+;	>>>   DAMAGE THE BLOCKING TARGET OBJECT!   <<<
+;
+_RLPM6000
+	move	r4,#rlmodAttackFarDamage	; Damage Multiplier/Range
+	link	#4
+	iwt	r15,#<_RLDamageObjectM
+	nop
+	move	rObj,(<MVRObj)			; Get RLObject Pointer
+
+;
+;	* * * * * * *       DESTROY PROJECTILE       * * * * * * *
+;
+_RLPM8000
+;
+;	>>>   SET RLOBJECT STATE TO _DAMAGE   <<<
+;
+	move	r0,#^_MObjData			; MObjData Bank
+	romb
+	move	r1,#rloMData
+	with	r1
+	add	rObj
+;	to	r0
+	ldw	(r1)
+;	from	r0				; Move to DamageState
+	to	r14
+	add	#rlmodDamageS
+	dec	r1				; Move to State
+	dec	r1
+	getb					; Get DamageState
+	inc	r14
+	getbh
+;	from	r0
+	stw	(r1)
+
+;
+;	* * * * * * *       NEXT PROJECTILE       * * * * * * *
+;
+_RLPM9000
+	move	rProjectileMoves,(<ENEnemy)	; Restore Projectile Movement List Index
+_RLPM9200
+	iwt	r15,#<_RLPM2000
+	nop
+
+
+	CACHEE	_RLProjectilesMove

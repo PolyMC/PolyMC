@@ -1,0 +1,33 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                   ENGINE CODE SECTION FOOTER MODULE                *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+
+;
+;	* * * * * * *       REALITY_ENGINE GSUCODE END       * * * * * * *
+;
+	SECTION	ENGINE_GSUCODE
+_RLGSUCodeEnd
+
+
+;
+;	* * * * * * *       ENGINE 65816 CODE END       * * * * * * *
+;
+	SECTION	ENGINE
+_RLCodeEnd
+
+
+;
+;	* * * * * * *       REALITY_ENGINE RAMCODE END       * * * * * * *
+;
+	SECTION	ENGINE_RAMCODE
+_RLRAMCodeEnd
+
+	LTEXT	"RAM7DEnd $%08lx ($%04lx Free), RAM7DEnd2 $%08lx ($%04lx Free)",RAM7DEnd,($710000-RAM7DEnd),RAM7DEnd2,($710000-RAM7DEnd2)
+	LTEXT	"RLG=$%08lx, RLE=$%08lx, RLR=$%08lx",(_RLGSUCodeEnd-_RLGSUCode),(_RLRAMCodeEnd-_RLRAMCode),(_RLCodeEnd-_RLCode)

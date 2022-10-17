@@ -1,0 +1,539 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                      XBAND POCKY BOARD COMMUNICATIONS MODULE       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+;	SECTION	XBAND
+
+
+	ifn	usePOCKY
+;
+;	* * * * * * *       INITIALIZE POCKY BOARD       * * * * * * *
+;
+	dbr	?
+_XBPockyInit0
+	mode	'A!'
+	lda	#0			; Delay to allow last byte sent
+.0
+	inc	a
+	bne	.0
+_XBPockyInit
+	mode	'a!'
+	pea	#$2100
+	pld
+	dpr	$2100
+;
+	lda	#0			; Don't Echo Bytes Sent
+	sta	XBPockyEcho
+;
+	lda	#$55			; Ensure Pocky Board Present
+	sta	scr_B
+	cmp	scr_B
+	bne	_XBPI900
+	lda	#$AA			; Ready for Even Bits
+	sta	scr_B
+	cmp	scr_B
+	bne	_XBPI900
+;
+;	lda	#$00
+	stz	ier_B			; interrupts off
+	lda	#%11000111
+	sta	fcr_B			; turn on 16 byte FIFO
+	lda	#%10000000
+	sta	lcr_B			; go into "set up baud rate" mode
+	lda	#<port_B_baud_val
+	sta	dll_B			; set baud rate
+	lda	#>port_B_baud_val
+	sta	dlh_B
+	lda	#%00000011
+	sta	lcr_B			; set to N81 (turn off baud set mode)
+;
+;	lda	#$00
+	stz	ier_A			; interrupts off
+	lda	#%11000111
+	sta	fcr_A			; turn on 16 byte FIFO
+	lda	#%10000000
+	sta	lcr_A			; go into "set up baud rate" mode
+	lda	#<port_A_baud_val	
+	sta	dll_A			; set baud rate
+	lda	#>port_A_baud_val
+	sta	dlh_A
+	lda	#%00000011
+	sta	lcr_A			; set to N81 (turn off baud set mode)
+;
+_XBPI900
+	pea	#0
+	pld
+	dpr	0
+	rts
+
+
+;
+;	* * * * * * *       XBAND SYNCHRONIZE GAMEPATCHES       * * * * * * *
+;
+	dbr	$FF
+	dpr	0
+_XBSyncGamePatch
+	mode	'aX!'
+	lda	#%10000000
+	sta	lcr_B				; Set up SyncGamePatch Baud
+	lda	#<port_B_baud_SGP_val
+	sta	dll_B
+	lda	#>port_B_baud_SGP_val
+	sta	dlh_B
+	lda	#%00000011
+	sta	lcr_B
+	lda	gSessionIsMaster		; MASTER/SLAVE?
+	bne	_XBSGP1000			; MASTER
+	jmp	_XBSGP5000			; SLAVE
+;
+;	* * * * * * *       MASTER       * * * * * * *
+;
+_XBSGP1000
+	mode	'A!'
+	lda	#'RL'				; Sync with Slave
+	jsr	_XBPockyPutSyncWord
+	lda	#<(XBAND_END-XBAND)		; Send Length
+	pha
+	jsr	_XBPockyPutSyncWord
+	ldx	#<XBSGPmSyncText
+	jsr	_XBPockyPutDebugText
+	mode	'A!'
+	pla
+	jsr	_XBPockyPutDebugHexWord
+;
+	ldx	#0				; Transfer GamePatch
+_XBSGP2000
+	mode	'A!'
+	txa					; Send Next Block
+	jsr	_XBPockyPutSyncWord
+	mode	'a!'
+	lda	#'.'
+	jsr	_XBPockyPutDebugByte
+	ldy	#256
+	pea	#$0000				; Checksum
+_XBSGP2200
+	lda	XBAND,x
+	pha
+	jsr	_XBPockyPutByte0
+	pla
+	mode	'A!'
+	and	#$00ff
+	clc
+	adc	1,s
+	sta	1,s
+	mode	'a!'
+	inx
+	dey
+	bne	_XBSGP2200
+	mode	'A!'
+	jsr	_XBPockyGetSyncWord		; Get Checksum
+	cmp	1,s
+	beq	_XBSGP2500			; Yes
+	pla					; No, Error
+	txa
+	sec
+	sbc	#256
+	tax
+	mode	'a!'
+	lda	#'*'
+	jsr	_XBPockyPutDebugByte
+	bra	_XBSGP2000
+	mode	'A'
+_XBSGP2500
+	pla
+	cpx	#<(XBAND_END-XBAND)		; Past Length?
+	bcc	_XBSGP2000			; Not Yet!
+;
+_XBSGP3000
+	lda	#-1				; Finished
+	jsr	_XBPockyPutSyncWord
+	mode	'a!'
+	lda	#'!'
+	jsr	_XBPockyPutDebugByte
+	jsr	_XBPockyInit0			; ReInitialize Pocky
+	mode	'A!'
+	lda	#0				; BECOME SLAVE
+	sta	XBMaster
+	jmp	XBAND4				; Continue GamePatch
+;
+;	* * * * * * *       SLAVE       * * * * * * *
+;
+	mode	'a'
+_XBSGP5000
+	jsr	_XBPockyGetSyncWord		; Sync with Master
+	mode	'A'
+	cmp	#'RL'
+	bne	_XBSGP5000
+	jsr	_XBPockyGetSyncWord		; Get Length
+	pha					; Save Length
+	ldx	#<XBSGPsSyncText
+	jsr	_XBPockyPutDebugText
+	mode	'A!'
+	lda	1,s
+	jsr	_XBPockyPutDebugHexWord
+;
+_XBSGP6000
+	jsr	_XBPockyGetSyncWord		; Get Next Block
+	tax
+	bmi	_XBSGP7000			; End
+	mode	'a!'
+	lda	#'.'
+	jsr	_XBPockyPutDebugByte
+	ldy	#256
+	pea	#$0000				; Checksum
+_XBSGP6200
+	mode	'a!'
+	jsr	_XBPockyGetByte2		; Get Next Byte
+	sta	$7e2000,x
+	mode	'A!'
+	and	#$00ff
+	clc
+	adc	1,s
+	sta	1,s
+	inx
+	dey
+	bne	_XBSGP6200
+	mode	'A!'
+	pla					; Get Checksum
+_XBSGP6800
+	jsr	_XBPockyPutSyncWord		; Send Checksum
+	bra	_XBSGP6000
+;
+_XBSGP7000
+	mode	'a!'
+	lda	#'!'
+	jsr	_XBPockyPutDebugByte
+	mode	'AX!'
+	ldx	#<_XBSGPCode			; Transfer the SyncCode
+	ldy	#<_XBSGPCodeRAM
+	lda	#(_XBSGPCodeEnd-_XBSGPCode)
+	mvn	#((^_XBSGPCode<<8)+^_XBSGPCodeRAM)
+	jsr	_XBPockyInit0			; ReInitialize Pocky
+	mode	'A!'
+;
+	lda	#$0b5c				; PsyQ Debugger BRK Vector
+	sta	$100
+	lda	#$7de0
+	sta	$102
+	lda	#$0b5c	; $0e5c			; PsyQ Debugger COP Vector
+	sta	$104
+	lda	#$7de0
+	sta	$106
+;
+	lda	#1				; BECOME MASTER
+	sta	XBMaster
+	jml	_XBSGPCodeRAM
+;
+;	>>>   SLAVE CODE TRANSFERRED TO WRAM   <<<
+;
+_XBSGPCode
+	org	$001f00
+_XBSGPCodeRAM
+	ldx	#<$7e2000			; Transfer the GamePatch
+	ldy	#<XBAND
+	pla					; #Bytes Received
+	mvn	#((^$7e2000<<8)+^XBAND)
+	jml	$e00217				; Continue GamePatch
+	reorg
+_XBSGPCodeEnd
+;
+;	>>>   TEXT MESSAGES   <<<
+;
+XBSGPmSyncText
+XBSGPsSyncText
+	dc.b	'Sync $',0
+
+
+;
+;	* * * * * * *       SYNC GET POCKY WORD       * * * * * * *
+;
+	dbr	$ff
+	dpr	0
+_XBPockyGetSyncWord
+	pea	#0			; Allocate Temp (Error)
+	phd				; Allocate Temp (Word)
+	mode	'a!'
+_XBPGSW200
+	jsr	_XBPockyWaitByte	; Get Word
+	sta	1,s
+	jsr	_XBPockyWaitByte
+	sta	2,s
+	jsr	_XBPockyPutByte0	; Send Word Backwards
+	lda	1,s
+	jsr	_XBPockyPutByte0
+	jsr	_XBPockyWaitByte	; Get Sync Acknowledge
+	cmp	#'R'
+	beq	_XBPGSW800		; Valid!
+	lda	#1
+	sta	3,s
+	bra	_XBPGSW200		; Invalid?!
+_XBPGSW800
+	mode	'AX!'
+	pla				; Get Word
+	ply				; Get Error
+	rts
+
+
+;
+;	* * * * * * *       SYNC PUT POCKY WORD       * * * * * * *
+;
+	dbr	$ff
+	dpr	0
+	mode	'AX'
+_XBPockyPutSyncWord
+	pea	#0			; Allocate Temp (Error)
+	pha				; Allocate Temp (Word)
+	pha				; Allocate Temp
+_XBPPSW200
+	mode	'a!'
+	lda	3,s			; Send Word
+	jsr	_XBPockyPutByte0
+	lda	4,s
+	jsr	_XBPockyPutByte0
+	jsr	_XBPockyGetByte2	; Get Word
+	bcc	_XBPPSW200
+	sta	2,s
+	jsr	_XBPockyGetByte2
+	bcc	_XBPPSW200
+	sta	1,s
+	mode	'A!'
+	lda	1,s			; Match?
+	cmp	3,s
+	beq	_XBPPSW800		; Yes!
+	lda	#1
+	sta	5,s
+	bra	_XBPPSW200		; No, ReSend!
+_XBPPSW800
+	mode	'a!'
+	lda	#'R'			; Yes, Send Sync Acknowledge
+	jsr	_XBPockyPutByte0
+	mode	'A!'
+	pla				; Discard Temp
+	pla				; Restore Word
+	ply				; Get Error
+	rts
+
+
+;
+;	* * * * * * *       WAIT FOR POCKY BYTE       * * * * * * *
+;
+	dbr	$ff
+	dpr	0
+	mode	'a'
+_XBPockyWaitByte
+	jsr	_XBPockyGetByte		; Get Pocky Byte
+	bcc	_XBPockyWaitByte	; Did we get a byte?
+	rts				; Yes
+
+;
+;	* * * * * * *       GET POCKY BYTE W/TIMEOUT       * * * * * * *
+;
+	dbr	$ff
+	dpr	0
+	mode	'aX'
+_XBPockyGetByte2
+	phx
+	ldx	#0
+_XBPG2B200
+	jsr	_XBPockyGetByte			; Get Next Byte
+	bcs	_XBPG2B800
+	dex
+	bne	_XBPG2B200
+	clc					; Didn't Get Byte!
+_XBPG2B800
+	plx
+	rts
+
+
+;
+;	* * * * * * *       GET POCKY BYTE       * * * * * * *
+;
+	dbr	$ff
+	dpr	0
+	mode	'a'
+_XBPockyGetByte
+_XBPGB200
+	lda	lsr_B			; Byte Pending?
+	lsr	a
+	bcc	_XBPGB900		; No
+;	and	#%111			; Any Error?
+;	beq	_XBPGB200		; No
+;	sta	XBModemErr		; Yes, UART detected an error!
+	lda	rxd_B			; Get DataByte
+	pha
+	lda	scr_B			; Already got Even Bits?
+	bpl	_XBPGB500		; Yes
+	lda	1,s
+	and	#$55
+	cmp	1,s
+	beq	_XBPGB400		; Yes!  Even Bits Valid!
+	lda	#-1			; No, Invalid Data!
+_XBPGB400
+	sta	scr_B
+	pla
+	bra	_XBPGB200
+_XBPGB500
+	lda	1,s
+	and	#$aa			; Only got Odd Bits?
+	cmp	1,s
+	beq	_XBPGB800		; Yes!  Odd Bits Valid!
+	lda	#0			; No, Invalid Data!
+	bra	_XBPGB400
+_XBPGB800
+	pla				; Merge Even and Odd Bits
+	ora	scr_B
+	pha
+	lda	#$FF			; Ready for Even Bits
+	sta	scr_B
+;
+	lda	XBPockyEcho		; Pocky Echos Bytes?
+	beq	_XBPGB820
+	lda	#13
+	jsr	_XBPockyPutDebugByte
+	lda	1,s
+	jsr	_XBPockyPutDebugHexByte
+_XBPGB820
+;
+	sec
+	pla				; Get DataByte
+_XBPGB900
+	rts
+
+
+;
+;	* * * * * * *       PUT POCKY BYTE       * * * * * * *
+;
+;	.A = Byte to Send
+;
+	dbr	$ff
+	dpr	0
+	mode	'a'
+_XBPockyPutByte0
+	pha
+_XBPPB100
+	lda	lsr_B
+	and	#$20
+	beq	_XBPPB100
+	pla
+_XBPockyPutByte
+	pha
+	lda	1,s
+	and	#$55
+	sta	txd_B
+	lda	1,s
+	and	#$aa
+	sta	txd_B
+;
+	lda	XBPockyEcho		; Pocky Echos Bytes?
+	beq	_XBPGB820
+	lda	#13
+	jsr	_XBPockyPutDebugByte
+	pla
+;
+;	* * * * * * *       PUT POCKY DEBUG HEX BYTE       * * * * * * *
+;
+;	!!!   DANGER!   FALLS THROUGH FROM ABOVE   !!!
+;
+;	.A = Byte to Send
+;
+	dbr	$ff
+	dpr	0
+	mode	'a'
+_XBPockyPutDebugHexByte
+	pha
+	lsr	a
+	lsr	a
+	lsr	a
+	lsr	a
+	jsr	_XBPockyPutDebugHexNibble
+	pla
+;	jmp	_XBPockyPutDebugHexNibble
+
+;
+;	* * * * * * *       PUT POCKY DEBUG HEX NIBBLE       * * * * * * *
+;
+;	!!!   DANGER!   FALLS THROUGH FROM ABOVE   !!!
+;
+;	.A = Byte to Send
+;
+	dbr	$ff
+	dpr	0
+	mode	'a'
+_XBPockyPutDebugHexNibble
+	and	#$f
+	cmp	#$a
+	bcc	.0
+	adc	#'A'-'9'-2
+.0
+	adc	#'0'
+;	jmp	_XBPockyPutDebugByte
+
+;
+;	* * * * * * *       PUT POCKY DEBUG BYTE       * * * * * * *
+;
+;	!!!   DANGER!   FALLS THROUGH FROM ABOVE   !!!
+;
+;	.A = Byte to Send
+;
+	dbr	$ff
+	dpr	0
+	mode	'a'
+_XBPockyPutDebugByte
+	pha
+_XBPPDB200
+	lda	lsr_A			; Wait for Hold Buffer Empty
+	and	#$20
+	beq	_XBPPDB200
+	pla
+	sta	txd_A
+	rts
+
+
+;
+;	* * * * * * *       PUT POCKY DEBUG HEX WORD       * * * * * * *
+;
+;	.A = Word to Send
+;
+	dbr	$ff
+	dpr	0
+	mode	'A'
+_XBPockyPutDebugHexWord
+	mode	'a!'
+	pha
+	xba
+	jsr	_XBPockyPutDebugHexByte
+	pla
+	jmp	_XBPockyPutDebugHexByte
+
+
+;
+;	* * * * * * *       PRINT POCKY STRING       * * * * * * *
+;
+	dpr	0
+	mode	'X'
+_XBPockyPutDebugText
+	phb
+	phk
+	plb
+	dbr	(^*)
+	mode	'a!'
+_XBPDT200
+	lda	!((^*)<<16),x
+	beq	_XBPDT800
+	jsr	_XBPockyPutDebugByte
+	inx
+	bra	_XBPDT200
+_XBPDT800
+	plb
+	rts
+
+	endif

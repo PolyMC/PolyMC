@@ -1,0 +1,25 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                      SPRITES IMAGERY DATA MODULE                   *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+
+	public	RLSpriteDefPause
+
+
+;
+;	* * * * * * *       SPRITES IMAGERY PIXEL DEFINITIONS       * * * * * * *
+;
+;	PixelData for Sprites Imagery
+;
+
+;
+;	>>>   PAUSE   <<<
+;
+	SECTION	SPRITEDEF_PAUSE,RELOC,BASE=$80000000,RORG=$8000
+RLSpriteDefPause
+	image	RLDATA:SPRITES/PAUSE.DEF

@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	119
+DATE	MACRO
+		dc.b	'7.5.95'
+	ENDM
+VERS	MACRO
+		dc.b	'rltracew3.a 1.119'
+	ENDM
+VSTRING	MACRO
+		dc.b	'rltracew3.a 1.119 (7.5.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: rltracew3.a 1.119 (7.5.95)',0
+	ENDM

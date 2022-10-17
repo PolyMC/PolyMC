@@ -1,0 +1,378 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                      ENGINE FLOOR DRAW MODULE     TEXTURED FLOORS  *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLDrawFloorsA
+	public	_RLDrawFloorsB
+	public	_RLDrawFloorsC
+	public	_RLDrawFloors
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+	ifn	useFLOORS
+;
+;	* * * * * * *       REALITY_ENGINE DRAW FLOORS       * * * * * * *
+;
+;	In LOW-Detail mode, each 2-pixels wide are drawn
+;
+
+rPixScaleXF	equ	r3			; SCN->RL X Scale Fraction
+rPixScaleYF	equ	r4			; SCN->RL Y Scale Fraction
+rPixScaleXY	equ	r5			; SCN->RL X/Y Scale Integer
+;
+rTemp		equ	r6			; Temporary
+rFloorXY	equ	r7			; Y.B / X.B Texture Offsets
+rFloorXF	equ	r8			; SCN->RL X Fraction
+rFloorYF	equ	r9			; SCN->RL Y Fraction
+;
+rPlotDataPtr	equ	r10			; Ptr within Current FloorPlotData
+rColourMap	equ	r11			; Base Address of ColourMap
+
+
+	align	16,(_RLDrawFloorsC-_RLDrawFloorsLowAlign)&$0f
+
+_RLDrawFloorsC
+	move	r2,#<_RLDrawObjsC
+	bra	_RLDrawFloors
+	nop
+_RLDrawFloorsB
+	move	r2,#<_RLDrawObjsB
+	bra	_RLDrawFloors
+	nop
+_RLDrawFloorsA
+	move	r2,#<_RLDrawObjsA
+_RLDrawFloors
+	move	(<RLNextCode),r2		; Save address of Next Code Jump
+	move	rPlotDataPtr,(<TRObjPlotPtr)	; FLOOR PLOT DATA START
+
+;
+;	* * * * * * *       DRAW FLOORS IN LOW DETAIL       * * * * * * *
+;
+_RLDrawFloorsLow
+	move	r13,#(($3f<<8)|($3f))		; TextureMask
+	bra	_DFL8000-1			; @SET UP CACHE@
+	nop
+
+;
+;	>>>   DRAW FLOORS COMPLETE   <<<
+;
+_DFL1000
+	move	r0,(<RLNextCode)		; Begin Execution of Next Code
+	ibt	r8,#^_RLDrawFloorsA
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+
+	CACHEB	_RLDrawFloorsLow
+_RLDrawFloorsLowAlign
+;
+;	>>>   GET PIXELSTRIP PLOT INFORMATION   <<<
+;
+_DFL8000
+;	to	r0				; Get #Pixels To Draw / ColourMap
+	ldw	(rPlotDataPtr)
+;	from	r0				; #Pixels to Draw
+	to	r12				; End of FloorPlotData?
+	lob
+	beq	_DFL1000			; Yes!
+;
+	inc	rPlotDataPtr
+;	from	r0				; Get HighByte of ColourMap
+	to	rColourMap
+	hib
+	with	rColourMap			; Get Address of ColourMap
+	swap
+	beq	_DFL8500			; SKY!
+	inc	rPlotDataPtr
+;
+;	to	r0				; Get X Scaling Value
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr
+	inc	rPlotDataPtr
+;	from	r0
+	to	rPixScaleXY
+	hib
+;	with	r0
+	lob
+;	from	r0
+	to	rPixScaleXF
+	swap
+;
+;	to	r0				; Get Y Scaling Value
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr
+	inc	rPlotDataPtr
+;	from	r0
+	to	rPixScaleYF
+	lob
+	with	rPixScaleYF
+	swap
+;	with	r0
+	hib
+;	with	r0
+	swap
+	with	rPixScaleXY
+	add	r0
+;
+	move	r0,#^RLFloorsDef		; Bank of PixelData
+	romb
+	to	rFloorXY			; Get Texture X/Y Offsets
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr
+	inc	rPlotDataPtr
+;
+	from	rFloorXY			; Calculate TextureData Pointer
+;	to	r0
+	hib
+;	with	r0
+	swap
+;	with	r0
+	lsr
+;	with	r0
+	lsr
+	from	rFloorXY
+	to	r1
+	lob
+;	from	r0				; (Y << 6) | (X)
+	to	r14
+	add	r1
+;
+;	to	r0				; Get X/Y Fraction Values
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr
+	inc	rPlotDataPtr
+;	from	r0				; X Fraction
+	to	rFloorXF
+	lob
+	with	rFloorXF
+	swap
+;	with	r0				; Y Fraction
+	hib
+;	from	r0
+	to	rFloorYF
+	swap
+;
+	move	r0,#^RLColourMaps		; Bank of ColourMap Data
+	romb
+	getb					; Get PixelColour
+;	from	r0
+	to	r14
+	add	rColourMap
+;
+;	to	r0				; Get Starting X/Y Coordinates
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr			; Move to Next FloorPlotData
+	inc	rPlotDataPtr
+;	from	r0				; Starting Y Coordinate
+	to	r2
+	hib
+;	with	r0				; Starting X Coordinate
+	lob
+;	from	r0
+	to	r1
+	add	r0
+;
+	dec	r12				; Only 1 Pixel?
+	bne	_DFL3100			; No
+	inc	r12				; Yes!
+;
+;	>>>   STRIP PIXEL FAST   <<<
+;
+	getc
+	plot					; Plot the PixelPair
+	plot
+	bra	_DFL8000+1			; Next FloorPlot
+;	to	r0				; Get #Pixels To Draw / ColourMap
+	ldw	(rPlotDataPtr)
+
+;
+;	>>>   STRIP PIXEL SLOW   <<<
+;
+_DFL3100
+	with	rFloorXF			; Move to next X Pixel
+	add	rPixScaleXF
+	from	rPixScaleXY
+;	to	r0
+	adc	rFloorXY
+;	from	r0				; Mask around Texture
+	to	rTemp
+	and	r13
+;
+	move	r0,#^RLColourMaps		; Bank of ColourMap Data
+	romb
+	getb					; Get TextureColour
+;	from	r0
+	to	r14
+	add	rColourMap
+;
+	with	rFloorYF			; Move to next Y Pixel
+	add	rPixScaleYF
+;	with	r0				; Get 0/1 Carry
+	sub	r0
+;	with	r0
+	rol
+;	with	r0				; $0000 / $0100
+	swap
+;	with	r0
+	add	rFloorXY
+;	with	r0				; Mask around Texture
+	and	r13
+;	with	r0
+	hib
+;
+	getc					; Get PixelColour
+;
+;	with	r0				; Update Floor
+	swap
+;	from	r0
+	to	rFloorXY
+	add	rTemp
+;
+	move	r14,#^RLFloorsDef		; Bank of PixelData
+	from	r14
+	romb
+;
+;	with	r0				; Calculate TextureData Pointer
+	lsr
+;	with	r0
+	lsr
+;	from	r0				; (Y << 6) | (X)
+	to	r14
+	add	rTemp
+;
+	plot					; Plot the PixelPair
+	dec	r12
+	bne	_DFL3100
+	plot
+;
+	bra	_DFL8000+1			; Next FloorPlot
+;	to	r0				; Get #Pixels To Draw / ColourMap
+	ldw	(rPlotDataPtr)
+
+
+;
+;	>>>   GET SKY PIXELSTRIP PLOT INFORMATION   <<<
+;
+_DFL8500
+	with	rPlotDataPtr			; Move to X/Y Coordinates
+	add	#(plfPixX-plfPixScaleX)
+;	to	r0				; Get Starting X/Y Coordinates
+	ldw	(rPlotDataPtr)
+	inc	rPlotDataPtr			; Move to Next FloorPlotData
+	inc	rPlotDataPtr
+;	from	r0				; Starting Y Coordinate
+	to	r2
+	hib
+;	with	r0				; Starting X Coordinate
+	lob
+;	from	r0
+	to	r1
+	add	r0
+;
+;	>>>   SKY   <<<
+;
+_DFL7000
+	iwt	r13,#<_DFL7200			; Reset Loop Address
+	move	r5,(<EMNUM)			; Get Episode/Mission
+	from	r5				; Bank $01 for E1/E2, Bank $02 for E3
+;	to	r0
+	lob
+	dec	r0
+;	with	r0
+	lsr
+	inc	r0
+	romb
+	move	r0,(<ViewAngle)			; Get ViewAngle
+;	with	r0				; (0-ViewAngle)
+	not
+	inc	r0
+;	with	r0				; (ViewAngle << 2)
+	add	r0
+;	with	r0
+	add	r0
+;	with	r0				; $00-$FF
+	hib
+	move	r4,(<RLMinPixX)			; Add Base X Coordinate
+	with	r4
+	add	r4
+;	with	r0
+	add	r4
+;	with	r0				; Add X Coordinate
+	add	r1
+;	with	r0				; Get $00-$FF
+	lob
+;	with	r0				; Get $00-$7F
+	lsr
+;	with	r0				; *128 Pixels per Strip
+	swap
+;	with	r0
+	lsr
+;	with	r0				; Sub Y Coordinate
+	sub	r2
+	move	r14,#<$007f			; Base Address of Walls (SKY1 FIRST)
+	with	r14
+	add	r0
+;
+	move	r3,#$0080			; R3=Distance to next PixelStrip
+	move	r4,#$bfff			; R4=WallData .AND. Value
+	dec	r5				; 0=E1/E3, 1=E2
+	from	r5
+;	to	r0
+	lsr
+	move	r0,#0				; $0000=E1/E3, $4000=E2
+;	with	r0
+	ror
+;	with	r0
+	lsr
+	with	r4
+	add	r0
+	move	r5,#$8000			; R5=WallData .OR.  Value
+	with	r5
+	add	r0
+	from	r14				; Wrap around SKY WallData
+;	to	r0
+	and	r4
+;	from	r0
+	to	r14
+	or	r5
+;
+_DFL7200
+	getc					; Get Next Pixel
+;
+	from	r14				; Move to next Pixel
+;	to	r0
+	add	r3
+;	with	r0				; Wrap around SKY WallData
+	and	r4
+;	from	r0
+	to	r14
+	or	r5
+;
+	plot					; Draw the PixelPair
+	loop
+	plot
+;
+	move	r13,#(($3f<<8)|($3f))		; TextureMask
+	iwt	r15,#<_DFL8000+1		; Next FloorPlot
+;	to	r0				; Get #Pixels To Draw / ColourMap
+	ldw	(rPlotDataPtr)
+
+
+	CACHEE	_RLDrawFloorsLow
+	endif

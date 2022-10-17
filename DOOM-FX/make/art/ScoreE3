@@ -1,0 +1,7 @@
+xg -pRLART:ScoreE3 -dRLDATA:ART/ScoreE3 -ms -y0 -c8
+split RLDATA:ART/ScoreE3.def0 RLDATA:ART/ScoreE3.def 16384
+xc -v -iRLDATA:ART/ScoreE3.def.0 -oRLDATA:COMP/ScoreE3.def.0
+xc -v -iRLDATA:ART/ScoreE3.def.1 -oRLDATA:COMP/ScoreE3.def.1
+xc -v -iRLDATA:ART/ScoreE3.map0 -oRLDATA:COMP/ScoreE3.map0
+xc -v -iRLDATA:ART/ScoreE3.rgb -oRLDATA:COMP/ScoreE3.rgb
+touch Score.a

@@ -1,0 +1,106 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                     VARIABLES MAINTENANCE MODULE                   *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+
+
+	public	CheckVars
+	public	InitVars
+	public	CheckSumVars
+
+
+	SECTION	VARS,RELOC,BASE=$80000000,RORG=$400000
+
+
+;
+;	* * * * * * *       RESTORE SAVED VARIABLES       * * * * * * *
+;
+	dpr	0
+	dbr	?
+RestoreVars
+	jsl	CheckVars			; Verify/Initialize Saved Variables
+	mode	'A'
+	lda	_SkillLevel			; Player's Skill Level
+	sta	SkillLevel
+	rtl
+
+
+;
+;	* * * * * * *       VERIFY/INITIALIZE SAVED VARIABLES       * * * * * * *
+;
+	dpr	0
+	dbr	?
+CheckVars
+	mode	'A!'
+	lda	RandSentry			; RAND SENTRY VALID?
+	cmp	#'AR'
+	bne	InitVars			; No, Invalid VARS
+	lda	RandSentry+2
+	cmp	#'DN'
+	bne	InitVars			; No, Invalid VARS
+	jsl	CheckSumVars			; CHECKSUM VALID?
+	bne	InitVars			; No, Invalid VARS
+	rtl
+
+
+;
+;	* * * * * * *       	INITIALIZE SAVED VARIABLES       * * * * * * *
+;
+	dpr	0
+	dbr	?
+InitVars
+;
+;	>>>   RESET COUNTER   <<<
+;
+	mode	'A!'
+	stz	_ResetCount			; Reset Counter
+	ife	usePAL
+	stz	_TitleCount			; Title Counter
+	endif
+;
+;	>>>   INITIALIZE GAME GLOBALS   <<<
+;
+	lda	#2				; Hurt Me Plenty Skill Level
+	sta	_SkillLevel
+	lda	#$FFFF				; Enable Music/SoundEffects
+	sta	_SoundsOn
+	sta	_MusicOn
+;
+	lda	#'AR'				; VARS Now Valid
+	sta	RandSentry
+	lda	#'DN'
+	sta	RandSentry+2
+;
+;	* * * * * * *       CALCULATE SAVED VARIABLES CHECKSUM       * * * * * * *
+;
+;	!!!   WARNING!!!   FALLS THROUGH FROM ABOVE   !!!
+;
+	dpr	0
+	dbr	?
+CheckSumVars
+	mode	'aX!'
+	lda	#0				; Check VARS Checksum
+	ldx	#(VarsEnd-Vars)-1
+CSVS200
+	eor	Vars,x
+	clc
+	adc	#$52
+	dex
+	bpl	CSVS200
+	tay
+	xba
+	tya
+	eor	#$ff
+	sec
+	sbc	#$4c
+	mode	'A!'
+	cmp	VarsCheckSum			; Does Checksum Match?
+	sta	VarsCheckSum			; Update CheckSum
+	rtl

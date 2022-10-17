@@ -1,0 +1,1904 @@
+RIPDOOM 1.43 Rip DOOM.WAD Data
+350 PATCHES
+PATCH   0  <WALL00_3>
+PATCH   1  <   W13_1>
+PATCH   2  < DOOR2_1>
+PATCH   3  < DOOR2_4>
+PATCH   4  < DOOR9_1>
+PATCH   5  <  W113_1>
+PATCH   6  <  W113_2>
+PATCH   7  <  W113_3>
+PATCH   8  <WALL62_2>
+PATCH   9  <  PS20A0>
+PATCH  10  <WALL62_1>
+PATCH  11  <  W111_2>
+PATCH  12  <  W111_3>
+PATCH  13  <  W112_1>
+PATCH  14  <  W112_3>
+PATCH  15  <  W112_2>
+PATCH  16  <WALL02_2>
+PATCH  17  <WALL02_3>
+PATCH  18  <WALL02_1>
+PATCH  19  <WALL00_5>
+PATCH  20  <WALL00_6>
+PATCH  21  <WALL00_7>
+PATCH  22  <WALL00_8>
+PATCH  23  <WALL03_4>
+PATCH  24  <   TP2_1>
+PATCH  25  <  STEP07>
+PATCH  26  <WALL05_2>
+PATCH  27  <COMP02_1>
+PATCH  28  <COMP02_2>
+PATCH  29  <COMP02_4>
+PATCH  30  <COMP02_3>
+PATCH  31  <COMP02_6>
+PATCH  32  <COMP02_8>
+PATCH  33  <COMP02_7>
+PATCH  34  <COMP02_5>
+PATCH  35  <  STEP08>
+PATCH  36  <COMP03_4>
+PATCH  37  < TOMW2_1>
+PATCH  38  < AG128_2>
+PATCH  39  < TOMW2_2>
+PATCH  40  <COMP04_5>
+PATCH  41  <COMP04_8>
+PATCH  42  <COMP03_8>
+PATCH  43  <COMP04_6>
+PATCH  44  <COMP04_7>
+PATCH  45  <COMP04_2>
+PATCH  46  <COMP03_5>
+PATCH  47  <COMP04_1>
+PATCH  48  <COMP03_7>
+PATCH  49  <COMP03_1>
+PATCH  50  <COMP03_6>
+PATCH  51  <COMP01_5>
+PATCH  52  <COMP01_1>
+PATCH  53  <   W33_8>
+PATCH  54  <COMP1C_6>
+PATCH  55  <COMP01_6>
+PATCH  56  <COMP1B_4>
+PATCH  57  <  SW11_4>
+PATCH  58  <  SW11_5>
+PATCH  59  <WALL03_1>
+PATCH  60  < DOOR2_5>
+PATCH  61  <  W46_37>
+PATCH  62  <  W46_38>
+PATCH  63  <TTALL1_2>
+PATCH  64  <DOORTRAK>
+PATCH  65  <  W46_39>
+PATCH  66  < DOOR3_6>
+PATCH  67  < DOOR3_4>
+PATCH  68  < DOOR3_5>
+PATCH  69  <   T14_5>
+PATCH  70  <   EXIT1>
+PATCH  71  <   EXIT2>
+PATCH  72  <   W33_5>
+PATCH  73  <   W33_7>
+PATCH  74  <   W32_4>
+PATCH  75  <   W32_1>
+PATCH  76  <WALL00_1>
+PATCH  77  <WALL00_2>
+PATCH  78  <   FLAMP>
+PATCH  79  <  WLITA0>
+PATCH  80  <  WLITB0>
+PATCH  81  <  WLITC0>
+PATCH  82  <AGB128_1>
+PATCH  83  <   W13_A>
+PATCH  84  <   W13_8>
+PATCH  85  <  BLITA0>
+PATCH  86  <  BLITB0>
+PATCH  87  <  BLITC0>
+PATCH  88  <WALL03_7>
+PATCH  89  < NUKEDGE>
+PATCH  90  <WALL04_3>
+PATCH  91  <WALL04_4>
+PATCH  92  <WALL04_5>
+PATCH  93  <WALL04_2>
+PATCH  94  <WALL04_7>
+PATCH  95  <WALL57_1>
+PATCH  96  <   TP2_2>
+PATCH  97  < AG128_1>
+PATCH  98  <  TSCRN2>
+PATCH  99  <  TSCRN3>
+PATCH 100  <  TSCRN4>
+PATCH 101  <  TSCRN5>
+PATCH 102  <  TSCRN6>
+PATCH 103  <  TSCRN8>
+PATCH 104  < PLAT2_1>
+PATCH 105  <   W15_4>
+PATCH 106  <   W15_5>
+PATCH 107  <    SKY1>
+PATCH 108  <WLA128_1>
+PATCH 109  <WALL57_2>
+PATCH 110  <WALL57_3>
+PATCH 111  <WALL57_4>
+PATCH 112  <  SW12_1>
+PATCH 113  <  SW12_2>
+PATCH 114  <  SW19_3>
+PATCH 115  <  SW19_4>
+PATCH 116  <  SW11_1>
+PATCH 117  <  SW11_2>
+PATCH 118  <  SW12_4>
+PATCH 119  <  SW12_5>
+PATCH 120  <  SW17_4>
+PATCH 121  <  SW17_5>
+PATCH 122  <  SW17_6>
+PATCH 123  <  SW18_7>
+PATCH 124  <  SW19_1>
+PATCH 125  <  SW19_2>
+PATCH 126  <  STEP04>
+PATCH 127  <  STEP03>
+PATCH 128  <  STEP05>
+PATCH 129  <  STEP06>
+PATCH 130  <  STEP09>
+PATCH 131  <  STEP10>
+PATCH 132  <WALL01_1>
+PATCH 133  <WALL01_2>
+PATCH 134  <WALL01_3>
+PATCH 135  <WALL01_4>
+PATCH 136  <WALL01_5>
+PATCH 137  <WALL01_6>
+PATCH 138  <WALL01_7>
+PATCH 139  <WALL01_8>
+PATCH 140  <WALL01_9>
+PATCH 141  <WALL01_A>
+PATCH 142  <WALL01_B>
+PATCH 143  <WALL01_C>
+PATCH 144  <   W28_8>
+PATCH 145  <   W28_5>
+PATCH 146  <   W28_7>
+PATCH 147  <   W28_6>
+PATCH 148  <SUPPORT2>
+PATCH 149  <   SW1S0>
+PATCH 150  <   SW3S0>
+PATCH 151  <   SW4S0>
+PATCH 152  <   SW3S1>
+PATCH 153  <   SW2S0>
+PATCH 154  <   W31_1>
+PATCH 155  <  WARNB0>
+PATCH 156  <   SW1S1>
+PATCH 157  <   SW4S1>
+PATCH 158  <   SW2S1>
+PATCH 159  <  WARNA0>
+PATCH 160  <   W17_1>
+PATCH 161  <WALL24_1>
+PATCH 162  <   w94_1>
+PATCH 163  <  W104_1>
+PATCH 164  < DOOR9_2>
+PATCH 165  <WALL40_1>
+PATCH 166  <WALL42_3>
+PATCH 167  <DOOR11_1>
+PATCH 168  <  W105_1>
+PATCH 169  <   TP5_1>
+PATCH 170  <   TP5_2>
+PATCH 171  <   TP5_3>
+PATCH 172  <   TP5_4>
+PATCH 173  <   RP2_1>
+PATCH 174  <   RP2_2>
+PATCH 175  <   RP2_3>
+PATCH 176  <   RP2_4>
+PATCH 177  <  W107_1>
+PATCH 178  <  W106_1>
+PATCH 179  <WALL03_3>
+PATCH 180  <WALL52_1>
+PATCH 181  <WALL53_1>
+PATCH 182  <WALL54_1>
+PATCH 183  <WALL55_1>
+PATCH 184  <WALL52_2>
+PATCH 185  <WALL54_2>
+PATCH 186  <COMP03_2>
+PATCH 187  <WALL21_1>
+PATCH 188  <WALL21_5>
+PATCH 189  <WALL21_3>
+PATCH 190  <BCRATEL1>
+PATCH 191  <BCRATER1>
+PATCH 192  <GCRATEL1>
+PATCH 193  <GCRATER1>
+PATCH 194  <SGCRATE2>
+PATCH 195  <VGCRATE1>
+PATCH 196  <BCRATEM1>
+PATCH 197  <GCRATEM1>
+PATCH 198  <  W108_2>
+PATCH 199  < DOOR2_3>
+PATCH 200  <  W108_3>
+PATCH 201  <  W108_4>
+PATCH 202  <  W65B_1>
+PATCH 203  <  W65B_2>
+PATCH 204  <  W73A_2>
+PATCH 205  <  W73B_1>
+PATCH 206  <  W73A_1>
+PATCH 207  <  W74A_1>
+PATCH 208  <  W74A_2>
+PATCH 209  <  W74B_1>
+PATCH 210  <WALL23_1>
+PATCH 211  <WALL23_2>
+PATCH 212  <WALL22_1>
+PATCH 213  <   DUCT1>
+PATCH 214  <  PS15A0>
+PATCH 215  <WALL04_9>
+PATCH 216  <WALL04_A>
+PATCH 217  <WALL04_B>
+PATCH 218  <WALL04_C>
+PATCH 219  <  PS18A0>
+PATCH 220  <WALL58_1>
+PATCH 221  <WALL58_2>
+PATCH 222  <WALL58_3>
+PATCH 223  <WALL30_2>
+PATCH 224  <WALL30_4>
+PATCH 225  <WALL48_1>
+PATCH 226  <WALL48_2>
+PATCH 227  <WALL48_3>
+PATCH 228  <WALL48_4>
+PATCH 229  <WALL59_1>
+PATCH 230  <WALL59_2>
+PATCH 231  <WALL59_3>
+PATCH 232  <WALL59_4>
+PATCH 233  <WALL30_3>
+PATCH 234  <WALL69_4>
+PATCH 235  <WALL70_3>
+PATCH 236  <WALL71_5>
+PATCH 237  <WALL72_7>
+PATCH 238  <WALL69_9>
+PATCH 239  <   W67_2>
+PATCH 240  <WALL72_5>
+PATCH 241  <WALL72_3>
+PATCH 242  <WALL70_4>
+PATCH 243  <WALL70_2>
+PATCH 244  <   W67_1>
+PATCH 245  <WALL70_9>
+PATCH 246  <   W15_6>
+PATCH 247  <MWALL4_2>
+PATCH 248  <MWALL5_1>
+PATCH 249  <MWALL4_1>
+PATCH 250  <MWALL1_1>
+PATCH 251  <MWALL2_1>
+PATCH 252  <MWALL3_1>
+PATCH 253  <MWALL1_2>
+PATCH 254  <WALL47_1>
+PATCH 255  <DOOR12_1>
+PATCH 256  <    M1_1>
+PATCH 257  <   RP1_1>
+PATCH 258  <   RP1_2>
+PATCH 259  <   TP7_1>
+PATCH 260  <   TP7_2>
+PATCH 261  <   TP3_1>
+PATCH 262  <   TP3_2>
+PATCH 263  <WALL78_1>
+PATCH 264  <WALL64_2>
+PATCH 265  <  W64B_1>
+PATCH 266  <  W64B_2>
+PATCH 267  <  CYL1_1>
+PATCH 268  <   T14_3>
+PATCH 269  < HELL8_2>
+PATCH 270  < HELL8_4>
+PATCH 271  < HELL6_1>
+PATCH 272  < HELL8_3>
+PATCH 273  <  W102_1>
+PATCH 274  <  W102_2>
+PATCH 275  < HELL6_2>
+PATCH 276  < HELL8_1>
+PATCH 277  < HELL5_1>
+PATCH 278  < HELL5_2>
+PATCH 279  <   W92_1>
+PATCH 280  <   W92_2>
+PATCH 281  <   W98_1>
+PATCH 282  <   W98_2>
+PATCH 283  <   W99_1>
+PATCH 284  <   W99_2>
+PATCH 285  <  W101_1>
+PATCH 286  <  W101_2>
+PATCH 287  <  W103_1>
+PATCH 288  <  W103_2>
+PATCH 289  <  W109_1>
+PATCH 290  <  W109_2>
+PATCH 291  <  W110_1>
+PATCH 292  < SNAK7_1>
+PATCH 293  < SNAK8_1>
+PATCH 294  <SPINE4_1>
+PATCH 295  <SPINE3_1>
+PATCH 296  <SPINE3_2>
+PATCH 297  <WALL76_1>
+PATCH 298  <WALL79_1>
+PATCH 299  <    SKY2>
+PATCH 300  <    SKY3>
+PATCH 301  <   SW2_2>
+PATCH 302  <WALL50_1>
+PATCH 303  <WALL50_2>
+PATCH 304  <WALL51_1>
+PATCH 305  <WALL51_2>
+PATCH 306  <WALL51_3>
+PATCH 307  <  W108_1>
+PATCH 308  <WALL25_1>
+PATCH 309  <WALL49_1>
+PATCH 310  <WALL49_2>
+PATCH 311  <WALL49_3>
+PATCH 312  <WALL49_4>
+PATCH 313  <WALL63_1>
+PATCH 314  <WALL63_2>
+PATCH 315  <  SW15_4>
+PATCH 316  <  SW16_4>
+PATCH 317  <  SW15_6>
+PATCH 318  <  SW16_6>
+PATCH 319  <  SW17_1>
+PATCH 320  <  SW17_2>
+PATCH 321  <  SW17_3>
+PATCH 322  <  SW18_5>
+PATCH 323  <  SW15_1>
+PATCH 324  <  SW15_3>
+PATCH 325  <  SW16_1>
+PATCH 326  <  SW16_2>
+PATCH 327  <LADDER16>
+PATCH 328  <  RIPW15>
+PATCH 329  <   SW2_3>
+PATCH 330  <   SW2_7>
+PATCH 331  <WALL47_2>
+PATCH 332  <WALL42_6>
+PATCH 333  <WALL42_5>
+PATCH 334  <WALL42_1>
+PATCH 335  < HELL6_3>
+PATCH 336  <   SW2_5>
+PATCH 337  <WALL40_2>
+PATCH 338  <   SW2_8>
+PATCH 339  <WALL47_5>
+PATCH 340  <WALL47_4>
+PATCH 341  <WALL47_3>
+PATCH 342  <   SW2_6>
+PATCH 343  <WALL97_1>
+PATCH 344  <WALL97_2>
+PATCH 345  <WALL97_3>
+PATCH 346  <   SW2_1>
+PATCH 347  <   W96_1>
+PATCH 348  <   W96_2>
+PATCH 349  <   SW2_4>
+286 TEXTURES (125 TEXTURE1, 161 TEXTURE2)
+
+TEXTURE   0  (   24,   72)  <AASTINKY>  [2]
+  PATCH   0  (    0,    0)  <WALL00_3>  [0]
+  PATCH   1  (   12,   -6)  <WALL00_3>  [0]
+
+TEXTURE   1  (  128,   96)  <BIGDOOR1>  [5]
+  PATCH   0  (    0,    0)  <   W13_1>  [1]
+  PATCH   1  (    0,   24)  <   W13_1>  [1]
+  PATCH   2  (   17,    0)  < DOOR2_1>  [2]
+  PATCH   3  (  113,    0)  <   W13_1>  [1]
+  PATCH   4  (  113,   25)  <   W13_1>  [1]
+
+TEXTURE   2  (  128,  128)  <BIGDOOR2>  [1]
+  PATCH   0  (    0,    0)  < DOOR2_4>  [3]
+
+TEXTURE   3  (  128,  128)  <BIGDOOR4>  [1]
+  PATCH   0  (    0,    0)  < DOOR9_1>  [4]
+
+TEXTURE   4  (  128,  128)  < BRNBIGC>  [1]
+  PATCH   0  (    0,    0)  <  W113_1>  [5]
+
+TEXTURE   5  (   32,  128)  < BRNBIGL>  [1]
+  PATCH   0  (    0,    0)  <  W113_2>  [6]
+
+TEXTURE   6  (   32,  128)  < BRNBIGR>  [1]
+  PATCH   0  (    0,    0)  <  W113_3>  [7]
+
+TEXTURE   7  (   64,  128)  < BRNPOIS>  [2]
+  PATCH   0  (    0,    0)  <WALL62_2>  [8]
+  PATCH   1  (    1,   60)  <  PS20A0>  [9]
+
+TEXTURE   8  (   64,  128)  <BRNPOIS2>  [2]
+  PATCH   0  (    0,    0)  <WALL62_1>  [10]
+  PATCH   1  (    0,   57)  <  PS20A0>  [9]
+
+TEXTURE   9  (   64,   64)  <BRNSMAL1>  [1]
+  PATCH   0  (    0,    0)  <  W111_2>  [11]
+
+TEXTURE  10  (   64,   64)  <BRNSMAL2>  [1]
+  PATCH   0  (    0,    0)  <  W111_3>  [12]
+
+TEXTURE  11  (   64,   64)  <BRNSMALC>  [1]
+  PATCH   0  (    0,    0)  <  W112_1>  [13]
+
+TEXTURE  12  (   32,   64)  <BRNSMALL>  [1]
+  PATCH   0  (    0,    0)  <  W112_3>  [14]
+
+TEXTURE  13  (   32,   64)  <BRNSMALR>  [1]
+  PATCH   0  (    0,    0)  <  W112_2>  [15]
+
+TEXTURE  14  (  128,  128)  <  BROWN1>  [6]
+  PATCH   0  (    0,   56)  <WALL02_2>  [16]
+  PATCH   1  (    0,    0)  <WALL02_2>  [16]
+  PATCH   2  (   64,   56)  <WALL02_3>  [17]
+  PATCH   3  (   88,   56)  <WALL02_1>  [18]
+  PATCH   4  (   64,    0)  <WALL02_3>  [17]
+  PATCH   5  (   88,    0)  <WALL02_1>  [18]
+
+TEXTURE  15  (  128,  128)  <BROWN144>  [8]
+  PATCH   0  (    0,    0)  <WALL00_5>  [19]
+  PATCH   1  (   16,    0)  <WALL00_6>  [20]
+  PATCH   2  (   32,    0)  <WALL00_7>  [21]
+  PATCH   3  (   48,    0)  <WALL00_8>  [22]
+  PATCH   4  (   64,    0)  <WALL00_6>  [20]
+  PATCH   5  (  112,  -16)  <WALL00_6>  [20]
+  PATCH   6  (   96,   -1)  <WALL00_7>  [21]
+  PATCH   7  (   80,    0)  <WALL00_6>  [20]
+
+TEXTURE  16  (  128,  128)  < BROWN96>  [1]
+  PATCH   0  (    0,    0)  <WALL62_1>  [10]
+
+TEXTURE  17  (   64,  128)  <BROWNGRN>  [1]
+  PATCH   0  (    0,    0)  <WALL62_2>  [8]
+
+TEXTURE  18  (   64,  128)  <BROWNHUG>  [2]
+  PATCH   0  (    0,    0)  <WALL03_4>  [23]
+  PATCH   1  (    0,   72)  <WALL03_4>  [23]
+
+TEXTURE  19  (  128,  128)  <BROWNPIP>  [11]
+  PATCH   0  (    0,    0)  <   TP2_1>  [24]
+  PATCH   1  (    0,   64)  <  STEP07>  [25]
+  PATCH   2  (   32,   64)  <  STEP07>  [25]
+  PATCH   3  (   64,   64)  <  STEP07>  [25]
+  PATCH   4  (   96,   64)  <  STEP07>  [25]
+  PATCH   5  (    0,   72)  <WALL05_2>  [26]
+  PATCH   6  (   64,   72)  <WALL05_2>  [26]
+  PATCH   7  (    0,  120)  <  STEP07>  [25]
+  PATCH   8  (   32,  120)  <  STEP07>  [25]
+  PATCH   9  (   64,  120)  <  STEP07>  [25]
+  PATCH  10  (   96,  120)  <  STEP07>  [25]
+
+TEXTURE  20  (  256,  128)  <   COMP2>  [24]
+  PATCH   0  (    0,    0)  <COMP02_1>  [27]
+  PATCH   1  (   64,    0)  <COMP02_2>  [28]
+  PATCH   2  (  128,    0)  <COMP02_4>  [29]
+  PATCH   3  (  192,    0)  <COMP02_3>  [30]
+  PATCH   4  (    0,   64)  <COMP02_6>  [31]
+  PATCH   5  (   64,   64)  <COMP02_8>  [32]
+  PATCH   6  (  128,   64)  <COMP02_7>  [33]
+  PATCH   7  (  192,   64)  <COMP02_5>  [34]
+  PATCH   8  (    0,   56)  <  STEP08>  [35]
+  PATCH   9  (   32,   56)  <  STEP08>  [35]
+  PATCH  10  (   64,   56)  <  STEP08>  [35]
+  PATCH  11  (   96,   56)  <  STEP08>  [35]
+  PATCH  12  (  128,   56)  <  STEP08>  [35]
+  PATCH  13  (  160,   56)  <  STEP08>  [35]
+  PATCH  14  (  192,   56)  <  STEP08>  [35]
+  PATCH  15  (  224,   56)  <  STEP08>  [35]
+  PATCH  16  (    0,  120)  <  STEP08>  [35]
+  PATCH  17  (   32,  120)  <  STEP08>  [35]
+  PATCH  18  (   64,  120)  <  STEP08>  [35]
+  PATCH  19  (   96,  120)  <  STEP08>  [35]
+  PATCH  20  (  128,  120)  <  STEP08>  [35]
+  PATCH  21  (  160,  120)  <  STEP08>  [35]
+  PATCH  22  (  192,  120)  <  STEP08>  [35]
+  PATCH  23  (  224,  120)  <  STEP08>  [35]
+
+TEXTURE  21  (   32,  128)  <COMPSPAN>  [2]
+  PATCH   0  (    0,    0)  <COMP03_4>  [36]
+  PATCH   1  (    0,   64)  <COMP03_4>  [36]
+
+TEXTURE  22  (  128,  128)  <COMPSTA1>  [3]
+  PATCH   0  (    0,    0)  < TOMW2_1>  [37]
+  PATCH   1  (    0,   72)  < AG128_2>  [38]
+  PATCH   2  (   64,   72)  < AG128_2>  [38]
+
+TEXTURE  23  (  128,  128)  <COMPSTA2>  [3]
+  PATCH   0  (    0,    0)  < TOMW2_2>  [39]
+  PATCH   1  (    0,   72)  < AG128_2>  [38]
+  PATCH   2  (   64,   72)  < AG128_2>  [38]
+
+TEXTURE  24  (  256,  128)  <COMPTALL>  [9]
+  PATCH   0  (   32,    0)  <COMP04_5>  [40]
+  PATCH   1  (   96,    0)  <COMP04_8>  [41]
+  PATCH   2  (  160,    0)  <COMP03_8>  [42]
+  PATCH   3  (    0,   64)  <COMP04_6>  [43]
+  PATCH   4  (   64,   64)  <COMP04_7>  [44]
+  PATCH   5  (  128,   64)  <COMP04_2>  [45]
+  PATCH   6  (  192,    0)  <COMP03_5>  [46]
+  PATCH   7  (  192,   64)  <COMP04_1>  [47]
+  PATCH   8  (    0,    0)  <COMP03_8>  [42]
+
+TEXTURE  25  (  128,  128)  <COMPTILE>  [6]
+  PATCH   0  (    0,    0)  <COMP03_7>  [48]
+  PATCH   1  (   32,    0)  <COMP03_1>  [49]
+  PATCH   2  (   96,    0)  <COMP03_6>  [50]
+  PATCH   3  (    0,   64)  <COMP03_7>  [48]
+  PATCH   4  (   32,   64)  <COMP03_1>  [49]
+  PATCH   5  (   96,   64)  <COMP03_6>  [50]
+
+TEXTURE  26  (  128,  128)  <COMPUTE1>  [10]
+  PATCH   0  (   26,   64)  <COMP01_5>  [51]
+  PATCH   1  (    0,   64)  <COMP01_1>  [52]
+  PATCH   2  (    0,   56)  <   W33_8>  [53]
+  PATCH   3  (   64,   56)  <   W33_8>  [53]
+  PATCH   4  (    0,  120)  <   W33_8>  [53]
+  PATCH   5  (   64,  120)  <   W33_8>  [53]
+  PATCH   6  (   28,    0)  <COMP01_5>  [51]
+  PATCH   7  (   72,   64)  <COMP1C_6>  [54]
+  PATCH   8  (   72,    0)  <COMP01_6>  [55]
+  PATCH   9  (    0,    0)  <COMP1B_4>  [56]
+
+TEXTURE  27  (  256,   56)  <COMPUTE2>  [4]
+  PATCH   0  (    0,    0)  <COMP02_1>  [27]
+  PATCH   1  (   64,    0)  <COMP02_2>  [28]
+  PATCH   2  (  128,    0)  <COMP02_3>  [30]
+  PATCH   3  (  192,    0)  <COMP02_7>  [33]
+
+TEXTURE  28  (  128,  128)  <COMPUTE3>  [10]
+  PATCH   0  (    0,    4)  <  SW11_4>  [57]
+  PATCH   1  (   32,    4)  <  SW11_5>  [58]
+  PATCH   2  (   64,    4)  <  SW11_4>  [57]
+  PATCH   3  (    0,    0)  <COMP02_1>  [27]
+  PATCH   4  (   96,    4)  <  SW11_5>  [58]
+  PATCH   5  (   64,    0)  <COMP02_2>  [28]
+  PATCH   6  (    0,   56)  <  STEP08>  [35]
+  PATCH   7  (   32,   56)  <  STEP08>  [35]
+  PATCH   8  (   64,   56)  <  STEP08>  [35]
+  PATCH   9  (   96,   56)  <  STEP08>  [35]
+
+TEXTURE  29  (   64,   72)  <   DOOR1>  [1]
+  PATCH   0  (    0,    0)  <WALL03_1>  [59]
+
+TEXTURE  30  (   64,   72)  <   DOOR3>  [1]
+  PATCH   0  (    0,    0)  < DOOR2_5>  [60]
+
+TEXTURE  31  (    8,  128)  < DOORBLU>  [8]
+  PATCH   0  (    0,  112)  <  W46_37>  [61]
+  PATCH   1  (    0,    0)  <  W46_37>  [61]
+  PATCH   2  (    0,   96)  <  W46_37>  [61]
+  PATCH   3  (    0,   80)  <  W46_37>  [61]
+  PATCH   4  (    0,   16)  <  W46_37>  [61]
+  PATCH   5  (    0,   32)  <  W46_37>  [61]
+  PATCH   6  (    0,   48)  <  W46_37>  [61]
+  PATCH   7  (    0,   64)  <  W46_37>  [61]
+
+TEXTURE  32  (    8,  128)  < DOORRED>  [8]
+  PATCH   0  (    0,    0)  <  W46_38>  [62]
+  PATCH   1  (    0,   16)  <  W46_38>  [62]
+  PATCH   2  (    0,   32)  <  W46_38>  [62]
+  PATCH   3  (    0,   48)  <  W46_38>  [62]
+  PATCH   4  (    0,   64)  <  W46_38>  [62]
+  PATCH   5  (    0,   80)  <  W46_38>  [62]
+  PATCH   6  (    0,   96)  <  W46_38>  [62]
+  PATCH   7  (    0,  112)  <  W46_38>  [62]
+
+TEXTURE  33  (    8,  128)  <DOORSTOP>  [1]
+  PATCH   0  (    0,    0)  <TTALL1_2>  [63]
+
+TEXTURE  34  (    8,  128)  <DOORTRAK>  [1]
+  PATCH   0  (    0,    0)  <DOORTRAK>  [64]
+
+TEXTURE  35  (    8,  128)  < DOORYEL>  [8]
+  PATCH   0  (    0,  112)  <  W46_39>  [65]
+  PATCH   1  (    0,   80)  <  W46_39>  [65]
+  PATCH   2  (    0,   64)  <  W46_39>  [65]
+  PATCH   3  (    0,    0)  <  W46_39>  [65]
+  PATCH   4  (    0,   16)  <  W46_39>  [65]
+  PATCH   5  (    0,   48)  <  W46_39>  [65]
+  PATCH   6  (    0,   32)  <  W46_39>  [65]
+  PATCH   7  (    0,   96)  <  W46_39>  [65]
+
+TEXTURE  36  (  128,   72)  <EXITDOOR>  [4]
+  PATCH   0  (    0,    0)  < DOOR3_6>  [66]
+  PATCH   1  (   64,    0)  < DOOR3_4>  [67]
+  PATCH   2  (   88,    0)  < DOOR3_5>  [68]
+  PATCH   3  (  112,    0)  <   T14_5>  [69]
+
+TEXTURE  37  (   64,   16)  <EXITSIGN>  [5]
+  PATCH   0  (    0,    0)  <   EXIT1>  [70]
+  PATCH   1  (   32,    0)  <   EXIT2>  [71]
+  PATCH   2  (   40,    0)  <   EXIT2>  [71]
+  PATCH   3  (   48,    0)  <   EXIT2>  [71]
+  PATCH   4  (   56,    0)  <   EXIT2>  [71]
+
+TEXTURE  38  (   64,  128)  <   GRAY4>  [2]
+  PATCH   0  (    0,    0)  <   W33_5>  [72]
+  PATCH   1  (    0,   64)  <   W33_5>  [72]
+
+TEXTURE  39  (   64,  128)  <   GRAY5>  [3]
+  PATCH   0  (    0,   72)  <   W33_7>  [73]
+  PATCH   1  (    0,    0)  <   W33_7>  [73]
+  PATCH   2  (    0,   64)  <   W33_8>  [53]
+
+TEXTURE  40  (  256,  128)  <   GRAY7>  [12]
+  PATCH   0  (    0,    0)  <   W32_4>  [74]
+  PATCH   1  (   64,    0)  <   W32_1>  [75]
+  PATCH   2  (  128,    0)  <   W32_4>  [74]
+  PATCH   3  (    0,  120)  <   W33_8>  [53]
+  PATCH   4  (   64,  120)  <   W33_8>  [53]
+  PATCH   5  (  128,  120)  <   W33_8>  [53]
+  PATCH   6  (  192,    0)  <   W32_4>  [74]
+  PATCH   7  (  192,  120)  <   W33_8>  [53]
+  PATCH   8  (   64,   56)  <   W32_4>  [74]
+  PATCH   9  (  128,   56)  <   W32_1>  [75]
+  PATCH  10  (  192,   56)  <   W32_4>  [74]
+  PATCH  11  (    0,   56)  <   W32_4>  [74]
+
+TEXTURE  41  (  128,  128)  <GRAYTALL>  [4]
+  PATCH   0  (   16,    0)  <WALL00_1>  [76]
+  PATCH   1  (   80,    0)  <WALL00_3>  [0]
+  PATCH   2  (    0,    0)  <WALL00_2>  [77]
+  PATCH   3  (   96,    0)  <WALL00_1>  [76]
+
+TEXTURE  42  (   64,  128)  <   LITE2>  [4]
+  PATCH   0  (    0,   56)  <WALL02_2>  [16]
+  PATCH   1  (    0,    0)  <WALL02_2>  [16]
+  PATCH   2  (    5,    0)  <   FLAMP>  [78]
+  PATCH   3  (   35,    0)  <   FLAMP>  [78]
+
+TEXTURE  43  (   32,  128)  <   LITE3>  [64]
+  PATCH   0  (    0,    0)  <  WLITA0>  [79]
+  PATCH   1  (    8,    0)  <  WLITB0>  [80]
+  PATCH   2  (   16,    0)  <  WLITB0>  [80]
+  PATCH   3  (   24,    0)  <  WLITC0>  [81]
+  PATCH   4  (    0,    8)  <  WLITA0>  [79]
+  PATCH   5  (    8,    8)  <  WLITB0>  [80]
+  PATCH   6  (   16,    8)  <  WLITB0>  [80]
+  PATCH   7  (   24,    8)  <  WLITC0>  [81]
+  PATCH   8  (    0,   16)  <  WLITA0>  [79]
+  PATCH   9  (    8,   16)  <  WLITB0>  [80]
+  PATCH  10  (   16,   16)  <  WLITB0>  [80]
+  PATCH  11  (   24,   16)  <  WLITC0>  [81]
+  PATCH  12  (    0,   24)  <  WLITA0>  [79]
+  PATCH  13  (    8,   24)  <  WLITB0>  [80]
+  PATCH  14  (   16,   24)  <  WLITB0>  [80]
+  PATCH  15  (   24,   24)  <  WLITC0>  [81]
+  PATCH  16  (    0,   32)  <  WLITA0>  [79]
+  PATCH  17  (    8,   32)  <  WLITB0>  [80]
+  PATCH  18  (   16,   32)  <  WLITB0>  [80]
+  PATCH  19  (   24,   32)  <  WLITC0>  [81]
+  PATCH  20  (    0,   40)  <  WLITA0>  [79]
+  PATCH  21  (    8,   40)  <  WLITB0>  [80]
+  PATCH  22  (   16,   40)  <  WLITB0>  [80]
+  PATCH  23  (   24,   40)  <  WLITC0>  [81]
+  PATCH  24  (    0,   48)  <  WLITA0>  [79]
+  PATCH  25  (    8,   48)  <  WLITB0>  [80]
+  PATCH  26  (   16,   48)  <  WLITB0>  [80]
+  PATCH  27  (   24,   48)  <  WLITC0>  [81]
+  PATCH  28  (    0,   56)  <  WLITA0>  [79]
+  PATCH  29  (    8,   56)  <  WLITB0>  [80]
+  PATCH  30  (   16,   56)  <  WLITB0>  [80]
+  PATCH  31  (   24,   56)  <  WLITC0>  [81]
+  PATCH  32  (    0,   64)  <  WLITA0>  [79]
+  PATCH  33  (    8,   64)  <  WLITB0>  [80]
+  PATCH  34  (   16,   64)  <  WLITB0>  [80]
+  PATCH  35  (   24,   64)  <  WLITC0>  [81]
+  PATCH  36  (    0,   72)  <  WLITA0>  [79]
+  PATCH  37  (    8,   72)  <  WLITB0>  [80]
+  PATCH  38  (   16,   72)  <  WLITB0>  [80]
+  PATCH  39  (   24,   72)  <  WLITC0>  [81]
+  PATCH  40  (    0,   80)  <  WLITA0>  [79]
+  PATCH  41  (    8,   80)  <  WLITB0>  [80]
+  PATCH  42  (   16,   80)  <  WLITB0>  [80]
+  PATCH  43  (   24,   80)  <  WLITC0>  [81]
+  PATCH  44  (    0,   88)  <  WLITA0>  [79]
+  PATCH  45  (    8,   88)  <  WLITB0>  [80]
+  PATCH  46  (   16,   88)  <  WLITB0>  [80]
+  PATCH  47  (   24,   88)  <  WLITC0>  [81]
+  PATCH  48  (    0,   96)  <  WLITA0>  [79]
+  PATCH  49  (    8,   96)  <  WLITB0>  [80]
+  PATCH  50  (   16,   96)  <  WLITB0>  [80]
+  PATCH  51  (   24,   96)  <  WLITC0>  [81]
+  PATCH  52  (    0,  104)  <  WLITA0>  [79]
+  PATCH  53  (    8,  104)  <  WLITB0>  [80]
+  PATCH  54  (   16,  104)  <  WLITB0>  [80]
+  PATCH  55  (   24,  104)  <  WLITC0>  [81]
+  PATCH  56  (    0,  112)  <  WLITA0>  [79]
+  PATCH  57  (    8,  112)  <  WLITB0>  [80]
+  PATCH  58  (   16,  112)  <  WLITB0>  [80]
+  PATCH  59  (   24,  112)  <  WLITC0>  [81]
+  PATCH  60  (    0,  120)  <  WLITA0>  [79]
+  PATCH  61  (    8,  120)  <  WLITB0>  [80]
+  PATCH  62  (   16,  120)  <  WLITB0>  [80]
+  PATCH  63  (   24,  120)  <  WLITC0>  [81]
+
+TEXTURE  44  (   16,  128)  <   LITE4>  [15]
+  PATCH   0  (    0,   56)  <   T14_5>  [69]
+  PATCH   1  (    0,    0)  <  WLITA0>  [79]
+  PATCH   2  (    8,    0)  <  WLITC0>  [81]
+  PATCH   3  (    0,   48)  <  WLITA0>  [79]
+  PATCH   4  (    8,   48)  <  WLITC0>  [81]
+  PATCH   5  (    0,   40)  <  WLITA0>  [79]
+  PATCH   6  (    8,   40)  <  WLITC0>  [81]
+  PATCH   7  (    0,   32)  <  WLITA0>  [79]
+  PATCH   8  (    8,   32)  <  WLITC0>  [81]
+  PATCH   9  (    0,   24)  <  WLITA0>  [79]
+  PATCH  10  (    8,   24)  <  WLITC0>  [81]
+  PATCH  11  (    0,   16)  <  WLITA0>  [79]
+  PATCH  12  (    8,   16)  <  WLITC0>  [81]
+  PATCH  13  (    0,    8)  <  WLITA0>  [79]
+  PATCH  14  (    8,    8)  <  WLITC0>  [81]
+
+TEXTURE  45  (   16,  128)  <   LITE5>  [32]
+  PATCH   0  (    0,    0)  <  WLITA0>  [79]
+  PATCH   1  (    8,    0)  <  WLITC0>  [81]
+  PATCH   2  (    0,    8)  <  WLITA0>  [79]
+  PATCH   3  (    8,    8)  <  WLITC0>  [81]
+  PATCH   4  (    0,   16)  <  WLITA0>  [79]
+  PATCH   5  (    8,   16)  <  WLITC0>  [81]
+  PATCH   6  (    0,   24)  <  WLITA0>  [79]
+  PATCH   7  (    8,   24)  <  WLITC0>  [81]
+  PATCH   8  (    0,   32)  <  WLITA0>  [79]
+  PATCH   9  (    8,   32)  <  WLITC0>  [81]
+  PATCH  10  (    0,   40)  <  WLITA0>  [79]
+  PATCH  11  (    8,   40)  <  WLITC0>  [81]
+  PATCH  12  (    0,   48)  <  WLITA0>  [79]
+  PATCH  13  (    8,   48)  <  WLITC0>  [81]
+  PATCH  14  (    0,   56)  <  WLITA0>  [79]
+  PATCH  15  (    8,   56)  <  WLITC0>  [81]
+  PATCH  16  (    0,   64)  <  WLITA0>  [79]
+  PATCH  17  (    8,   64)  <  WLITC0>  [81]
+  PATCH  18  (    0,   72)  <  WLITA0>  [79]
+  PATCH  19  (    8,   72)  <  WLITC0>  [81]
+  PATCH  20  (    0,   80)  <  WLITA0>  [79]
+  PATCH  21  (    8,   80)  <  WLITC0>  [81]
+  PATCH  22  (    0,   88)  <  WLITA0>  [79]
+  PATCH  23  (    8,   88)  <  WLITC0>  [81]
+  PATCH  24  (    0,   96)  <  WLITA0>  [79]
+  PATCH  25  (    8,   96)  <  WLITC0>  [81]
+  PATCH  26  (    0,  104)  <  WLITA0>  [79]
+  PATCH  27  (    8,  104)  <  WLITC0>  [81]
+  PATCH  28  (    0,  112)  <  WLITA0>  [79]
+  PATCH  29  (    8,  112)  <  WLITC0>  [81]
+  PATCH  30  (    0,  120)  <  WLITA0>  [79]
+  PATCH  31  (    8,  120)  <  WLITC0>  [81]
+
+TEXTURE  46  (    8,  128)  <LITEBLU1>  [1]
+  PATCH   0  (    0,    0)  <AGB128_1>  [82]
+
+TEXTURE  47  (   16,   72)  <LITEBLU2>  [1]
+  PATCH   0  (    0,    0)  <   W13_A>  [83]
+
+TEXTURE  48  (   16,  128)  <LITEBLU3>  [2]
+  PATCH   0  (    0,    0)  <   W13_8>  [84]
+  PATCH   1  (    0,   56)  <   W13_8>  [84]
+
+TEXTURE  49  (   16,  128)  <LITEBLU4>  [33]
+  PATCH   0  (    0,    0)  <  BLITA0>  [85]
+  PATCH   1  (    8,    0)  <  BLITB0>  [86]
+  PATCH   2  (    8,    0)  <  BLITC0>  [87]
+  PATCH   3  (    0,    8)  <  BLITA0>  [85]
+  PATCH   4  (    8,    8)  <  BLITC0>  [87]
+  PATCH   5  (    0,   16)  <  BLITA0>  [85]
+  PATCH   6  (    8,   16)  <  BLITC0>  [87]
+  PATCH   7  (    0,   24)  <  BLITA0>  [85]
+  PATCH   8  (    8,   24)  <  BLITC0>  [87]
+  PATCH   9  (    0,   32)  <  BLITA0>  [85]
+  PATCH  10  (    8,   32)  <  BLITC0>  [87]
+  PATCH  11  (    0,   40)  <  BLITA0>  [85]
+  PATCH  12  (    8,   40)  <  BLITC0>  [87]
+  PATCH  13  (    0,   48)  <  BLITA0>  [85]
+  PATCH  14  (    8,   48)  <  BLITC0>  [87]
+  PATCH  15  (    0,   56)  <  BLITA0>  [85]
+  PATCH  16  (    8,   56)  <  BLITC0>  [87]
+  PATCH  17  (    0,   64)  <  BLITA0>  [85]
+  PATCH  18  (    8,   64)  <  BLITC0>  [87]
+  PATCH  19  (    0,   72)  <  BLITA0>  [85]
+  PATCH  20  (    8,   72)  <  BLITC0>  [87]
+  PATCH  21  (    0,   80)  <  BLITA0>  [85]
+  PATCH  22  (    8,   80)  <  BLITC0>  [87]
+  PATCH  23  (    0,   88)  <  BLITA0>  [85]
+  PATCH  24  (    8,   88)  <  BLITC0>  [87]
+  PATCH  25  (    0,   96)  <  BLITA0>  [85]
+  PATCH  26  (    8,   96)  <  BLITC0>  [87]
+  PATCH  27  (    0,  104)  <  BLITA0>  [85]
+  PATCH  28  (    8,  104)  <  BLITC0>  [87]
+  PATCH  29  (    0,  112)  <  BLITA0>  [85]
+  PATCH  30  (    8,  112)  <  BLITC0>  [87]
+  PATCH  31  (    0,  120)  <  BLITA0>  [85]
+  PATCH  32  (    8,  120)  <  BLITC0>  [87]
+
+TEXTURE  50  (   64,  128)  <  METAL1>  [2]
+  PATCH   0  (    0,    0)  <WALL03_7>  [88]
+  PATCH   1  (    0,   64)  <WALL03_7>  [88]
+
+TEXTURE  51  (   64,   24)  <  NUKE24>  [1]
+  PATCH   0  (    0,    0)  < NUKEDGE>  [89]
+
+TEXTURE  52  (  128,  128)  <NUKEDGE1>  [18]
+  PATCH   0  (    0,    0)  <WALL04_3>  [90]
+  PATCH   1  (   16,    0)  <WALL04_4>  [91]
+  PATCH   2  (   32,    0)  <WALL04_5>  [92]
+  PATCH   3  (   48,    0)  <WALL04_2>  [93]
+  PATCH   4  (   64,    0)  <WALL04_2>  [93]
+  PATCH   5  (   96,   32)  <WALL04_5>  [92]
+  PATCH   6  (   80,    0)  <WALL04_3>  [90]
+  PATCH   7  (  112,    0)  <WALL04_5>  [92]
+  PATCH   8  (   96,    0)  <WALL04_7>  [94]
+  PATCH   9  (    0,  104)  < NUKEDGE>  [89]
+  PATCH  10  (   64,  104)  < NUKEDGE>  [89]
+  PATCH  11  (  112,   32)  <WALL04_5>  [92]
+  PATCH  12  (    0,   33)  <WALL04_3>  [90]
+  PATCH  13  (   16,   33)  <WALL04_4>  [91]
+  PATCH  14  (   32,   33)  <WALL04_5>  [92]
+  PATCH  15  (   48,   33)  <WALL04_2>  [93]
+  PATCH  16  (   64,   33)  <WALL04_2>  [93]
+  PATCH  17  (   80,   33)  <WALL04_3>  [90]
+
+TEXTURE  53  (   64,  128)  <NUKESLAD>  [1]
+  PATCH   0  (    0,    0)  <WALL57_1>  [95]
+
+TEXTURE  54  (  256,  128)  <   PIPE2>  [2]
+  PATCH   0  (    0,    0)  <   TP2_1>  [24]
+  PATCH   1  (  128,    0)  <   TP2_2>  [96]
+
+TEXTURE  55  (  256,  128)  < PLANET1>  [10]
+  PATCH   0  (    0,    0)  < AG128_1>  [97]
+  PATCH   1  (    4,   69)  <  TSCRN2>  [98]
+  PATCH   2  (   64,    0)  < AG128_1>  [97]
+  PATCH   3  (   68,   69)  <  TSCRN3>  [99]
+  PATCH   4  (  128,    0)  < AG128_1>  [97]
+  PATCH   5  (  132,   69)  <  TSCRN4>  [100]
+  PATCH   6  (   68,    7)  <  TSCRN5>  [101]
+  PATCH   7  (    4,    7)  <  TSCRN6>  [102]
+  PATCH   8  (  132,    7)  <  TSCRN8>  [103]
+  PATCH   9  (  192,    0)  < AG128_1>  [97]
+
+TEXTURE  56  (  128,  128)  <   PLAT1>  [1]
+  PATCH   0  (    0,    0)  < PLAT2_1>  [104]
+
+TEXTURE  57  (  128,  128)  <REDWALL1>  [4]
+  PATCH   0  (    0,   56)  <   W15_4>  [105]
+  PATCH   1  (   64,   56)  <   W15_5>  [106]
+  PATCH   2  (    0,    0)  <   W15_4>  [105]
+  PATCH   3  (   64,    0)  <   W15_5>  [106]
+
+TEXTURE  58  (   64,  128)  <  SHAWN2>  [1]
+  PATCH   0  (    0,    0)  < AG128_1>  [97]
+
+TEXTURE  59  (  256,  128)  <    SKY1>  [1]
+  PATCH   0  (    0,   -8)  <    SKY1>  [107]
+
+TEXTURE  60  (   64,  128)  <SLADPOIS>  [2]
+  PATCH   0  (    0,    0)  <WLA128_1>  [108]
+  PATCH   1  (    1,   49)  <  PS20A0>  [9]
+
+TEXTURE  61  (   64,  128)  <SLADRIP1>  [1]
+  PATCH   0  (    0,    0)  <WALL57_2>  [109]
+
+TEXTURE  62  (   64,  128)  <SLADRIP2>  [1]
+  PATCH   0  (    0,    0)  <WALL57_3>  [110]
+
+TEXTURE  63  (   64,  128)  <SLADRIP3>  [1]
+  PATCH   0  (    0,    0)  <WALL57_4>  [111]
+
+TEXTURE  64  (   64,  128)  <SLADWALL>  [1]
+  PATCH   0  (    0,    0)  <WLA128_1>  [108]
+
+TEXTURE  65  (   64,  128)  <  STARG1>  [2]
+  PATCH   0  (    0,    0)  <  SW12_1>  [112]
+  PATCH   1  (   32,    0)  <  SW12_2>  [113]
+
+TEXTURE  66  (  128,  128)  <  STARG3>  [2]
+  PATCH   0  (   64,    0)  <  SW19_3>  [114]
+  PATCH   1  (    0,    0)  <  SW19_4>  [115]
+
+TEXTURE  67  (   64,  128)  < STARGR1>  [2]
+  PATCH   0  (    0,    0)  <  SW11_1>  [116]
+  PATCH   1  (   32,    0)  <  SW11_2>  [117]
+
+TEXTURE  68  (   64,  128)  <STARTAN1>  [2]
+  PATCH   0  (    0,    0)  <  SW12_4>  [118]
+  PATCH   1  (   32,    0)  <  SW12_5>  [119]
+
+TEXTURE  69  (  128,  128)  <STARTAN2>  [4]
+  PATCH   0  (    0,    0)  <  SW17_4>  [120]
+  PATCH   1  (   32,    0)  <  SW17_5>  [121]
+  PATCH   2  (   64,    0)  <  SW17_6>  [122]
+  PATCH   3  (   96,    0)  <  SW18_7>  [123]
+
+TEXTURE  70  (  128,  128)  <STARTAN3>  [2]
+  PATCH   0  (   64,    0)  <  SW19_1>  [124]
+  PATCH   1  (    0,    0)  <  SW19_2>  [125]
+
+TEXTURE  71  (   32,    8)  <   STEP1>  [1]
+  PATCH   0  (    0,    0)  <  STEP04>  [126]
+
+TEXTURE  72  (   32,    8)  <   STEP2>  [1]
+  PATCH   0  (    0,    0)  <  STEP03>  [127]
+
+TEXTURE  73  (   32,    8)  <   STEP3>  [1]
+  PATCH   0  (    0,    0)  <  STEP05>  [128]
+
+TEXTURE  74  (   32,   16)  <   STEP4>  [2]
+  PATCH   0  (    0,    0)  <  STEP06>  [129]
+  PATCH   1  (    0,    8)  <  STEP06>  [129]
+
+TEXTURE  75  (   32,   16)  <   STEP5>  [2]
+  PATCH   0  (    0,    0)  <  STEP09>  [130]
+  PATCH   1  (    0,    8)  <  STEP09>  [130]
+
+TEXTURE  76  (   32,   16)  <   STEP6>  [2]
+  PATCH   0  (    0,    8)  <  STEP10>  [131]
+  PATCH   1  (    0,    0)  <  STEP07>  [25]
+
+TEXTURE  77  (  256,  128)  <   STONE>  [40]
+  PATCH   0  (    0,    0)  <WALL01_1>  [132]
+  PATCH   1  (   16,    0)  <WALL01_2>  [133]
+  PATCH   2  (   32,    0)  <WALL01_3>  [134]
+  PATCH   3  (   48,    0)  <WALL01_4>  [135]
+  PATCH   4  (   64,    0)  <WALL01_5>  [136]
+  PATCH   5  (   80,    0)  <WALL01_6>  [137]
+  PATCH   6  (   96,    0)  <WALL01_7>  [138]
+  PATCH   7  (  112,    0)  <WALL01_8>  [139]
+  PATCH   8  (  128,    0)  <WALL01_9>  [140]
+  PATCH   9  (  144,    0)  <WALL01_A>  [141]
+  PATCH  10  (  160,    0)  <WALL01_B>  [142]
+  PATCH  11  (  176,    0)  <WALL01_C>  [143]
+  PATCH  12  (  192,    0)  <WALL01_3>  [134]
+  PATCH  13  (  208,    0)  <WALL01_1>  [132]
+  PATCH  14  (  224,    0)  <WALL01_6>  [137]
+  PATCH  15  (  240,    0)  <WALL01_A>  [141]
+  PATCH  16  (    0,   72)  <WALL01_1>  [132]
+  PATCH  17  (   16,   72)  <WALL01_2>  [133]
+  PATCH  18  (   32,   72)  <WALL01_3>  [134]
+  PATCH  19  (   48,   72)  <WALL01_4>  [135]
+  PATCH  20  (   64,   72)  <WALL01_5>  [136]
+  PATCH  21  (   80,   72)  <WALL01_6>  [137]
+  PATCH  22  (   96,   72)  <WALL01_7>  [138]
+  PATCH  23  (  112,   72)  <WALL01_8>  [139]
+  PATCH  24  (  128,   72)  <WALL01_9>  [140]
+  PATCH  25  (  144,   72)  <WALL01_A>  [141]
+  PATCH  26  (  160,   72)  <WALL01_B>  [142]
+  PATCH  27  (  176,   72)  <WALL01_C>  [143]
+  PATCH  28  (  192,   72)  <WALL01_3>  [134]
+  PATCH  29  (  208,   72)  <WALL01_1>  [132]
+  PATCH  30  (  224,   72)  <WALL01_6>  [137]
+  PATCH  31  (  240,   72)  <WALL01_A>  [141]
+  PATCH  32  (    0,   64)  <   W33_8>  [53]
+  PATCH  33  (   64,   64)  <   W33_8>  [53]
+  PATCH  34  (  128,   64)  <   W33_8>  [53]
+  PATCH  35  (  192,   64)  <   W33_8>  [53]
+  PATCH  36  (    0,  120)  <   W33_8>  [53]
+  PATCH  37  (   64,  120)  <   W33_8>  [53]
+  PATCH  38  (  128,  120)  <   W33_8>  [53]
+  PATCH  39  (  192,  120)  <   W33_8>  [53]
+
+TEXTURE  78  (  128,  128)  <  STONE2>  [4]
+  PATCH   0  (    0,   64)  <   W28_8>  [144]
+  PATCH   1  (   64,    0)  <   W28_8>  [144]
+  PATCH   2  (    0,    0)  <   W28_5>  [145]
+  PATCH   3  (   64,   64)  <   W28_5>  [145]
+
+TEXTURE  79  (  128,  128)  <  STONE3>  [4]
+  PATCH   0  (    0,    0)  <   W28_7>  [146]
+  PATCH   1  (    0,   64)  <   W28_6>  [147]
+  PATCH   2  (   64,   64)  <   W28_7>  [146]
+  PATCH   3  (   64,    0)  <   W28_6>  [147]
+
+TEXTURE  80  (   64,  128)  <STONPOIS>  [11]
+  PATCH   0  (    0,    0)  <WALL01_1>  [132]
+  PATCH   1  (   16,    0)  <WALL01_2>  [133]
+  PATCH   2  (   32,    0)  <WALL01_3>  [134]
+  PATCH   3  (   48,    0)  <WALL01_4>  [135]
+  PATCH   4  (    0,   72)  <WALL01_1>  [132]
+  PATCH   5  (   16,   72)  <WALL01_2>  [133]
+  PATCH   6  (   32,   72)  <WALL01_3>  [134]
+  PATCH   7  (   48,   72)  <WALL01_4>  [135]
+  PATCH   8  (    0,   64)  <   W33_8>  [53]
+  PATCH   9  (    0,  120)  <   W33_8>  [53]
+  PATCH  10  (    1,   43)  <  PS20A0>  [9]
+
+TEXTURE  81  (   64,  128)  <SUPPORT2>  [6]
+  PATCH   0  (   19,   72)  <SUPPORT2>  [148]
+  PATCH   1  (   19,    0)  <SUPPORT2>  [148]
+  PATCH   2  (    0,    0)  <SUPPORT2>  [148]
+  PATCH   3  (    0,   72)  <SUPPORT2>  [148]
+  PATCH   4  (   40,    0)  <SUPPORT2>  [148]
+  PATCH   5  (   40,   72)  <SUPPORT2>  [148]
+
+TEXTURE  82  (  128,  128)  <SW1BRCOM>  [2]
+  PATCH   0  (    0,    0)  <WALL62_1>  [10]
+  PATCH   1  (   48,   72)  <   SW1S0>  [149]
+
+TEXTURE  83  (   64,  128)  < SW1BRN1>  [3]
+  PATCH   0  (    0,   56)  <WALL02_2>  [16]
+  PATCH   1  (    0,    0)  <WALL02_2>  [16]
+  PATCH   2  (   16,   75)  <   SW3S0>  [150]
+
+TEXTURE  84  (   64,  128)  < SW1BRN2>  [3]
+  PATCH   0  (    0,   56)  <WALL02_2>  [16]
+  PATCH   1  (    0,    0)  <WALL02_2>  [16]
+  PATCH   2  (   20,   79)  <   SW4S0>  [151]
+
+TEXTURE  85  (   64,  128)  <SW1BRNGN>  [2]
+  PATCH   0  (    0,    0)  <WALL62_2>  [8]
+  PATCH   1  (   20,   80)  <   SW4S0>  [151]
+
+TEXTURE  86  (  128,  128)  <SW1BROWN>  [2]
+  PATCH   0  (    0,    0)  <WALL62_1>  [10]
+  PATCH   1  (   48,   72)  <   SW3S1>  [152]
+
+TEXTURE  87  (   64,   72)  < SW1COMM>  [2]
+  PATCH   0  (    0,    0)  <   W13_1>  [1]
+  PATCH   1  (   15,   18)  <   SW1S0>  [149]
+
+TEXTURE  88  (   64,  128)  < SW1COMP>  [4]
+  PATCH   0  (    0,   64)  <COMP03_4>  [36]
+  PATCH   1  (    0,    0)  <COMP04_5>  [40]
+  PATCH   2  (   32,   64)  <COMP03_4>  [36]
+  PATCH   3  (   16,   72)  <   SW2S0>  [153]
+
+TEXTURE  89  (   64,  128)  < SW1DIRT>  [5]
+  PATCH   0  (   32,    0)  <WALL00_7>  [21]
+  PATCH   1  (   16,    0)  <WALL00_6>  [20]
+  PATCH   2  (   16,   20)  <   SW1S0>  [149]
+  PATCH   3  (    0,  -16)  <WALL00_6>  [20]
+  PATCH   4  (   48,    0)  <WALL00_7>  [21]
+
+TEXTURE  90  (   32,   72)  < SW1EXIT>  [3]
+  PATCH   0  (    0,    0)  <   W32_4>  [74]
+  PATCH   1  (    0,   16)  <   SW2S0>  [153]
+  PATCH   2  (    0,   64)  <   W33_8>  [53]
+
+TEXTURE  91  (   64,  128)  < SW1GRAY>  [3]
+  PATCH   0  (    0,    0)  <   W31_1>  [154]
+  PATCH   1  (    0,   64)  <   W31_1>  [154]
+  PATCH   2  (   16,   70)  <   SW2S0>  [153]
+
+TEXTURE  92  (   64,  128)  <SW1GRAY1>  [3]
+  PATCH   0  (    0,   64)  <   W31_1>  [154]
+  PATCH   1  (    0,    0)  <   W31_1>  [154]
+  PATCH   2  (   19,   79)  <   SW4S0>  [151]
+
+TEXTURE  93  (   64,  128)  <SW1METAL>  [3]
+  PATCH   0  (    0,    0)  <WALL03_7>  [88]
+  PATCH   1  (    0,   64)  <WALL03_7>  [88]
+  PATCH   2  (   20,   68)  <   SW4S0>  [151]
+
+TEXTURE  94  (  128,  128)  < SW1PIPE>  [2]
+  PATCH   0  (    0,    0)  <   TP2_2>  [96]
+  PATCH   1  (   48,   76)  <   SW3S0>  [150]
+
+TEXTURE  95  (   64,  128)  < SW1SLAD>  [2]
+  PATCH   0  (    0,    0)  <WLA128_1>  [108]
+  PATCH   1  (   24,   73)  <  WARNB0>  [155]
+
+TEXTURE  96  (  128,  128)  <SW1STARG>  [3]
+  PATCH   0  (   64,    0)  <  SW19_3>  [114]
+  PATCH   1  (    0,    0)  <  SW19_4>  [115]
+  PATCH   2  (   48,   76)  <   SW3S0>  [150]
+
+TEXTURE  97  (   64,  128)  <SW1STON1>  [3]
+  PATCH   0  (    0,   64)  <   W28_8>  [144]
+  PATCH   1  (    0,    0)  <   W28_8>  [144]
+  PATCH   2  (   16,   78)  <   SW1S0>  [149]
+
+TEXTURE  98  (   64,  128)  <SW1STON2>  [3]
+  PATCH   0  (    0,    0)  <   W28_5>  [145]
+  PATCH   1  (    0,   64)  <   W28_8>  [144]
+  PATCH   2  (   24,   73)  <  WARNB0>  [155]
+
+TEXTURE  99  (   64,  128)  <SW1STONE>  [11]
+  PATCH   0  (    0,    0)  <WALL01_1>  [132]
+  PATCH   1  (   16,    0)  <WALL01_2>  [133]
+  PATCH   2  (   32,    0)  <WALL01_3>  [134]
+  PATCH   3  (   48,    0)  <WALL01_4>  [135]
+  PATCH   4  (    0,   72)  <WALL01_1>  [132]
+  PATCH   5  (   16,   72)  <WALL01_2>  [133]
+  PATCH   6  (   32,   72)  <WALL01_3>  [134]
+  PATCH   7  (   48,   72)  <WALL01_4>  [135]
+  PATCH   8  (    0,   64)  <   W33_8>  [53]
+  PATCH   9  (    0,  120)  <   W33_8>  [53]
+  PATCH  10  (   16,   72)  <   SW1S0>  [149]
+
+TEXTURE 100  (   64,  128)  <SW1STRTN>  [3]
+  PATCH   0  (    0,    0)  <  SW12_4>  [118]
+  PATCH   1  (   32,    0)  <  SW12_5>  [119]
+  PATCH   2  (   16,   72)  <   SW1S0>  [149]
+
+TEXTURE 101  (  128,  128)  <SW2BRCOM>  [2]
+  PATCH   0  (    0,    0)  <WALL62_1>  [10]
+  PATCH   1  (   48,   72)  <   SW1S1>  [156]
+
+TEXTURE 102  (   64,  128)  < SW2BRN1>  [5]
+  PATCH   0  (   32,   72)  <  STEP07>  [25]
+  PATCH   1  (    0,   72)  <  STEP07>  [25]
+  PATCH   2  (    0,   56)  <WALL02_2>  [16]
+  PATCH   3  (    0,    0)  <WALL02_2>  [16]
+  PATCH   4  (   16,   75)  <   SW3S1>  [152]
+
+TEXTURE 103  (   64,  128)  < SW2BRN2>  [3]
+  PATCH   0  (    0,   56)  <WALL02_2>  [16]
+  PATCH   1  (    0,    0)  <WALL02_2>  [16]
+  PATCH   2  (   20,   79)  <   SW4S1>  [157]
+
+TEXTURE 104  (   64,  128)  <SW2BRNGN>  [2]
+  PATCH   0  (    0,    0)  <WALL62_2>  [8]
+  PATCH   1  (   20,   80)  <   SW4S1>  [157]
+
+TEXTURE 105  (  128,  128)  <SW2BROWN>  [2]
+  PATCH   0  (    0,    0)  <WALL62_1>  [10]
+  PATCH   1  (   48,   72)  <   SW3S0>  [150]
+
+TEXTURE 106  (   64,   72)  < SW2COMM>  [2]
+  PATCH   0  (    0,    0)  <   W13_1>  [1]
+  PATCH   1  (   15,   18)  <   SW1S1>  [156]
+
+TEXTURE 107  (   64,  128)  < SW2COMP>  [4]
+  PATCH   0  (    0,   64)  <COMP03_4>  [36]
+  PATCH   1  (    0,    0)  <COMP04_5>  [40]
+  PATCH   2  (   32,   64)  <COMP03_4>  [36]
+  PATCH   3  (   16,   72)  <   SW2S1>  [158]
+
+TEXTURE 108  (   64,  128)  < SW2DIRT>  [5]
+  PATCH   0  (   48,    0)  <WALL00_8>  [22]
+  PATCH   1  (   32,    0)  <WALL00_7>  [21]
+  PATCH   2  (   16,    0)  <WALL00_6>  [20]
+  PATCH   3  (    0,   -1)  <WALL00_5>  [19]
+  PATCH   4  (   16,   20)  <   SW1S1>  [156]
+
+TEXTURE 109  (   32,   72)  < SW2EXIT>  [3]
+  PATCH   0  (    0,    0)  <   W32_4>  [74]
+  PATCH   1  (    0,   16)  <   SW2S1>  [158]
+  PATCH   2  (    0,   64)  <   W33_8>  [53]
+
+TEXTURE 110  (   64,  128)  < SW2GRAY>  [3]
+  PATCH   0  (    0,    0)  <   W31_1>  [154]
+  PATCH   1  (    0,   64)  <   W31_1>  [154]
+  PATCH   2  (   16,   70)  <   SW2S1>  [158]
+
+TEXTURE 111  (   64,  128)  <SW2GRAY1>  [3]
+  PATCH   0  (    0,   64)  <   W31_1>  [154]
+  PATCH   1  (    0,    0)  <   W31_1>  [154]
+  PATCH   2  (   19,   79)  <   SW4S1>  [157]
+
+TEXTURE 112  (   64,  128)  <SW2METAL>  [3]
+  PATCH   0  (    0,    0)  <WALL03_7>  [88]
+  PATCH   1  (    0,   64)  <WALL03_7>  [88]
+  PATCH   2  (   20,   68)  <   SW4S1>  [157]
+
+TEXTURE 113  (  128,  128)  < SW2PIPE>  [2]
+  PATCH   0  (    0,    0)  <   TP2_2>  [96]
+  PATCH   1  (   48,   76)  <   SW3S1>  [152]
+
+TEXTURE 114  (   64,  128)  < SW2SLAD>  [2]
+  PATCH   0  (    0,    0)  <WLA128_1>  [108]
+  PATCH   1  (   24,   73)  <  WARNA0>  [159]
+
+TEXTURE 115  (  128,  128)  <SW2STARG>  [3]
+  PATCH   0  (   64,    0)  <  SW19_3>  [114]
+  PATCH   1  (    0,    0)  <  SW19_4>  [115]
+  PATCH   2  (   48,   76)  <   SW3S1>  [152]
+
+TEXTURE 116  (   64,  128)  <SW2STON1>  [3]
+  PATCH   0  (    0,   64)  <   W28_8>  [144]
+  PATCH   1  (    0,    0)  <   W28_8>  [144]
+  PATCH   2  (   16,   78)  <   SW1S1>  [156]
+
+TEXTURE 117  (   64,  128)  <SW2STON2>  [3]
+  PATCH   0  (    0,   64)  <   W28_8>  [144]
+  PATCH   1  (   24,   73)  <  WARNA0>  [159]
+  PATCH   2  (    0,    0)  <   W28_5>  [145]
+
+TEXTURE 118  (   64,  128)  <SW2STONE>  [11]
+  PATCH   0  (    0,    0)  <WALL01_1>  [132]
+  PATCH   1  (   16,    0)  <WALL01_2>  [133]
+  PATCH   2  (   32,    0)  <WALL01_3>  [134]
+  PATCH   3  (   48,    0)  <WALL01_4>  [135]
+  PATCH   4  (    0,   72)  <WALL01_1>  [132]
+  PATCH   5  (   16,   72)  <WALL01_2>  [133]
+  PATCH   6  (   32,   72)  <WALL01_3>  [134]
+  PATCH   7  (   48,   72)  <WALL01_4>  [135]
+  PATCH   8  (    0,   64)  <   W33_8>  [53]
+  PATCH   9  (    0,  120)  <   W33_8>  [53]
+  PATCH  10  (   16,   72)  <   SW1S1>  [156]
+
+TEXTURE 119  (   64,  128)  <SW2STRTN>  [3]
+  PATCH   0  (    0,    0)  <  SW12_4>  [118]
+  PATCH   1  (   32,    0)  <  SW12_5>  [119]
+  PATCH   2  (   16,   72)  <   SW1S1>  [156]
+
+TEXTURE 120  (  128,  128)  <TEKWALL1>  [2]
+  PATCH   0  (    0,  -27)  <   W17_1>  [160]
+  PATCH   1  (    0,   16)  <   W17_1>  [160]
+
+TEXTURE 121  (  128,  128)  <TEKWALL2>  [1]
+  PATCH   0  (    0,    0)  <WALL24_1>  [161]
+
+TEXTURE 122  (  128,  112)  <TEKWALL3>  [1]
+  PATCH   0  ( -104,    0)  <   W17_1>  [160]
+
+TEXTURE 123  (  128,  128)  <TEKWALL4>  [1]
+  PATCH   0  (    0,    0)  <   w94_1>  [162]
+
+TEXTURE 124  (  128,  128)  <TEKWALL5>  [1]
+  PATCH   0  ( -120,   -8)  <WALL24_1>  [161]
+
+TEXTURE 125  (   64,  128)  < ASHWALL>  [1]
+  PATCH   0  (    0,    0)  <  W104_1>  [163]
+
+TEXTURE 126  (  128,  128)  <BIGDOOR3>  [1]
+  PATCH   0  (    0,    0)  < DOOR9_2>  [164]
+
+TEXTURE 127  (  128,  128)  <BIGDOOR5>  [4]
+  PATCH   0  (    0,    0)  <WALL40_1>  [165]
+  PATCH   1  (   51,    0)  <WALL42_3>  [166]
+  PATCH   2  (    0,    0)  <WALL42_3>  [166]
+  PATCH   3  (  104,    0)  <WALL42_3>  [166]
+
+TEXTURE 128  (  128,  112)  <BIGDOOR6>  [3]
+  PATCH   0  (    4,    0)  <DOOR11_1>  [167]
+  PATCH   1  (  124,    0)  <DOOR11_1>  [167]
+  PATCH   2  ( -116,    0)  <DOOR11_1>  [167]
+
+TEXTURE 129  (  128,  128)  <BIGDOOR7>  [2]
+  PATCH   0  (   -4,   -4)  <  W105_1>  [168]
+  PATCH   1  (  124,   -4)  <  W105_1>  [168]
+
+TEXTURE 130  (   32,  128)  < BLODGR1>  [1]
+  PATCH   0  (    0,    0)  <   TP5_1>  [169]
+
+TEXTURE 131  (   32,  128)  < BLODGR2>  [1]
+  PATCH   0  (    0,    0)  <   TP5_2>  [170]
+
+TEXTURE 132  (   32,  128)  < BLODGR3>  [1]
+  PATCH   0  (    0,    0)  <   TP5_3>  [171]
+
+TEXTURE 133  (   32,  128)  < BLODGR4>  [1]
+  PATCH   0  (    0,    0)  <   TP5_4>  [172]
+
+TEXTURE 134  (   32,  128)  <BLODRIP1>  [1]
+  PATCH   0  (    0,    0)  <   RP2_1>  [173]
+
+TEXTURE 135  (   32,  128)  <BLODRIP2>  [1]
+  PATCH   0  (    0,    0)  <   RP2_2>  [174]
+
+TEXTURE 136  (   32,  128)  <BLODRIP3>  [1]
+  PATCH   0  (    0,    0)  <   RP2_3>  [175]
+
+TEXTURE 137  (   32,  128)  <BLODRIP4>  [1]
+  PATCH   0  (    0,    0)  <   RP2_4>  [176]
+
+TEXTURE 138  (  256,  128)  < BROVINE>  [13]
+  PATCH   0  (    0,   56)  <WALL02_2>  [16]
+  PATCH   1  (    0,    0)  <WALL02_2>  [16]
+  PATCH   2  (   88,   56)  <WALL02_1>  [18]
+  PATCH   3  (   88,    0)  <WALL02_1>  [18]
+  PATCH   4  (   64,   56)  <WALL02_3>  [17]
+  PATCH   5  (   64,    0)  <WALL02_3>  [17]
+  PATCH   6  (  152,   56)  <WALL02_3>  [17]
+  PATCH   7  (  152,    0)  <WALL02_3>  [17]
+  PATCH   8  (  232,   56)  <WALL02_3>  [17]
+  PATCH   9  (  176,   56)  <WALL02_2>  [16]
+  PATCH  10  (  232,    0)  <WALL02_3>  [17]
+  PATCH  11  (  176,    0)  <WALL02_2>  [16]
+  PATCH  12  (    0,    0)  <  W107_1>  [177]
+
+TEXTURE 139  (  256,  128)  <BROVINE2>  [5]
+  PATCH   0  (    0,    0)  <WALL62_2>  [8]
+  PATCH   1  (   64,    0)  <WALL62_2>  [8]
+  PATCH   2  (  128,    0)  <WALL62_2>  [8]
+  PATCH   3  (  192,    0)  <WALL62_2>  [8]
+  PATCH   4  (    0,    0)  <  W106_1>  [178]
+
+TEXTURE 140  (  256,   72)  <BROWNWEL>  [4]
+  PATCH   0  (    0,    0)  <WALL03_4>  [23]
+  PATCH   1  (  128,    0)  <WALL03_3>  [179]
+  PATCH   2  (   64,    0)  <WALL03_4>  [23]
+  PATCH   3  (  192,    0)  <WALL03_4>  [23]
+
+TEXTURE 141  (  128,  128)  < CEMENT1>  [1]
+  PATCH   0  (    0,    0)  <WALL52_1>  [180]
+
+TEXTURE 142  (  128,  128)  < CEMENT2>  [1]
+  PATCH   0  (    0,    0)  <WALL53_1>  [181]
+
+TEXTURE 143  (  128,  128)  < CEMENT3>  [1]
+  PATCH   0  (    0,    0)  <WALL54_1>  [182]
+
+TEXTURE 144  (  128,  128)  < CEMENT4>  [1]
+  PATCH   0  (    0,    0)  <WALL55_1>  [183]
+
+TEXTURE 145  (  128,  128)  < CEMENT5>  [1]
+  PATCH   0  (    0,    0)  <WALL52_2>  [184]
+
+TEXTURE 146  (  128,  128)  < CEMENT6>  [1]
+  PATCH   0  (    0,    0)  <WALL54_2>  [185]
+
+TEXTURE 147  (  128,  128)  < CEMPOIS>  [2]
+  PATCH   0  (    0,    0)  <WALL52_1>  [180]
+  PATCH   1  (    0,   28)  <  PS20A0>  [9]
+
+TEXTURE 148  (   64,  128)  <COMPBLUE>  [2]
+  PATCH   0  (    0,    0)  <COMP03_1>  [49]
+  PATCH   1  (    0,   64)  <COMP03_2>  [186]
+
+TEXTURE 149  (  128,  128)  <COMPOHSO>  [4]
+  PATCH   0  (   64,   70)  <WALL21_1>  [187]
+  PATCH   1  (    0,   70)  <WALL21_5>  [188]
+  PATCH   2  (    0,   -2)  <WALL21_3>  [189]
+  PATCH   3  (   64,   -2)  <WALL21_1>  [187]
+
+TEXTURE 150  (   64,  128)  <COMPWERD>  [2]
+  PATCH   0  (    0,    0)  <COMP04_6>  [43]
+  PATCH   1  (    0,   64)  <COMP04_6>  [43]
+
+TEXTURE 151  (   64,  128)  <  CRATE1>  [4]
+  PATCH   0  (    0,    0)  <BCRATEL1>  [190]
+  PATCH   1  (   32,    0)  <BCRATER1>  [191]
+  PATCH   2  (    0,   64)  <BCRATEL1>  [190]
+  PATCH   3  (   32,   64)  <BCRATER1>  [191]
+
+TEXTURE 152  (   64,  128)  <  CRATE2>  [4]
+  PATCH   0  (    0,    0)  <GCRATEL1>  [192]
+  PATCH   1  (   32,    0)  <GCRATER1>  [193]
+  PATCH   2  (    0,   64)  <GCRATEL1>  [192]
+  PATCH   3  (   32,   64)  <GCRATER1>  [193]
+
+TEXTURE 153  (   64,  128)  <CRATELIT>  [4]
+  PATCH   0  (    0,    0)  <SGCRATE2>  [194]
+  PATCH   1  (   32,    0)  <SGCRATE2>  [194]
+  PATCH   2  (    0,   64)  <BCRATEL1>  [190]
+  PATCH   3  (   32,   64)  <BCRATER1>  [191]
+
+TEXTURE 154  (   64,   16)  < CRATINY>  [4]
+  PATCH   0  (    0,    0)  <VGCRATE1>  [195]
+  PATCH   1  (   16,    0)  <VGCRATE1>  [195]
+  PATCH   2  (   32,    0)  <VGCRATE1>  [195]
+  PATCH   3  (   48,    0)  <VGCRATE1>  [195]
+
+TEXTURE 155  (  128,  128)  <CRATWIDE>  [20]
+  PATCH   0  (    0,   64)  <BCRATEL1>  [190]
+  PATCH   1  (   40,   64)  <BCRATEM1>  [196]
+  PATCH   2  (   32,   64)  <BCRATEM1>  [196]
+  PATCH   3  (   48,   64)  <BCRATEM1>  [196]
+  PATCH   4  (   56,   64)  <BCRATEM1>  [196]
+  PATCH   5  (   96,   64)  <BCRATER1>  [191]
+  PATCH   6  (   88,   64)  <BCRATEM1>  [196]
+  PATCH   7  (   80,   64)  <BCRATEM1>  [196]
+  PATCH   8  (   72,   64)  <BCRATEM1>  [196]
+  PATCH   9  (   64,   64)  <BCRATEM1>  [196]
+  PATCH  10  (    0,    0)  <GCRATEL1>  [192]
+  PATCH  11  (   96,    0)  <GCRATER1>  [193]
+  PATCH  12  (   48,    0)  <GCRATEM1>  [197]
+  PATCH  13  (   40,    0)  <GCRATEM1>  [197]
+  PATCH  14  (   32,    0)  <GCRATEM1>  [197]
+  PATCH  15  (   72,    0)  <GCRATEM1>  [197]
+  PATCH  16  (   64,    0)  <GCRATEM1>  [197]
+  PATCH  17  (   56,    0)  <GCRATEM1>  [197]
+  PATCH  18  (   80,    0)  <GCRATEM1>  [197]
+  PATCH  19  (   88,    0)  <GCRATEM1>  [197]
+
+TEXTURE 156  (   16,  128)  <DOORBLU2>  [6]
+  PATCH   0  (    0,    0)  <  W108_2>  [198]
+  PATCH   1  (    0,   24)  <  W108_2>  [198]
+  PATCH   2  (    0,   48)  <  W108_2>  [198]
+  PATCH   3  (    0,   72)  <  W108_2>  [198]
+  PATCH   4  (    0,   96)  <  W108_2>  [198]
+  PATCH   5  (    0,  120)  <  STEP07>  [25]
+
+TEXTURE 157  (   64,  128)  <  DOORHI>  [4]
+  PATCH   0  (    0,    0)  < DOOR2_3>  [199]
+  PATCH   1  (    0,   32)  < DOOR2_3>  [199]
+  PATCH   2  (    0,   96)  < DOOR2_3>  [199]
+  PATCH   3  (    0,   64)  < DOOR2_3>  [199]
+
+TEXTURE 158  (   16,  128)  <DOORRED2>  [6]
+  PATCH   0  (    0,    0)  <  W108_3>  [200]
+  PATCH   1  (    0,   24)  <  W108_3>  [200]
+  PATCH   2  (    0,   48)  <  W108_3>  [200]
+  PATCH   3  (    0,   72)  <  W108_3>  [200]
+  PATCH   4  (    0,   96)  <  W108_3>  [200]
+  PATCH   5  (    0,  120)  <  STEP07>  [25]
+
+TEXTURE 159  (   16,  128)  <DOORYEL2>  [6]
+  PATCH   0  (    0,    0)  <  W108_4>  [201]
+  PATCH   1  (    0,   24)  <  W108_4>  [201]
+  PATCH   2  (    0,   48)  <  W108_4>  [201]
+  PATCH   3  (    0,   72)  <  W108_4>  [201]
+  PATCH   4  (    0,   96)  <  W108_4>  [201]
+  PATCH   5  (    0,  120)  <  STEP07>  [25]
+
+TEXTURE 160  (   64,  128)  <EXITSTON>  [3]
+  PATCH   0  (    0,   64)  <   W28_8>  [144]
+  PATCH   1  (    0,    0)  <   W28_8>  [144]
+  PATCH   2  (   17,   22)  <   EXIT1>  [70]
+
+TEXTURE 161  (  128,  128)  <FIREBLU1>  [1]
+  PATCH   0  (    0,    0)  <  W65B_1>  [202]
+
+TEXTURE 162  (  128,  128)  <FIREBLU2>  [1]
+  PATCH   0  (    0,    0)  <  W65B_2>  [203]
+
+TEXTURE 163  (  128,  128)  <FIRELAV2>  [1]
+  PATCH   0  (    0,    0)  <  W73A_2>  [204]
+
+TEXTURE 164  (  128,  128)  <FIRELAV3>  [1]
+  PATCH   0  (    0,    0)  <  W73B_1>  [205]
+
+TEXTURE 165  (  128,  128)  <FIRELAVA>  [1]
+  PATCH   0  (    0,    0)  <  W73A_1>  [206]
+
+TEXTURE 166  (  128,  128)  <FIREMAG1>  [1]
+  PATCH   0  (    0,    0)  <  W74A_1>  [207]
+
+TEXTURE 167  (  128,  128)  <FIREMAG2>  [1]
+  PATCH   0  (    0,    0)  <  W74A_2>  [208]
+
+TEXTURE 168  (  128,  128)  <FIREMAG3>  [1]
+  PATCH   0  (    0,    0)  <  W74B_1>  [209]
+
+TEXTURE 169  (  128,  112)  <FIREWALA>  [1]
+  PATCH   0  (    0,    0)  <WALL23_1>  [210]
+
+TEXTURE 170  (  128,  112)  <FIREWALB>  [1]
+  PATCH   0  (    0,    0)  <WALL23_2>  [211]
+
+TEXTURE 171  (  128,  112)  <FIREWALL>  [1]
+  PATCH   0  (    0,    0)  <WALL22_1>  [212]
+
+TEXTURE 172  (   64,  128)  <   GRAY1>  [2]
+  PATCH   0  (    0,   64)  <   W31_1>  [154]
+  PATCH   1  (    0,    0)  <   W31_1>  [154]
+
+TEXTURE 173  (   64,   72)  <   GRAY2>  [3]
+  PATCH   0  (    0,   -8)  <   W33_7>  [73]
+  PATCH   1  (    0,   56)  <   W31_1>  [154]
+  PATCH   2  (   20,   16)  <   DUCT1>  [213]
+
+TEXTURE 174  (  128,  128)  < GRAYBIG>  [3]
+  PATCH   0  (    0,    0)  <WALL00_1>  [76]
+  PATCH   1  (   64,    0)  <WALL00_1>  [76]
+  PATCH   2  (   83,    0)  <WALL00_2>  [77]
+
+TEXTURE 175  (   64,  128)  <GRAYDANG>  [3]
+  PATCH   0  (    0,    0)  <   W33_7>  [73]
+  PATCH   1  (    0,   64)  <   W33_7>  [73]
+  PATCH   2  (   14,   74)  <  PS15A0>  [214]
+
+TEXTURE 176  (   64,   72)  <GRAYPOIS>  [5]
+  PATCH   0  (    0,    0)  <WALL04_9>  [215]
+  PATCH   1  (   16,    0)  <WALL04_A>  [216]
+  PATCH   2  (   32,    0)  <WALL04_B>  [217]
+  PATCH   3  (   48,    0)  <WALL04_C>  [218]
+  PATCH   4  (    1,   19)  <  PS18A0>  [219]
+
+TEXTURE 177  (  256,  128)  <GRAYVINE>  [5]
+  PATCH   0  (    0,    0)  <WALL00_1>  [76]
+  PATCH   1  (   64,    0)  <WALL00_1>  [76]
+  PATCH   2  (  128,  -16)  <WALL00_1>  [76]
+  PATCH   3  (  192,  -16)  <WALL00_1>  [76]
+  PATCH   4  (    0,    0)  <  W106_1>  [178]
+
+TEXTURE 178  (   64,  128)  <GSTFONT1>  [1]
+  PATCH   0  (    0,    0)  <WALL58_1>  [220]
+
+TEXTURE 179  (   64,  128)  <GSTFONT2>  [1]
+  PATCH   0  (    0,    0)  <WALL58_2>  [221]
+
+TEXTURE 180  (   64,  128)  <GSTFONT3>  [1]
+  PATCH   0  (    0,    0)  <WALL58_3>  [222]
+
+TEXTURE 181  (   64,  128)  < GSTGARG>  [1]
+  PATCH   0  (    0,    0)  <WALL30_2>  [223]
+
+TEXTURE 182  (   64,  128)  < GSTLION>  [1]
+  PATCH   0  (    0,    0)  <WALL30_4>  [224]
+
+TEXTURE 183  (  256,  128)  < GSTONE1>  [4]
+  PATCH   0  (    0,    0)  <WALL48_1>  [225]
+  PATCH   1  (   64,    0)  <WALL48_2>  [226]
+  PATCH   2  (  128,    0)  <WALL48_3>  [227]
+  PATCH   3  (  192,    0)  <WALL48_4>  [228]
+
+TEXTURE 184  (  256,  128)  < GSTONE2>  [4]
+  PATCH   0  (    0,    0)  <WALL59_1>  [229]
+  PATCH   1  (   64,    0)  <WALL59_2>  [230]
+  PATCH   2  (  128,    0)  <WALL59_3>  [231]
+  PATCH   3  (  192,    0)  <WALL59_4>  [232]
+
+TEXTURE 185  (   64,  128)  <GSTSATYR>  [1]
+  PATCH   0  (    0,    0)  <WALL30_3>  [233]
+
+TEXTURE 186  (  256,  128)  <GSTVINE1>  [5]
+  PATCH   0  (    0,    0)  <WALL48_1>  [225]
+  PATCH   1  (   64,    0)  <WALL48_2>  [226]
+  PATCH   2  (  128,    0)  <WALL48_3>  [227]
+  PATCH   3  (  192,    0)  <WALL48_4>  [228]
+  PATCH   4  (    0,    0)  <  W106_1>  [178]
+
+TEXTURE 187  (  256,  128)  <GSTVINE2>  [5]
+  PATCH   0  (    0,    0)  <WALL48_1>  [225]
+  PATCH   1  (   64,    0)  <WALL48_2>  [226]
+  PATCH   2  (  128,    0)  <WALL48_3>  [227]
+  PATCH   3  (  192,    0)  <WALL48_4>  [228]
+  PATCH   4  (    0,    0)  <  W107_1>  [177]
+
+TEXTURE 188  (   64,   72)  <ICKDOOR1>  [2]
+  PATCH   0  (    0,    9)  <WALL69_4>  [234]
+  PATCH   1  (    0,    0)  <WALL70_3>  [235]
+
+TEXTURE 189  (   64,  128)  <ICKWALL1>  [2]
+  PATCH   0  (    0,    0)  <WALL69_4>  [234]
+  PATCH   1  (    0,   64)  <   W32_4>  [74]
+
+TEXTURE 190  (   64,  128)  <ICKWALL2>  [2]
+  PATCH   0  (    0,    0)  <WALL71_5>  [236]
+  PATCH   1  (    0,   64)  <   W33_5>  [72]
+
+TEXTURE 191  (   64,  128)  <ICKWALL3>  [3]
+  PATCH   0  (    0,    0)  <WALL72_7>  [237]
+  PATCH   1  (    0,   64)  <WALL69_9>  [238]
+  PATCH   2  (   32,   64)  <   W67_2>  [239]
+
+TEXTURE 192  (   64,  128)  <ICKWALL4>  [2]
+  PATCH   0  (    0,    0)  <WALL72_5>  [240]
+  PATCH   1  (    0,   64)  <WALL72_3>  [241]
+
+TEXTURE 193  (   64,  128)  <ICKWALL5>  [2]
+  PATCH   0  (    0,    0)  <WALL70_4>  [242]
+  PATCH   1  (    0,   64)  <   W32_4>  [74]
+
+TEXTURE 194  (   64,  128)  <ICKWALL6>  [3]
+  PATCH   0  (    0,    0)  <WALL69_4>  [234]
+  PATCH   1  (    4,    0)  <WALL70_2>  [243]
+  PATCH   2  (    0,   64)  <   W32_4>  [74]
+
+TEXTURE 195  (   64,  128)  <ICKWALL7>  [4]
+  PATCH   0  (    0,    0)  <   W67_1>  [244]
+  PATCH   1  (   63,   64)  <   W67_2>  [239]
+  PATCH   2  (   28,   64)  <WALL70_9>  [245]
+  PATCH   3  (   -1,   64)  <   W67_2>  [239]
+
+TEXTURE 196  (   64,  128)  <  LITE96>  [3]
+  PATCH   0  (   -1,    0)  <WALL62_1>  [10]
+  PATCH   1  (    4,   18)  <   FLAMP>  [78]
+  PATCH   2  (   38,   18)  <   FLAMP>  [78]
+
+TEXTURE 197  (  128,  128)  < LITEMET>  [6]
+  PATCH   0  (    0,    0)  <WALL03_7>  [88]
+  PATCH   1  (   64,    0)  <WALL03_7>  [88]
+  PATCH   2  (    0,   64)  <WALL03_7>  [88]
+  PATCH   3  (   64,   64)  <WALL03_7>  [88]
+  PATCH   4  (   81,   34)  <   FLAMP>  [78]
+  PATCH   5  (   19,   34)  <   FLAMP>  [78]
+
+TEXTURE 198  (   16,  128)  < LITERED>  [2]
+  PATCH   0  (   -4,   56)  <   W15_6>  [246]
+  PATCH   1  (   -4,    0)  <   W15_6>  [246]
+
+TEXTURE 199  (   64,  128)  <LITESTON>  [4]
+  PATCH   0  (    0,    0)  <   W28_5>  [145]
+  PATCH   1  (    0,   64)  <   W28_8>  [144]
+  PATCH   2  (    7,   27)  <   FLAMP>  [78]
+  PATCH   3  (   37,   27)  <   FLAMP>  [78]
+
+TEXTURE 200  (  128,  128)  <MARBFAC2>  [1]
+  PATCH   0  (    0,    0)  <MWALL4_2>  [247]
+
+TEXTURE 201  (  128,  128)  <MARBFAC3>  [1]
+  PATCH   0  (    0,    0)  <MWALL5_1>  [248]
+
+TEXTURE 202  (  128,  128)  <MARBFACE>  [1]
+  PATCH   0  (    0,    0)  <MWALL4_1>  [249]
+
+TEXTURE 203  (  128,  128)  < MARBLE1>  [1]
+  PATCH   0  (    0,    0)  <MWALL1_1>  [250]
+
+TEXTURE 204  (  128,  128)  < MARBLE2>  [1]
+  PATCH   0  (    0,    0)  <MWALL2_1>  [251]
+
+TEXTURE 205  (  128,  128)  < MARBLE3>  [1]
+  PATCH   0  (    0,    0)  <MWALL3_1>  [252]
+
+TEXTURE 206  (  128,  128)  <MARBLOD1>  [1]
+  PATCH   0  (    0,    0)  <MWALL1_2>  [253]
+
+TEXTURE 207  (   64,  128)  <   METAL>  [1]
+  PATCH   0  (    0,    0)  <WALL47_1>  [254]
+
+TEXTURE 208  (   64,  112)  < MIDBRN1>  [1]
+  PATCH   0  (    0,    0)  <DOOR12_1>  [255]
+
+TEXTURE 209  (  128,  128)  <MIDGRATE>  [1]
+  PATCH   0  (    0,    0)  <    M1_1>  [256]
+
+TEXTURE 210  (  256,  128)  <MIDVINE1>  [1]
+  PATCH   0  (    0,    0)  <  W106_1>  [178]
+
+TEXTURE 211  (  256,  128)  <MIDVINE2>  [1]
+  PATCH   0  (    0,    0)  <  W107_1>  [177]
+
+TEXTURE 212  (   64,  128)  <NUKEPOIS>  [10]
+  PATCH   0  (    0,    0)  <WALL04_3>  [90]
+  PATCH   1  (   16,    0)  <WALL04_4>  [91]
+  PATCH   2  (   32,    0)  <WALL04_5>  [92]
+  PATCH   3  (   48,    0)  <WALL04_2>  [93]
+  PATCH   4  (    0,  104)  < NUKEDGE>  [89]
+  PATCH   5  (    0,   33)  <WALL04_3>  [90]
+  PATCH   6  (   16,   33)  <WALL04_4>  [91]
+  PATCH   7  (   32,   33)  <WALL04_5>  [92]
+  PATCH   8  (   48,   33)  <WALL04_2>  [93]
+  PATCH   9  (   -1,   68)  <  PS20A0>  [9]
+
+TEXTURE 213  (  256,  128)  <   PIPE1>  [2]
+  PATCH   0  (    0,    0)  <   RP1_1>  [257]
+  PATCH   1  (  128,    0)  <   RP1_2>  [258]
+
+TEXTURE 214  (  256,  128)  <   PIPE4>  [2]
+  PATCH   0  (    0,    0)  <   TP7_1>  [259]
+  PATCH   1  (  128,    0)  <   TP7_2>  [260]
+
+TEXTURE 215  (  256,  128)  <   PIPE6>  [2]
+  PATCH   0  (    0,    0)  <   TP3_1>  [261]
+  PATCH   1  (  128,    0)  <   TP3_2>  [262]
+
+TEXTURE 216  (  128,  128)  < REDWALL>  [1]
+  PATCH   0  (    0,    0)  <WALL78_1>  [263]
+
+TEXTURE 217  (  128,  128)  <ROCKRED1>  [1]
+  PATCH   0  (    0,    0)  <WALL64_2>  [264]
+
+TEXTURE 218  (  128,  128)  <ROCKRED2>  [1]
+  PATCH   0  (    0,    0)  <  W64B_1>  [265]
+
+TEXTURE 219  (  128,  128)  <ROCKRED3>  [1]
+  PATCH   0  (    0,    0)  <  W64B_2>  [266]
+
+TEXTURE 220  (  128,  128)  <  SHAWN1>  [5]
+  PATCH   0  (   64,   56)  <   W13_1>  [1]
+  PATCH   1  (    0,   56)  <   W13_1>  [1]
+  PATCH   2  (    0,    0)  <  CYL1_1>  [267]
+  PATCH   3  (  118,    0)  <WALL01_1>  [132]
+  PATCH   4  (  117,   56)  <WALL01_1>  [132]
+
+TEXTURE 221  (   64,   72)  <  SHAWN3>  [1]
+  PATCH   0  (    0,    0)  <   T14_3>  [268]
+
+TEXTURE 222  (  128,  128)  <   SKIN2>  [2]
+  PATCH   0  (   64,    0)  < HELL8_2>  [269]
+  PATCH   1  (    0,    0)  < HELL8_4>  [270]
+
+TEXTURE 223  (   64,  128)  <SKINBORD>  [2]
+  PATCH   0  (    0,    0)  < HELL6_1>  [271]
+  PATCH   1  (   32,    0)  < HELL8_3>  [272]
+
+TEXTURE 224  (  256,  128)  < SKINCUT>  [2]
+  PATCH   0  (    0,    0)  <  W102_1>  [273]
+  PATCH   1  (  128,    0)  <  W102_2>  [274]
+
+TEXTURE 225  (  128,  128)  <SKINEDGE>  [2]
+  PATCH   0  (    0,    0)  < HELL6_2>  [275]
+  PATCH   1  (   64,    0)  < HELL8_1>  [276]
+
+TEXTURE 226  (  256,  128)  <SKINFACE>  [2]
+  PATCH   0  (    0,    0)  < HELL5_1>  [277]
+  PATCH   1  (  128,    0)  < HELL5_2>  [278]
+
+TEXTURE 227  (  256,  104)  < SKINLOW>  [2]
+  PATCH   0  (    0,    0)  <   W92_1>  [279]
+  PATCH   1  (  128,    0)  <   W92_2>  [280]
+
+TEXTURE 228  (  256,  128)  <SKINMET1>  [2]
+  PATCH   0  (    0,    0)  <   W98_1>  [281]
+  PATCH   1  (  128,    0)  <   W98_2>  [282]
+
+TEXTURE 229  (  256,  128)  <SKINMET2>  [2]
+  PATCH   0  (    0,    0)  <   W99_1>  [283]
+  PATCH   1  (  128,    0)  <   W99_2>  [284]
+
+TEXTURE 230  (  256,  128)  <SKINSCAB>  [2]
+  PATCH   0  (    0,    0)  <  W101_1>  [285]
+  PATCH   1  (  128,    0)  <  W101_2>  [286]
+
+TEXTURE 231  (  256,  128)  <SKINSYMB>  [2]
+  PATCH   0  (    0,    0)  <  W103_1>  [287]
+  PATCH   1  (  128,    0)  <  W103_2>  [288]
+
+TEXTURE 232  (  256,  128)  <SKINTEK1>  [2]
+  PATCH   0  (    0,    0)  <  W109_1>  [289]
+  PATCH   1  (  128,    0)  <  W109_2>  [290]
+
+TEXTURE 233  (  256,  128)  <SKINTEK2>  [1]
+  PATCH   0  (    0,    0)  <  W110_1>  [291]
+
+TEXTURE 234  (   64,  128)  <SKSNAKE1>  [1]
+  PATCH   0  (    0,    0)  < SNAK7_1>  [292]
+
+TEXTURE 235  (   64,  128)  <SKSNAKE2>  [1]
+  PATCH   0  (    0,    0)  < SNAK8_1>  [293]
+
+TEXTURE 236  (  128,  128)  <SKSPINE1>  [1]
+  PATCH   0  (    0,    0)  <SPINE4_1>  [294]
+
+TEXTURE 237  (  256,   96)  <SKSPINE2>  [2]
+  PATCH   0  (    0,    0)  <SPINE3_1>  [295]
+  PATCH   1  (  128,    0)  <SPINE3_2>  [296]
+
+TEXTURE 238  (  128,  128)  <SKULWAL3>  [2]
+  PATCH   0  (  -12,    0)  <WALL76_1>  [297]
+  PATCH   1  (  116,    0)  <WALL76_1>  [297]
+
+TEXTURE 239  (  128,  128)  <SKULWALL>  [2]
+  PATCH   0  (   -4,    0)  <WALL79_1>  [298]
+  PATCH   1  (  124,    0)  <WALL79_1>  [298]
+
+TEXTURE 240  (  256,  128)  <    SKY2>  [1]
+  PATCH   0  (    0,    0)  <    SKY2>  [299]
+
+TEXTURE 241  (  256,  128)  <    SKY3>  [1]
+  PATCH   0  (    0,    0)  <    SKY3>  [300]
+
+TEXTURE 242  (   64,  128)  <SLADSKUL>  [2]
+  PATCH   0  (    0,    0)  <WLA128_1>  [108]
+  PATCH   1  (   21,   65)  <   SW2_2>  [301]
+
+TEXTURE 243  (  128,  128)  <SP_DUDE1>  [1]
+  PATCH   0  (    0,    0)  <WALL50_1>  [302]
+
+TEXTURE 244  (  128,  128)  <SP_DUDE2>  [1]
+  PATCH   0  (    0,    0)  <WALL50_2>  [303]
+
+TEXTURE 245  (   64,  128)  <SP_DUDE3>  [1]
+  PATCH   0  (    0,    0)  <WALL51_1>  [304]
+
+TEXTURE 246  (   64,  128)  <SP_DUDE4>  [1]
+  PATCH   0  (    0,    0)  <WALL51_2>  [305]
+
+TEXTURE 247  (   64,  128)  <SP_DUDE5>  [1]
+  PATCH   0  (    0,    0)  <WALL51_3>  [306]
+
+TEXTURE 248  (   64,  128)  <SP_DUDE6>  [1]
+  PATCH   0  (    0,    0)  <  W108_1>  [307]
+
+TEXTURE 249  (  128,   96)  <SP_FACE1>  [1]
+  PATCH   0  (    0,    0)  <WALL25_1>  [308]
+
+TEXTURE 250  (  256,  128)  < SP_HOT1>  [4]
+  PATCH   0  (    0,    0)  <WALL49_1>  [309]
+  PATCH   1  (   64,    0)  <WALL49_2>  [310]
+  PATCH   2  (  128,    0)  <WALL49_3>  [311]
+  PATCH   3  (  192,    0)  <WALL49_4>  [312]
+
+TEXTURE 251  (  128,  128)  <SP_ROCK1>  [1]
+  PATCH   0  (    0,    0)  <WALL63_1>  [313]
+
+TEXTURE 252  (  128,  128)  <SP_ROCK2>  [1]
+  PATCH   0  (    0,    0)  <WALL63_2>  [314]
+
+TEXTURE 253  (  128,  128)  < STARBR2>  [4]
+  PATCH   0  (    0,    0)  <  SW15_4>  [315]
+  PATCH   1  (   32,    0)  <  SW16_4>  [316]
+  PATCH   2  (   64,    0)  <  SW15_6>  [317]
+  PATCH   3  (   96,    0)  <  SW16_6>  [318]
+
+TEXTURE 254  (  128,  128)  <  STARG2>  [4]
+  PATCH   0  (    0,    0)  <  SW17_1>  [319]
+  PATCH   1  (   32,    0)  <  SW17_2>  [320]
+  PATCH   2  (   64,    0)  <  SW17_3>  [321]
+  PATCH   3  (   96,    0)  <  SW18_5>  [322]
+
+TEXTURE 255  (  128,  128)  < STARGR2>  [4]
+  PATCH   0  (    0,    0)  <  SW15_1>  [323]
+  PATCH   1  (   64,    0)  <  SW15_3>  [324]
+  PATCH   2  (   96,    0)  <  SW16_1>  [325]
+  PATCH   3  (   32,    0)  <  SW16_2>  [326]
+
+TEXTURE 256  (   64,   16)  <STEPLAD1>  [1]
+  PATCH   0  (    0,    0)  <LADDER16>  [327]
+
+TEXTURE 257  (  128,   16)  < STEPTOP>  [1]
+  PATCH   0  (    0,    0)  <  RIPW15>  [328]
+
+TEXTURE 258  (  128,  128)  <STONGARG>  [6]
+  PATCH   0  (   64,   64)  <   W28_6>  [147]
+  PATCH   1  (   64,    0)  <   W28_7>  [146]
+  PATCH   2  (    0,    0)  <   W28_6>  [147]
+  PATCH   3  (    0,   64)  <   W28_7>  [146]
+  PATCH   4  (    0,   79)  <   SW2_3>  [329]
+  PATCH   5  (   64,   15)  <   SW2_3>  [329]
+
+TEXTURE 259  (   64,  128)  <SUPPORT3>  [3]
+  PATCH   0  (   20,    0)  <WALL42_3>  [166]
+  PATCH   1  (    0,    0)  <WALL42_3>  [166]
+  PATCH   2  (   40,    0)  <WALL42_3>  [166]
+
+TEXTURE 260  (   64,  128)  < SW1BLUE>  [3]
+  PATCH   0  (    0,    0)  <COMP03_1>  [49]
+  PATCH   1  (    0,   64)  <COMP03_2>  [186]
+  PATCH   2  (   14,   66)  <   SW2_7>  [330]
+
+TEXTURE 261  (   64,  128)  <  SW1CMT>  [2]
+  PATCH   0  (  -42,    0)  <WALL54_1>  [182]
+  PATCH   1  (   16,   72)  <   SW3S1>  [152]
+
+TEXTURE 262  (   64,  128)  < SW1GARG>  [2]
+  PATCH   0  (    0,    0)  <WALL47_2>  [331]
+  PATCH   1  (   12,   62)  <WALL42_6>  [332]
+
+TEXTURE 263  (   64,  128)  <SW1GSTON>  [2]
+  PATCH   0  (    0,    0)  <WALL48_2>  [226]
+  PATCH   1  (   13,   67)  <   SW2_7>  [330]
+
+TEXTURE 264  (   64,  128)  <  SW1HOT>  [2]
+  PATCH   0  (    0,    0)  <WALL49_1>  [309]
+  PATCH   1  (   12,   66)  <   SW2_7>  [330]
+
+TEXTURE 265  (   64,  128)  < SW1LION>  [2]
+  PATCH   0  (    0,    0)  <WALL47_2>  [331]
+  PATCH   1  (   11,   62)  <WALL42_5>  [333]
+
+TEXTURE 266  (   64,  128)  <SW1SATYR>  [2]
+  PATCH   0  (    0,    0)  <WALL47_2>  [331]
+  PATCH   1  (   12,   62)  <WALL42_1>  [334]
+
+TEXTURE 267  (   64,  128)  < SW1SKIN>  [2]
+  PATCH   0  (    0,    0)  < HELL6_3>  [335]
+  PATCH   1  (    0,   59)  <   SW2_5>  [336]
+
+TEXTURE 268  (   64,  128)  < SW1VINE>  [3]
+  PATCH   0  (    0,  -16)  <WALL00_1>  [76]
+  PATCH   1  (    0,    0)  <  W106_1>  [178]
+  PATCH   2  (   20,   84)  <   SW4S0>  [151]
+
+TEXTURE 269  (   64,  128)  < SW1WOOD>  [2]
+  PATCH   0  (  -64,    0)  <WALL40_2>  [337]
+  PATCH   1  (   14,   66)  <   SW2_7>  [330]
+
+TEXTURE 270  (   64,  128)  < SW2BLUE>  [3]
+  PATCH   0  (    0,    0)  <COMP03_1>  [49]
+  PATCH   1  (    0,   64)  <COMP03_2>  [186]
+  PATCH   2  (   14,   66)  <   SW2_8>  [338]
+
+TEXTURE 271  (   64,  128)  <  SW2CMT>  [2]
+  PATCH   0  (  -42,    0)  <WALL54_1>  [182]
+  PATCH   1  (   16,   72)  <   SW3S0>  [150]
+
+TEXTURE 272  (   64,  128)  < SW2GARG>  [2]
+  PATCH   0  (    0,    0)  <WALL47_2>  [331]
+  PATCH   1  (   12,   62)  <WALL47_5>  [339]
+
+TEXTURE 273  (   64,  128)  <SW2GSTON>  [2]
+  PATCH   0  (    0,    0)  <WALL48_2>  [226]
+  PATCH   1  (   13,   67)  <   SW2_8>  [338]
+
+TEXTURE 274  (   64,  128)  <  SW2HOT>  [2]
+  PATCH   0  (    0,    0)  <WALL49_1>  [309]
+  PATCH   1  (   12,   66)  <   SW2_8>  [338]
+
+TEXTURE 275  (   64,  128)  < SW2LION>  [2]
+  PATCH   0  (    0,    0)  <WALL47_2>  [331]
+  PATCH   1  (   11,   62)  <WALL47_4>  [340]
+
+TEXTURE 276  (   64,  128)  <SW2SATYR>  [2]
+  PATCH   0  (    0,    0)  <WALL47_2>  [331]
+  PATCH   1  (   12,   62)  <WALL47_3>  [341]
+
+TEXTURE 277  (   64,  128)  < SW2SKIN>  [2]
+  PATCH   0  (    0,    0)  < HELL6_3>  [335]
+  PATCH   1  (    0,   59)  <   SW2_6>  [342]
+
+TEXTURE 278  (   64,  128)  < SW2VINE>  [3]
+  PATCH   0  (    0,  -16)  <WALL00_1>  [76]
+  PATCH   1  (    0,    0)  <  W106_1>  [178]
+  PATCH   2  (   20,   84)  <   SW4S1>  [157]
+
+TEXTURE 279  (   64,  128)  < SW2WOOD>  [2]
+  PATCH   0  (  -64,    0)  <WALL40_2>  [337]
+  PATCH   1  (   14,   66)  <   SW2_8>  [338]
+
+TEXTURE 280  (  256,  128)  <   WOOD1>  [2]
+  PATCH   0  (  128,    0)  <WALL40_1>  [165]
+  PATCH   1  (    0,    0)  <WALL40_2>  [337]
+
+TEXTURE 281  (  256,  128)  <   WOOD3>  [5]
+  PATCH   0  (   -4,    0)  <WALL97_1>  [343]
+  PATCH   1  (   60,    0)  <WALL97_2>  [344]
+  PATCH   2  (  124,    0)  <WALL97_3>  [345]
+  PATCH   3  (  188,    0)  <WALL97_2>  [344]
+  PATCH   4  (  252,    0)  <WALL97_1>  [343]
+
+TEXTURE 282  (   64,  128)  <   WOOD4>  [4]
+  PATCH   0  (   -4,    0)  <WALL97_2>  [344]
+  PATCH   1  (   22,   18)  <   SW2_2>  [301]
+  PATCH   2  (   22,   76)  <   SW2_1>  [346]
+  PATCH   3  (   60,    0)  <WALL97_2>  [344]
+
+TEXTURE 283  (  256,  128)  <   WOOD5>  [3]
+  PATCH   0  (   -4,    0)  <   W96_1>  [347]
+  PATCH   1  (  124,    0)  <   W96_2>  [348]
+  PATCH   2  (  252,    0)  <   W96_1>  [347]
+
+TEXTURE 284  (   64,  128)  <WOODGARG>  [2]
+  PATCH   0  (    0,    0)  <WALL40_1>  [165]
+  PATCH   1  (    6,   63)  <   SW2_4>  [349]
+
+TEXTURE 285  (   64,  128)  <WOODSKUL>  [2]
+  PATCH   0  (    0,    0)  <WALL40_1>  [165]
+  PATCH   1  (   24,   70)  <   SW2_2>  [301]

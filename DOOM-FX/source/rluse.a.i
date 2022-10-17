@@ -1,0 +1,14 @@
+VERSION		EQU	1
+REVISION	EQU	12
+DATE	MACRO
+		dc.b	'31.5.95'
+	ENDM
+VERS	MACRO
+		dc.b	'rluse.a 1.12'
+	ENDM
+VSTRING	MACRO
+		dc.b	'rluse.a 1.12 (31.5.95)',13,10,0
+	ENDM
+VERSTAG	MACRO
+		dc.b	0,'$VER: rluse.a 1.12 (31.5.95)',0
+	ENDM

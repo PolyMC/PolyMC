@@ -1,0 +1,21 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                              XBAND PATCH END       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+;	SECTION	XBAND
+
+;
+;	* * * * * * *       REALITY_ENGINE XBAND PATCH       * * * * * * *
+;
+XBAND_END
+
+	DUMP	RLOBJ:XB.BIN

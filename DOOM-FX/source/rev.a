@@ -1,0 +1,54 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                        VERSION/REVISION MODULE                     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rl.i
+
+	SECTION	REV,RELOC,BASE=$80000000,RORG=$400000
+
+VerTxt	equ	*+1
+	VERSTAG		; Insert Version Tag Text
+VerTxtE
+VerTxtL	equ	VerTxtE-VerTxt-1
+
+	ifn	useSYSINFO
+
+TtlTxt
+;	dc.b	'$TTL: ""'
+	dc.b	'$TTL: "RAGE/REALITYENGINE"'
+TtlTxtL	equ	*-TTLTxt
+
+CPUTxt
+	dc.b	'$CPU: SNES RF5A22 (65816)'
+CPUTxtL	equ	*-CPUTxt
+
+CPUTxt2
+	dc.b	'      SFX GSU2 (SUPER FX2)'
+CPUTxt2L	equ	*-CPUTxt2
+
+CFGTxt
+	dc.b	'$CFG: SHVC-4RB3B7S/SHVC-1C0N6S'
+CFGTxtL	equ	*-CFGTxt
+CFHTxt
+	dc.b	'      (16MBit/GSU2/512KBitXRAM)'
+CFHTxtL	equ	*-CFHTxt
+
+PRGTxt
+	dc.b	'$PRG: PrgROM $200000'
+PRGTxtL	equ	*-PRGTxt
+
+RAMTxt
+	dc.b	'$RAM: GSURAM $10000'
+RAMTxtL	equ	*-RAMTxt
+
+DATTxt0	equ	**
+DATTxt
+	image	SysDate
+DATTxtL	equ	**-DATTxt0-1
+
+	endif

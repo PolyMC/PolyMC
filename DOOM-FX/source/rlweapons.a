@@ -1,0 +1,1281 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       WEAPONS HANDLING MODULE                      *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	snesmac.i
+	include	rlweapons.i
+	include	rlcut.i
+
+	public	_RLInitWeapons
+	public	_RLUpdateWeapon
+
+
+	SECTION	LEVEL
+;
+;	* * * * * * *       REALITY_ENGINE INITIALIZE WEAPONS       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitWeapons
+	mode	'a!'
+	lda	#0				; LIGHT CREATED BY WEAPON
+	sta	WeaponLight
+	mode	'AX!'
+	lda	_PlayerWeapon	; #wtPistol	; PISTOL
+	sta	WeaponNext
+	lda	#-1				; FORCE UPDATE OF WEAPON TYPE/FRAME
+	sta	WeaponTypeOld
+	sta	WeaponNextOld
+	sta	WeaponXOld
+	sta	WeaponYOld
+	sta	WeaponTypeBuilt			; NO WEAPON BUILT YET!
+	stz	WeaponOAMBytesOld		; #OAM Bytes Sent Last
+	lda	#$7fff				; LOCKED AT CURRENT (INVALID) STATE
+	sta	WeaponStateCount
+	stz	WeaponIRQBuildPhase		; DON'T BUILD NEW WEAPON!
+;
+	lda	#0				; Build _WeaponOAMData OffsetTable
+	tax
+	ldy	#MaxCutImages-1
+_RIWS200
+	sta	_WeaponOAMTable,x		; Save Index into _WeaponOAMData
+	clc
+	adc	#(RLMaxCutSprOAMs*6)		; Move to next _WeaponOAMData
+	inx
+	inx
+	inx
+	inx
+	dey					; Next Frame
+	bpl	_RIWS200
+;
+	lda	#<_WeaponDEFGDMAData		; Build _WeaponDEFGDMAData AddressTable
+	ldx	#0
+	ldy	#MaxCutImages-1
+_RIWS400
+	sta	_WeaponDEFGDMATable,x		; Save Index into _WeaponDEFGDMAData
+	clc
+	adc	#((RLMaxCutSprCHRs/8)+1)*((8*2)+2)
+	inx
+	inx
+	inx
+	inx
+	dey					; Next Frame
+	bpl	_RIWS400
+;
+	rts
+
+
+
+	SECTION	ENGINE_RAMCODE
+;
+;	* * * * * * *       HANDLE WEAPONS CHANGES       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLUpdateWeapon
+	mode	'AX!'
+;
+;	>>>   HANDLE WEAPON TYPE CHANGE   <<<
+;
+	ldx	!(WeaponType+RLSNESGSUXVarsO)	; Same Weapon as Last?
+	cpx	WeaponTypeOld
+	beq	_RUW300				; Yes
+	lda	#(rlfWeaponOAM+rlfWeaponDEF)	; NO WEAPON BUILT!
+	tsb	RLFlags
+	stz	WeaponIRQBuildPhase		; DON'T BUILD NEW WEAPON!
+	stx	WeaponTypeOld
+	lda	WeaponNumFramesTable,x		; Get #Frames to Build
+	sta	WeaponBuildLeft
+	lda	WeaponFrameListsTable,x		; Get Starting Frame# to Build
+	sta	WeaponBuildList
+	lda	#-1				; WEAPON NOT BUILT!
+	sta	WeaponTypeBuilt
+	sta	WeaponFrameOld
+	lda	#0-4				; Start Building Frame#0
+	sta	WeaponBuildFrame
+	stz	WeaponBuildPhase
+	lda	#2				; BUILD NEW WEAPON!
+	sta	WeaponIRQBuildPhase
+;
+;	>>>   HANDLE BUILDING WEAPON FRAMES   <<<
+;
+_RUW300
+	ldx	WeaponBuildPhase		; Still Building Frames?
+	jmp	(WeaponBuildPhaseCode,x)
+;
+;	>>>   DONE BUILDING WEAPON FRAMES   <<<
+;
+_RLBuildWeaponDone				; NO!  BUILD COMPLETED!
+	lda	RLFlags				; WEAPON BUILT ALREADY (PENDING XFER)?
+	and	#(rlfWeaponOAM+rlfWeaponDEF)
+	cmp	#(rlfWeaponOAM+rlfWeaponDEF)
+	bne	_RUW900				; YES, CAN'T BUILD NEXT ONE YET!
+;
+;	>>>   HANDLE WEAPON FRAME CHANGE   <<<
+;
+_RUW500
+	ldx	!(WeaponFrame+RLSNESGSUXVarsO)	; SAME FRAME?
+	cpx	WeaponFrameOld
+	beq	_RUW600				; Yes
+	stx	WeaponFrameOld			; Save NEW WeaponFrame#
+	pea	#(rlfWeaponDEF)			; WEAPON DEF+OAM BUILT!
+	lda	_WeaponDEFGDMATable,x		; Get Address of DEFs GDMA Stack
+	sta	WeaponDEFGDMA
+	lda	_WeaponDEFGDMATable+2,x		; Get Size of DEFs GDMA Stack
+	sta	WeaponDEFGDMABytes
+	lda	!(WeaponX+RLSNESGSUXVarsO)
+	jmp	_RUW640
+;
+;	>>>   HANDLE WEAPON POSITION CHANGE   <<<
+;
+_RUW600
+	pea	#(rlfWeaponOAM)			; WEAPON OAM BUILT!
+	lda	!(WeaponX+RLSNESGSUXVarsO)	; SAME X COORDINATE?
+	cmp	WeaponXOld
+	bne	_RUW640				; No
+	ldy	!(InvisibleCount+RLSNESGSUXVarsO) ; INVISIBILITY?
+	bne	_RUW640				  ; YES!
+	lda	!(WeaponY+RLSNESGSUXVarsO)	; SAME Y COORDINATE?
+	cmp	WeaponYOld
+	bne	_RUW680				; No
+	pla
+	jmp	_RUW900				; Yes
+_RUW640
+	sta	WeaponXOld			; Save NEW WeaponX
+	lda	!(WeaponY+RLSNESGSUXVarsO)
+_RUW680
+	sta	WeaponYOld			; Save NEW WeaponY
+;
+;	>>>   BUILD NEW WEAPON OAM TABLE   <<<
+;
+_RUW700
+	jsr	_RLBuildWeaponOAM		; Build the OAM TransferLists
+	pla					; WEAPON BUILT!
+	trb	RLFlags
+;
+;	>>>   WEAPONS CHANGES HANDLED   <<<
+;
+_RUW900
+;
+;	>>>   EXIT WHILE STILL BUILDING WEAPON FRAMES   <<<
+;
+_RLBuildWeaponExit				; STILL BUILDING FRAMES!
+	rts
+
+;
+;	* * * * * * *       JUMPTABLE OF WEAPON BUILD PHASES' CODE       * * * * * * *
+;
+WeaponBuildPhaseCode
+	dc.w	<_RLBuildWeaponExit		; Wait for IRQ to Transfer Data
+	dc.w	<_RLBuildWeaponDEFData		; Build DEF Data
+	dc.w	<_RLBuildWeaponOAMData		; Build OAM Data
+	dc.w	<_RLBuildWeaponDone		; DONE!
+;
+;	* * * * * * *       JUMPTABLE OF WEAPON IRQ BUILD PHASES' CODE       * * * * * * *
+;
+WeaponIRQBuildPhaseCode
+	dc.w	<_RLBuildWeaponExit		; Wait for New Weapon to Build
+	dc.w	<_RLBuildWeaponIRQXFer1		; Transfer _ImageTbl/_CharData/_MiscData
+	dc.w	<_RLBuildWeaponIRQXFer2		; Transfer _CharDef
+
+;
+;	* * * * * * *       NUMBER OF FRAMES IN EACH WEAPON       * * * * * * *
+;
+WeaponNumFramesTable
+	dc.w	4				; Fist
+	dc.w	3				; Pistol
+	dc.w	6				; ShotGun
+	dc.w	4				; ChainSaw
+	dc.w	3				; ChainGun
+	dc.w	6				; Rocket Launcher
+	dc.w	4				; Plasma Rifle
+	dc.w	3				; BFG9000
+
+;
+;	* * * * * * *       LIST OF IMAGES FOR EACH FRAME IN EACH WEAPON       * * * * * * *
+;
+WeaponFrameListsTable
+	dc.w	(WeaponFrameListFist-WeaponFrameLists)		; Fist		 
+	dc.w	(WeaponFrameListPistol-WeaponFrameLists)	; Pistol
+	dc.w	(WeaponFrameListShotGun-WeaponFrameLists)	; ShotGun
+	dc.w	(WeaponFrameListChainSaw-WeaponFrameLists)	; ChainSaw
+	dc.w	(WeaponFrameListChainGun-WeaponFrameLists)	; ChainGun
+	dc.w	(WeaponFrameListRocket-WeaponFrameLists)	; Rocket Launcher
+	dc.w	(WeaponFrameListPlasma-WeaponFrameLists)	; Plasma Rifle
+	dc.w	(WeaponFrameListBFG-WeaponFrameLists)		; BFG9000
+
+;
+;	* * * * * * *       LIST OF IMAGES FOR EACH FRAME IN EACH WEAPON       * * * * * * *
+;
+WeaponFrameLists
+WeaponFrameListFist
+	dc.w	0,-1				; PUNGA0
+	dc.w	4,-1				; PUNGB0
+	dc.w	8,-1				; PUNGC0
+	dc.w	12,-1				; PUNGD0
+WeaponFrameListPistol
+	dc.w	0,-1				; PISGA0
+	dc.w	4,12,-1				; PISGB0, PISFA0
+	dc.w	8,-1				; PISGC0
+WeaponFrameListShotGun
+	dc.w	0,-1				; SHTGA0
+	dc.w	0,16,-1				; SHTGA0, SHTFA0
+	dc.w	0,20,-1				; SHTGA0, SHTFB0
+	dc.w	4,-1				; SHTGB0
+	dc.w	8,-1				; SHTGC0
+	dc.w	12,-1				; SHTGD0
+WeaponFrameListChainSaw
+	dc.w	0,-1				; SAWGC0
+	dc.w	4,-1				; SAWGD0
+	dc.w	8,-1				; SAWGA0
+	dc.w	12,-1				; SAWGB0
+WeaponFrameListChainGun
+	dc.w	0,-1				; CHGGA0
+	dc.w	4,12,-1				; CHGGB0, CHGFB0
+	dc.w	0,8,-1				; CHGGA0, CHGFA0
+WeaponFrameListRocket
+	dc.w	0,-1				; MISGA0
+	dc.w	8,4,-1				; MISFA0, MISGB0
+	dc.w	12,4,-1				; MISFB0, MISGB0
+	dc.w	16,4,-1				; MISFC0, MISGB0
+	dc.w	20,4,-1				; MISFD0, MISGB0
+	dc.w	4,-1				; MISGB0
+WeaponFrameListPlasma
+	dc.w	0,-1				; PLSGA0
+	dc.w	8,-1				; PLSFA0
+	dc.w	12,-1				; PLSFB0
+	dc.w	4,-1				; PLSGB0
+WeaponFrameListBFG
+	dc.w	0,-1				; BFGGA0
+	dc.w	4,0,-1				; BFGFA0, BFGGA0
+	dc.w	8,0,-1				; BFGFB0, BFGGA0
+
+;
+;	* * * * * * *       WEAPONS TYPE BITS       * * * * * * *
+;
+WeaponTypeBitsTable
+;_WeaponTypeBitsTable	equ	((**&$00ff8000)<<1)+(**&$7fff)+$8000
+_WeaponTypeBitsTable	equ	((**&$00ffffff)+$400000)
+	dc.w	wtbFist				; Fist
+	dc.w	wtbPistol			; Pistol
+	dc.w	wtbShotGun			; ShotGun
+	dc.w	wtbChainSaw			; ChainSaw
+	dc.w	wtbChainGun			; ChainGun
+	dc.w	wtbRocket			; Rocket Launcher
+	dc.w	wtbPlasma			; Plasma Rifle
+	dc.w	wtbBFG				; BFG9000
+	dc.w	wtbFist				; Fist (WrapAround Entry)
+
+;
+;	* * * * * * *       _IMAGETBL/_CHARDATA/_MISCDATA       * * * * * * *
+;	* * * * * * *       _CHARDEF BANK FOR EACH WEAPON       * * * * * * *
+;
+WeaponImageTblBankTable
+;WeaponCharDefBankTable	equ	*+1
+	dc.w	((^_CharDefFist<<8)|^_ImageTblFist)		; Fist
+	dc.w	((^_CharDefPistol<<8)|^_ImageTblPistol)		; Pistol
+	dc.w	((^_CharDefShotGun<<8)|^_ImageTblShotGun)	; ShotGun
+	dc.w	((^_CharDefChainSaw<<8)|^_ImageTblChainSaw)	; ChainSaw
+	dc.w	((^_CharDefChainGun<<8)|^_ImageTblChainGun)	; ChainGun
+	dc.w	((^_CharDefRocket<<8)|^_ImageTblRocket)		; Rocket Launcher
+	dc.w	((^_CharDefPlasma<<8)|^_ImageTblPlasma)		; Plasma Rifle
+	dc.w	((^_CharDefBFG<<8)|^_ImageTblBFG)		; BFG9000
+;
+;	* * * * * * *       _IMAGETBL FOR EACH WEAPON       * * * * * * *
+;
+WeaponImageTblTable
+	dc.w	<_ImageTblFist			; Fist
+	dc.w	<_ImageTblPistol		; Pistol
+	dc.w	<_ImageTblShotGun		; ShotGun
+	dc.w	<_ImageTblChainSaw		; ChainSaw
+	dc.w	<_ImageTblChainGun		; ChainGun
+	dc.w	<_ImageTblRocket		; Rocket Launcher
+	dc.w	<_ImageTblPlasma		; Plasma Rifle
+	dc.w	<_ImageTblBFG			; BFG9000
+;
+;	* * * * * * *       _IMAGETBL SIZES FOR EACH WEAPON       * * * * * * *
+;
+WeaponImageTblSizeTable
+	dc.w	(_ImageTblFistE-_ImageTblFist)		; Fist
+	dc.w	(_ImageTblPistolE-_ImageTblPistol)	; Pistol
+	dc.w	(_ImageTblShotGunE-_ImageTblShotGun)	; ShotGun
+	dc.w	(_ImageTblChainSawE-_ImageTblChainSaw)	; ChainSaw
+	dc.w	(_ImageTblChainGunE-_ImageTblChainGun)	; ChainGun
+	dc.w	(_ImageTblRocketE-_ImageTblRocket)	; Rocket Launcher
+	dc.w	(_ImageTblPlasmaE-_ImageTblPlasma)	; Plasma Rifle
+	dc.w	(_ImageTblBFGE-_ImageTblBFG)		; BFG9000
+;
+;	* * * * * * *       _CHARDATA FOR EACH WEAPON       * * * * * * *
+;
+WeaponCharDataTable
+	dc.w	<_CharDataFist			; Fist
+	dc.w	<_CharDataPistol		; Pistol
+	dc.w	<_CharDataShotGun		; ShotGun
+	dc.w	<_CharDataChainSaw		; ChainSaw
+	dc.w	<_CharDataChainGun		; ChainGun
+	dc.w	<_CharDataRocket		; Rocket Launcher
+	dc.w	<_CharDataPlasma		; Plasma Rifle
+	dc.w	<_CharDataBFG			; BFG9000
+;
+;	* * * * * * *       _CHARDATA SIZES FOR EACH WEAPON       * * * * * * *
+;
+WeaponCharDataSizeTable
+	dc.w	(_CharDataFistE-_CharDataFist)		; Fist
+	dc.w	(_CharDataPistolE-_CharDataPistol)	; Pistol
+	dc.w	(_CharDataShotGunE-_CharDataShotGun)	; ShotGun
+	dc.w	(_CharDataChainSawE-_CharDataChainSaw)	; ChainSaw
+	dc.w	(_CharDataChainGunE-_CharDataChainGun)	; ChainGun
+	dc.w	(_CharDataRocketE-_CharDataRocket)	; Rocket Launcher
+	dc.w	(_CharDataPlasmaE-_CharDataPlasma)	; Plasma Rifle
+	dc.w	(_CharDataBFGE-_CharDataBFG)		; BFG9000
+;
+;	* * * * * * *       _MISCDATA FOR EACH WEAPON       * * * * * * *
+;
+WeaponMiscDataTable
+	dc.w	<_MiscDataFist			; Fist
+	dc.w	<_MiscDataPistol		; Pistol
+	dc.w	<_MiscDataShotGun		; ShotGun
+	dc.w	<_MiscDataChainSaw		; ChainSaw
+	dc.w	<_MiscDataChainGun		; ChainGun
+	dc.w	<_MiscDataRocket		; Rocket Launcher
+	dc.w	<_MiscDataPlasma		; Plasma Rifle
+	dc.w	<_MiscDataBFG			; BFG9000
+;
+;	* * * * * * *       _MISCDATA SIZES FOR EACH WEAPON       * * * * * * *
+;
+WeaponMiscDataSizeTable
+	dc.w	(_MiscDataFistE-_MiscDataFist)		; Fist
+	dc.w	(_MiscDataPistolE-_MiscDataPistol)	; Pistol
+	dc.w	(_MiscDataShotGunE-_MiscDataShotGun)	; ShotGun
+	dc.w	(_MiscDataChainSawE-_MiscDataChainSaw)	; ChainSaw
+	dc.w	(_MiscDataChainGunE-_MiscDataChainGun)	; ChainGun
+	dc.w	(_MiscDataRocketE-_MiscDataRocket)	; Rocket Launcher
+	dc.w	(_MiscDataPlasmaE-_MiscDataPlasma)	; Plasma Rifle
+	dc.w	(_MiscDataBFGE-_MiscDataBFG)		; BFG9000
+;
+;	* * * * * * *       _CHARDEF FOR EACH WEAPON       * * * * * * *
+;
+WeaponCharDefTable
+	dc.w	<_CharDefFist			; Fist
+	dc.w	<_CharDefPistol			; Pistol
+	dc.w	<_CharDefShotGun		; ShotGun
+	dc.w	<_CharDefChainSaw		; ChainSaw
+	dc.w	<_CharDefChainGun		; ChainGun
+	dc.w	<_CharDefRocket			; Rocket Launcher
+	dc.w	<_CharDefPlasma			; Plasma Rifle
+	dc.w	<_CharDefBFG			; BFG9000
+;
+;	* * * * * * *       _CHARDEF SIZES FOR EACH WEAPON       * * * * * * *
+;
+WeaponCharDefSizeTable
+	dc.w	(_CharDefFistE-_CharDefFist)		; Fist
+	dc.w	(_CharDefPistolE-_CharDefPistol)	; Pistol
+	dc.w	(_CharDefShotGunE-_CharDefShotGun)	; ShotGun
+	dc.w	(_CharDefChainSawE-_CharDefChainSaw)	; ChainSaw
+	dc.w	(_CharDefChainGunE-_CharDefChainGun)	; ChainGun
+	dc.w	(_CharDefRocketE-_CharDefRocket)	; Rocket Launcher
+	dc.w	(_CharDefPlasmaE-_CharDefPlasma)	; Plasma Rifle
+	dc.w	(_CharDefBFGE-_CharDefBFG)		; BFG9000
+
+
+;
+;	* * * * * * *       BUILD WEAPON IRQ XFER 1       * * * * * * *
+;
+;	TRANSFER WEAPONDATA _IMAGETBL/_CHARDATA/_MISCDATA
+;
+	dbr	0
+	dpr	0
+	mode	'AX'
+_RLBuildWeaponIRQXFer1
+;
+;	>>>   INITIALIZE WEAPON _IMAGETBL/_CHARDATA/_MISCDATA TRANSFERS   <<<
+;
+	mode	'x!'
+	ldx	WeaponTypeOld			; Get WeaponType to Build
+	lda	WeaponImageTblBankTable,x	; Bank of WeaponData _ImageTbl/_MiscData/_CharData
+	sta	DMA4A1B
+;
+	sta	WeaponCharDefAddr+1		; Bank of WeaponData _CharDef
+	lda	WeaponCharDefTable,x		; Address of WeaponData _CharDef
+	sta	WeaponCharDefAddr
+	lda	WeaponCharDefSizeTable,x	; #Bytes .CHARDEF to Transfer
+	sta	WeaponCharDefSize
+	lda	#<_CharDef			; Destination
+	sta	WeaponCharDefWAddr
+;
+	lda	WeaponMiscDataTable,x		; _MiscData
+	pha
+	lda	WeaponMiscDataSizeTable,x
+	pha
+	lda	WeaponCharDataTable,x		; _CharData
+	pha
+	lda	WeaponCharDataSizeTable,x
+	pha
+;
+;	>>>   TRANSFER WEAPON _IMAGETBL FROM ROM TO WRAM   <<<
+;
+	lda	WeaponImageTblTable,x		; Source
+	sta	DMA4A1L
+	lda	#<_ImageTbl			; Destination
+	sta	WMADDL
+	lda	WeaponImageTblSizeTable,x	; #Bytes
+	sta	DMA4NUML
+	ldx	#1				; WM Bank
+	stx	WMADDB
+;
+;	>>>   STEAL ROM AWAY FROM GSU   <<<
+;
+	ldx	#%00001111			; 160 Pixels, GSU has RAM, SNES has ROM, 256 Colour
+	ldy	#%00011111			; 160 Pixels, GSU has ROM/RAM, 256 Colour
+;	ifn	DEBUG
+;	stx	SCR_XS				; XSLV Shadow
+;	endif
+	stx	sfxSCR
+;
+;	>>>   TRANSFER WEAPON _IMAGETBL FROM ROM TO WRAM   <<<
+;
+	ldx	#(1<<4)
+	stx	MDMAEN
+;
+;	>>>   TRANSFER WEAPON _CHARDATA FROM ROM TO WRAM   <<<
+;
+	pla					; #Bytes
+	sta	DMA4NUML
+	pla					; Source
+	sta	DMA4A1L
+	lda	#<_CharData			; Destination
+	sta	WMADDL
+	stx	MDMAEN
+;
+;	>>>   TRANSFER WEAPON _MISCDATA FROM ROM TO WRAM   <<<
+;
+	pla					; #Bytes
+	sta	DMA4NUML
+	pla					; Source
+	sta	DMA4A1L
+	lda	#<_MiscData			; Destination
+	sta	WMADDL
+	stx	MDMAEN
+;
+;	>>>   RELEASE ROM TO GSU   <<<
+;
+;	ifn	DEBUG
+;	sty	SCR_XS				; XSLV Shadow
+;	endif
+	sty	sfxSCR
+	ldx	#$70				; A Bank
+	stx	DMA4A1B
+	ldx	#0				; WM Bank
+	stx	WMADDB
+	mode	'X!'
+;
+	lda	#4				; TRANSFER WEAPON .CHARDEF
+	sta	WeaponIRQBuildPhase
+	rts
+
+
+;
+;	* * * * * * *       BUILD WEAPON IRQ XFER 2       * * * * * * *
+;
+;	TRANSFER NEXT BLOCK OF WEAPONDATA .CHARDEF
+;
+	dbr	0
+	dpr	0
+	mode	'AX'
+_RLBuildWeaponIRQXFer2
+;
+;	>>>   INITIALIZE WEAPON .CHARDEF TRANSFER   <<<
+;
+	mode	'x!'
+	ldx	WeaponCharDefAddr+2		; Bank of WeaponData _CharDef
+	stx	DMA4A1B
+	lda	WeaponCharDefAddr		; Source
+	sta	DMA4A1L
+	lda	WeaponCharDefWAddr		; Destination
+	sta	WMADDL
+	ldx	#1				; WM Bank
+	stx	WMADDB
+	lda	#RLMaxCharDefXFer		; Maximum Bytes to Transfer
+	cmp	WeaponCharDefSize
+	bcc	_RBWIX200			; Only Transfer Maximum!
+	lda	WeaponCharDefSize
+_RBWIX200
+	sta	ITemp				; #Bytes Transferred
+	sta	DMA4NUML
+	lda	#(1<<4)				; MDMAEN / HDMAEN
+;
+;	>>>   STEAL ROM AWAY FROM GSU   <<<
+;
+	ldx	#%00001111			; 160 Pixels, GSU has RAM, SNES has ROM, 256 Colour
+	ldy	#%00011111			; 160 Pixels, GSU has ROM/RAM, 256 Colour
+;	ifn	DEBUG
+;	stx	SCR_XS				; XSLV Shadow
+;	endif
+	stx	sfxSCR
+;
+;	>>>   TRANSFER WEAPON _CHARDEF FROM ROM TO WRAM   <<<
+;
+	sta	MDMAEN				; Start Transfer
+;
+;	>>>   RELEASE ROM TO GSU   <<<
+;
+;	ifn	DEBUG
+;	sty	SCR_XS				; XSLV Shadow
+;	endif
+	sty	sfxSCR
+	ldx	#$70				; A Bank
+	stx	DMA4A1B
+	ldx	#0				; WM Bank
+	stx	WMADDB
+	mode	'X!'
+;
+;	>>>   UPDATE TRANSFER SIZE/ADDRESSES   <<<
+;
+	lda	WeaponCharDefSize		; Update Remaining Bytes
+	sec
+	sbc	ITemp
+	beq	_RBWIX800			; Nothing Remaining!
+	sta	WeaponCharDefSize
+	lda	ITemp				; Update Transfer Address
+	tax
+	clc
+	adc	WeaponCharDefAddr
+	sta	WeaponCharDefAddr
+	txa					; Update Transfer WRAM Address
+	clc
+	adc	WeaponCharDefWAddr
+	sta	WeaponCharDefWAddr
+	rts
+;
+;	>>>   FINISHED TRANSFERRING THE WEAPONDATA!   <<<
+;
+_RBWIX800
+	lda	#2				; BUILD NEW WEAPON!
+	sta	WeaponBuildPhase
+	stz	WeaponIRQBuildPhase		; FINISHED TRANSFERRING WEAPON .CHARDEF
+	rts
+
+
+;
+;	* * * * * * *       BUILD WEAPON DEF DATA       * * * * * * *
+;
+;	BUILD PRECOMPUTED WEAPON_MCHR_DEF_GDMA STACK DATA FOR ONE FRAME
+;
+	dbr	?
+	dpr	0
+	mode	'X'
+_RLBuildWeaponDEFData
+	phb					; Save .DBR
+	mode	'a!'
+	lda	#^_ImageTbl			; Set .DBR to ImageTable
+	pha
+	plb
+	dbr	^_ImageTbl
+;
+	mode	'A!'
+	lda	WeaponBuildFrame		; Build Next Frame
+	clc
+	adc	#4
+	sta	WeaponBuildFrame
+	tax
+;
+	ldy	_WeaponDEFGDMATable,x		; Get Pointer to WeaponDEFGDMAData
+	phy					; Save Initial StackPointer
+;
+	ldx	WeaponBuildList			; Get FrameList Index
+;
+;	+++   BUILD NEXT FRAME   +++
+;
+_RBWDD1200
+	lda	WeaponFrameLists,x		; Get Image# to Build
+	bmi	_RBWDD8000			; End of FrameList
+	phx
+	tax					; .X = Image Index
+;
+;	+++   ADD NEXT FRAME DATA   +++
+;
+	phy					; Save Stack Index
+	ldy	_ImageTbl+itsMiscData,x		; Get Image's MiscData Index
+	lda	_MiscData+imdOAMNum,y		; Get #OAMs TOTAL
+	and	#$00ff
+	sta	Temp				; #OAMs to Process
+	lda	_ImageTbl+itsCharData,x		; Get Image's CharData Index
+	tax					; .X = CharData Index
+	ply					; .Y = Stack Index
+;
+;	+++   INITIALIZE THE CHARDATA DECOMPRESSION DATA   +++
+;
+	lda	#(_CDStackEnd-_CDStack)		; Start Stack
+	sta	_CDSP
+	stz	_CDMode				; In Mode0
+	lda	#-1				; No Duplicates
+	sta	_CDNumDups
+	stz	_CDCharNumNT			; Last Non-Transparent Character
+;
+;	+++   PROCESS NEXT GROUP OF MASTER_CHARACTERS   <<<
+;
+_RBWDD2200
+	stx	_CDOfst				; Save Index into CharData
+	lda	Temp				; <=8 MasterCharacters Left?
+	cmp	#9				; Yes
+	bcc	_RBWDD2240			; No, >=9
+	lda	#8				; Only do 8 maximum!
+_RBWDD2240
+	sta	Temp+2				; (TEMP+2) = #MCHRs in GROUP
+	tax
+	lda	Temp				; Reduce #Remaining MCHRs
+	sec
+	sbc	Temp+2
+	sta	Temp
+	txa
+	asl	a				; .A = #MCHRs in GROUP
+	tax
+	lda	>_WDMGCode-2,x			; DMA Routine
+;
+_WeaponDEFGDMABase	equ	(^_WeaponDEFGDMAData<<16)
+;
+	sta	!_WeaponDEFGDMABase,y		; Return Address
+	ldx	_CDOfst				; Get CharData Index
+_RBWDD3000
+	sty	_DEFGDMASP			; Save .SP
+	jsr	_GetCharDataMChr		; Get CharData MasterCharNum
+	asl	a				; (Char# << 5)
+	asl	a
+	asl	a
+	asl	a
+	asl	a
+;	clc					; Add Base Address of _CharDef
+	adc	#<_CharDef
+	ldy	_DEFGDMASP
+	iny
+	iny
+	sta	!_WeaponDEFGDMABase,y
+	dec	Temp+2				; Next MasterCharacter
+	bne	_RBWDD3000
+	iny
+	iny
+	lda	Temp				; Any Remaining MCHRs?
+	bne	_RBWDD2200			; Yes, process them now
+;
+;	+++   BUILD NEXT WEAPON FRAME IMAGE   +++
+;
+	plx					; Get FrameList Index
+	inx
+	inx
+	jmp	_RBWDD1200			; Build Next Image
+;
+;	+++   FINISHED BUILDING WEAPON FRAME IMAGES   +++
+;
+_RBWDD8000
+	lda	#<(_RLReInitDMA-1)		; ReInitialize GDMA Channels
+	sta	!_WeaponDEFGDMABase,y
+	iny
+	iny
+	lda	#<(_WDMGEndCode-1)
+	sta	!_WeaponDEFGDMABase,y
+	iny
+	iny
+;
+	tya					; Calculate #Bytes to Transfer
+	ply					; .Y = Starting StackAddress
+	sty	Temp
+	sec
+	sbc	Temp
+	ldx	WeaponBuildFrame		; Get Frame#
+	sta	_WeaponDEFGDMATable+2,x		; Save #Bytes to DMA
+;
+	plb					; Restore .DBR
+	lda	#4				; Move to next Phase
+	sta	WeaponBuildPhase
+	jmp	_RLBuildWeaponExit
+
+;
+;	* * * * * * *       TABLE OF WEAPON DEF MCHR_GDMA ROUTINES       * * * * * * *
+;
+_WDMGCode
+	dc.w	<(_WDMG1-1)			; 1 Character
+	dc.w	<(_WDMG2-1)			; 2 Characters
+	dc.w	<(_WDMG3-1)			; 3 Characters
+	dc.w	<(_WDMG4-1)			; 4 Characters
+	dc.w	<(_WDMG5-1)			; 5 Characters
+	dc.w	<(_WDMG6-1)			; 6 Characters
+	dc.w	<(_WDMG7-1)			; 7 Characters
+	dc.w	<(_WDMG8-1)			; 8 Characters
+
+
+	mode	'Ax'
+	dbr	0
+	dpr	DMA0INC
+
+;
+;	>>>   WEAPON DEF MCHR_GDMA 8 CHARACTERS   <<<
+;
+_WDMG8
+	pla					; Source0
+	sta	DMA0A1L
+	pla					; Source1
+	sta	DMA1A1L
+	pla					; Source2
+	sta	DMA2A1L
+	pla					; Source3
+	sta	DMA3A1L
+	pla					; Source4
+	sta	DMA4A1L
+	pla					; Source5
+	sta	DMA5A1L
+	pla					; Source6
+	sta	DMA6A1L
+	pla					; Source7
+	sta	DMA7A1L
+	sty	DMA0NUML			; Size
+	sty	DMA1NUML
+	sty	DMA2NUML
+	sty	DMA3NUML
+	sty	DMA4NUML
+	sty	DMA5NUML
+	sty	DMA6NUML
+	sty	DMA7NUML
+	stx	MDMAEN				; Start GDMA
+	rts
+;
+;	>>>   WEAPON DEF MCHR_GDMA 7 CHARACTERS   <<<
+;
+_WDMG7
+	pla					; Source0
+	sta	DMA0A1L
+	pla					; Source1
+	sta	DMA1A1L
+	pla					; Source2
+	sta	DMA2A1L
+	pla					; Source3
+	sta	DMA3A1L
+	pla					; Source4
+	sta	DMA4A1L
+	pla					; Source5
+	sta	DMA5A1L
+	pla					; Source6
+	sta	DMA6A1L
+	sty	DMA0NUML			; Size
+	sty	DMA1NUML
+	sty	DMA2NUML
+	sty	DMA3NUML
+	sty	DMA4NUML
+	sty	DMA5NUML
+	sty	DMA6NUML
+	ldx	#%01111111			; Start GDMA
+	stx	MDMAEN
+	ldx	#%11111111			; Start 8-Channel GDMA
+	rts
+;
+;	>>>   WEAPON DEF MCHR_GDMA 6 CHARACTERS   <<<
+;
+_WDMG6
+	pla					; Source0
+	sta	DMA0A1L
+	pla					; Source1
+	sta	DMA1A1L
+	pla					; Source2
+	sta	DMA2A1L
+	pla					; Source3
+	sta	DMA3A1L
+	pla					; Source4
+	sta	DMA4A1L
+	pla					; Source5
+	sta	DMA5A1L
+	sty	DMA0NUML			; Size
+	sty	DMA1NUML
+	sty	DMA2NUML
+	sty	DMA3NUML
+	sty	DMA4NUML
+	sty	DMA5NUML
+	ldx	#%00111111			; Start GDMA
+	stx	MDMAEN
+	ldx	#%11111111			; Start 8-Channel GDMA
+	rts
+;
+;	>>>   WEAPON DEF MCHR_GDMA 5 CHARACTERS   <<<
+;
+_WDMG5
+	pla					; Source0
+	sta	DMA0A1L
+	pla					; Source1
+	sta	DMA1A1L
+	pla					; Source2
+	sta	DMA2A1L
+	pla					; Source3
+	sta	DMA3A1L
+	pla					; Source4
+	sta	DMA4A1L
+	sty	DMA0NUML			; Size
+	sty	DMA1NUML
+	sty	DMA2NUML
+	sty	DMA3NUML
+	sty	DMA4NUML
+	ldx	#%00011111			; Start GDMA
+	stx	MDMAEN
+	ldx	#%11111111			; Start 8-Channel GDMA
+	rts
+;
+;	>>>   WEAPON DEF MCHR_GDMA 4 CHARACTERS   <<<
+;
+_WDMG4
+	pla					; Source0
+	sta	DMA0A1L
+	pla					; Source1
+	sta	DMA1A1L
+	pla					; Source2
+	sta	DMA2A1L
+	pla					; Source3
+	sta	DMA3A1L
+	sty	DMA0NUML			; Size
+	sty	DMA1NUML
+	sty	DMA2NUML
+	sty	DMA3NUML
+	ldx	#%00001111			; Start GDMA
+	stx	MDMAEN
+	ldx	#%11111111			; Start 8-Channel GDMA
+	rts
+;
+;	>>>   WEAPON DEF MCHR_GDMA 3 CHARACTERS   <<<
+;
+_WDMG3
+	pla					; Source0
+	sta	DMA0A1L
+	pla					; Source1
+	sta	DMA1A1L
+	pla					; Source2
+	sta	DMA2A1L
+	sty	DMA0NUML			; Size
+	sty	DMA1NUML
+	sty	DMA2NUML
+	ldx	#%00000111			; Start GDMA
+	stx	MDMAEN
+	ldx	#%11111111			; Start 8-Channel GDMA
+	rts
+;
+;	>>>   WEAPON DEF MCHR_GDMA 2 CHARACTERS   <<<
+;
+_WDMG2
+	pla					; Source0
+	sta	DMA0A1L
+	pla					; Source1
+	sta	DMA1A1L
+	sty	DMA0NUML			; Size
+	sty	DMA1NUML
+	ldx	#%00000011			; Start GDMA
+	stx	MDMAEN
+	ldx	#%11111111			; Start 8-Channel GDMA
+	rts
+;
+;	>>>   WEAPON DEF MCHR_GDMA 1 CHARACTERS   <<<
+;
+_WDMG1
+	pla					; Source0
+	sta	DMA0A1L
+	sty	DMA0NUML
+	ldx	#%00000001			; Start GDMA
+	stx	MDMAEN
+	ldx	#%11111111			; Start 8-Channel GDMA
+	rts
+
+
+
+;
+;	* * * * * * *       BUILD WEAPON OAM DATA       * * * * * * *
+;
+;	BUILD PRECOMPUTED WEAPON_OAM TABLE FOR ONE FRAME
+;
+;	DC.W	X_OFFSET
+;	DC.W	Y_OFFSET
+;	DC.B	FLAGS
+;	DC.B	CHAR#
+;
+	dbr	?
+	dpr	0
+	mode	'X'
+_RLBuildWeaponOAMData
+	phb					; Save .DBR
+	mode	'a!'
+	lda	#^_ImageTbl			; Set .DBR to ImageTable
+	pha
+	plb
+	dbr	^_ImageTbl
+;
+	mode	'A!'
+	ldx	WeaponBuildFrame		; Build Next Frame
+	lda	_WeaponOAMTable,x		; .Y = Pointer to WeaponOAMData
+	tay
+;
+	lda	#0				; #OAMs TOTAL
+	sta	_WeaponOAMTable+2,x
+;
+	lda	#((vmWEAPONDEF&$1fff)>>4)	; Starting Character#
+	sta	_CHRNum
+;
+	ldx	WeaponBuildList			; Get FrameList Index
+;
+;	+++   BUILD NEXT FRAME   +++
+;
+_RBWOD1200
+	inx					; Get Image# to Build
+	inx
+	lda	WeaponFrameLists-2,x
+	bmi	_RBWOD8000			; End of FrameList
+	phx					; Save FrameList Index
+;
+	tax					; .X = Image Index
+	phy					; Save OAM Index
+	ldy	_ImageTbl+itsMiscData,x		; Get Image's MiscData Index
+	lda	_MiscData+imdOAMNum,y		; Get #OAMs TOTAL
+	and	#$00ff
+	sta	Temp				; #OAMs to Process
+	ldx	WeaponBuildFrame		; Update #OAMs TOTAL
+	clc
+	adc	_WeaponOAMTable+2,x
+	sta	_WeaponOAMTable+2,x
+	iny					; Move to first ImgMiscDataList
+	plx					; .X = OAM Index
+;
+;	+++   CHARACTER# / FLAGS   +++
+;
+_RBWOD2100
+	mode	'a!'
+	lda	_MiscData+imdlFlags,y		; OAM Flags
+	xba
+	lda	_CHRNum				; Current Character#
+	mode	'A!'
+	sta	_WeaponOAMData+4,x
+;
+;	+++   X COORDINATE   +++
+;
+	lda	#$ffff				; Default X Offset HighByte
+	mode	'a!'
+	lda	_MiscData+imdlOAMXOfs,y		; OAM X Offset
+	bmi	_RBWOD2200
+	mode	'A!'
+	and	#$00ff
+_RBWOD2200
+	mode	'A!'
+	sta	_WeaponOAMData+0,x		; SAVE X OFFSET
+;
+;	+++   Y COORDINATE   +++
+;
+	lda	#$ffff				; Default Y Offset HighByte
+	mode	'a!'
+	lda	_MiscData+imdlOAMYOfs,y		; OAM Y Offset
+	bmi	_RBWOD2400
+	mode	'A!'
+	and	#$00ff
+_RBWOD2400
+	mode	'A!'
+	sta	_WeaponOAMData+2,x		; SAVE Y OFFSET
+;
+;	+++   NEXT OAM   +++
+;
+	iny					; Move to next MiscData
+	iny
+	iny
+	txa					; Move to next WeaponOAMData
+	clc
+	adc	#6
+	tax
+	inc	_CHRNum				; Next Character#
+;
+	dec	Temp				; One less OAM to handle
+	bne	_RBWOD2100
+;
+;	+++   BUILD NEXT WEAPON FRAME IMAGE   +++
+;
+	txy					; .Y = OAM Index
+	plx					; Get FrameList Index
+	bra	_RBWOD1200			; Build Next Image
+;
+;	+++   FINISHED BUILDING WEAPON FRAME IMAGES   +++
+;
+_RBWOD8000
+	stx	WeaponBuildList			; Update Weapon FrameList Index
+	lda	#2
+	dec	WeaponBuildLeft			; Any more Frames left to Build?
+	bne	_RBWOD8800			; Yes
+	lda	WeaponTypeOld			; WEAPON TYPE BUILT!
+	sta	WeaponTypeBuilt
+	lda	#6				; NO!  FINISHED BUILDING!
+_RBWOD8800
+	sta	WeaponBuildPhase
+	plb					; Restore .DBR
+	jmp	_RLBuildWeaponExit
+
+
+;
+;	* * * * * * *       BUILD WEAPON OAM TABLE       * * * * * * *
+;
+;	.X	= (MasterFrame# * 4)
+;
+	dbr	?
+	dpr	0
+	mode	'X'
+_RLBuildWeaponOAM
+	mode	'A!'
+	ldy	#$ffff				  ; Leave at Priority2
+	lda	!(InvisibleCount+RLSNESGSUXVarsO) ; INVISIBILITY?
+	beq	_RBWO1000
+	lsr	a				; <8?
+	lsr	a
+	lsr	a
+	beq	_RBWO1000			; Yes, About to Stop
+	ldy	#$cfff				; Change to Priority0
+	cmp	#(3*60/8)			; Running out?
+	bcs	_RBWO1000			; No
+	lsr	a
+	bcc	_RBWO1000			; Toggle between Normal and Invisible
+	ldy	#$ffff
+_RBWO1000
+	sty	WeaponPriMask
+;
+	phb					; Save .DBR
+	mode	'a!'
+	lda	#^_ImageTbl			; Set .DBR to ImageTable
+	pha
+	plb
+	dbr	^_ImageTbl
+	mode	'A!'
+;
+	lda	_WeaponOAMTable+2,x		; Get #OAMs Required
+	sta	Temp
+	ldy	_WeaponOAMTable,x		; Get Image's OAMData Index
+	ldx	#(32*4)				; Starting Available OAM
+	jmp	_RBWO2200
+_RBWO2000
+	inx					; Move to Next OAM
+	inx
+	inx
+	inx
+	tya					; Move to Next OAMData
+	clc
+	adc	#6
+	tay
+_RBWO2200
+	lda	_WeaponOAMData+0,y		; Get X Coordinate
+	clc
+	adc	WeaponXOld
+	sta	OAMA+0,x
+	lda	_WeaponOAMData+2,y		; Get Y Coordinate
+	clc
+	adc	WeaponYOld
+	cmp	#RLStatStartPixY		; Below Top of StatusBar?
+	bcc	_RBWO2400			; No!
+	lda	#0				; Yes, Mask off Screen!
+_RBWO2400
+	sta	OAMA+1,x
+	lda	_WeaponOAMData+4,y		; Get Character#/Flags
+	and	WeaponPriMask
+_RBWO2500
+	sta	OAMA+2,x
+_RBWO2800
+	dec	Temp				; One less OAM to handle
+	bne	_RBWO2000
+	txa					; Get #Bytes to DMA
+	sec
+	sbc	#((32*4)-4)			; Starting Available OAM
+	sta	WeaponOAMBytes
+	cmp	WeaponOAMBytesOld		; Sending MORE this time?
+	bcs	_RBWO3800			; Yes
+	lda	WeaponOAMBytesOld		; Get #OAMs we need to FILL
+	sec
+	sbc	WeaponOAMBytes
+	lsr	a
+	lsr	a
+	tay
+	lda	#MaxViewScanLines		; (256-32)
+_RBWO3200
+	inx					; Move to next Free Sprite
+	inx
+	inx
+	inx
+	sta	OAMA+1,x			; Move Extra Sprites off bottom
+	dey
+	bne	_RBWO3200
+_RBWO3800
+	plb					; Restore .DBR
+	rts
+
+
+;
+;	* * * * * * *       GET CHAR_DATA MASTER_CHARACTER_NUMBER       * * * * * * *
+;
+;	.X = Index into _CHARDATA
+;
+;	.A = MasterCharacterNumber
+;
+	dbr	^_ImageTbl
+	dpr	0
+	mode	'AX'
+_GetCharDataMChr
+	lda	_CDMode				; In middle of a command?
+	beq	_GCMC1000			; No
+	jmp	_GCMC8000			; Yes
+_GCMC1000
+	ldy	_CDNumDups			; Finished this Dup.Subroutine?
+	bne	_GCMC2000			; No
+	ldy	_CDSP
+	ldx	_CDStack,y
+	lda	_CDStack+2,y
+	sta	_CDNumDups
+	tya
+	clc
+	adc	#4
+	sta	_CDSP
+	jmp	_GCMC1000
+;
+_GCMC2000
+	mode	'a!'
+	lda	_CharData,x			; Get <FormatCode>
+	cmp	#$c0				; >>> UNIQUE <<<
+	bcs	_GCMC3000
+	xba
+	lda	_CharData+1,x			; Get MasterChar#
+	mode	'A!'
+	sta	_CDCharNumNT
+	cpy	#$8000				; If NumDups >= 0, NumDups--
+	bcs	_GCMC2200
+	dey
+	sty	_CDNumDups
+_GCMC2200
+	inx
+	inx
+	rts
+;
+	mode	'a'
+_GCMC3000
+	cmp	#$e0				; >>> DUPLICATE <<<
+	bcs	_GCMC4000
+	mode	'A!'
+	and	#$001f				; .A = #Duplicates
+;	clc
+	adc	#2
+	inx
+	bra	_GCMC7200
+;
+	mode	'a'
+_GCMC4000
+	cmp	#$f0				; >>> SEQUENTIAL <<<
+	bcs	_GCMC5000
+	mode	'A!'
+	and	#$000f				; .A = #Repeats
+	ldy	#1				; In Sequential Mode
+_GCMC4200
+	sty	_CDMode
+;	clc
+	adc	#1
+	ldy	_CDNumDups
+	bmi	_GCMC4600
+	cmp	_CDNumDups			; NumReps < NumDups?
+	bcc	_GCMC4400			; Yes
+	tya					; No, NumReps = NumDups
+_GCMC4400
+	sta	_CDNumReps
+	tya					; NumDups -= NumReps
+	sec
+	sbc	_CDNumReps
+	sta	_CDNumDups
+	inx
+	jmp	_GCMC9000
+_GCMC4600
+	sta	_CDNumReps
+	inx
+	bra	_GCMC9000
+;
+	mode	'a'
+_GCMC5000
+	cmp	#$f8				; >>> REPEAT 1:8 <<<
+	bcs	_GCMC6000
+	mode	'A!'
+	and	#$0007
+	ldy	#2				; In Repeat Mode
+	jmp	_GCMC4200
+;
+	mode	'a'
+_GCMC6000
+	cmp	#$fc				; >>> TRANSPARENT 1:4 <<<
+	bcs	_GCMC7000
+	mode	'A!'
+	and	#$0003
+	ldy	#3				; In Transparent Mode
+	jmp	_GCMC4200
+;
+	mode	'a'
+_GCMC7000
+	and	#$03				; .A = #Duplicates
+	xba
+	lda	_CharData+1,x
+	mode	'A!'
+	clc
+	adc	#34
+	inx
+	inx
+_GCMC7200
+	sta	_CDNumReps
+	ldy	_CDNumDups
+	bmi	_GCMC7600
+	cmp	_CDNumDups			; NumReps < NumDups?
+	bcc	_GCMC7400			; Yes
+	tya					; No, NumReps = NumDups
+_GCMC7400
+	sta	_CDNumReps
+	tya					; NumDups -= NumReps
+	sec
+	sbc	_CDNumReps
+	sta	_CDNumDups
+_GCMC7600
+	ldy	_CDSP				; Get _CD Stack Pointer
+	lda	_CDNumDups
+	sta	_CDStack-2,y			; Save Number of Duplicates Remaining
+	txa
+	inc	a
+	inc	a
+	sta	_CDStack-4,y			; Save Offset into CharData
+	tya
+	sec
+	sbc	#4
+	ifn	DEBUG
+	bpl	.0
+	HALT	#$10
+.0
+	endif
+	sta	_CDSP
+	lda	_CDNumReps			; NumDups = NumReps
+	sta	_CDNumDups
+	lda	_CharData,x			; Get Offset for Duplicated Characters
+	tax
+	jmp	_GCMC1000
+;
+	mode	'A'
+_GCMC8000
+	lda	_CDNumReps			; End of Command causing Mode?
+	bne	_GCMC9000
+	stz	_CDMode
+	jmp	_GCMC1000
+;
+_GCMC9000
+	dec	_CDNumReps			; NumReps--
+	lda	_CDMode
+	dec	a				; Mode1 (Sequential)
+	bne	_GCMC10000
+	inc	_CDCharNumNT
+	lda	_CDCharNumNT
+	rts
+_GCMC10000
+	dec	a				; Mode2 (Repeat)
+	bne	_GCMC11000
+	lda	_CDCharNumNT
+	rts
+_GCMC11000
+	lda	#0				; Mode3 (Transparent)
+	rts

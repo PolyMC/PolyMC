@@ -1,0 +1,53 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                      VECTORS/REGISTRATION MODULE                   *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+
+
+	ife	DEBUG*(1-NOAICESE)
+;
+;	* * * * * * *       REGISTRATION DATA       * * * * * * *
+;
+	SECTION	REGISTRATION,LOAD=$80007fb0,ORG=$0000ffb0
+
+	dc.b	'5D'				; Maker Code	($015D)
+	dc.b	'AD8E'				; Game Code	($AD8E)
+	dcb.b	7,$00				; Fixed Value $00
+	dc.b	$06				; Expansion RAM
+	dc.b	$00				; Special Version
+	dc.b	$00				; Cartridge SubNumber
+;
+	dc.b	'DOOM                 '		; Title Registration
+	dc.b	$20				; Map Mode          ($20)
+	dc.b	$14				; Cartridge Type    (ROM+SFX+RAM)
+	dc.b	$0b				; CPU ROM Size      (16MBits)
+	dc.b	$00				; CPU RAM Size      (0KBytes)
+	dc.b	$01				; Destination Code  (North America)
+	dc.b	$33				; Fixed Value $33
+	dc.b	0				; Mask ROM Version  (0)
+	dc.w	$ffff				; Complement Check
+	dc.w	$0000				; CheckSum
+
+
+;
+;	* * * * * * *       65816 NATIVE VECTORS       * * * * * * *
+;
+	SECTION	VECTORS0,LOAD=$80007fe4,ORG=$0000ffe4
+	word	GSUCOPRAM			; COP
+	word	GSUBRKRAM			; BRK
+	word	GSUABORTRAM			; ABORT
+	word	GSUNMIRAM			; NMI
+	word	'RL'				; RESERVED
+	word	GSUIRQRAM			; IRQ
+;
+;	* * * * * * *       6502 EMULATION VECTORS       * * * * * * *
+;
+	SECTION	VECTORS1,LOAD=$80007ffc,ORG=$0000fffc
+	word	RESET0				; RESET
+	endif

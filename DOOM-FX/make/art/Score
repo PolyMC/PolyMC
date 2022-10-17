@@ -1,0 +1,5 @@
+xg -pRLART:Score -dRLDATA:ART/Score -ms -y0 -c8
+xc -v -iRLDATA:ART/Score.def0 -oRLDATA:COMP/Score.def0
+xc -v -iRLDATA:ART/Score.map0 -oRLDATA:COMP/Score.map0
+xc -v -iRLDATA:ART/Score.rgb -oRLDATA:COMP/Score.rgb
+touch Score.a

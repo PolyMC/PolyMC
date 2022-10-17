@@ -1,0 +1,777 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                             XBAND PATCH MENUS/OPTIONS MODULE       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	snesmac.i
+	include	music.i
+	include	xfer.i
+	include	xband.i
+
+;	SECTION	XBAND
+
+
+;
+;	* * * * * * *       LEVEL SELECTION MENU       * * * * * * *
+;
+;	Returns with .A = Level# to Play (0-21)
+;
+	dbr	?
+	dpr	0
+_XBMenuLevel
+	jsl	ScreenOff			; Turn Screen Off
+	jsl	InitSNES
+	mode	'AX!'
+	lda	#((inter_sng_MODULE<<8)|(inter_sng)) ; INTER Song
+	jsl	_PlaySong
+;
+	mode	'aX!'
+	ldx	#<XBMenuLevelXFer		; Transfer SysInfo DataBlock
+	lda	#^XBMenuLevelXFer
+	jsl	XFer
+	jsl	_RLInitStatusBar
+	mode	'AX'
+;
+;	>>>   TRANSFER RLFONT TO VRAM   <<<
+;
+	mode	'aX!'
+	ldx	#(58*64)			; DataSize
+	stx	DMA0NUML
+	ldx	#<RLFontDef			; SourceData
+	stx	DMA0A1L
+	ldx	#$0040				; Destination
+	stx	VMADDL
+	lda	#^RLFontDef
+	sta	DMA0A1B
+	lda	#$80
+	sta	VMAINC
+;	lda	#%00000000			; A->B, Abs., Auto Inc,1-Add
+	stz	DMA0INC
+	lda	#<VMDATAH			; VMDATA
+	sta	DMA0DEST
+	lda	#$01				; Enable/Start Channel#0
+	sta	MDMAEN
+;
+;	>>>   SET UP HDMA   <<<
+;
+	lda	#<CGADD				; CGADD
+	sta	DMA7DEST
+	stz	DMA7INC
+	ldx	#<XBMenuLevelHDMACGADD
+	stx	DMA7A1L
+	lda	#^XBMenuLevelHDMACGADD
+	sta	DMA7A1B
+;
+	lda	#<CGDATA			; CGDATA
+	sta	DMA6DEST
+	lda	#%00000010			; A->B, Abs., Auto Inc,1-Add, L,H
+	sta	DMA6INC
+	ldx	#<MenuDeCompBuffer
+	stx	DMA6A1L
+	lda	#^MenuDeCompBuffer
+	sta	DMA6A1B
+;
+	lda	#%11000000			; Enable HDMAs
+	sta	HDMAEN
+;
+;	>>>   SET UP PPU   <<<
+;
+	mode	'aX!'
+	ldx	#<_XBNormalNMI			; XBAND NORMAL NMI Code
+	lda	#^_XBNormalNMI
+	ldy	#$81				; ENABLE NMI+JOYREAD
+	jsl	InitNMI
+;
+	mode	'ax!'
+	lda	#$80				; Transfer RGB Palette to CGRAM
+	sta	RGBXfer
+	lda	#7				; Mode7 BG1:8x8
+	sta	BGMODE
+	lda	#$ff				; Offset $FFFF
+	sta	BG1VOFS
+	sta	BG1VOFS
+	stz	BG1HOFS				; Offset $0000
+	stz	BG1HOFS
+;	lda	#($0000>>12)			; BG1 Chars @$0000
+;	sta	BG12NBA
+;	lda	#%00000000			; BG Repeat, No H/V Flipping
+	stz	M7SEL
+	stz	MOSAIC
+;	lda	#%00000000			; 224Lines
+	stz	SETINI
+	lda	#%01000001			; Add 1/2 Enable BG1
+	sta	CGADSUB
+	lda	#%00000010			; Colour Add Enable SUB
+	sta	CGSWSEL
+	lda	#$11
+	sta	TM
+;
+;	>>>   INIT SPRITES OAMS   <<<
+;
+	lda	#(%00000000)+(vmSPR>>13)	; (1x1,2x2) (8K contig.) (BaseAddr)
+	sta	OBJSEL
+
+	ifn	0
+	mode	'AX!'
+	ldx	#(MaxOAMs*2/8)-2		; Clear Sprites' OAMAux
+	lda	#0
+_XBML420
+	sta	OAMAA,x
+	dex
+	dex
+	bpl	_XBML420
+	endif
+
+	mode	'aX!'
+	ldy	#MaxOAMs-1			; #OAMs total
+	ldx	#0				; Move All OAMs off-screen
+	RICHJML	_RLInitOAM+10,_RLInitRAMCode-1
+	mode	'AX!'
+	ldx	#(190<<8)+198+16		; CountDown Timer
+	lda	XBGameType			; Playing One Player Practice Game?
+	bpl	_XBML440			; No
+	ldx	#(224<<8)+'R'			; Yes, No CountDown Timer
+_XBML440
+	txa
+	sta	OAMA+(118*4)+oamsX
+	sec
+	sbc	#16
+	sta	OAMA+(119*4)+oamsX
+	lda	#%1010000000000000
+	sta	OAMAA+((MaxOAMs/8)*2)-4
+	RICHJML	_RLInitOAM+25,_RLInitRAMCode-1
+;
+	mode	'a!'
+	lda	#$20+($e0-$da)
+	sta	M7A
+	stz	M7A
+;	stz	M7B
+;	stz	M7B
+;	stz	M7C
+;	stz	M7C
+	lda	#$20+($da-$da)	; E8
+	sta	M7D
+	stz	M7D
+;	stz	M7X
+;	stz	M7X
+;	stz	M7Y
+;	stz	M7Y
+;
+;	>>>   PRINT LEVEL NAMES   <<<
+;
+;	lda	#$00
+	stz	VMAINC
+	mode	'AX!'
+	lda	#<EMNames			; Pointer to Names
+	sta	Temp
+	lda	#22				; #Names to Print
+	sta	Temp2
+	lda	#^EMNames
+	sta	Temp+2
+	ldx	#((1*128)+(4*2))		; VRAM Address
+	ldy	#-1
+_XBML1200
+	stx	VMADDL				; VRAM Address
+	phx
+	iny					; Invalid Name?
+	lda	[Temp],y
+	mode	'a!'
+	xba
+	bne	_XBML1340			; Yes
+_XBML1300
+	iny					; Skip Invalid Name
+_XBML1320
+	iny
+_XBML1340
+	lda	[Temp],y			; Character
+	beq	_XBML1400
+	sec
+	sbc	#32
+	sta	VMDATAL
+	bra	_XBML1320
+_XBML1400
+	mode	'A!'
+	pla
+	clc
+	adc	#128
+	tax
+	dec	Temp2
+	bne	_XBML1200
+;
+	stz	Temp3				; Player 1 Level
+	stz	Temp3+2				; Player 2 Level
+	lda	XBGameType			; Playing One Player Practice Game?
+	bpl	_XBML1500
+	dec	Temp3+2				; Yes, Invalid Player 2 Level
+_XBML1500
+	lda	#15				; TEMP4 = TimeOut Counter
+	sta	Temp4+2
+	lda	#60-1
+	sta	Temp4
+	jsr	_XBMenuSkulls
+	jsl	ScreenOn
+;
+;	>>>   ZOOM SCREEN IN   <<<
+;
+	mode	'a!'
+	lda	#$20
+_XBML1700
+	pha
+	clc
+	adc	#($e0-$da)
+	sta	M7A
+	stz	M7A
+	pla
+	sta	M7D
+	stz	M7D
+	wai
+	inc	a
+	inc	a
+	cmp	#($da+2)
+	bne	_XBML1700
+;
+	mode	'A!'
+	lda	#0
+	sta	MenuJoyOld
+	sta	Player2Joy0
+;
+	sta	_CDSP
+;
+;	>>>   SELECT GAME LEVEL MAIN LOOP   <<<
+;
+_XBML2000
+	jsr	_XBMenuSkulls			; Display Menu Skulls
+;
+;	>>>   TWO-PLAYER GAME   <<<
+;
+	lda	XBGameType			; Playing One Player Practice Game?
+	bmi	_XBML2100			; Yes, No CountDown Timer
+;
+	lda	Temp4
+	and	#%11
+	bne	_XBML2000
+	lda	JOY1Stat			; SWAP DATA PACKETS
+	sta	XBLocalPacket+0
+	lda	JOY1
+	sta	XBLocalPacket+2
+	jsl	_XBExchangeData
+	lda	Temp4				; Any Time Left?
+	ora	Temp4+2
+	bne	_XBML2200			; Yes
+	jmp	_XBML3000			; No!  Randomize Level!
+;
+;	>>>   ONE-PLAYER GAME   <<<
+;
+_XBML2100
+	lda	JOY1Stat			; FAKE DATA PACKET
+	sta	XBMasterPacket+0
+	lda	JOY1
+	sta	XBMasterPacket+2
+;
+;	>>>   MASTER   <<<
+;
+_XBML2200
+	lda	XBMasterPacket+0		; Joystick Valid?
+	and	#$00ff
+	bne	_XBML2500
+	lda	XBMasterPacket+2
+	cmp	MenuJoyOld			; Same as Last?
+	beq	_XBML2500			; Yes, Wait for Change!
+	sta	MenuJoyOld
+	tax
+	mode	'a!'
+	lda	Temp3				; Current MenuItem
+	jsr	_XBML4000
+	sta	Temp3
+;
+;	>>>   ONE-PLAYER GAME   <<<
+;
+	mode	'A!'
+	lda	XBGameType			; Playing One Player Practice Game?
+	bpl	_XBML2500			; No
+	jsr	_XBCheck1PTimeOut		; Check for 1P Game TimeOut
+	lda	#(joySTART|joyA|joyB|joyX|joyY)	; START GAME?
+	bit	MenuJoyOld
+	beq	_XBML2300
+_XBML2250
+	jmp	_XBML5000			; Yes
+_XBML2300
+	lda	#joySELECT			; RANDOMIZE LEVEL?
+	bit	MenuJoyOld
+	beq	_XBML2900
+	lda	Temp3				; Player 1 Level
+	sta	Temp3+2
+	jmp	_XBML3000			; Yes
+;
+;	>>>   SLAVE   <<<
+;
+_XBML2500
+	lda	XBSlavePacket+0			; Joystick Valid?
+	and	#$00ff
+	bne	_XBML2700
+	lda	XBSlavePacket+2
+	cmp	Player2Joy0			; Same as Last?
+	beq	_XBML2700			; Yes, Wait for Change!
+	sta	Player2Joy0
+	tax
+	mode	'a!'
+	lda	Temp3+2
+	jsr	_XBML4000
+	sta	Temp3+2
+;
+;	>>>   BOTH READY TO START?   <<<
+;
+_XBML2700
+	mode	'A!'
+	lda	MenuJoyOld			; Either pressing START?
+	ora	Player2Joy0
+	and	#(joySTART|joyA|joyB|joyX|joyY)
+	beq	_XBML2900			; No
+	lda	Temp3				; Player 1 Level
+	cmp	Temp3+2				; Player 2 Level
+	bne	_XBML2800			; Different!
+	lda	#(joySTART|joyA|joyB|joyX|joyY) ; Both pressing START?
+	bit	MenuJoyOld
+	beq	_XBML2800
+	bit	Player2Joy0
+	bne	_XBML2250			; Yes!
+_XBML2800
+	ldy	#noway_eff			; EFFECT NUMBER
+	lda	#DCOM_START_EFFECT
+	jsl	__SendDriverCommand
+;
+;	>>>   NEXT MENU OPERATION   <<<
+;
+_XBML2900
+	jmp	_XBML2000			; NEXT MENU OPERATION
+
+;
+;	>>>   RANDOMIZE LEVEL   <<<
+;
+_XBML3000
+	mode	'A!'
+	ldy	#plpain_eff			; EFFECT NUMBER
+	lda	#DCOM_START_EFFECT
+	jsl	__SendDriverCommand
+	lda	Temp3				; Get Middle Selection
+	clc
+	adc	Temp3+2
+	lsr	a
+	ora	#$8000
+	dec	a
+	sta	Temp3
+	lda	VBlankCount			; Get Random Selection
+	and	#$00ff
+	tax
+	sec
+	sbc	$e00000,x
+	and	#$0f
+;	clc					; Go Around Twice
+	adc	#(22+22)
+	sta	Temp2
+	sta	XBLocalPacket+0
+	lda	#2
+	sta	Temp2+2
+	sta	XBLocalPacket+2
+;
+	lda	XBGameType			; Playing One Player Practice Game?
+	bmi	_XBML3200			; Yes
+	ldx	#(XBFrameLatency+1)
+_XBML3100
+	phx
+	jsl	_XBExchangeData
+	wai
+	wai
+	plx
+	dex
+	bne	_XBML3100
+	lda	XBMasterPacket+0
+	sta	Temp2
+	lda	XBMasterPacket+2
+	sta	Temp2+2
+;
+_XBML3200
+	lda	Temp3				; Next Selection
+	and	#$7fff
+	inc	a
+	cmp	#22
+	bcc	_XBML3220
+	lda	#0
+_XBML3220
+	ora	#$8000				; New Selection
+	sta	Temp3
+	sta	Temp3+2
+	lda	Temp2+2				; TickTimer
+	sta	Temp4
+	ldy	#itemup_eff			; EFFECT NUMBER
+	lda	#DCOM_START_EFFECT
+	jsl	__SendDriverCommand
+_XBML3400
+	jsr	_XBMenuSkulls
+	lda	Temp4
+	bne	_XBML3400
+	lda	Temp2
+	and	#$0f
+	bne	_XBML3440
+	asl	Temp2+2
+_XBML3440
+	dec	Temp2
+	bne	_XBML3200
+	jmp	_XBML5000
+
+;
+;	>>>   PROCESS JOYSTICK/MOUSE MOVEMENTS   <<<
+;
+	mode	'aX'
+_XBML4000
+	cpx	#joyUP				; UP?
+	bne	_XBML4200
+	dec	a
+	bpl	_XBML4500
+	lda	#22-1
+	bra	_XBML4500
+_XBML4200
+	cpx	#joyDOWN			; DOWN?
+	bne	_XBML4800
+	inc	a
+	cmp	#22
+	bne	_XBML4500
+	lda	#0
+_XBML4500
+	pha
+	mode	'A!'
+	ldy	#itemup_eff			; EFFECT NUMBER
+	lda	#DCOM_START_EFFECT
+	jsl	__SendDriverCommand
+	mode	'a!'
+	pla
+_XBML4800
+	rts
+
+;
+;	>>>   FINISHED MENU OPERATIONS   <<<
+;
+_XBML5000
+	mode	'AX!'
+	ldy	#swtchn_eff			; EFFECT NUMBER
+	lda	#DCOM_START_EFFECT
+	jsl	__SendDriverCommand
+	lda	#20
+	sta	Temp4
+_XBML5100
+	jsr	_XBMenuSkulls
+	lda	Temp4
+	bne	_XBML5100
+	lda	#DCOM_FADE_AND_STOP		; Fade out Music
+	ldy	#$0201
+	jsl	__SendDriverCommand
+;
+;	>>>   ZOOM SCREEN OUT   <<<
+;
+	mode	'a!'
+	lda	#$da
+_XBML5200
+	pha
+	clc
+	adc	#($e0-$da)
+	sta	M7A
+	stz	M7A
+	pla
+	sta	M7D
+	stz	M7D
+	wai
+	dec	a
+	dec	a
+	cmp	#$20
+	bne	_XBML5200
+	mode	'A!'
+;
+;	>>>   CREATE NULL PACKETS   <<<
+;
+	lda	XBGameType			; Playing One Player Practice Game?
+	bmi	_XBML7000			; Yes
+	ldx	#(XBFrameLatency+1)
+	lda	#$0003
+	sta	XBLocalPacket+0
+	lda	#0
+	sta	XBLocalPacket+2
+	sta	XBLocalPacket+4
+_XBML6000
+	phx
+	jsl	_XBExchangeData
+	wai
+	wai
+	plx
+	dex
+	bne	_XBML6000
+;
+;	>>>   LEVEL SELECTED   <<<
+;
+_XBML7000
+	jsl	WaitVBlank
+	jsl	FadeScreenOff
+	mode	'AX!'
+	lda	Temp3
+	and	#$7fff
+	rts
+
+
+;
+;	* * * * * * *       XBAND MENU SKULLS       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'X'
+_XBMenuSkulls
+	lda	XBGameType			; Playing One Player Practice Game?
+	bpl	_XBMS100
+	jsl	_XBRingDetect			; Check for Phone Ringing
+_XBMS100
+	mode	'a!'
+	inc	VBlankCount			; VBlank Counter (for MenuSkulls)
+	jsl	WaitVBlank
+	mode	'A!'
+	ldx	#(XBMenuLevelHDMACGDATAEnd-XBMenuLevelHDMACGDATA)-2
+_XBMS200
+	lda	XBMenuLevelHDMACGDATA,x
+	sta	MenuDeCompBuffer,x
+	dex
+	bpl	_XBMS200
+	lda	Temp3				; Player 1 Level
+	asl	a
+	clc
+	adc	Temp3
+	and	#$7fff
+	sta	Temp
+	lda	Temp3+2				; Player 2 Level
+	bmi	_XBMS220
+	asl	a
+	clc
+	adc	Temp3+2
+	sta	Temp+2
+	ldy	#$39d5
+	cmp	Temp
+	bne	_XBMS240
+_XBMS220
+	ldy	#$0280
+_XBMS240
+	tax
+	tya
+	sta	MenuDeCompBuffer+4,x
+	ldx	Temp
+	sta	MenuDeCompBuffer+4,x
+;
+	ldx	Temp3				; Player 1 Level
+	bpl	_XBMS260
+	ldx	#22
+_XBMS260
+	lda	XBMenuSkullsOAMY-1,x
+	and	#$ff00
+	clc
+	adc	#20
+	ldy	#((128-4)*2)
+	jsr	_XBMenuSkull
+	ldx	Temp3+2				; Player 2 Level
+	bpl	_XBMS280
+	ldx	#22
+_XBMS280
+	lda	XBMenuSkullsOAMY-1,x
+	and	#$ff00
+	clc
+	adc	#44
+	ldy	#((128-8)*2)
+	jsr	_XBMenuSkull
+;
+;	>>>   DISPLAY COUNTDOWN TIMER   <<<
+;
+	ldy	#0
+	lda	Temp4+2				; #Seconds Remaining
+	cmp	#10
+	bcc	_XBMS400
+;	sec
+	sbc	#10
+	iny
+_XBMS400
+	tax
+	lda	>$5c3144,x			; _RLStatNumOAMs,x
+	ldx	#((128-10)*2)+1
+	stx	OAMADDL
+	mode	'a!'
+	sta	OAMDATA
+	lda	#%00111100
+	sta	OAMDATA
+	tyx
+	lda	>$5c3144,x			; _RLStatNumOAMs,x
+	ldx	#((128-9)*2)+1
+	stx	OAMADDL
+	sta	OAMDATA
+	lda	#%00111100
+	sta	OAMDATA
+	mode	'A!'
+;
+	dec	Temp4				; Adjust TimeOut Counter
+	bpl	_XBMS500
+	lda	#60-1				; Next 1 Second Count
+	sta	Temp4
+	dec	Temp4+2
+_XBMS500
+	mode	'a!'
+	lda	_HVBJOY				; Wait for NOT in VBlank Period
+	bmi	_XBMS550
+	nop
+_XBMS550
+	mode	'A!'
+	rts
+_XBMenuSkull
+	pha
+	lda	VBlankCount			; Animate MenuSkull
+	lsr	a
+	lsr	a
+	lsr	a
+	and	#$0002
+	clc
+	adc	#$00f8
+	tax
+	pla
+	RICHJML	_RLMenuSkull2+24,_RLMenus-1
+	rts
+XBMenuSkullsOAMY
+	dc.b	007,016,025,035,044,054,063,073,082,092,101,110,119,129,138,148,157,167
+	dc.b	176,186,195,204,224
+
+
+;
+;	* * * * * * *       MENU LEVEL TRANSFER LIST       * * * * * * *
+;
+	mode	'@A@X'
+XBMenuLevelXFer
+	dc.w	xftVRAMF16+xftRAW	; Fill $0000W-$3FFFW with $00
+	dc.4	XBMenuLevelXFerA
+	dc.4	$0000
+	dc.w	($4000*2)
+XBMenuLevelXFerA
+	dcb.w	2,0
+;
+	dc.w	xftRAM+xftRAW		; Transfer RGB
+	dc.4	_RLRGBs
+	dc.4	RGBData
+	dc.w	512
+	dcb.w	2,0
+;
+	dc.w	xftVRAM16		; Transfer MenuSkulls to $7F80W
+	dc.4	RLMenuSkullsDef
+	dc.4	$7f80
+	dcb.w	3,0
+;
+	dc.w	xftEnd
+
+;
+;	* * * * * * *       MENU LEVEL HDMA TABLES       * * * * * * *
+;
+XBMenuLevelHDMACGADD
+	dc.b	9				; CGADD at Top
+	dc.b	$00
+	dc.b	10				; Hangar
+	dc.b	$00
+	dc.b	9				; Nuclear Plant
+	dc.b	$00
+	dc.b	10				; Toxin Refinery
+	dc.b	$00
+	dc.b	9				; Command Control
+	dc.b	$00
+	dc.b	10				; Phobos Lab
+	dc.b	$00
+	dc.b	9				; Computer Station
+	dc.b	$00
+	dc.b	10				; Phobos Anomaly
+	dc.b	$00
+	dc.b	9				; Military Base
+	dc.b	$00
+	dc.b	9				; Deimos Anomaly
+	dc.b	$00
+	dc.b	9				; Refinery
+	dc.b	$00
+	dc.b	10				; Deimos Lab
+	dc.b	$00
+	dc.b	9				; Halls of the Damned
+	dc.b	$00
+	dc.b	10				; Tower of Babel
+	dc.b	$00
+	dc.b	9				; Fortress of Mystery
+	dc.b	$00
+	dc.b	10				; Hell Keep
+	dc.b	$00
+	dc.b	9				; Slough of Despair
+	dc.b	$00
+	dc.b	10				; Pandemonium
+	dc.b	$00
+	dc.b	9				; House of Pain
+	dc.b	$00
+	dc.b	9				; Mt. Erebus
+	dc.b	$00
+	dc.b	10				; Limbo
+	dc.b	$00
+	dc.b	9				; Dis
+	dc.b	$00
+	dc.b	9				; Warrens
+	dc.b	$00
+	dc.b	1				; CGADD at Bottom
+	dc.b	$00
+	dc.b	$00				; END
+XBMenuLevelHDMACGDATA
+	dc.b	9				; CGDATA at Top
+	dc.w	$0000
+	dc.b	10				; Hangar
+	dc.w	$0000
+	dc.b	9				; Nuclear Plant
+	dc.w	$0000
+	dc.b	10				; Toxin Refinery
+	dc.w	$0000
+	dc.b	9				; Command Control
+	dc.w	$0000
+	dc.b	10				; Phobos Lab
+	dc.w	$0000
+	dc.b	9				; Computer Station
+	dc.w	$0000
+	dc.b	10				; Phobos Anomaly
+	dc.w	$0000
+	dc.b	9				; Military Base
+	dc.w	$0000
+	dc.b	9				; Deimos Anomaly
+	dc.w	$0000
+	dc.b	9				; Refinery
+	dc.w	$0000
+	dc.b	10				; Deimos Lab
+	dc.w	$0000
+	dc.b	9				; Halls of the Damned
+	dc.w	$0000
+	dc.b	10				; Tower of Babel
+	dc.w	$0000
+	dc.b	9				; Fortress of Mystery
+	dc.w	$0000
+	dc.b	10				; Hell Keep
+	dc.w	$0000
+	dc.b	9				; Slough of Despair
+	dc.w	$0000
+	dc.b	10				; Pandemonium
+	dc.w	$0000
+	dc.b	9				; House of Pain
+	dc.w	$0000
+	dc.b	9				; Mt. Erebus
+	dc.w	$0000
+	dc.b	10				; Limbo
+	dc.w	$0000
+	dc.b	9				; Dis
+	dc.w	$0000
+	dc.b	9				; Warrens
+	dc.w	$0000
+	dc.b	1				; CGDATA at Bottom
+	dc.w	$0000
+	dc.b	$00				; END
+XBMenuLevelHDMACGDATAEnd

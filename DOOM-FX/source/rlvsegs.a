@@ -1,0 +1,442 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         ENGINE VSEGS MODULE 1                      *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildVSegList1
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD VSEGMENT LIST 1           CALCULATE VSEGMENTS' SCALE  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       CALCULATE VSEGMENTS' SCALE       * * * * * * *
+;
+rdXs		equ	r5			; (Xs1-Xs0)
+rFaceOffset	equ	r9			; FaceOffset
+rVSeg		equ	r10			; Pointer within VisibleSegment
+;
+rYInvFTemp	equ	rFaceOffset		; YInvFraction Temporary
+;
+rY1		equ	r12			; World Y1
+rYInv		equ	rY1			; YInv
+rYInvF		equ	r11			; YInv Fraction
+rFace		equ	rYInvF			; Face
+;
+rY2		equ	r2			; World Y2
+rYInvStep	equ	r3			; YInvStepDelta
+rYInvStepF	equ	rY2			; YInvStepDelta Fraction
+
+
+	align	16,(_BV1L9000-_BV1L2200)&$0f
+
+;
+;	* * * * * * *       FINISHED CALCULATING VSEGMENTS' SCALE       * * * * * * *
+;
+_BV1L9000
+	iwt	r0,#<_RLBuildVSegList2		; BUILD VISIBLE SEGMENT LIST 2
+	ibt	r8,#^_RLBuildVSegList2
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+;
+;	* * * * * * *       START CALCULATING VSEGMENTS' SCALE       * * * * * * *
+;
+_RLBuildVSegList1
+	move	rVSeg,#<(_RLVSegList-(rlvSize-rlvYInv)) ; Start of VisibleSegmentList
+
+	CACHEB	_RLBuildVSegList1
+;
+;	* * * * * * *       HANDLE NEXT VISIBLE SEGMENT       * * * * * * *
+;
+_BV1L2200
+	move	r0,#(rlvSize-rlvYInv)		; Offset to Next VisibleSegment
+	with	rVSeg				; Move to Next VisibleSegment
+	add	r0
+	move	r0,(<VSegListEnd)		; End of VisibleSegmentList
+;	with	r0				; At END of VisibleSegmentList?
+	sub	rVSeg
+	beq	_BV1L9000-1			; Yes!  No More VisibleSegments!
+
+;
+;	* * * * * * *       PROCESS NEXT VISIBLE SEGMENT       * * * * * * *
+;
+_BV1L3000
+	move	r0,#<(EMBSP+2)			; Bank of EM Data
+	ldb	(r0)
+	romb					; Set ROM Bank
+;	to	r0				; Get Segment Address
+	ldw	(rVSeg)
+;	from	r0				; Move to Segment.FaceOffset
+	to	r14
+	add	#rlgOffsetX
+	inc	rVSeg
+	inc	rVSeg
+;
+	to	r1				; Get Screen Xs0
+	ldw	(rVSeg)
+	from	r1				; Remove LOWDETAIL STARTPIXEL ODD Bit!
+;	to	r0
+	asr
+;	from	r0
+	sbk
+	with	rVSeg
+	add	#(rlvXs1-rlvXs0)
+;
+;	to	r0				; Get FaceOffsetX
+	getb
+	inc	r14
+;
+	to	rdXs				; Get Screen Xs1
+	ldb	(rVSeg)
+	with	rdXs
+	add	rdXs
+	inc	rVSeg
+	inc	rVSeg				; Skip Screen Xs2
+	with	rdXs				; Get #Clipped Pixels
+	sub	r1
+;
+;	from	r0				; Get FaceOffsetY
+	to	rFaceOffset
+	getbh
+	inc	r14
+;
+	to	r1				; Get ScreenXsRatioIndex
+	ldw	(rVSeg)
+;
+	with	rVSeg				; Move to World Y1
+	add	#(rlvY1-rlvXsRatioI)
+;
+	to	rY1				; Get World Y1 (rYInv)
+	ldw	(rVSeg)
+	inc	rVSeg
+	inc	rVSeg
+;
+;	to	r0				; Get FaceLow
+	getb
+	inc	r14
+;
+	to	rY2				; Get World Y2
+	ldw	(rVSeg)
+;
+;	from	r0				; Get FaceHigh
+	to	rFace
+	getbh
+	with	rVSeg
+	sub	#(rlvY2-rlvFace)
+	move	r0,(<EMFACES)			; Add Base of Faces
+	with	rFace
+	add	r0
+	from	rFace
+	stw	(rVSeg)				; Save VSEG.FACE
+
+;
+;	* * * * * * *       CALCULATE 1/(X_SCREEN_RATIO)       * * * * * * *
+;
+_BV1L4200
+	ibt	r0,#(^InvTable)			; Get InverseTable Entry
+	romb
+	move	r0,#<(InvTable-2)
+;	from	r0				; Screen Xs RatioIndex
+	to	r14
+	add	r1
+	dec	r1
+	dec	r1
+	iwt	r13,#<_BV1L6900			; HIGH GEAR
+	getb					; Get InverseValue Low
+	inc	r14
+	with	r1				; Which "gear" of Inverse?
+	hib
+	beq	_BV1L4400+1
+	to	r6
+	iwt	r13,#<_BV1L6800			; LOW GEAR
+_BV1L4400
+	to	r6
+	getbh
+
+;
+;	* * * * * * *       CALCULATE Y_STEP_DELTA       * * * * * * *
+;
+;	Y_STEP_DELTA =	[   1         1   ]   [        1        ]
+;			[ -----  -  ----- ] * [ --------------- ]
+;			[  Y2        Y1   ]   [  Xs3 - Xs0 + 1  ]
+;
+_BV1L6200
+;
+;	>>>   GET 1/Y2   <<<
+;
+	with	rY2				; Get Word Index
+	add	rY2
+	move	r1,#<(InvTable-2)
+	from	r1
+	to	r14
+	add	rY2
+	dec	rY2
+	dec	rY2
+	getb					; Get Inverse Value
+	inc	r14
+	with	rY2				; Low/High Gear?
+	hib
+;	from	r0
+	to	rYInvStepF
+	getbh
+	bne	_BV1L6300			; Low
+	from	rYInvStepF			; High
+	to	rYInvStep			; <<15
+	asr
+	ibt	rYInvStepF,#0
+	with	rYInvStepF
+	bra	_BV1L6500
+	ror
+_BV1L6300
+	to	rYInvStep			; <<8
+	hib
+	with	rYInvStepF
+	lob
+	with	rYInvStepF
+	swap					; rYSD:rYSDF = (1/Y2) Converted to 32-Bit
+;
+;	>>>   GET 1/Y1   <<<
+;
+_BV1L6500
+	from	rYInv				; Get Word Index
+;	to	r0
+	add	rYInv
+;	move	r1,#<(InvTable-2)
+;	from	r0
+	to	r14
+	add	r1
+	dec	r0
+	dec	r0
+;
+	with	rVSeg				; Move to VSeg.FaceOffset
+	add	#(rlvFaceOffsetX-rlvFace)
+	from	rFaceOffset			; Save FaceOffsetX/Y
+	stw	(rVSeg)
+;
+	to	r4				; Get Inverse Value
+	getb
+	inc	r14
+;
+	move	r1,#<(EMBSP+2)			; Bank of EM Data
+	to	r1
+	ldb	(r1)
+;
+	with	r4				; R4 = Inverse Value
+	getbh
+;
+	from	r1
+	romb					; Set ROM Bank
+	move	r14,rFace
+;
+	move	rYInvF,r4
+;	with	r0				; Low/High Gear?
+	hib
+	bne	_BV1L6600			; Low
+	from	rYInvF				; High
+	to	rYInv				; <<15
+	asr
+	ibt	rYInvF,#0
+	with	rYInvF
+	bra	_BV1L6700
+	ror
+_BV1L6600
+	to	rYInv				; <<8
+	hib
+	with	rYInvF
+	lob
+	with	rYInvF
+	swap					; rYInv:rYInvF = (1/Y1) Converted to 32-Bit
+;
+;	>>>   GET ((1/Y2) - (1/Y1))   <<<
+;
+_BV1L6700
+	with	rYInvStepF			; (1/Y2) - (1/Y1)
+	sub	rYInvF
+	with	rYInvStep
+	sbc	rYInv				; rYInvStep:rYInvStepF
+;
+;	>>>   *(1/Xs2-Xs1)   <<<
+;
+	from	rYInvStepF			; * 1/(Xs2-Xs1)
+;	to	r0
+	lsr
+;	with	r0
+	fmult
+;	from	r0
+	to	rYInvStepF
+	rol
+	with	rYInvStep
+	lmult
+;
+;	>>>   SAVE VSEG.SECTORNEARDATA   <<<
+;
+	with	rVSeg				; Move to VSeg.SectorNearData
+	add	#(rlvSectorNearData-rlvFaceOffsetX)
+;	to	r0				; SectorNear
+	getb
+	inc	r14
+;	with	r0
+	umult	#rlsdSize
+	move	r6,#<_RLSectorData
+;	with	r0
+	add	r6
+;	from	r0
+	stw	(rVSeg)
+;
+	with	r4
+	add	r4
+	with	rYInvStep
+	rol
+;
+;	>>>   SAVE VSEG.SECTORFARDATA   <<<
+;
+	inc	rVSeg				; Move to VSeg.SectorFar
+	inc	rVSeg
+	getb					; SectorFar
+;	with	r0
+	umult	#rlsdSize
+;	with	r0
+	add	r6
+;	from	r0
+	stw	(rVSeg)
+;
+	with	rYInvStepF
+	add	r4
+	with	rYInvStep
+	adc	#0
+	move	r15,r13				; LOW/HIGH Gear of Inverse
+	with	rYInvStepF			; >>8
+_BV1L6800
+	hib
+	from	rYInvStep
+;	to	r0
+	lob
+;	with	r0
+	swap
+;	from	r0
+	to	rYInvStepF
+	or	rYInvStepF
+	with	rYInvStep
+	hib
+	with	rYInvStep
+	sex
+	with	rYInvStepF			; Adjust for Missing bit of Inverse
+	add	rYInvStepF
+	with	rYInvStep
+	rol
+_BV1L6900
+;
+;	>>>   SAVE VSEG.YINV_STEPDELTA   <<<
+;
+	with	rVSeg				; Move to VSeg.YInvStepFraction
+	sub	#(rlvSectorFarData-rlvYInvStepF)
+	from	rYInvStepF			; Save YInvStepFraction
+	stw	(rVSeg)
+;
+;	>>>   SAVE VSEG.YINV_STEPDELTA   <<<
+;
+	from	rVSeg				; Move to VSeg.YInvStep
+	to	r1
+	add	#(rlvYInvStep-rlvYInvStepF)
+	with	rVSeg				; Move to VSeg.YInvFractin
+	sub	#(rlvYInvStepF-rlvYInvF)
+;
+	moves	r6,rdXs				; #Clipped Pixels = (Xs1-Xs0)
+;
+	from	rYInvStep			; Save YInvStep
+	beq	_BV1L7800
+	stw	(r1)
+
+;
+;	* * * * * * *       CALCULATE STARTING_Y       * * * * * * *
+;
+;	YINV += (XS_OFFSET * YINV_STEPDELTA)
+;
+	from	rYInvStepF			; Calculate (XS_Offset * Y_StepDelta)
+;	to	r0
+	lsr
+;	with	r0
+	lmult
+	from	r4
+	to	rYInvFTemp			; Y Fraction
+	add	r4
+;	with	r0
+	rol
+	from	rYInvStep
+	to	r1
+	lmult
+;	with	r0
+	add	r4
+;	with	r0
+	asr
+	with	rYInvFTemp
+	ror
+	with	rYInvF				; Add Y_Offset
+	add	rYInvFTemp
+	with	rYInv
+	adc	r0
+
+	ifn	0
+	with	rYInvStep			; YInvStep /= 2
+	asr
+	with	rYInvStepF
+	ror
+	from	rYInvStepF			; Calculate (XS_Offset * Y_StepDelta)
+;	to	r0
+	lsr
+;	with	r0
+	lmult
+	from	r4
+	to	rYInvFTemp			; Y Fraction
+	add	r4
+;	with	r0
+	rol
+	from	rYInvStep
+	to	r1
+	lmult
+;	with	r0
+	add	r4
+	with	rYInvF				; Add Y_Offset
+	add	rYInvFTemp
+	with	rYInv
+	adc	r0
+	endif
+
+;
+;	>>>   SAVE VSEG.YINV   <<<
+;
+_BV1L7800
+	from	rYInvF				; Save YInvFraction
+	stw	(rVSeg)
+	inc	rVSeg
+	inc	rVSeg
+	move	r0,rYInv			; Save YInv
+;
+;	* * * * * * *       PROCESS NEXT VISIBLE SEGMENT       * * * * * * *
+;
+	iwt	r15,#<_BV1L2200
+;	from	r0				; Save YInv
+	stw	(rVSeg)
+
+	CACHEE	_RLBuildVSegList1

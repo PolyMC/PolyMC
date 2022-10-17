@@ -1,0 +1,532 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                     ENGINE INITIALIZATION MODULE                   *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	xfer.i
+
+	public	_RLInit
+
+
+	SECTION	ENGINE
+;
+;	* * * * * * *       INITIALIZE REALITY_ENGINE       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInit
+;
+;	>>>   INITIALIZE SNES HARDWARE   <<<
+;
+	jsr	_RLInitPPU			; Initialize PPU
+	jsr	_RLInitRGB			; Initialize RGB
+;
+;	>>>   INITIALIZE SNES SOFTWARE   <<<
+;
+	jsr	_RLInitRAMCode			; Initialize RL RAM Code
+;
+;	>>>   INITIALIZE ENGINE/SNES SOFTWARE   <<<
+;
+	ifn	DEBUGSCR
+	jsl	_RLInitDebug			; Initialize DEBUG
+	endif
+	jsl	_RLInitStatusBar		; Initialize Status Bar
+	jsl	_RLFinalDeComp			; Final DeCompression!
+;
+	mode	'A'
+	lda	#$0201				; Initialize Single Bit Array
+	sta	SingleBitArray+0
+	lda	#$0804
+	sta	SingleBitArray+2
+	lda	#$2010
+	sta	SingleBitArray+4
+	lda	#$8040
+	sta	SingleBitArray+6
+;
+	jsr	_RLInitVRAMMaps			; Initialize VRAM Maps
+	jsr	_RLInitOAM			; Initialize OAMs
+	jsl	_RLInitAutoMap			; Initialize AutoMap
+	jsl	_RLInitSound			; Initialize SOUND
+	jsl	_RLInitTasks			; Initialize TASKS
+	jsl	_RLInitPlats			; Initialize PLATFORMS
+	jsl	_RLInitMObjects			; Initialize MOVABLE OBJECTS
+	jsl	_RLInitToggles			; Initialize TOGGLES
+;
+;	>>>   INITIALIZE ENGINE<->SNES HARDWARE   <<<
+;
+	jsr	_RLInitGSU			; Initialize GSU
+	jsl	_RLInitDMA			; Initialize DMA
+;
+;	>>>   INITIALIZE ENGINE<->SNES SOFTWARE   <<<
+;
+	jsr	_RLInitView			; Initialize RL View
+	jsl	_RLInitIRQ			; Initialize RL IRQs
+	jsl	_RLInitNMI			; Initialize RL NMIs
+;
+	mode	'A!'
+	lda	#~(0)				; RLEngine Running!
+	sta	RLFlags
+	stz	FrameDone			; Frame NOT Completed!
+	lda	#0				; Initialize Timer1
+	sta	Timer1
+	stz	FPSCount			; FPSCount = 0
+	sta	FPSRatio			; FPSRatio = 0
+	sta	RLCount				; Initialize RLEngineCount
+	sta	RLFrame				; Initialize RLFrameCount
+	sta	RLLineCount			; Initialize RLEngineLineCount
+	sta	RandomNumI			; Initialize RandomNumberIndex
+;
+	sta	ExitLevel			; LEVEL NOT COMPLETED
+;
+	ifn	IDLERESET
+	stz	IdleCount			; Clear Idle TimeOut Reset
+	endif
+	rtl
+
+
+;
+;	* * * * * * *       INITIALIZE REALITY_ENGINE RAMCODE       * * * * * * *
+;
+;	Transfer Engine_RAMCode to WRAM
+;
+	dbr	?
+	dpr	0
+_RLInitRAMCode
+	mode	'AX!'
+	ldx	#<_RLRAMCodeROM
+	ldy	#<_RLRAMCode
+	lda	#(_RLRAMCodeEnd-_RLRAMCode-1)
+	phb
+	mvn	#((^_RLRAMCodeROM<<8)+(^_RLRAMCode))
+	plb
+	rts
+
+
+;
+;	* * * * * * *       INITIALIZE REALITY_ENGINE PPU       * * * * * * *
+;
+;	Initialize SNES PPU Settings
+;
+	dbr	?
+	dpr	0
+_RLInitPPU
+	mode	'aX!'
+	lda	#(((vmCHR2>>12)<<4)|(vmCHR1>>12))
+	sta	BG12NBA					; Characters @$0000
+	lda	#<((RLPixX-256)/2)			; HOFS
+	sta	BG1HOFS
+;	lda	#>((RLPixX-256)/2)
+	stz	BG1HOFS
+	sta	BG2HOFS
+	stz	BG2HOFS
+	lda	#((>vmMAP1&$fc)+%10			; SC1
+	sta	BG1SC
+	lda	#((>vmMAP2&$fc)+%10			; SC2
+	sta	BG2SC
+	lda	#<( (((vmMAP1&$0fc0)-(vmMAP1&$0c00)) / 4) - ((224-RLPixY)/2) )
+	sta	BG1VOFS
+	lda	#>( (((vmMAP1&$0fc0)-(vmMAP1&$0c00)) / 4) - ((224-RLPixY)/2) )
+	sta	BG1VOFS
+	lda	#<( (((vmMAP2&$0fc0)-(vmMAP2&$0c00)) / 4) - ((224-RLPixY)/2) )
+	sta	BG2VOFS
+;	lda	#>( (((vmMAP2&$0fc0)-(vmMAP2&$0c00)) / 4) - ((224-RLPixY)/2) )
+	stz	BG2VOFS
+;
+	ldx	#( ( (256-1-((256-RLPixX)/2))<<8)+( (256-RLPixX)/2) )	; Set Window Masks
+	stx	WH0
+	lda	#%00110011				; Use Window1
+	sta	W12SEL
+;	lda	#%00110011
+	sta	WOBJSEL
+;	lda	#%00000000				; Window Logic is OR
+	stz	WBGLOG
+	stz	WOBJLOG
+;
+;	lda	#%00001000				; PseudoH512, 224Lines
+	stz	SETINI
+	lda	#$03					; Mode3 (BG1 256 Colour/BG2 16 Colour)
+	sta	BGMODE
+	lda	#%10100010				; SUB Colour Add Enable
+	sta	CGSWSEL
+	lda	#%01000001				; Enable 1/2 Addition on BG1
+	sta	CGADSUB
+	lda	#$13					; BG1+BG2+OBJ
+	sta	TM
+	sta	TMW					; BG1+OBJ Window
+	lda	#$10					; OBJ
+	sta	TS
+	sta	TSW					; OBJ Window
+;
+	lda	#(%00000000)+(vmSPR>>13)		; (1x1,2x2) (8K contig.) (BaseAddr)
+	sta	OBJSEL
+;
+	lda	#$80					; 16Bit VRAM Transfers
+	sta	VMAINC
+	rts
+
+
+;
+;	* * * * * * *       INITIALIZE REALITY_ENGINE VRAM MAPS       * * * * * * *
+;
+;	Build and transfer MAPs for View0/View1 to VRAM
+;
+	dbr	?
+	dpr	0
+_RLInitVRAMMaps
+;
+;	>>>   BUILD STATUS BAR MAP   <<<
+;
+	mode	'AX!'
+;
+	lda	#'RL'					; BG1 Status Overlay
+	ldx	#((RLStatCharY*32)-1)*2
+_RLIVM120
+	sta	>DeCompBuffer,x
+	dex
+	dex
+	bpl	_RLIVM120
+;
+	lda	#((vmCHR2B-vmCHR2)/(32/2))+$2000	; BG2 View Overlay
+	ldx	#(((RLViewCharY-RLStatCharY)*32)-1)*2
+_RLIVM140
+	sta	>DeCompBuffer+(RLStatCharY*32*2),x
+	dex
+	dex
+	bpl	_RLIVM140
+;
+	ldx	#0					; Block "CHR2"
+	lda	#RLStatCharY
+	sta	Temp
+	lda	#((vmSTATDEF-vmCHR2)/(32/2))+$2000	; Force Priority of StatusBar BG2
+_RLIVM200
+	ldy	#RLStatCharX-1				; #Characters
+_RLIVM300
+	sta	>DeCompBuffer+(RLViewCharY*32*2),x
+	inc	a
+	inx
+	inx
+	dey
+	bpl	_RLIVM300
+	tay
+	txa
+	clc
+	adc	#(32-RLStatCharX)*2
+	tax
+	tya
+	dec	Temp
+	bne	_RLIVM200
+;
+;	>>>   TRANSFER STATUS BAR MAP TO VRAM   <<<
+;
+	mode	'a!'
+	lda	#%00000001				; A->B, Abs., Auto Inc,2-Add-WriteLH
+	sta	DMA0INC
+	lda	#<VMDATAL				; VMDATA
+	sta	DMA0DEST
+	lda	#^DeCompBuffer
+	sta	DMA0A1B
+	mode	'A!'
+	lda	#<(DeCompBuffer)
+	sta	DMA0A1L
+	lda	#vmMAP2
+	sta	VMADDL
+	lda	#(RLCharY*32*2)
+	sta	DMA0NUML
+	lda	#(0<<8)+(1)
+	sta	MDMAEN
+;
+;	>>>   BUILD MAP 0   <<<
+;
+	mode	'AX!'
+	ldx	#((RLCharX/3)*0*2)			; Block "A"
+;	lda	#((RLCharX/3)*0*RLViewCharY)
+	txa
+	jsr	_RLBuildVRAMMapBlock
+;	ldx	#((RLCharX/3)*1*2)			; Block "B"
+	lda	#((RLCharX/3)*1*RLViewCharY)
+	jsr	_RLBuildVRAMMapBlock
+;	ldx	#((RLCharX/3)*2*2)			; Block "C"
+	lda	#((RLCharX/3)*2*RLViewCharY)
+	jsr	_RLBuildVRAMMapBlock
+;
+;	>>>   BUILD MAP 1   <<<
+;
+	ldx	#((RLCharX/3)*0*2)+(RLVMap1-RLVMap0)	; Block "D"
+	lda	#((RLCharX/3)*3*RLViewCharY)
+	jsr	_RLBuildVRAMMapBlock
+;	ldx	#((RLCharX/3)*1*2)+(RLVMap1-RLVMap0)	; Block "E"
+	lda	#((RLCharX/3)*4*RLViewCharY)
+	jsr	_RLBuildVRAMMapBlock
+;	ldx	#((RLCharX/3)*2*2)+(RLVMap1-RLVMap0)	; Block "C"
+	lda	#((RLCharX/3)*2*RLViewCharY)
+;	jmp	_RLBuildVRAMMapBlock
+;
+;	* * * * * * *       BUILD VRAM MAP BLOCK       * * * * * * *
+;
+;	.X = Character Offset within Map
+;	.A = Starting Character#
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE   !!!
+;
+	mode	'AX'
+	dbr	?
+	dpr	0
+_RLBuildVRAMMapBlock
+	ldy	#(RLCharX/3)-1				; #Strips
+_RLBVMB200
+	sta	>RLVMap0+(00*32*2),x
+	inc	a
+	sta	>RLVMap0+(01*32*2),x
+	inc	a
+	sta	>RLVMap0+(02*32*2),x
+	inc	a
+	sta	>RLVMap0+(03*32*2),x
+	inc	a
+	sta	>RLVMap0+(04*32*2),x
+	inc	a
+	sta	>RLVMap0+(05*32*2),x
+	inc	a
+	sta	>RLVMap0+(06*32*2),x
+	inc	a
+	sta	>RLVMap0+(07*32*2),x
+	inc	a
+	sta	>RLVMap0+(08*32*2),x
+	inc	a
+	sta	>RLVMap0+(09*32*2),x
+	inc	a
+	sta	>RLVMap0+(10*32*2),x
+	inc	a
+	sta	>RLVMap0+(11*32*2),x
+	inc	a
+	sta	>RLVMap0+(12*32*2),x
+	inc	a
+	sta	>RLVMap0+(13*32*2),x
+	inc	a
+	sta	>RLVMap0+(14*32*2),x
+	inc	a
+	sta	>RLVMap0+(15*32*2),x
+	inc	a
+	sta	>RLVMap0+(16*32*2),x
+	inc	a
+	sta	>RLVMap0+(17*32*2),x
+	inc	a
+	inx						; Next Strip
+	inx
+	dey						; One less strip
+	bpl	_RLBVMB200
+	rts
+
+
+;
+;	* * * * * * *       INITIALIZE REALITY_ENGINE OAM SPRITES       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitOAM
+	mode	'aX!'
+	ldy	#MaxOAMs-(3+8+12+3+3+3)-1	; #OAMs total
+	ldx	#(3+8+12+3+3+3)*4		; Move All OAMs off-screen
+	lda	#MaxViewScanLines		; (256-32)
+_RIO200
+	sta	OAMA+oamsY,x
+	sta	OAMB+oamsY-((3+8+12+3+3+3)*4),x
+	inx
+	inx
+	inx
+	inx
+	dey
+	bpl	_RIO200
+;
+	mode	'Ax!'
+	stz	OAMADDL				; Transfer OAM structure
+	lda	#<OAMA				; Start Channel#0
+	sta	DMA0A1L
+	lda	#(MaxOAMs+(MaxOAMs/16))*4	; #Bytes to transfer
+	sta	DMA0NUML
+	ldx	#<OAMDATA			; OAMDATA
+	stx	DMA0DEST
+	ldx	#%00000010			; A->B, Abs., Auto Inc,1-Add-Write2x
+	stx	DMA0INC
+	ldx	#^OAMA
+	stx	DMA0A1B
+	ldx	#1				; Enable/Start Channel#0
+	stx	MDMAEN
+	rts
+
+
+;
+;	* * * * * * *       INITIALIZE REALITY_ENGINE RGB PALETTE       * * * * * * *
+;
+;	Transfer RGB Palette
+;
+	dbr	?
+	dpr	0
+_RLInitRGB
+	mode	'A!'
+	lda	#<(RLRGBNormalAnim-RLRGBAnims)	; Start with Normal RGB Animation
+	sta	RLRGBAnim0
+	sta	RLRGBAnim
+	stz	RLRGBCount			; ReCycle Anim Immediately!
+	stz	RLRGBPickCount			; No PickUps Yet
+	stz	RLRGBHitCount			; No Hits Yet
+	stz	RLRGBLock			; UnLock RGB Palettes
+	lda	#-1				; No RGB Table to Xfer Yet
+	sta	RLRGBPtr
+	sta	RLRGB				; No PaletteAnim Request
+	rts
+
+
+;
+;	* * * * * * *       INITIALIZE VIEW       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitView
+	mode	'a!'
+	lda	#$80				; Disable Display
+	sta	INIDISP_S
+	stz	HDMAEN_S
+	mode	'A!'
+	lda	#(4<<8)+(0)			; View being DISPLAYED/BUILT
+	sta	View
+	ifn	useHIGHDETAIL
+	lda	#1				; LOW Detail
+	sta	DetailLevel
+	lda	#(RLViewPixX/2)			; Maximum View X
+	sta	RLViewPixX2
+	endif
+	rts
+
+
+;
+;	* * * * * * *       INITIALIZE REALITY_ENGINE DMA       * * * * * * *
+;
+;	Channel#0	XRAM 70	-> VRAM		(Draw)
+;	Channel#1	XRAM 70	-> VRAM		(Draw)
+;	Channel#2	XRAM 70	-> VRAM		(Draw)
+;	Channel#3	XRAM 70	-> VRAM		(Draw)
+;	Channel#4	XRAM 70	-> WRAM 7F	(XVars)
+;	Channel#5	WRAM 7E	-> CGRAM	(RGB)
+;	Channel#6	WRAM 00	-> OAMRAM	(OAM)
+;	Channel#7	WRAM 7F	-> VRAM		(OAM/VMaps)
+;
+	dbr	?
+	dpr	0
+_RLInitDMA
+	mode	'x!'
+	ldx	#%00000001			; A->B, Abs., Auto Inc,2-Add-WriteLH
+	stx	DMA0INC
+	stx	DMA1INC
+	stx	DMA2INC
+	stx	DMA3INC
+	stx	DMA7INC
+	ldx	#<VMDATAL			; B Address
+	stx	DMA0DEST
+	stx	DMA1DEST
+	stx	DMA2DEST
+	stx	DMA3DEST
+	stx	DMA7DEST
+	ldx	#$7f				; A Bank
+	stx	DMA7A1B
+	ldx	#0				; WM Bank
+	stx	WMADDB
+	mode	'A!'
+	stz	DMA0NUML			; PreClear SIZE HighByte
+	stz	DMA1NUML
+	stz	DMA2NUML
+	stz	DMA3NUML
+	stz	DMA4NUML
+	stz	DMA5NUML
+	stz	DMA6NUML
+	stz	DMA7NUML
+	jml	__RLReInitDMA			; Initialize Remaining Channels
+
+
+	SECTION	ENGINE_RAMCODE
+;
+;	* * * * * * *       RE-INITIALIZE REALITY_ENGINE DMA       * * * * * * *
+;
+;	Called after a WEAPON MCHR STACK GDMA
+;
+	mode	'x'
+__RLReInitDMA
+	jsr	_RLReInitDMA
+	rtl
+_RLReInitDMA
+	ldx	#$70				; A Bank
+	stx	DMA0A1B
+	stx	DMA1A1B
+	stx	DMA2A1B
+	stx	DMA3A1B
+	stx	DMA4A1B
+	ldx	#$7e
+	stx	DMA5A1B
+	ldx	#$00
+	stx	DMA6A1B
+;
+	ldx	#%00000000			; A->B, Abs., Auto Inc,1-Add-Write1x
+	stx	DMA4INC
+	ldx	#%00000010			; A->B, Abs., Auto Inc,1-Add-Write2x
+	stx	DMA5INC
+	stx	DMA6INC
+;
+	ldx	#<WMDATA			; B Address
+	stx	DMA4DEST
+	ldx	#<CGDATA
+	stx	DMA5DEST
+	ldx	#<OAMDATA
+	stx	DMA6DEST
+	rts
+
+
+	SECTION	ENGINE
+;
+;	* * * * * * *       FINAL DECOMPRESSION/TRANSFERS       * * * * * * *
+;
+;	Final DeComp/Transfers overtop of DeComp Buffer
+;
+	dbr	?
+	dpr	0
+_RLFinalDeComp
+	mode	'aX!'
+	ldx	#<_RLFinalDeCompXFer		; Transfer Final DataBlocks
+	lda	#^_RLFinalDeCompXFer
+	jml	XFer
+;
+;	* * * * * * *       FINAL DECOMP TRANSFER LIST       * * * * * * *
+;
+_RLFinalDeCompXFer
+	dc.w	xftRAM				; Transfer FACESDEF
+	dc.4	RLStatFacesDef
+	dc.4	RLStatFacesDefRAM
+	dcb.w	3,0
+;
+	dc.w	xftRAM				; Transfer KEYSDEF
+	dc.4	RLStatKeysDef
+	dc.4	RLStatKeysDefRAM
+	dcb.w	3,0
+;
+	dc.w	xftRAM				; Transfer STATARMSDEF
+	dc.4	RLStatArmsDef
+	dc.4	RLStatArmsDefRAM
+	dcb.w	3,0
+;
+	dc.w	xftRAM+xftRAW			; Transfer SlopeYInvTable to RAM
+	dc.4	SlopeYInvTable
+	dc.4	_RLSlopeYInvTable
+	dc.w	(RLViewPixY*2)
+	dcb.w	2,0
+;
+	dc.w	xftRAM+xftRAW			; Transfer RLTextureXLatTable to RAM
+	dc.4	RLTextureXLatTable
+	dc.4	_RLTextureXLatTable
+	dc.w	<(RLTextureXLatTableE-RLTextureXLatTable)
+	dcb.w	2,0
+;
+	dc.w	xftEnd

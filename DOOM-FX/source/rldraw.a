@@ -1,0 +1,139 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       ENGINE VIEW DRAW MODULE                      *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+
+	public	_RLDrawA
+	public	_RLDrawB
+	public	_RLDrawC
+	public	_RLDraw
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+;
+;	* * * * * * *       REALITY_ENGINE DRAW       * * * * * * *
+;
+_RLDrawC
+	ifn	DEBUGSCR
+	move	r0,(<TRFloorsEnd)		; Size of Floors/Ceilings
+	move	r1,#<_RLFloors
+;	with	r0
+	sub	r1
+	move	(<DebugFloorsSizeC),r0
+;
+	move	r0,(<TRClipZonePtr0)		; Get ClipZonePointer
+	move	(<DebugClipZonePtrC),r0
+	move	r0,(<TRPreWallPlotPtr0)		; Get PreWallPlotPointer
+	move	(<DebugPreWallPtrC),r0
+	move	r0,(<TRWallPlotPtr)		; Get WallPlotPointer
+	move	(<DebugWallPlotPtrC),r0
+	move	r0,(<TRFloorPlotPtr)		; Get FloorPlotPointer
+	move	(<DebugFloorPlotPtrC),r0
+	move	r0,(<TRObjPlotPtr)		; Get ObjPlotPointer
+	move	(<DebugObjPlotPtrC),r0
+	endif
+	move	r1,#<_RLDrawWallsC		; DRAW WALLS C
+	move	r2,#<_RLDrawAutoMapC		; DRAW AUTOMAP C
+	ife	DEBUGSCR
+	bra	_RLDraw
+	endif
+	ifn	DEBUGSCR
+	iwt	r15,#<_RLDraw
+	endif
+	nop
+_RLDrawB
+	ifn	DEBUGSCR
+	move	r0,(<TRFloorsEnd)		; Size of Floors/Ceilings
+	move	r1,#<_RLFloors
+;	with	r0
+	sub	r1
+	move	(<DebugFloorsSizeB),r0
+;
+	move	r0,(<TRClipZonePtr0)		; Get ClipZonePointer
+	move	(<DebugClipZonePtrB),r0
+	move	r0,(<TRPreWallPlotPtr0)		; Get PreWallPlotPointer
+	move	(<DebugPreWallPtrB),r0
+	move	r0,(<TRWallPlotPtr)		; Get WallPlotPointer
+	move	(<DebugWallPlotPtrB),r0
+	move	r0,(<TRFloorPlotPtr)		; Get FloorPlotPointer
+	move	(<DebugFloorPlotPtrB),r0
+	move	r0,(<TRObjPlotPtr)		; Get ObjPlotPointer
+	move	(<DebugObjPlotPtrB),r0
+	endif
+	move	r1,#<_RLDrawWallsB		; DRAW WALLS B
+	move	r2,#<_RLDrawAutoMapB		; DRAW AUTOMAP B
+	bra	_RLDraw
+	nop
+_RLDrawA
+	ifn	DEBUGSCR
+	move	r0,(<TRFloorsEnd)		; Size of Floors/Ceilings
+	move	r1,#<_RLFloors
+;	with	r0
+	sub	r1
+	move	(<DebugFloorsSizeA),r0
+;
+	move	r0,(<VObjListEnd)		; Size of VisibleObjectList
+	move	r1,#<_RLVObjList
+;	with	r0
+	sub	r1
+	move	(<DebugVObjSize),r0
+;
+	move	r0,(<VSegListEnd)		; Size of VisibleSegmentList
+	move	r1,#<_RLVSegList
+;	with	r0
+	sub	r1
+	move	(<DebugVSegSize),r0
+;
+	move	r0,(<RLNumTasks)		; Number of RLTasks Running
+	move	(<DebugRLNumTasks),r0
+;
+	move	r0,(<RLNumMObjs)		; Number of RLMObjs Active
+	move	(<DebugRLNumMObjs),r0
+;
+	move	r0,(<SLVSecPtr)			; #VisibleSectors
+	move	r1,#<_RLVSectors
+;	with	r0
+	sub	r1
+;	with	r0
+	lsr
+	move	(<DebugVSecNum),r0
+;
+	move	r0,(<TRClipZonePtr0)		; Get ClipZonePointer
+	move	(<DebugClipZonePtrA),r0
+	move	r0,(<TRPreWallPlotPtr0)		; Get PreWallPlotPointer
+	move	(<DebugPreWallPtrA),r0
+	move	r0,(<TRWallPlotPtr)		; Get WallPlotPointer
+	move	(<DebugWallPlotPtrA),r0
+	move	r0,(<TRFloorPlotPtr)		; Get FloorPlotPointer
+	move	(<DebugFloorPlotPtrA),r0
+	move	r0,(<TRObjPlotPtr)		; Get ObjPlotPointer
+	move	(<DebugObjPlotPtrA),r0
+	endif
+	move	r1,#<_RLDrawWallsA		; DRAW WALLS A
+	move	r2,#<_RLDrawAutoMapA		; DRAW AUTOMAP A
+_RLDraw
+	ibt	r0,#%00000001			; Transp.Off,NoDither,8-BitColour,NoSpr.
+	cmode
+	move	r0,(<AutoMapMode)		; AUTOMAP Active?
+	dec	r0
+	move	r0,r1				; No!
+	bmi	_RLDraw200
+	move	r0,r2				; Yes!
+_RLDraw200
+	ibt	r8,#^_RLDrawWallsA		; Begin Execution of Next Code
+	ife	PROFILE
+;	from	r0
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop

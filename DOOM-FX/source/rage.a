@@ -1,0 +1,264 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                            MAIN CODE MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	snesmac.i
+	include	rlweapons.i
+
+	public	RAGE
+
+	SECTION	MAIN,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       PROJECT: RAGE SNES/SFX       * * * * * * *
+;
+	dbr	?
+	dpr	0
+RAGE
+;
+;	* * * * * * *       ATTRACT MODE       * * * * * * *
+;
+RAGE2000
+	jsl	InitSNES			; Initialize SNES
+	ifn	usePAL
+	mode	'A!'
+	lda	#1
+	sta	_TitleCount
+	endif
+	ifn	useTITLE
+	jsl	Title				; Display Title Page
+	endif
+
+;
+;	* * * * * * *       NEW GAME       * * * * * * *
+;
+RAGE3000
+	mode	'A!'
+	lda	#0				; Start at Level E1M1
+;
+;	* * * * * * *       NEXT EPISODE       * * * * * * *
+;
+RAGE4000
+	sta	Level				; CURRENT LEVEL
+RAGE4100
+	lda	#100				; Player's Health
+	sta	_PlayerHealth
+	stz	_PlayerArmor			; Player's Armor
+	lda	#50				; Player's Bullets
+	sta	_PlayerBullets
+	stz	_PlayerShells			; Player's Shells
+	stz	_PlayerRockets			; Player's Rockets
+	stz	_PlayerCells			; Player's Cells
+	lda	#((wtbFist|wtbPistol)<<8)	; Pistol/Fist / No Keys
+	sta	_PlayerKeys
+	lda	#wtPistol			; Player's Weapon
+	sta	_PlayerWeapon
+	stz	_PlayerBackPack			; No BackPack
+	stz	ScoreSecret			; Player Didn't Get Episode Secret
+;
+	ifn	RECORDDEMO
+	lda	#-1				; Force Change of JOYData
+	sta	DemoJOY
+	stz	DemoIndex
+	lda	#1
+	sta	DemoCount
+	endif
+;
+;	* * * * * * *       NEXT LEVEL       * * * * * * *
+;
+RAGE5000
+	mode	'a!'
+	stz	_PlayerKeys			; No Keys
+;
+;	>>>   INITIALIZE RLENGINE   <<<
+;
+	jsl	_RLInit				; Initialize RLEngine
+	jsl	_RLInitLevel			; Initialize RLLevel
+;
+;	>>>   INITIALIZE AUTODEMO   <<<
+;
+	ifn	useDEMO
+	ldx	#0
+RAGE5200
+	lda	>E1M1DEMO,x
+	sta	>DemoData,x
+	inx
+	inx
+	cpx	#(E1M1DEMOE-E1M1DEMO)
+	bne	RAGE5200
+	endif
+
+;
+;	* * * * * * *       PLAY LEVEL       * * * * * * *
+;
+Stop
+	jsl	_RLMain0			; Run Reality_Engine
+
+;
+;	* * * * * * *       IDLE TIMEOUT RESET?       * * * * * * *
+;
+RAGE5500
+	ifn	IDLERESET
+	mode	'A!'
+	lda	IdleCount			; Idling for Approx. 30 Seconds?
+	cmp	#((60/4)*30)
+	bcc	RAGE7000			; No
+	jml	WarmBoot			; YES!  RESET MACHINE!
+	endif
+
+;
+;	* * * * * * *       FINISHED THIS LEVEL       * * * * * * *
+;
+RAGE7000
+	mode	'ax!'
+	ldy	Level				; CURRENT LEVEL
+;
+;	>>>   RESTART/DIED   <<<
+;
+	lda	ExitLevel			; NEXT, RESTART, DIED, SECRET?
+	bpl	RAGE7200
+	ife	useID2
+	inc	a				; -1 = RESTART, -2 = DIED
+	beq	RAGE5000			; RESTART
+	endif
+	mode	'A!'
+	lda	#100				; DIED -- RESTART WITH 100% HEALTH
+	sta	_PlayerHealth
+	bra	RAGE5000			; RESTART LEVEL
+;
+;	>>>   NEW GAME   <<<
+;
+	mode	'a'
+RAGE7200
+	cmp	#<$4c52				; NEW GAME
+	bne	RAGE7300
+	lda	ExitLevel+1
+	mode	'A!'
+	and	#$00ff
+	bra	RAGE4000
+	mode	'a'
+RAGE7300
+	cmp	#51				; SECRET LEVEL
+	beq	RAGE7700
+;
+;	>>>   NORMAL EXIT   <<<
+;
+RAGE7500
+	tyx					; NEXT LEVEL
+	lda	>NextLevelI,x
+	bra	RAGE7800
+;
+;	>>>   SECRET EXIT   <<<
+;
+RAGE7700
+	sta	ScoreSecret			; Player Got Episode Secret
+	lda	#8				; E1M3->E1M9
+	cpy	#2
+	beq	RAGE7800
+	lda	#17				; E2M3->E2M9
+	cpy	#11
+	beq	RAGE7800
+	lda	#26				; E3M6->E3M9
+;
+;	>>>   NEXT LEVEL VALID?   <<<
+;
+RAGE7800
+	tay					; New Level#
+	asl	a				; Level Valid?
+	tax
+	lda	>EMNUMVERTEXESTable,x
+	beq	RAGE7500			; NO!  SKIP IT!
+	sty	Level				; Save Level#
+
+	ife	useIMAGINEER
+	lda	_SkillLevel			; Player's Skill Level
+	cmp	#2				; Hurt Me Plent/Ultra-Violence/Nightmare?
+	bcs	RAGE7900			; Yes
+	cpy	#18				; Stop at end of Episode 2 for Skill 2
+	beq	RAGE9200 ;RAGE7820	; RAGE9200
+	dec	a
+	beq	RAGE7900
+	cpy	#9				; Stop at end of Episode 1 for Skill 1
+RAGE7820
+	beq	RAGE9200
+	endif
+
+;
+;	>>>   UPDATE PLAYER VARIABLES   <<<
+;
+RAGE7900
+	mode	'A!'
+	lda	PlayerObject+rloHealth		; Player's Health
+	sta	_PlayerHealth
+	lda	PlayerArmor			; Player's Armor
+	sta	_PlayerArmor
+	lda	PlayerKeys			; Player's Keys/Arms
+	sta	_PlayerKeys
+	lda	WeaponBullets			; Player's Bullets
+	sta	_PlayerBullets
+	lda	WeaponShells			; Player's Shells
+	sta	_PlayerShells
+	lda	WeaponRockets			; Player's Rockets
+	sta	_PlayerRockets
+	lda	WeaponCells			; Player's Cells
+	sta	_PlayerCells
+	lda	WeaponType			; Player's Weapon
+	sta	_PlayerWeapon
+	lda	BackPack			; Player's BackPack
+	and	#$00ff
+	sta	_PlayerBackPack
+
+;
+;	* * * * * * *       SCORE SCREEN       * * * * * * *
+;
+RAGE8000
+	ifn	useSCORE
+	jsl	Score				; Score Screen
+	endif
+	mode	'A!'
+	lda	Level				; Current Level
+	cmp	#27				; GAME OVER?
+	beq	RAGE9000			; YES!
+	cmp	#9				; E2M1?
+	beq	RAGE8500
+	cmp	#18				; E3M1?
+	beq	RAGE8500
+	jmp	RAGE5000			; Next Level
+RAGE8500
+	jmp	RAGE4100			; Next Episode
+
+;
+;	* * * * * * *       GAME OVER       * * * * * * *
+;
+RAGE9000
+	ifn	usePAL
+	mode	'A!'
+	lda	#4				; Display Credits Page 1
+	sta	_TitleCount
+	jsl	Title
+	mode	'A!'
+	lda	#8				; Display Credits Page 2
+	sta	_TitleCount
+	jsl	Title
+	endif
+RAGE9200
+	mode	'A!'
+	stz	_ResetCount			; Force Credits Display
+	jsl	CheckSumVars
+	jmp	RAGE2000
+
+
+;
+;	* * * * * * *       NEXT LEVEL INDEX       * * * * * * *
+;
+NextLevelI
+	dc.b	01, 02, 03, 04, 05, 06, 07, 09, 03	; E1M1->E1M8  (E1M3->E1M9->E1M4)
+	dc.b	10, 11, 12, 13, 14, 15, 16, 18, 12	; E2M1->E2M8  (E2M3->E2M9->E2M4)
+	dc.b	19, 20, 21, 22, 23, 24, 25, 27, 24	; E3M1->E3M8  (E3M6->E3M9->E3M7)

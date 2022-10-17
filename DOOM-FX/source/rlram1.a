@@ -1,0 +1,212 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                                  RAM1 MEMORY       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	rlsound.i
+
+	extern	RAM1Start,RAM1End
+
+
+	SECTION	RAM1GSUVECTORS,LOAD=$00100,ORG=$000100,SIZE=$0010,ALLOC
+
+	SECTION	RAM1,LOAD=$000110,ORG=$000110,SIZE=$1ef0
+
+;
+;	* * * * * * *       RAM1 VARIABLES       * * * * * * *
+;
+RAM1Start
+
+OAMA			ds.4	(MaxOAMs)	; OAM Data Block A
+OAMAA			ds.4	(MaxOAMs/16)
+OAMB			ds.4	(RLMaxCutSprOAMs)
+
+RGBData			ds.w	256		; 512 bytes of RGB Data
+RGBXFer			ds.b	1		; $FF = Transfer RGB Data
+
+JOY1			ds.w	1		; Joystick Controller I
+JOY1Stat		ds.b	1		; $00=JOYSTICK,$01=MOUSE,$FF=INVALID!
+MOUSE1X			ds.b	1		; Mouse1 X Displacement
+MOUSE1Y			ds.b	1		; Mouse1 Y Displacement
+
+View			ds.b	1		; View being Displayed
+ViewB			ds.b	1		; View being Built
+
+VBlankCount		ds.b	1		; VBlank Counter (GameLoop)
+	ifn	usePAL
+VBlankCountF		ds.b	1		; VBlank Counter Fraction
+	endif
+
+;
+;	>>>   XFER VARIABLES   <<<
+;
+XFerNasty		ds.b	1		; $FF=Transfer during ScreenON!
+
+;
+;	>>>   HARDWARE SHADOWS   <<<
+;
+INIDISP_S		ds.b	1		; INIDISP Shadow
+HDMAEN_S		ds.b	1		; HDMAEN Shadow
+
+
+;
+;	>>>   MUSIC DRIVER VARIABLES   <<<
+;
+_MDSerialNum		ds.b	1		; APU Serial Synchronization Number
+_MDModule		ds.w	1		; Resident Module# Loaded
+_MDSong 		ds.w	1		; Song# Loaded
+_MDLocks		ds.w	1		; MusicDriver Semaphores
+
+
+;
+;	>>>   RGB COLOUR VARIABLES   <<<
+;
+RLRGBLock		ds.w	1		; 0=RGB Palettes UnLocked,-1=Locked
+RLRGBPtr		ds.w	1		; Address of RGB Table to XFer (0=None)
+RLRGBAnim0		ds.w	1		; Base RGB AnimTable Index
+RLRGBAnim		ds.w	1		; Current RGB AnimTable Index
+RLRGBCount		ds.w	1		; Counter for Current RGB Entry
+RLRGBPickCount		ds.w	1		; #Pick Ups
+RLRGBHitCount		ds.w	1		; #Hits
+
+;
+;	>>>   PLAYER VARIABLES   <<<
+;
+Level			ds.w	1		; Current Level
+_PlayerBullets		ds.w	1		; #Bullets (Pistol/ChainGun)
+_PlayerShells		ds.w	1		; #Shells (ShotGun)
+_PlayerRockets		ds.w	1		; #Rockets (Rocket)
+_PlayerCells		ds.w	1		; #Cells (Plasma/BFG)
+_PlayerHealth		ds.w	1		; Player's Health
+_PlayerArmor		ds.w	1		; Player's Armor
+_PlayerKeys		ds.b	1		; Player's Keys
+_PlayerArms		ds.b	1		; Player's Weapons
+_PlayerWeapon		ds.w	1		; Player's Selected Weapon
+_PlayerBackPack		ds.w	1		; Player's BackPack
+;
+PlayerFaceOld		ds.w	1		; OLD Player's Face
+PlayerKeysOld		ds.b	1		; OLD Player's Keys
+PlayerArmsOld		ds.b	1		; OLD Player's Arms
+;
+PlayerLevelCount	ds.b	1		; #Ticks until 1 Second
+PlayerLevelTime		ds.w	1		; #Seconds in current Level
+;
+PlayerJoy0		ds.w	1		; Player's Old JoyStick Bits
+
+
+	ifn	(RECORDDEMO|useDEMO)
+;
+;	>>>   DEMO VARIABLES   <<<
+;
+DemoIndex		ds.w	1		; Index into DemoData
+DemoJOY			ds.w	1		; JOYStickBits
+DemoCount		ds.w	1		; #Cycles
+	endif
+
+
+;
+;	>>>   MENU VARIABLES   <<<
+;
+MenuSkillLevel		ds.w	1		; 0=Easy,1=Med,2=Hrd,3=UltVio,4=Ngtmre
+
+
+;
+;	>>>   SCORE VARIABLES   <<<
+;
+ScoreSecret		ds.w	1		; -1=Player Got Episode Secret
+
+
+;
+;	>>>   MISCELLANEOUS VARIABLES   <<<
+;
+	ifn	IDLERESET
+IdleCount		ds.w	1		; Idle Counter
+	endif
+
+
+;
+;	* * * * * * *       VARIABLE BLOCK TRANSFERRED TO GSU       * * * * * * *
+;
+RLSNESXVars
+FPSCount		ds.w	1		; FramesPerSecond Counter
+;
+PlayerJoy		ds.w	1		; Player's JoyStick Bits
+PlayerMouseX		ds.w	1		; X Displacement
+PlayerMouseY		ds.w	1		; Y Displacement
+;
+WeaponTypeBuilt		ds.w	1		; Type of Weapon Built (wtType)
+;
+VBlankTotal		ds.b	1		; VBlank Counter Total
+			ds.b	1		; UNUSED
+RLSNESXVarsE
+
+;
+;	* * * * * * *       VARIABLE BLOCK TRANSFERRED FROM GSU       * * * * * * *
+;
+RLSNESGSUXVars		ds.b	(RLGSUXVarsE-RLGSUXVars)
+RLSNESGSUXVarsO		equ	RLSNESGSUXVars-RLGSUXVars	; to get GSU  from SNES
+;
+;	>>>   TABLE OF SOUND EFFECTS COMMANDS   <<<
+;
+RLSNESSounds		ds.b	(MaxRLSounds*rlseSize)		; SNES Sound Effects Table
+
+
+;
+;	>>>   VARIABLES PRESERVED BETWEEN RESETS   <<<
+;
+VarsCheckSum		ds.w	1		; CHECKSUM for RESTART
+
+Vars
+RandSentry		ds.4	1		; RAND sentry for RESTART
+;
+;	>>>   GAME GLOBALS   <<<
+;
+_SoundsOn		ds.w	1		; 1=Disable Sound Effects
+_MusicOn		ds.w	1		; 1=Disable Music
+_SkillLevel		ds.w	1		; 0=Easy,1=Med,2=Hrd,3=UltVio,4=Ngtmre
+;
+;	>>>   RESET COUNTER   <<<
+;
+_ResetCount		ds.w	1		; Reset Counter
+	ife	usePAL
+_TitleCount		ds.w	1		; Title Counter
+	endif
+;
+VarsEnd
+
+	ifn	usePAL
+_TitleCount		ds.w	1		; Title Counter
+	endif
+
+
+;
+;	>>>   CUTTER SPRITE VARIABLES   <<<
+;
+WeaponPriMask		ds.w	1				  ; PriorityMask
+_MCHRGDMASP		ds.w	1				  ; StackPointer
+;
+			ds.b	64				  ; NMIs,IRQs,ETC.
+_WeaponDEFGDMAStack	ds.b	((RLMaxCutSprCHRs/8)+1)*((8*2)+2) ; DEF GDMA Stack
+
+
+;
+;	>>>   SOUND VARIABLES   <<<
+;
+SoundQueue		ds.b	(MaxRLRSounds*rlserSize) ; Regular SoundEffects Queue
+SoundQueueEnd
+;
+TSounds			ds.b	(MaxRLTSounds*rlsetSize) ; Turbo SoundEffects
+;
+_MusicTurboTable	ds.b	(128*rlsettSize)	 ; Turbo SoundEffects TurboTable
+
+
+;
+;	* * * * * * *       END OF RAM1 VARIABLES       * * * * * * *
+;
+RAM1End

@@ -1,0 +1,21 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                                            XBAND DATA MODULE       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+;	SECTION	XBAND
+
+
+;
+;	* * * * * * *       STATUS BAR FRAG DATA       * * * * * * *
+;
+XBStatusBarFragDef
+	image	RLDATA:COMP/StatusFrag.def0

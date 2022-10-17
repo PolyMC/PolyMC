@@ -1,0 +1,341 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                        ENGINE PLATFORMS MODULE                     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+
+	SECTION	LEVEL
+
+;
+;	* * * * * * *       INITIALIZE PLATFORMS       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitPlats
+	mode	'AX!'
+	ldx	#0
+	ldy	#MaxRLMPlats-1
+_RIPS200
+	lda	#-1
+	sta	>_RLPlatTasks+rlptState,x
+	txa
+	clc
+	adc	#rlptSize
+	tax
+	dey
+	bpl	_RIPS200
+	rtl
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rTaskData	equ	r8			; Pointer to TaskData
+rSectorData	equ	r9			; Pointer to SectorData
+;
+rFPSRatio	equ	r5			; FPS Ratio
+rFPSCount	equ	r7			; FPS Counter
+rTaskData	equ	r8			; Pointer to TaskData
+rTaskPtr	equ	r10			; Pointer to RLTask
+rTaskCount	equ	r13			; TaskCounter
+
+
+;
+;	* * * * * * *       ADD A PLATFORM TASK STRUCTURE       * * * * * * *
+;
+	align	16,(_RLAddPlatformTask-_RAPT200)&$0f
+_RLAddPlatformTask
+	move	rTaskData,#<_RLPlatTasks	; Pointer to PlatTaskData
+
+	CACHEB	_RLAddPlatformTask
+_RAPT200
+;	to	r0				; Get Platform State
+	ldw	(rTaskData)
+	inc	r0
+	beq	_RAPT500			; Yes!
+	with	rTaskData			; No, move to next
+	add	#rlptSize
+	bra	_RAPT200+1
+;	to	r0				; Get Platform State
+	ldw	(rTaskData)
+_RAPT500
+	jmp	r11				; Return to Caller
+	nop
+
+	CACHEE	_RLAddPlatformTask
+
+
+;
+;	* * * * * * *       REMOVE A PLATFORM TASK STRUCTURE       * * * * * * *
+;
+;	rTaskData = Pointer to TaskData
+;
+_RLRemPlatformTask
+	move	r0,#-1				; Platform State = -1
+	jmp	r11				; Return to Caller
+;	from	r0
+	stw	(rTaskData)
+
+
+;
+;	* * * * * * *       FIND PLATFORM TASKDATA       * * * * * * *
+;
+;	rSectorData = SectorData of Platform
+;
+	align	16,(_RLFindPlatformTask-_RFPT200)&$0f
+_RLFindPlatformTask
+	move	rTaskData,#<_RLPlatTasks	; Pointer to PlatTaskData
+	move	r1,#MaxRLMPlats
+
+	CACHEB	_RLFindPlatformTask
+_RFPT200
+;	to	r0				; Get Platform State
+	ldw	(rTaskData)
+	inc	r0				; Valid TaskData?
+	bne	_RFPT500			; Yes
+_RFPT300
+	with	rTaskData			; No, move to next
+	add	#rlptSize
+	dec	r1
+	bne	_RFPT200+1
+;	to	r0				; Get Platform State
+	ldw	(rTaskData)
+	move	rTaskData,#0			; No PlatTaskData Matches!
+	jmp	r11				; Return to Caller
+_RFPT500
+	nop					; @"WITH" IN PIPELINE@
+	from	rTaskData			; Move to SectorData
+;	to	r0
+	add	#rlptSectorData
+;	to	r0				; Get Platform SectorData
+	ldw	(r0)
+;	with	r0				; Same SectorData?
+	sub	rSectorData			; @CMP@
+	bne	_RFPT300+1
+	with	rTaskData			; No, move to next
+	jmp	r11				; Return to Caller
+	nop
+
+	CACHEE	_RLFindPlatformTask
+
+
+;
+;	* * * * * * *       PLATFORM STATE CODE       * * * * * * *
+;
+_TPlatform
+	move	r12,#<_RLDoTasks2			; Save Return Address	
+	from	rTaskPtr				; Get TaskData
+;	to	r0
+	add	#rlmData
+	to	rTaskData
+	ldw	(r0)
+	move	rFPSCount,(<(FPSCount+RLGSUSNESXVarsO))	; Get FPSCount
+	move	rFPSRatio,(<FPSRatio)			; Get FPSRatio
+;
+;	>>>   CALL PLATFORM TASK STATE CODE   <<<
+;
+	move	r0,#^_TPlatformCode
+	romb
+	iwt	r1,#<_TPlatformCode		; Base Address of JumpTable
+	ldw	(rTaskData)			; Get Platform State
+;	from	r0
+	to	r14
+	add	r1
+	move	r1,#<(EMSECTORS+2)		; R1 = Bank of EM Platform Data
+	ldb	(r1)				; R2 = Platform StateCode
+	to	r2
+	getb
+	inc	r14
+	with	r2
+	getbh
+	romb					; Set ROM Bank
+	link	#3
+	move	r15,r2				; Call Platform StateCode
+	nop
+;
+;	>>>   COMPLETED THIS STATE?   <<<
+;
+_TPlatform1
+;	with	r0				; At stopping position?
+	sub	r2
+	bne	_TPlatform900
+	nop
+;
+;	* * * * * * *       NEXT PLATFORM STATE CODE       * * * * * * *
+;
+_TPlatform2
+	move	r0,#^_TPlatformCode
+	romb
+	ldw	(rTaskData)			; Get Platform State
+	inc	r0				; Next Platform State
+	inc	r0
+	iwt	r1,#<(_TPlatformCode+1)		; Base Address of JumpTable
+;	from	r0
+	to	r14
+	add	r1
+	to	r1
+	getb					; Get PlatformTask Code
+	with	r1
+	sex
+	bmi	_TPlatform500			; Valid Task State
+	nop
+	dec	r14
+	getb					; New Task State
+_TPlatform500
+;	from	r0
+	sbk
+;
+_TPlatform3
+_TPlatform900
+	iwt	r15,#<_RLDoTasks2		; Return to TaskDispatcher
+	nop
+
+;
+;	* * * * * * *       KILL PLATFORM TASK       * * * * * * *
+;
+_TPlatformKill
+	link	#4				; Remove PlatformTask
+	iwt	r15,#<_RLRemPlatformTask
+	nop
+	iwt	r11,#<_RLDoTasks2		; Return to Task Dispatcher
+	iwt	r15,#<_RLRemTask		; Remove the Task
+	nop
+
+
+;
+;	* * * * * * *       START PLATFORM SOUND EFFECT       * * * * * * *
+;
+;	R3 = Sound Effect#
+;	R4 = Pointer to Sound Origin Coordinates
+;
+_TPlatformSound
+	iwt	r11,#<_TPlatform2		; RETURN TO _TPLATFORM2
+_TPlatformSound2
+	move	r14,r4				; Get Platform Sound Origin
+	getb					; SOUND ORIGIN X
+	inc	r14
+	to	r4
+	getbh
+	inc	r14
+	getb					; SOUND ORIGIN Y
+	inc	r14
+	to	r6
+	getbh
+	iwt	r15,#<_RLSoundEffect		; START SOUND EFFECT!
+	nop
+
+
+;
+;	* * * * * * *       PLATFORM TASK CODE JUMP TABLE       * * * * * * *
+;
+_TPlatformCode
+;
+;	>>>   OPEN/CLOSE DOOR   <<<
+;
+_TPCDoorOpenClose
+	dc.w	<_TDoorOpen			; Door Open
+	dc.w	<_TDoorOpening			; Door Opening
+	dc.w	<_TDoorHold4Sec			; Door Hold 4 seconds
+	dc.w	<_TDoorHold			; Door Hold
+	dc.w	<_TDoorClose			; Door Close
+	dc.w	<_TDoorClosing			; Door Closing
+	dc.w	<_TDoorClosed			; Door Closed
+	dc.w	<_TPlatformKill			; Remove Door
+_TPCDoorOpenCloseE
+;
+;	>>>   OPEN DOOR   <<<
+;
+_TPCDoorOpen
+	dc.w	<_TDoorOpen			; Door Open
+	dc.w	<_TDoorOpening			; Door Opening
+	dc.w	<_TPlatformKill			; Remove Door
+;
+;	>>>   CLOSE DOOR   <<<
+;
+_TPCDoorClose
+	dc.w	<_TDoorClose			; Door Close
+	dc.w	<_TDoorClosing			; Door Closing
+	dc.w	<_TDoorClosed			; Door Closed
+	dc.w	<_TPlatformKill			; Remove Door
+;
+;	>>>   CLOSE,OPEN DOOR   <<<
+;
+_TPCDoorCloseOpen
+	dc.w	<_TDoorClose			; Door Close
+	dc.w	<_TDoorClosing			; Door Closing
+	dc.w	<_TDoorClosed			; Door Closed
+	dc.w	<_TDoorHold30Sec		; Door Hold 30 seconds
+	dc.w	<_TDoorHold			; Door Hold
+	dc.w	<_TDoorOpen			; Door Open
+	dc.w	<_TDoorOpening			; Door Opening
+	dc.w	<_TPlatformKill			; Remove Door
+;
+;	>>>   FLOOR RISE   <<<
+;
+_TPCFloorRise
+	dc.w	<_TFloorRising			; Floor Rising
+	dc.w	<_TPlatformKill			; Remove Floor
+;
+;	>>>   FLOOR LOWER   <<<
+;
+_TPCFloorLower
+	dc.w	<_TFloorLowering		; Floor Lowering
+	dc.w	<_TPlatformKill			; Remove Floor
+;
+;	>>>   STAIR RISE   <<<
+;
+_TPCStairRise
+	dc.w	<_TStairRising			; Stair Rising
+	dc.w	<_TPlatformKill			; Remove Floor
+;
+;	>>>   CEILING LOWER   <<<
+;
+_TPCCeilingLower
+	dc.w	<_TCeilingLowering		; Ceiling Lowering
+	dc.w	<_TPlatformKill			; Remove Ceiling
+;
+;	>>>   LIFT   <<<
+;
+_TPCLift
+	dc.w	<_TLiftStart			; Lift Start
+	dc.w	<_TLiftLowering			; Lift Lowering
+	dc.w	<_TLiftStop			; Lift Stop
+	dc.w	<_TLiftHold3Sec			; Lift Hold 3 seconds
+	dc.w	<_TLiftHold			; Lift Hold
+	dc.w	<_TLiftStart			; Lift Start
+	dc.w	<_TLiftRising			; Lift Rising
+	dc.w	<_TLiftStop			; Lift Stop
+	dc.w	<_TPlatformKill			; Remove Lift
+;	dc.w	(_TPCLift-_TPlatformCode)	; Restart at _TPCLift
+;
+;	>>>   MOVING FLOOR   <<<
+;
+_TPCMovingFloor
+	dc.w	<_TMovingFloorLowering		 ; Moving Floor Lowering
+	dc.w	<_TMovingFloorRising		 ; Moving Floor Rising
+	dc.w	(_TPCMovingFloor-_TPlatformCode) ; Repeat
+;
+;	>>>   KILL MOVING FLOOR   <<<
+;
+_TPCKillMovingFloor
+	dc.w	<_TPlatformKill			; Remove Lift
+;
+;	>>>   CRUSHING CEILING   <<<
+;
+_TPCCrushingCeiling
+	dc.w	<_TCrushingCeilingLowering	 ; Crushing Ceiling Lowering
+	dc.w	<_TCrushingCeilingRising	 ; Crushing Ceiling Rising
+	dc.w	(_TPCCrushingCeiling-_TPlatformCode) ; Repeat
+;
+;	>>>   KILL CRUSHING CEILING   <<<
+;
+_TPCKillCrushingCeiling
+	dc.w	<_TPlatformKill			; Remove Crushing Ceiling

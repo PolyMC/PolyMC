@@ -1,0 +1,660 @@
+	PLIST	ON
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                          ENGINE BSP MODULE                         *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildBSP
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+;
+;	* * * * * * *       REALITY_ENGINE BUILD BSP TREE       * * * * * * *
+;
+;	GO THROUGH BSP TREE AND BUILD AREA/SEGMENT TRAVERSAL LIST
+;
+
+rSightLeftX	equ	r2			; Left SightLine Delta X
+rSightLeftY	equ	r3			; Left SightLine Delta Y
+rSightRightX	equ	r5			; Right SightLine Delta X
+rSightRightY	equ	r7			; Right SightLine Delta Y
+;
+rBSPPtr		equ	r8			; Pointer to BSP NODE
+rBSPStack	equ	r9			; BSP Stack Pointer
+rAreaPtr	equ	r10			; Pointer to AREA/SEGS List
+rAreaPtrP	equ	r11			; Pointer to Previous AREA/SEGS Entry
+;
+rPt1X		equ	rBSPPtr			; SightLine Point1 X Coordinate
+rPt1Y		equ	rBSPStack		; SightLine Point1 Y Coordinate
+rPt2X		equ	rAreaPtr		; SightLine Point2 X Coordinate
+rPt2Y		equ	rAreaPtrP		; SightLine Point2 Y Coordinate
+;
+rInSightCode	equ	r12			; Pointer to Code if NODE In Sight
+rOutSightCode	equ	r13			; Pointer to Code if NODE Out of Sight
+rBSPTemp	equ	rOutSightCode
+rViewY		equ	rInSightCode
+
+
+
+	align	16,(_RLBuildBSP-_RLBSPNode)&$0f
+;
+;	* * * * * * *       BUILD AREA/SEGMENT LIST FROM BSP NODES       * * * * * * *
+;
+_RLBuildBSP
+	iwt	rAreaPtr,#<_RLAreaSegList	; Initialize AREA/SEGMENT Pointer
+;
+	iwt	rBSPStack,#<_RLBSPStack		; Initialize BSP Stack Pointer
+	iwt	r0,#<_RLBuildBSP200		; Final Return Address
+	stw	(rBSPStack)
+	inc	rBSPStack
+	inc	rBSPStack
+	move	rBSPPtr,(<EMBSPR)		; BSP Root Node
+;
+;	>>>   INITIALIZE VIEW SIGHTLINE DELTAS   <<<
+;
+	ibt	r0,#^SightRayTable		; Bank of SightRayTable
+	romb
+	move	r0,(<ViewAngle)			; Get ViewAngle
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr					; >>5
+	lsr					; Remove lowest bit
+	add	r0
+	add	r0
+	add	r0
+	iwt	r1,#<SightRayTable		; Add Base of SightRayTable
+	from	r1
+	to	r14
+	add	r0
+	getb					; Get LeftDeltaX
+	inc	r14
+;	from	r0
+	to	rSightLeftX
+	getbh
+	inc	r14
+	getb					; Get LeftDeltaY
+	inc	r14
+;	from	r0
+	to	rSightLeftY
+	getbh
+	inc	r14
+	getb					; Get RightDeltaX
+	inc	r14
+;	from	r0
+	to	rSightRightX
+	getbh
+	inc	r14
+	getb					; Get RightDeltaY
+	inc	r14
+;	from	r0
+	to	rSightRightY
+	getbh
+;
+	move	r0,#<(EMBSP+2)			; Bank of EM Data
+	ldb	(r0)
+	romb					; Set ROM Bank
+;
+	with	rAreaPtrP			; Previous AREA/SEGS Entry
+	bra	_RLBSPNode0
+	sub	rAreaPtrP
+;
+_RLBuildBSP200
+	move	(<SLAreaPtr),rAreaPtrP		; Save Pointer to First AREA/SEGS Entry
+
+	ifn	DEBUGSCR
+	move	(<DebugBSPPtr),rAreaPtr
+	endif
+;
+;	>>>   BUILD DISPLAY SEGMENT LIST   <<<
+;
+	iwt	r0,#<_RLBuildSegList1		; BUILD SEGMENT LIST
+	ibt	r8,#^_RLBuildSegList1
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+
+;
+;	* * * * * * *       TRAVERSE BSP NODE       * * * * * * *
+;
+_RLBSPNode0
+	CACHEB	_RLBSPNode
+_RLBSPNode
+	moves	rBSPPtr,rBSPPtr			; Is this NODE an AREA?
+	bpl	_RBN2000			; No
+;
+;	>>>   ADD AREA TO AREALIST   <<<
+;
+	move	r0,(<EMAREAS)			; AREA Base
+;	from	r0
+	to	r14
+	add	rBSPPtr
+	move	r1,(<EMSEGS)			; Add Base of SEGS
+	to	r12				; Get Number of SEGS in this AREA
+	getb
+	inc	r14
+	from	rAreaPtrP			; Save Pointer to Previous AREA/SEG
+	stw	(rAreaPtr)
+	move	rAreaPtrP,rAreaPtr		; Save New Previous AREA/SEG Entry Ptr
+	inc	rAreaPtr
+	inc	rAreaPtr
+	getb					; Get Starting Segment
+	inc	r14
+	from	r14				; Save Pointer to Area-1
+	stw	(rAreaPtr)
+	inc	rAreaPtr
+	inc	rAreaPtr
+	getbh
+;	with	r0				; R0 = (StartingSegment-1)
+	add	r1
+;
+;	>>>   ADD AREA'S SEGMENTS TO AREALIST   <<<
+;
+	move	r1,#rluSize			; Size of Each Area/Segment Entry
+_RBN1000
+;	with	r0				; Next Segment
+	add	#rlgSize
+;	from	r0
+	stw	(rAreaPtr)			; Save Segment
+	dec	r12				; One More Segment
+	with	rAreaPtr			; Next Area/Segment Entry
+	bne	_RBN1000
+	add	r1
+
+	ifn	useCHECKBSPDATA
+;	moves	rAreaPtr,rAreaPtr		; Error with BSP AreaSegList?
+	bmi	.0
+	HALTGSU	#$60				; YES!
+.0
+	endif
+;
+;	>>>   TERMINATE AREA LIST   <<<
+;
+	dec	rBSPStack			; Pop Stack
+	dec	rBSPStack
+	move	r1,#$0001			; Terminator Segment
+;	to	r0				; Return to Caller
+	ldw	(rBSPStack)
+	from	r1
+	stw	(rAreaPtr)
+	inc	rAreaPtr
+	move	r15,r0
+	inc	rAreaPtr
+;
+;	>>>   PROCESS NEXT NODE   <<<
+;
+_RBN2000
+;	move	r0,(<EMBSP)			; BSP Base
+	dc.b	$a0,<(EMBSP/2)
+	from	rBSPPtr				; Move to NODE
+	to	r14
+	add	r0
+;
+;	>>>   CALCULATE CROSS PRODUCT OF <PARTITION> AND <VIEW>   <<<
+;
+;			   (Xa * Yb) - (Ya * Xb)
+;
+;	= (DeltaX * (ViewY-LineY)) - (DeltaY * (ViewX-LineX))
+;
+;
+;	>>>   (Xa * Yb)   <<<
+;
+	getb
+	inc	r14
+	move	r1,(<ViewY)			; Get View Y
+	getbh
+	inc	r14
+	with	r1				; (ViewY - LineY)
+	sub	r0
+;
+	to	r6				; Get Delta X
+	getb
+	inc	r14
+	with	r6
+	getbh
+	inc	r14
+;
+	with	r1				; Result in R1:R12
+	lmult
+	move	r12,r4
+;
+;	>>>   (Ya * Xb)   <<<
+;
+	getb					; Get Line X
+	inc	r14
+	move	r4,(<ViewX)			; Get View X
+	getbh
+	inc	r14
+	from	r4				; (ViewX - LineX)
+;	to	r0
+	sub	r0
+;
+	to	r6				; Get Delta Y
+	getb
+	inc	r14
+	with	r6
+	getbh
+	inc	r14
+;
+;	with	r0				; Result in R0:R4
+	lmult
+;
+;	>>>   DETERMINE DIRECTION OF NODE   <<<
+;
+;	IF RESULT >= 0, VIEW IS TO THE LEFT OF THE NODE
+;	IF RESULT <  0, VIEW IS TO THE RIGHT OF THE NODE
+;
+	with	r12				; Xa*Yb - Ya*Xb
+	sub	r4
+	with	r1
+	sbc	r0
+	bpl	_RBN4000			; >= 0 = LEFT
+
+;
+;	* * * * * * *       VIEW IS TO THE RIGHT OF THE NODE       * * * * * * *
+;
+_RBN3000
+;
+;	>>>   PROCESS LEFT CHILD   <<<
+;
+	iwt	rInSightCode,#<_RBN3200		; NODE is WITHIN LineOfSight
+	iwt	rOutSightCode,#<_RBN3600	; NODE is OUTSIDE LineOfSight
+	iwt	r15,#<_RLBSPSight		; Check LineOfSight
+_RBN3200
+	from	r14				; Push BSP Pointer
+	stw	(rBSPStack)
+	to	rBSPPtr
+	getb
+	inc	r14
+	inc	rBSPStack
+	inc	rBSPStack
+	iwt	r0,#<_RBN3500			; Push Return Address
+;	from	r0
+	stw	(rBSPStack)
+	inc	rBSPStack
+	with	rBSPPtr
+	getbh
+	iwt	r15,#<_RLBSPNode		; Recurse
+	inc	rBSPStack
+;
+;	>>>   PROCESS RIGHT CHILD   <<<
+;
+_RBN3500
+	dec	rBSPStack			; Get BSP Pointer
+	dec	rBSPStack
+	to	r14
+	ldw	(rBSPStack)
+_RBN3600
+	inc	r14				; Move to Right BoundaryBox
+	inc	r14
+	iwt	rOutSightCode,#<_RBN3900	; NODE is OUTSIDE LineOfSight
+	from	rOutSightCode			; Get Right Child
+	stw	(rBSPStack)
+	iwt	rInSightCode,#<_RBN3700		; NODE is WITHIN LineOfSight
+	iwt	r15,#<_RLBSPSight+1
+	getb					; Get MaxY
+_RBN3700
+	to	rBSPPtr
+	getb
+	inc	r14
+	inc	rBSPStack
+	inc	rBSPStack
+	with	rBSPPtr
+	getbh
+	iwt	r15,#<_RLBSPNode+1		; Recurse
+	with	rBSPPtr				; Is this NODE an AREA?
+;
+;	>>>   RECURSE   <<<
+;
+_RBN3900
+	dec	rBSPStack			; Pop Stack
+	dec	rBSPStack
+	to	r15				; Return to Caller
+	ldw	(rBSPStack)
+	nop
+
+;
+;	* * * * * * *       VIEW IS TO THE LEFT OF THE NODE       * * * * * * *
+;
+_RBN4000
+;
+;	>>>   PROCESS RIGHT CHILD   <<<
+;
+;	iwt	rInSightCode,#<_RBN4200		; NODE is WITHIN LineOfSight
+	dc.w	<_RBN4200
+	iwt	rOutSightCode,#<_RBN4600	; NODE is OUTSIDE LineOfSight
+	with	r14				; Move to Right Child
+	add	#(rlbRightYMax-rlbLeftYMax)
+	iwt	r15,#<_RLBSPSight		; Check LineOfSight
+_RBN4200
+	from	r14				; Push BSP Pointer
+	stw	(rBSPStack)
+	to	rBSPPtr
+	getb
+	inc	r14
+	inc	rBSPStack
+	inc	rBSPStack
+	iwt	r0,#<_RBN4500			; Push Return Address
+;	from	r0
+	stw	(rBSPStack)
+	inc	rBSPStack
+	with	rBSPPtr
+	getbh
+	iwt	r15,#<_RLBSPNode		; Recurse
+	inc	rBSPStack
+;
+;	>>>   PROCESS LEFT CHILD   <<<
+;
+_RBN4500
+	dec	rBSPStack			; Get BSP Pointer
+	dec	rBSPStack
+	to	r14
+	ldw	(rBSPStack)
+_RBN4600
+	ibt	r0,#(rlbRightChild-rlbLeftYMax)	; Move to Left BoundaryBox
+	with	r14
+	sub	r0
+	iwt	rOutSightCode,#<_RBN4900	; NODE is OUTSIDE LineOfSight
+	from	rOutSightCode			; Get Left Child
+	stw	(rBSPStack)
+	iwt	rInSightCode,#<_RBN4700		; NODE is WITHIN LineOfSight
+	iwt	r15,#<_RLBSPSight+1
+	getb					; Get MaxY
+_RBN4700
+	to	rBSPPtr
+	getb
+	inc	r14
+	inc	rBSPStack
+	inc	rBSPStack
+	with	rBSPPtr
+	getbh
+	iwt	r15,#<_RLBSPNode+1		; Recurse
+	with	rBSPPtr				; Is this NODE an AREA?
+;
+;	>>>   RECURSE   <<<
+;
+_RBN4900
+	dec	rBSPStack			; Pop Stack
+	dec	rBSPStack
+	to	r15				; Return to Caller
+	ldw	(rBSPStack)
+	nop
+
+;
+;	* * * * * * *       TEST LINE-OF-SIGHT BOUNDARIES       * * * * * * *
+;
+;	(r14) Points to BoundaryBox MinY,MaxY,MinX,MaxX,ChildPtr
+;
+;	(r14) Points to ChildPtr
+;
+_RLBSPSight
+;
+;	>>>   DETERMINE WHICH TWO POINTS TO USE   <<<
+;
+;	   A		B	    C
+;
+;	(X1,Y1) *----------------
+;		!               !
+;		!               !
+;	   D	!       E       !   F
+;		!               !
+;		!               !
+;		----------------* (X2,Y2)
+;
+;	   G		H	    I
+;
+;
+	getb					; Get MaxY
+	inc	r14
+	move	(<BBBSPStack),rBSPStack		; Save BSP Stack Pointer
+;	from	r0
+	to	rPt1Y
+	getbh
+	inc	r14
+	move	(<BBOutSightCode),rOutSightCode	; Save OUTOFSIGHT Code Address
+;
+	getb					; Get MinY
+	inc	r14
+	move	(<BBAreaPtrP),rAreaPtrP		; Save AREA Pointer Previous
+;	from	r0
+	to	rPt2Y
+	getbh
+	inc	r14
+	move	(<BBInSightCode),rInSightCode	; Save INSIGHT Code Address
+;
+	getb					; Get MinX
+	inc	r14
+	move	(<BBBSPPtr),rBSPPtr		; Save BSP NODES Pointer
+;	from	r0
+	to	rPt1X
+	getbh
+	inc	r14
+;
+	getb					; Get MaxX
+	inc	r14
+	move	rViewY,(<ViewY)			; Get ViewY
+	move	(<BBAreaPtr),rAreaPtr		; Save AREA Pointer
+;
+;	from	r0
+	to	rPt2X
+	getbh
+	inc	r14
+;
+	from	rPt2Y				; @CMP@
+;	to	r0
+	sub	rViewY
+	bge	_RBSGHI
+	from	rPt1Y				; @CMP@
+;	to	r0
+	sub	rViewY
+	bge	_RBSDEF
+_RBSABC
+	move	r0,(<ViewX)			; Get ViewX
+;	from	r0
+	cmp	rPt1X
+	blt	_RBSA				; <A>
+	nop
+_RBSBC
+;	from	r0
+	cmp	rPt2X
+	bge	_RBSC
+	with	rPt1Y				; <B>
+	bra	_RBS2000
+	to	rPt2Y
+_RBSDEF
+;	move	r0,(<ViewX)			; Get ViewX
+	dc.b	$f0
+	dc.w	<(ViewX)
+;
+;	from	r0
+	cmp	rPt1X
+	bge	_RBSEF
+	nop
+	with	rPt1X				; <D>
+	bra	_RBS2000
+	to	rPt2X
+_RBSEF
+;	from	r0
+	cmp	rPt2X
+	bge	_RBSF				; <F>
+	nop
+	iwt	r15,#<_RBS8000			; <E>
+_RBSF
+	with	rPt2X
+	bra	_RBS2000
+	to	rPt1X
+_RBSGHI
+	move	r0,(<ViewX)			; Get ViewX
+;	from	r0
+	cmp	rPt1X
+	blt	_RBSG				; <G>
+	nop
+;	from	r0
+	cmp	rPt2X
+	bge	_RBSI
+	with	rPt2Y				; <H>
+	bra	_RBS2000
+	to	rPt1Y
+_RBSI
+_RBSA
+	move	r4,rPt1Y			; <I>
+	move	rPt1Y,rPt2Y
+	move	rPt2Y,r4
+;
+;	>>>   CHECK LEFT SIGHTLINE   <<<
+;
+_RBSC
+_RBSG
+_RBS2000
+;
+;	>>>   (Xa * Yb)   <<<
+;
+	move	r6,rSightLeftX			; Get Delta X (Xa)
+	from	rPt1Y				; (ViewY - Pt1Y)
+	to	r1
+	sub	rViewY
+	with	r1				; Result in R1:RBSPTemp
+	lmult
+	move	rBSPTemp,r4
+;
+;	>>>   (Ya * Xb)   <<<
+;
+	move	r6,rSightLeftY			; Get Delta Y
+	from	rPt1X				; (ViewX - Pt1X)
+;	to	r0
+	sub	r0
+;	with	r0				; Result in R0:R4
+	lmult
+;
+	with	rBSPTemp			; Xa*Yb - Ya*Xb
+	sub	r4
+	with	r1
+	sbc	r0
+	bmi	_RBS4000			; < 0 = RIGHT
+	with	rSightRightX			; Get Delta X (Xa)
+;
+;	>>>   (Ya * Xb)   <<<
+;
+	move	r1,(<ViewX)
+	from	rPt2X				; (ViewX - Pt2X)
+;	to	r0
+	sub	r1
+;	from	r0				; Result in R1:RBSPTemp
+	to	r1
+	lmult
+	move	rBSPTemp,r4
+;
+;	>>>   (Xa * Yb)   <<<
+;
+	move	r6,rSightLeftX			; Get Delta X (Xa)
+	from	rPt2Y				; (ViewY - Pt2Y)
+;	to	r0
+	sub	rViewY
+;	with	r0				; Result in R0:R4
+	lmult
+;
+	with	r4				; Xa*Yb - Ya*Xb
+	sub	rBSPTemp
+;	with	r0
+	sbc	r1
+	bpl	_RBS9000			; >= 0 = LEFT
+;
+;	>>>   CHECK RIGHT SIGHTLINE   <<<
+;
+_RBS4000
+;
+;	>>>   (Xa * Yb)   <<<
+;
+	move	r6,rSightRightX			; Get Delta X (Xa)
+	from	rPt1Y				; (ViewY - Pt1Y)
+;	to	r0
+	sub	rViewY
+;	from	r0				; Result in RPt1Y:RBSPTemp
+	to	rPt1Y
+	lmult
+	move	rBSPTemp,r4
+;
+;	>>>   (Ya * Xb)   <<<
+;
+	move	r6,rSightRightY			; Get Delta Y
+	move	r0,(<ViewX)
+	with	rPt1X				; (ViewX - Pt1X)
+	sub	r0
+	with	rPt1X				; Result in RPt1X:R4
+	lmult
+;
+	with	rBSPTemp			; Xa*Yb - Ya*Xb
+	sub	r4
+	with	rPt1Y
+	sbc	rPt1X
+	bpl	_RBS6000			; >= 0 = LEFT
+;
+;	>>>   (Ya * Xb)   <<<
+;
+	from	rPt2X				; (ViewX - Pt2X)
+;	to	r0
+	sub	r0
+;	from	r0				; Result in RPt2X:RBSPTemp
+	to	rPt2X
+	lmult
+	move	rBSPTemp,r4
+;
+;	>>>   (Xa * Yb)   <<<
+;
+	move	r6,rSightRightX			; Get Delta X (Xa)
+	from	rPt2Y				; (ViewY - Pt2Y)
+;	to	r0
+	sub	rViewY
+;	with	r0				; Result in R1:RBSPTemp
+	lmult
+;
+	with	r4				; Xa*Yb - Ya*Xb
+	sub	rBSPTemp
+;	with	r0
+	sbc	rPt2X
+	bmi	_RBS9000+1			; < 0 = RIGHT
+
+;
+;	>>>   CHECK BEHIND SIGHTLINE   <<<
+;
+_RBS6000
+
+;
+;	>>>   INCLUDE NODE (WITHIN LINE OF SIGHT)   <<<
+;
+_RBS8000
+	move	rBSPPtr,(<BBBSPPtr)		; Restore BSP NODES Pointer
+	move	rBSPStack,(<BBBSPStack)		; Restore BSP Stack Pointer
+	move	rAreaPtr,(<BBAreaPtr)		; Restore AREA Pointer
+	move	rAreaPtrP,(<BBAreaPtrP)		; Restore AREA Pointer Previous
+	move	r15,(<BBInSightCode)
+;	jmp	rInSightCode			; WITHIN Line Of Sight!
+	nop
+;
+;	>>>   EXCLUDE NODE (OUTSIDE LINE OF SIGHT)   <<<
+;
+_RBS9000
+	move	rBSPPtr,(<BBBSPPtr)		; Restore BSP NODES Pointer
+	move	rBSPStack,(<BBBSPStack)		; Restore BSP Stack Pointer
+	move	rAreaPtr,(<BBAreaPtr)		; Restore AREA Pointer
+	move	rAreaPtrP,(<BBAreaPtrP)		; Restore AREA Pointer Previous
+	move	r15,(<BBOutSightCode)
+;	jmp	rOutSightCode			; OUTSIDE Line Of Sight!
+	nop
+
+	CACHEE	_RLBSPNode

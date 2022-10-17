@@ -1,0 +1,514 @@
+#
+#	Makefile for RL		--	PROJECT: REALITY ENGINE
+#
+#	Written by:  Randy Linden
+#
+
+
+#
+#	RULES
+#
+
+.a.o:
+	@date TO=SysDate
+	xa -a$*.a -o$*.o -s -c65816
+	@copy $*.o RLOBJ: QUIET
+	-@bumprev 1 $*.a
+	@delete >NIL: $*.a.h
+
+.c.o:
+	sc $*.c math=ffp DATA=FAR
+
+.asm.o:
+	asm -d -m4 $*.asm
+
+
+#
+#	List of ALL programs
+#
+ALL = \
+RL XB \
+RIPDOOM \
+MKSIN MKARCTAN MKTAN MKSEC \
+MKINV MKRAY MKRLPIXSCALE \
+MKFLOOR MKTEX MKWALL MKSPR \
+SPMUS \
+CONVGUS IFFDIM
+
+
+#
+#	List of itty-bitty pieces to form HUGE program
+#
+RL = \
+monitor.o bank00.o vectors.o random.o \
+rlram0.o rlram1.o rlram2.o rlram3.o rlram7.o \
+rlwallimgdef0.o rlwallimgdef1.o rlwallimgdef2.o rlwallimgdef3.o \
+rlfloorsdef.o \
+musicdat.o \
+rl.o \
+rlinit.o rlmain.o rllevels.o \
+rlgsu.o rlirq.o rlnmi.o rlpro.o \
+rlplayer.o rlplayer2.o \
+rlweapons.o rlweapons2.o rlweapons3.o \
+rlobjects.o rlobjects2.o \
+rlmobjects.o rlmobjects2.o rlmobjects3.o \
+rlenemies.o rlenemies2.o rlenemies3.o \
+rlenemies4.o rlenemies5.o rlenemies6.o \
+rlenemies7.o \
+rlprojectiles.o rlradius.o \
+rlmove.o rlmove2.o rlmove3.o \
+rlmove4.o rlmove5.o \
+rlmove6.o rlmove7.o rlmove8.o \
+rluse.o rluse2.o \
+rlmath.o \
+rlbsp.o \
+rlsegs.o rlsegs2.o rlsegs3.o rlsegs4.o \
+rlvsegs.o rlvsegs2.o rlvsegs3.o rlvsegs4.o \
+rlvobjs.o \
+rlbuild.o rltrace.o \
+rltracew.o rltracew2.o rltracew3.o rltracew4.o rltracew5.o \
+rltracef.o rltracef2.o rltracef3.o \
+rltraceo.o rltraceo2.o rltraceo3.o \
+rlmisc.o rlmisc2.o \
+rllines.o rlsectors.o \
+rlsound.o rlsound2.o rlsound3.o \
+rltasks.o rllights.o rltoggles.o \
+rlplats.o rldoors.o rlfloors.o rlceilings.o rllifts.o \
+rldraww.o rldrawf.o rldrawf2.o rldrawo.o \
+rldraw.o rldraw2.o \
+rlwalls.o rltextures.o rlimages.o \
+rlcolour.o rlrgb.o rltext.o rlmsg.o \
+rlstatus.o rlautomap.o rlmenus.o \
+objdata.o objdata2.o objdata3.o \
+e1my.o e2my.o e3my.o \
+init.o snes.o sys.o debug.o vars.o \
+nmi.o irq.o \
+common.o comp.o xfer.o \
+sincos.o inverse.o sightray.o \
+rlpixscale.o \
+rlcutdef.o rlcutdata.o \
+musicdrv.o \
+logo.o logo2.o sculpt.o title.o legal.o \
+rage.o score.o \
+xband.o \
+rl2.o \
+rev.o \
+
+
+#
+#	List of itty-bitty pieces to form HUGE program
+#
+#	Will LINK from RAM: assignment of RLOBJ:
+#
+RRL = \
+RLOBJ:monitor.o RLOBJ:bank00.o RLOBJ:vectors.o RLOBJ:random.o \
+RLOBJ:rlram0.o RLOBJ:rlram1.o RLOBJ:rlram2.o RLOBJ:rlram3.o RLOBJ:rlram7.o \
+RLOBJ:rlwallimgdef0.o RLOBJ:rlwallimgdef1.o RLOBJ:rlwallimgdef2.o RLOBJ:rlwallimgdef3.o \
+RLOBJ:rlfloorsdef.o \
+RLOBJ:musicdat.o \
+RLOBJ:rl.o \
+RLOBJ:rlinit.o RLOBJ:rlmain.o RLOBJ:rllevels.o \
+RLOBJ:rlgsu.o RLOBJ:rlirq.o RLOBJ:rlnmi.o RLOBJ:rlpro.o \
+RLOBJ:rlplayer.o RLOBJ:rlplayer2.o \
+RLOBJ:rlweapons.o RLOBJ:rlweapons2.o RLOBJ:rlweapons3.o \
+RLOBJ:rlobjects.o RLOBJ:rlobjects2.o \
+RLOBJ:rlmobjects.o RLOBJ:rlmobjects2.o RLOBJ:rlmobjects3.o \
+RLOBJ:rlenemies.o RLOBJ:rlenemies2.o RLOBJ:rlenemies3.o \
+RLOBJ:rlenemies4.o RLOBJ:rlenemies5.o RLOBJ:rlenemies6.o \
+RLOBJ:rlenemies7.o \
+RLOBJ:rlprojectiles.o RLOBJ:rlradius.o \
+RLOBJ:rlmove.o RLOBJ:rlmove2.o RLOBJ:rlmove3.o \
+RLOBJ:rlmove4.o RLOBJ:rlmove5.o \
+RLOBJ:rlmove6.o RLOBJ:rlmove7.o RLOBJ:rlmove8.o \
+RLOBJ:rluse.o RLOBJ:rluse2.o \
+RLOBJ:rlmath.o \
+RLOBJ:rlbsp.o \
+RLOBJ:rlsegs.o RLOBJ:rlsegs2.o RLOBJ:rlsegs3.o RLOBJ:rlsegs4.o \
+RLOBJ:rlvsegs.o RLOBJ:rlvsegs2.o RLOBJ:rlvsegs3.o RLOBJ:rlvsegs4.o \
+RLOBJ:rlvobjs.o \
+RLOBJ:rlbuild.o RLOBJ:rltrace.o \
+RLOBJ:rltracew.o RLOBJ:rltracew2.o RLOBJ:rltracew3.o RLOBJ:rltracew4.o RLOBJ:rltracew5.o \
+RLOBJ:rltracef.o RLOBJ:rltracef2.o RLOBJ:rltracef3.o \
+RLOBJ:rltraceo.o RLOBJ:rltraceo2.o RLOBJ:rltraceo3.o \
+RLOBJ:rlmisc.o RLOBJ:rlmisc2.o \
+RLOBJ:rllines.o RLOBJ:rlsectors.o \
+RLOBJ:rlsound.o RLOBJ:rlsound2.o RLOBJ:rlsound3.o \
+RLOBJ:rltasks.o RLOBJ:rllights.o RLOBJ:rltoggles.o \
+RLOBJ:rlplats.o RLOBJ:rldoors.o RLOBJ:rlfloors.o RLOBJ:rlceilings.o RLOBJ:rllifts.o \
+RLOBJ:rldraww.o RLOBJ:rldrawf.o RLOBJ:rldrawf2.o RLOBJ:rldrawo.o \
+RLOBJ:rldraw.O RLOBJ:rldraw2.o \
+RLOBJ:rlwalls.o RLOBJ:rltextures.o RLOBJ:rlimages.o \
+RLOBJ:rlcolour.o RLOBJ:rlrgb.o RLOBJ:rltext.o RLOBJ:rlmsg.o \
+RLOBJ:rlstatus.o RLOBJ:rlautomap.o RLOBJ:rlmenus.o \
+RLOBJ:objdata.o RLOBJ:objdata2.o RLOBJ:objdata3.o \
+RLOBJ:e1my.o RLOBJ:e2my.o RLOBJ:e3my.o \
+RLOBJ:init.o RLOBJ:snes.o RLOBJ:sys.o RLOBJ:debug.o RLOBJ:vars.o \
+RLOBJ:nmi.o RLOBJ:irq.o \
+RLOBJ:common.o RLOBJ:comp.o RLOBJ:xfer.o \
+RLOBJ:sincos.o RLOBJ:inverse.o RLOBJ:sightray.o \
+RLOBJ:rlpixscale.o \
+RLOBJ:rlcutdef.o RLOBJ:rlcutdata.o \
+RLOBJ:musicdrv.o \
+RLOBJ:logo.o RLOBJ:logo2.o RLOBJ:sculpt.o RLOBJ:title.o RLOBJ:legal.o \
+RLOBJ:rage.o RLOBJ:score.o \
+RLOBJ:xband.o \
+RLOBJ:rl2.o\
+RLOBJ:rev.o \
+
+
+#
+#	List of itty-bitty pieces to form HUGE program
+#
+XB = \
+xbram0.o xbram1.o xbram2.o xbrame.o \
+xbinit.o \
+xbutil.o xbcomm.o xbpocky.o xbkey.o \
+xbinfo.o xbmenus.o xbpatches.o xbdata.o \
+xbend.o \
+xbrom0.o xbrom1.o \
+
+
+#
+#	List of itty-bitty pieces to form HUGE program
+#
+#	Will LINK from RAM: assignment of RLOBJ:
+#
+RXB = \
+RLOBJ:xbram0.o RLOBJ:xbram1.o RLOBJ:xbram2.o RLOBJ:xbrame.o \
+RLOBJ:xbinit.o \
+RLOBJ:xbutil.o RLOBJ:xbcomm.o RLOBJ:xbpocky.o RLOBJ:xbkey.o \
+RLOBJ:xbinfo.o RLOBJ:xbmenus.o RLOBJ:xbpatches.o RLOBJ:xbdata.o \
+RLOBJ:xbend.o \
+RLOBJ:xbrom0.o RLOBJ:xbrom1.o \
+
+
+
+#
+#	List of itty-bitty pieces to form HUGE program
+#
+RIPDOOM = \
+ripdoom.o ripdoom2.o ripdoom3.o ripdoom4.o ripdoom5.o ripdoom6.o ripdoom7.o \
+ripdoomio.o ripdoommsg.o \
+ripdoompic.o ripdoomiff.o ripdoomwin.o \
+ripdoomvar.o
+
+
+#
+#	List of itty-bitty pieces to form HUGE program
+#
+MKWALL = \
+mkwall.o mkwall2.o \
+mkwallio.o mkwallmsg.o \
+mkwallpic.o mkwalliff.o mkwallwin.o \
+mkwallvar.o
+
+
+#
+#	List of itty-bitty pieces to form HUGE program
+#
+MKFLOOR = \
+mkfloor.o mkfloor2.o \
+mkfloorio.o mkfloormsg.o \
+mkfloorpic.o mkflooriff.o mkfloorwin.o \
+mkfloorvar.o
+
+
+#
+#	List of itty-bitty pieces to form HUGE program
+#
+MKSPR = \
+mkspr.o mkspr2.o \
+mksprio.o mksprmsg.o \
+mksprpic.o mkspriff.o mksprwin.o \
+mksprvar.o
+
+
+#
+#	List of itty-bitty pieces to form HUGE program
+#
+MKTEX = \
+mktex.o mktex2.o \
+mktexio.o mktexmsg.o \
+mktexvar.o
+
+
+#
+#	List of itty-bitty pieces to form HUGE program
+#
+SPMUS = \
+spmus.o spmus2.o spmusrlc.o \
+spmusio.o spmusmsg.o \
+spmusvar.o
+
+
+#
+#	List of itty-bitty pieces to form HUGE program
+#
+CONVGUS = \
+convgus.o convgus2.o \
+convgusio.o convgusmsg.o \
+convgusvar.o
+
+
+#
+#	List of itty-bitty pieces to form HUGE program
+#
+IFFDIM = \
+iffdim.o iffdim2.o iffdim3.o \
+iffdimio.o iffdimmsg.o \
+iffdimvar.o
+
+
+#
+#	Assemble the itty-bitty pieces to form a HUGE program
+#
+all: $(ALL)
+
+
+#
+#	>>>   MAKE REALITY_ENGINE   <<<
+#
+rev.o: rev.a rl.rev
+
+rl: $(RL)
+	@date TO=SysDate
+	-@delete RLOBJ:\#?.d RLOBJ:RL. QUIET
+	@avail FLUSH >NIL:
+	@avail FLUSH >NIL:
+#	cls
+#	@date
+	-@run >NIL: delete RL:RL. >NIL:
+	xl <-u -w -x -y -z -s -kRL.bnk -tRL.sec -eRLOBJ:RL. -l<
+$(RRL)
+<
+#	@date
+	-@bumprev 1 RL
+	@delete RL.h QUIET
+#	-@copy RLOBJ:\#?.d RL: QUIET
+#	-@delete RL:RL. QUIET
+#	-@copy RLOBJ:RL. RL: >NIL:
+#	-@delete RLOBJ:RL. QUIET
+#	@version RL.
+
+
+
+rlq:
+	-@delete RLOBJ:\#?.d RLOBJ:RL. QUIET
+	@avail FLUSH >NIL:
+	@avail FLUSH >NIL:
+	-@run >NIL: delete RL:RL. >NIL:
+	xl <-u -w -x -y -z -s -kRL.bnk -tRL.sec -eRLOBJ:RL. -l<
+$(RRL)
+<
+
+
+
+#
+#	>>>   MAKE REALITY_ENGINE WITH NO SOURCE-LEVEL OR SYMBOLS   <<<
+#
+rlx: $(RL)
+	@date TO=SysDate
+	@avail FLUSH >NIL:
+	-@delete RLOBJ:\#?.d QUIET
+	xl <-eRL. -l<
+$(RRL)
+<
+#	@version RL.
+
+
+
+#
+#	>>>   MAKE REALITY_ENGINE WITH SYMBOLIC DUMP FILE   <<<
+#
+rld: $(RL)
+	@date TO=SysDate
+	@avail FLUSH >NIL:
+	-@delete RLOBJ:\#?.d QUIET
+	xl <-w -x -y -z -s -dRL.d -kRL.bnk -tRL.sec -eRLOBJ:RL. -l<
+$(RRL)
+<
+#	@version RL.
+
+
+
+#
+#	>>>   MAKE REALITY_ENGINE WITH CROSS-REFERENCE DUMP FILE   <<<
+#
+rlc: $(RL)
+	@date TO=SysDate
+	@avail FLUSH >NIL:
+	-@delete RLOBJ:\#?.d QUIET
+	xl <-w -x -y -z -s -cRL.c -kRL.bnk -tRL.sec -eRLOBJ:RL. -l<
+$(RRL)
+<
+#	@version RL.
+
+
+
+#
+#	>>>   MAKE REALITY_ENGINE WITH PRINT-LISTING FILE   <<<
+#
+rlp: $(RL)
+	@date TO=SysDate
+	-@delete RLOBJ:\#?.d RLOBJ:RL. QUIET
+	@avail FLUSH >NIL:
+	@avail FLUSH >NIL:
+#	cls
+	@date
+	xl <-u -w -x -y -z -s -kRL.bnk -tRL.sec -eRLOBJ:RL. -pRL.p -l<
+$(RRL)
+<
+	@date
+	-@bumprev 1 RL
+	@delete RL.h QUIET
+#	-@copy RLOBJ:\#?.d RL: QUIET
+#	-@copy RLOBJ:RL. RL: QUIET
+#	-@delete RLOBJ:RL. QUIET
+#	@version RL.
+
+
+#
+#	>>>   MAKE REALITY_ENGINE XBAND   <<<
+#
+xbinfo.o: xbinfo.a xb.rev
+
+xb: $(XB)
+	@date TO=SysDate
+	-@delete RLOBJ:xb\#?.d RLOBJ:XB. QUIET
+	@avail FLUSH >NIL:
+	@avail FLUSH >NIL:
+	-@run >NIL: delete RL:XB. >NIL:
+	xl <-u -w -x -y -z -s -kXB.bnk -tXB.sec -eRLOBJ:XB. -2RLOBJ:RL5934. -l<
+$(RXB)
+<
+	-@bumprev 1 XB
+	@delete XB.h QUIET
+#	xr -v -eRLOBJ:XB. -s$$00e00210 -z$$2000 -k -y -xRLOBJ:XB.BIN
+
+
+
+#
+#	>>>   DOOM DOOM.WAD RIPPER   <<<
+#
+ripdoom: $(RIPDOOM)
+	slink FROM $(RIPDOOM) LIB LIB:amiga.lib ADDSYM NOICONS VERBOSE TO RIPDOOM
+
+
+#
+#	>>>   MKSIN - MAKE SIN/COS TABLES   <<<
+#
+mksin: mksin.o
+	slink LIB:c.o mksin.o LIB LIB:scmffp.lib LIB LIB:sc.lib NOICONS TO MKSIN
+
+
+#
+#	>>>   MKTAN - MAKE TANGENT TABLES   <<<
+#
+mktan: mktan.o
+	slink LIB:c.o mktan.o LIB LIB:scmffp.lib LIB LIB:sc.lib NOICONS TO MKTAN
+
+
+#
+#	>>>   MKARCTAN - MAKE ARCTAN TABLES   <<<
+#
+mkarctan: mkarctan.o
+	slink LIB:c.o mkarctan.o LIB LIB:scmffp.lib LIB LIB:sc.lib NOICONS TO MKARCTAN
+
+
+#
+#	>>>   MKCSC - MAKE COSECANT/SECANT TABLES   <<<
+#
+mkcsc: mkcsc.o
+	slink LIB:c.o mkcsc.o LIB LIB:scmffp.lib LIB LIB:sc.lib NOICONS TO MKCSC
+
+
+#
+#	>>>   MKSEC - MAKE SECANT TABLES   <<<
+#
+mksec: mksec.o
+	slink LIB:c.o mksec.o LIB LIB:scmffp.lib LIB LIB:sc.lib NOICONS TO MKSEC
+
+
+#
+#	>>>   MKINV - MAKE INVERSE TABLES   <<<
+#
+mkinv: mkinv.o
+	slink LIB:c.o mkinv.o LIB LIB:scmffp.lib LIB LIB:sc.lib NOICONS TO MKINV
+
+
+#
+#	>>>   MKRAY - MAKE LINE-OF-SIGHT RAY TABLES   <<<
+#
+mkray: mkray.o
+	slink LIB:c.o mkray.o LIB LIB:scmffp.lib LIB LIB:sc.lib NOICONS TO MKRAY
+
+
+#
+#	>>>   MKRLPIXSCALE - MAKE RL WORLD <-> SCREEN PIXEL SCALING TABLES   <<<
+#
+mkrlpixscale: mkrlpixscale.o
+	slink LIB:c.o mkrlpixscale.o LIB LIB:scmffp.lib LIB LIB:sc.lib NOICONS TO MKRLPIXSCALE
+
+
+#
+#	>>>   MAKEWALL - MAKE WALL DATA FILES   <<<
+#
+mkwall: $(MKWALL)
+	slink FROM $(MKWALL) LIB LIB:amiga.lib ADDSYM NOICONS VERBOSE TO MKWALL
+
+
+#
+#	>>>   MAKEFLOOR - MAKE FLOOR DATA FILES   <<<
+#
+mkfloor: $(MKFLOOR)
+	slink FROM $(MKFLOOR) LIB LIB:amiga.lib ADDSYM NOICONS VERBOSE TO MKFLOOR
+
+
+#
+#	>>>   MAKESPRITE - MAKE SPRITE DATA FILES   <<<
+#
+mkspr: $(MKSPR)
+	slink FROM $(MKSPR) LIB LIB:amiga.lib ADDSYM NOICONS VERBOSE TO MKSPR
+
+
+#
+#	>>>   MAKETEXTURE - MAKE TEXTURE DATA FILES   <<<
+#
+mktex: $(MKTEX)
+	slink FROM $(MKTEX) LIB LIB:amiga.lib ADDSYM NOICONS VERBOSE TO MKTEX
+
+
+#
+#	>>>   SPMUS - SPLIT MUSIC FILE   <<<
+#
+spmus: $(SPMUS)
+	slink FROM $(SPMUS) LIB LIB:amiga.lib ADDSYM NOICONS VERBOSE TO SPMUS
+
+
+#
+#	>>>   CONVGUS - CONVERT GUS PATCH FILE   <<<
+#
+convgus: $(CONVGUS)
+	slink FROM $(CONVGUS) LIB LIB:amiga.lib ADDSYM NOICONS VERBOSE TO CONVGUS
+
+
+#
+#	>>>   IFFDIM - IFF FILE DIMENSIONS   <<<
+#
+iffdim: $(IFFDIM)
+	slink FROM $(IFFDIM) LIB LIB:amiga.lib ADDSYM NOICONS VERBOSE TO IFFDIM
+
+
+#
+#	ROM Creation MACROS
+#
+prgrom:
+	xr -v -eRLOBJ:RL. -s$$80000000 -z$$80000 -xRLOBJ:RL.BIN -y
+
+prgrom0a:
+	off
+	-xr -eRL. -s$$80000000 -z$$40000 -c$$00000 -r12E0F6 -b19200
+
+prgrom0b:
+	off
+	-xr -eRL. -s$$80040000 -z$$40000 -c$$00000 -r12E0F6 -b19200

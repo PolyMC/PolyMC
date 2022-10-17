@@ -1,0 +1,5 @@
+xg -pRLART:MainMenu -dRLDATA:ART/MainMenu -ms -q1 -s32,11 -c15
+delete RLDATA:ART/MainMenu.rgb
+xc -iRLDATA:ART/MainMenu.map0 -oRLDATA:COMP/MainMenu.map0
+xc -iRLDATA:ART/MainMenu.def0 -oRLDATA:COMP/MainMenu.def0
+touch rlmenus.a

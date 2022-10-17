@@ -1,0 +1,143 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       RGB PALETTE BLOCKS MODULE                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+
+
+	SECTION	ENGINE_RAMCODE
+;
+;	* * * * * * *       RGB PALETTE DATA BLOCKS       * * * * * * *
+;
+;_RLRGBs	equ	((**&$00ff8000)<<1)+(**&$7fff)+$8000
+_RLRGBs		equ	((**&$00ffffff)+$400000)
+
+RLRGBs
+	image	RLDATA:COLOUR/BASERGB.RGB
+
+
+;
+;	* * * * * * *       TABLE OF RGB PALETTE ANIMATIONS       * * * * * * *
+;
+RLRGBAnimTable
+	dc.w	<(RLRGBNormalAnim-RLRGBAnims)		; Normal
+	dc.w	<(RLRGBRadAnim-RLRGBAnims)		; Radiation Suit
+	dc.w	<(RLRGBBerserkAnim-RLRGBAnims)		; Berserk PowerUp
+RLRGBBaseAnimTable
+	dc.w	<(RLRGBNormalBaseAnim-RLRGBAnims)	; Normal Base
+	dc.w	<(RLRGBRadBaseAnim-RLRGBAnims)		; Radiation Suit Base
+	dc.w	<(RLRGBBerserkBaseAnim-RLRGBAnims)	; Berserk PowerUp Base
+RLRGBPickAnimTable
+	dc.w	<(RLRGBPickAnim1-RLRGBAnims)		; Pick Up 1
+	dc.w	<(RLRGBPickAnim2-RLRGBAnims)		; Pick Up 2
+	dc.w	<(RLRGBPickAnim3-RLRGBAnims)		; Pick Up 3
+	dc.w	<(RLRGBPickAnim4-RLRGBAnims)		; Pick Up 4
+RLRGBHitAnimTable
+	dc.w	<(RLRGBHitAnim1-RLRGBAnims)		; Hit 1
+	dc.w	<(RLRGBHitAnim2-RLRGBAnims)		; Hit 2
+	dc.w	<(RLRGBHitAnim3-RLRGBAnims)		; Hit 3
+	dc.w	<(RLRGBHitAnim4-RLRGBAnims)		; Hit 4
+	dc.w	<(RLRGBHitAnim5-RLRGBAnims)		; Hit 5
+	dc.w	<(RLRGBHitAnim6-RLRGBAnims)		; Hit 6
+	dc.w	<(RLRGBHitAnim7-RLRGBAnims)		; Hit 7
+	dc.w	<(RLRGBHitAnim8-RLRGBAnims)		; Hit 8
+
+
+;
+;	* * * * * * *       LIST OF RGB PALETTE ANIMATIONS       * * * * * * *
+;
+RLRGBAnims
+;
+RLRGBNormalAnim
+RLRGBNormalBaseAnim
+	dc.w	<(RLRGBs+(00*512)),$7fff		; Normal Palette Base
+	dc.w	0					; Restart Animation
+;
+RLRGBRadAnim
+RLRGBRadBaseAnim
+	dc.w	<(RLRGBs+(13*512)),$7fff		; Radiation Suit Base
+	dc.w	0
+;
+RLRGBBerserkAnim
+	dc.w	<(RLRGBs+(04*512)),5			; Berserk PowerUp
+	dc.w	<(RLRGBs+(03*512)),5
+RLRGBBerserkBaseAnim
+	dc.w	<(RLRGBs+(02*512)),$7fff		; Berserk PowerUp Base
+	dc.w	0
+;
+RLRGBPickAnim1
+	dc.w	<(RLRGBs+(09*512)),15			; Pick Up 1
+	dc.w	0
+RLRGBPickAnim2
+	dc.w	<(RLRGBs+(10*512)),8			; Pick Up 2
+	dc.w	<(RLRGBs+(09*512)),7
+	dc.w	0
+RLRGBPickAnim3
+	dc.w	<(RLRGBs+(11*512)),6			; Pick Up 3
+	dc.w	<(RLRGBs+(10*512)),6
+	dc.w	<(RLRGBs+(09*512)),3
+	dc.w	0
+RLRGBPickAnim4
+	dc.w	<(RLRGBs+(12*512)),5			; Pick Up 4
+	dc.w	<(RLRGBs+(11*512)),3
+	dc.w	<(RLRGBs+(10*512)),3
+	dc.w	<(RLRGBs+(09*512)),3
+	dc.w	0
+;
+RLRGBHitAnim1
+	dc.w	<(RLRGBs+(01*512)),15			; Hit 1
+	dc.w	0
+RLRGBHitAnim2
+	dc.w	<(RLRGBs+(02*512)),8			; Hit 2
+	dc.w	<(RLRGBs+(01*512)),7
+	dc.w	0
+RLRGBHitAnim3
+	dc.w	<(RLRGBs+(03*512)),6			; Hit 3
+	dc.w	<(RLRGBs+(02*512)),6
+	dc.w	<(RLRGBs+(01*512)),3
+	dc.w	0
+RLRGBHitAnim4
+	dc.w	<(RLRGBs+(04*512)),5			; Hit 4
+	dc.w	<(RLRGBs+(03*512)),3
+	dc.w	<(RLRGBs+(02*512)),3
+	dc.w	<(RLRGBs+(01*512)),3
+	dc.w	0
+RLRGBHitAnim5
+	dc.w	<(RLRGBs+(05*512)),4			; Hit 5
+	dc.w	<(RLRGBs+(04*512)),3
+	dc.w	<(RLRGBs+(03*512)),3
+	dc.w	<(RLRGBs+(02*512)),3
+	dc.w	<(RLRGBs+(01*512)),2
+	dc.w	0
+RLRGBHitAnim6
+	dc.w	<(RLRGBs+(06*512)),4			; Hit 6
+	dc.w	<(RLRGBs+(05*512)),3
+	dc.w	<(RLRGBs+(04*512)),3
+	dc.w	<(RLRGBs+(03*512)),2
+	dc.w	<(RLRGBs+(02*512)),2
+	dc.w	<(RLRGBs+(01*512)),2
+	dc.w	0
+RLRGBHitAnim7
+	dc.w	<(RLRGBs+(07*512)),4			; Hit 7
+	dc.w	<(RLRGBs+(06*512)),3
+	dc.w	<(RLRGBs+(05*512)),2
+	dc.w	<(RLRGBs+(04*512)),2
+	dc.w	<(RLRGBs+(03*512)),2
+	dc.w	<(RLRGBs+(02*512)),2
+	dc.w	<(RLRGBs+(01*512)),2
+	dc.w	0
+RLRGBHitAnim8
+	dc.w	<(RLRGBs+(08*512)),3			; Hit 8
+	dc.w	<(RLRGBs+(07*512)),2
+	dc.w	<(RLRGBs+(06*512)),2
+	dc.w	<(RLRGBs+(05*512)),2
+	dc.w	<(RLRGBs+(04*512)),2
+	dc.w	<(RLRGBs+(03*512)),2
+	dc.w	<(RLRGBs+(02*512)),2
+	dc.w	<(RLRGBs+(01*512)),2
+	dc.w	0

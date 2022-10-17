@@ -1,0 +1,5 @@
+xg -pRLART:DebugFont -dRLDATA:ART/DebugFont -ms -fn -y0 -c15
+delete RLDATA:ART/DebugFont.map0
+delete RLDATA:ART/DebugFont.rgb
+xc -iRLDATA:ART/DebugFont.def0 -oRLDATA:COMP/DebugFont.def0
+touch debug.a

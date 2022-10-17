@@ -1,0 +1,990 @@
+;**********************************************************************
+;*                                                                    *
+;*                      P R O J E C T :   R A G E                     *
+;*                                                                    *
+;*     C O M P R E S S I O N / D E C O M P R E S S I O N   MODULE     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+
+	public	DeCompress
+	public	UnPackRL
+
+
+	SECTION	COMP,RELOC,BASE=$80000000,RORG=$8000
+
+;
+;	* * * * * * *       DECOMPRESS DATA BLOCK       * * * * * * *
+;
+;	.X = Compressed Data Stream
+;	.A = Compressed Data Bank
+;	.Y = DeCompressed Data Buffer
+;	.B = DeCompressed Data Bank
+;
+;	.Y = Size of DeCompressedData
+;	.D = Compressed Data Bank
+;	[TEMP]  = DeCompressedData
+;	[TEMP2] = DeCompressedDataSize
+;	[TEMP2+2] = Compression Format
+;
+;
+;
+;	(DEFAULT) AND (RL) SPECIFIC VARIABLES
+;
+DDPtr		equ	Temp		; DeCompressedData Pointer
+DDPtr2		equ	Temp+3		; DeCompressedData Pointer 2
+CDTemp		equ	Temp+6		; Temporary Variable
+CDPtr		equ	Temp2		; CompressedData Pointer
+DDPtr0		equ	Temp2+3		; DeCompressedData START Pointer
+CDData		equ	Temp2+5		; CompressedData StreamByte/Word
+
+
+;
+;	(ECLIPSE) SPECIFIC VARIABLES
+;
+
+UneclipseSource	equ	CDPtr	
+UneclipseDest	equ	DDPtr
+
+UneclipseLength	equ 	Temp3
+UneclipseHalfWay equ	Temp3+2
+UneclipseTop	equ 	Temp3+4
+
+UneclipseBack	equ	Temp3+6
+UneclipseGo	equ	Temp4
+
+Temp01		equ	Temp4+2
+Temp02		equ	Temp4+4
+Temp03		equ	Temp4+6
+
+
+
+	dbr	?
+	dpr	0
+	mode	'AX'
+DeCompress
+	stx	CDPtr			; .X/.A = CompressedData
+	sta	CDPtr+2
+	sta	DDPtr+1			; Remember BANK of DeCompressed Data
+	sty	DDPtr			; .Y/.B = DeCompressedData
+	pha
+	plb				; DBR = Compressed data	
+	lda	(CDPtr)			; Get TYPE of Compression
+	plb				; DBR = DeCompressed Data
+	inx				; Move to next Compressed Word
+	inx
+	stx	CDPtr
+	tax
+	phx
+;
+	jsr	(DeCompJumps,x)		; DeCompress the data!
+;
+	plx				; TEMP2+2 = Compression Format Used
+	stx	Temp2+2
+	sty	Temp2			; TEMP2 = DeCompressed Data Size
+	phk
+	plb				; DBR = ROM somewhere always!
+	rtl
+
+;
+;	* * * * * * *       DECOMPRESSION TYPES       * * * * * * *
+;
+DeCompJumps
+	dc.4	DeCompNone		; DEFAULT (NO) Compression
+	dc.4	UnPackRL		; RLC Compression
+	dc.4	UnPackEclipse		; ECLIPSE Compression XSize1
+	dc.4	UnPackEclipse		; ECLIPSE Compression XSize2
+
+
+;
+;	* * * * * * *       NO COMPRESSION       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+DeCompNone
+	lda	[CDPtr]			; Get SIZE of DeCompressed Data
+	tay
+	inc	CDPtr			; Move to next Word
+	inc	CDPtr
+	lda	CDPtr			; Dest = Source
+	sta	DDPtr
+	lda	CDPtr+2
+	sta	DDPtr+2
+	rts
+
+
+;
+;	* * * * * * *       UNPACK RLC DATA       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'aX'
+UnPackRL0
+	phb				; Save Bank
+	jsr	UnPackRL0A
+	plb				; Restore Bank
+	rtl
+;
+UnPackRL0A
+	mode	'A!'
+	lda	[_MDChunkPtr]		; Save DeCompressed Size
+	pha
+	txa				; Save Compressed Size
+	and	#$7fff
+	tax
+	phx
+;
+	txy				; Copy Compressed Data to DeCompBuffer
+	iny
+	mode	'a!'
+UnPackRL0E
+	lda	[_MDChunkPtr],y
+	sta	_MDDeCompBuffer2-1,x
+	dey
+	dex
+	bne	UnPackRL0E
+;
+	ldx	#<_MDDeCompBuffer2	; CompressedData
+	stx	CDPtr
+	ldx	#<_MDDeCompBuffer	; DeCompressedData
+	stx	DDPtr0			; (DDPTR0) = START of DeCompressedData
+	stx	_MDChunkPtr
+	lda	#^_MDDeCompBuffer
+	sta	CDPtr+2
+	sta	DDPtr+2
+	sta	_MDChunkPtr+2
+	pha
+	plb				; DBR = DeCompressed Data
+;
+	mode	'A!'
+	pla				; [CDPtr] = END of CompressedData
+	clc
+	adc	CDPtr
+	dec	a
+	dec	a
+	sta	CDPtr
+	lda	1,s			; (DDPTR) = END of DeCompressedData
+	clc
+	adc	DDPtr0
+	sta	DDPtr
+	jmp	UnPackRL2
+;
+UnPackRL
+	lda	DDPtr			; (DDPTR0) = START of DeCompressedData
+	sta	DDPtr0
+	clc
+	adc	[CDPtr]			; DeCompressed Size
+	sta	DDPtr			; (DDPTR) = END of DeCompressedData
+	lda	[CDPtr]			; Save SIZE of DeCompressedData
+	pha
+	ldy	#2
+	lda	[CDPtr],y		; (Compressed Size-2)
+	clc
+	adc	CDPtr
+	sta	CDPtr			; [CDPtr] = END of CompressedData
+;
+;	>>>   GET FIRST WORD   <<<
+;
+UnPackRL2
+	lda	[CDPtr]
+	jmp	UPK200			; Start Decompressing!
+
+;
+;	>>>   GET NEXT WORD   <<<
+;
+UPK100
+	dec	CDPtr			; Move to next Word
+	dec	CDPtr
+	lda	[CDPtr]			; Get next Word
+	sec
+	ror	a
+	jmp	UPK210
+;
+;	>>>   MAIN LOOP   <<<
+;
+UPK200
+	lsr	a
+	beq	UPK100			; Finished this word
+UPK210
+	bcs	UPK500			; Special
+	lsr	a			; Regular
+	bne	UPK250			; Need another word?
+	dec	CDPtr
+	dec	CDPtr
+	lda	[CDPtr]
+	sec
+	ror	a
+;
+;	>>>   %0.1 = 2 byte SIZE to read from OFFSET of 8-bits   <<<
+;
+UPK250
+	ldy	#2-1			; 2-byte Copy
+	ldx	#8-1			; 8-bit Size
+	bcc	UPK280
+	jmp	UPK600
+;
+;	>>>   %0.0 = 3-bit SIZE (-1) to read from STREAM   <<<
+;
+UPK280
+	ldy	#0
+	ldx	#3-1			; 3-bit Size (-1)
+UPK300
+	jsr	RDBits			; Read .X Bits
+	tax
+	tya				; .Y = BaseCount-1
+	clc
+	adc	CDData			; BitStream Value
+	tay				; .Y = (#Bytes-1) to Read from Stream
+	txa
+UPK320
+	ldx	#8-1			; Get a byte
+	jsr	RDBits
+	tax
+	dec	DDPtr
+	mode	'a!'
+	lda	CDData
+	sta	(DDPtr)
+	mode	'A!'
+	txa
+	dey				; One less byte to do
+	bpl	UPK320
+;
+;	>>>   CHECK IF COMPLETE   <<<
+;
+UPK800
+	ldy	DDPtr			; Finished yet?
+	cpy	DDPtr0
+	bcc	UPK900			; Yes!
+	bne	UPK200			; No, keep decompressing!
+;
+;	>>>   FINISHED   <<<
+;
+UPK900
+	ply				; .Y = Size of DeCompressed Data
+	rts
+
+;
+;	>>>   %1.11 = 8-bit SIZE (+9) to read from STREAM   <<<
+;
+UPK400
+	ldy	#9-1			; 9-byte Minimum
+	ldx	#8-1			; 8-bit Size
+	jmp	UPK300
+
+;
+;	>>>   OFFSET-COPIES   <<<
+;
+UPK500
+	ldx	#2-1			; Get 2 Bits
+	jsr	RDBits
+	ldy	CDData
+	cpy	#2
+	bcc	UPK550			; MidJumps #0/#1 (Offset9Or10)
+	cpy	#3
+	beq	UPK400			; BigJump (Loop900)
+;
+;	>>>   %1.10 = 8-bit SIZE (-5) to read from OFFSET of 12-bits   <<<
+;	(Special300)
+;
+	ldx	#8-1
+	jsr	RDBits
+	ldy	CDData			; #Bytes
+	iny
+	iny
+	iny
+	iny
+	ldx	#12-1			; Offset of 12 bits
+	jmp	UPK600
+
+;
+;	>>>   %1.00 = 3 byte SIZE to read from OFFSET of 9-bits   <<<
+;	>>>   %1.01 = 4 byte SIZE to read from OFFSET of 10-bits   <<<
+;	(Offset9Or10)
+;
+UPK550
+	sta	CDTemp
+	lda	CDData			; Offset is 9/10 bits
+;	clc
+	adc	#9-1
+	tax
+	lda	CDData			; #Bytes = 3/4
+	clc
+	adc	#3-1
+	tay
+	lda	CDTemp
+;
+;	>>>   GET OFFSET AND COPY FROM MEMORY   <<<
+;
+;	.X = #Bits to read from stream as OFFSET
+;	.Y = #Bytes to COPY -1 from MEMORY at offset
+;
+UPK600
+	jsr	RDBits			; Read Offset Size
+	tax
+	lda	DDPtr			; (DDPTR2) = OffsettedDataPtr
+	clc
+	adc	CDData
+	sta	DDPtr2
+UPK650
+	dec	DDPtr			; Move to next byte
+	dec	DDPtr2
+	mode	'a!'
+	lda	(DDPtr2)		; Get Previously UnPacked Byte
+	sta	(DDPtr)
+	mode	'A!'
+	dey				; One less byte to copy
+	bpl	UPK650			; Not finished yet
+	txa
+	jmp	UPK800
+;
+;	>>>   READ BITS FROM BITSTREAM   <<<
+;
+;	.X = #Bits to read
+;
+;	(CDDATA) = Byte/Word read from BitStream
+;
+RDBits
+	stz	CDData			; Clear (CDDATA)
+RDBits1
+	lsr	a			; Any more data?
+	bne	RDBits5			; Yes
+	dec	CDPtr			; No, get next word
+	dec	CDPtr
+	lda	[CDPtr]
+	sec
+	ror	a
+RDBits5
+	rol	CDData			; Add data to BYTE/WORD
+	dex
+	bpl	RDBits1
+	rts
+
+
+
+;
+;	* * * * * * *       ECLIPSE COMPRESSION       * * * * * * *
+;
+******************************************************************************
+*
+*  Uneclipse:
+*
+* 	This program unpacks data packed by ECLIPSE.
+*
+*	Entry format:  
+*				A, X, and Y are 16 bit.
+*			      	DP should be set to $0000.	
+*				DB - Set to destination bank
+*
+*	To uneclipse, setup these variables and jsl Uneclipse.
+*
+*				UneclipseSource
+*				UneclipseDest
+*
+*      		Upon exit, the length of the decompressed data is in A, 
+*       UneclipseSource points to the last byte of the the source data,
+*	and UneclipseDest remains unchanged.  All other variables must
+*	be considered UNKNOWN.
+*
+*
+*		Uneclipsing time is on the average 45% of unchisling time. 
+*
+******************************************************************************
+
+******************************************************************************
+*
+* Uneclipse code
+*
+* 		The packed data has the following header:
+*
+*	Word - Total unpacked length
+*         	Byte - Stagger (1 or 2)
+*
+*		A stagger of one means that the data is packed in a normal
+*	sequence.  
+*		A stagger of two means that the data was re-arranged
+*	before it was packed.  The arrangement is such that all the
+*	odd offset bytes get packed first, then all the even offset bytes
+*	get packed second.  Unpacking a stagger of two requires two passes
+*	through the destination buffer.  The first unpacks the odd bytes,
+*	the second unpacks the even.
+*
+*		For speed reasons the data is compressed from the end to the
+*	beginning.  Thus, data is decompressed from the end to the
+*	beginning.
+*
+*		The packed data itself is a series of packets.  Each packed is
+*  	identified in the first byte in the packet.  Assume that the
+*	first byte in a packet is the HIGH BYTE.  Then the packets are:
+*
+*
+*	1LLLLOOOOOOOOOOO - Pattern of length L+3 at offset O (forward)
+*
+*	01LLLLLL BBBBBBBB ... BBBBBBBBB - Unique byte run of length L+1
+*
+*	000LLLLLBBBBBBBB - Run of byte BBBBBBBB for length of L+2
+*
+*	00000000 - End of data
+*
+*	If stagger = 1
+*
+*	001OOOOO - Copy the single byte at offset OOOOOO+1
+*
+*	If stagger = 2,
+*
+*	001LLLLLBBBBBBBB - Incrementing series L+3 long ending in BBBBBBBB
+*
+******************************************************************************
+
+	mode 	'AX'
+	dpr	0
+	dbr 	?
+
+UnPackEclipse
+ECL
+	lda [UneclipseSource]
+	sta UneclipseLength	 	; Get unpacked size
+	tay
+	inc UneclipseSource		; Advance past unpacked size
+	lda [UneclipseSource]	       	; Get stagger (xsize) value
+	inc UneclipseSource
+	inc UneclipseSource	  	; Advance past stagger value
+	cmp #$200
+	bcc .StartUneclipse1	    	; XSize = 1, Go do all bytes in order
+	jmp .StartUneclipse2	      	; XSize = 2, First do odd bytes, then even
+
+.StartUneclipse1
+	tya				; Point Y to the end of the		 		
+	adc UneclipseDest		;   destination buffer (data unpacks
+	tay				;   from the end)
+        lda #<.Uneclipse1 	
+	sta UneclipseBack		; Point to unpack loop
+
+.Uneclipse1				; Get and identify next packet		  	
+	lda [UneclipseSource]
+	bit #$0080
+	bne .Pattern1        		; Copy a prev. unpacked pattern
+	bit #$0040
+	bne .Unique1			; Move in unique bytes
+	bit #$0020
+	bne .SingleUnique		; Move in a single unique byte
+	jmp .RunLength1			; Copy in a run of a byte
+
+.SingleUnique
+	and #$1f  			; Identify offset of single byte
+	sta Temp01
+	tya
+	clc
+	adc Temp01		  	; Form index to single byte
+	tax		        	        
+	dey		     		; Advance destination 
+	sep #$20
+	lda !0,x   			; Copy down a single byte
+	sta !0,y
+	rep #$20
+	inc UneclipseSource 		; Advance source
+	jmp (UneclipseBack)		; Loop to do next packet
+
+.Pattern1
+	tax				
+	xba
+	and #$7ff			; Identify pattern offset
+	sta Temp01
+	txa
+	and #$0078		
+	lsr				; Get pattern length (3-18)
+	lsr
+	tax
+	lsr	     
+	sta Temp02		 	
+	lda >.Pattern1Table,x		; Use length to set jump point
+	sta UneclipseGo	      		;   into unrolled code
+	tya
+	sbc #2				; (carry clear) Advance
+	sbc Temp02			;   destination index
+	tay
+	adc Temp01			; (carry set) Set up offset to
+	tax	     			;   source as an index
+	lda UneclipseSource
+	inc
+	inc				; Advance source
+	sta UneclipseSource	        
+	jmp (UneclipseGo)	        ; Go copy pattern
+
+.Unique1
+	tyx		   		; Switch indexes
+	and #$003f
+	tay		       		; Form a length index (1 - 65)
+	sta Temp03
+	lsr				; Odd or even length?
+	bcs .DoUnique1		
+	iny				; Odd, so copy one unique byte
+	dex			      	; Advance destination
+	sep #$20
+	lda [UneclipseSource],y 	; Get unique byte	
+	sta !0,x			; Store it to destination
+	rep #$20
+	dey				; Adjust length
+	dey
+	bmi .DoneUnique1		; Exit if length < 0
+	cpy #6	    		
+	bcc .UniqueSmall1		; If less than 8 left, branch
+.UniqueGroup1
+	txa
+	sbc #8	         		
+	tax				; Advance destination by 8
+	lda [UneclipseSource],y
+	sta !6,x			; Move in a unique word
+	dey
+	dey				; Decrement length
+	lda [UneclipseSource],y
+	sta !4,x			; Again and again and again
+	dey
+	dey
+	lda [UneclipseSource],y
+	sta !2,x
+	dey
+	dey
+	lda [UneclipseSource],y
+	sta !0,x
+	dey
+	dey		      	
+	bmi .DoneUnique1		; Exit if length < 0
+.DoUnique1
+	cpy #6				; If there are at least 4 more
+	bcs .UniqueGroup1	     	;   words, do them as a group
+.UniqueSmall1
+	lda [UneclipseSource],y		; Get a single unique word
+	dex
+	dex				; Advance destination
+	sta !0,x			; Store it
+	dey
+	dey				; Decrement length
+	bpl .UniqueSmall1		; Loop until all done
+.DoneUnique1
+	txy				; Put destination back in Y
+	lda UneclipseSource
+	clc				; Advance source by length+1
+	adc #2
+	adc Temp03
+	sta UneclipseSource
+	jmp (UneclipseBack)		; Loop to do next packet	       	
+
+.RunLength1
+	tax
+	and #$ff00	    		; Take repeated byte and make
+	sta Temp01			;   it into a repeated word
+	xba
+	tsb Temp01
+	txa
+	and #$001f	   		; Get length (3-33)
+	beq .DoneUneclipse1		; Zero indicates end of data, exit
+	sta Temp03
+	asl
+	tax				; Use length to get jump point
+	lda >.Run1Table-2,x		;   into unrolled code
+	sta UneclipseGo
+	tya
+	sbc #1				; (carry clear) Advance
+	sbc Temp03			;   destination
+	tay
+	lda UneclipseSource	  	; Advance source
+	inc
+	inc
+	sta UneclipseSource
+	lda Temp01		   	; Get repeated word
+	jmp (UneclipseGo)		; Go repeat it
+
+.DoneUneclipse1
+	ldy UneclipseLength		; Return length of data
+	rts
+
+.StartUneclipse2
+	tya
+	clc
+	adc UneclipseDest		; Calculate the end of destination
+	sta UneclipseTop		;   buffer address
+	tya
+	eor #1				; Odd or even data length?
+	lsr
+	tya
+	adc UneclipseDest   		; Set pointer to do odd bytes
+	tay				;   beginning from end of dest.
+	lda UneclipseDest
+	inc
+	sta UneclipseHalfWay		; Address marks end of odd bytes
+       	lda #<.Uneclipse2  		
+	sta UneclipseBack		; Point to unpack loop
+
+.Uneclipse2
+	rep #$20 			; Must force long acc.
+	cpy UneclipseHalfWay	  	; Done with the odd bytes?
+	bne .DoUneclipse2
+	lda UneclipseLength	    	; If so, reset destination index
+	lsr				; to do the even bytes
+	lda UneclipseLength
+	adc UneclipseDest
+	tay
+	stz UneclipseHalfWay		; Just a precaution
+.DoUneclipse2
+	lda [UneclipseSource]	  	; Get and identify next packet
+	bit #$0080
+	bne .Pattern2    		; Copy a prev. unpacked pattern
+	bit #$0040
+	bne .Unique2	 		; Move in unique bytes
+	bit #$0020
+	bne .Delta2			; Make an incrementing series
+	jmp .RunLength2			; Copy in a run of a byte
+
+.Delta2	
+	and #$1f			; Calculate a delta length (3-34)
+	clc
+	adc #3
+	tax
+	inc UneclipseSource		
+	lda [UneclipseSource]		; Get ending delta value
+	inc UneclipseSource
+	sep #$20	 		; Must be in byte mode
+.Delta2Loop 
+	dey
+	dey	    			; Advance destination (stagger=2)
+	sta !0,y	         	; Store byte
+	dec			   	; Advance byte
+	dex				
+	bne .Delta2Loop			; Until length = 0
+	jmp (UneclipseBack)		; Go do next packet
+
+.Pattern2
+	tax
+	xba
+	and #$7ff  			; Calculate offset of pattern
+	sec
+	rol		    		; Multiply by 2 (stagger=2)
+	sta Temp01
+	txa
+	and #$0078	  		; Calculate pattern length (3-18)
+	lsr
+	lsr
+	tax
+	sta Temp03	  		; Use length to set jump point 
+	lda >.Pattern2Table,x		;   into unrolled code
+	sta UneclipseGo
+	tya
+	sbc #5				; (carry clear) Advance
+	sbc Temp03			;   destination index
+	tay
+	adc Temp01			; (carry set) Check to see if
+	bcs .OverflowPattern2		;   pattern is in prev. stagger
+	cmp UneclipseTop		;   while calculating its index
+	bcc .DoPattern2
+.OverflowPattern2			; Pattern is in prev. stagger
+	tax
+	lda UneclipseLength	  	; Adjust pattern index to be
+	eor #$0001			;   in odd stagger
+	lsr
+	txa
+	adc #0
+	sec
+	sbc UneclipseLength
+.DoPattern2
+	tax	     	   		; X is pattern source index
+	lda UneclipseSource
+	inc
+	inc
+	sta UneclipseSource		; Advance source 
+	sep #$20		    	; Must be in byte mode	
+	jmp (UneclipseGo)		; Go copy pattern
+
+.Unique2
+	tyx		  		; Swap indexes
+	and #$003f	   		; Get length of unique string
+	inc				;   (1 - 65)
+	tay
+	sta Temp03
+	sep #$20			; Must be in byte mode
+	cpy #5				; If length < 5, skip group mode
+	bcc .UniqueSmall2
+.UniqueGroup2
+	rep #$20
+	txa
+	sbc #10
+	tax	  			; Adjust destination index
+	sep #$20
+	lda [UneclipseSource],y		; Copy byte of unique string
+	sta !8,x		 	
+	dey			      	; Advance source
+	lda [UneclipseSource],y
+	sta !6,x			; Do it 4 more times
+	dey
+	lda [UneclipseSource],y
+	sta !4,x
+	dey
+	lda [UneclipseSource],y
+	sta !2,x
+	dey
+	lda [UneclipseSource],y
+	sta !0,x
+	dey
+	beq .DoneUnique2     		; If length = 0, end
+	cpy #5
+	bcs .UniqueGroup2		; If more than 4, do as a group
+.UniqueSmall2
+	lda [UneclipseSource],y  	; Copy one byte of unique string
+	dex
+	dex		       		; Advance destination
+	sta !0,x
+	dey
+	bne .UniqueSmall2
+.DoneUnique2
+	rep #$20
+	txy		      		; Put dest. back into Y
+	lda UneclipseSource
+	inc			    	; Advance source by length+1
+	clc
+	adc Temp03
+	sta UneclipseSource
+	jmp (UneclipseBack)	        ; Go do next packet
+
+.RunLength2
+	sta Temp01			; Save byte to repeat
+	and #$001f			; Get length of run (3 - 34)
+	beq .DoneUneclipse2		; Zero indicates end of data
+	asl
+	sta Temp03		   	
+	tax				; Use length to get jump point
+	lda >.Run2Table-2,x		;   into unrolled code
+	sta UneclipseGo
+	tya
+	sbc #3				; (carry clear) Adjust destination
+	sbc Temp03			;   index
+	tay
+	lda UneclipseSource	   	; Adjust source
+	inc
+	inc
+	sta UneclipseSource
+	sep #$20	     		; Must be in byte mode
+	lda Temp01+1	     		; Get byte to repeat
+	jmp (UneclipseGo)		; Go repeat byte
+
+.DoneUneclipse2
+	ldy UneclipseLength	     	; Return unpacked data length
+	rts
+
+.PatternOddCode
+	lda !15,x	; Offset 00
+	sta !15,y
+	lda !13,x	; Offset 06
+	sta !13,y
+	lda !11,x	; Offset 12
+	sta !11,y
+	lda !09,x	; Offset 18
+	sta !09,y
+	lda !07,x	; Offset 24
+	sta !07,y
+	lda !05,x	; Offset 30
+	sta !05,y
+	lda !03,x	; Offset 36
+	sta !03,y
+	lda !01,x	; Offset 42
+	sta !01,y
+	lda !00,x
+	sta !00,y
+	jmp (UneclipseBack)
+
+.PatternCode
+	lda !34,x	; Offset 00			
+	sta !34,y
+	lda !32,x 	; Offset 06
+	sta !32,y
+	lda !30,x	; Offset 12
+	sta !30,y
+	lda !28,x	; Offset 18
+	sta !28,y
+	lda !26,x	; Offset 24 
+	sta !26,y
+	lda !24,x	; Offset 30
+	sta !24,y
+	lda !22,x	; Offset 36
+	sta !22,y
+	lda !20,x	; Offset 42
+	sta !20,y
+	lda !18,x	; Offset 48
+	sta !18,y
+	lda !16,x	; Offset 54
+	sta !16,y
+	lda !14,x	; Offset 60
+	sta !14,y
+	lda !12,x	; Offset 66
+	sta !12,y
+	lda !10,x	; Offset 72
+	sta !10,y
+	lda !08,x	; Offset 78
+	sta !08,y
+	lda !06,x	; Offset 84
+	sta !06,y
+	lda !04,x	; Offset 90
+	sta !04,y
+	lda !02,x	; Offset 96
+	sta !02,y
+	lda !00,x	; Offset 102
+	sta !00,y
+	jmp (UneclipseBack)
+
+.RunOddCode
+	sta !31,y 	; Offset 00
+	sta !29,y	; Offset 03
+	sta !27,y	; Offset 06
+	sta !25,y	; Offset 09
+	sta !23,y	; Offset 12
+	sta !21,y	; Offset 15
+	sta !19,y	; Offset 18
+	sta !17,y	; Offset 21
+	sta !15,y	; Offset 24
+	sta !13,y	; Offset 27
+	sta !11,y	; Offset 30
+	sta !09,y	; Offset 33
+	sta !07,y	; Offset 36
+	sta !05,y	; Offset 39
+	sta !03,y	; Offset 42
+	sta !01,y	; Offset 45
+	sta !00,y
+	jmp (UneclipseBack)
+
+.RunCode
+	sta !64,y	; Offset 00
+	sta !62,y	; Offset 03
+	sta !60,y	; Offset 06
+	sta !58,y	; Offset 09
+	sta !56,y	; Offset 12
+	sta !54,y	; Offset 15
+	sta !52,y	; Offset 18
+	sta !50,y	; Offset 21
+	sta !48,y	; Offset 24
+	sta !46,y	; Offset 27
+	sta !44,y	; Offset 30
+	sta !42,y	; Offset 33
+	sta !40,y	; Offset 36
+	sta !38,y	; Offset 39
+	sta !36,y	; Offset 42
+	sta !34,y	; Offset 45
+	sta !32,y	; Offset 48
+	sta !30,y	; Offset 51
+	sta !28,y	; Offset 54
+	sta !26,y	; Offset 57
+	sta !24,y	; Offset 60
+	sta !22,y	; Offset 63
+	sta !20,y	; Offset 66
+	sta !18,y	; Offset 69
+	sta !16,y	; Offset 72
+	sta !14,y	; Offset 75
+	sta !12,y	; Offset 78
+	sta !10,y	; Offset 81
+	sta !08,y	; Offset 84
+	sta !06,y	; Offset 87
+	sta !04,y	; Offset 90
+	sta !02,y	; Offset 93
+	sta !00,y  
+	jmp (UneclipseBack)
+
+.Pattern1Table
+	dc.w <.PatternOddCode+42	; Length = 03
+	dc.w <.PatternCode+96		; Length = 04
+	dc.w <.PatternOddCode+36	; Length = 05
+	dc.w <.PatternCode+90		; Length = 06
+	dc.w <.PatternOddCode+30	; Length = 07
+	dc.w <.PatternCode+84		; Length = 08
+	dc.w <.PatternOddCode+24	; Length = 09
+	dc.w <.PatternCode+78		; Length = 10
+	dc.w <.PatternOddCode+18	; Length = 11
+	dc.w <.PatternCode+72		; Length = 12
+	dc.w <.PatternOddCode+12	; Length = 13
+	dc.w <.PatternCode+66		; Length = 14
+	dc.w <.PatternOddCode+06	; Length = 15
+	dc.w <.PatternCode+60		; Length = 16
+	dc.w <.PatternOddCode+00	; Length = 17
+	dc.w <.PatternCode+54		; Length = 18
+
+.Pattern2Table
+	dc.w <.PatternCode+90	; Length = 03 
+	dc.w <.PatternCode+84	; Length = 04
+	dc.w <.PatternCode+78	; Length = 05
+	dc.w <.PatternCode+72	; Length = 06
+	dc.w <.PatternCode+66	; Length = 07
+	dc.w <.PatternCode+60	; Length = 08
+	dc.w <.PatternCode+54	; Length = 09
+	dc.w <.PatternCode+48	; Length = 10
+	dc.w <.PatternCode+42	; Length = 11
+	dc.w <.PatternCode+36	; Length = 12
+	dc.w <.PatternCode+30	; Length = 13
+	dc.w <.PatternCode+24	; Length = 14
+	dc.w <.PatternCode+18	; Length = 15
+	dc.w <.PatternCode+12	; Length = 16
+	dc.w <.PatternCode+06	; Length = 17
+	dc.w <.PatternCode+00	; Length = 18
+
+.Run1Table
+	dc.w <.RunOddCode+45	; Length = 03
+	dc.w <.RunCode+93	; Length = 04
+	dc.w <.RunOddCode+42	; Length = 05
+	dc.w <.RunCode+90	; Length = 06
+	dc.w <.RunOddCode+39	; Length = 07
+	dc.w <.RunCode+87	; Length = 08
+	dc.w <.RunOddCode+36	; Length = 09
+	dc.w <.RunCode+84	; Length = 10
+	dc.w <.RunOddCode+33	; Length = 11
+	dc.w <.RunCode+81	; Length = 12
+	dc.w <.RunOddCode+30	; Length = 13
+	dc.w <.RunCode+78	; Length = 14
+	dc.w <.RunOddCode+27	; Length = 15
+	dc.w <.RunCode+75	; Length = 16
+	dc.w <.RunOddCode+24	; Length = 17
+	dc.w <.RunCode+72	; Length = 18
+	dc.w <.RunOddCode+21	; Length = 19
+	dc.w <.RunCode+69	; Length = 20
+	dc.w <.RunOddCode+18	; Length = 21
+	dc.w <.RunCode+66	; Length = 22
+	dc.w <.RunOddCode+15	; Length = 23
+	dc.w <.RunCode+63	; Length = 24
+	dc.w <.RunOddCode+12	; Length = 25
+	dc.w <.RunCode+60	; Length = 26
+	dc.w <.RunOddCode+09	; Length = 27
+	dc.w <.RunCode+57	; Length = 28
+	dc.w <.RunOddCode+06	; Length = 29
+	dc.w <.RunCode+54	; Length = 30
+	dc.w <.RunOddCode+03	; Length = 31
+	dc.w <.RunCode+51	; Length = 32
+	dc.w <.RunOddCode+00	; Length = 33
+
+.Run2Table
+	dc.w <.RunCode+90	; Length = 03
+	dc.w <.RunCode+87	; Length = 04
+	dc.w <.RunCode+84	; Length = 05
+	dc.w <.RunCode+81	; Length = 06
+	dc.w <.RunCode+78	; Length = 07
+	dc.w <.RunCode+75	; Length = 08
+	dc.w <.RunCode+72	; Length = 09
+	dc.w <.RunCode+69	; Length = 10
+	dc.w <.RunCode+66	; Length = 11
+	dc.w <.RunCode+63	; Length = 12
+	dc.w <.RunCode+60	; Length = 13
+	dc.w <.RunCode+57	; Length = 14
+	dc.w <.RunCode+54	; Length = 15
+	dc.w <.RunCode+51	; Length = 16
+	dc.w <.RunCode+48	; Length = 17
+	dc.w <.RunCode+45	; Length = 18
+	dc.w <.RunCode+42	; Length = 19
+	dc.w <.RunCode+39	; Length = 20
+	dc.w <.RunCode+36	; Length = 21
+	dc.w <.RunCode+33	; Length = 22
+	dc.w <.RunCode+30	; Length = 23
+	dc.w <.RunCode+27	; Length = 24
+	dc.w <.RunCode+24	; Length = 25
+	dc.w <.RunCode+21	; Length = 26
+	dc.w <.RunCode+18	; Length = 27
+	dc.w <.RunCode+15	; Length = 28
+	dc.w <.RunCode+12	; Length = 29
+	dc.w <.RunCode+09	; Length = 30
+	dc.w <.RunCode+06	; Length = 31
+	dc.w <.RunCode+03	; Length = 32
+	dc.w <.RunCode+00	; Length = 33

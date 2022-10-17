@@ -1,0 +1,1058 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                      WEAPONS HANDLING MODULE 3                     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	snes.i
+	include	rlenemies.i
+	include	rlobjects.i
+	include	music.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;
+;	* * * * * * *       CREATE TARGET LIST       * * * * * * *
+;
+rPAngle		var	r3			; (PlayerAngle-$4000)
+rY		var	r4			; |DeltaY|
+rX		var	r6			; |DeltaX|
+rDeltaX		var	r5			; DeltaX
+rDeltaY		var	r7			; DeltaY
+rSwap		var	r8			; 0=DeltaX/DeltaY NOT Swapped
+rrlpfFlags	var	r13			; RLObject Target/Movable Flags
+
+rTargetListPtr	var	r10			; Pointer to TargetList
+rObj		var	r12			; Pointer to Current RLObject
+rVObj		var	r9			; Pointer to Current VisibleObject
+
+	align	16,(_RLFE9200-_RLFireTargetAlign)&$0f
+;
+;	>>>   FINISHED CREATING TARGET LIST   <<<
+;
+_RLFE9200
+	nop					; @FLUSH ALT2 IN PIPELINE@
+;	with	r0				; Terminate TargetList
+	sub	r0
+	jmp	r11
+;	from	r0
+	stw	(rTargetListPtr)
+
+;
+;	>>>   START CREATING TARGET LIST   <<<
+;
+_RLFireTarget
+	move	rrlpfFlags,#(rlpfActive|rlpfTarget)	; RLObject TARGETTING Flags
+_RLFireTarget2
+	move	rVObj,#<(VObjListStart-1)		; START of VObjList
+	move	rTargetListPtr,#<(_RLTargetList)	; START of TargetList
+	ife	useMULTIPLAYER
+	move	rPAngle,(<(PlayerObject+rloAngle))	; Get PlayerAngle
+	endif
+	ifn	useMULTIPLAYER
+	move	r0,#rloAngle				; Get PlayerAngle
+	move	rPAngle,(<MPPlayerObject)
+;	with	r0
+	add	rPAngle
+	to	rPAngle
+	ldw	(r0)
+	endif
+	move	r0,#$4000
+	with	rPAngle
+	sub	r0
+
+	CACHEB	_RLFireTarget
+_RLFireTargetAlign
+;
+;	>>>   NEXT VISIBLE OBJECT   <<<
+;
+_RLFE2200
+	inc	rVObj				; Next VObj
+;	to	r0				; Get VObj.Next
+	ldw	(rVObj)
+	moves	rVObj,r0
+	beq	_RLFE9200			; No More VisibleObjects!
+;
+;	>>>   GET OBJECT   <<<
+;
+;	with	r0				; Get RLObject
+	add	#rlqObj
+	to	rObj
+	ldw	(r0)
+	from	rObj
+;	to	r0
+	add	#rloFlags
+;	to	r0				; Get RLObject Flags
+	ldb	(r0)
+;	with	r0				; VALID TARGET?
+	and	rrlpfFlags
+;	with	r0
+	sub	rrlpfFlags
+	bne	_RLFE2200			; No!
+	inc	rVObj				; Move to VObj.Next
+;
+;	>>>   WAS THIS VISIBLE OBJECT DRAWN?   <<<
+;
+	move	r0,#(rlqDrawn-(rlqY+1))		; Get VObj.Drawn
+;	with	r0
+	add	rVObj
+;	to	r0
+	ldb	(r0)
+	dec	r0				; Drawn?
+	bmi	_RLFE2200			; NO!  CAN'T TARGET IT!
+	nop
+;
+;	>>>   GET ANGLE TO TARGET   <<<
+;
+	dec	rVObj				; Move back to VObj.Y
+	to	rDeltaY				; Rotated Object World Y
+	ldw	(rVObj)
+	from	rVObj				; Rotated Object World X
+;	to	r0
+	add	#rlqWX
+	to	rDeltaX
+	ldw	(r0)
+;
+;	>>>   SAVE TARGET OBJECT   <<<
+;
+	moves	rX,rDeltaX			; DeltaX = 0?
+;
+	from	rVObj				; Save TargetVObject
+	bne	_RLFE4200			; NO!
+	stw	(rTargetListPtr)
+;
+	move	r0,#$4000			; YES!  90 degrees
+	bra	_RLFE4800
+	nop
+_RLFE4200
+	bpl	_RLFE4220
+	with	rX				; |DeltaX|
+	not
+	inc	rX
+_RLFE4220
+	moves	rY,rDeltaY			; DeltaY = 0?
+	bne	_RLFE4400
+	moves	rDeltaX,rDeltaX			; Always 0 or 180 degrees
+;	with	r0
+	bpl	_RLFE4800			; 0 degrees
+	sub	r0
+	move	r0,#$8000			; 180 degrees
+	bra	_RLFE4800
+_RLFE4400
+	nop					; @FLUSH WITH IN PIPELINE@
+;
+;	>>>   ENSURE RESULTS ARE FROM 0.0 TO 1.0   <<<
+;
+	from	rY				; |DeltaY| < |DeltaX|?
+;	to	r0
+	sub	rX
+	bne	_RLFE4440
+	with	rSwap				; Didn't Swap
+	move	r0,#$2000			; |DeltaY| = |DeltaX| (45 Degrees)
+	bra	_RLFE4500
+	nop
+_RLFE4440
+	blt	_RLFE4460			; Yes
+	sub	rSwap
+	move	r0,rX				; No, Swap |DeltaY| / |DeltaX|
+	move	rX,rY
+	move	rY,r0
+	inc	rSwap
+;
+;	>>>   GET SLOPE |DELTAY| / |DELTAX|   <<<
+;
+_RLFE4460
+	ibt	r0,#(^InvTable)			; Get InverseTable Entry
+	romb
+	from	rX				; Get |DeltaX|
+;	to	r0
+	add	rX
+	move	r1,#<(InvTable-2)
+;	from	r0
+	to	r14
+	add	r1
+	dec	r0
+	dec	r0
+	to	r6				; Get Inverse Value
+	getb
+	inc	r14
+;	with	r0				; Low/High Gear?
+	hib
+	with	r6
+	getbh
+	bne	_RLFE4470			; High
+	from	rY				; Low
+;	to	r0
+	lmult
+	with	r4
+	bra	_RLFE4480
+	to	r0
+_RLFE4470
+;	to	r0				; <<1
+	add	rY
+;	with	r0
+	lmult
+	with	r4
+	hib
+;	with	r0
+	lob
+;	with	r0
+	swap
+;	with	r0
+	add	r4
+_RLFE4480
+;	with	r0				; Get Index into |ArcTan| Table
+	lsr
+	lsr
+	lsr
+	lsr
+;	from	r0
+	to	r1
+	bic	#1
+	ibt	r0,#(^PArcTanTable)		; Get |ArcTan| Table Entry
+	romb
+	move	r0,#<(PArcTanTable)
+;	from	r0
+	to	r14
+	add	r1
+	getb					; Get Angle
+	inc	r14
+	dec	rSwap				; Were DeltaX/DeltaY Swapped?
+	alt1
+	bne	_RLFE4500			; No
+	getb
+;
+;	>>>   DETERMINE QUADRANT   <<<
+;
+;	with	r0				; Yes, 90-Angle
+	not
+	inc	r0
+	move	r1,#$4000
+;	with	r0
+	add	r1
+_RLFE4500
+	moves	rDeltaX,rDeltaX			; DeltaX >= 0?
+	bpl	_RLFE4800			; Quad0
+	nop
+	move	r1,#$8000			; 180-Angle
+	from	r1
+;	to	r0
+	sub	r0
+;
+;	>>>   SAVE ANGLE TO TARGET   <<<
+;
+_RLFE4800
+	inc	rTargetListPtr
+	inc	rTargetListPtr
+;	with	r0				; Angle+(PlayerAngle-$4000)
+	add	rPAngle
+;	from	r0				; Angle to Target
+	stw	(rTargetListPtr)
+	inc	rTargetListPtr
+;
+;	>>>   ESTIMATE DISTANCE TO TARGET   <<<
+;
+	moves	r0,rDeltaX			; |DeltaX|
+	bpl	_RLFE5200
+	inc	rTargetListPtr
+;	with	r0
+	not
+	inc	r0
+_RLFE5200
+	moves	r1,rDeltaY			; |DeltaY|
+	bpl	_RLFE5220
+	nop
+	with	r1
+	not
+	inc	r1
+_RLFE5220
+;	from	r0				; |X| >= |Y|?
+	cmp	r1
+	bge	_RLFE5280			; Yes
+	from	r0
+	from	r1				; |Y| > |X|
+;
+;	>>>   SAVE DISTANCE TO TARGET   <<<
+;
+_RLFE5280
+;	from	r0				; Distance to Target
+	stw	(rTargetListPtr)
+	inc	rTargetListPtr
+	inc	rTargetListPtr
+	iwt	r15,#<_RLFE2200			; NEXT VISIBLE OBJECT!
+	inc	rVObj				; Move to VObj.Next
+
+	CACHEE	_RLFireTarget
+
+
+;
+;	* * * * * * *       LAUNCH PROJECTILE FROM WEAPON       * * * * * * *
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE   !!!
+;
+rSoundEffect	var	r3			; Sound Effect
+rDamage		var	r4			; Damage Multiplier / Points
+rAmmoCount	var	r5			; Ammo to Subtract
+;
+rTargetListPtr	var	r8			; Pointer to TargetList
+rTDistance	var	r9			; Best Distance to Target
+rDistance	var	r12			; Distance to Current Target
+rMObjData	var	r11			; Birth RLObject MObjData
+rPObj		var	r10			; Player RLObject
+rObj		var	r12			; Projectile RLObject
+rTObj		var	r7			; Target RLObject
+rMinX		var	r6			; Minimum Screen Column
+rMaxX		var	r13			; Maximum Screen Column
+;
+;rSector	var	r6			; Birth RLObject Sector
+rX		var	r7			; Birth RLObject X Coordinate
+rY		var	r8			; Birth RLObject Y Coordinate
+;
+;	* * * * * * *       FIRE ROCKET       * * * * * * *
+;
+_RLFireRocket
+	move	rrlpfFlags,#(rlpfActive|rlpfTarget|rlpfMovable)	; RLObject TARGETTING Flags
+	link	#4					; Create TargetList
+	ife	usePATCH
+	iwt	r15,#<_RLFireTarget2
+	endif
+	ifn	usePATCH
+	move	r15,(<PTRLFireTarget2)
+	endif
+	nop
+	move	rSoundEffect,#firsht_eff		; Sound Effect
+	move	rAmmoCount,#1				; #Ammo to subtract
+	move	r0,#16					; Light Level
+	move	r7,#<modMissile				; Birth a MISSILE
+	bra	_RLFireProjectile
+	nop
+;
+;	* * * * * * *       FIRE PLASMA       * * * * * * *
+;
+_RLFirePlasma
+	move	rrlpfFlags,#(rlpfActive|rlpfTarget|rlpfMovable)	; RLObject TARGETTING Flags
+	link	#4					; Create TargetList
+	ife	usePATCH
+	iwt	r15,#<_RLFireTarget2
+	endif
+	ifn	usePATCH
+	move	r15,(<PTRLFireTarget2)
+	endif
+	nop
+	move	rSoundEffect,#firsht_eff		; Sound Effect
+	move	rAmmoCount,#1				; #Ammo to subtract
+	move	r0,#24					; Light Level
+	move	r7,#<modPlasma				; Birth a PLASMA
+	bra	_RLFireProjectile
+	nop
+;
+;	* * * * * * *       FIRE BFG9000       * * * * * * *
+;
+	align	16,(_RLFireBFG-_RLFireProjectileAlign)&$0f
+_RLFireBFG
+	move	rrlpfFlags,#(rlpfActive|rlpfTarget|rlpfMovable)	; RLObject TARGETTING Flags
+	link	#4					; Create TargetList
+	ife	usePATCH
+	iwt	r15,#<_RLFireTarget2
+	endif
+	ifn	usePATCH
+	move	r15,(<PTRLFireTarget2)
+	endif
+	nop
+	move	rSoundEffect,#firsht_eff		; Sound Effect
+	move	rAmmoCount,#40				; #Ammo to subtract
+	move	r0,#32					; Light Level
+	move	r7,#<modBFG				; Birth a BFG
+;
+;	* * * * * * *       LAUNCH PROJECTILE FROM WEAPON       * * * * * * *
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE   !!!
+;
+_RLFireProjectile
+	move	r1,#<(WeaponLight)		; LIGHT CREATED BY WEAPON
+;	from	r0
+	stb	(r1)
+;
+	move	r0,(<RLNumPObjs)		; Get #ProjectileRLObjects
+	move	r1,#(MaxRLMoveProjectiles-1)
+;	with	r0
+	sub	r1
+	blt	_RLFP1100
+	nop
+	move	r15,#<_RLFP9200			; YES!  TOO MANY RLPOBJECTS!
+	nop
+_RLFP1100
+	move	r0,(<RLNumMObjs)		; Get #MovableRLObjects
+	move	r1,#(MaxRLMObjects-1)		; Too Many RLMObjs?
+;	from	r0
+	cmp	r1
+	blt	_RLFP1200			; No!  Add this Projectile!
+	inc	r0				; MovableRLObjects++
+	move	r15,#<_RLFP9200			; YES!  TOO MANY RLMOBJECTS!
+	nop
+_RLFP1200
+;	from	r0
+	sbk
+;
+;	>>>   UPDATE AMMO COUNT   <<<
+;
+	move	r0,(<WeaponAmmo)		; Get Address of Ammo
+;	to	r0				; Get Ammo Amount
+	ldw	(r0)
+;	with	r0
+	sub	rAmmoCount
+	bpl	_RLFP1400
+	nop
+;	with	r0
+	sub	r0
+;
+;	>>>   MAKE SOUND EFFECT   <<<
+;
+_RLFP1400
+	link	#4				; Make Sound Effect
+	iwt	r15,#<_RLPlayerSoundEffect
+;	from	r0				; Update Ammo Amount
+	sbk
+;
+;	>>>   ACQUIRE TARGET OBJECT   <<<
+;
+_RLFP1600
+	move	rMObjData,r7				; Birth RLObject MObjData
+	move	rTargetListPtr,#<(_RLTargetList-2)	; START of TargetList
+	move	rTDistance,#$7fff			; Maximum Distance to Target
+	move	rTObj,#0				; Target RLObject
+	ife	useMULTIPLAYER
+	move	rPObj,#<PlayerObject			; Player RLObject
+	endif
+	ifn	useMULTIPLAYER
+	move	rPObj,(<MPPlayerObject)			; Player RLObject
+	endif
+	move	rMinX,#(((RLViewPixX/2)-16)>>1)		; Minimum Screen Column>>1
+	move	rMaxX,#((RLViewPixX/2)+16)		; Maximum Screen Column
+
+	CACHEB	_RLFireProjectile
+_RLFireProjectileAlign				; @ALIGNMENT ABOVE!@
+;
+;	>>>   NEXT TARGETTED OBJECT   <<<
+;
+_RLFP2200
+	inc	rTargetListPtr
+	inc	rTargetListPtr
+;	to	r0				; Get Next Target
+	ldw	(rTargetListPtr)
+	moves	r1,r0				; Any More Targets?
+	beq	_RLFP3000			; No!
+	with	rTargetListPtr			; Move to Distance
+	add	#(4-1)
+;
+;	>>>   WITHIN TARGETTING ANGLE RANGE?   <<<
+;
+	with	r1				; Screen X1 (rXs1)
+	add	#rlqXs1
+;	to	r0
+	ldw	(r1)
+;	with	r0
+	sub	rMaxX
+	bpl	_RLFP2200			; Not in range
+	inc	rTargetListPtr
+	inc	r1				; Screen X2 (rXs2)
+	inc	r1
+;	to	r0
+	ldw	(r1)
+;	with	r0
+	sub	rMinX
+	bmi	_RLFP2200
+	nop
+;
+;	>>>   CLOSER THAN BEST TARGET?   <<<
+;
+;	to	r0				; Get Distance
+	ldw	(rTargetListPtr)
+;	from	r0				; < Best Distance?
+	cmp	rTDistance
+	bge	_RLFP2200			; No
+	move	rDistance,r0
+;
+;	>>>   NEW BEST TARGET   <<<
+;
+	move	rTObj,rTargetListPtr		; Found It!
+	with	rDistance
+	bra	_RLFP2200
+	to	rTDistance
+;
+;	>>>   FIND EMPTY MOVABLE OBJECT   <<<
+;
+_RLFP3000
+	move	r2,#<(_RLMObjects-rloSize)	; RLMovableObjects
+	move	r1,#rloSize			; Size of RLMovableObject
+_RLFP3200
+	with	r2				; Move to Next MObj
+	add	r1
+;	to	r0				; Find Empty MObj
+	ldw	(r2)
+	inc	r0
+	bne	_RLFP3200+1			; Check Next MObj
+	move	rObj,r2				; Save MObj
+;
+;	>>>   FIND EMPTY MOVABLE OBJECT PROCESSING SLOT   <<<
+;
+	move	r1,#<(_RLMObjs-1)		; MovableObjects Processing List
+_RLFP3400
+	inc	r1
+;	to	r0				; Find Empty MObj Processing Slot
+	ldw	(r1)
+	inc	r0
+	bne	_RLFP3400			; Check Next MObj
+	inc	r1
+
+	CACHEE	_RLFireProjectile
+
+;
+;	>>>   ADD MOVABLE OBJECT TO PROCESSING LIST   <<<
+;
+	dec	rObj				; Save RLObject
+	dec	r1
+	from	rObj
+	stw	(r1)
+	inc	rObj
+	move	r0,(<RLNumPMObjs)		; #Processing MObjs++
+	inc	r0
+;	from	r0
+	sbk
+;
+;	>>>   INITIALIZE MOVABLE OBJECT   <<<
+;
+	move	r0,#^_MObjData			; MObjData Bank
+	romb
+	from	rMObjData			; Get Birth State
+	to	r14
+	add	#rlmodBirthS
+;
+	move	r4,#rloMData			; Move to MObjData
+	with	r4
+	add	rObj
+	from	rMObjData			; MObjData
+	stw	(r4)
+	dec	r4
+	dec	r4
+	getb					; State
+	inc	r14
+	getbh
+	inc	r14
+;	from	r0
+	stw	(r4)
+	dec	r4
+	dec	r4
+;	with	r0				; AnimCount/StateCount
+	sub	r0
+;	from	r0
+	stw	(r4)
+	dec	r4
+	dec	r4
+	getb					; Animation
+	inc	r14
+	to	r2
+	getbh
+	move	r3,#(rlmodBirthFlags-(rlmodBirthA+1))
+	with	r3
+	add	r14
+	from	r2				; Get Animation First Frame
+	to	r14
+	add	#1
+	from	r2
+	stw	(r4)
+	dec	r4				; Image
+	getb
+	move	r14,r3				; Get BirthFlags/BirthType
+;	from	r0				; Image
+	stb	(r4)
+	getb					; BirthFlags
+	inc	r14
+	from	rObj
+	to	r4
+	add	#rloFlags
+	getbh					; BirthType
+;	from	r0				; Flags/Type
+	stw	(r4)
+;
+	move	r3,#rloVXY			; Velocity X/Y
+	with	r3
+	add	rObj
+	move	r0,#($8000+(16>>1))
+;	from	r0
+	stw	(r3)
+	dec	r3
+	dec	r3
+;
+;	>>>   TARGET ACQUIRED?   <<<
+;
+	ife	useMULTIPLAYER
+	move	r1,(<(PlayerObject+rloAngle))	; Get PlayerAngle
+	endif
+	ifn	useMULTIPLAYER
+	move	r0,#rloAngle			; Get PlayerAngle
+	move	r1,(<MPPlayerObject)
+;	with	r0
+	add	r1
+	to	r1
+	ldw	(r0)
+	endif
+	dec	rTObj				; Target Acquired?
+	bmi	_RLFP5400			; NO!  NO Z VELOCITY!
+;	with	r0
+	sub	r0
+;
+;	>>>   CALCULATE VELOCITY Z FOR INTERCEPTION   <<<
+;
+	move	r3,rPObj			; R3 = Source Object
+	with	rTObj				; Get Target VObj
+	sub	#3
+;	to	r0
+	ldw	(rTObj)
+;	with	r0				; Get Target RLObject
+	add	#rlqObj
+	to	r5				; R5 = Target Object
+	ldw	(r0)
+	from	rTObj				; Get Target Angle
+;	to	r0
+	add	#2
+	link	#4
+	iwt	r15,#<_RLGetObjTObjDistance	; Get Distance from Enemy to Target
+;	to	r0
+	ldw	(r0)
+;
+;	from	r0				; TargetDistance
+	to	r4
+	add	r0
+	ibt	r0,#(^InvTable)			; Get InverseTable Entry
+	romb
+	move	r0,#<(InvTable-2)
+;	from	r0
+	to	r14
+	add	r4
+;
+;	to	r0				; TargetVObj
+	ldw	(rTObj)
+;	with	r0				; TargetZ
+	add	#rlqWZ
+;	to	r0				; WZ = (OZ-(PZ+PH))
+	ldw	(r0)
+	move	r1,(<PlayerHeight)		; Get (TargetZ-PlayerZ)
+;	with	r0
+	add	r1
+;
+;	>>>   GET VELOCITY Z ((dZ*VelocityXY)/Distance)   <<<
+;
+;	with	r0				; R2 = (DZ*VelocityXY)
+	add	r0
+	add	r0
+	add	r0
+	add	r0
+;	add	r0
+;	from	r0				; <<1 for Divide
+	to	r2
+	add	r0
+;
+	getb
+	inc	r14
+;
+	inc	rTObj				; TargetAngle
+	inc	rTObj
+	to	r1
+	ldw	(rTObj)
+	move	r3,#rloVZ			; Move to Velocity Z
+	with	r3
+	add	rObj
+;
+	dec	r4
+	dec	r4
+	with	r4				; Low/High Gear?
+	hib
+	to	r6
+	getbh
+	bne	_RLFP5200			; High
+	from	r2				; Low
+;	to	r0
+	alt1
+	bra	_RLFP5400
+	fmult
+_RLFP5200
+;	to	r0
+	add	r2
+;	with	r0
+	lmult
+_RLFP5400
+;	from	r0				; Velocity Z
+	stw	(r3)
+	with	r3				; Z Coordinate Fraction
+	add	#(rloZF-rloVZ)
+;	with	r0
+	sub	r0
+;	from	r0
+	stw	(r3)
+;
+	from	rPObj				; R3 = Parent RLObj
+	to	r3
+	add	#(rloX+2)
+	from	rObj				; R2 = Birth RLObj
+	to	r2
+	add	#(rloX)
+;	with	r0				; X Coordinate
+	sub	r0
+;	from	r0
+	stw	(r2)
+	inc	r2
+	inc	r2
+	to	rX				; BirthX = ParentX
+	ldw	(r3)
+	from	rX
+	stw	(r2)
+	inc	r2				; Y Coordinate
+	inc	r2
+	with	r3
+	add	#((rloY+2)-(rloX+2))
+;	with	r0
+	sub	r0
+;	from	r0
+	stw	(r2)
+	inc	r2
+	inc	r2
+	to	rY				; BirthY = ParentY
+	ldw	(r3)
+	from	rY
+	stw	(r2)
+	inc	r2				; Z Coordinate
+	inc	r2
+	inc	r3
+	inc	r3
+;	to	r0				; BirthZ = ParentZ
+	ldw	(r3)
+	move	r4,#(56/2)			; Z Adjust
+;	with	r0
+	add	r4
+;	from	r0
+	stw	(r2)
+	with	r2				; BirthAngle
+	add	#(rloAngle-rloZ)
+	from	r1
+	stw	(r2)
+;
+	with	r3				; BirthSector = ParentSector
+	add	#(rloSector-rloZ)
+	to	r1
+	ldb	(r3)
+	move	r0,#rloSector
+;	with	r0
+	add	rObj
+	from	r1
+	stb	(r0)
+;
+;	>>>   ADD RLOBJECT TO NEW SECTOR   <<<
+;
+	link	#4				; Add RLObject to Sector's ObjectList
+	iwt	r15,#<_RLAddSectorObject
+	nop
+;
+;	>>>   RETURN TO WEAPONS STATE MACHINE   <<<
+;
+_RLFP9200
+	move	r0,#^WeaponsData		; Set ROM Bank
+	romb
+	move	r12,#<_RLWeapons1
+	move	r15,#<_RLDWS3000		; Return to Caller
+	nop
+
+
+;
+;	* * * * * * *       FIRE GUN       * * * * * * *
+;
+rSoundEffect		var	r3		; Sound Effect
+rDamage			var	r4		; Damage Multiplier / Points
+rAmmoCount		var	r5		; Ammo to Subtract
+
+rMinX			var	r6		; Minimum Screen Column
+rMaxX			var	r7		; Maximum Screen Column
+rTargetListPtr		var	r8		; Pointer to TargetList
+rTDistance		var	r9		; Best Distance to Target
+rDistance		var	r10		; Distance to Current Target
+rTObj			var	r13		; Pointer to Target RLObject
+rTObjSectorData		equ	r1		; Target RLObject SectorData (FIXED ONLY)
+;
+;	* * * * * * *       USE FIST       * * * * * * *
+;
+_RLFireFist
+	link	#4				; Create TargetList
+	ife	usePATCH
+	iwt	r15,#<_RLFireTarget
+	endif
+	ifn	usePATCH
+	move	r15,(<PTRLFireTarget)
+	endif
+	nop
+	move	rTDistance,#edFightDistance	; Minimum Distance to Target
+	move	rDamage,#((2<<8)|7)		; Damage Multiplier / Points
+	move	rSoundEffect,#punch_eff		; Sound Effect
+	ife	useID4
+	move	r0,(<BerserkCount)		; BERSERK?
+	endif
+	ifn	useID4
+	move	r0,(<Berserk)			; BERSERK?
+	endif
+	dec	r0
+	bmi	_RLFireGun2
+;	with	r0				; Light Level
+	sub	r0
+	move	rDamage,#((16<<8)|7)		; Damage Multiplier / Points
+	bra	_RLFireGun2
+;
+;	* * * * * * *       USE CHAINSAW       * * * * * * *
+;
+_RLFireChainSaw
+	link	#4				; Create TargetList
+	ife	usePATCH
+	iwt	r15,#<_RLFireTarget
+	endif
+	ifn	usePATCH
+	move	r15,(<PTRLFireTarget)
+	endif
+	nop
+	move	rTDistance,#edFightDistance	; Minimum Distance to Target
+	move	rDamage,#((3<<8)|15)		; Damage Multiplier / Points
+	move	rSoundEffect,#sawful_eff	; Sound Effect
+	bra	_RLFireGun2
+;	with	r0				; Light Level
+	sub	r0
+;
+;	* * * * * * *       FIRE CHAINGUN       * * * * * * *
+;
+_RLFireChainGun
+	link	#4				; Create TargetList
+	ife	usePATCH
+	iwt	r15,#<_RLFireTarget
+	endif
+	ifn	usePATCH
+	move	r15,(<PTRLFireTarget)
+	endif
+	nop
+	move	rDamage,#((4<<8)|7)		; Damage Multiplier / Points
+	move	rSoundEffect,#pistol_eff	; Sound Effect
+	move	rAmmoCount,#1			; #Ammo to subtract
+	move	r0,#8				; Light Level
+	bra	_RLFireGun
+;
+;	* * * * * * *       FIRE PISTOL       * * * * * * *
+;
+_RLFirePistol
+	link	#4				; Create TargetList
+	ife	usePATCH
+	iwt	r15,#<_RLFireTarget
+	endif
+	ifn	usePATCH
+	move	r15,(<PTRLFireTarget)
+	endif
+	nop
+	move	rDamage,#((3<<8)|7)		; Damage Multiplier / Points
+	move	rSoundEffect,#pistol_eff	; Sound Effect
+	move	rAmmoCount,#1			; #Ammo to subtract
+	move	r0,#8				; Light Level
+	bra	_RLFireGun
+	nop
+;
+;	* * * * * * *       FIRE SHOTGUN       * * * * * * *
+;
+	align	16,(_RLFireShotGun-_RLFireGunAlign)&$0f
+_RLFireShotGun
+	link	#4				; Create TargetList
+	ife	usePATCH
+	iwt	r15,#<_RLFireTarget
+	endif
+	ifn	usePATCH
+	move	r15,(<PTRLFireTarget)
+	endif
+	nop
+	move	rDamage,#((32<<8)|3)		; Damage Multiplier / Points
+	move	rSoundEffect,#shotgn_eff	; Sound Effect
+	move	rAmmoCount,#1			; #Ammo to subtract
+	move	r0,#16				; Light Level
+;
+;	* * * * * * *       FIRE GUN       * * * * * * *
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE   !!!
+;
+_RLFireGun
+	move	rTDistance,#$7fff		; Maximum Distance to Target
+_RLFireGun2
+	move	r1,#<(WeaponLight)		; LIGHT CREATED BY WEAPON
+;	from	r0
+	stb	(r1)
+;
+	move	rTargetListPtr,#<(_RLTargetList-2)	; START of TargetList
+	move	rTObj,#0				; TObj
+	move	rMinX,#(((RLViewPixX/2)-16)>>1)		; Minimum Screen Column>>1
+	move	rMaxX,#((RLViewPixX/2)+16)		; Maximum Screen Column
+
+	CACHEB	_RLFireGun
+_RLFireGunAlign					; @ALIGNMENT ABOVE!@
+;
+;	>>>   NEXT TARGETTED OBJECT   <<<
+;
+_RLFG2200
+	inc	rTargetListPtr
+	inc	rTargetListPtr
+;	to	r0				; Get Next Target
+	ldw	(rTargetListPtr)
+	moves	r1,r0				; Any More Targets?
+	beq	_RLFG4000			; No!
+	with	rTargetListPtr			; Move to Distance
+	add	#(4-1)
+;
+;	>>>   WITHIN TARGETTING ANGLE RANGE?   <<<
+;
+	with	r1				; Screen X1 (rXs1)
+	add	#rlqXs1
+;	to	r0
+	ldw	(r1)
+;	with	r0
+	sub	rMaxX
+	bpl	_RLFG2200			; Not in range
+	inc	rTargetListPtr
+	inc	r1				; Screen X2 (rXs2)
+	inc	r1
+;	to	r0
+	ldw	(r1)
+;	with	r0
+	sub	rMinX
+	bmi	_RLFG2200
+	nop
+;
+;	>>>   CLOSER THAN BEST TARGET?   <<<
+;
+;	to	r0				; Get Distance
+	ldw	(rTargetListPtr)
+;	from	r0				; < Best Distance?
+	cmp	rTDistance
+	bge	_RLFG2200			; No
+	move	rDistance,r0
+;
+;	>>>   NEW BEST TARGET   <<<
+;
+	move	rTObj,rTargetListPtr		; Found It!
+	with	rDistance
+	bra	_RLFG2200
+	to	rTDistance
+
+	CACHEE	_RLFireGun
+;
+;	>>>   UPDATE AMMO COUNT   <<<
+;
+_RLFG4000
+	move	r0,(<WeaponAmmo)		; Get Address of Ammo
+	dec	r0
+	bmi	_RLFG5000			; No Ammo (Fist/ChainSaw)
+	inc	r0
+;	to	r0				; Get Ammo Amount
+	ldw	(r0)
+;	with	r0
+	sub	rAmmoCount
+	bpl	_RLFG4200
+	nop
+;	with	r0
+	sub	r0
+_RLFG4200
+	bra	_RLFG7000
+;	from	r0				; Update Ammo Amount
+	sbk
+;
+;	>>>   FIST/CHAINSAW   <<<
+;
+_RLFG5000
+	from	rTObj				; Target Acquired?
+;	to	r0
+	sub	#4
+	ife	useID
+	bmi	_RLFG9000			; No
+	endif
+	ifn	useID
+	bmi	_RLFG5800
+	endif
+	to	r1				; Get RLVObject
+	ldw	(r0)
+	with	r1				; Get VObjZ (Adjusted by ViewZ)
+	add	#rlqWZ
+	to	r1
+	ldw	(r1)
+	move	r0,(<PlayerHeight)		; Get |(TargetZ-PlayerZ)|
+;	with	r0
+	add	r1
+	bpl	_RLFG5200
+	nop
+;	with	r0
+	not
+	inc	r0
+_RLFG5200
+	move	r1,#(odhTarget*3/4)		; WITHIN 3/4H?
+;	with	r0
+	sub	r1
+	ife	useID
+	bpl	_RLFG9000			; No!  Too Far!
+	endif
+	ifn	useID
+	bmi	_RLFG7000
+	nop
+_RLFG5800
+	move	r0,#punch_eff			; Punching?
+;	with	r0
+	sub	rSoundEffect
+	bne	_RLFG9000			; No, ChainSaw
+	nop
+	bra	_RLFG9200			; No Sound Effect!
+	nop
+	endif
+;
+;	>>>   TARGET ACQUIRED?   <<<
+;
+_RLFG7000
+	from	rTObj				; Target Acquired?
+;	to	r0
+	sub	#4
+	bmi	_RLFG9000			; NO!
+;
+;	>>>   GET TARGET RLOBJECT   <<<
+;
+;	to	r0				; Get RLVObject
+	ldw	(r0)
+;	with	r0				; Get RLObject
+	add	#rlqObj
+	to	rTObj
+	ldw	(r0)
+;	with	r0				; Get RLObject.SectorData
+	add	#(rlqSectorData-rlqObj)
+	to	rTObjSectorData
+	ldw	(r0)
+;
+;	>>>   DAMAGE TARGET RLOBJECT   <<<
+;
+	link	#4
+	iwt	r15,#<_RLDamageObjectMR
+	nop
+;
+;	>>>   MAKE SOUND EFFECT   <<<
+;
+_RLFG9000
+	link	#4				; Make Sound Effect
+	iwt	r15,#<_RLPlayerSoundEffect
+	nop
+_RLFG9200
+	move	r0,#^WeaponsData		; Set ROM Bank
+	romb
+	move	r12,#<_RLWeapons1
+	move	r15,#<_RLDWS3000		; Return to Caller
+	nop

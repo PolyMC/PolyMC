@@ -1,0 +1,812 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                     ENEMIES HANDLING MODULE 2                      *
+;*                                                                    *
+;*                        ENEMIES TARGETTING 2                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+	include	rlenemies.i
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rObjX		equ	r3			; Object X Coordinate
+rObjY		equ	r5			; Object Y Coordinate
+rTObjX		equ	r7			; Target X Coordinate
+rTObjY		equ	r8			; Target Y Coordinate
+;
+rEnemyTargets	equ	r10			; Pointer to Enemy Targetting List
+rTObj		equ	r13			; Pointer to Target RLObject
+;
+rBSPStack	equ	r9			; BSP Stack Pointer
+;
+rBSPBase	equ	r12			; Pointer to BSP BASE
+rRLLineCount	equ	rTObj			; RLEngine Line Counter
+rLX1		equ	rEnemyTargets		; Line X Coordinate
+rLY1		equ	rBSPStack		; Line Y Coordinate
+rLTemp		equ	rRLLineCount		; Line Temporary
+rSegPtr		equ	rBSPBase		; Segment Pointer
+
+
+;
+;	* * * * * * *       ENEMIES TARGETTING       * * * * * * *
+;
+	align	16,(_RLE2T10000-_RLEnemiesTarget2Align)&$0f
+;
+;	>>>   FINISHED ENEMIES TARGETTING   <<<
+;
+_RLE2T10000
+	move	r0,#<_RLEnemiesTarget3		; HANDLE ENEMY TARGETTING 3
+	move	r8,#^_RLEnemiesTarget3
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	>>>   TARGET ACQUIRED!   <<<
+;
+_RLE2T2500
+	move	rTObj,(<ENTObj)			; TARGET ACQUIRED!
+	move	rEnemyTargets,(<ENEnemy)	; Restore Enemy Pointer
+;	to	r0				; @RAM FETCH MISALIGNED!@
+	ldw	(rEnemyTargets)
+;	with	r0
+	swap
+	move	r1,#rloTObj			; Get TargetObject
+;	with	r0
+	add	r1
+	inc	rTObj
+	from	rTObj
+	stw	(r0)
+	bra	_RLE2T2200			; Next Enemy
+	inc	r1
+
+;
+;	>>>   START ENEMIES TARGETTING   <<<
+;
+_RLEnemiesTarget2
+	move	r0,#<(EMBSP+2)			; Bank of EM Data
+	ldb	(r0)
+	romb					; Set ROM Bank
+;
+	move	r0,#<(_RLEnemyTargets-1)	; Pointer to Enemy TargetList
+	move	(<ENEnemy),r0
+;
+	iwt	rBSPStack,#<_RLBSPStack		; Initialize BSP Stack Pointer
+	iwt	r0,#<_RLE2T2500			; Final Return Address (TARGET ACQUIRED!)
+;	from	r0
+	stw	(rBSPStack)
+
+	CACHEB	_RLEnemiesTarget2
+_RLEnemiesTarget2Align
+;
+;	>>>   PROCESS NEXT ENEMY   <<<
+;
+_RLE2T2000
+	move	rEnemyTargets,(<ENEnemy)	; Restore Enemy Pointer
+	move	r1,#(rloTObj+1)			; Offset to rloTObj
+_RLE2T2200
+	inc	rEnemyTargets			; Move to Next Enemy
+;	to	r0				; Get Next Enemy
+	ldw	(rEnemyTargets)
+	dec	r0				; Any More Entries?
+	bmi	_RLE2T10000			; No!
+;
+;	>>>   GET TARGET OBJECT   <<<
+;
+;	with	r0				; Get Target RLObject
+	add	r1
+	to	rTObj
+	ldw	(r0)
+	dec	rTObj				; Discarded Earlier?
+	bmi	_RLE2T2200			; Yes!
+	inc	rEnemyTargets			; Move to Next Enemy
+;
+;	>>>   ASSUME SIGHT BLOCKED   <<<
+;
+	move	r1,#0				; Assume Sight Blocked
+	from	r1
+	sbk
+;
+;	>>>   ENSURE LINE-OF-SIGHT   <<<
+;
+	move	r1,#-(rloTObj-(rloX+2))		; Get Object X Coordinate
+;	with	r0
+	add	r1
+	to	rObjX
+	ldw	(r0)
+;	with	r0				; Get Object Y Coordinate
+	add	#((rloY+2)-(rloX+2))
+	to	rObjY
+	ldw	(r0)
+	inc	r0				; Get Object Z Coordinate
+	inc	r0
+;	to	r0
+	ldw	(r0)
+	move	(<ENEnemy),rEnemyTargets	; Save Enemy Pointer
+;
+	move	r4,#(odhTarget*3/8)		; Lowest Point on Object
+;	from	r0
+	to	r1
+	add	r4
+	move	(<TGZ),r1
+;
+	move	r0,#(rloX+2+1)			; Get Target X Coordinate
+;	with	r0
+	add	rTObj
+	to	rTObjX
+	ldw	(r0)
+;	with	r0				; Get Target Y Coordinate
+	add	#((rloY+2)-(rloX+2))
+	to	rTObjY
+	ldw	(r0)
+	inc	r0				; Get Target Z Coordinate
+	inc	r0
+;	to	r0
+	ldw	(r0)
+;
+;	with	r0				; Get Lower DeltaZ Bounds
+	sub	r1
+;	with	r0
+	add	r0
+	move	(<TGdZLower),r0
+	move	r4,#((odhTarget*7/16)<<1)	; Highest Point on Object
+;	with	r0
+	add	r4
+	move	(<TGdZUpper),r0
+;
+	iwt	rBSPStack,#<(_RLBSPStack+2)	; Initialize BSP Stack Pointer
+	move	rBSPBase,(<EMBSP)		; BSP Base
+	move	r1,(<EMBSPR)			; BSP Root Node
+	move	(<ENTObj),rTObj			; Save Target RLObject
+	move	rRLLineCount,(<RLLineCount)	; RLEngineLineCount++
+	inc	rRLLineCount
+	from	rRLLineCount
+	sbk
+	iwt	r15,#<_RLE2T7000
+	from	r1				; Move to NODE
+
+;
+;	* * * * * * *       PROCESS THIS AREA       * * * * * * *
+;
+_RLE2T3000
+	move	r1,(<EMAREAS)			; AREA Base
+;	from	r0
+	to	r14
+	add	r1
+	move	rSegPtr,(<EMSEGS2)		; Add Base of SEGS (ADJUSTED!)
+	to	r6				; Get Number of SEGS in this AREA
+	getb
+	inc	r14
+	dec	rBSPStack			; Pop Stack
+	dec	rBSPStack
+	move	(<BBBSPStack),rBSPStack		; Save StackPointer
+	getb					; Get Starting Segment
+	inc	r14
+	getbh
+	with	rSegPtr				; Move to Starting Segment
+	add	r0
+	iwt	r15,#<_RLE2T3250
+;
+;	* * * * * * *       TRAVERSE BSP NODE       * * * * * * *
+;
+_RLE2TNode
+;	alt1					; @ALT1 IN PIPELINE@
+	getb					; Get NODE
+	moves	r0,r0				; Is this NODE an AREA?
+	bmi	_RLE2T3000			; Yes
+;
+;	* * * * * * *       PROCESS NEXT NODE       * * * * * * *
+;
+_RLE2T7000
+;	from	r0				; Move to NODE
+	to	r14
+	add	rBSPBase
+;
+;	>>>   PUSH BSP POINTER   <<<
+;
+	from	r14				; Push BSP Pointer
+	stw	(rBSPStack)
+	inc	rBSPStack
+;
+;	>>>   DETERMINE SIDE OF OBJECT <-> NODE   <<<
+;
+	move	r1,rObjY			; Y Coordinate
+	link	#3
+	bra	_RLE2TSide
+	with	rObjX				; X Coordinate
+	bpl	_RLE2T9000			; >= 0 = LEFT
+	inc	rBSPStack
+;
+;	* * * * * * *       OBJECT IS TO THE RIGHT OF THE NODE       * * * * * * *
+;
+_RLE2T8000
+;
+;	>>>   PROCESS RIGHT CHILD   <<<
+;
+	move	r0,#(rlbRightChild-(rlbDeltaY+1)) ; Get Right Child
+	with	r14
+	add	r0
+	iwt	r0,#<_RLE2T8500			; Push Return Address
+;	from	r0
+	stw	(rBSPStack)
+	inc	rBSPStack
+	inc	rBSPStack
+	getb
+	inc	r14
+	iwt	r15,#<_RLE2TNode		; Recurse
+	alt1
+;
+;	>>>   DETERMINE SIDE OF TARGET <-> NODE   <<<
+;
+_RLE2T8500
+	dec	rBSPStack			; Get BSP Pointer
+	dec	rBSPStack
+	to	r14
+	ldw	(rBSPStack)
+	move	r1,rTObjY			; Y Coordinate
+	link	#3
+	bra	_RLE2TSide
+	with	rTObjX				; X Coordinate
+	bmi	_RLE2T8900			; < 0 = RIGHT
+;
+;	>>>   PROCESS LEFT CHILD   <<<
+;
+	with	r14				; Get Left Child
+	add	#(rlbLeftChild-(rlbDeltaY+1))
+	getb
+	inc	r14
+	iwt	r15,#<_RLE2TNode		; Recurse
+	alt1
+;
+;	>>>   RECURSE   <<<
+;
+_RLE2T8900
+	dec	rBSPStack			; Pop Stack
+	dec	rBSPStack
+	to	r15				; Return to Caller
+	ldw	(rBSPStack)
+
+;
+;	* * * * * * *       GET SIDE OF COORDINATE RELATIVE TO NODE       * * * * * * *
+;
+;	R(SOURCE) = X Coordinate
+;	R1	  = Y Coordinate
+;
+;	R1 = SIDE
+;
+_RLE2TSide
+	to	r2				; @WITH IN PIPELINE@
+;
+;	>>>   (Xa * Yb)   <<<
+;
+	getb					; Get Line Y
+	inc	r14
+	getbh
+	inc	r14
+	with	r1				; (Y - LineY)
+	sub	r0
+;
+	to	r6				; Get Delta X
+	getb
+	inc	r14
+	with	r6
+	getbh
+	inc	r14
+;
+	with	r1				; Result in R1:R2
+	lmult
+;
+;	>>>   (Ya * Xb)   <<<
+;
+	getb					; Get Line X
+	inc	r14
+	getbh
+	inc	r14
+	from	r2				; (X - LineX)
+;	to	r0
+	sub	r0
+;
+	move	r2,r4
+;
+	to	r6				; Get Delta Y
+	getb
+	inc	r14
+	with	r6
+	getbh
+;
+_RLE2TSide2
+;	with	r0				; Result in R0:R4
+	lmult
+;
+;	>>>   DETERMINE DIRECTION OF NODE   <<<
+;
+;	IF RESULT >= 0, OBJECT IS TO THE LEFT OF THE NODE
+;	IF RESULT <  0, OBJECT IS TO THE RIGHT OF THE NODE
+;
+	with	r2				; Xa*Yb - Ya*Xb
+	sub	r4
+	with	r1
+	sbc	r0
+	jmp	r11				; @BELOW@
+;
+;	* * * * * * *       OBJECT IS TO THE LEFT OF THE NODE       * * * * * * *
+;
+_RLE2T9000
+;
+;	>>>   PROCESS LEFT CHILD   <<<
+;
+	with	r14				; Get Left Child
+	add	#(rlbLeftChild-(rlbDeltaY+1))
+	iwt	r0,#<_RLE2T9500			; Push Return Address
+;	from	r0
+	stw	(rBSPStack)
+	inc	rBSPStack
+	inc	rBSPStack
+	getb
+	inc	r14
+	iwt	r15,#<_RLE2TNode		; Recurse
+	alt1
+;
+;	>>>   DETERMINE SIDE OF TARGET <-> NODE   <<<
+;
+_RLE2T9500
+	dec	rBSPStack			; Get BSP Pointer
+	dec	rBSPStack
+	to	r14
+	ldw	(rBSPStack)
+	move	r1,rTObjY			; Y Coordinate
+	link	#3
+	bra	_RLE2TSide
+	with	rTObjX				; X Coordinate
+	bpl	_RLE2T8900-1			; >= 0 = LEFT
+;
+;	>>>   PROCESS RIGHT CHILD   <<<
+;
+	move	r0,#(rlbRightChild-(rlbDeltaY+1)) ; Get Right Child
+	with	r14
+	add	r0
+	getb
+	inc	r14
+	iwt	r15,#<_RLE2TNode		; Recurse
+	alt1
+
+;
+;	* * * * * * *       PROCESS THIS AREA       * * * * * * *
+;
+;	>>>   NO BLOCKING INTERSECTIONS WITH THIS AREA'S SEGMENTS!   <<<
+;
+_RLE2T3100
+	move	rBSPBase,(<EMBSP)		; BSP Base
+	move	rBSPStack,(<BBBSPStack)		; Restore StackPointer
+	to	r15				; Return to Caller
+	ldw	(rBSPStack)
+;
+;	* * * * * * *       GET SIDE OF VERTEX RELATIVE TO SIGHT       * * * * * * *
+;
+;	 R14 = Address of (Vertex X, Vertex Y)
+;
+;	RLX1 = Vertex X
+;	RLY1 = Vertex Y
+;	  R2 = Side
+;
+_RLE2TVSide
+	getb					; Get Vertex X Coordinate
+	inc	r14
+	from	rTObjY
+	to	r6
+	sub	rObjY
+	to	rLX1
+	getbh
+	inc	r14
+	from	rLX1				; -(LX1-ObjX) * (TObjY-ObjY)
+;	to	r0
+	sub	rObjX
+;	from	r0				; r1:r2
+	to	r1
+	lmult
+	getb					; Get Vertex Y Coordinate
+	inc	r14
+	from	rTObjX
+	to	r6
+	sub	rObjX
+	move	r2,r4
+	to	rLY1
+	getbh
+	from	rLY1				; (LY1-ObjY) * (TObjX-ObjX)
+;	to	r0
+	bra	_RLE2TSide2
+	sub	rObjY
+
+;
+;	* * * * * * *       PROCESS NEXT SEGMENT       * * * * * * *
+;
+_RLE2T3200
+	move	r6,(<BBSegCount)		; Get Segment Counter
+	move	rRLLineCount,(<RLLineCount)	; Get RLEngineLineCount
+_RLE2T3250
+	move	r2,#<_RLLineRLCounts		; RLEngine Generation LineCounter
+	from	rSegPtr
+	to	r14				; Move to Next Segment
+_RLE2T3300
+	add	#(rlgSize-(rlgLine+1)+rlgLine)
+	dec	r6				; One More Segment Processed
+	bmi	_RLE2T3100			; No More Segments!
+	getb					; Get Segment.Line
+	inc	r14
+	getbh
+;	from	r0				; Line*2
+	to	r4
+	add	r0
+	from	r2				; Get LineCounter
+	to	r1
+	add	r4
+;	to	r0
+	ldw	(r1)
+;	with	r0				; Already processed this Line?
+	sub	rRLLineCount			; @CMP@
+	beq	_RLE2T3300			; Yes!
+	with	r14				; Move to Next Segment
+;
+;	>>>   DOES SEGMENT INTERSECT OBJECT->TARGET RAY?   <<<
+;
+	to	rSegPtr				; Save Segment Pointer
+	with	r4				; Line*4
+	add	r4
+	from	r4				; Line*8
+;	to	r0
+	add	r4
+;	with	r0				; Line*12
+	add	r4
+	move	r2,(<EMLINES)			; Get Base Address of ROM Lines Table
+;	from	r0				; Move to LINE VERTEXES
+	to	r14
+	add	r2
+;
+	move	r2,(<EMVERTEXES)		; Get Base Address of ROM Vertexes Table
+	getb					; Get VERTEX1
+	inc	r14
+	from	rRLLineCount			; Update RLEngine Generation LineCounter
+	stw	(r1)
+	getbh
+	inc	r14
+;	from	r0				; Move to VERTEX1
+	to	rLTemp
+	add	r2
+;
+	move	(<BBSegCount),r6		; Save Segment Counter
+	getb					; Get VERTEX2
+	inc	r14
+	getbh
+;	from	r0				; Move to VERTEX2
+	to	r14
+	add	r2
+;
+	move	(<BBAreaPtr),r14		; Save VERTEX2
+	link	#3				; GET SIDE OF VERTEX2
+	bra	_RLE2TVSide+1
+	getb					; Get Vertex X Coordinate
+	from	rLTemp				; @WITH IN PIPELINE@
+;
+	link	#4				; GET SIDE OF VERTEX1
+	with	r1				; RLTEMP = VERTEX 2 SIDE
+	bra	_RLE2TVSide
+	to	rLTemp
+;
+	with	r1				; @WITH IN PIPELINE@
+	xor	rLTemp				; Same Side?
+	bpl	_RLE2T3200+1			; Yes, No Intersection
+;
+;	* * * * * * *       PROJECT ONTO LINE PERPENDICULAR       * * * * * * *
+;
+_RLE2T4000
+	move	r14,(<BBAreaPtr)		; Restore VERTEX2
+;
+	getb					; Line Vertex 2 X
+	inc	r14
+	getbh
+	inc	r14
+	from	rLX1				; Perpendicular Vector Y (LX1-LX2)
+	to	r6
+	sub	r0
+	from	rObjY				;  L1 = (OY-LY) * Perpendicular Vector Y
+;	to	r0				; (r2:rLTemp)
+	sub	rLY1
+;	from	r0
+	to	r2
+	lmult
+;
+	getb					; Line Vertex 2 Y
+	inc	r14
+	move	rLTemp,r4
+	from	rTObjY				;  L2 = (TY-LY) * Perpendicular Vector Y
+	to	r1				; (r1:r14)
+	sub	rLY1
+	with	r1
+	lmult
+;	with	r0				; Line Vertex 2 Y
+	getbh
+;	from	r0				; Perpendicular Vector X  (LY2-LY1)
+	to	r6
+	sub	rLY1
+	move	r14,r4
+;
+	from	rObjX				;  L1 += (0X-LX) * Perpendicular Vector X
+;	to	r0				; (r2:rLTemp)
+	sub	rLX1
+;	with	r0
+	lmult
+	with	rLTemp
+	add	r4
+	with	r2
+	adc	r0
+
+	ifn	0
+	from	r2				; Percentage = 0?
+;	to	r0
+	or	rLTemp
+	beq	_RLE2T4900			; Yes!  No Intersection!
+	endif
+
+	from	rTObjX				;  L2 += (TX-LX) * Perpendicular Vector X
+;	to	r0				; (r1:r4)
+	sub	rLX1
+;	with	r0
+	lmult
+	with	r4
+	add	r14
+	with	r1
+	adc	r0
+	from	r1				; Same Side?
+;	to	r0
+	xor	r2
+	bpl	_RLE2T4900			; Yes, No Intersection!
+;
+;	>>>   OBJECT->TARGET RAY INTERSECTS SEGMENT!   <<<
+;
+	from	rSegPtr				; Get Segment.Flags
+	to	r14
+	sub	#((rlgLine+1)-rlgFlags)
+	getb
+;	with	r0				; TRANSPARENT?
+	lsr
+	with	r4				; Get Divisor (L2-L1)
+	bcc	_RLE2T5000			; YES!
+	sub	rLTemp
+;
+;	>>>   TARGET NOT ACQUIRED!   <<<
+;
+_RLE2T4500
+	iwt	r15,#<_RLE2T2000		; SOLID!  TARGET NOT ACQUIRED!
+	nop
+;
+;	>>>   NO INTERSECTION   <<<
+;
+_RLE2T4900
+	iwt	r15,#<_RLE2T3200		; Next Segment
+
+;
+;	* * * * * * *       CALCULATE INTERCEPTION PERCENTAGE       * * * * * * *
+;
+_RLE2T5000
+	with	r1
+	sbc	r2
+	bmi	_RLE2T5200
+;	with	r0
+	sub	r0
+;	from	r0				; Get -L1
+	to	rLTemp
+	sub	rLTemp
+;	from	r0
+	to	r2
+	sbc	r2
+	bra	_RLE2T5400
+_RLE2T5200
+;	from	r0				; Get (L1-L2)
+	to	r4
+	sub	r4
+;	from	r0
+	to	r1
+	sbc	r1
+_RLE2T5400
+	with	r14				; Get Segment.Face
+	add	#(rlgFace-rlgFlags)
+;
+;	>>>   ENSURE (L1+L2) WITHIN RANGE   <<<
+;
+_RLE2T5500
+	from	r4				; Large Number?
+;	to	r0
+	rol
+	from	r1
+;	to	r0
+	rol
+	bne	_RLE2T5600			; Yes, Reduce into Range
+	from	r4
+;	to	r0
+	rol
+	bpl	_RLE2T5700			; No, Within Range $0000-$3FFF
+_RLE2T5600
+	from	r1				; (L1+L2) >> 8
+;	to	r0
+	lob
+	with	r4
+	hib
+;	with	r0
+	swap
+	with	r4
+	add	r0
+	with	r1
+	hib
+	with	rLTemp				; (L1) >> 8
+	hib
+	from	r2
+;	to	r0
+	lob
+;	with	r0
+	swap
+	with	rLTemp
+	add	r0
+	with	r2
+	bra	_RLE2T5500
+	hib
+_RLE2T5700
+	getb					; R2 = FACE
+	inc	r14
+	move	r2,(<EMFACES)			; Add Base of Faces
+	getbh
+	with	r2
+	add	r0
+;
+	ibt	r0,#(^InvTable)			; Get InverseTable Entry
+	romb
+	move	r1,#<(InvTable-2)
+	from	r4
+;	to	r0
+	add	r4
+;	from	r0
+	to	r14
+	add	r1
+	dec	r0
+	dec	r0
+	to	r1
+	getb					; Get Inverse Value
+	inc	r14
+;	with	r0				; Low/High Gear?
+	hib
+	from	r1
+	to	r6
+	getbh
+;
+	move	r0,#<(EMBSP+2)			; Bank of EM Data
+	ldb	(r0)
+	romb					; Set ROM Bank
+	move	r14,r2				; Move to FACE.SECTORNEAR
+;
+	bne	_RLE2T5800			; Low
+	from	rLTemp				; High
+;	to	r0
+	lmult
+	with	r4
+	bra	_RLE2T6000
+	to	r6
+_RLE2T5800
+;	to	r0				; <<1
+	add	rLTemp
+;	with	r0
+	lmult
+	with	r4
+	hib
+;	with	r0
+	lob
+;	with	r0
+	swap
+;	from	r0
+	to	r6
+	add	r4
+
+;
+;	* * * * * * *       ENSURE WITHIN BOUNDS OF VERTICAL SIGHT       * * * * * * *
+;
+_RLE2T6000
+;
+;	>>>   ENSURE NEAR->FAR SECTOR SIGHT NOT BLOCKED   <<<
+;
+	move	r2,#<(_RLSectorData+rlsdFloorHeight)
+	getb					; R0 = SectorNear
+	inc	r14
+;	with	r0				; R1 = SectorNearData.Floor
+	umult	#rlsdSize
+;	from	r0
+	to	r1
+	add	r2
+	getb					; R0 = SectorFar
+;	with	r0
+	umult	#rlsdSize
+	with	r2				; R2 = SectorFarData.Ceiling
+	add	r0
+	inc	r2
+	inc	r2
+;
+;	>>>   ENSURE NEARFLOOR < FARCEILING   <<<
+;
+;	to	r0				; SectorNear.Floor
+	ldw	(r1)
+	to	rLTemp				; SectorFar.Ceiling
+	ldw	(r2)
+;	with	r0				; NearFloor >= FarCeiling?
+	sub	rLTemp				; @CMP@
+	bge	_RLE2T6420			; YES!  SIGHT BLOCKED!
+;
+;	>>>   ENSURE NEARCEILING > FARFLOOR   <<<
+;
+	inc	r1				; SectorNear.Ceiling
+	inc	r1
+;	to	r0
+	ldw	(r1)
+	dec	r2				; SectorFar.Floor
+	dec	r2
+	to	r2
+	ldw	(r2)
+	dec	r0				; NearCeiling = FarFloor?
+;	with	r0				; NearCeiling <= FarFloor?
+	sub	r2				; @CMP@
+	blt	_RLE2T6420			; YES!  SIGHT BLOCKED!
+;
+;	>>>   ENSURE FARFLOOR < FARCEILING   <<<
+;
+	from	r2				; FarFloor >= FarCeiling? (Closed Door)
+;	to	r0				; @CMP@
+	sub	rLTemp
+	bge	_RLE2T6400			; YES!  SIGHT BLOCKED!
+;
+;	>>>   ENSURE LOWER VERTICAL SIGHT BOUND BELOW CEILING   <<<
+;
+	move	r0,(<TGdZLower)			; (Lower DeltaZ Bounds)*Percentage
+;	with	r0				; GET LOWER SIGHT Z
+	lmult
+	move	r1,(<TGZ)			; R1 = ObjectZ+(ObjectHeight/2)
+;	with	r0				; R0 = SightZ at Intersection
+	add	r1
+;	with	r0				; LOWER SIGHT Z < CEILING?
+	sub	rLTemp				; @CMP@
+	bge	_RLE2T6400			; NO!  ABOVE!
+;
+;	>>>   ENSURE UPPER VERTICAL SIGHT BOUND ABOVE FLOOR   <<<
+;
+	move	r0,(<TGdZUpper)			; (Upper DeltaZ Bounds)*Percentage
+;	with	r0
+	lmult
+;	with	r0				; +ObjectZ+ObjectHeight
+	add	r1
+	move	r1,#(odhTarget*3/8)		; +3/8 Height of Object
+;	with	r0
+	add	r1
+;	with	r0				; UPPER SIGHT Z > FLOOR?
+	sub	r2				; @CMP@
+	blt	_RLE2T6420+1			; NO!  BELOW!
+	iwt	r15,#<_RLE2T3200		; Next Segment
+;
+;	>>>   SIGHT IS BLOCKED BY FLOOR/CEILING   <<<
+;
+_RLE2T6400
+	nop					; @FLUSH PIPELINE@
+_RLE2T6420
+	iwt	r15,#<_RLE2T2000+1		; TARGET NOT ACQUIRED!
+	alt1
+
+
+	CACHEE	_RLEnemiesTarget2

@@ -1,0 +1,758 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                     ENGINE TRACE WALLS MODULE 2                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildTraceWalls2
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD TRACE          TRACE WALL VSEGMENTS B - WALL PLOTS 1  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       TRACE WALL VISIBLE SEGMENTS       * * * * * * *
+;
+rYs		equ	r2		; Bottom Pixel Y Coordinate
+
+rXsT		equ	r3		; Current X/#Pixels Left
+rClipZonePtr	equ	r5		; Pointer to current ClipZone
+rClipRangePtr	equ	r7		; Pointer to current ClipRange
+
+rVSegFlags	equ	r8		; VisibleSegment Flags
+rVSeg		equ	r9		; Pointer within VisibleSegment
+rWallPlotPtr	equ	r10		; Pointer within WallPlotData
+rClipRange	equ	r12		; Current ClipRange
+rScaleF		equ	r13		; RL->SCN Pixel Scaling Fraction
+rVSegTextureH	equ	r14		; Offset to VisibleSegment Texture Height
+rScale		equ	rVSegTextureH	; RL->SCN Pixel Scaling Integer
+rNumDrawPixF	equ	rClipRangePtr	; #Fractionary Pixels to Draw
+
+
+	align	16,(_RLBuildTraceWalls2-_TRW2S1400)&$0f
+;
+;	* * * * * * *       INITIALIZE CLIPRANGE       * * * * * * *
+;
+_RLBuildTraceWalls2
+	move	r13,#<_TRW2S1400
+	ifn	useHIGHDETAIL
+	move	r12,#(RLViewPixX/3)		; Get Width of Display
+	move	r0,(<DetailLevel)
+	dec	r0				; Low/High?
+	bmi	_TRW2S1200			; High
+	nop
+	move	r12,#(RLViewPixX/3/2)		; Get Width of Display
+_TRW2S1200
+	endif
+	ife	useHIGHDETAIL
+	move	r12,#(RLViewPixX/3/2)		; Get Width of Display
+	endif
+	move	r1,#<_RLClipRange		; Point to Start of ClipRange
+	move	r0,#( ((RLViewPixY-1)<<8)| $00)	; Bottom.B / Top.B
+
+	CACHEB	_RLBuildTraceWalls2
+_TRW2S1400
+;	from	r0				; Default ClipRange
+	stw	(r1)
+	inc	r1				; Next ClipRangeEntry
+	loop
+	inc	r1				; Next ClipRangeEntry
+
+;
+;	* * * * * * *       INITIALIZE PREWALLPLOTDATA POINTER       * * * * * * *
+;
+	move	rWallPlotPtr,(<TRClipZonePtr0)	; END of VSegClipZoneData (FREE MEMORY)
+
+;
+;	* * * * * * *       INITIALIZE TRACING WALL VISIBLE SEGMENTS       * * * * * * *
+;
+	ibt	r0,#(^RLSCNPixScale)		; Bank of RL->SCN Pixel Scaling Table
+	romb
+	move	rVSeg,#<(_RLVSegList-rlvSize+rlvXsT) ; START of VisibleSegmentList
+	move	r11,#<_TRW2S2200
+	bra	_RLAddWall0
+	dec	rWallPlotPtr
+
+	CACHEE	_RLBuildTraceWalls2
+
+
+	align	16,(_TRW2S9000-_RLAddWallAlign)&$0f
+;
+;	* * * * * * *       FINISHED TRACING WALL VISIBLE SEGMENTS       * * * * * * *
+;
+_TRW2S9000
+	move	(<TRPreWallPlotPtr0),rWallPlotPtr
+	iwt	r0,#<_RLBuildTraceWalls3	; BUILD TRACE WALLS 3
+	ibt	r8,#^_RLBuildTraceWalls3
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+
+;
+;	* * * * * * *       ADD WALL CLIP       * * * * * * *
+;
+;	r0		=	World Z Height of Clip
+;
+;
+;	* * * * * * *       ADD WALL PREPLOT       * * * * * * *
+;
+;	r6		=	World Z Height of Bottom of Wall
+;	r0		=	World Z Height of Top of Wall
+;	rVSegTextureH	=	Offset to VisibleSegment Texture Height
+;	r(SOURCE)	=	World Z Adjust
+;
+;	rYs		=	Screen Y at Bottom of Wall (Clipped to ClipRange)
+;	r4		=	Screen Y at Top of Wall (NOT Clipped)
+;
+_RLAddWall0
+	CACHEB	_RLAddWall
+_RLAddWallAlign
+_RLAW9800
+	inc	rWallPlotPtr
+_RLAW9900
+	move	r4,rYs
+	jmp	r11
+_RLAddClip
+	move	r6,r0				; Force NumWorldPix = 0
+	dec	r0
+_RLAddWall
+	to	r4				; @WITH IN PIPELINE@
+;
+;	>>>   CALCULATE NUMBER OF WORLD PIXELS TO PLOT   <<<
+;
+;	from	r0				; R1 = #WorldPixels = (Top-Bottom)+1
+	to	r1
+	sub	r6
+	inc	r1
+;
+;	>>>   WORLD Z ADJUST   <<<
+;
+	from	rWallPlotPtr			; WORLD Z ADJUST
+;	to	r0
+	sub	#plvSize
+	from	r4
+	stw	(r0)
+;
+;	>>>   CALCULATE PIXEL OFFSET TO BOTTOM OF SURFACE   <<<
+;
+	from	rScaleF				; Scale * WorldZ
+;	to	r0
+	lmult					; rYs:r4 = Fractionary Result
+	from	r4
+	to	rNumDrawPixF
+	add	r4
+;	from	r0
+	to	rYs
+	rol
+;
+	from	rScale				; r0 = Integer result
+;	to	r0
+	hib
+;	with	r0
+	lmult
+	with	r4				; r4 = #Screen Pixels
+	add	rYs
+;
+	move	rYs,#(RLViewPixY-1)/2		; Yb
+;	with	r0
+	sub	r0
+;	from	r0
+	to	rNumDrawPixF
+	sub	rNumDrawPixF
+	with	rYs				; rYs = Screen Y Bottom
+	sbc	r4
+;
+;	>>>   JUST CALCULATING CLIP?   <<<
+;
+	dec	r1				; #WorldPixels = 0?
+	bmi	_RLAW9900			; Yes, Just Calculating CLIP!
+;
+;	>>>   CLIP ABOVE TOP   <<<
+;
+	from	rClipRange			; Get ClipRangeTop
+;	to	r0
+	lob
+	from	rYs
+;	to	r0				; @CMP@
+	sub	r0
+	blt	_RLAW9800			; BOTTOM OF WALL IS OFF TOP OF SCREEN!
+;
+;	* * * * * * *       ADD NEW PRE WALL PLOT       * * * * * * *
+;
+;	>>>   WORLD Z AT BOTTOM   <<<
+;
+	dec	rWallPlotPtr
+	dec	rWallPlotPtr
+	from	r6				; World Z
+	stw	(rWallPlotPtr)
+;
+;	>>>   CALCULATE PIXEL OFFSET TO TOP OF SURFACE   <<<
+;
+	with	r6				; TOP OF WALL
+	add	r1
+;	inc	r6
+	from	rScaleF				; ScaleF * WorldZ
+;	to	r0
+	lmult					; r1:r4 = Fractionary Result
+	from	r4
+	to	rNumDrawPixF
+	add	r4
+;
+;	>>>   RL->SCN PIXEL SCALE INTEGER/VSEGTEXTUREH   <<<
+;
+	dec	rWallPlotPtr
+	dec	rWallPlotPtr
+	from	rScale				; Scale/VSegTextureH
+	stw	(rWallPlotPtr)
+;
+;	from	r0
+	to	r1
+	rol
+;
+	from	rScale				; r0 = Integer result
+;	to	r0
+	hib
+;	with	r0
+	lmult
+;
+;	>>>   RL->SCN PIXEL SCALE FRACTION   <<<
+;
+	dec	rWallPlotPtr
+	dec	rWallPlotPtr
+	from	rScaleF				; ScaleF
+	stw	(rWallPlotPtr)
+;
+	dec	rWallPlotPtr
+	with	r1				; r1 = #Screen Pixels
+	add	r4
+;
+	move	r4,#(RLViewPixY-1)/2		; Yb
+;	with	r0
+	sub	r0
+;	from	r0
+	to	rNumDrawPixF
+	sub	rNumDrawPixF
+	with	r4				; r4 = Screen Y Top
+	sbc	r1
+;
+	from	r4
+;	to	r0				; @CMP@
+	sub	rYs
+	bge	_RLAW9100			; NO PIXELS TO PLOT!
+	dec	rWallPlotPtr
+;
+;	>>>   XS   <<<
+;
+	from	rXsT				; Xs
+	stb	(rWallPlotPtr)
+;
+;	>>>   CLIP BELOW BOTTOM   <<<
+;
+	from	rClipRange			; Get ClipRangeBottom
+;	to	r0
+	hib
+	from	r4
+;	to	r0
+	sub	r0
+	inc	r0
+	bpl	_RLAW9000			; TOP OF WALL IS OFF BOTTOM OF SCREEN!
+;
+;	>>>   CLIPPING RANGE   <<<
+;
+	dec	rWallPlotPtr
+	dec	rWallPlotPtr
+;
+	from	rClipRange			; Get ClipTop
+;	to	r0
+	lob
+	from	r4				; WallTop < ClipTop?
+;	to	r0				; @CMP@
+	sub	r0
+	blt	_RLAW8000			; Yes, no new ClipRange!
+	from	rClipRange			; Get ClipBottom
+;	to	r0
+	hib
+;	with	r0
+	swap
+;	with	r0				; Set new ClipTop
+	or	r4
+_RLAW8000
+;	from	rClipRange			; Clipping Range
+	stw	(rWallPlotPtr)
+;
+;	>>>   WORLD Y   <<<
+;
+	dec	rWallPlotPtr
+	dec	rWallPlotPtr
+;	to	r0				; r0 = World Y Distance
+	ldw	(rClipZonePtr)
+;	from	r0				; World Y
+	stw	(rWallPlotPtr)
+;
+;	>>>   SKIP WORLD Z ADJUST   <<<
+;
+	dec	rWallPlotPtr
+	jmp	r11				; Return to Caller
+	dec	rWallPlotPtr
+_RLAW9000
+	inc	rWallPlotPtr
+_RLAW9100
+	with	rWallPlotPtr
+	add	#(plvSize-plvXs)
+	jmp	r11
+
+
+;
+;	* * * * * * *       VISIBLE SEGMENT COMPLETED       * * * * * * *
+;
+_TRW2S98000
+;
+;	>>>   SAVE ENDING WALLPLOTDATA POINTER   <<<
+;
+	nop					; @"WITH" IN PIPELINE@
+	from	rVSeg
+;	to	r0
+	add	#(rlvWallPlotDataEnd-rlvCeilingHeight)
+	from	rWallPlotPtr
+	stw	(r0)
+;
+	move	r0,#(rlvCeilingHeight-rlvXsT)	; Move Back to XsCount
+	with	rVSeg
+	sub	r0
+;
+;	* * * * * * *       HANDLE NEXT VISIBLE SEGMENT       * * * * * * *
+;
+_TRW2S2200
+	move	r4,#rlvSize		 	; Offset to Next VSEG
+	move	r1,(<VSegListEnd)		; Get END of VisibleSegmentList
+_TRW2S2400
+	with	rVSeg				; Move to Next VSEG
+	add	r4
+	from	rVSeg				; At End?
+;	to	r0				; @CMP@
+	sub	r1
+	bne	_TRW2S2600
+;	to	r0				; Get Xs1/XsCount
+	ldw	(rVSeg)
+;
+	iwt	r15,#<_TRW2S9000		; Yes!  No More VisibleSegments!
+;
+;	>>>   GET STARTING PIXEL/#PIXELS TO TRACE   <<<
+;
+_TRW2S2600
+;;	to	r0				; Get Xs1/XsCount
+;	ldw	(rVSeg)
+	moves	rXsT,r0
+	bmi	_TRW2S2400+1			; THIS SEGMENT IS CLIPPED!
+	with	rVSeg				; Move to Next VSEG
+;
+;	* * * * * * *       PROCESS NEXT VISIBLE SEGMENT       * * * * * * *
+;
+;	>>>   GET VISIBLE SEGMENT FLAGS   <<<
+;
+;	with	rVSeg				; @"WITH" IN PIPELINE@
+	add	#(rlvFlags-rlvXsT)
+	to	rVSegFlags
+	ldw	(rVSeg)
+;
+;	>>>  GET CLIPPING RANGE   <<<
+;
+	with	rVSeg
+	add	#(rlvClipRangeP-rlvFlags)
+	to	rClipRangePtr
+	ldw	(rVSeg)
+;
+;	>>>   GET CLIPPING ZONE   <<<
+;
+	inc	rVSeg
+	inc	rVSeg
+	to	rClipZonePtr
+	ldw	(rVSeg)
+;
+;	>>>   MOVE VSEG POINTER TO HEIGHTS   <<<
+;
+	move	r0,#(rlvCeilingHeight-rlvClipZoneP)
+	with	rVSeg
+	add	r0
+;
+;	>>>   SAVE STARTING WALLPLOTDATA POINTER   <<<
+;
+	from	rVSeg
+;	to	r0
+	add	#(rlvWallPlotDataStart-rlvCeilingHeight)
+	from	rWallPlotPtr
+	bra	_TRW2S10000
+	stw	(r0)
+
+;
+;	* * * * * * *       NEXT TRACE STEP       * * * * * * *
+;
+_TRW2S90000
+;
+;	>>>   NEXT PIXEL STEP   <<<
+;
+	with	rXsT				; Get PixelCount
+	swap
+	dec	rXsT				; PixelCount--
+;
+;	>>>   UPDATE CLIPZONE   <<<
+;
+	with	rClipZonePtr			; Update ClipZone Pointer
+	add	#rlvczClipRange2
+;
+	from	rXsT				; Any Pixels Left?
+;	to	r0
+	lob
+;
+	from	rClipRange			; Save New ClipRange
+	stw	(rClipZonePtr)
+;
+	beq	_TRW2S98000			; NO!  Finished this Segment!!
+	with	rXsT
+	swap
+	inc	rXsT				; Move to next Pixel
+;
+;	>>>   NEXT CLIPRANGE STEP   <<<
+;
+	inc	rClipRangePtr
+	inc	rClipRangePtr
+;
+;	>>>   NEXT CLIPZONE STEP   <<<
+;
+	inc	rClipZonePtr			; Update ClipZone Pointer
+	inc	rClipZonePtr
+
+;
+;	* * * * * * *       MASTER TRACE PROCESSING LOOP       * * * * * * *
+;
+_TRW2S10000
+	to	rClipRange			; Get Current ClipRange
+	ldw	(rClipRangePtr)
+	from	rClipRange			; Save New ClipRange
+	stw	(rClipZonePtr)
+	inc	rClipRange
+	beq	_TRW2S90000			; Yes, Next Step!
+	dec	rClipRange
+;
+	move	r4,#<(RLSCNPixScale)
+;
+;	>>>   GET WORLD Y DISTANCE   <<<
+;
+	inc	rClipZonePtr
+	inc	rClipZonePtr
+;	to	r0				; r0 = World Y Distance
+	ldw	(rClipZonePtr)
+;
+;	>>>   GET INDEX INTO SCALING TABLES   <<<
+;
+;	from	r0				; Get ScalingTables Index
+	to	r1
+	add	r0
+;	with	r0
+	add	r1
+;
+;	>>>   GET RL->SCN PIXEL SCALE   <<<
+;
+;	from	r0
+	to	r14
+	add	r4
+;
+;	>>>   RL->SCN PIXEL SCALING FRACTION   <<<
+;
+;	to	r0				; Get RL->SCN Pixel Scaling Fraction
+	getb
+	inc	r14
+;	from	r0
+	to	rScaleF
+	getbh
+	inc	r14
+;
+;	>>>   RL->SCN PIXEL SCALING INTEGER   <<<
+;
+;	to	r0				; Get RL->SCN Pixel Scaling Integer
+	getb
+;	from	r0
+	to	rScale
+	swap
+
+;
+;	* * * * * * *       TRACE WALLS/CLIPS       * * * * * * *
+;
+_TRW2S20000
+	move	(<TRClipRangePtr),rClipRangePtr
+	moves	r0,rVSegFlags			; WALL/CLIP?
+	bmi	_TRW2S35000			; WALLS
+;	with	r0				; CLIPS
+	lsr
+;	with	r0				; UPPER/LOWER CLIP?
+	swap
+	bmi	_TRW2S42000			; UPPERCLIP
+;
+	from	rVSeg				; Get FloorHeight
+	bra	_TRW2S52000+2			; LOWERCLIP
+	dc.b	$3e
+;	sub	#(rlvCeilingHeight-rlvFloorHeight)
+
+;
+;	* * * * * * *       TRACE NORMAL WALL       * * * * * * *
+;
+_TRW2S35000
+	bcc	_TRW2S40000			; NORMAL WALL?
+;
+;	>>>   GET NORMAL WALL BOTTOM HEIGHT   <<<
+;
+	from	rVSeg
+;	to	r0
+	sub	#(rlvNormalWallTopHeight-rlvNormalWallBotHeight)
+	to	r6
+	ldw	(r0)
+;
+;	>>>   GET NORMAL WALL TEXTURE HEIGHT OFFSET   <<<
+;
+	move	r1,#rlvNormalWallTextureH
+	with	rVSegTextureH
+	or	r1
+;
+;	>>>   GET NORMAL WALL TOP HEIGHT   <<<
+;
+;	to	r0
+	ldw	(rVSeg)
+	link	#4
+	move	r15,#<_RLAddWall		; AddWall(Normal)
+	with	r6
+;
+	move	rClipRange,#-1			; Close ClipRange
+	move	r0,rYs				; Get Floor.B
+	iwt	r15,#<_TRW2S72000+1		; Next Trace Step
+	alt1					; Save New ClipRange
+
+;
+;	* * * * * * *       TRACE UPPER CLIP       * * * * * * *
+;
+_TRW2S40000
+	with	r0				; @"FROM" IN PIPELINE@
+	lsr
+	bcs	_TRW2S45000			; UPPERWALL?
+	from	rVSegFlags			; UPPERCLIP?
+;	to	r0
+	swap
+;	with	r0
+	lsr
+	bcc	_TRW2S50000			; No!
+;
+;	>>>   GET UPPER WALL BOTTOM HEIGHT   <<<
+;
+_TRW2S42000
+	link	#4
+	move	r15,#<_RLAddClip		; AddClip(Upper)
+;	to	r0
+	ldw	(rVSeg)
+	move	(<TRCeilingY),rYs		; Save Top of Wall
+	bra	_TRW2S48000
+;
+;	* * * * * * *       TRACE UPPER WALL       * * * * * * *
+;
+_TRW2S45000
+;
+;	>>>   GET UPPER WALL BOTTOM HEIGHT   <<<
+;
+	from	rVSeg
+;	to	r0
+	add	#(rlvUpperWallBotHeight-rlvCeilingHeight)
+	to	r6
+	ldw	(r0)
+;
+;	>>>   GET UPPER WALL TEXTURE HEIGHT OFFSET   <<<
+;
+	move	r1,#rlvUpperWallTextureH
+	with	rVSegTextureH
+	or	r1
+;
+;	>>>   GET UPPER WALL TOP HEIGHT   <<<
+;
+;	to	r0
+	ldw	(rVSeg)
+	link	#4
+	move	r15,#<_RLAddWall		; AddWall(Upper)
+	with	r6
+;
+	move	(<TRCeilingY),r4
+	with	rVSegTextureH
+	hib
+	with	rVSegTextureH
+	swap
+;
+;	* * * * * * *       NEW UPPER CLIP       * * * * * * *
+;
+_TRW2S48000
+	from	rClipRange			; Get ClipTop
+;	to	r0
+	lob
+	from	rYs				; WallBottom < ClipTop?
+;	to	r0				; @CMP@
+	sub	r0
+	blt	_TRW2S50000			; Yes, no new ClipRange!
+	from	rClipRange			; Get ClipBottom
+;	to	r0
+	hib
+	inc	rYs
+;	from	r0				; WallBottom >= ClipBottom?
+	cmp	rYs
+	with	r0				; Get "LowerWallBottom" for Floors
+	blt	_TRW2S58500			; Yes!  View Closed!
+	to	r1
+;	with	r0
+	swap
+;	from	r0				; Set new ClipBottom/ClipRange
+	to	rClipRange
+	or	rYs
+
+
+;
+;	* * * * * * *       TRACE LOWER CLIP       * * * * * * *
+;
+_TRW2S50000
+	from	rVSegFlags			; LOWERWALL?
+;	to	r0
+	and	#rlvfLOWERWALL
+	bne	_TRW2S55000			; Yes!
+;
+	from	rVSegFlags			; LOWERCLIP?
+;	to	r0
+	swap
+	bpl	_TRW2S70000			; No!
+;
+;	>>>   GET LOWER WALL TOP HEIGHT   <<<
+;
+_TRW2S52000
+	from	rVSeg				; Get FloorHeight
+;	to	r0
+	sub	#(rlvCeilingHeight-rlvFloorHeight)
+	link	#4
+	move	r15,#<_RLAddClip		; AddClip(Lower)
+;	to	r0
+	ldw	(r0)
+	with	rYs				; move r1,rYs
+	bra	_TRW2S58000
+	to	r1
+;
+;	* * * * * * *       TRACE LOWER WALL       * * * * * * *
+;
+_TRW2S55000
+;
+;	>>>   GET LOWER WALL BOTTOM HEIGHT   <<<
+;
+	from	rVSeg
+;	to	r0
+	sub	#(rlvCeilingHeight-rlvFloorHeight)
+	to	r6
+	ldw	(r0)
+;
+;	>>>   GET LOWER WALL TEXTURE HEIGHT OFFSET   <<<
+;
+	move	r1,#rlvLowerWallTextureH
+	with	rVSegTextureH
+	or	r1
+;
+;	>>>   GET LOWER WALL TOP HEIGHT   <<<
+;
+;	with	r0
+	add	#(rlvLowerWallTopHeight-rlvFloorHeight)
+;
+;	to	r0
+	ldw	(r0)
+	link	#4
+	move	r15,#<_RLAddWall		; AddWall(Lower)
+	with	r0
+;
+	move	r1,rYs				; Get Bottom of LowerWall
+	move	rYs,r4				; Get Top of LowerWall
+;
+;	* * * * * * *       NEW LOWER CLIP       * * * * * * *
+;
+_TRW2S58000
+	from	rClipRange			; Get ClipBottom
+;	to	r0
+	hib
+	from	rYs				; WallTop >= ClipBottom?
+	cmp	r0
+	bge	_TRW2S70000			; Yes, no new ClipRange!
+	from	rClipRange			; Get ClipTop
+;	to	r0
+	lob
+	from	rYs				; WallTop >= ClipTop?
+	cmp	r0
+	bge	_TRW2S59000+1			; Yes
+	with	rYs
+_TRW2S58500
+	move	rYs,#-1				; No, View Closed!
+_TRW2S59000
+	with	rYs				; Set new ClipBottom/ClipRange
+	swap
+;	from	r0
+	to	rClipRange
+	or	rYs
+
+;
+;	* * * * * * *       UPDATE CLIPZONE/CLIPRANGE       * * * * * * *
+;
+;		r1	=	  FloorY.B
+;	(TRCeilingY) r4	=	CeilingY.B
+;
+_TRW2S70000
+;
+;	>>>   UPDATE CLIPZONE   <<<
+;
+	move	r4,(<TRCeilingY)		; R4 = CeilingY
+	move	r0,r1				; R0 = FloorY
+_TRW2S72000
+;
+;	>>>   UPDATE CLIPRANGE   <<<
+;
+	move	rClipRangePtr,(<TRClipRangePtr)	; Restore ClipRange Pointer
+	from	rClipRange			; Save New ClipRange
+	stw	(rClipRangePtr)
+;
+	inc	r0				; FloorY++
+;
+;	>>>   UPDATE CLIPZONE.CEILING   <<<
+;
+	dec	rClipZonePtr			; Move to ClipZone.ClipRange
+	dec	rClipZonePtr
+	from	rClipZonePtr			; Move to ClipZone.CeilingY
+	to	r1
+	add	#(rlvczCeilingY-rlvczClipRange)
+	from	r4				; Save ClipZone.CeilingY
+	stw	(r1)
+	inc	r1				; Move to ClipZone.FloorY
+	inc	r1
+;
+	move	r15,#<_TRW2S90000		; Next Step
+;
+;	>>>   UPDATE CLIPZONE.FLOOR   <<<
+;
+;	from	r0				; Save ClipZone.FloorY
+	stw	(r1)
+
+
+	CACHEE	_RLAddWall

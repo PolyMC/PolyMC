@@ -1,0 +1,2 @@
+mktex -v -1
+touch rltextures.a

@@ -1,0 +1,1167 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                            XBAND PATCH COMMUNICATIONS MODULE       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	snesmac.i
+	include	xband.i
+
+;	SECTION	XBAND
+
+
+
+;
+;	* * * * * * *        BUFFER EQUATES       * * * * * * *
+;
+XBBufferSize	    equ	    32			    ; must be a power of two!
+XBBufferSizeMask    equ	    (XBBufferSize-1)*4	    ; in order for this to work as an AND mask
+XBModemBufferSize   equ	    XBBufferSize*4	    ; ditto
+XBModemBufferMask   equ	    XBModemBufferSize-1
+
+
+**************************************************
+*
+* Private and I/O variables for the XBAND
+* communications routines.
+*
+**************************************************
+
+XBLocalQueue	    ds	4*XBBufferSize	; local data is kept here for later use, and for error recovery
+XBLocalHead	    ds	2		; data goes in the head (postdecrement) : always a multiple of 4
+XBLocalTail	    ds	2		; and comes out the tail (postdecrement) : always a multiple of 4
+
+XBModemLatency	    ds	2		; DO NOT ASSUME THIS WILL BE ANY PARTICULAR VALUE.
+
+XBGameLoopCounter   ds	2		; counts how many times XBSwapData is called
+
+XBPacketOut	    ds	4		; used privately by XBGetPacket (to protect the value of XBRemotePacketOut)
+
+*
+* Serial hardware
+*
+XBModemErr	    ds	2	; set when there's an overrun or other modem error
+XBModemBuffer	    ds	XBModemBufferSize	; modem buffer
+XBModemHead	    ds	2	; data goes in here. Nothing can touch this besides XBReadModem
+XBModemTail	    ds	2	; data comes out here.
+XBModemBusy	    ds	2	; this indicates modem hardware is busy
+XBSendPacket	    ds	4	; the packet to send
+
+*
+* I/O Parameters
+*
+* These are the only variables that need to be seen outside of this module.
+*
+XBTicks		    ds	4   ; READ ONLY
+
+XBPostedData	    ds	48  ; read and write
+
+XBLocalScore1	    equ XBPostedData
+XBLocalScore2	    equ XBPostedData+4
+XBRemoteScore1	    equ XBPostedData+8
+XBRemoteScore2	    equ XBPostedData+12
+
+XBMiscPostedData    equ XBPostedData+16
+
+XBLocalPacketIn	    ds	4	; the externally visible packet to send
+
+XBLocalPacketOut    ds	4	; the current local packet out
+XBRemotePacketOut   ds	4	; the current remote packet out
+
+
+***********************************************
+*
+* Pocky Board Communications Software
+* to test for XBAND compliance
+*
+* This file assembles using the Psy-Q assembler.
+* We have attempted to comment all lines with non-standard
+* opcodes and pseudo-ops.
+*
+* Version 0.96[prerelease]
+*
+* Copyright (C) 1995, Catapult Entertainment, Inc.
+* 20823 Stevens Creek Blvd., Suite 300
+* Cupertino, CA, 95014
+* (408) 366-1735
+*
+* By Richard Kiss
+* (408) 366-1735 x253
+* kiss@catapent.com
+*
+* Please call or e-mail if you have any questions or problems!
+*
+***********************************************
+*
+* Version history:
+*
+* Version 0.9B: initial release.
+*
+* Version 0.91: This section added. XBPollModem dead code stripped,
+*   modified noise generation mechanism. _XBSwapData2 removed. Flag
+*   "Final_Compile" changed to "Final_Build". "public on" removed.
+*
+* Version 0.92: Bug in _XBEstablishSync (called by XBSynchronize) fixed:
+*   it would trash low-memory.
+*
+* Version 0.95: Modem_Comm flag added. XBModemErr set on init, so an
+*   error will automatically occur on the first call to XBSwapData (and no
+*   special code is required for the initial XBSynchronize). Game_Patch flag added.
+*   Flags moved to "XBComm.i". Dispatcher code moved to after code it calls.
+*   _XBPockyByte changed to work significantly faster, which should result in
+*   an overall increase in speed. Error counting added for game patches.
+*
+* Version 0.96: Timeout is now 15 seconds instead of 30 seconds. Experimenting with
+*   32 bit packets. Fixed bug in counting frame errors.
+*
+***********************************************
+
+Debug_Port_A	equ	1	; do we want any debug information sent out port A? (57600, 8N1)
+
+Comm_Debug	equ	1	; do we want Communications debug information sent to port A?
+
+Modem_Comm	equ	1	; are we using the modem to communicate? (1 = yes)
+
+Init_Port_A	equ	(Debug_Port_A|Comm_Debug)
+Init_Port_B	equ	(1-Modem_Comm)
+
+Packet_Size	equ	3	; 3 or 4 only please. 4 doesn't work very well yet.
+
+;
+;	* * * * * * *       REALITY_ENGINE XBAND PATCH       * * * * * * *
+;
+XBInit		equ	_XBInit
+XBPollModem	equ	_XBPollModem
+XBExchangeData	equ	_XBExchangeData
+XBSwapData	equ	_XBSwapData
+XBSynchronize	equ	_XBSynchronize
+
+
+**************************************************
+*
+* Error code equates.
+*
+* These values are carefully chosen to be consistent
+* with XBAND OS error codes.
+*
+* That explains why they seem so oddly chosen.
+*
+**************************************************
+kOverrunError	    equ	    -425	; $fe57
+kTimeout	    equ	    -426	; $fe56
+kGibbledPacket	    equ	    -601	; $fda7
+kNoData		    equ	    -602	; $fda6
+kOutOfSync	    equ	    -901	; $fc76
+
+**************************************************
+*
+* Hardware modem register offsets (from the start of the register area).
+*
+**************************************************
+
+mdFred_Soft		equ		(FRED-1)
+mdTransmit_Buffer	equ		$90*2
+mdReceive_Buffer	equ		$94*2
+mdRead_Status_2		equ		$98*2
+mdRead_Status_1		equ		$a0*2
+mdRetrainReg		equ		$c8*2+1
+
+
+**************************************************
+*
+* _XBInit
+*
+* This routine should be the first XBAND routine called.
+* It initializes all important variables, and checks to
+* make sure the Pocky is installed. If the Pocky is installed,
+* that is considered equivalent to an XBAND game request, and
+* it checks the jumpers to see if this machine is the slave
+* or the master.
+*
+**************************************************
+
+	ifn	(Init_Port_A|Init_Port_B)
+	dbr	(^*)
+;
+;	>>>   NO POCKY BOARD INSTALLED!   <<<
+;
+_XBInitError
+	mode	'A!'
+	lda	#1
+	sta	XBModemBusy		; so XBPollModem is skipped
+	rts
+	endif
+
+;
+;	* * * * * * *       INITIALIZE POCKY BOARD HARDWARE       * * * * * * *
+;
+	mode	'AX'
+_XBInit
+	phk
+	plb
+	dbr	(^*)
+
+	ifn	(Init_Port_A|Init_Port_B)
+	mode	'a!'
+	pea	#$2100
+	pld
+	dpr	$2100
+	endif
+
+	ifn	Init_Port_B
+	lda	#$aa
+	sta	scr_B			; if the Pocky is installed, this value will stick
+	cmp	scr_B
+	bne	_XBInitError
+	lda	#$ff
+	sta	scr_B			; negative value, indicating "first byte"
+	cmp	scr_B
+	bne	_XBInitError
+;	lda	#$00
+	stz	ier_B			; interrupts off
+	lda	#%11000111
+	sta	fcr_B			; turn on 16 byte FIFO
+	lda	#%10000000
+	sta	lcr_B			; go into "set up baud rate" mode
+	lda	#<port_B_baud_val
+	sta	dll_B			; set baud rate
+	lda	#>port_B_baud_val
+	sta	dlh_B
+	lda	#%00000011
+	sta	lcr_B			; set to N81 (turn off baud set mode)
+	endif
+
+	ifn	Init_Port_A		; conditional compilation: port A is not initialized unless it's used
+	lda	#$aa
+	sta	scr_B
+	cmp	scr_B
+	bne	_XBInitError
+	lda	#-1
+	sta	scr_B
+	cmp	scr_B
+	bne	_XBInitError
+;	lda	#$00
+	stz	ier_A			; interrupts off
+	lda	#%11000111
+	sta	fcr_A			; turn on 16 byte FIFO
+	lda	#%10000000
+	sta	lcr_A			; go into "set up baud rate" mode
+	lda	#<port_A_baud_val	
+	sta	dll_A			; set baud rate
+	lda	#>port_A_baud_val
+	sta	dlh_A
+	lda	#%00000011
+	sta	lcr_A			; set to N81 (turn off baud set mode)
+	endif
+
+	ifn	(Init_Port_A|Init_Port_B)
+	pea	#0
+	pld
+	dpr	0
+	mode	'A!'
+	endif
+
+	ifn	Debug_Port_A
+	mode	'a!'
+	ldx	#<.sText
+	lda	gSessionIsMaster	; Master/Slave?
+	beq	.doPrint
+	ldx	#<.mText
+	bra	.doPrint
+.mText
+	dc.b	12,'Master',13,0
+.sText
+	dc.b	12,'Slave',13,0
+.doPrint
+	jsr	_XBPrintText
+	endif
+
+;; init packet stuff
+
+	mode	'A!'
+	stz	XBLocalHead		
+	stz	XBLocalTail
+	lda	#6			; hard coded latency value of six. The XBAND modem
+	sta	XBModemLatency		; can calculate the true latency, when necessary.
+	stz	XBGameLoopCounter
+
+;; init modem hardware stuff
+
+	stz	XBModemHead
+	stz	XBModemTail
+	stz	XBModemBusy
+
+	lda	#-1
+	sta	XBModemErr		; so we get an error the first time
+
+	stz	XBTicks
+	stz	XBTicks+2
+;
+;	>>>   QUEUE THE PACKET FOR RETRIES   <<<
+;
+	ldy	XBModemLatency
+.fill_loop
+	ldx	XBLocalHead
+	lda	XBLocalPacketIn
+	sta	XBLocalQueue,x
+	txa
+	clc
+	adc	#4
+	and	#XBBufferSizeMask
+	sta	XBLocalHead
+	dey
+	bne	.fill_loop
+	rts
+
+
+**************************************************
+*
+* _XBPollModem
+*
+* Pull the bytes out of the serial buffer and put them
+* into a software buffer.
+*
+* Also, increment the tick count.
+*
+**************************************************
+
+_XBPollModem
+	lda	XBModemBusy
+	bne	.modem_busy
+	inc	XBModemBusy
+	mode	'ax!'
+	ldx	XBModemHead
+.do_read
+	ifn	Modem_Comm
+	lda	mdFred_Soft+mdRead_Status_2
+	lsr	a
+	bcc	.no_data
+	and	#%11
+	beq	.packet_ok
+	bit	XBModemErr
+	sta	XBModemErr
+	bne	.already_error		; if XBModemErr err is set, the error's been counted
+	inc	GR_FrameErrors
+.already_error
+
+.packet_ok
+	lda	mdFred_Soft+mdReceive_Buffer
+	endif
+	ife	Modem_Comm
+	lda	lsr_B			;get comm status byte
+	lsr	a			;check low bit
+	bcc	.no_data		;if set, got byte
+	and	#%111
+	beq	.packet_ok
+	sta	XBModemErr		; UART detected an overrun, parity or frame error
+.packet_ok
+	lda	scr_B
+	php
+	lda	rxd_B			;data ready, get it!
+	plp
+	bpl	.mask_it
+	pha
+	and	#$55
+	cmp	1,s
+	beq	.same
+	lda	#-1
+.same
+	sta	scr_B
+	pla
+	bra	.do_read
+.mask_it
+	pha
+	and	#$aa
+	cmp	1,s
+	beq	.same2
+	lda	#0
+	bra	.same
+.same2
+	pla
+	ora	scr_B
+	pha
+	lda	#-1
+	sta	scr_B
+	pla
+	endif
+
+	sta	XBModemBuffer,x
+	txa
+	inc	a
+	and	#XBModemBufferMask
+	tax
+	bra	.do_read
+.no_data
+	stx	XBModemHead
+	mode	'AX!'
+	stz	XBModemBusy
+.modem_busy
+	inc	XBTicks
+	bne	.noinc
+	inc	XBTicks+2
+.noinc
+	rts
+
+
+	ifn	Init_Port_B
+**************************************************
+*
+* _XBPockyByte
+*
+* Write a 4 and 4 encoded byte to the Pocky board.
+* This is required to get around hardware flaw of the Pocky boards.
+* Pocky boards cannot reliably read bytes with many consecutive
+* set bits. Thus we use a 4800 baud serial port, and send
+* two bytes instead of one: the first contains the even bits,
+* the second, the odd bits. Our read routine in _XBPollModem
+* reconstructs the original byte.
+*
+**************************************************
+
+	mode	'a'
+_XBPockyByte
+	pha
+.wait1
+	and	#$55
+	sta	txd_B			;write it
+.wait2
+	lda	1,s
+	and	#$aa
+	sta	txd_B			;write it
+	pla
+	mode	'A'
+	rts
+	endif
+
+
+**************************************************
+*
+* _XBGetPacket16
+*
+* This routine pulls a packet out of the modem buffer and
+* returns an error code.
+*
+* Inputs: X8 = # of ticks to allow kNoData errors
+*
+* Outputs: error code in A16, one of kNoData, kOverrunError, kGibbledPacket
+*
+* If there's no error, the 16-bit packet is returned in XBPacketOut.
+*
+**************************************************
+
+_XBGetPacket16
+	mode	'ax!'
+	lda	XBModemErr
+	bne	.modemErr
+.check_for_data
+	lda	XBModemHead
+	sec
+	sbc	XBModemTail
+	cmp	#Packet_Size		; # of bytes required
+	bcs	.data_ready
+	lda	XBTicks
+.wait_a_tick
+	cmp	XBTicks
+	beq	.wait_a_tick
+	dex
+	bne	.check_for_data
+	bra	.noData
+.data_ready
+	ldx	XBModemTail
+	lda	XBModemBuffer,x
+	sta	XBPacketOut
+	txa
+	inc	a
+	and	#XBModemBufferMask
+	tax
+
+	lda	XBModemBuffer,x
+	sta	XBPacketOut+1
+	txa
+	inc	a
+	and	#XBModemBufferMask
+	tax
+
+	lda	XBModemBuffer,x
+	sta	XBPacketOut+2
+	tay
+	txa
+	inc	a
+	and	#XBModemBufferMask
+	sta	XBModemTail
+
+;; check checksum
+
+	tya
+	eor	XBPacketOut+1
+	eor	XBPacketOut
+	cmp	#$5a
+	bne	.bad_checksum
+
+;; mask data (for 16-bit, not needed)
+
+	mode	'AX!'
+	lda	#0			; no error!
+	rts
+
+.modemErr
+	mode	'AX!'
+	lda	#kOverrunError
+	rts
+
+.noData
+	mode	'AX!'
+	lda	#kNoData
+	rts
+
+.bad_checksum
+	inc	GR_ChecksumErrors
+	mode	'AX!'
+	lda	#kGibbledPacket
+	rts
+
+
+**************************************************
+*
+* _XBSendSavePacket16
+*
+* Save the joystick value in the local queue for later
+* use and for error correction that may be required later.
+* Fall through to...
+*
+* _XBSendPacket16
+*
+* Calculate the checksum and send the packet.
+*
+* Inputs: XBSendPacket
+*
+* Outputs: none. This routine can't fail.
+*
+**************************************************
+
+_XBSendSavePacket16
+
+;; queue the packet for retries
+
+	ldx	XBLocalHead
+	lda	XBSendPacket
+	sta	XBLocalQueue,x
+	txa
+	clc
+	adc	#4
+	and	#XBBufferSizeMask
+	sta	XBLocalHead
+
+_XBSendPacket16
+
+;; calculate the checksum
+
+	mode	'a!'
+	lda	XBSendPacket
+	eor	XBSendPacket+1
+	eor	#$5a
+	sta	XBSendPacket+2
+	sta	XBSendPacket+3
+
+;; Send the bytes
+
+	ldx	#0
+.wait1
+	ifn	Modem_Comm
+	lda	mdFred_Soft+mdRead_Status_1
+	bit	#%1000
+	bne	.overrun
+	lsr	a
+	bcs	.wait1
+	lda	XBSendPacket,x
+	sta	mdFred_Soft+mdTransmit_Buffer
+	endif
+	ife	Modem_Comm
+	lda	XBSendPacket,x
+	jsr	_XBPockyByte
+	endif
+	inx
+	cpx	#Packet_Size
+	bne	.wait1
+	mode	'AX!'
+	rts
+
+	ifn	Modem_Comm
+.overrun
+	sta	XBModemErr
+	inc	GR_OverrunErrors
+	mode	'AX!'
+	rts
+	endif
+
+
+**************************************************
+*
+* _XBEstablishSync
+*
+* This routine attempts to gain a clear line by
+* sending consecutive bytes in a table.
+*
+* The first byte is sent repeatedly until it is received in return.
+* Then the second byte is sent once, and we wait until we receive one in
+* return. Then the third is sent once, we wait, then the fourth. If
+* we ever get something unexpected, we return to the first state (writing
+* the first byte repeatedly).
+* Note: when waiting for the second byte, we accept and ignore the
+* first byte, since it's been sent many times.
+*
+* Do not depend on the exact timing of this routine, since you never no how
+* long it will take; especially when it's patched out to the modem version,
+* where it will tweak modem registers upon failure.
+*
+* Inputs: none.
+*
+* Outputs: A16 = error code. Nonzero means "error".
+*
+**************************************************
+
+_XBEstablishSync
+
+; Set up local variables
+
+XBEntryTicks		equ	1	; word
+XBLocalTimeout		equ	3	; word
+
+localsSize		equ	4
+.localTimeout		equ	60	; time to wait for next table entry (one second)
+.globalTimeout		equ	60*4	; time to allow this routine to run (four seconds)
+.tableSize		equ	4	; number of elements to send
+
+	phd				; set up a local stack frame
+	pha
+	pha
+	tsc
+	tcd
+
+	lda	XBTicks
+	sta	XBEntryTicks
+
+	ldy	XBModemHead
+	sty	XBModemTail		; clear buffer
+
+	mode	'a!'
+.establish0
+	ldx	#0			; X = index into EstablishTable
+	mode	'A!'
+	lda	XBTicks
+	sec
+	sbc	XBEntryTicks
+	cmp	#.globalTimeout
+	bcs	.errorExit
+	mode	'a!'
+.establish1
+	ldy	#.localTimeout
+	sty	XBLocalTimeout
+.wait2write
+	ifn	Modem_Comm
+	lda	mdFred_Soft+mdRead_Status_1
+; ignore overrun errors
+	lsr	a
+	bcs	.wait2write
+	lda	.EstablishTable,x
+	sta	mdFred_Soft+mdTransmit_Buffer
+	endif
+	ife	Modem_Comm
+	lda	.EstablishTable,x
+	jsr	_XBPockyByte
+	endif
+
+	ifn	Comm_Debug
+	ora	#$20
+	jsr	_XBCout
+	endif
+
+.read_byte
+	ldy	XBModemTail
+	cpy	XBModemHead
+	bne	.getbyte
+	ldy	XBTicks
+.waitTick
+	cpy	XBTicks
+	beq	.waitTick
+	dec	XBLocalTimeout
+	beq	.establish0		; if we've timed out, go back to phase 0
+	txy
+	bne	.read_byte		; if we're not in phase zero, keep waiting until our local timeout ends
+	bra	.wait2write		; if we're in phase zero, write the first byte again
+.getbyte
+	lda	XBModemBuffer,y
+	pha
+	tya
+	inc	a
+	and	#XBModemBufferMask
+	sta	XBModemTail
+	pla
+
+	ifn	Comm_Debug
+	pha
+	and	#$7f
+	cmp	#$20
+	bcs	.no_or
+	ora	#$20
+.no_or
+	jsr	_XBCout		; this prints out debug stuff so you can see _XBEstablishSync in action
+	pla
+	endif
+
+	cmp	.EstablishTable,x
+	beq	.correct_byte
+	cpx	#0
+	beq	.read_byte		; if we're waiting for #0, keep looking!
+	cpx	#1
+	bne	.establish0
+	cmp	.EstablishTable
+	beq	.read_byte		; if we're waiting for #1 and we get #0, that's okay
+	bra	.establish0		; start again
+.correct_byte
+	inx
+	cpx	#.tableSize
+	bne	.establish1
+.errorExit
+	mode	'AX!'
+	cpx	#.tableSize		; in other words, was XBEstablishIndex at the end of the table?
+	bne	.error
+
+	ifn	Comm_Debug
+	lda	#13
+	jsr	_XBCout			; print out a <CR>
+	endif
+
+	lda	#0
+	sta	XBModemErr		; clear out old modem errors
+	bra	.exit
+.error
+	lda	#kTimeout
+.exit
+	pld
+	pld				; clean up the stack
+	pld
+	rts
+
+.EstablishTable
+	dc.b	'DARK'
+
+
+**************************************************
+*
+* _XBSwapData
+*
+* This routine is called every time you want to exchange
+* controller values.
+*
+* Inputs: XBLocalPacketIn = the local 16-bit controller (or other) value
+*   to send to the remote and queue up locally for later use.
+*
+* Outputs: A16 = error code, hopefully 0.
+*   If A16 is 0, XBRemotePacketOut and XBLocalPacketOut are
+*   the remote and local values passed to XBLocalPacketIn by the
+*   two machines XBLatency values ago.
+*
+* You will probably need to conditionally reverse these values
+* on one of the machines (generally the slave).
+*
+*
+**************************************************
+
+_XBSwapData
+	ldx	#1
+	jsr	_XBGetPacket16
+	tax
+	bne	.exit
+
+	lda	XBPacketOut
+	sta	XBRemotePacketOut
+
+	inc	XBGameLoopCounter
+
+;; get local data
+
+	ldx	XBLocalTail
+	lda	XBLocalQueue,x
+	sta	XBLocalPacketOut
+	txa
+	clc
+	adc	#4
+	and	#XBBufferSizeMask
+
+	sta	XBLocalTail
+	lda	XBLocalPacketIn
+	sta	XBSendPacket
+	jsr	_XBSendSavePacket16
+
+	lda	#0			; no error
+.exit
+	rts
+
+
+**************************************************
+*
+* _XBExchangeData
+*
+* This routine is the high level version of _XBSwapData.
+* It may take a long time (up to about 15 seconds if there's an error)
+* before returning.
+*
+* Inputs: XBLocalPacketIn = the local 16-bit controller (or other) value
+*   to send to the remote and queue up locally for later use.
+*
+* Outputs: A16 = error code, hopefully 0.
+*   If A16 is 0, XBRemotePacketOut and XBLocalPacketOut are
+*   the remote and local values passed to XBLocalPacketIn by the
+*   two machines XBLatency values ago.
+*
+* If this guy fails, pass the error code to XBReturn.
+*
+**************************************************
+
+_XBExchangeData
+.timeout	equ 60*15		; 15 second timeout
+
+	lda	XBTicks
+	pha				; entry time is at 1,s
+.retry_loop
+	ldy	#30			; number of ticks to allow kNoData errors
+.retry_noData
+	phy
+	jsr	XBSwapData
+	ply
+	tax
+	beq	.exit			; no problem!
+
+;; Put your message "Line noise; hang on!" here. (No hurry; you must wait a tick to retry anyway.)
+
+	cpx	#kNoData
+	bne	.big_error
+	lda	XBTicks
+.wait_tick
+	cmp	XBTicks
+	beq	.wait_tick		; wait a tick before trying again
+	dey
+	bne	.retry_noData
+	mode	'a!'
+	inc	GR_Timeouts
+	mode	'A!'
+.big_error			; "big" means "not just kNoData", or kNoData for a long time
+	ifn	Comm_Debug	; print out error code returned by XBSwapData
+	phx
+	lda	#13
+	jsr	_XBCout
+	lda	#'#'
+	jsr	_XBCout
+	lda	1,s
+	jsr	_XBWordOut
+	lda	#' '
+	jsr	_XBCout
+	plx
+	endif
+
+	lda	XBTicks
+	sec
+	sbc	1,s			; old XBTicks value
+	cmp	#.timeout
+	bcs	.err_exit
+
+	phy
+	inc	GR_ErrorRecovers	; synchronizes called
+	jsr	XBSynchronize
+	ply
+	tax
+	beq	.retry_loop
+	bra	.big_error
+.err_exit
+	txa				; get error code back
+	sta	GR_LocalGameError
+.exit
+	plx				; clean up stack
+	rts
+
+
+**************************************************
+*
+* _XBSynchronize
+*
+* This routine is used to establish the initial connection
+* and to recover from errors from XBSwapData (XBExchangeData
+* calls this automatically). It calls _XBEstablishSync
+* up to 8 times, so it can take about 15 seconds before
+* giving up. If it fails, pass the error code to XBReturn.
+*
+* Inputs: none.
+*
+* Outputs: A16 = error code, hopefully 0.
+*
+**************************************************
+
+_XBSynchronize
+.timeout	equ 15*60		; 15 seconds
+
+	ldx	XBTicks
+	phx				; save it on the stack
+.sync_loop
+	ifn	Modem_Comm
+	jsr	Check_Line
+	endif
+	jsr	_XBEstablishSync
+	tax
+	bne	.error
+	jsr	_XBResendPackets16
+	tax
+	beq	.exit
+.error
+	ifn	Modem_Comm
+	jsr	_XBRetrainModem
+	endif
+	lda	XBTicks
+	sec
+	sbc	1,s			; old tick value
+	cmp	#.timeout
+	bcc	.sync_loop
+	txa
+.exit
+	plx				; fix up stack
+	rts
+
+
+	ifn	Modem_Comm
+**************************************************
+*
+* _XBRetrainModem
+*
+* This routine is used after an error in XBEstablishSync
+* to "retrain" the modem.
+*
+* Inputs: none.
+*
+* Outputs: none. Hopefully, the modems are behaving now.
+*
+**************************************************
+
+_XBRetrainModem
+	ldx	#20			; retrain tick count
+	mode	'a!'
+	lda	mdFred_Soft+mdRetrainReg
+	ora	#2
+	sta	mdFred_Soft+mdRetrainReg
+	nop
+	nop
+.retrain_wait
+	ldy	XBTicks
+.wait_a_tick
+	cpy	XBTicks
+	beq	.wait_a_tick
+	lda	mdFred_Soft+mdRetrainReg
+	and	#1
+	beq	.retrain_done
+	dex
+	bne	.retrain_wait
+	lda	mdFred_Soft+mdRetrainReg
+	and	#($ff-2)
+	sta	mdFred_Soft+mdRetrainReg
+.retrain_done
+	mode	'AX!'
+	and	#$ff
+	rts
+	endif
+
+
+**************************************************
+*
+* _XBResendPackets16
+*
+* This routine is used after an error to determine where
+* the two machines are with respect to each other (since an
+* error may cause a drift by a frame or two, as the machine
+* without the error may empty its packet queue before entering
+* error recovery mode), and resend the appropriate packets.
+*
+* Inputs: none.
+*
+* Outputs: A16 = error code, hopefully 0.
+*
+**************************************************
+
+_XBResendPackets16
+	lda	#$dead
+	sta	XBSendPacket
+	jsr	_XBSendPacket16
+
+	lda	XBGameLoopCounter
+	sta	XBSendPacket
+	jsr	_XBSendPacket16
+
+	ldx	#30			; number of ticks to wait for data
+	jsr	_XBGetPacket16
+	tax
+	bne	.data_error
+
+	lda	XBPacketOut
+	cmp	#$dead
+	bne	.data_error
+
+	ldx	#30			; number of ticks to wait for data
+	jsr	_XBGetPacket16
+	tax
+	bne	.data_error
+
+	lda	XBPacketOut		;; this is the remote game frame number
+	sec
+	sbc	XBGameLoopCounter	;; local game frame number
+
+;; A = remote game frame - local game frame
+
+	bmi	.negative
+	cmp	#15
+	bcc	.ok
+.out_of_sync
+	lda	#kOutOfSync
+	bra	.data_error
+.negative
+	cmp	#-15
+	bcc	.out_of_sync
+.ok
+	asl	a
+	asl	a			; since XBLocalTail is multiplied by 4
+	clc
+	adc	XBLocalTail		; so A = ptr to head of data to resend
+.resend_loop
+	and	#XBBufferSizeMask
+	tax
+	cmp	XBLocalHead
+	beq	.done_resend
+	lda	XBLocalQueue,x
+	sta	XBSendPacket
+	phx
+	jsr	_XBSendPacket16
+	pla
+	clc
+	adc	#4
+	ldx	XBTicks
+.wait_tick
+	cpx	XBTicks
+	beq	.wait_tick
+	bra	.resend_loop
+.done_resend
+	lda	#0
+	rts
+.data_error
+	lda	#kTimeout
+	rts
+
+
+	ifn	(Debug_Port_A|Comm_Debug)
+;
+; The following code is only included if you want to use
+; XBCout to print data out port A.
+;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; XBCout
+;;
+;;  Print ascii low byte of accumulator to port A (debug port)
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+_XBCout
+	php
+	mode	'a!'
+	pha
+.wait
+	lda	lsr_A			;Line Status Reg
+	and	#$20			;Xmit Holding Reg Empty when set
+	beq	.wait			;wait for bit to set
+	pla
+	sta	txd_A			;write it
+	plp
+	rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; XBPrintText
+;;
+;;  Print ascii text to port A (debug port)
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+_XBPrintText
+	php
+	mode	'a!'
+.loop
+	lda	!((^*)<<16),x
+	beq	.done
+	jsr	_XBCout
+	inx
+	bra	.loop
+.done
+	plp
+	rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; XBNibbleOut
+;;
+;;  Print low nibble of accumulator as hex value to port A (debug port)
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+_XBNibbleOut
+	and	#$f
+	cmp	#$a
+	bcc	.noadd
+	adc	#'A'-'9'-2
+.noadd
+	adc	#'0'
+	jmp	_XBCout
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; XBByteOut
+;;
+;;  Print 8-bit accumulator as hex value to port A (debug port)
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+_XBByteOut
+	php
+	mode	'a!'
+	pha
+	lsr	a
+	lsr	a
+	lsr	a
+	lsr	a
+	jsr	_XBNibbleOut
+	pla
+	jsr	_XBNibbleOut
+	plp
+	mode	'A'
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; XBWordOut
+;;
+;;  Print 16-bit accumulator as hex value to port A (debug port)
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	mode	'A'
+_XBWordOut
+	pha
+	xba
+	jsr	_XBByteOut
+	pla
+	jmp	_XBByteOut
+
+	endif
+
+Check_Line
+	rts

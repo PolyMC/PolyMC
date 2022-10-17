@@ -1,0 +1,208 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                        TASKS HANDLING MODULE                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+
+	SECTION	LEVEL
+
+;
+;	* * * * * * *       INITIALIZE TASKS       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitTasks
+	mode	'AX!'
+	lda	#0					; NO TASKS RUNNING!
+	sta	RLNumTasks
+	tax
+	ldy	#MaxRLTasks-1
+_RITS200
+	lda	#-1
+	sta	>_RLTasks,x
+	txa
+	clc
+	adc	#rlmSize
+	tax
+	dey
+	bpl	_RITS200
+	rtl
+
+
+
+	SECTION	ENGINE_RAMCODE
+
+;
+;	* * * * * * *       ADD A TASK       * * * * * * *
+;
+;	ADD NEW TASK TO TASKLIST
+;
+;	.Y = TaskCode
+;	.X = TaskData
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+__RLAddTaskSNES
+	jsr	_RLAddTaskSNES
+	rtl
+_RLAddTaskSNES
+	phx					; Save TaskData
+	phy					; Save TaskCode
+	ldx	#0				; Offset to TaskData
+_RLATS200
+	lda	>_RLTasks,x			; Get TaskCode Address
+	inc	a				; Any CODE Here?
+	beq	_RLATS500			; No!  ReUse this Slot!
+	txa
+	clc
+	adc	#rlmSize
+	tax
+	jmp	_RLATS200
+_RLATS500
+	lda	RLNumTasks			; Increment Number of Tasks Running
+	inc	a
+	sta	RLNumTasks
+	pla					; Save Address of TaskCode
+	sta	>_RLTasks+rlmCode,x
+	pla					; Save Address of TaskData
+	sta	>_RLTasks+rlmData,x
+	rts
+
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rTaskPtr	equ	r10			; Pointer to RLTask Structure
+rTaskCount	equ	r13			; TaskCounter
+
+
+;
+;	* * * * * * *       ADD A TASK       * * * * * * *
+;
+;	ADD NEW TASK TO TASKLIST
+;
+;	R9	= TaskCode Address-1
+;	R8	= TaskData Address
+;	R11     = Return Address
+;
+;	rTaskPointer = Pointer to TaskStructure.TaskData
+;
+_RLAddTask
+	move	r0,(<RLNumTasks)		; Get Number of Tasks Running
+	inc	r0
+;
+	ifn	DEBUG
+	move	r1,#MaxRLTasks			; Too many tasks?
+;	from	r0
+	cmp	r1
+	bne	.0				; No, Add this one
+	HALTGSU	#$80
+.0
+	endif
+
+;	from	r0
+	sbk
+	move	rTaskPtr,#<_RLTasks		; Pointer to TaskData
+_RLAT200
+;	to	r0				; Get TaskCode Address
+	ldw	(rTaskPtr)
+	inc	r0				; Any CODE Here?
+	beq	_RLAT500			; No!  ReUse this Slot!
+	with	rTaskPtr
+	add	#rlmSize
+	bra	_RLAT200
+	nop
+_RLAT500
+	move	r0,r8				; Save Address of TaskData
+	from	r9				; Save Address of TaskCode
+	stw	(rTaskPtr)
+	inc	rTaskPtr
+	inc	rTaskPtr
+	jmp	r11				; Return to Caller
+;	from	r0
+	stw	(rTaskPtr)
+
+
+;
+;	* * * * * * *       REMOVE A TASK       * * * * * * *
+;
+;	REMOVE EXISTING TASK FROM TASKLIST
+;
+;	R10	= Pointer to TaskStructure
+;	R11     = Return Address
+;
+_RLRemTask
+	move	r0,(<RLNumTasks)		; Get Number of Tasks Running
+	dec	r0
+;	from	r0
+	sbk
+	move	r0,#-1				; Disable this Task
+	jmp	r11				; Return to Caller
+;	from	r0
+	stw	(rTaskPtr)
+
+
+;
+;	* * * * * * *       DO TASKS       * * * * * * *
+;
+;	EXECUTE TASKS IN TASKLIST
+;
+_RLDoTasks
+	move	rTaskCount,(<RLNumTasks)	; Get Number of Tasks Running
+	dec	rTaskCount			; Any Running Tasks?
+	bmi	_RLDT900
+	inc	rTaskCount
+	move	rTaskPtr,#<_RLTasks		; Pointer to TaskData
+;
+;	>>>   HANDLE NEXT TASK   <<<
+;
+_RLDT200
+	to	r9				; Get TaskCode Address
+	ldw	(rTaskPtr)
+	inc	r9				; Any CODE Here?
+	beq	_RLDT800			; No!
+;
+;	>>>   CALL TASK CODE   <<<
+;
+	link	#2				; Set Return Address
+	jmp	r9				; Execute TaskCode
+	nop
+_RLDoTasks2
+	dec	rTaskCount			; One More Task Completed
+	beq	_RLDT900			; No More Tasks to Run!
+;
+;	>>>   MOVE TO NEXT TASK   <<<
+;
+_RLDT800
+	with	rTaskPtr			; Move to Next TaskData
+	add	#rlmSize
+	bra	_RLDT200+1
+	to	r9				; One More Task Completed
+;
+;	>>>   FINISHED HANDLING ALL TASKS   <<<
+;
+_RLDT900
+	ife	usePATCH
+	move	r0,#<_RLMSObjects		; HANDLE MOVABLE OBJECTS STATES
+	endif
+	ifn	usePATCH
+	move	r0,(<PTRLMSObjects)		; HANDLE MOVABLE OBJECTS STATES
+	endif
+	move	r8,#^_RLMSObjects
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop

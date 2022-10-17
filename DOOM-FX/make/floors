@@ -1,0 +1,3 @@
+;mkfloor -v
+mkfloor -v -h
+touch rlfloorsdef.a

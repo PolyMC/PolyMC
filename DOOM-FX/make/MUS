@@ -1,0 +1,6 @@
+spmus >RLMUS:mustext -amusicdat0.a -mRLMUS:doommus.o -oRLDATA:MUSIC/MUSIC_ -sMUSIC_
+xc -v -iRLDATA:MUSIC/MUSIC_B -oRLDATA:MUSIC/MUSIC_B.C
+xc -v -iRLDATA:MUSIC/MUSIC_D -oRLDATA:MUSIC/MUSIC_D.C
+xc -v -iRLDATA:MUSIC/MUSIC_O -oRLDATA:MUSIC/MUSIC_O.C
+touch musicdrv.a musicdat.a rlsound.a
+TF music.i

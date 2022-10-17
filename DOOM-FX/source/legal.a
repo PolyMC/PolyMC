@@ -1,0 +1,241 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                           LEGAL PAGE MODULE                        *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	xfer.i
+
+	public	Legal
+
+
+	SECTION	LEGAL,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       LEGAL PAGE       * * * * * * *
+;
+	dpr	0
+	dbr	?
+	mode	'@A@X'
+Legal
+	jsl	ScreenOff			; Turn Screen Off
+	jsl	InitSNES
+	mode	'ax'
+;
+	mode	'X!'
+	ldx	#<LegalXFer			; Transfer Legal DataBlock
+	lda	#^LegalXFer
+	jsl	XFer
+;
+	mode	'AX'
+	stz	RGBData+(0*2)
+	lda	#%000000000000111
+	sta	RGBData+(7*16*2)+(7*2)
+	lda	#%000000000011111
+	sta	RGBData+(7*16*2)+(11*2)
+	mode	'a!'
+	lda	#$80				; Transfer RGB Palette to CGRAM
+	sta	RGBXfer
+	lda	#1				; Mode1 BG1:8x8
+	sta	BGMODE
+	lda	#$20				; BG1 Screen at $2000
+	sta	BG1SC
+	lda	#$ff				; Offset $FFFF
+	sta	BG1VOFS
+	sta	BG1VOFS
+	stz	BG1HOFS				; Offset $0000
+	stz	BG1HOFS
+	stz	BG12NBA				; BG1 @$0000
+	stz	MOSAIC
+;
+	lda	#%00001000			; PseudoH512, 224Lines
+	sta	SETINI
+	lda	#%00000010			; Colour Add Enable
+	sta	CGSWSEL
+	lda	#%01000001			; Add 1/2 Enable BG1
+	sta	CGADSUB
+	ldx	#$0101				; BG1 Only
+	stx	TM
+;
+	ldx	#<LegalSText			; Show Legal Text
+	lda	#^LegalSText
+	jsl	SystemText
+;
+	jsl	ScreenOn
+;
+	ifn	useSOUND
+	jsl	_InitMusicDriver		; Load MUSIC Driver
+	endif
+;
+	ifn	0
+	jsl	InitNormalNMI
+	mode	'A!'				; Display for 1 second
+	ife	usePAL
+	lda	#(60*1)-1
+	endif
+	ifn	usePAL
+	lda	#(60*3)-1
+	endif
+LGL300
+	wai
+	dec	a
+	bpl	LGL300
+	endif
+
+	jml	ScreenOff
+
+
+;
+;	* * * * * * *       TRANSFER LIST       * * * * * * *
+;
+	mode	'@A@X'
+LegalXFer
+	dc.w	xftVRAMF16+xftRAW	; Fill $0000W-$2FFFW with $00
+	dc.4	LegalXFerA
+	dc.4	$0000
+	dc.w	($3000*2)
+LegalXFerA
+	dcb.w	2,0
+	dc.w	xftVRAM16		; Transfer TextFontDef to $0200W
+	dc.4	TextFontDef
+	dc.4	$0200
+	dcb.w	3,0
+	dc.w	xftEnd
+
+
+;
+;	* * * * * * *       LEGAL TEXTS       * * * * * * *
+;
+LegalSText
+	dc.w	($2000+(2*32)+3)
+	dc.l	LGLTxt0A
+	dc.b	LGLTxt0AL
+	dc.w	($2000+(3*32)+3)
+	dc.l	LGLTxt0B
+	dc.b	LGLTxt0BL
+;
+	dc.w	($2000+(5*32)+3)
+	dc.l	LGLTxt1A
+	dc.b	LGLTxt1AL
+	dc.w	($2000+(6*32)+3)
+	dc.l	LGLTxt1B
+	dc.b	LGLTxt1BL
+	dc.w	($2000+(7*32)+3)
+	dc.l	LGLTxt1C
+	dc.b	LGLTxt1CL
+;
+	dc.w	($2000+(9*32)+3)
+	dc.l	LGLTxt2A
+	dc.b	LGLTxt2AL
+	dc.w	($2000+(10*32)+3)
+	dc.l	LGLTxt2B
+	dc.b	LGLTxt2BL
+	dc.w	($2000+(11*32)+3)
+	dc.l	LGLTxt2C
+	dc.b	LGLTxt2CL
+	dc.w	($2000+(12*32)+3)
+	dc.l	LGLTxt2D
+	dc.b	LGLTxt2DL
+	dc.w	($2000+(13*32)+3)
+	dc.l	LGLTxt2E
+	dc.b	LGLTxt2EL
+;
+	dc.w	($2000+(15*32)+3)
+	dc.l	LGLTxt3A
+	dc.b	LGLTxt3AL
+	dc.w	($2000+(16*32)+3)
+	dc.l	LGLTxt3B
+	dc.b	LGLTxt3BL
+
+	dc.w	($2000+(17*32)+3)
+	dc.l	LGLTxt3C
+	dc.b	LGLTxt3CL
+;
+	dc.w	($2000+(19*32)+3)
+	dc.l	LGLTxt4A
+	dc.b	LGLTxt4AL
+	dc.w	($2000+(20*32)+3)
+	dc.l	LGLTxt4B
+	dc.b	LGLTxt4BL
+;
+	dc.w	($2000+(22*32)+3)
+	dc.l	LGLTxt5A
+	dc.b	LGLTxt5AL
+	dc.w	($2000+(23*32)+3)
+	dc.l	LGLTxt5B
+	dc.b	LGLTxt5BL
+;
+	ife	useIMAGINEER
+	dc.w	($2000+(25*32)+3)
+	dc.l	LGLTxt6A
+	dc.b	LGLTxt6AL
+	endif
+;
+	dc.w	-1
+
+LGLTxt0A
+		dc.b	'DOOM',129,' is a trademark of id'
+LGLTxt0AL	equ	*-LGLTxt0A
+LGLTxt0B
+		dc.b	'Software, Inc.'
+LGLTxt0BL	equ	*-LGLTxt0B
+
+LGLTxt1A
+		dc.b	'Copyright ',127,'1993 by id'
+LGLTxt1AL	equ	*-LGLTxt1A
+LGLTxt1B
+		dc.b	'Software, Inc.  All Rights'
+LGLTxt1BL	equ	*-LGLTxt1B
+LGLTxt1C
+		dc.b	'Reserved.'
+LGLTxt1CL	equ	*-LGLTxt1C
+
+LGLTxt2A
+		dc.b	'All characters images,'
+LGLTxt2AL	equ	*-LGLTxt2A
+LGLTxt2B
+		dc.b	'and likenesses and other'
+LGLTxt2BL	equ	*-LGLTxt2B
+LGLTxt2C
+		dc.b	'elements depicted in DOOM',129
+LGLTxt2CL	equ	*-LGLTxt2C
+LGLTxt2D
+		dc.b	'are the property of id'
+LGLTxt2DL	equ	*-LGLTxt2D
+LGLTxt2E
+		dc.b	'Software, Inc.'
+LGLTxt2EL	equ	*-LGLTxt2E
+
+LGLTxt3A
+		dc.b	'Distributed under license'
+LGLTxt3AL	equ	*-LGLTxt3A
+
+LGLTxt3B
+		dc.b	'by Williams',128,' Entertainment'
+LGLTxt3BL	equ	*-LGLTxt3B
+LGLTxt3C
+		dc.b	'Inc.'
+LGLTxt3CL	equ	*-LGLTxt3C
+LGLTxt4A
+		dc.b	'Williams',128,' is a trademark'
+LGLTxt4AL	equ	*-LGLTxt4A
+LGLTxt4B
+		dc.b	'of WMS Games Inc.'
+LGLTxt4BL	equ	*-LGLTxt4B
+
+LGLTxt5A
+		dc.b	'Developed by Sculptured'
+LGLTxt5AL	equ	*-LGLTxt5A
+LGLTxt5B
+		dc.b	'Software, Inc.'
+LGLTxt5BL	equ	*-LGLTxt5B
+
+	ife	useIMAGINEER
+LGLTxt6A
+		dc.b	'Licensed by Nintendo.'
+LGLTxt6AL	equ	*-LGLTxt6A
+	endif

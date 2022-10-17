@@ -1,0 +1,464 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       OBJECT MOVEMENT MODULE 1                     *
+;*                                                                    *
+;*                       DETERMINE MOVELINES LIST                     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+
+
+	public	_RLMoveXY,_RLMoveXYP
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rRLLineCount	equ	r2			; RLEngine Line Counter
+
+rNumX		equ	r3			; Number of BlockMap X Repetitions
+rNumY		equ	r4			; Number of BlockMap Y Repetitions
+rDeltaX		equ	r5			; Coordinates/BlockMap Delta X
+rDeltaY		equ	r6			; Coordinates/BlockMap Delta Y
+
+rX0		equ	r7			;  Current X Coordinate
+rY0		equ	r8			;  Current Y Coordinate
+rVX		equ	r9			; Velocity X
+rVY		equ	r10			; Velocity Y
+rX1		equ	rVX			;      New X Coordinate
+rY1		equ	rVY			;      New Y Coordinate
+
+rObj		equ	r12			; Pointer to Object's Data
+
+rTemp		equ	rObj			; Temporary Variable
+rLine		equ	rX0			; Line Number
+rBlockMapPtr	equ	r13			; Pointer to Current BlockMapBlock
+
+rMoveLinesPtr	equ	rY1			; Pointer to MoveLines List
+rLineRLCountsP	equ	rX1			; Base of LineRLCounts Table
+
+
+	align	16,(_RLMoveXYP-_RMXY5000)&$0f
+;
+;	* * * * * * *       REALITY_ENGINE MOVE RLOBJECT XY       * * * * * * *
+;
+;	r0	=	Code for OBJECT<->LINE COLLISIONS 2
+;	rObj	=	Pointer to RLObject
+;
+_RLMoveXYP
+	move	r0,#<_RLMoveXY6			; MOVE RLOBJECT XY 6 (PROJECTILES)
+_RLMoveXY
+	move	(<MVCode),r0			; Save Code Address for LINE COLLISIONS 2
+;
+;	>>>   GET OBJECT DIAMETER   <<<
+;
+	ibt	r0,#(^_ObjData)			; Move to _ObjData Bank
+	romb
+	from	rObj				; Move to RLObject Type
+;	to	r0
+	add	#rloType
+;	to	r0				; Get RLObject Type
+	ldb	(r0)
+;	with	r0				; Get Offset into _ObjData
+	umult	#rlodSize
+	move	r1,#<(_ObjData+rlodDiameter)	; Add Base of _ObjData
+;	from	r0				; Move to Object Diameter
+	to	r14
+	add	r1
+	getb
+	move	(<MVObjD),r0			; Save Object Diameter
+;
+;	>>>   GET CURRENT OBJECT COORDINATES   <<<
+;
+	from	rObj				; Move to X Coordinate
+;	to	r0
+	add	#rloX
+	to	r1				; rX0:r1 = X Coordinate
+	ldw	(r0)
+	inc	r0
+	inc	r0
+	to	rX0
+	ldw	(r0)
+;
+	inc	r0				; rY0:r2 = Y Coordinate
+	inc	r0
+	to	r2
+	ldw	(r0)
+	inc	r0
+	inc	r0
+	to	rY0
+	ldw	(r0)
+;
+;	>>>   GET CURRENT OBJECT VELOCITIES   <<<
+;
+;	with	r0				; rVX = X Velocity
+	add	#(rloVX-(rloY+2))
+	to	rVX
+	ldw	(r0)
+;
+	inc	r0				; rVY = Y Velocity
+	inc	r0
+	to	rVY
+	ldw	(r0)
+;
+;	>>>   CHECK FOR ANY MOVEMENT   <<<
+;
+	ifn	0
+	from	rVX				; rVX = rVY = 0?
+;	to	r0
+	or	rVY
+	bne	_RMXY1200			; No, Movement!
+	nop
+	jmp	r11				; YES!  NO MOVEMENT!
+	inc	r0				; R0 = 1 = NO MOVEMENT!
+	endif
+;
+;	>>>   INCREMENT RLENGINE_LINE_COUNT   <<<
+;
+_RMXY1200
+	move	r0,(<RLLineCount)		; RLEngineLineCount++
+	inc	r0
+	sbk
+;
+;	>>>   CALCULATE NEW OBJECT COORDINATES   <<<
+;
+	from	rVX				; X Velocity Fraction
+;	to	r0
+	lob
+;	with	r0
+	swap
+	with	r1				; X Coordinate Fraction
+	add	r0
+	from	rVX				; X Velocity Integer
+;	to	r0
+	hib
+;	from	r0				; DeltaX
+	to	rDeltaX
+	sex
+	from	rX0				; X Coordinate Integer
+	to	rX1
+	adc	rDeltaX
+;
+	move	(<MVRObj),rObj			; Save RLObject Pointer
+;
+	from	rVY				; Y Velocity Fraction
+;	to	r0
+	lob
+;	with	r0
+	swap
+	with	r2				; Y Coordinate Fraction
+	add	r0
+	from	rVY				; Y Velocity Integer
+;	to	r0
+	hib
+;	from	r0				; DeltaY
+	to	rDeltaY
+	sex
+	from	rY0				; Y Coordinate Integer
+	to	rY1
+	adc	rDeltaY
+;
+;
+;	* * * * * * *       DETERMINE ENDPOINT BLOCKMAP LOCATIONS       * * * * * * *
+;
+	move	r0,(<MVObjD)			; Object<->Line Collision Diameter
+	move	(<MVReturnAddress),r11		; Save Return Address
+;	with	r0
+	lsr
+	inc	r0				; Object<->Line Collision Radius+1
+	moves	rDeltaX,rDeltaX
+	move	rDeltaX,#-2
+	with	r0				; R11 = Object<->Line Collision Radius+1
+	bmi	_RMXY3220
+	to	r11
+;	with	r0
+	not
+	inc	r0
+	move	rDeltaX,#+2
+_RMXY3220
+;	from	r0				; R1 = X0 +/- CollisionRadiusX
+	to	r1
+	add	rX0
+	from	rX1				; R3 = X1 -/+ CollisionRadiusX
+	to	r3
+	sub	r0
+;
+	move	r0,(<EMBLOCKMAPORIGIN)		; Adjust to MapOriginX
+	with	r1
+	sub	r0
+	bpl	_RMXY3240+1
+	with	r1
+	sub	r1
+_RMXY3240
+	with	r1				; X Coordinate / 128
+	add	r1
+	with	r1
+	hib
+;
+	with	r3
+	sub	r0
+	bpl	_RMXY3260+1
+	with	r3
+	sub	r3
+_RMXY3260
+	with	r3				; X Coordinate / 128
+	add	r3
+	with	r3
+	hib
+;
+_RMXY3400
+	moves	rDeltaY,rDeltaY
+	with	r11				; Object<->Line Collision Diameter
+	bmi	_RMXY3420
+	to	r0
+;	with	r0
+	not
+	inc	r0
+_RMXY3420
+;	from	r0				; R2 = Y0 +/- CollisionRadiusY
+	to	r2
+	add	rY0
+	from	rY1				; R4 = Y1 -/+ CollisionRadiusY
+	to	r4
+	sub	r0
+;
+	move	r0,(<(EMBLOCKMAPORIGIN+2))	; Adjust to MapOriginY
+	with	r2
+	sub	r0
+	bpl	_RMXY3440+1
+	with	r2
+	sub	r2
+_RMXY3440
+	with	r2				; Y Coordinate / 128
+	add	r2
+	with	r2
+	hib
+;
+	with	r4
+	sub	r0
+	bpl	_RMXY3460+1
+	with	r4
+	sub	r4
+_RMXY3460
+	with	r4				; Y Coordinate / 128
+	add	r4
+	with	r4
+	hib
+;
+;	>>>   ENSURE WITHIN BLOCKMAP BOUNDARIES   <<<
+;
+	move	rTemp,(<EMBLOCKMAPDIM)		; Get Dimensions of BlockMap
+;
+	from	rTemp				; Get Y Dimension
+;	to	r0
+	hib
+	dec	r0
+;	from	r0				; Ensure within boundary of BlockMap
+	cmp	r2
+	bge	_RMXY3620
+	move	r2,r0
+_RMXY3620
+;	from	r0
+	cmp	r4
+	bge	_RMXY3640
+	move	r4,r0
+_RMXY3640
+	dec	rTemp
+	from	rTemp				; Get X Dimension
+;	to	r0
+	lob
+;	from	r0				; Ensure within boundary of BlockMap
+	cmp	r1
+	bge	_RMXY3660
+	move	r1,r0
+_RMXY3660
+;	from	r0
+	cmp	r3
+	bge	_RMXY3680
+	move	r3,r0
+_RMXY3680
+;
+;	>>>   GET #BYTES PER BLOCKMAP LINE   <<<
+;
+	inc	r0				; RTEMP = #Bytes per BlockMap Line
+;	from	r0
+	to	rTemp
+	add	r0
+;
+;	>>>   CALCULATE NUMBER OF BLOCKMAP ITERATIONS   <<<
+;
+	from	r3				; Get #BlockMap X Iterations
+	to	rNumX
+	sub	r1
+	bpl	_RMXY4200
+	with	rNumX
+	not
+	inc	rNumX
+_RMXY4200
+	inc	rNumX
+;
+	from	r4				; Get #BlockMap Y Iterations
+	to	rNumY
+	sub	r2
+	bpl	_RMXY4400
+	with	rNumY
+	not
+	inc	rNumY
+_RMXY4400
+	inc	rNumY
+;
+;	>>>   CALCULATE #BYTES BETWEEN BLOCKMAP LINES   <<<
+;
+	moves	rDeltaY,rDeltaY			; #Bytes to next BlockMap Line
+	with	rTemp
+	bpl	_RMXY4600
+	to	rDeltaY
+	with	rDeltaY
+	not
+	inc	rDeltaY
+_RMXY4600
+	from	rNumX				; #Bytes per BlockMap Line USED
+;	to	r0
+	mult	rDeltaX
+	with	rDeltaY				; #Bytes per BlockMap Line UNUSED
+	sub	r0
+;
+;	>>>   CALCULATE STARTING ADDRESS WITHIN BLOCKMAP OFFSETS   <<<
+;
+	move	r0,#<(EMSECTORS+2)		; Bank of EM Data
+	ldb	(r0)
+	romb					; Set ROM Bank
+;
+	from	rTemp				; Get (WidthOfBlockMap * Y0)
+;	to	r0
+	mult	r2
+	move	rTemp,(<EMBLOCKMAP)		; Get Base of BlockMap
+;	with	r0				; Get (X0 * 2)
+	add	r1
+;	with	r0
+	add	r1
+;	from	r0
+	to	r14
+	add	rTemp
+;
+	move	rMoveLinesPtr,#<(_RLMoveLines-rlmlSize)	; START OF MOVELINES LIST
+	move	rLineRLCountsP,#<(_RLLineRLCounts-2)	; Base of RLLineCounts
+	move	rRLLineCount,(<RLLineCount)		; Get RLEngineLineCount
+	move	rTemp,#rlmlSize				; Size of MoveLine Entry
+
+	CACHEB	_RLMoveXY
+;
+;	* * * * * * *       GENERATE MOVE BLOCKLIST OF LINES       * * * * * * *
+;
+;	>>>   NEXT BLOCKMAP LINE   <<<
+;
+_RMXY5000
+	from	rNumX				; #Blocks on this Line
+;	to	r0
+	swap
+	with	rNumX
+	add	r0
+;
+;	>>>   NEXT BLOCKMAP BLOCK   <<<
+;
+_RMXY5200
+	move	rBlockMapPtr,r14		; Save Current BlockMap Pointer
+	getb					; Get Offset to LineList
+	inc	r14
+	getbh
+	with	r14				; Move to LineList
+	add	r0
+;
+;	>>>   FIRST LINE   <<<
+;
+_RMXY5400
+	to	r1				; Get FIRST LINE#
+	getb
+	inc	r14
+_RMXY5500
+	from	r1				; Get Next Line
+	to	rLine
+	getbh
+	inc	r14
+	inc	rLine				; End of LineList?
+	beq	_RMXY7200			; Yes!
+;
+;	>>>   LINE ALREADY ADDED?   <<<
+;
+_RMXY5600
+	from	rLine				; R0 = Line#*2
+;	to	r0
+	add	rLine
+;	with	r0				; Get RLLineCount
+	add	rLineRLCountsP
+	to	r1				; Get Next Line#
+	getb
+	inc	r14
+;	to	r0
+	ldw	(r0)
+;	with	r0				; Already included?
+	sub	rRLLineCount			; @CMP@
+	from	rRLLineCount			; NO!  INCLUDE IT!
+	beq	_RMXY5500			; Yes!
+	sbk
+;
+;	>>>   ADD THIS LINE   <<<
+;
+	with	rMoveLinesPtr			; Move to next MoveLine Entry
+	add	rTemp
+	with	r1				; Get MoveLine Line#
+	getbh
+	inc	r14
+	dec	rLine				; SAVE LINE#-1
+	inc	r1				; End of LineList?
+	from	rLine
+	stw	(rMoveLinesPtr)
+	with	r1
+	bne	_RMXY5600			; No, Check Next Line!
+	to	rLine
+
+;
+;	>>>   NEXT BLOCKMAP X ITERATION   <<<
+;
+_RMXY7200
+	dec	rNumX				; NumX--
+	from	rNumX
+;	to	r0
+	lob
+	from	rBlockMapPtr			; Move to next BlockMap Block
+	to	r14
+	bne	_RMXY5200			; Not Finished this BlockMap Line!
+	add	rDeltaX
+;
+;	>>>   NEXT BLOCKMAP Y ITERATION   <<<
+;
+_RMXY8200
+	dec	rNumY				; NumY--
+	beq	_RMXY9000			; Finished BlockMap!
+	with	r14				; Move to next BlockMap Line
+	bra	_RMXY5000
+	add	rDeltaY
+
+;
+;	* * * * * * *       MOVE BLOCKLIST IS COMPLETED!       * * * * * * *
+;
+_RMXY9000
+	with	rMoveLinesPtr			; Move to next Line
+	add	rTemp
+	move	r0,#-1				; MoveLines List Terminator
+;	from	r0
+	stw	(rMoveLinesPtr)
+;
+	iwt	r0,#<_RLMoveXY2			; MOVE RLOBJECT XY 2
+	ibt	r8,#^_RLMoveXY2
+	ljmp	r8
+	nop
+
+	CACHEE	_RLMoveXY

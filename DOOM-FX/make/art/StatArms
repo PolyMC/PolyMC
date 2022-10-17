@@ -1,0 +1,5 @@
+xg -pRLART:StatArms -dRLDATA:ART/StatArms -ms -fn -y0 -u00 -s32,2 -c8
+delete RLDATA:ART/StatArms.map0
+delete RLDATA:ART/StatArms.rgb
+xc -iRLDATA:ART/StatArms.def0 -oRLDATA:COMP/StatArms.def0
+touch rlstatus.a

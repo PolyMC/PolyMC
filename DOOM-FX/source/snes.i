@@ -1,0 +1,412 @@
+;**********************************************************************
+;*                                                                    *
+;*              S U P E R   N I N T E N D O   S Y S T E M             *
+;*                                                                    *
+;*                   HARDWARE EQUATES/DEFINITIONS FILE                *
+;*                                                                    *
+;*                        Written by Randy Linden                     *
+;*                                                                    *
+;**********************************************************************
+
+
+;
+;	* * * * * * *       SUPER NINTENDO ENTERTAINMENT SYSTEM EQUATES       * * * * * * *
+;
+
+;
+;	PPU EQUATES
+;
+	public	INIDISP,OBJSEL,OAMADDL,OAMADDH,OAMDATA,BGMODE,MOSAIC
+
+	public	BG1SC,BG2SC,BG3SC,BG4SC,BG12NBA,BG34NBA
+
+	public	BG1HOFS,BG1VOFS,BG2HOFS,BG2VOFS,BG3HOFS,BG3VOFS,BG4HOFS,BG4VOFS
+
+	public	VMAINC,VMADDL,VMADDH,VMDATAL,VMDATAH
+
+	public	M7SEL,M7A,M7B,M7C,M7D,M7X,M7Y,CGADD,CGDATA
+
+	public	W12SEL,W34SEL,WOBJSEL,WH0,WH1,WH2,WH3,WBGLOG,WOBJLOG
+
+	public	TM,TS,TMW,TSW,CGSWSEL,CGADSUB,COLDATA,SETINI
+
+	public	_MPYL,_MPYM,_MPYH,_SLHV,_OAMDATA
+	public	_VMDATAL,_VMDATAH,_CGDATA,_OPHCT,_OPVCT,_STAT77,_STAT78
+
+	public	APUIO0,APUIO1,APUIO2,APUIO3,WMDATA,WMADDL,WMADDH,WMADDB
+
+;
+;	CPU EQUATES
+;
+	public	NMITIMEN,WRIO,WRMPYA,WRMPYB,WRDIVL,WRDIVH,WRDIVB
+
+	public	HTIMEL,HTIMEH,VTIMEL,VTIMEH,MDMAEN,HDMAEN,MEMSEL
+
+	public	_RDNMI,_TIMEUP,_HVBJOY,_RDIO,_RDDIVL,_RDDIVH,_RDMPYL,_RDMPYH
+
+	public	JOY1L,JOY1H,JOY2L,JOY2H,JOY3L,JOY3H,JOY4L,JOY4H
+
+;
+;	DMA EQUATES
+;
+	public	DMA0INC,DMA0DEST,DMA0A1L,DMA0A1H,DMA0A1B,DMA0NUML,DMA0NUMH
+	public	DMA0ADDL,DMA0ADDH,DMA0BANK,DMA0A2L,DMA0A2H,DMA0LINE
+
+	public	DMA1INC,DMA1DEST,DMA1A1L,DMA1A1H,DMA1A1B,DMA1NUML,DMA1NUMH
+	public	DMA1ADDL,DMA1ADDH,DMA1BANK,DMA1A2L,DMA1A2H,DMA1LINE
+
+	public	DMA2INC,DMA2DEST,DMA2A1L,DMA2A1H,DMA2A1B,DMA2NUML,DMA2NUMH
+	public	DMA2ADDL,DMA2ADDH,DMA2BANK,DMA2A2L,DMA2A2H,DMA2LINE
+
+	public	DMA3INC,DMA3DEST,DMA3A1L,DMA3A1H,DMA3A1B,DMA3NUML,DMA3NUMH
+	public	DMA3ADDL,DMA3ADDH,DMA3BANK,DMA3A2L,DMA3A2H,DMA3LINE
+
+	public	DMA4INC,DMA4DEST,DMA4A1L,DMA4A1H,DMA4A1B,DMA4NUML,DMA4NUMH
+	public	DMA4ADDL,DMA4ADDH,DMA4BANK,DMA4A2L,DMA4A2H,DMA4LINE
+
+	public	DMA5INC,DMA5DEST,DMA5A1L,DMA5A1H,DMA5A1B,DMA5NUML,DMA5NUMH
+	public	DMA5ADDL,DMA5ADDH,DMA5BANK,DMA5A2L,DMA5A2H,DMA5LINE
+
+	public	DMA6INC,DMA6DEST,DMA6A1L,DMA6A1H,DMA6A1B,DMA6NUML,DMA6NUMH
+	public	DMA6ADDL,DMA6ADDH,DMA6BANK,DMA6A2L,DMA6A2H,DMA6LINE
+
+	public	DMA7INC,DMA7DEST,DMA7A1L,DMA7A1H,DMA7A1B,DMA7NUML,DMA7NUMH
+	public	DMA7ADDL,DMA7ADDH,DMA7BANK,DMA7A2L,DMA7A2H,DMA7LINE
+
+;
+;	SFX EQUATES
+;
+;	public	sfxSFR,sfxPCB,sfxR15,sfxSCR,sfxCONFIG
+
+;
+;	SFX SHADOWS
+;
+;	public	R15Reg,ROMBReg,RAMBReg
+
+;
+;	DEBUGGER SHADOWS
+;
+;	public	SCR_XS
+	ife	NOAICESE
+;	public	NMITIMEN_XS
+	endif
+
+
+
+;
+;	PPU EQUATES
+;
+INIDISP		equ	$2100
+OBJSEL		equ	$2101
+OAMADDL		equ	$2102
+OAMADDH		equ	$2103
+OAMDATA		equ	$2104
+BGMODE		equ	$2105
+MOSAIC		equ	$2106
+BG1SC		equ	$2107
+BG2SC		equ	$2108
+BG3SC		equ	$2109
+BG4SC		equ	$210a
+BG12NBA		equ	$210b
+BG34NBA		equ	$210c
+BG1HOFS		equ	$210d
+BG1VOFS		equ	$210e
+BG2HOFS		equ	$210f
+BG2VOFS		equ	$2110
+BG3HOFS		equ	$2111
+BG3VOFS		equ	$2112
+BG4HOFS		equ	$2113
+BG4VOFS		equ	$2114
+VMAINC		equ	$2115
+VMADDL		equ	$2116
+VMADDH		equ	$2117
+VMDATAL		equ	$2118
+VMDATAH		equ	$2119
+M7SEL		equ	$211a
+M7A		equ	$211b
+M7B		equ	$211c
+M7C		equ	$211d
+M7D		equ	$211e
+M7X		equ	$211f
+M7Y		equ	$2120
+CGADD		equ	$2121
+CGDATA		equ	$2122
+W12SEL		equ	$2123
+W34SEL		equ	$2124
+WOBJSEL		equ	$2125
+WH0		equ	$2126
+WH1		equ	$2127
+WH2		equ	$2128
+WH3		equ	$2129
+WBGLOG		equ	$212a
+WOBJLOG		equ	$212b
+TM		equ	$212c
+TS		equ	$212d
+TMW		equ	$212e
+TSW		equ	$212f
+CGSWSEL		equ	$2130
+CGADSUB		equ	$2131
+COLDATA		equ	$2132
+SETINI		equ	$2133
+_MPYL		equ	$2134
+_MPYM		equ	$2135
+_MPYH		equ	$2136
+_SLHV		equ	$2137
+_OAMDATA	equ	$2138
+_VMDATAL	equ	$2139
+_VMDATAH	equ	$213a
+_CGDATA		equ	$213b
+_OPHCT		equ	$213c
+_OPVCT		equ	$213d
+_STAT77		equ	$213e
+_STAT78		equ	$213f
+APUIO0		equ	$2140
+APUIO1		equ	$2141
+APUIO2		equ	$2142
+APUIO3		equ	$2143
+WMDATA		equ	$2180
+WMADDL		equ	$2181
+WMADDH		equ	$2182
+WMADDB		equ	$2183
+
+;
+;	CPU EQUATES
+;
+NMITIMEN	equ	$4200
+WRIO		equ	$4201
+WRMPYA		equ	$4202
+WRMPYB		equ	$4203
+WRDIVL		equ	$4204
+WRDIVH		equ	$4205
+WRDIVB		equ	$4206
+HTIMEL		equ	$4207
+HTIMEH		equ	$4208
+VTIMEL		equ	$4209
+VTIMEH		equ	$420a
+MDMAEN		equ	$420b
+HDMAEN		equ	$420c
+MEMSEL		equ	$420d
+_RDNMI		equ	$4210
+_TIMEUP		equ	$4211
+_HVBJOY		equ	$4212
+_RDIO		equ	$4213
+_RDDIVL		equ	$4214
+_RDDIVH		equ	$4215
+_RDMPYL		equ	$4216
+_RDMPYH		equ	$4217
+JOY1L		equ	$4218
+JOY1H		equ	$4219
+JOY2L		equ	$421a
+JOY2H		equ	$421b
+JOY3L		equ	$421c
+JOY3H		equ	$421d
+JOY4L		equ	$421e
+JOY4H		equ	$421f
+
+;
+;	DMA EQUATES
+;
+DMA0INC		equ	$4300
+DMA0DEST	equ	$4301
+DMA0A1L		equ	$4302
+DMA0A1H		equ	$4303
+DMA0A1B		equ	$4304
+DMA0NUML	equ	$4305
+DMA0NUMH	equ	$4306
+DMA0ADDL	equ	$4305
+DMA0ADDH	equ	$4306
+DMA0BANK	equ	$4307
+DMA0A2L		equ	$4308
+DMA0A2H		equ	$4309
+DMA0LINE	equ	$430a
+;
+DMA1INC		equ	$4310
+DMA1DEST	equ	$4311
+DMA1A1L		equ	$4312
+DMA1A1H		equ	$4313
+DMA1A1B		equ	$4314
+DMA1NUML	equ	$4315
+DMA1NUMH	equ	$4316
+DMA1ADDL	equ	$4315
+DMA1ADDH	equ	$4316
+DMA1BANK	equ	$4317
+DMA1A2L		equ	$4318
+DMA1A2H		equ	$4319
+DMA1LINE	equ	$431a
+;
+DMA2INC		equ	$4320
+DMA2DEST	equ	$4321
+DMA2A1L		equ	$4322
+DMA2A1H		equ	$4323
+DMA2A1B		equ	$4324
+DMA2NUML	equ	$4325
+DMA2NUMH	equ	$4326
+DMA2ADDL	equ	$4325
+DMA2ADDH	equ	$4326
+DMA2BANK	equ	$4327
+DMA2A2L		equ	$4328
+DMA2A2H		equ	$4329
+DMA2LINE	equ	$432a
+;
+DMA3INC		equ	$4330
+DMA3DEST	equ	$4331
+DMA3A1L		equ	$4332
+DMA3A1H		equ	$4333
+DMA3A1B		equ	$4334
+DMA3NUML	equ	$4335
+DMA3NUMH	equ	$4336
+DMA3ADDL	equ	$4335
+DMA3ADDH	equ	$4336
+DMA3BANK	equ	$4337
+DMA3A2L		equ	$4338
+DMA3A2H		equ	$4339
+DMA3LINE	equ	$433a
+;
+DMA4INC		equ	$4340
+DMA4DEST	equ	$4341
+DMA4A1L		equ	$4342
+DMA4A1H		equ	$4343
+DMA4A1B		equ	$4344
+DMA4NUML	equ	$4345
+DMA4NUMH	equ	$4346
+DMA4ADDL	equ	$4345
+DMA4ADDH	equ	$4346
+DMA4BANK	equ	$4347
+DMA4A2L		equ	$4348
+DMA4A2H		equ	$4349
+DMA4LINE	equ	$434a
+;
+DMA5INC		equ	$4350
+DMA5DEST	equ	$4351
+DMA5A1L		equ	$4352
+DMA5A1H		equ	$4353
+DMA5A1B		equ	$4354
+DMA5NUML	equ	$4355
+DMA5NUMH	equ	$4356
+DMA5ADDL	equ	$4355
+DMA5ADDH	equ	$4356
+DMA5BANK	equ	$4357
+DMA5A2L		equ	$4358
+DMA5A2H		equ	$4359
+DMA5LINE	equ	$435a
+;
+DMA6INC		equ	$4360
+DMA6DEST	equ	$4361
+DMA6A1L		equ	$4362
+DMA6A1H		equ	$4363
+DMA6A1B		equ	$4364
+DMA6NUML	equ	$4365
+DMA6NUMH	equ	$4366
+DMA6ADDL	equ	$4365
+DMA6ADDH	equ	$4366
+DMA6BANK	equ	$4367
+DMA6A2L		equ	$4368
+DMA6A2H		equ	$4369
+DMA6LINE	equ	$436a
+;
+DMA7INC		equ	$4370
+DMA7DEST	equ	$4371
+DMA7A1L		equ	$4372
+DMA7A1H		equ	$4373
+DMA7A1B		equ	$4374
+DMA7NUML	equ	$4375
+DMA7NUMH	equ	$4376
+DMA7ADDL	equ	$4375
+DMA7ADDH	equ	$4376
+DMA7BANK	equ	$4377
+DMA7A2L		equ	$4378
+DMA7A2H		equ	$4379
+DMA7LINE	equ	$437a
+
+;
+;	* * * * * * *       GENERAL EQUATES       * * * * * * *
+;
+MaxViewScanLines	equ	224		; 224 ScanLines Maximum
+MaxOAMs			equ	128		; MaxObjectAttributeMemories
+MaxCHRs			equ	512		; MaxSpriteCharacters
+
+;
+;	* * * * * * *       OAM STRUCTURE       * * * * * * *
+;
+oamsX			equ	0		; X Coordinate
+oamsY			equ	1		; Y Coordinate
+oamsChr			equ	2		; Character# (Name)
+oamsFlags		equ	3		; Flags
+;
+;	>>>   OAM FLAGS   <<<
+;
+oamfVFlip		equ	$80		; VFlip
+oamfHFlip		equ	$40		; HFlip
+oamfPri			equ	$30		; Priority $00,$10,$20,$30
+oamfPri0		equ	$00		; Priority 0
+oamfPri1		equ	$10		; Priority 1
+oamfPri2		equ	$20		; Priority 2
+oamfPri3		equ	$30		; Priority 3
+oamfColour		equ	$0e		; Colour (%000-%111)
+oamfChrH		equ	$01		; Character# HighBit (Name)
+
+;
+;	* * * * * * *       JOYSTICK CONTROLLER EQUATES       * * * * * * *
+;
+joyR			equ	%0000000000010000	; <R>
+joyL			equ	%0000000000100000	; <L>
+joyX			equ	%0000000001000000	; <X>
+joyA			equ	%0000000010000000	; <A>
+joyRIGHT		equ	%0000000100000000	; <RIGHT>
+joyLEFT			equ	%0000001000000000	; <LEFT>
+joyDOWN			equ	%0000010000000000	; <DOWN>
+joyUP			equ	%0000100000000000	; <UP>
+joySTART		equ	%0001000000000000	; <START>
+joySELECT		equ	%0010000000000000	; <SELECT>
+joyY			equ	%0100000000000000	; <Y>
+joyB			equ	%1000000000000000	; <B>
+
+
+;
+;	* * * * * * *       SUPER F/X (GSU) EQUATES       * * * * * * *
+;
+sfxR0		equ	$3000
+sfxR1		equ	$3002
+sfxR2		equ	$3004
+sfxR3		equ	$3006
+sfxR4		equ	$3008
+sfxR5		equ	$300a
+sfxR6		equ	$300c
+sfxR7		equ	$300e
+sfxR8		equ	$3010
+sfxR9		equ	$3012
+sfxR10		equ	$3014
+sfxR11		equ	$3016
+sfxR12		equ	$3018
+sfxR13		equ	$301a
+sfxR14		equ	$301c
+sfxR15		equ	$301e
+sfxSFR		equ	$3030
+sfxPCB		equ	$3034
+sfxSCR		equ	$303a
+sfxCONFIG	equ	$3037
+sfxSCBR		equ	$3038
+sfxCLK		equ	$3039
+GSUBRKRAM	equ	$000100			; SNES BRK RAM Vector for GSU
+GSUCOPRAM	equ	$000104			; SNES COP RAM Vector for GSU
+GSUABORTRAM	equ	$000100			; SNES ABORT RAM Vector for GSU
+GSUNMIRAM	equ	$000108			; SNES NMI RAM Vector for GSU
+GSUIRQRAM	equ	$00010c			; SNES IRQ RAM Vector for GSU
+
+;
+;	* * * * * * *       DEBUGGER SHADOWS       * * * * * * *
+;
+	ifn	SFX2
+NMITIMEN_XS	equ	$40ff40			; SNES NMITIMEN Register Shadow
+SCR_XS		equ	$40ff43			; SFX SCR Register Shadow
+	endif
+	ifn	WIRE
+NMITIMEN_XS	equ	$7fff40			; SNES NMITIMEN Register Shadow
+SCR_XS		equ	$7fff43			; SFX SCR Register Shadow
+;NMI_XS		equ	$7fffc0			; SNES NMI RAM Vector for XSLV
+;IRQ_XS		equ	$7fffc4			; SNES IRQ RAM Vector for XSLV
+	endif
+	ifn	NOAICESE
+;SCR_XS		equ	$003943			; SFX SCR Register Shadow
+SCR_XS		equ	$7fff43			; SFX SCR Register Shadow
+	endif

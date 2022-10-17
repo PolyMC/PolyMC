@@ -1,0 +1,1034 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                         LEVEL HANDLING MODULE                      *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snesmac.i
+	include	music.i
+
+
+	SECTION	LEVEL,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       REALITY_ENGINE INITIALIZE LEVEL       * * * * * * *
+;
+;	.A = Level# to Initialize
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+_RLInitLevel
+	lda	Level				; Get Level
+	ifn	useAUTOMAP
+	pha
+	endif
+	asl	a				; Get WORD Index
+	tax
+;
+	phk
+	plb
+	dbr	(^*)
+;
+	lda	!EMSONGTable,x			; Get Level Song
+	sta	_MDSong
+;
+	lda	!EMBSPRTable,x			; Initialize BSPROOT Pointer
+	sta	EMBSPR
+;
+	lda	!EMAREASTable,x			; Initialize AREAS Pointer
+	sta	EMAREAS
+;
+	lda	!EMVERTEXESTable,x		; Initialize VERTEXES Pointer
+	sta	EMVERTEXES
+;
+	lda	!EMNUMVERTEXESTable,x		; Initialize NUMVERTEXES
+	sta	EMNUMVERTEXES
+;
+	lda	!EMLINESTable,x			; Initialize LINES Pointer
+	sta	EMLINES
+;
+	lda	!EMNUMLINESTable,x		; Initialize NUMLINES
+	sta	EMNUMLINES
+;
+	lda	!EMSEGSTable,x			; Initialize SEGS Pointer
+	sta	EMSEGS
+;
+	lda	!EMSEGS2Table,x			; Initialize SEGS2 Pointer
+	sta	EMSEGS2
+;
+	lda	!EMREJECTTable,x		; Initialize REJECT Pointer
+	sta	EMREJECT
+;
+	lda	!EMFACESTable,x			; Initialize FACES Pointer
+	sta	EMFACES
+;
+	lda	!EMNUMSEGSTable,x		; Initialize NUMSEGS
+	sta	EMNUMSEGS
+;
+	lda	!EMNUMSECTORSTable,x		; Initialize NUMSECTORS
+	sta	EMNUMSECTORS
+;
+	lda	!EMOBJECTSTable,x		; Initialize OBJECTS Pointer
+	sta	EMOBJECTS
+;
+	lda	!EMBLOCKMAPTable,x		; Initialize BLOCKMAP Pointer
+	sta	Temp
+	clc
+	adc	#rlkBlockOffsets
+	sta	EMBLOCKMAP
+;
+	lda	!EMDOORSTable,x			; Initialize DOORS Pointer
+	sta	EMDOORS
+;
+	lda	!EMFLOORSTable,x		; Initialize FLOORS Pointer
+	sta	EMFLOORS
+;
+	lda	!EMCEILINGSTable,x		; Initialize CEILINGS Pointer
+	sta	EMCEILINGS
+;
+	lda	!EMSTAIRSTable,x		; Initialize STAIRS Pointer
+	sta	EMSTAIRS
+;
+	lda	!EMLIFTSTable,x			; Initialize LIFTS Pointer
+	sta	EMLIFTS
+;
+	txa					; Get LONG Index
+	asl	a
+	tax
+;
+	lda	!EMBSPTable,x			; Initialize BSP Pointer
+	sta	EMBSP
+	lda	!EMBSPTable+2,x			; Initialize EM Table Banks
+	sta	EMBSP+2
+;
+	lda	!EMSECTORSTable,x		; Initialize SECTORS Pointer
+	sta	EMSECTORS
+	lda	!EMSECTORSTable+2,x
+	sta	EMSECTORS+2
+	sta	Temp+2
+;
+;	ldy	#rlkX				; Get BLOCKMAP X Origin
+	lda	[Temp]
+	sta	EMBLOCKMAPORIGIN
+	ldy	#rlkY				; Get BLOCKMAP Y Origin
+	lda	[Temp],y
+	sta	EMBLOCKMAPORIGIN+2
+	ldy	#rlkDim				; Get BLOCKMAP Dimensions
+	lda	[Temp],y
+	sta	EMBLOCKMAPDIM
+;
+	ifn	useAUTOMAP
+;
+;	>>>   GENERATE LEVEL NAME FOR AUTOMAP   <<<
+;
+	plx					; Get Level#
+	phx
+	ldy	#0				; Offset within Names
+	mode	'a!'
+_RIL400
+	dex					; At Correct LevelName?
+	bmi	_RIL440				; Yes!
+_RIL420
+	iny
+	lda	!EMNames,y			; Next Character
+	bne	_RIL420				; Done?
+	iny
+	bra	_RIL400				; Next LevelName
+;
+_RIL440
+	ldx	#0
+;
+	ife	useID2
+_RIL450
+	lda	!AMLevelTextPrefix,x		; Copy LevelText Prefix
+	beq	_RIL460
+	sta	>AMLevelText,x
+	inx
+	bra	_RIL450
+	endif
+;
+_RIL460
+	lda	!EMNames,y			; Copy LevelName
+	beq	_RIL470
+	sta	>AMLevelText,x
+	iny
+	inx					; At Draw Boundary?
+	cpx	#((RLCharX/3)*1)
+	beq	_RIL465
+	cpx	#((RLCharX/3)*2)+1
+	bne	_RIL460				; No
+_RIL465
+	lda	#0				; Yes!  Pad Text Strips
+	sta	>AMLevelText,x
+	inx
+	bra	_RIL460
+;
+_RIL470
+	cpx	#(RLCharX+3)			; Pad with $00s
+	beq	_RIL490
+	sta	>AMLevelText,x
+	inx
+	bra	_RIL470
+;
+_RIL490
+	mode	'Ax!'
+	pla					; .A = Level#
+	ldy	#'1'				; Episode 1
+_RIL492
+	cmp	#9				; Found Correct Episode?
+	bcc	_RIL495				; Yes!
+	iny					; Next Episode
+;	sec
+	sbc	#9
+	bra	_RIL492
+_RIL495
+	mode	'a!'				; MISSION
+	clc
+	adc	#'1'
+	ife	useID2
+	sta	>AMLevelText+3
+	endif
+	ifn	DEBUGSCR
+	sta	DI1Txt+3
+	endif
+	ifn	useSKY
+	and	#$0f				; MISSION.B
+	xba
+	endif
+	tya					; EPISODE
+	ife	useID2
+	sta	>AMLevelText+1
+	endif
+	ifn	DEBUGSCR
+	sta	DI1Txt+1
+	endif
+	ifn	useSKY
+	and	#$03				; EPISODE.B
+;
+	pha					; ENSURE ACCESS TO HARDWARE FOR MUSICDRIVER
+	plb
+	dbr	0
+;
+	mode	'A!'
+	sta	EMNUM
+	endif
+	lda	SkillLevel			; SKILL LEVEL
+	clc
+	adc	#'A'
+	mode	'a!'
+	ifn	DEBUGSCR
+	sta	DI1Txt+4
+	endif
+	endif
+;
+	jsr	_RLInitSectors			; Initialize SECTORS/SECTORDATA
+;
+	jsr	_RLInitLineData			; Initialize LINE DATA
+;
+	jsr	_RLInitObjects			; Initialize RL OBJECTS
+;
+	jsr	_RLInitPlayer			; Initialize PLAYER
+;
+	jsr	_RLInitWeapons			; Initialize WEAPONS
+	mode	'AX'
+;
+	ifn	useSOUND
+	lda	_MDSong				; Load Level Song
+	pha					; Save Song# to Play
+	jsl	_LoadSong
+;
+	ldy	#1				; "BEST" MODE (Don't Steal Equal Priority!)
+	lda	#DCOM_ALLOCATION_MODE
+	jsl	_SendDriverCommandL
+;
+	ply					; Get Song# to Play
+	lda	_MusicOn			; Music Enabled?
+	beq	.0				; No, don't Start Song!
+	lda	#DCOM_START_SONG
+	jsl	_SendDriverCommandL
+.0
+	lda	#DCOM_FADEIN			; Fade in Music
+	ldy	#$1001
+	jml	_SendDriverCommandL
+	endif
+
+	ife	useSOUND
+	rtl					; LEVEL INITIALIZED!
+	endif
+
+
+;
+;	* * * * * * *       BINARY SPACE PARTITION TREES       * * * * * * *
+;
+EMBSPTable
+	dc.4	E1M1BSP				; BSP Tree Array
+	dc.4	E1M2BSP
+	dc.4	E1M3BSP
+	dc.4	E1M4BSP
+	dc.4	E1M5BSP
+	dc.4	E1M6BSP
+	dc.4	E1M7BSP
+	dc.4	E1M8BSP
+	dc.4	E1M9BSP
+;
+	dc.4	E2M1BSP
+	dc.4	E2M2BSP
+	dc.4	E2M3BSP
+	dc.4	E2M4BSP
+	dc.4	E2M5BSP
+	dc.4	E2M6BSP
+	dc.4	E2M7BSP
+	dc.4	E2M8BSP
+	dc.4	E2M9BSP
+;
+	dc.4	E3M1BSP
+	dc.4	E3M2BSP
+	dc.4	E3M3BSP
+	dc.4	E3M4BSP
+	dc.4	E3M5BSP
+	dc.4	E3M6BSP
+	dc.4	E3M7BSP
+	dc.4	E3M8BSP
+	dc.4	E3M9BSP
+;
+EMBSPRTable
+	dc.w	(E1M1BSPE-E1M1BSP-rlbSize)	; BSP Root Node Array
+	dc.w	(E1M2BSPE-E1M2BSP-rlbSize)
+	dc.w	(E1M3BSPE-E1M3BSP-rlbSize)
+	dc.w	(E1M4BSPE-E1M4BSP-rlbSize)
+	dc.w	(E1M5BSPE-E1M5BSP-rlbSize)
+	dc.w	(E1M6BSPE-E1M6BSP-rlbSize)
+	dc.w	(E1M7BSPE-E1M7BSP-rlbSize)
+	dc.w	(E1M8BSPE-E1M8BSP-rlbSize)
+	dc.w	(E1M9BSPE-E1M9BSP-rlbSize)
+;
+	dc.w	(E2M1BSPE-E2M1BSP-rlbSize)
+	dc.w	(E2M2BSPE-E2M2BSP-rlbSize)
+	dc.w	(E2M3BSPE-E2M3BSP-rlbSize)
+	dc.w	(E2M4BSPE-E2M4BSP-rlbSize)
+	dc.w	(E2M5BSPE-E2M5BSP-rlbSize)
+	dc.w	(E2M6BSPE-E2M6BSP-rlbSize)
+	dc.w	(E2M7BSPE-E2M7BSP-rlbSize)
+	dc.w	(E2M8BSPE-E2M8BSP-rlbSize)
+	dc.w	(E2M9BSPE-E2M9BSP-rlbSize)
+;
+	dc.w	(E3M1BSPE-E3M1BSP-rlbSize)
+	dc.w	(E3M2BSPE-E3M2BSP-rlbSize)
+	dc.w	(E3M3BSPE-E3M3BSP-rlbSize)
+	dc.w	(E3M4BSPE-E3M4BSP-rlbSize)
+	dc.w	(E3M5BSPE-E3M5BSP-rlbSize)
+	dc.w	(E3M6BSPE-E3M6BSP-rlbSize)
+	dc.w	(E3M7BSPE-E3M7BSP-rlbSize)
+	dc.w	(E3M8BSPE-E3M8BSP-rlbSize)
+	dc.w	(E3M9BSPE-E3M9BSP-rlbSize)
+
+;
+;	* * * * * * *       AREAS       * * * * * * *
+;
+EMAREASTable
+	dc.w	(<E1M1AREAS-$8000)		; AREAS Array
+	dc.w	(<E1M2AREAS-$8000)
+	dc.w	(<E1M3AREAS-$8000)
+	dc.w	(<E1M4AREAS-$8000)
+	dc.w	(<E1M5AREAS-$8000)
+	dc.w	(<E1M6AREAS-$8000)
+	dc.w	(<E1M7AREAS-$8000)
+	dc.w	(<E1M8AREAS-$8000)
+	dc.w	(<E1M9AREAS-$8000)
+;
+	dc.w	(<E2M1AREAS-$8000)
+	dc.w	(<E2M2AREAS-$8000)
+	dc.w	(<E2M3AREAS-$8000)
+	dc.w	(<E2M4AREAS-$8000)
+	dc.w	(<E2M5AREAS-$8000)
+	dc.w	(<E2M6AREAS-$8000)
+	dc.w	(<E2M7AREAS-$8000)
+	dc.w	(<E2M8AREAS-$8000)
+	dc.w	(<E2M9AREAS-$8000)
+;
+	dc.w	(<E3M1AREAS-$8000)
+	dc.w	(<E3M2AREAS-$8000)
+	dc.w	(<E3M3AREAS-$8000)
+	dc.w	(<E3M4AREAS-$8000)
+	dc.w	(<E3M5AREAS-$8000)
+	dc.w	(<E3M6AREAS-$8000)
+	dc.w	(<E3M7AREAS-$8000)
+	dc.w	(<E3M8AREAS-$8000)
+	dc.w	(<E3M9AREAS-$8000)
+
+;
+;	* * * * * * *       VERTEXES       * * * * * * *
+;
+EMVERTEXESTable
+	dc.w	<(E1M1VERTEXES-_RLVertexes)	; VERTEXES Array
+	dc.w	<(E1M2VERTEXES-_RLVertexes)
+	dc.w	<(E1M3VERTEXES-_RLVertexes)
+	dc.w	<(E1M4VERTEXES-_RLVertexes)
+	dc.w	<(E1M5VERTEXES-_RLVertexes)
+	dc.w	<(E1M6VERTEXES-_RLVertexes)
+	dc.w	<(E1M7VERTEXES-_RLVertexes)
+	dc.w	<(E1M8VERTEXES-_RLVertexes)
+	dc.w	<(E1M9VERTEXES-_RLVertexes)
+;
+	dc.w	<(E2M1VERTEXES-_RLVertexes)
+	dc.w	<(E2M2VERTEXES-_RLVertexes)
+	dc.w	<(E2M3VERTEXES-_RLVertexes)
+	dc.w	<(E2M4VERTEXES-_RLVertexes)
+	dc.w	<(E2M5VERTEXES-_RLVertexes)
+	dc.w	<(E2M6VERTEXES-_RLVertexes)
+	dc.w	<(E2M7VERTEXES-_RLVertexes)
+	dc.w	<(E2M8VERTEXES-_RLVertexes)
+	dc.w	<(E2M9VERTEXES-_RLVertexes)
+;
+	dc.w	<(E3M1VERTEXES-_RLVertexes)
+	dc.w	<(E3M2VERTEXES-_RLVertexes)
+	dc.w	<(E3M3VERTEXES-_RLVertexes)
+	dc.w	<(E3M4VERTEXES-_RLVertexes)
+	dc.w	<(E3M5VERTEXES-_RLVertexes)
+	dc.w	<(E3M6VERTEXES-_RLVertexes)
+	dc.w	<(E3M7VERTEXES-_RLVertexes)
+	dc.w	<(E3M8VERTEXES-_RLVertexes)
+	dc.w	<(E3M9VERTEXES-_RLVertexes)
+;
+EMNUMVERTEXESTable
+	dc.w	(E1M1VERTEXESE-E1M1VERTEXES)/rlxSize	; NUMBER OF VERTEXES Array
+	dc.w	(E1M2VERTEXESE-E1M2VERTEXES)/rlxSize
+	dc.w	(E1M3VERTEXESE-E1M3VERTEXES)/rlxSize
+	dc.w	(E1M4VERTEXESE-E1M4VERTEXES)/rlxSize
+	dc.w	(E1M5VERTEXESE-E1M5VERTEXES)/rlxSize
+	dc.w	(E1M6VERTEXESE-E1M6VERTEXES)/rlxSize
+	dc.w	(E1M7VERTEXESE-E1M7VERTEXES)/rlxSize
+	dc.w	(E1M8VERTEXESE-E1M8VERTEXES)/rlxSize
+	dc.w	(E1M9VERTEXESE-E1M9VERTEXES)/rlxSize
+;
+	dc.w	(E2M1VERTEXESE-E2M1VERTEXES)/rlxSize
+	dc.w	(E2M2VERTEXESE-E2M2VERTEXES)/rlxSize
+	dc.w	(E2M3VERTEXESE-E2M3VERTEXES)/rlxSize
+	dc.w	(E2M4VERTEXESE-E2M4VERTEXES)/rlxSize
+	dc.w	(E2M5VERTEXESE-E2M5VERTEXES)/rlxSize
+	dc.w	(E2M6VERTEXESE-E2M6VERTEXES)/rlxSize
+	dc.w	(E2M7VERTEXESE-E2M7VERTEXES)/rlxSize
+	dc.w	(E2M8VERTEXESE-E2M8VERTEXES)/rlxSize
+	dc.w	(E2M9VERTEXESE-E2M9VERTEXES)/rlxSize
+;
+	dc.w	(E3M1VERTEXESE-E3M1VERTEXES)/rlxSize
+	dc.w	(E3M2VERTEXESE-E3M2VERTEXES)/rlxSize
+	dc.w	(E3M3VERTEXESE-E3M3VERTEXES)/rlxSize
+	dc.w	(E3M4VERTEXESE-E3M4VERTEXES)/rlxSize
+	dc.w	(E3M5VERTEXESE-E3M5VERTEXES)/rlxSize
+	dc.w	(E3M6VERTEXESE-E3M6VERTEXES)/rlxSize
+	dc.w	(E3M7VERTEXESE-E3M7VERTEXES)/rlxSize
+	dc.w	(E3M8VERTEXESE-E3M8VERTEXES)/rlxSize
+	dc.w	(E3M9VERTEXESE-E3M9VERTEXES)/rlxSize
+
+;
+;	* * * * * * *       LINES       * * * * * * *
+;
+EMLINESTable
+	dc.w	<E1M1LINES			; LINES Array
+	dc.w	<E1M2LINES
+	dc.w	<E1M3LINES
+	dc.w	<E1M4LINES
+	dc.w	<E1M5LINES
+	dc.w	<E1M6LINES
+	dc.w	<E1M7LINES
+	dc.w	<E1M8LINES
+	dc.w	<E1M9LINES
+;
+	dc.w	<E2M1LINES
+	dc.w	<E2M2LINES
+	dc.w	<E2M3LINES
+	dc.w	<E2M4LINES
+	dc.w	<E2M5LINES
+	dc.w	<E2M6LINES
+	dc.w	<E2M7LINES
+	dc.w	<E2M8LINES
+	dc.w	<E2M9LINES
+;
+	dc.w	<E3M1LINES
+	dc.w	<E3M2LINES
+	dc.w	<E3M3LINES
+	dc.w	<E3M4LINES
+	dc.w	<E3M5LINES
+	dc.w	<E3M6LINES
+	dc.w	<E3M7LINES
+	dc.w	<E3M8LINES
+	dc.w	<E3M9LINES
+;
+EMNUMLINESTable
+	dc.w	(E1M1LINESE-E1M1LINES)/rllSize	; NUMBER OF LINES Array
+	dc.w	(E1M2LINESE-E1M2LINES)/rllSize
+	dc.w	(E1M3LINESE-E1M3LINES)/rllSize
+	dc.w	(E1M4LINESE-E1M4LINES)/rllSize
+	dc.w	(E1M5LINESE-E1M5LINES)/rllSize
+	dc.w	(E1M6LINESE-E1M6LINES)/rllSize
+	dc.w	(E1M7LINESE-E1M7LINES)/rllSize
+	dc.w	(E1M8LINESE-E1M8LINES)/rllSize
+	dc.w	(E1M9LINESE-E1M9LINES)/rllSize
+;
+	dc.w	(E2M1LINESE-E2M1LINES)/rllSize
+	dc.w	(E2M2LINESE-E2M2LINES)/rllSize
+	dc.w	(E2M3LINESE-E2M3LINES)/rllSize
+	dc.w	(E2M4LINESE-E2M4LINES)/rllSize
+	dc.w	(E2M5LINESE-E2M5LINES)/rllSize
+	dc.w	(E2M6LINESE-E2M6LINES)/rllSize
+	dc.w	(E2M7LINESE-E2M7LINES)/rllSize
+	dc.w	(E2M8LINESE-E2M8LINES)/rllSize
+	dc.w	(E2M9LINESE-E2M9LINES)/rllSize
+;
+	dc.w	(E3M1LINESE-E3M1LINES)/rllSize
+	dc.w	(E3M2LINESE-E3M2LINES)/rllSize
+	dc.w	(E3M3LINESE-E3M3LINES)/rllSize
+	dc.w	(E3M4LINESE-E3M4LINES)/rllSize
+	dc.w	(E3M5LINESE-E3M5LINES)/rllSize
+	dc.w	(E3M6LINESE-E3M6LINES)/rllSize
+	dc.w	(E3M7LINESE-E3M7LINES)/rllSize
+	dc.w	(E3M8LINESE-E3M8LINES)/rllSize
+	dc.w	(E3M9LINESE-E3M9LINES)/rllSize
+
+;
+;	* * * * * * *       SEGMENTS       * * * * * * *
+;
+EMSEGSTable
+	dc.w	<(E1M1SEGS-rlgSize)		; SEGMENTS Array
+	dc.w	<(E1M2SEGS-rlgSize)
+	dc.w	<(E1M3SEGS-rlgSize)
+	dc.w	<(E1M4SEGS-rlgSize)
+	dc.w	<(E1M5SEGS-rlgSize)
+	dc.w	<(E1M6SEGS-rlgSize)
+	dc.w	<(E1M7SEGS-rlgSize)
+	dc.w	<(E1M8SEGS-rlgSize)
+	dc.w	<(E1M9SEGS-rlgSize)
+;
+	dc.w	<(E2M1SEGS-rlgSize)
+	dc.w	<(E2M2SEGS-rlgSize)
+	dc.w	<(E2M3SEGS-rlgSize)
+	dc.w	<(E2M4SEGS-rlgSize)
+	dc.w	<(E2M5SEGS-rlgSize)
+	dc.w	<(E2M6SEGS-rlgSize)
+	dc.w	<(E2M7SEGS-rlgSize)
+	dc.w	<(E2M8SEGS-rlgSize)
+	dc.w	<(E2M9SEGS-rlgSize)
+;
+	dc.w	<(E3M1SEGS-rlgSize)
+	dc.w	<(E3M2SEGS-rlgSize)
+	dc.w	<(E3M3SEGS-rlgSize)
+	dc.w	<(E3M4SEGS-rlgSize)
+	dc.w	<(E3M5SEGS-rlgSize)
+	dc.w	<(E3M6SEGS-rlgSize)
+	dc.w	<(E3M7SEGS-rlgSize)
+	dc.w	<(E3M8SEGS-rlgSize)
+	dc.w	<(E3M9SEGS-rlgSize)
+;
+
+emsegs2o	equ	0+(rlgLine)-(rlgSize-(rlgLine+1)+rlgLine)
+EMSEGS2Table
+	dc.w	<(E1M1SEGS+emsegs2o)		; SEGMENTS2 Array
+	dc.w	<(E1M2SEGS+emsegs2o)
+	dc.w	<(E1M3SEGS+emsegs2o)
+	dc.w	<(E1M4SEGS+emsegs2o)
+	dc.w	<(E1M5SEGS+emsegs2o)
+	dc.w	<(E1M6SEGS+emsegs2o)
+	dc.w	<(E1M7SEGS+emsegs2o)
+	dc.w	<(E1M8SEGS+emsegs2o)
+	dc.w	<(E1M9SEGS+emsegs2o)
+;
+	dc.w	<(E2M1SEGS+emsegs2o)
+	dc.w	<(E2M2SEGS+emsegs2o)
+	dc.w	<(E2M3SEGS+emsegs2o)
+	dc.w	<(E2M4SEGS+emsegs2o)
+	dc.w	<(E2M5SEGS+emsegs2o)
+	dc.w	<(E2M6SEGS+emsegs2o)
+	dc.w	<(E2M7SEGS+emsegs2o)
+	dc.w	<(E2M8SEGS+emsegs2o)
+	dc.w	<(E2M9SEGS+emsegs2o)
+;
+	dc.w	<(E3M1SEGS+emsegs2o)
+	dc.w	<(E3M2SEGS+emsegs2o)
+	dc.w	<(E3M3SEGS+emsegs2o)
+	dc.w	<(E3M4SEGS+emsegs2o)
+	dc.w	<(E3M5SEGS+emsegs2o)
+	dc.w	<(E3M6SEGS+emsegs2o)
+	dc.w	<(E3M7SEGS+emsegs2o)
+	dc.w	<(E3M8SEGS+emsegs2o)
+	dc.w	<(E3M9SEGS+emsegs2o)
+;
+EMNUMSEGSTable
+	dc.w	(E1M1SEGSE-E1M1SEGS)/rlgSize	; NUMBER OF SEGS Array
+	dc.w	(E1M2SEGSE-E1M2SEGS)/rlgSize
+	dc.w	(E1M3SEGSE-E1M3SEGS)/rlgSize
+	dc.w	(E1M4SEGSE-E1M4SEGS)/rlgSize
+	dc.w	(E1M5SEGSE-E1M5SEGS)/rlgSize
+	dc.w	(E1M6SEGSE-E1M6SEGS)/rlgSize
+	dc.w	(E1M7SEGSE-E1M7SEGS)/rlgSize
+	dc.w	(E1M8SEGSE-E1M8SEGS)/rlgSize
+	dc.w	(E1M9SEGSE-E1M9SEGS)/rlgSize
+;
+	dc.w	(E2M1SEGSE-E2M1SEGS)/rlgSize
+	dc.w	(E2M2SEGSE-E2M2SEGS)/rlgSize
+	dc.w	(E2M3SEGSE-E2M3SEGS)/rlgSize
+	dc.w	(E2M4SEGSE-E2M4SEGS)/rlgSize
+	dc.w	(E2M5SEGSE-E2M5SEGS)/rlgSize
+	dc.w	(E2M6SEGSE-E2M6SEGS)/rlgSize
+	dc.w	(E2M7SEGSE-E2M7SEGS)/rlgSize
+	dc.w	(E2M8SEGSE-E2M8SEGS)/rlgSize
+	dc.w	(E2M9SEGSE-E2M9SEGS)/rlgSize
+;
+	dc.w	(E3M1SEGSE-E3M1SEGS)/rlgSize
+	dc.w	(E3M2SEGSE-E3M2SEGS)/rlgSize
+	dc.w	(E3M3SEGSE-E3M3SEGS)/rlgSize
+	dc.w	(E3M4SEGSE-E3M4SEGS)/rlgSize
+	dc.w	(E3M5SEGSE-E3M5SEGS)/rlgSize
+	dc.w	(E3M6SEGSE-E3M6SEGS)/rlgSize
+	dc.w	(E3M7SEGSE-E3M7SEGS)/rlgSize
+	dc.w	(E3M8SEGSE-E3M8SEGS)/rlgSize
+	dc.w	(E3M9SEGSE-E3M9SEGS)/rlgSize
+
+;
+;	* * * * * * *       REJECT       * * * * * * *
+;
+EMREJECTTable
+	dc.w	<E1M1REJECT			; REJECT Array
+	dc.w	<E1M2REJECT
+	dc.w	<E1M3REJECT
+	dc.w	<E1M4REJECT
+	dc.w	<E1M5REJECT
+	dc.w	<E1M6REJECT
+	dc.w	<E1M7REJECT
+	dc.w	<E1M8REJECT
+	dc.w	<E1M9REJECT
+;
+	dc.w	<E2M1REJECT
+	dc.w	<E2M2REJECT
+	dc.w	<E2M3REJECT
+	dc.w	<E2M4REJECT
+	dc.w	<E2M5REJECT
+	dc.w	<E2M6REJECT
+	dc.w	<E2M7REJECT
+	dc.w	<E2M8REJECT
+	dc.w	<E2M9REJECT
+;
+	dc.w	<E3M1REJECT
+	dc.w	<E3M2REJECT
+	dc.w	<E3M3REJECT
+	dc.w	<E3M4REJECT
+	dc.w	<E3M5REJECT
+	dc.w	<E3M6REJECT
+	dc.w	<E3M7REJECT
+	dc.w	<E3M8REJECT
+	dc.w	<E3M9REJECT
+
+;
+;	* * * * * * *       FACES       * * * * * * *
+;
+EMFACESTable
+	dc.w	<E1M1FACES			; FACES Array
+	dc.w	<E1M2FACES
+	dc.w	<E1M3FACES
+	dc.w	<E1M4FACES
+	dc.w	<E1M5FACES
+	dc.w	<E1M6FACES
+	dc.w	<E1M7FACES
+	dc.w	<E1M8FACES
+	dc.w	<E1M9FACES
+;
+	dc.w	<E2M1FACES
+	dc.w	<E2M2FACES
+	dc.w	<E2M3FACES
+	dc.w	<E2M4FACES
+	dc.w	<E2M5FACES
+	dc.w	<E2M6FACES
+	dc.w	<E2M7FACES
+	dc.w	<E2M8FACES
+	dc.w	<E2M9FACES
+;
+	dc.w	<E3M1FACES
+	dc.w	<E3M2FACES
+	dc.w	<E3M3FACES
+	dc.w	<E3M4FACES
+	dc.w	<E3M5FACES
+	dc.w	<E3M6FACES
+	dc.w	<E3M7FACES
+	dc.w	<E3M8FACES
+	dc.w	<E3M9FACES
+
+;
+;	* * * * * * *       SECTORS       * * * * * * *
+;
+EMSECTORSTable
+	dc.4	E1M1SECTORS			; SECTORS Array
+	dc.4	E1M2SECTORS
+	dc.4	E1M3SECTORS
+	dc.4	E1M4SECTORS
+	dc.4	E1M5SECTORS
+	dc.4	E1M6SECTORS
+	dc.4	E1M7SECTORS
+	dc.4	E1M8SECTORS
+	dc.4	E1M9SECTORS
+;
+	dc.4	E2M1SECTORS
+	dc.4	E2M2SECTORS
+	dc.4	E2M3SECTORS
+	dc.4	E2M4SECTORS
+	dc.4	E2M5SECTORS
+	dc.4	E2M6SECTORS
+	dc.4	E2M7SECTORS
+	dc.4	E2M8SECTORS
+	dc.4	E2M9SECTORS
+;
+	dc.4	E3M1SECTORS
+	dc.4	E3M2SECTORS
+	dc.4	E3M3SECTORS
+	dc.4	E3M4SECTORS
+	dc.4	E3M5SECTORS
+	dc.4	E3M6SECTORS
+	dc.4	E3M7SECTORS
+	dc.4	E3M8SECTORS
+	dc.4	E3M9SECTORS
+;
+EMNUMSECTORSTable
+	dc.w	(E1M1SECTORSE-E1M1SECTORS)/rlsSize	; NUMBER OF SECTORS Array
+	dc.w	(E1M2SECTORSE-E1M2SECTORS)/rlsSize
+	dc.w	(E1M3SECTORSE-E1M3SECTORS)/rlsSize
+	dc.w	(E1M4SECTORSE-E1M4SECTORS)/rlsSize
+	dc.w	(E1M5SECTORSE-E1M5SECTORS)/rlsSize
+	dc.w	(E1M6SECTORSE-E1M6SECTORS)/rlsSize
+	dc.w	(E1M7SECTORSE-E1M7SECTORS)/rlsSize
+	dc.w	(E1M8SECTORSE-E1M8SECTORS)/rlsSize
+	dc.w	(E1M9SECTORSE-E1M9SECTORS)/rlsSize
+;
+	dc.w	(E2M1SECTORSE-E2M1SECTORS)/rlsSize
+	dc.w	(E2M2SECTORSE-E2M2SECTORS)/rlsSize
+	dc.w	(E2M3SECTORSE-E2M3SECTORS)/rlsSize
+	dc.w	(E2M4SECTORSE-E2M4SECTORS)/rlsSize
+	dc.w	(E2M5SECTORSE-E2M5SECTORS)/rlsSize
+	dc.w	(E2M6SECTORSE-E2M6SECTORS)/rlsSize
+	dc.w	(E2M7SECTORSE-E2M7SECTORS)/rlsSize
+	dc.w	(E2M8SECTORSE-E2M8SECTORS)/rlsSize
+	dc.w	(E2M9SECTORSE-E2M9SECTORS)/rlsSize
+;
+	dc.w	(E3M1SECTORSE-E3M1SECTORS)/rlsSize
+	dc.w	(E3M2SECTORSE-E3M2SECTORS)/rlsSize
+	dc.w	(E3M3SECTORSE-E3M3SECTORS)/rlsSize
+	dc.w	(E3M4SECTORSE-E3M4SECTORS)/rlsSize
+	dc.w	(E3M5SECTORSE-E3M5SECTORS)/rlsSize
+	dc.w	(E3M6SECTORSE-E3M6SECTORS)/rlsSize
+	dc.w	(E3M7SECTORSE-E3M7SECTORS)/rlsSize
+	dc.w	(E3M8SECTORSE-E3M8SECTORS)/rlsSize
+	dc.w	(E3M9SECTORSE-E3M9SECTORS)/rlsSize
+
+;
+;	* * * * * * *       OBJECTS       * * * * * * *
+;
+EMOBJECTSTable
+	dc.w	<E1M1OBJECTS			; OBJECTS Array
+	dc.w	<E1M2OBJECTS
+	dc.w	<E1M3OBJECTS
+	dc.w	<E1M4OBJECTS
+	dc.w	<E1M5OBJECTS
+	dc.w	<E1M6OBJECTS
+	dc.w	<E1M7OBJECTS
+	dc.w	<E1M8OBJECTS
+	dc.w	<E1M9OBJECTS
+;
+	dc.w	<E2M1OBJECTS
+	dc.w	<E2M2OBJECTS
+	dc.w	<E2M3OBJECTS
+	dc.w	<E2M4OBJECTS
+	dc.w	<E2M5OBJECTS
+	dc.w	<E2M6OBJECTS
+	dc.w	<E2M7OBJECTS
+	dc.w	<E2M8OBJECTS
+	dc.w	<E2M9OBJECTS
+;
+	dc.w	<E3M1OBJECTS
+	dc.w	<E3M2OBJECTS
+	dc.w	<E3M3OBJECTS
+	dc.w	<E3M4OBJECTS
+	dc.w	<E3M5OBJECTS
+	dc.w	<E3M6OBJECTS
+	dc.w	<E3M7OBJECTS
+	dc.w	<E3M8OBJECTS
+	dc.w	<E3M9OBJECTS
+
+;
+;	* * * * * * *       BLOCKMAPS       * * * * * * *
+;
+EMBLOCKMAPTable
+	dc.w	<E1M1BLOCKMAP			; BLOCKMAP Array
+	dc.w	<E1M2BLOCKMAP
+	dc.w	<E1M3BLOCKMAP
+	dc.w	<E1M4BLOCKMAP
+	dc.w	<E1M5BLOCKMAP
+	dc.w	<E1M6BLOCKMAP
+	dc.w	<E1M7BLOCKMAP
+	dc.w	<E1M8BLOCKMAP
+	dc.w	<E1M9BLOCKMAP
+;
+	dc.w	<E2M1BLOCKMAP
+	dc.w	<E2M2BLOCKMAP
+	dc.w	<E2M3BLOCKMAP
+	dc.w	<E2M4BLOCKMAP
+	dc.w	<E2M5BLOCKMAP
+	dc.w	<E2M6BLOCKMAP
+	dc.w	<E2M7BLOCKMAP
+	dc.w	<E2M8BLOCKMAP
+	dc.w	<E2M9BLOCKMAP
+;
+	dc.w	<E3M1BLOCKMAP
+	dc.w	<E3M2BLOCKMAP
+	dc.w	<E3M3BLOCKMAP
+	dc.w	<E3M4BLOCKMAP
+	dc.w	<E3M5BLOCKMAP
+	dc.w	<E3M6BLOCKMAP
+	dc.w	<E3M7BLOCKMAP
+	dc.w	<E3M8BLOCKMAP
+	dc.w	<E3M9BLOCKMAP
+
+;
+;	* * * * * * *       DOORS       * * * * * * *
+;
+EMDOORSTable
+	dc.w	<E1M1DOORS			; DOORS Array
+	dc.w	<E1M2DOORS
+	dc.w	<E1M3DOORS
+	dc.w	<E1M4DOORS
+	dc.w	<E1M5DOORS
+	dc.w	<E1M6DOORS
+	dc.w	<E1M7DOORS
+	dc.w	<E1M8DOORS
+	dc.w	<E1M9DOORS
+;
+	dc.w	<E2M1DOORS
+	dc.w	<E2M2DOORS
+	dc.w	<E2M3DOORS
+	dc.w	<E2M4DOORS
+	dc.w	<E2M5DOORS
+	dc.w	<E2M6DOORS
+	dc.w	<E2M7DOORS
+	dc.w	<E2M8DOORS
+	dc.w	<E2M9DOORS
+;
+	dc.w	<E3M1DOORS
+	dc.w	<E3M2DOORS
+	dc.w	<E3M3DOORS
+	dc.w	<E3M4DOORS
+	dc.w	<E3M5DOORS
+	dc.w	<E3M6DOORS
+	dc.w	<E3M7DOORS
+	dc.w	<E3M8DOORS
+	dc.w	<E3M9DOORS
+
+;
+;	* * * * * * *       FLOORS       * * * * * * *
+;
+EMFLOORSTable
+	dc.w	<E1M1FLOORS			; FLOORS Array
+	dc.w	<E1M2FLOORS
+	dc.w	<E1M3FLOORS
+	dc.w	<E1M4FLOORS
+	dc.w	<E1M5FLOORS
+	dc.w	<E1M6FLOORS
+	dc.w	<E1M7FLOORS
+	dc.w	<E1M8FLOORS
+	dc.w	<E1M9FLOORS
+;
+	dc.w	<E2M1FLOORS
+	dc.w	<E2M2FLOORS
+	dc.w	<E2M3FLOORS
+	dc.w	<E2M4FLOORS
+	dc.w	<E2M5FLOORS
+	dc.w	<E2M6FLOORS
+	dc.w	<E2M7FLOORS
+	dc.w	<E2M8FLOORS
+	dc.w	<E2M9FLOORS
+;
+	dc.w	<E3M1FLOORS
+	dc.w	<E3M2FLOORS
+	dc.w	<E3M3FLOORS
+	dc.w	<E3M4FLOORS
+	dc.w	<E3M5FLOORS
+	dc.w	<E3M6FLOORS
+	dc.w	<E3M7FLOORS
+	dc.w	<E3M8FLOORS
+	dc.w	<E3M9FLOORS
+
+;
+;	* * * * * * *       CEILINGS       * * * * * * *
+;
+EMCEILINGSTable
+	dc.w	<E1M1CEILINGS			; CEILINGS Array
+	dc.w	<E1M2CEILINGS
+	dc.w	<E1M3CEILINGS
+	dc.w	<E1M4CEILINGS
+	dc.w	<E1M5CEILINGS
+	dc.w	<E1M6CEILINGS
+	dc.w	<E1M7CEILINGS
+	dc.w	<E1M8CEILINGS
+	dc.w	<E1M9CEILINGS
+;
+	dc.w	<E2M1CEILINGS
+	dc.w	<E2M2CEILINGS
+	dc.w	<E2M3CEILINGS
+	dc.w	<E2M4CEILINGS
+	dc.w	<E2M5CEILINGS
+	dc.w	<E2M6CEILINGS
+	dc.w	<E2M7CEILINGS
+	dc.w	<E2M8CEILINGS
+	dc.w	<E2M9CEILINGS
+;
+	dc.w	<E3M1CEILINGS
+	dc.w	<E3M2CEILINGS
+	dc.w	<E3M3CEILINGS
+	dc.w	<E3M4CEILINGS
+	dc.w	<E3M5CEILINGS
+	dc.w	<E3M6CEILINGS
+	dc.w	<E3M7CEILINGS
+	dc.w	<E3M8CEILINGS
+	dc.w	<E3M9CEILINGS
+
+;
+;	* * * * * * *       STAIRS       * * * * * * *
+;
+EMSTAIRSTable
+	dc.w	<E1M1STAIRS			; STAIRS Array
+	dc.w	<E1M2STAIRS
+	dc.w	<E1M3STAIRS
+	dc.w	<E1M4STAIRS
+	dc.w	<E1M5STAIRS
+	dc.w	<E1M6STAIRS
+	dc.w	<E1M7STAIRS
+	dc.w	<E1M8STAIRS
+	dc.w	<E1M9STAIRS
+;
+	dc.w	<E2M1STAIRS
+	dc.w	<E2M2STAIRS
+	dc.w	<E2M3STAIRS
+	dc.w	<E2M4STAIRS
+	dc.w	<E2M5STAIRS
+	dc.w	<E2M6STAIRS
+	dc.w	<E2M7STAIRS
+	dc.w	<E2M8STAIRS
+	dc.w	<E2M9STAIRS
+;
+	dc.w	<E3M1STAIRS
+	dc.w	<E3M2STAIRS
+	dc.w	<E3M3STAIRS
+	dc.w	<E3M4STAIRS
+	dc.w	<E3M5STAIRS
+	dc.w	<E3M6STAIRS
+	dc.w	<E3M7STAIRS
+	dc.w	<E3M8STAIRS
+	dc.w	<E3M9STAIRS
+
+;
+;	* * * * * * *       LIFTS       * * * * * * *
+;
+EMLIFTSTable
+	dc.w	<E1M1LIFTS			; LIFTS Array
+	dc.w	<E1M2LIFTS
+	dc.w	<E1M3LIFTS
+	dc.w	<E1M4LIFTS
+	dc.w	<E1M5LIFTS
+	dc.w	<E1M6LIFTS
+	dc.w	<E1M7LIFTS
+	dc.w	<E1M8LIFTS
+	dc.w	<E1M9LIFTS
+;
+	dc.w	<E2M1LIFTS
+	dc.w	<E2M2LIFTS
+	dc.w	<E2M3LIFTS
+	dc.w	<E2M4LIFTS
+	dc.w	<E2M5LIFTS
+	dc.w	<E2M6LIFTS
+	dc.w	<E2M7LIFTS
+	dc.w	<E2M8LIFTS
+	dc.w	<E2M9LIFTS
+;
+	dc.w	<E3M1LIFTS
+	dc.w	<E3M2LIFTS
+	dc.w	<E3M3LIFTS
+	dc.w	<E3M4LIFTS
+	dc.w	<E3M5LIFTS
+	dc.w	<E3M6LIFTS
+	dc.w	<E3M7LIFTS
+	dc.w	<E3M8LIFTS
+	dc.w	<E3M9LIFTS
+
+;
+;	* * * * * * *       SONGS       * * * * * * *
+;
+EMSONGTable
+	dc.w	((e1m1_sng_MODULE<<8)|e1m1_sng)	; SONG Array
+	dc.w	((e1m2_sng_MODULE<<8)|e1m2_sng)
+	dc.w	((e1m3_sng_MODULE<<8)|e1m3_sng)
+	dc.w	((e1m4_sng_MODULE<<8)|e1m4_sng)
+	dc.w	((e1m5_sng_MODULE<<8)|e1m5_sng)
+	dc.w	((e1m6_sng_MODULE<<8)|e1m6_sng)	; Disabled
+	dc.w	((e1m7_sng_MODULE<<8)|e1m7_sng)
+	dc.w	((e1m8_sng_MODULE<<8)|e1m8_sng)
+	dc.w	((e1m9_sng_MODULE<<8)|e1m9_sng)
+;
+	dc.w	((e1m9_sng_MODULE<<8)|e1m9_sng)
+	dc.w	((e2m2_sng_MODULE<<8)|e2m2_sng)	; Disabled
+	dc.w	((e2m2_sng_MODULE<<8)|e2m2_sng)	; inter_sng
+	dc.w	((e2m4_sng_MODULE<<8)|e2m4_sng)
+	dc.w	((e1m7_sng_MODULE<<8)|e1m7_sng)	; Disabled
+	dc.w	((e2m6_sng_MODULE<<8)|e2m6_sng)
+	dc.w	((e2m7_sng_MODULE<<8)|e2m7_sng)	; Disabled
+	dc.w	((e2m8_sng_MODULE<<8)|e2m8_sng)
+	dc.w	((e2m9_sng_MODULE<<8)|e2m9_sng)
+;
+	dc.w	((e2m9_sng_MODULE<<8)|e2m9_sng)
+	dc.w	((e3m2_sng_MODULE<<8)|e3m2_sng)
+	dc.w	((e1m6_sng_MODULE<<8)|e1m6_sng)
+	dc.w	((e1m8_sng_MODULE<<8)|e1m8_sng)
+	dc.w	((e1m7_sng_MODULE<<8)|e1m7_sng)	; Disabled
+	dc.w	((e1m6_sng_MODULE<<8)|e1m6_sng)
+	dc.w	((e2m7_sng_MODULE<<8)|e2m7_sng)
+	dc.w	((e3m8_sng_MODULE<<8)|e3m8_sng)
+	dc.w	((e1m9_sng_MODULE<<8)|e1m9_sng)
+
+;
+;	* * * * * * *       LEVEL NAMES       * * * * * * *
+;
+EMNames
+	dc.b	"HANGAR",0			; E1M1
+	dc.b	"NUCLEAR PLANT",0		; E1M2
+	dc.b	"TOXIN REFINERY",0		; E1M3
+	dc.b	"COMMAND CONTROL",0		; E1M4
+	dc.b	"PHOBOS LAB",0			; E1M5
+	dc.b	"R",0 ; "CENTRAL PROCESSING",0	; E1M6
+	dc.b	"COMPUTER STATION",0		; E1M7
+	dc.b	"PHOBOS ANOMALY",0		; E1M8
+	dc.b	"MILITARY BASE",0		; E1M9
+;
+	dc.b	"DEIMOS ANOMALY",0		; E2M1
+	dc.b	"A",0 ; "CONTAINMENT AREA",0	; E2M2
+	dc.b	"REFINERY",0			; E2M3
+	dc.b	"DEIMOS LAB",0			; E2M4
+	dc.b	"N",0 ; "COMMAND CENTER",0	; E2M5
+	dc.b	"HALLS OF THE DAMNED",0		; E2M6
+	dc.b	"D",0 ; "SPAWNING VATS",0	; E2M7
+	dc.b	"TOWER OF BABEL",0		; E2M8
+	dc.b	"FORTRESS OF MYSTERY",0		; E2M9
+;
+	dc.b	"HELL KEEP",0			; E3M1
+	dc.b	"SLOUGH OF DESPAIR",0		; E3M2
+	dc.b	"PANDEMONIUM",0			; E3M3
+	dc.b	"HOUSE OF PAIN",0		; E3M4
+	dc.b	"Y",0 ; "UNHOLY CATHEDRAL",0	; E3M5
+	dc.b	"MT. EREBUS",0			; E3M6
+	dc.b	"LIMBO",0			; E3M7
+	dc.b	"DIS",0				; E3M8
+	dc.b	"WARRENS",0			; E3M9
+
+	ife	useID2
+AMLevelTextPrefix
+	dc.b	"ERML: ",0
+	endif

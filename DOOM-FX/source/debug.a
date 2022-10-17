@@ -1,0 +1,1233 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*              RL ENGINE DEBUGGING AND DIAGNOSTICS MODULE            *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	xfer.i
+	include	rlsound.i
+
+	ifn	DEBUGSCR
+	public	_RLInitDebug
+
+
+;
+;	* * * * * * *       DEBUGGING SCREEN INFORMATION FORMAT       * * * * * * *
+;
+;	AAAA XXXX YYYY PPPPPP HC	A, X, Y, PC, HaltCode
+;	0000 1111 2222 3333 4444	R0, R1, R2, R3, R4
+;	5555 6666 7777 8888 9999	R5, R6, R7, R8, R9
+;	AAAA BBBB CCCC DDDD EEEE	R10,R11,R12,R13,R14
+;
+;	P XXXXXX YYYYYY AAAA  DEBUG	PlayerX, PlayerY, PlayerA
+;	  SS     ZZZZ         EEMML	PlayerS, PlayerZ, Episode/Mission/SkillLevel
+;
+;	B=BBBB Vvv Ooo Sss Ttt Mmm	AreaSeg,#VSegs,#VObjs,#VSecs,#Tasks,#MObjs
+;	  ETxx EMxx EAxx EBxx PMxx	EnTargets,EnMoves,EnAttacks,EnBirths,ProjMoves
+;	TS:FFI    FFI    FFI    FFI	TurboSounds: Flags/Index
+;	PPEEBB PPEEBB PPEEBB PPEEBB	Priority,Effect,BWave
+;
+;	A CLZP PWLP WLLP OBJP FLRP	ClipZone,PreWallPlot,WallPlot,ObjPlot,FloorPlot
+;	  F:FF				#Floors
+;	B CLZP PWLP WLLP OBJP FLRP	ClipZone,PreWallPlot,WallPlot,ObjPlot,FloorPlot
+;	  F:FF				#Floors
+;	C CLZP PWLP WLLP OBJP FLRP	ClipZone,PreWallPlot,WallPlot,ObjPlot,FloorPlot
+;	  F:FF				#Floors
+;
+
+
+	SECTION	DEBUG,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       INITIALIZE DEBUGGING       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RLInitDebug
+	mode	'A!'
+
+	ife	DEBUG
+	lda	#<HALTERROR			; HALT/HALTGSU ERROR VECTOR
+	sta	GSUBRKRAM+1
+	endif
+
+	lda	#0				; DEBUGGING SCREEN OFF
+	sta	DebugScreen
+	sta	DebugScreenOld
+	mode	'aX!'
+
+	ife	DEBUG
+	lda	#^HALTERROR			; HALT/HALTGSU ERROR VECTOR
+	sta	GSUBRKRAM+3
+	lda	#$5c				; JML
+	sta	GSUBRKRAM+0
+	endif
+
+	ldx	#<_RLDebugXFer			; Transfer DEBUG DataBlocks
+	lda	#^_RLDebugXFer
+	jml	XFer
+
+;
+;	* * * * * * *       DEBUG TRANSFER LIST       * * * * * * *
+;
+_RLDebugXFer
+	dc.w	xftVRAM16			; Transfer DebugFont Def
+	dc.4	RLDebugFontDef
+	dc.4	vmCHR2C
+	dcb.w	3,0
+;
+	dc.w	xftEnd
+
+
+	SECTION	ENGINE_RAMCODE
+;
+;	* * * * * * *       UPDATE DEBUGGING SCREEN       * * * * * * *
+;
+	dbr	?
+	dpr	0
+_RUDG900
+	mode	'A!'
+	rts
+_RLUpdateDebug
+	mode	'AX!'
+	lda	RLFlags
+	and	#(rlfDebugSCR+rlfDebug)		; Debugging Updates Completed?
+	cmp	#(rlfDebugSCR+rlfDebug)
+	bne	_RUDG900			; No
+;
+	ldx	#(rlfDebugSCR+rlfDebug)		; Debugging Screen Built
+	mode	'a!'
+	lda	!(DebugScreen+RLSNESGSUXVarsO)	; DebugScreen Status Change?
+	cmp	DebugScreenOld
+	bne	_RUDG120			; Yes!
+	dec	a				; Screen ON?
+	bne	_RUDG900			; NO!
+	inc	a
+	ldx	#(rlfDebug)			; Debugging Screen Update
+_RUDG120
+	sta	DebugScreenOld
+	phx
+;
+	lda	!(DebugPlayerX+3+RLSNESGSUXVarsO) ; PLAYER X
+	ldx	#<(_RLDebugData1PX+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugPlayerX+2+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugPlayerX+1+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugPlayerY+3+RLSNESGSUXVarsO) ; PLAYER Y
+	ldx	#<(_RLDebugData1PY+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugPlayerY+2+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugPlayerY+1+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugPlayerA+1+RLSNESGSUXVarsO) ; PLAYER A
+	ldx	#<(_RLDebugData1PA+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugPlayerA+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugPlayerS+RLSNESGSUXVarsO)	  ; PLAYER S
+	ldx	#<(_RLDebugData2PS+0)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugPlayerZ+1+RLSNESGSUXVarsO) ; PLAYER Z
+	ldx	#<(_RLDebugData2PZ+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugPlayerZ+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugClipZonePtrA+1+RLSNESGSUXVarsO)	; CLIPZONE PTR
+	ldx	#<(_RLDebugData3C+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugClipZonePtrA+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugPreWallPtrA+1+RLSNESGSUXVarsO)	; PREWALL PLOT PTR
+	ldx	#<(_RLDebugData3P+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugPreWallPtrA+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugWallPlotPtrA+1+RLSNESGSUXVarsO)	; WALL PLOT PTR
+	ldx	#<(_RLDebugData3W+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugWallPlotPtrA+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	ldx	!(DebugFloorsSizeA+RLSNESGSUXVarsO)	; FLOORS SIZE
+	stx	WRDIVL
+	lda	#rlfdSize
+	sta	WRDIVB
+;
+	lda	!(DebugObjPlotPtrA+1+RLSNESGSUXVarsO)	; OBJ PLOT PTR
+	ldx	#<(_RLDebugData3O+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugObjPlotPtrA+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	_RDDIVL					; FLOORS SIZE
+	ldx	#<(_RLDebugData3FD+0)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugFloorPlotPtrA+1+RLSNESGSUXVarsO)	; FLOOR PLOT PTR
+	ldx	#<(_RLDebugData3F+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugFloorPlotPtrA+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugClipZonePtrB+1+RLSNESGSUXVarsO)	; CLIPZONE PTR
+	ldx	#<(_RLDebugData4C+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugClipZonePtrB+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugPreWallPtrB+1+RLSNESGSUXVarsO)	; PREWALL PLOT PTR
+	ldx	#<(_RLDebugData4P+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugPreWallPtrB+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugWallPlotPtrB+1+RLSNESGSUXVarsO)	; WALL PLOT PTR
+	ldx	#<(_RLDebugData4W+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugWallPlotPtrB+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	ldx	!(DebugFloorsSizeB+RLSNESGSUXVarsO)	; FLOORS SIZE
+	stx	WRDIVL
+	lda	#rlfdSize
+	sta	WRDIVB
+;
+	lda	!(DebugObjPlotPtrB+1+RLSNESGSUXVarsO)	; OBJ PLOT PTR
+	ldx	#<(_RLDebugData4O+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugObjPlotPtrB+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	_RDDIVL					; FLOORS SIZE
+	ldx	#<(_RLDebugData4FD+0)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugFloorPlotPtrB+1+RLSNESGSUXVarsO)	; FLOOR PLOT PTR
+	ldx	#<(_RLDebugData4F+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugFloorPlotPtrB+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugClipZonePtrC+1+RLSNESGSUXVarsO)	; CLIPZONE PTR
+	ldx	#<(_RLDebugData5C+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugClipZonePtrC+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugPreWallPtrC+1+RLSNESGSUXVarsO)	; PREWALL PLOT PTR
+	ldx	#<(_RLDebugData5P+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugPreWallPtrC+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	ldx	!(DebugVObjSize+RLSNESGSUXVarsO)	; VOBJ SIZE
+	stx	WRDIVL
+	lda	#rloSize
+	sta	WRDIVB
+;
+	lda	!(DebugWallPlotPtrC+1+RLSNESGSUXVarsO)	; WALL PLOT PTR
+	ldx	#<(_RLDebugData5W+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugWallPlotPtrC+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	_RDDIVL					; VOBJ SIZE
+	ldx	#<(_RLDebugData6O+0)
+	jsr	_RLDebugScreenHex
+;
+	ldx	!(DebugFloorsSizeC+RLSNESGSUXVarsO)	; FLOORS SIZE
+	stx	WRDIVL
+	lda	#rlfdSize
+	sta	WRDIVB
+;
+	lda	!(DebugObjPlotPtrC+1+RLSNESGSUXVarsO)	; OBJ PLOT PTR
+	ldx	#<(_RLDebugData5O+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugObjPlotPtrC+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	_RDDIVL					; FLOORS SIZE
+	ldx	#<(_RLDebugData5FD+0)
+	jsr	_RLDebugScreenHex
+;
+	ldx	!(DebugVSegSize+RLSNESGSUXVarsO)	; VSEG SIZE
+	stx	WRDIVL
+	lda	#rlvSize
+	sta	WRDIVB
+;
+	lda	!(DebugFloorPlotPtrC+1+RLSNESGSUXVarsO)	; FLOOR PLOT PTR
+	ldx	#<(_RLDebugData5F+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugFloorPlotPtrC+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	_RDDIVL					; VSEG SIZE
+	ldx	#<(_RLDebugData6V+0)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugVSecNum+RLSNESGSUXVarsO)		; VSECS
+	ldx	#<(_RLDebugData6S+0)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugRLNumTasks+RLSNESGSUXVarsO)	; RLTASKS
+	ldx	#<(_RLDebugData6T+0)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugRLNumMObjs+RLSNESGSUXVarsO)	; RLMOBJS
+	ldx	#<(_RLDebugData6M+0)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugBSPPtr+1+RLSNESGSUXVarsO)	; BSP SIZE
+	ldx	#<(_RLDebugData6B+0)
+	jsr	_RLDebugScreenHex
+	lda	!(DebugBSPPtr+0+RLSNESGSUXVarsO)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugEnemyTargets+RLSNESGSUXVarsO)	; ENEMY TARGETS
+	ldx	#<(_RLDebugData7ET+0)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugEnemyMoves+RLSNESGSUXVarsO)	; ENEMY MOVES
+	ldx	#<(_RLDebugData7EM+0)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugEnemyAttacks+RLSNESGSUXVarsO)	; ENEMY ATTACKS
+	ldx	#<(_RLDebugData7EA+0)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugEnemyBirths+RLSNESGSUXVarsO)	; ENEMY BIRTHS
+	ldx	#<(_RLDebugData7EB+0)
+	jsr	_RLDebugScreenHex
+;
+	lda	!(DebugProjectileMoves+RLSNESGSUXVarsO)	; PROJECTILE MOVES
+	ldx	#<(_RLDebugData7PM+0)
+	jsr	_RLDebugScreenHex
+;
+	mode	'A!'					; TURBOSOUND0
+	ldy	#(0*rlsetSize)
+	ldx	#<(_RLDebugData8T0+0)
+	lda	#<(_RLDebugData9T0+0)
+	jsr	_RLDebugTurboSound
+;
+	mode	'A!'					; TURBOSOUND1
+	ldy	#(1*rlsetSize)
+	ldx	#<(_RLDebugData8T1+0)
+	lda	#<(_RLDebugData9T1+0)
+	jsr	_RLDebugTurboSound
+;
+	mode	'A!'					; TURBOSOUND2
+	ldy	#(2*rlsetSize)
+	ldx	#<(_RLDebugData8T2+0)
+	lda	#<(_RLDebugData9T2+0)
+	jsr	_RLDebugTurboSound
+;
+	mode	'A!'					; TURBOSOUND3
+	ldy	#(3*rlsetSize)
+	ldx	#<(_RLDebugData8T3+0)
+	lda	#<(_RLDebugData9T3+0)
+	jsr	_RLDebugTurboSound
+;
+	mode	'A!'
+	pla
+	trb	RLFlags
+	rts
+
+
+;
+;	* * * * * * *       TURBOSOUND INFORMATION 1       * * * * * * *
+;
+;	.Y = TurboSound Index
+;	.X = RAM Offset to Store Characters1
+;	.A = RAM Offset to Store Characters2
+;
+	mode	'AX'
+	dbr	0
+	dpr	0
+_RLDebugTurboSound
+	pha					; Save Characters2 RAM Offset
+	mode	'a!'
+;
+	lda	TSounds+rlsetFlags,y		; FLAGS
+	jsr	_RLDebugScreenHex
+;
+	lda	#'D'				; PRIORITYINDEX
+rlset	var	0
+	repeat	(MaxRLTSounds-1)
+	cpy	TSoundsI+(rlset*2)		; Found Priority?
+	beq	_RLDebugTurboSound2		; Yes!
+	dec	a				; No, Keep Looking
+rlset	var	rlset+1
+	endrep
+_RLDebugTurboSound2
+	clc					; PRIORITYINDEX (A-D)
+	adc	#<(((vmCHR2C-vmCHR2)/(32/2))-$20)
+	sta	>((^_RLDebugData1)<<16)+0,x
+	lda	#>((((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+	sta	>((^_RLDebugData1)<<16)+1,x
+;
+	plx					; Get Characters2 RAM Offset
+	lda	TSounds+rlsetPriority,y		; PRIORITY
+	jsr	_RLDebugScreenHex
+	lda	TSounds+rlsetEffect,y		; EFFECT
+	jsr	_RLDebugScreenHex
+	lda	TSounds+rlsetBWave,y		; BWAVE
+;
+;	* * * * * * *       HEX BYTE TO SCREEN CHARACTERS       * * * * * * *
+;
+;	!!!   DANGER!   FALLS THROUGH FROM ABOVE!!!
+;
+;	.A = Byte
+;	.X = RAM Offset to Store Characters
+;
+	mode	'aX'
+	dbr	0
+	dpr	0
+_RLDebugScreenHex
+	pha
+	lsr	a
+	lsr	a
+	lsr	a
+	lsr	a
+	jsr	_RLDebugScreenNibble
+	pla
+	and	#$0f
+_RLDebugScreenNibble
+	clc
+	adc	#'0'
+	cmp	#'9'+1
+	bcc	_DSNB200
+;	sec
+	adc	#'A'-('9'+1)-1
+_DSNB200
+	clc
+	adc	#<(((vmCHR2C-vmCHR2)/(32/2))-$20)
+	sta	>((^_RLDebugData1)<<16)+0,x
+	lda	#>((((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+	sta	>((^_RLDebugData1)<<16)+1,x
+	inx
+	inx
+	rts
+
+
+;
+;	* * * * * * *       TRANSFER DEBUGGING SCREEN TO VRAM       * * * * * * *
+;
+	mode	'AX'
+	dbr	0
+	dpr	0
+_RLDebugScreen
+	lda	#rlfDebugSCR			; Update Debugging Screen?
+	tsb	RLFlags
+	bne	_RDS200				; NO
+	mode	'a!'
+	lda	DebugScreenOld			; ON/OFF?
+	bne	_RDS100
+	jmp	_RDS800				; OFF
+;
+;	>>>   TURN ON DEBUGGING SCREEN   <<<
+;
+_RDS100
+	ldx	#<DebugInfoDText		; Show DebugInfo Text
+	lda	#^DebugInfoDText
+	jsl	_RLDebugText
+;
+;	>>>   UPDATE DEBUGGING SCREEN   <<<
+;
+	mode	'AX'
+_RDS200
+	ldx	#<_RLDebugData1			; PLAYER INFO (X,Y,A)
+	stx	DMA0A1L
+	ldx	#^_RLDebugData1
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(4*32*2/2)+00)
+	stx	VMADDL
+	mode	'a!'
+	lda	#_RLDebugData1L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLDebugData2			; PLAYER INFO2 (SECTOR)
+	stx	DMA0A1L
+	ldx	#^_RLDebugData2
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(5*32*2/2)+02)
+	stx	VMADDL
+	lda	#_RLDebugData2L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLDebugData3			; RLENGINE A
+	stx	DMA0A1L
+	ldx	#^_RLDebugData3
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(12*32*2/2)+00)
+	stx	VMADDL
+	lda	#_RLDebugData3L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLDebugData3B		; RLENGINE AB
+	stx	DMA0A1L
+	ldx	#^_RLDebugData3B
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(13*32*2/2)+02)
+	stx	VMADDL
+	lda	#_RLDebugData3BL
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLDebugData4			; RLENGINE B
+	stx	DMA0A1L
+	ldx	#^_RLDebugData4
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(14*32*2/2)+00)
+	stx	VMADDL
+	lda	#_RLDebugData4L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLDebugData4B		; RLENGINE BB
+	stx	DMA0A1L
+	ldx	#^_RLDebugData4B
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(15*32*2/2)+02)
+	stx	VMADDL
+	lda	#_RLDebugData4BL
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLDebugData5			; RLENGINE C
+	stx	DMA0A1L
+	ldx	#^_RLDebugData5
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(16*32*2/2)+00)
+	stx	VMADDL
+	lda	#_RLDebugData5L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLDebugData5B		; RLENGINE CB
+	stx	DMA0A1L
+	ldx	#^_RLDebugData5B
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(17*32*2/2)+02)
+	stx	VMADDL
+	lda	#_RLDebugData5BL
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLDebugData6			; RLENGINE S
+	stx	DMA0A1L
+	ldx	#^_RLDebugData6
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(7*32*2/2)+00)
+	stx	VMADDL
+	lda	#_RLDebugData6L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLDebugData7			; RLENGINE Q
+	stx	DMA0A1L
+	ldx	#^_RLDebugData7
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(8*32*2/2)+02)
+	stx	VMADDL
+	lda	#_RLDebugData7L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLDebugData8			; RLENGINE TA
+	stx	DMA0A1L
+	ldx	#^_RLDebugData8
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(9*32*2/2))
+	stx	VMADDL
+	lda	#_RLDebugData8L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLDebugData9			; RLENGINE TB
+	stx	DMA0A1L
+	ldx	#^_RLDebugData9
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(10*32*2/2))
+	stx	VMADDL
+	lda	#_RLDebugData9L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	lda	#$70				; A Bank
+	sta	DMA0A1B
+	mode	'A!'
+	rts
+;
+;	>>>   REMOVE DEBUGGING SCREEN   <<<
+;
+	mode	'aX'
+_RDS800
+	ldx	#((RLCharY-4-4)*32*2)
+	stx	DMA0NUML
+	ldx	#<_RLDebugBlankChar
+	stx	DMA0A1L
+	ldx	#(vmMAP2+(4*32*2/2))
+	stx	VMADDL
+	lda	#^_RLDebugBlankChar
+	sta	DMA0A1B
+	lda	#%00001001			; A->B, Abs., Fixed,2-Add-WriteLH
+	sta	DMA0INC
+	lda	#$01				; Enable/Start Channel#0
+	sta	MDMAEN
+	lda	#%00000001			; A->B, Abs., Auto Inc,2-Add-WriteLH
+	sta	DMA0INC
+	lda	#$70				; A Bank
+	sta	DMA0A1B
+	mode	'AX!'
+	stz	DMA0NUML			; PreClear SIZE HighByte
+	rts
+
+_RLDebugBlankChar
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+
+;
+;	>>>   PLAYER INFORMATION   <<<
+;
+_RLDebugData1
+	dc.w	('P'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; P XXXXXX XXXXXX XXXX
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData1PX
+	dcb.w	6,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData1PY
+	dcb.w	6,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData1PA
+	dcb.w	4,0
+_RLDebugData1L	equ	*-_RLDebugData1
+
+;
+;	>>>   PLAYER INFORMATION 2   <<<
+;
+_RLDebugData2
+_RLDebugData2PS
+	dcb.w	2,0						;   XX
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData2PZ
+	dcb.w	4,0						;   XXXX
+_RLDebugData2L	equ	*-_RLDebugData2
+
+;
+;	>>>   RLENGINE INFORMATION A   <<<
+;
+_RLDebugData3
+	dc.w	('A'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; A XXXX XXXX XXXX XXXX XXXX
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData3C
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData3P
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData3W
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData3O
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData3F
+	dcb.w	4,0
+_RLDebugData3L	equ	*-_RLDebugData3
+
+_RLDebugData3B
+	dc.w	('F'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; F:XX
+	dc.w	(':'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+_RLDebugData3FD
+	dcb.w	2,0
+_RLDebugData3BL	equ	*-_RLDebugData3B
+
+
+;
+;	>>>   RLENGINE INFORMATION B   <<<
+;
+_RLDebugData4
+	dc.w	('B'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; B XXXX XXXX XXXX XXXX XXXX
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData4C
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData4P
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData4W
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData4O
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData4F
+	dcb.w	4,0
+_RLDebugData4L	equ	*-_RLDebugData4
+
+_RLDebugData4B
+	dc.w	('F'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; F:XX
+	dc.w	(':'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+_RLDebugData4FD
+	dcb.w	2,0
+_RLDebugData4BL	equ	*-_RLDebugData4B
+
+
+;
+;	>>>   RLENGINE INFORMATION C   <<<
+;
+_RLDebugData5
+	dc.w	('C'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; C XXXX XXXX XXXX XXXX XXXX
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData5C
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData5P
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData5W
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData5O
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData5F
+	dcb.w	4,0
+_RLDebugData5L	equ	*-_RLDebugData5
+
+_RLDebugData5B
+	dc.w	('F'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; F:XX
+	dc.w	(':'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+_RLDebugData5FD
+	dcb.w	2,0
+_RLDebugData5BL	equ	*-_RLDebugData5B
+
+
+;
+;	>>>   RLENGINE INFORMATION S   <<<
+;
+_RLDebugData6
+	dc.w	('B'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; B=XXXX
+	dc.w	('='+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+_RLDebugData6B
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	('V'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; VXX
+_RLDebugData6V
+	dcb.w	2,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	('O'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; OXX
+_RLDebugData6O
+	dcb.w	2,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	('S'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; SXX
+_RLDebugData6S
+	dcb.w	2,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	('T'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; TXX
+_RLDebugData6T
+	dcb.w	2,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	('M'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; MXX
+_RLDebugData6M
+	dcb.w	2,0
+_RLDebugData6L	equ	*-_RLDebugData6
+
+
+;
+;	>>>   RLENGINE INFORMATION Q   <<<
+;
+_RLDebugData7
+	dc.w	('E'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; ETxx
+	dc.w	('T'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+_RLDebugData7ET
+	dcb.w	2,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	('E'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; EMxx
+	dc.w	('M'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+_RLDebugData7EM
+	dcb.w	2,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	('E'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; EAxx
+	dc.w	('A'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+_RLDebugData7EA
+	dcb.w	2,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	('E'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; EBxx
+	dc.w	('B'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+_RLDebugData7EB
+	dcb.w	2,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	('P'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; PMxx
+	dc.w	('M'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+_RLDebugData7PM
+	dcb.w	2,0
+_RLDebugData7L	equ	*-_RLDebugData7
+
+
+;
+;	>>>   RLENGINE INFORMATION TA   <<<
+;
+_RLDebugData8
+	dc.w	('T'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)	; TS:
+	dc.w	('S'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+	dc.w	(':'+(((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+_RLDebugData8T0
+	dcb.w	2,0						; FF
+	dcb.w	1,0						; I
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData8T1
+	dcb.w	2,0						; FF
+	dcb.w	1,0						; I
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData8T2
+	dcb.w	2,0						; FF
+	dcb.w	1,0						; I
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData8T3
+	dcb.w	2,0						; FF
+	dcb.w	1,0						; I
+_RLDebugData8L	equ	*-_RLDebugData8
+
+
+;
+;	>>>   RLENGINE INFORMATION TB   <<<
+;
+_RLDebugData9
+_RLDebugData9T0
+	dcb.w	2,0						; PP
+	dcb.w	2,0						; EE
+	dcb.w	2,0						; BB
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData9T1
+	dcb.w	2,0						; PP
+	dcb.w	2,0						; EE
+	dcb.w	2,0						; BB
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData9T2
+	dcb.w	2,0						; PP
+	dcb.w	2,0						; EE
+	dcb.w	2,0						; BB
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLDebugData9T3
+	dcb.w	2,0						; PP
+	dcb.w	2,0						; EE
+	dcb.w	2,0						; BB
+_RLDebugData9L	equ	*-_RLDebugData9
+
+
+
+;
+;	* * * * * * *       DEBUG TEXT       * * * * * * *
+;
+;	.X/.A	= pointer to DebugTextStructure
+;
+;	DC.W	VRAMPointer (or -1 for End)
+;	DC.L	ADDRESS of Text
+;	DC.B	Size of Text
+;
+	dbr	0
+	dpr	0
+	mode	'aX'
+_RLDebugText
+	jsr	RLDebugText
+	rtl
+RLDebugText
+	stx	Temp				; Save pointer to DebugTextStruct
+	sta	Temp+2
+	lda	#$80
+	sta	VMAINC
+RDT200
+	mode	'A!'
+	ldy	#0
+	lda	[Temp],y			; VRAM PTR
+	bmi	RDT900				; No, done!
+	sta	VMADDL
+	iny
+	iny
+	lda	[Temp],y
+	sta	Temp2
+	iny
+	iny
+	lda	[Temp],y
+	sta	Temp2+2
+	xba
+	and	#$00ff				; .X = Length
+	tax
+	lda	Temp				; Bump DebugTextPtr
+	clc
+	adc	#6
+	sta	Temp
+	mode	'a!'
+	ldy	#0
+RDT300
+	lda	[Temp2],y			; Get next character
+	clc
+	adc	#<(((vmCHR2C-vmCHR2)/(32/2))-$20)
+	sta	VMDATAL				; Send to VRAM
+	lda	#>((((vmCHR2C-vmCHR2)/(32/2))-$20)+$2c00)
+	sta	VMDATAH
+	iny
+	dex
+	bne	RDT300
+	bra	RDT200				; Handle next text piece
+RDT900
+	rts
+
+;
+;	* * * * * * *       DEBUG INFORMATION TEXTS       * * * * * * *
+;
+DebugInfoDText
+	dc.w	(vmMAP2+(4*32)+(27-DI0TxtL))
+	dc.l	DI0Txt
+	dc.b	DI0TxtL
+
+	dc.w	(vmMAP2+(5*32)+(27-DI0TxtL))
+	dc.l	DI1Txt
+	dc.b	DI1TxtL
+
+	dc.w	-1
+
+DI0Txt
+	dc.b	'DEBUG'
+DI0TxtL	equ	*-DI0Txt
+
+DI1Txt
+	dc.b	'ERMLR'
+DI1TxtL	equ	*-DI1Txt
+
+
+;
+;	* * * * * * *       HALT ERROR       * * * * * * *
+;
+HALTERROR
+	sei
+	mode	'AX!'
+	pha
+;
+;	>>>   LOCK SYSTEM INTERRUPTS   <<<
+;
+	mode	'a!'
+;	lda	#$80				; Disable Display
+;	sta	INIDISP_S
+;	sta	INIDISP
+	lda	#$01				; DISABLE NMI,VIRQ,HIRQ
+	ifn	(DEBUG*WIRE)
+	sta	NMITIMEN_XS
+	lda	#$81
+	endif
+	sta	NMITIMEN
+	bit	_TIMEUP				; Clear IRQ Flag
+;
+;	>>>   HALT GSU   <<<
+;
+	mode	'A!'
+	stz	sfxSFR				; Clear GO bit (Halt GSU)
+.0
+	lda	sfxSFR				; GSU Halted?
+	and	#%0000000000100000
+	bne	.0				; No, keep waiting
+;
+;	>>>   SAVE REGISTERS   <<<
+;
+	pla
+	sta	Temp2
+	stx	Temp2+2
+	sty	Temp2+4
+;
+	lda	1,sp				; Get Error Address
+	inc	a
+	sta	Temp
+	lda	3,sp
+	sta	Temp+2
+	lda	[Temp]				; Get Error Code
+	sta	Temp+4
+;
+;	>>>   UPDATE HALT ERROR SCREEN   <<<
+;
+	jsr	_RLUpdateHaltError
+;
+;	>>>   UPDATE AND FORCE DEBUGGING SCREEN ACTIVE   <<<
+;
+	mode	'A!'
+	lda	#(rlfDebugSCR|rlfDebug)
+	sta	RLFlags
+	lda	#1
+	sta	>(DebugScreen+RLSNESGSUXVarsO)
+	jsr	_RLUpdateDebug
+	lda	#~rlfDebugSCR
+	sta	RLFlags
+	jsl	WaitVBlank
+	jsr	_RLDebugScreen
+;
+;	>>>   TOGGLE SCREEN DISPLAY ON/OFF WITH ANY JOYSTICK BUTTON   <<<
+;
+	mode	'Ax!'
+	lda	#$0f				; Enable Display
+	sta	INIDISP
+	stz	TS				; and TMW
+	ldx	#$02
+	jmp	HER850
+HER800
+	jsl	WaitVBlank
+HER810
+	bit	_HVBJOY-1			; Wait for NOT in VBlank Period
+	bmi	HER810
+	lda	JOY1L
+	beq	HER800
+	txa
+	eor	#$01				; $11
+	tax
+HER850
+	stx	TM
+HER860
+	jsl	WaitVBlank
+HER870
+	bit	_HVBJOY-1			; Wait for NOT in VBlank Period
+	bmi	HER870
+	lda	JOY1L
+	bne	HER860
+	jmp	HER800
+
+;
+;	* * * * * * *       UPDATE HALT ERROR SCREEN       * * * * * * *
+;
+_RLUpdateHaltError
+	mode	'aX!'
+	lda	Temp2+1				; A
+	ldx	#<(_RLHaltErrData0A)
+	jsr	_RLDebugScreenHex
+	lda	Temp2
+	jsr	_RLDebugScreenHex
+;
+	lda	Temp2+3				; X
+	ldx	#<(_RLHaltErrData0X)
+	jsr	_RLDebugScreenHex
+	lda	Temp2+2
+	jsr	_RLDebugScreenHex
+;
+	lda	Temp2+5				; Y
+	ldx	#<(_RLHaltErrData0Y)
+	jsr	_RLDebugScreenHex
+	lda	Temp2+4
+	jsr	_RLDebugScreenHex
+;
+	lda	Temp+2				; PC
+	ldx	#<(_RLHaltErrData0PC)
+	jsr	_RLDebugScreenHex
+	lda	Temp+1
+	jsr	_RLDebugScreenHex
+	lda	Temp
+	jsr	_RLDebugScreenHex
+;
+	lda	Temp+4				; HALT CODE
+	ldx	#<(_RLHaltErrData0HC)
+	jsr	_RLDebugScreenHex
+;
+	ldy	#0
+	ldx	#<(_RLHaltErrData1R)
+_RUHE400
+	lda	sfxR0+1,y			; GSU Register
+	jsr	_RLDebugScreenHex
+	lda	sfxR0+0,y
+	jsr	_RLDebugScreenHex
+	inx
+	inx
+	iny					; Next GSU Register
+	iny
+	cpy	#(5*2)				; R5?
+	bne	_RUHE420
+	ldx	#<(_RLHaltErrData2R)
+_RUHE420
+	cpy	#(10*2)				; R10?
+	bne	_RUHE440
+	ldx	#<(_RLHaltErrData3R)
+_RUHE440
+	cpy	#(15*2)
+	bne	_RUHE400
+;
+	jsl	WaitVBlank
+;
+	ldx	#<_RLHaltErrData0		; A,X,Y,PC,HC
+	stx	DMA0A1L
+	ldx	#^_RLHaltErrData0
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(0*32*2/2)+00)
+	stx	VMADDL
+	lda	#_RLHaltErrData0L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLHaltErrData1		; R0,R1,R2,R3,R4
+	stx	DMA0A1L
+	ldx	#^_RLHaltErrData1
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(1*32*2/2)+00)
+	stx	VMADDL
+	lda	#_RLHaltErrData1L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLHaltErrData2		; R5,R6,R7,R8,R9
+	stx	DMA0A1L
+	ldx	#^_RLHaltErrData2
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(2*32*2/2)+00)
+	stx	VMADDL
+	lda	#_RLHaltErrData2L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	ldx	#<_RLHaltErrData3		; R10,R11,R12,R13,R14
+	stx	DMA0A1L
+	ldx	#^_RLHaltErrData3
+	stx	DMA0A1B
+	ldx	#(vmMAP2+(3*32*2/2)+00)
+	stx	VMADDL
+	lda	#_RLHaltErrData3L
+	sta	DMA0NUML
+	lda	#$01
+	sta	MDMAEN
+;
+	rts
+
+
+;
+;	>>>   HALT ERROR INFORMATION 0   <<<
+;
+_RLHaltErrData0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLHaltErrData0A
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLHaltErrData0X
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLHaltErrData0Y
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLHaltErrData0PC
+	dcb.w	6,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLHaltErrData0HC
+	dcb.w	2,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLHaltErrData0L	equ	*-_RLHaltErrData0
+
+
+;
+;	>>>   HALT ERROR INFORMATION 1   <<<
+;
+_RLHaltErrData1
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLHaltErrData1R
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLHaltErrData1L	equ	*-_RLHaltErrData1
+
+
+;
+;	>>>   HALT ERROR INFORMATION 2   <<<
+;
+_RLHaltErrData2
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLHaltErrData2R
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLHaltErrData2L	equ	*-_RLHaltErrData2
+
+
+;
+;	>>>   HALT ERROR INFORMATION 3   <<<
+;
+_RLHaltErrData3
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLHaltErrData3R
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+	dcb.w	4,0
+	dc.w	((vmCHR2B-vmCHR2)/(32/2))+$2000
+_RLHaltErrData3L	equ	*-_RLHaltErrData3
+
+
+	ifn	0
+;
+;	* * * * * * *       DEBUG FONT DATA       * * * * * * *
+;
+	SECTION	RL_DEBUGFONT_DATA,RELOC,BASE=$80000000,RORG=$8000
+RLDebugFontDef
+	image	RLDATA:COMP/DebugFont.def0
+	endif
+
+	endif

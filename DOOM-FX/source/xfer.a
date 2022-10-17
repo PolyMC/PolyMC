@@ -1,0 +1,621 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*             G E N E R A L I Z E D   T R A N S F E R S   MODULE     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+	include	xfer.i
+
+	public	XFer
+
+	public	DeCompress
+
+
+	SECTION	XFER,RELOC,BASE=$80000000,RORG=$400000
+
+
+;
+;	* * * * * * *       TRANSFER       * * * * * * *
+;
+;	.X/.A = Address of TransferTable
+;
+	dbr	?
+	dpr	0
+	mode	'aX'
+XFer
+	stx	XFerPtr			; Save Pointer to Source XFer Data
+	sta	XFerPtr+2
+	mode	'A!'
+XFer200
+	lda	[XFerPtr]		; Flags
+	bmi	XFer900			; End
+	bit	#xftNODATA		; No Data associated with this XFER?
+	bne	XFer800			; Yes!  Don't DeCompress it!
+	bit	#xftRAW			; Is data RAW?
+	bne	XFer300			; Yes!  Don't DeCompress it!
+	cmp	#xftRAM			; Going to RAM?
+	beq	XFer800			; Yes!  Don't DeCompress it!
+;
+;	>>>   COMPRESSED DATA   <<<
+;
+	pha
+	ldy	#xfsSource		; .L/.H
+	lda	[XFerPtr],y
+	tax
+	ldy	#xfsSource+2		; .B
+	lda	[XFerPtr],y
+	ora	#(^DeCompBuffer<<8)
+	ldy	#<DeCompBuffer
+	jsl	DeCompress		; DeCompress the Data
+	pla
+	jmp	XFer800
+;
+;	>>>   RAW DATA   <<<
+;
+XFer300
+	pha
+	ldy	#xfsSource		; .L/.H
+	lda	[XFerPtr],y
+	sta	Temp
+	ldy	#xfsSource+2		; .B
+	lda	[XFerPtr],y
+	sta	Temp+2
+	ldy	#xfsLen			; Length
+	lda	[XFerPtr],y
+	sta	Temp2
+	pla
+;
+;	>>>   TRANSFER THE DATA   <<<
+;
+XFer800
+	and	#$00ff			; Discard Flags
+	tax
+	phk				; To fake a JSL
+	jsr	(XFerJumps,x)		; Call the routine
+	mode	'AX!'
+	lda	XFerPtr			; Move to next XFerBlock
+	clc
+	adc	#xfsSize
+	sta	XFerPtr
+	jmp	XFer200
+XFer900
+	rtl
+;
+;	* * * * * * *       TRANSFER JUMPS       * * * * * * *
+;
+XFerJumps
+	dc.w	<(XFerCode)		; Exec Code
+	dc.w	<(XFerRAM)		; XFer RAM
+	dc.w	<(XFerVRAM8L)		; XFer VRAM 8L
+	dc.w	<(XFerVRAM8H)		; XFer VRAM 8H
+	dc.w	<(XFerVRAM16)		; XFer VRAM 16
+	dc.w	<(XFerCGRAM)		; XFer CGRAM
+	dc.w	<(XFerVRAMF8L)		; Fill VRAM 8L
+	dc.w	<(XFerVRAMF8H)		; Fill VRAM 8H
+	dc.w	<(XFerVRAMF16)		; Fill VRAM 16
+	dc.w	<(XFerVRAMM8L)		; Mask VRAM 8L
+	dc.w	<(XFerVRAMM8H)		; Mask VRAM 8H
+	dc.w	<(XFerVRAMM16)		; Mask VRAM 16
+	dc.w	<(XFerVRAMD16)		; XFer VRAM 16 (Add base to dest)
+	dc.w	<(XFerVRAM8HC)		; XFer VRAM 8H Continue
+
+;
+;	* * * * * * *       XFER CODE       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+XFerCode
+	ldy	#xfsSource		; .L/.H Source
+	lda	[XFerPtr],y
+	tax
+	ldy	#xfsSource+2		; .B Source
+	lda	[XFerPtr],y
+	mode	'a!'
+	pha
+	phx
+	rtl
+
+;
+;	* * * * * * *       XFER RAM       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+XFerRAM
+	lda	[XFerPtr]		; RAW Data?
+	and	#xftRaw
+	bne	XFerRAM200		; Yes, don't decompress!
+	ldy	#xfsSource		; .L/.H Source
+	lda	[XFerPtr],y
+	tax
+	ldy	#xfsDest		; .L/.H Dest
+	lda	[XFerPtr],y
+	pha
+	ldy	#xfsSource+2		; .B Source
+	lda	[XFerPtr],y
+	mode	'a!'
+	xba
+	ldy	#xfsDest+2		; .B Dest
+	lda	[XFerPtr],y
+	xba
+	mode	'A!'
+	ply
+	jsl	DeCompress		; DeCompress the Data to RAM
+	lda	Temp2+2			; Was the data compressed?
+	bne	XFerRAM900		; Yes, it was transferred
+XFerRAM200
+	ldy	#xfsDest		; .L/.H Dest
+	lda	[XFerPtr],y
+	sta	Temp+4
+	ldy	#xfsDest+2		; .B Dest
+	lda	[XFerPtr],y
+	sta	Temp+6
+	ldy	Temp2			; .Y = #Bytes to Transfer
+	dey
+	mode	'a!'
+XFerRAM500
+	lda	[Temp],y		; Source Data
+	sta	[Temp+4],y
+	dey
+	bpl	XFerRAM500
+XFerRAM900
+	rtl
+
+
+;
+;	* * * * * * *       XFER VRAM 8L       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+XFerVRAMM8L
+XFerVRAM8L
+	ifn	0
+	bit	XFerNasty-1		; NASTY Transfer?
+	bmi	XFerVRAM8LNasty		; Yes
+	lda	Temp2			; [TEMP2] = DataSize
+	sta	DMA0NUML
+	lda	Temp			; [TEMP] = SourceData
+	sta	DMA0A1L
+	ldy	#xfsDest		; .L/.H Dest
+	lda	[XFerPtr],y
+	sta	VMADDL
+	mode	'aX!'
+	lda	Temp+2			; [TEMP] = SourceData
+	sta	DMA0A1B
+	stz	VMAINC
+;	lda	#%00000000		; A->B, Abs., Auto Inc,1-Add
+	stz	DMA0INC
+	lda	#<VMDATAL		; VMDATA
+	sta	DMA0DEST
+	lda	#$01			; Enable/Start Channel#0
+	sta	MDMAEN
+	rtl
+;
+	mode	'AX'
+XFerVRAM8LNasty
+	stz	Temp3+2			; [TEMP3+2] = #Bytes transferred so far
+XFerVRAM8LNasty200
+	jsl	WaitVBlank		; Wait until IN VBlank
+	lda	#XFerNastyMax
+	cmp	Temp2			; [TEMP2] = DataSize
+	bcc	XFerVRAM8LNasty400
+	lda	Temp2
+XFerVRAM8LNasty400
+	sta	Temp3			; [TEMP3] = BlockSize
+	sta	DMA0NUML
+	lda	Temp			; [TEMP] = SourceData
+	sta	DMA0A1L
+	ldy	#xfsDest		; .L/.H Dest
+	lda	[XFerPtr],y
+	clc
+	adc	Temp3+2
+	sta	VMADDL
+	mode	'a!'
+	lda	Temp+2			; [TEMP] = SourceData
+	sta	DMA0A1B
+	stz	VMAINC
+;	lda	#%00000000		; A->B, Abs., Auto Inc,1-Add
+	stz	DMA0INC
+	lda	#<VMDATAL		; VMDATA
+	sta	DMA0DEST
+	lda	#$01			; Enable/Start Channel#0
+	sta	MDMAEN
+	mode	'A!'
+	lda	Temp			; Move forward through data
+	clc
+	adc	Temp3
+	sta	Temp
+	lda	Temp3+2			; Update VRAM Destination Pointer
+	clc
+	adc	Temp3
+	sta	Temp3+2
+	lda	Temp2			; Less data remaining to transfer
+	sec
+	sbc	Temp3
+	sta	Temp2
+	bne	XFerVRAM8LNasty200	; Not done yet
+	endif
+	rtl
+
+;
+;	* * * * * * *       XFER VRAM 8H       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+XFerVRAM8HC
+	ifn	0
+	jmp	XFerVRAM8H200		; Don't retransfer VMADDL
+	endif
+XFerVRAMM8H
+XFerVRAM8H
+	ifn	0
+	bit	XFerNasty-1		; NASTY Transfer?
+	bmi	XFerVRAM8HNasty		; Yes
+	ldy	#xfsDest		; .L/.H Dest
+	lda	[XFerPtr],y
+	sta	VMADDL
+XFerVRAM8H200
+	lda	Temp2			; [TEMP2] = DataSize
+	beq	XFerVRAM8H800		; No data to transfer!
+	sta	DMA0NUML
+	lda	Temp			; [TEMP] = SourceData
+	sta	DMA0A1L
+	mode	'aX!'
+	lda	Temp+2			; [TEMP] = SourceData
+	sta	DMA0A1B
+	lda	#$80
+	sta	VMAINC
+;	lda	#%00000000		; A->B, Abs., Auto Inc,1-Add
+	stz	DMA0INC
+	lda	#<VMDATAH		; VMDATA
+	sta	DMA0DEST
+	lda	#$01			; Enable/Start Channel#0
+	sta	MDMAEN
+XFerVRAM8H800
+	rtl
+;
+	mode	'AX'
+XFerVRAM8HNasty
+	stz	Temp3+2			; [TEMP3+2] = #Bytes transferred so far
+XFerVRAM8HNasty200
+	jsl	WaitVBlank		; Wait until IN VBlank
+	lda	#XFerNastyMax
+	cmp	Temp2			; [TEMP2] = DataSize
+	bcc	XFerVRAM8HNasty400
+	lda	Temp2
+XFerVRAM8HNasty400
+	sta	Temp3			; [TEMP3] = BlockSize
+	sta	DMA0NUML
+	lda	Temp			; [TEMP] = SourceData
+	sta	DMA0A1L
+	ldy	#xfsDest		; .L/.H Dest
+	lda	[XFerPtr],y
+	clc
+	adc	Temp3+2
+	sta	VMADDL
+	mode	'a!'
+	lda	Temp+2			; [TEMP] = SourceData
+	sta	DMA0A1B
+	lda	#$80
+	sta	VMAINC
+;	lda	#%00000000		; A->B, Abs., Auto Inc,1-Add
+	stz	DMA0INC
+	lda	#<VMDATAH		; VMDATA
+	sta	DMA0DEST
+	lda	#$01			; Enable/Start Channel#0
+	sta	MDMAEN
+	mode	'A!'
+	lda	Temp			; Move forward through data
+	clc
+	adc	Temp3
+	sta	Temp
+	lda	Temp3+2			; Update VRAM Destination Pointer
+	clc
+	adc	Temp3
+	sta	Temp3+2
+	lda	Temp2			; Less data remaining to transfer
+	sec
+	sbc	Temp3
+	sta	Temp2
+	bne	XFerVRAM8HNasty200	; Not done yet
+	endif
+	rtl
+
+
+;
+;	* * * * * * *       XFER VRAM MASK 16       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+XFerVRAMM16
+	ldy	#xfsData0		; AND Mask
+	lda	[XFerPtr],y
+	sta	Temp3
+	ldy	#xfsData1		; ORA Mask
+	lda	[XFerPtr],y
+	sta	Temp3+2
+	ldy	#xfsData2		; ADD Value (Indirect Pointer)
+	lda	[XFerPtr],y
+	sta	Temp3+4
+;	lda	(Temp3+4)
+;	sta	Temp3+4
+	ldy	Temp2			; [TEMP2] = DataSize
+	beq	XVM16P			; Nothing to transfer
+	jmp	XVM16J
+XVM16E
+	lda	[Temp],y		; Get Data
+	and	Temp3			; AND Mask
+	ora	Temp3+2			; ORA Mask
+	clc
+	adc	Temp3+4			; ADD Value
+	sta	[Temp],y
+XVM16J
+	dey
+	dey
+	bpl	XVM16E
+XVM16P
+;
+;	* * * * * * *       XFER VRAM 16       * * * * * * *
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE   !!!
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+XFerVRAM16
+	bit	XFerNasty-1		; NASTY Transfer?
+	bmi	XFerVRAM16Nasty		; Yes
+	lda	Temp2			; [TEMP2] = DataSize
+	sta	DMA0NUML
+	lda	Temp			; [TEMP] = SourceData
+	sta	DMA0A1L
+	ldy	#xfsDest		; .L/.H Dest
+	lda	[XFerPtr],y
+	sta	VMADDL
+	mode	'aX!'
+	lda	Temp+2			; [TEMP] = SourceData
+	sta	DMA0A1B
+	lda	#$80
+	sta	VMAINC
+	lda	#%00000001		; A->B, Abs., Auto Inc,2-Add-WriteLH
+	sta	DMA0INC
+	lda	#<VMDATAL		; VMDATA
+	sta	DMA0DEST
+	lda	#$01			; Enable/Start Channel#0
+	sta	MDMAEN
+	rtl
+;
+	mode	'AX'
+XFerVRAM16Nasty
+	stz	Temp3+2			; [TEMP3+2] = #Bytes transferred so far
+XFerVRAM16Nasty200
+	jsl	WaitVBlank		; Wait until IN VBlank
+	lda	#XFerNastyMax
+	cmp	Temp2			; [TEMP2] = DataSize
+	bcc	XFerVRAM16Nasty400
+	lda	Temp2
+XFerVRAM16Nasty400
+	sta	Temp3			; [TEMP3] = BlockSize
+	sta	DMA0NUML
+	lda	Temp			; [TEMP] = SourceData
+	sta	DMA0A1L
+	ldy	#xfsDest		; .L/.H Dest
+	lda	[XFerPtr],y
+	clc
+	adc	Temp3+2
+	sta	VMADDL
+	mode	'a!'
+	lda	Temp+2			; [TEMP] = SourceData
+	sta	DMA0A1B
+	lda	#$80
+	sta	VMAINC
+	lda	#%00000001		; A->B, Abs., Auto Inc,2-Add-WriteLH
+	sta	DMA0INC
+	lda	#<VMDATAL		; VMDATA
+	sta	DMA0DEST
+	lda	#$01			; Enable/Start Channel#0
+	sta	MDMAEN
+	mode	'A!'
+	lda	Temp			; Move forward through data
+	clc
+	adc	Temp3
+	sta	Temp
+	lda	Temp3			; Update VRAM Destination Pointer
+	lsr	a
+	clc
+	adc	Temp3+2
+	sta	Temp3+2
+	lda	Temp2			; Less data remaining to transfer
+	sec
+	sbc	Temp3
+	sta	Temp2
+	bne	XFerVRAM16Nasty200	; Not done yet
+	rtl
+
+
+;
+;	* * * * * * *       XFER VRAM 16 ADJUST_DEST       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+XFerVRAMD16
+	ifn	0
+	lda	Temp2			; [TEMP2] = DataSize
+	sta	DMA0NUML
+	lda	Temp			; [TEMP] = SourceData
+	sta	DMA0A1L
+	ldy	#xfsData0		; Add Base Value Indirect
+	lda	[XFerPtr],y
+	sta	Temp3
+	lda	(Temp3)
+	ldy	#xfsDest		; .L/.H Dest
+	clc
+	adc	[XFerPtr],y
+	sta	VMADDL
+	mode	'aX!'
+	lda	Temp+2			; [TEMP] = SourceData
+	sta	DMA0A1B
+	lda	#$80
+	sta	VMAINC
+	lda	#%00000001		; A->B, Abs., Auto Inc,2-Add-WriteLH
+	sta	DMA0INC
+	lda	#<VMDATAL		; VMDATA
+	sta	DMA0DEST
+	lda	#$01			; Enable/Start Channel#0
+	sta	MDMAEN
+	endif
+	rtl
+
+
+;
+;	* * * * * * *       XFER CGRAM       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+XFerCGRAM
+	rtl
+
+
+;
+;	* * * * * * *       XFER VRAM FILL 8L       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+XFerVRAMF8L
+	ifn	0
+	lda	Temp2			; [TEMP2] = DataSize
+	sta	DMA0NUML
+	lda	Temp			; [TEMP] = SourceData
+	sta	DMA0A1L
+	ldy	#xfsDest		; .L/.H Dest
+	lda	[XFerPtr],y
+	sta	VMADDL
+	mode	'aX!'
+	lda	Temp+2			; [TEMP] = SourceData
+	sta	DMA0A1B
+	stz	VMAINC
+	lda	#%00001000		; A->B, Abs., Fixed,1-Add
+	sta	DMA0INC
+	lda	#<VMDATAL		; VMDATA
+	sta	DMA0DEST
+	lda	#$01			; Enable/Start Channel#0
+	sta	MDMAEN
+	endif
+	rtl
+
+
+;
+;	* * * * * * *       XFER VRAM FILL 8H       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+XFerVRAMF8H
+	ifn	0
+	lda	Temp2			; [TEMP2] = DataSize
+	sta	DMA0NUML
+	lda	Temp			; [TEMP] = SourceData
+	sta	DMA0A1L
+	ldy	#xfsDest		; .L/.H Dest
+	lda	[XFerPtr],y
+	sta	VMADDL
+	mode	'aX!'
+	lda	Temp+2			; [TEMP] = SourceData
+	sta	DMA0A1B
+	lda	#$80
+	sta	VMAINC
+	lda	#%00001000		; A->B, Abs., Fixed,1-Add
+	sta	DMA0INC
+	lda	#<VMDATAH		; VMDATA
+	sta	DMA0DEST
+	lda	#$01			; Enable/Start Channel#0
+	sta	MDMAEN
+	endif
+	rtl
+
+;
+;	* * * * * * *       XFER VRAM FILL 16       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+XFerVRAMF16
+	bit	XFerNasty-1		; NASTY Transfer?
+	bmi	XFerVRAMF16Nasty	; Yes
+	lda	Temp2			; [TEMP2] = DataSize
+	sta	DMA0NUML
+	lda	Temp			; [TEMP] = SourceData
+	sta	DMA0A1L
+	ldy	#xfsDest		; .L/.H Dest
+	lda	[XFerPtr],y
+	sta	VMADDL
+	mode	'aX!'
+	lda	Temp+2			; [TEMP] = SourceData
+	sta	DMA0A1B
+	lda	#$80
+	sta	VMAINC
+	lda	#%00001001		; A->B, Abs., Fixed,2-Add-WriteLH
+	sta	DMA0INC
+	lda	#<VMDATAL		; VMDATA
+	sta	DMA0DEST
+	lda	#$01			; Enable/Start Channel#0
+	sta	MDMAEN
+	rtl
+;
+	mode	'AX'
+XFerVRAMF16Nasty
+	stz	Temp3+2			; [TEMP3+2] = #Bytes transferred so far
+XFerVRAMF16Nasty200
+	jsl	WaitVBlank		; Wait until IN VBlank
+	lda	#XFerNastyMax
+	cmp	Temp2			; [TEMP2] = DataSize
+	bcc	XFerVRAMF16Nasty400
+	lda	Temp2
+XFerVRAMF16Nasty400
+	sta	Temp3			; [TEMP3] = BlockSize
+	sta	DMA0NUML
+	lda	Temp			; [TEMP] = SourceData
+	sta	DMA0A1L
+	ldy	#xfsDest		; .L/.H Dest
+	lda	[XFerPtr],y
+	clc
+	adc	Temp3+2
+	sta	VMADDL
+	mode	'a!'
+	lda	Temp+2			; [TEMP] = SourceData
+	sta	DMA0A1B
+	lda	#$80
+	sta	VMAINC
+	lda	#%00001001		; A->B, Abs., Fixed,2-Add-WriteLH
+	sta	DMA0INC
+	lda	#<VMDATAL		; VMDATA
+	sta	DMA0DEST
+	lda	#$01			; Enable/Start Channel#0
+	sta	MDMAEN
+	mode	'A!'
+	lda	Temp			; Move forward through data
+	clc
+	adc	Temp3
+	sta	Temp
+	lda	Temp3			; Update VRAM Destination Pointer
+	lsr	a
+	clc
+	adc	Temp3+2
+	sta	Temp3+2
+	lda	Temp2			; Less data remaining to transfer
+	sec
+	sbc	Temp3
+	sta	Temp2
+	bne	XFerVRAMF16Nasty200	; Not done yet
+	rtl

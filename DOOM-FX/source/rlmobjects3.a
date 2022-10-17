@@ -1,0 +1,578 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                  MOVABLE OBJECT HANDLING MODULE 3                  *
+;*                                                                    *
+;*              MOVABLE OBJECT UTILITY ROUTINES/FUNCTIONS             *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlobjects.i
+	include	rlenemies.i
+
+
+	public	_RLDamageObjectM
+	public	_RLDamageObjectMR
+	public	_RLDamageObject
+
+	public	_RLMoveObject
+	public	_RLMoveObject2
+	public	_RLMoveObject3
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;
+;	* * * * * * *       DAMAGE RLOBJECT MULTIPLIER       * * * * * * *
+;
+;	R4 = #Damage Multipler/Range Offset
+;
+rObj		equ	r12			; Pointer to RLObject
+rTObj		equ	r13			; Pointer to Target RLObject
+
+_RLDamageObjectM
+	move	r0,#^_MObjData			; MObjData Bank
+	romb
+	move	r0,#rloMData			; Get Pointer to MObjData
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+;	from	r0				; Get Damage Multiplier/Range
+	to	r14
+	add	r4
+	getb
+	inc	r14
+	to	r4
+	getbh
+;
+;	* * * * * * *       DAMAGE RLOBJECT MULTIPLIER RANGE       * * * * * * *
+;
+;	R4 = #Damage Multipler/Range
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE!!!
+;
+rTObj			equ	r13		; Pointer to Target RLObject
+rTObjSectorData		equ	r1		; Target RLObject SectorData (FIXED ONLY)
+
+_RLDamageObjectMR
+	move	r0,#^RandomTable		; Get Random Number
+	romb
+	move	r0,#<RandomNumI			; Get Random Number
+	to	r14
+	ldb	(r0)
+	move	r0,r14
+	inc	r0
+;	from	r0
+	sbk
+;	to	r0
+	getb
+;	with	r0				; (Random & Range)
+	and	r4
+	inc	r0				; ((Random & Range)+1)
+	with	r4				; Get Multiplier
+	swap
+	with	r4				; Get (((Random & Range)+1)*Multiplier)
+	mult	r0
+;
+;	* * * * * * *       DAMAGE RLOBJECT       * * * * * * *
+;
+;	R4 = #HitPoints Damage
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE!!!
+;
+rTObj			equ	r13		; Pointer to Target RLObject
+rTObjSectorData		equ	r1		; Target RLObject SectorData (FIXED ONLY)
+
+_RLDamageObject
+	ifn	usePATCH
+	move	r15,(<PTRLDamageObject)
+	nop
+_RLDamageObject0
+	endif
+;
+	ife	useMULTIPLAYER
+	move	r0,#<PlayerObject		; Damage to PLAYER?
+	endif
+	ifn	useMULTIPLAYER
+	move	r0,(<MPPlayerObject)		; Damage to PLAYER?
+	endif
+;	with	r0
+	sub	rTObj
+	bne	_RLDO200
+	from	rTObj				; Get RLObject Flags
+	iwt	r15,#<_RLDamagePlayer		; YES!
+	nop
+;
+;	>>>   MOVABLE/FIXED RLOBJECT?   <<<
+;
+_RLDO200
+;	from	rTObj				; Get RLObject Flags
+;	to	r0
+	add	#rloFlags
+;	to	r0
+	ldb	(r0)
+;	with	r0				; MOVABLE?
+	add	r0
+;	with	r0
+	sex
+	bmi	_RLDO2000			; Yes
+	nop
+;
+;	>>>   FIXED RLOBJECT   <<<
+;
+_RLDO1000
+	with	r4				; Enough Damage?
+	sub	#12				; 15
+	bmi	_RLDO2800			; No!
+	nop
+	iwt	r15,#<_RLBirthSectorFObject	; _RLRemSectorFObject
+	nop
+;
+;	>>>   MOVABLE RLOBJECT   <<<
+;
+_RLDO2000
+	move	r0,#^_MObjData			; MObjData Bank
+	romb
+	move	r1,#rloHealth			; Get Object's Health
+	with	r1
+	add	rTObj
+;	to	r0
+	ldw	(r1)
+	dec	r0				; Already Dead?
+	bmi	_RLDO2800			; YES!
+;	with	r0				; Health -= Damage
+	sub	r4
+	bpl	_RLDO2400			; Still Alive?
+	inc	r0
+;
+;	>>>   RLOBJECT IS DEAD!   <<<
+;
+;	with	r0
+	sub	r0
+;
+;	>>>   ONE MORE KILLED ENEMY   <<<
+;
+	move	r2,(<NumKills)			; Number of KILLS++
+	inc	r2
+	from	r2
+	sbk
+;
+;	>>>   UPDATE OBJECT'S REMAINING HEALTH   <<<
+;
+_RLDO2400
+;	from	r0				; Update Health
+	stw	(r1)
+	dec	r1				; Get Pointer to MObjData
+	dec	r1
+;
+	dec	r0				; Is Object DEAD?
+;
+;	to	r0				; Get MObjData
+	ldw	(r1)
+;	from	r0				; Get Damage State
+	to	r14
+	bpl	_RLDO2500			; NO, Check for RLObject State Interrupt!
+;
+;	>>>   ALWAYS INTERRUPT STATE WHEN RLOBJECT DIES!   <<<
+;
+	add	#rlmodDamageS
+	dec	r1				; Set MObjState to _DAMAGE
+	bra	_RLDO2600
+	dec	r1
+;
+;	>>>   WILL THIS DAMAGE INTERRUPT THE RLOBJECT?   <<<
+;
+_RLDO2500
+;	from	r0				; Get Damage Chance
+;	to	r14
+;	add	#rlmodDamageChance
+	dc.b	$50+rlmodDamageChance		; @DANGER ABOVE!@
+;
+	move	r4,r14				; Save Pointer to MObjData
+	to	r1				; R1 = Damage Chance
+	getb
+;
+	move	r0,#^RandomTable		; Get Random Number
+	romb
+	move	r0,#<RandomNumI
+	to	r14
+	ldb	(r0)
+	move	r0,r14
+	inc	r0
+;	from	r0
+	sbk
+;	to	r0
+	getb
+;
+;	with	r0				; Random Number < Damage Chance?
+	sub	r1				; @CMP@
+	bge	_RLDO2800-1			; NO!  DON'T INTERRUPT RLOBJECT!
+;
+;	>>>   INTERRUPT RLOBJECT STATE!   <<<
+;
+	move	r0,#^_MObjData			; MObjData Bank
+	romb
+	from	r4				; Move to DamageState
+	to	r14
+	add	#1
+	move	r1,#rloState			; Move to State
+	with	r1
+	add	rTObj
+;
+;	>>>   SET RLOBJECT STATE TO _DAMAGE   <<<
+;
+_RLDO2600
+	getb					; Get DamageState
+	inc	r14
+	getbh
+	jmp	r11				; Return to Caller
+;	from	r0
+	stw	(r1)
+;
+;	>>>   DON'T INTERRUPT RLOBJECT   <<<
+;
+_RLDO2800
+	jmp	r11				; Return to Caller
+	nop
+
+
+;
+;	* * * * * * *       MOVE RLOBJECT 2       * * * * * * *
+;
+;	rObj	  = Object to Move
+;	r(SOURCE) = Angle
+;	r2	  = Base of Velocity Table
+;
+rObj		equ	r12			; Pointer to RLObject
+
+_RLMoveObject2
+;	to	r0				; Get Direction based on Angle
+	hib
+	lsr
+	lsr
+	lsr
+;	with	r0				; Get Index into Velocity Table
+	bic	#1
+	with	r2				; Add Index to Base
+	add	r0
+;
+	move	r0,#^_RLMoveVelocities		; Move to Velocity Table
+	romb
+;
+	move	r0,(<SkillLevel)		; Nightmare Difficulty Setting?
+;	with	r0
+	and	#4
+;	with	r0				; Yes, Move to Second Velocity Table
+	umult	#(32/4)
+;
+;	from	r0
+	to	r14
+	add	r2
+	move	r1,#rloVX			; Move to RLObject Velocities
+	with	r1
+	add	rObj
+	getb					; Velocity X
+	inc	r14
+;	with	r0
+	swap
+;	from	r0
+	stw	(r1)
+	inc	r1
+	inc	r1
+	getb					; Velocity Y
+;	with	r0
+	swap
+;	from	r0
+	stw	(r1)
+	move	r0,#<_RLMoveXY5			; MOVE RLOBJECT XY 5 (ENEMIES)
+;
+;	* * * * * * *       MOVE RLOBJECT       * * * * * * *
+;
+;	r0   = Code for OBJECT<->LINE COLLISIONS 2
+;	rObj = RLMOBJECT to Move
+;
+_RLMoveObject
+	move	(<MOReturnAddress),r11		; Save Return Address
+	link	#4
+	move	r15,#<_RLMoveXY			; Move the Object
+	nop
+	move	r11,(<MOReturnAddress)		; Restore Return Address
+;
+;	>>>   HANDLE GRAVITY   <<<
+;
+	ibt	r0,#(^_ObjData)			; Move to _ObjData Bank
+	romb
+	from	rObj				; Move to RLObject Type
+;	to	r0
+	add	#rloType
+;	to	r0				; Get RLObject Type
+	ldb	(r0)
+;	with	r0				; Get Offset into _ObjData
+	umult	#rlodSize
+	move	r1,#<(_ObjData+rlodFlags)	; Add Base of _ObjData
+;	from	r0				; Move to Object Flags
+	to	r14
+	add	r1
+
+	ifn	1
+;
+;	>>>   IS THIS A PLAYER OBJECT?   <<<
+;
+	dec	r0				; Doing a Player Object?
+	move	r0,#rloZ2
+;	with	r0				; Move to PlayerObject.Z2
+	bmi	_RLMO2100			; Yes, Use Z2 for FloorHeight!
+	add	rObj
+	endif
+
+;
+;	>>>   GET OBJECT'S SECTOR'S FLOORHEIGHT   <<<
+;
+	move	r0,#rloSector			; Get Sector
+;	with	r0
+	add	rObj
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r1,#<(_RLSectorData+rlsdFloorHeight)
+;	with	r0
+	add	r1
+_RLMO2100
+	to	r2				; Get FloorHeight
+	ldw	(r0)
+;
+	move	r3,(<FPSRatio)			; Get FramesPerSecond Ratio
+;
+	move	r1,#rloZ			; Get Object's Z
+	with	r1
+	add	rObj
+	to	r1
+	ldw	(r1)
+;
+	getb					; Get Object Flags
+;	with	r0				; Does this Object FLOAT?
+	and	#rlodfFloat
+	bne	_RLMO4000-1			; YES!  NO GRAVITY!
+;
+	move	r6,#16				; Gravity Constant
+	from	r3
+;	to	r0
+	lmult
+;	with	r0				; Get Whole Pixels Only
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R6 = |GravityConstant|
+	to	r6
+	or	r4
+;
+	from	r1				; ObjectZ -= Gravity
+;	to	r0
+	sub	r6
+_RLMO2200
+;	from	r0				; ObjectZ >= FloorHeight?
+	cmp	r2
+	bge	_RLMO2220			; Yes
+	moves	r0,r2				; No!  Move to FloorHeight!
+_RLMO2220
+;
+;	>>>   OBJECT MOVEMENT COMPLETED!   <<<
+;
+;	from	r0				; Update ObjectZ
+	sbk
+_RLMO2300
+	jmp	r11				; Return to Caller
+	nop
+;
+;	>>>   FLOATING OBJECT   <<<
+;
+_RLMO4000
+	move	r0,(<MVIPercent)		; Percentage of Movement Allowed
+	dec	r0
+	bmi	_RLMO2300-1			; Movement Blocked!
+	move	r0,#rloTObj			; Get TargetObject
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	moves	r4,r0
+	beq	_RLMO2300
+	with	r14				; Move to Object Height
+	add	#(rlodHeight-rlodFlags)
+	move	r0,#rloZ			; Get Target Z
+;	with	r0
+	add	r4
+	to	r1
+	ldw	(r0)
+	move	r0,#32				; Destination Z
+	with	r1
+	add	r0
+	to	r3				; R3 = Object Height
+	getb
+	from	rObj				; R0 = Object Z
+	to	r6
+	add	#rloZ
+;	to	r0
+	ldw	(r6)
+	with	r3				; R3 = (Object Z + Object Height)
+	add	r0
+	move	r4,#8				; Move Upwards
+;	from	r0				; Z < Target Z?
+	cmp	r1
+	blt	_RLMO4200			; Yes, Move Upwards!
+	with	r1				; Close to Target Z?
+	add	r4
+;	from	r0
+	cmp	r1
+	blt	_RLMO4900-1			; Yes, Don't Move!
+	move	r4,#-8				; Move Downwards
+_RLMO4200
+	with	r3				; R3 = ObjectZ+Height+Movement
+	add	r4
+	with	r4				; R4 = ObjectZ+Movement
+	add	r0
+;
+;	>>>   ENSURE OBJECT FITS WITHIN SECTOR HEIGHTS   <<<
+;
+	move	r0,#rloSector			; Get Sector
+;	with	r0
+	add	rObj
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r1,#<(_RLSectorData+rlsdFloorHeight)
+	with	r1
+	add	r0
+;
+;	to	r0				; Get FloorHeight
+	ldw	(r1)
+;	from	r0				; ObjectZ+Movement < Floor?
+	cmp	r4
+	bge	_RLMO4800			; Yes!  Move to Floor!
+	inc	r1
+	inc	r1
+;	to	r0				; Get CeilingHeight
+	ldw	(r1)
+;	with	r0				; ObjectZ+Height+Movement <= Ceiling?
+	sub	r3
+	blt	_RLMO4900			; No!  Can't Move!
+	from	r4				; Update Object's Z
+_RLMO4800
+	stw	(r6)
+_RLMO4900
+	jmp	r11
+	nop
+
+
+;
+;	* * * * * * *       MOVE RLOBJECT 3       * * * * * * *
+;
+;	rObj	  = Object to Move
+;
+rObj		equ	r12			; Pointer to RLObject
+
+_RLMoveObject3
+;
+;	>>>   GET VELOCITY OF PROJECTILE   <<<
+;
+	move	r0,#rloVXY			; Get X/Y Velocity
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+;	from	r0
+	to	r6
+	add	r0
+	move	r0,(<FPSRatio)			; Get FramesPerSecond Ratio
+;	with	r0
+	lmult
+	with	r4
+	add	r4
+;	with	r0
+	rol
+;	with	r0
+	lob
+;	with	r0
+	swap
+	with	r4
+	hib
+;	from	r0				; R6 = ProjectileVelocity
+	to	r6
+	or	r4
+;
+;	>>>   GET ANGLE OF PROJECTILE   <<<
+;
+	ibt	r0,#^SinTable			; Bank of SinTable
+	romb
+	move	r2,#rloAngle			; Get Movement Angle
+	with	r2
+	add	rObj
+;	to	r0
+	ldw	(r2)
+;	with	r0				; Get Velocities based on Angle
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr					; >>5
+;	from	r0				; Remove lowest bit
+	to	r1
+	bic	#1
+	iwt	r0,#<SinTable			; Add Base of SinTable
+;	from	r0
+	to	r14
+	add	r1
+;
+	iwt	r0,#<CosTable			; Add Base of CosTable
+	with	r1
+	add	r0
+	dec	r2				; Move to RLObject Velocities
+	dec	r2
+;
+	getb					; Get Sine from Table
+	inc	r14
+	getbh
+	move	r14,r1
+;	with	r0
+	lmult
+	with	r4
+	hib
+;	with	r0
+	lob
+;	with	r0
+	swap
+;	with	r0
+	add	r4
+;	from	r0
+	stw	(r2)
+	dec	r2
+	dec	r2
+;
+	getb					; Get CoSine from Table
+	inc	r14
+	getbh
+;
+;	with	r0
+	lmult
+	with	r4
+	hib
+;	with	r0
+	lob
+;	with	r0
+	swap
+;	with	r0
+	add	r4
+	move	r15,#<_RLMoveXYP		; Move the Object
+;	from	r0
+	stw	(r2)

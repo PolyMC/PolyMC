@@ -1,0 +1,21 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                      RANDOM NUMBER TABLE MODULE                    *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+
+	public	RandomTable
+
+
+	SECTION	RANDOM,LOAD=$80000000,ORG=$00400000,SIZE=$100
+;	SECTION	RANDOM,LOAD=$801F0000,ORG=$005F0000,SIZE=$100
+
+;
+;	* * * * * * *       RANDOM TABLE       * * * * * * *
+;
+RandomTable
+	image	RandomTable.bin,0,256

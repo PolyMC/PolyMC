@@ -1,0 +1,56 @@
+;**********************************************************************
+;*                                                                    *
+;*                       P R O J E C T :   R A G E                    *
+;*                                                                    *
+;*                       INTERRUPT REQUEST MODULE                     *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	snes.i
+
+	public	InitIRQ,InitNormalIRQ
+	public	NormalIRQ
+
+	SECTION	IRQ,RELOC,BASE=$80000000,RORG=$400000
+
+;
+;	* * * * * * *       INITIALIZE NORMAL IRQS       * * * * * * *
+;
+	dbr	?
+	dpr	0
+InitNormalIRQ
+	mode	'aX!'
+	ldx	#<NormalIRQ		; NORMAL IRQ Code
+	lda	#^NormalIRQ
+;
+;	* * * * * * *       INITIALIZE IRQ       * * * * * * *
+;
+;	!!!   DANGER!!!   FALLS THROUGH FROM ABOVE!!!
+;
+	dbr	?
+	dpr	0
+	mode	'aX'
+InitIRQ
+	sta	GSUIRQRAM+3
+	lda	#$5c			; JML
+	sta	GSUIRQRAM+0
+	stx	GSUIRQRAM+1		; Save pointer to IRQ Code
+	mode	'A!'
+	bit	_TIMEUP			; Clear Pending Interrupts
+;	cli				; Enable Interrupts
+	rtl
+
+;
+;	* * * * * * *       NORMAL IRQ CODE       * * * * * * *
+;
+	dpr	?
+	dbr	?
+NormalIRQ
+	mode	'A!'
+	pha				; Save .A
+	mode	'a!'
+	lda	>_TIMEUP		; Clear IRQ Flag
+	mode	'A!'
+	pla				; Restore .A
+	rti				; Restore .SR/.PC

@@ -1,0 +1,34 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                   ENGINE CODE SECTION HEADER MODULE                *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+
+;
+;	* * * * * * *       ENGINE GSU CODE       * * * * * * *
+;
+	SECTION	ENGINE_GSUCODE,LOAD=$80000000+(BANK00End-$8000),ORG=BANK00End
+_RLGSUCode
+	CACHER
+
+
+;
+;	* * * * * * *       ENGINE 65816 CODE       * * * * * * *
+;
+	SECTION	ENGINE,RELOC,BASE=$80000000,RORG=$400000
+_RLCode
+
+
+;
+;	* * * * * * *       ENGINE 65816 RAMCODE       * * * * * * *
+;
+	SECTION	ENGINE_RAMCODE,RELOC,BASE=$80000000,RORG=$400000
+_RLRAMCodeROM
+	ORG	_RLRAMCode

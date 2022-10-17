@@ -1,0 +1,538 @@
+;**********************************************************************
+;*                                                                    *
+;*                  P R O J E C T :   REALITY_ENGINE                  *
+;*                                                                    *
+;*                  MOVABLE OBJECT HANDLING MODULE 2                  *
+;*                                                                    *
+;*               MOVABLE OBJECT ANIMATION STATE MACHINE               *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+	include	rlenemies.i
+	include	rlobjects.i
+
+
+	public	_RLMAObjects
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+rRadiusDamages	equ	r7			; Radius Damage List
+rEnemyAttacks	equ	r8			; Enemy Attack List
+rFPSCount	equ	r9			; Frames in last update
+rMObjPtr	equ	r10			; Pointer to MObjList
+rObj		equ	r12			; Pointer to RLObject
+rMObjCount	equ	r13			; Counter of MObjs
+
+
+;
+;	* * * * * * *       REALITY_ENGINE MOVABLE OBJECTS ANIMATION STATE MACHINE       * * * * * * *
+;
+	align	16,(_RLMA10000-_RLMAObjectsAlign)&$0f
+;
+;	>>>   FINISHED PROCESSING MOVABLE OBJECTS   <<<
+;
+_RLMA10000
+	move	r0,#0
+	stw	(rEnemyAttacks)			; Terminate Attack List
+	stw	(rRadiusDamages)		; Terminate Radius Damage List
+;
+	ifn	DEBUGSCR
+	move	r0,#<_RLEnemyAttacks		; #Enemy Attacks
+	from	rEnemyAttacks
+;	to	r0
+	sub	r0
+;	with	r0
+	lsr
+;	with	r0
+	lsr
+	move	(<DebugEnemyAttacks),r0
+	endif
+;
+	ife	usePATCH
+	move	r0,#<_RLEnemiesTarget		; HANDLE ENEMY TARGETTING
+	endif
+	ifn	usePATCH
+	move	r0,(<PTRLEnemiesTarget)		; HANDLE ENEMY TARGETTING
+	endif
+	move	r8,#^_RLEnemiesTarget
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	>>>   START PROCESSING MOVABLE OBJECTS   <<<
+;
+_RLMAObjects
+	move	rFPSCount,(<(FPSCount+RLGSUSNESXVarsO))	; Get FPSCount
+	inc	rFPSCount
+	move	rMObjPtr,#<_RLMObjs		; MovableObjects List
+	move	rMObjCount,(<RLNumPMObjs)
+	move	rEnemyAttacks,#<_RLEnemyAttacks	  ; Enemy Attack List
+	move	rRadiusDamages,#<_RLRadiusDamages ; Radius Damages List
+	iwt	r11,#<_RLMA3000			  ; Return Address from Code
+	move	r0,#^_MObjData
+	romb
+
+	CACHEB	_RLMAObjects
+_RLMAObjectsAlign
+;
+;	>>>   NEXT MOVABLE OBJECT   <<<
+;
+_RLMA2200
+	dec	rMObjCount			; Any More MObjs?
+	bmi	_RLMA10000			; No
+_RLMA2300
+	to	rObj				; Get Next MovableObject
+	ldw	(rMObjPtr)
+	inc	rMObjPtr
+	inc	rObj
+	beq	_RLMA2300
+	inc	rMObjPtr
+;
+;	>>>   GET ANIMATION COUNTER   <<<
+;
+	move	r6,#rloAnimCount		; Get AnimCount
+	with	r6
+	add	rObj
+;	to	r0
+	ldb	(r6)
+;	with	r0				; HOLD State?
+	sex
+	bmi	_RLMA2200			; Yes, Next MObj
+	dec	r0
+;	from	r0				; R5 = AnimCount
+	to	r5
+	sub	rFPSCount
+	bpl	_RLMA8000
+	inc	r5
+	move	r0,#rloAnim			; Get AnimationPointer
+;	with	r0
+	add	rObj
+	to	r14
+	ldw	(r0)
+;
+;	>>>   NEXT ANIMATION COMMAND   <<<
+;
+_RLMA3000
+	getb					; Get ImageCount
+	inc	r14
+;	from	r0
+	to	r1
+	sex
+	bmi	_RLMA4000			; Call Routine/Change Animations
+;
+;	>>>   NEXT IMAGE   <<<
+;
+	with	r5				; Underflow += ImageCount
+	add	r1
+	to	r4				; Get Image#
+	getb
+	inc	r14
+;	bcs	_RLMA6000			; NOT USED
+	dec	r5
+	bpl	_RLMA7000
+	inc	r5
+	bra	_RLMA3000+1
+	getb					; Get ImageCount
+;
+;	>>>   CHANGE ANIMATIONS   <<<
+;
+_RLMA4000
+	with	r0				; @WITH IN PIPELINE@
+	lsr
+	bcs	_RLMA5000
+	getb					; Get Animation Pointer
+	inc	r14
+	to	r14
+	alt1
+	bra	_RLMA3000
+	getb
+;	getbh
+
+;
+;	>>>   CALL SUBROUTINE   <<<
+;
+_RLMA5000
+;	getb					; Get Routine Address
+	inc	r14
+	move	r5,#0				; No AnimCount Underflow
+	to	r15
+	getbh
+	inc	r14
+;
+;	>>>   FORCE DISPLAY OF IMAGE   <<<
+;
+_RLMA6000
+	move	r5,r1				; Reset AnimCount
+;
+;	>>>   SAVE IMAGE/ANIMATION POINTER   <<<
+;
+_RLMA7000
+	move	r0,#rloImage			; Move to Image
+;	with	r0
+	add	rObj
+	from	r4				; Save Image#
+	stb	(r0)
+	inc	r0
+	from	r14				; Save AnimPointer
+	stw	(r0)
+;
+;	>>>   SAVE NEW ANIMCOUNT   <<<
+;
+_RLMA8000
+	from	r5				; Save AnimCount
+	alt1
+	bra	_RLMA2200
+	stw	(r6)
+
+;
+;	* * * * * * *       REALITY_ENGINE OBJECTS ANIMATION SUBROUTINES       * * * * * * *
+;
+
+;
+;	>>>   QUEUE AN ENEMY ATTACK   <<<
+;
+_RLMAQEnemyAttack
+	move	r0,#<(_RLEnemyAttacksE-4)	; Attacking List Full?
+;	with	r0				; @CMP@
+	sub	rEnemyAttacks
+	getb					; Get Enemy Attack Routine
+	beq	_RLMAQEnemyAttack2		; Yes!  Can't Attack!
+	inc	r14
+	from	rObj				; Enemy RLObject
+	stw	(rEnemyAttacks)
+	inc	rEnemyAttacks
+	inc	rEnemyAttacks
+	getbh
+;	from	r0				; Enemy Attack Routine
+	stw	(rEnemyAttacks)
+	inc	rEnemyAttacks
+	inc	rEnemyAttacks
+_RLMAQEnemyAttack2
+	jmp	r11
+	inc	r14
+
+;
+;	>>>   QUEUE AN ENEMY ATTACK BASED ON DISTANCE   <<<
+;
+_RLMAQEnemyDAttack
+	move	r0,#<(_RLEnemyAttacksE-4)	; Attacking List Full?
+;	with	r0				; @CMP@
+	sub	rEnemyAttacks
+	move	r2,r14				; Save AnimState Pointer
+	beq	_RLMAQEnemyDAttack9		; Yes!  Can't Attack!
+	from	rObj				; Enemy RLObject
+	stw	(rEnemyAttacks)
+	inc	rEnemyAttacks
+	inc	rEnemyAttacks
+	move	r0,#rloTDistance		; Get Distance to Target
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	move	r1,#edFightDistance		; CLOSE or FAR?
+;	with	r0				; @CMP@
+	sub	r1
+	blt	_RLMAQEnemyDAttack2		; CLOSE
+	nop
+	inc	r14				; FAR
+	inc	r14
+_RLMAQEnemyDAttack2
+	getb					; Get Enemy Attack Routine
+	inc	r14
+	getbh
+;	from	r0
+	stw	(rEnemyAttacks)
+	inc	rEnemyAttacks
+	inc	rEnemyAttacks
+_RLMAQEnemyDAttack9
+	from	r2				; Move Past Attack Code
+	to	r14
+	add	#4
+	jmp	r11
+	nop
+
+;
+;	>>>   BFG HAS EXPLODED -- REMOVE THE MOVEABLE RLOBJECT   <<<
+;
+_RLMABFGDie
+;
+;	>>>   MISSILE/BARREL HAS EXPLODED -- REMOVE THE MOVEABLE RLOBJECT   <<<
+;
+_RLMAMissileDie
+_RLMABarrelDie
+	move	r0,#<(_RLRadiusDamagesE-6)	; Radius Damage List Full?
+;	with	r0				; @CMP@
+	sub	rRadiusDamages
+	move	r0,#rloMData
+	beq	_RLMAEnemyDie2			; Yes!  Can't Attack!
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	move	r1,#rlmodAttackFarDamage	; Move to AttackFarDamage
+	move	r2,r14				; Save AnimState Pointer
+;	from	r0
+	to	r14
+	add	r1
+	getb					; DAMAGE
+	inc	r14
+	getbh
+;	from	r0
+	stw	(rRadiusDamages)
+	inc	rRadiusDamages
+	inc	rRadiusDamages
+	from	rObj				; OBJECT X
+;	to	r0
+	add	#(rloX+2)
+;	to	r0
+	ldw	(r0)
+;	from	r0
+	stw	(rRadiusDamages)
+	inc	rRadiusDamages
+	inc	rRadiusDamages
+	from	rObj				; OBJECT Y
+;	to	r0
+	add	#(rloY+2)
+;	to	r0
+	ldw	(r0)
+;	from	r0
+	stw	(rRadiusDamages)
+	move	r14,r2				; Restore AnimState Pointer
+	inc	rRadiusDamages
+	bra	_RLMAEnemyDie2
+	inc	rRadiusDamages
+;
+;	>>>   SOLDIER/SERGEANT HAS DIED -- CONVERT TO ITEM   <<<
+;
+_RLMASoldierDie
+_RLMASergeantDie
+	from	rObj				; ENEMY NOW DEAD!
+;	to	r0
+	add	#rloFlags
+;	to	r0
+	ldw	(r0)
+	move	r1,#(rlpfItem)			; Now an ITEM!
+;	with	r0
+	or	r1
+	bra	_RLMAEnemyDie
+;	from	r0
+	sbk
+;
+;	>>>   PROJECTILE HAS EXPLODED -- REMOVE THE MOVEABLE RLOBJECT   <<<
+;
+_RLMAProjectileDie
+;
+;	>>>   ENEMY HAS DIED -- REMOVE THE MOVEABLE RLOBJECT   <<<
+;
+_RLMAEnemyDie2
+	move	r0,#rloSector			; Get Sector
+;	with	r0
+	add	rObj
+;	to	r0
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r1,#<(_RLSectorData+rlsdObjects) ; R1 = SectorData.FirstObject
+	with	r1
+	add	r0
+;
+	move	r0,(<RLNumMObjs)		; RLNumMObjects--
+	dec	r0
+;	from	r0
+	sbk
+;
+	move	r2,rObj				; R2 = RLObject.Next
+	to	r2
+	ldw	(r2)
+	move	r0,#-1				; Free the RLMObject!
+;	from	r0
+	sbk
+_RLMAEnemyDie2E
+;	to	r0				; R0 = Object.Next
+	ldw	(r1)
+;	from	r0				; Object.Next = RLObject?
+	cmp	rObj
+;
+	ife	useCHECKSECTOROBJECTS
+	with	r0				; Object = Object.Next
+	bne	_RLMAEnemyDie2E
+	to	r1
+	endif
+;
+	ifn	useCHECKSECTOROBJECTS
+	beq	_RLMAEnemyDie2R			; YES!  Remove It!
+	nop
+	moves	r1,r0				; Object = Object.Next
+	bne	_RLMAEnemyDie2E
+	HALTGSU	#$72				; ERROR!
+_RLMAEnemyDie2R
+	endif
+;
+	from	r2				; Object.Next = RLObject.Next
+	sbk
+	moves	r2,r2				; Any Next?
+	beq	_RLMAEnemyDie			; No!
+	inc	r2				; RLObject.Next.Prev = RLObject.Prev
+	inc	r2
+	from	rObj
+;	to	r0
+	add	#rloPrev
+;	to	r0				; R0 = RLObject.Previous
+	ldw	(r0)
+;	from	r0
+	stw	(r2)
+;
+;	>>>   ENEMY HAS DIED -- LEAVE THE MOVABLE RLOBJECT   <<<
+;
+_RLMAEnemyDie
+	move	r0,(<RLNumPMObjs)		; RLNumPMObjects--
+	dec	r0
+;	from	r0
+	sbk
+	from	rObj				; ENEMY NOW DEAD!
+;	to	r0
+	add	#rloFlags
+;	to	r0
+	ldw	(r0)
+	move	r1,#(rlpfSolid|rlpfTarget)	; Neither SOLID, nor TARGET!
+;	with	r0
+	bic	r1
+;	from	r0
+	sbk
+	from	rMObjPtr			; Remove MObject from Process List
+	to	r1
+	sub	#2
+	move	r0,#-1
+;	iwt	r15,#<_RLMA3000
+	jmp	r11
+;	from	r0
+	stw	(r1)
+
+;
+;	>>>   ENEMY IS FALLING   <<<
+;
+_RLMAEnemyFall
+	move	r0,#rloSector			; Get Sector's Floor
+;	with	r0
+	add	rObj
+;	to	r0				; Get Sector
+	ldb	(r0)
+;	with	r0
+	umult	#rlsdSize
+	move	r1,#<(_RLSectorData+rlsdFloorHeight)
+;	with	r0				; R2 = FloorHeight
+	add	r1
+	to	r2
+	ldw	(r0)
+	move	r0,#rloZ			; Get Object's Z
+;	with	r0
+	add	rObj
+;	to	r0
+	ldw	(r0)
+	move	r1,#8				; Fall Speed
+	with	r1
+	umult	rFPSCount
+;	with	r0
+	sub	r1
+;	from	r0				; Z < Floor?
+	cmp	r2
+	bge	_RLMAEnemyFall5			; No, Keep Falling
+	moves	r0,r2				; YES!
+	bra	_RLMAEnemyDie			; Kill the Enemy
+	sbk
+_RLMAEnemyFall5
+	iwt	r15,#<_RLMA2200			; Process Next Enemy
+	sbk
+
+;
+;	>>>   CYBERDEMON -- LEVEL END E2M8   <<<
+;
+_RLMACyberDemonDie
+	move	r0,(<EMNUM)			; Get Level#
+	move	r1,#((8<<8)+2)			; E2M8?
+;	with	r0
+	sub	r1
+	bne	_RLMAEnemyDie-1			; No, E3M9!
+;
+;	>>>   SPIDERDEMON -- LEVEL END E3M8   <<<
+;
+_RLMASpiderDemonDie
+	move	r0,#11				; 11=GO TO NEXT LEVEL
+	move	(<ExitLevel),r0
+	bra	_RLMAEnemyDie
+	nop
+
+;
+;	>>>   BARON OF HELL HAS DIED -- SPECIAL TRIGGER ON E1M8 *CONTINUED*   <<<
+;
+_RLMABaronOfHellDie2
+	iwt	r11,#<_RLMA3000
+	move	r0,#^_MObjData
+	romb
+	move	r5,#0				; No AnimCount Underflow
+	move	rObj,(<ENEnemy)
+	move	r6,#rloAnimCount		; Get AnimCount
+	with	r6
+	add	rObj
+	move	rMObjPtr,(<ENTObj)
+	move	rEnemyAttacks,(<ENBirthsPtr)
+	move	rRadiusDamages,(<ENRadiusPtr)
+	move	rFPSCount,(<(FPSCount+RLGSUSNESXVarsO))	; Get FPSCount
+	bra	_RLMAEnemyDie
+	inc	rFPSCount
+;
+;	>>>   BARON OF HELL HAS DIED -- SPECIAL TRIGGER ON E1M8   <<<
+;
+_RLMABaronOfHellDie
+	move	r0,(<EMNUM)			; Get Level#
+	move	r1,#((8<<8)+1)			; E1M8?
+;	with	r0
+	sub	r1
+	bne	_RLMAEnemyDie			; No
+	nop
+	move	r1,#<BaronOfHellCount		; BaronOfHell Counter++
+;	to	r0
+	ldb	(r1)
+	inc	r0
+	stb	(r1)
+;	with	r0				; BOTH BARONS DEAD?
+	sub	#2
+	bne	_RLMAEnemyDie			; No
+	nop
+;
+;	>>>   SPECIAL TRIGGER 666   <<<
+;
+	move	(<ENTObj),rMObjPtr
+	move	r6,#30				; R6 = SECTOR
+	move	r5,#-136			; R5 = DESTINATION HEIGHT
+	move	(<ENRadiusPtr),rRadiusDamages
+	move	r7,#(_TPCFloorLower-_TPlatformCode)
+	move	(<ENEnemy),rObj
+	move	r12,#<_RLMABaronOfHellDie2
+	move	(<ENBirthsPtr),rEnemyAttacks
+	iwt	r15,#<_RLAddPlatformFloor
+	nop
+
+
+	ifn	usePATCH
+;
+;	>>>   PLAYER HAS DIED   <<<
+;
+_RLMAPlayerDie
+	move	r15,(<PTRLMAPlayerDie)		; Call Player Death Routine
+	nop
+	endif
+
+
+	CACHEE	_RLMAObjects

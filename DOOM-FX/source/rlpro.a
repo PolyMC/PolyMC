@@ -1,0 +1,365 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       ENGINE PROFILING MODULE                      *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	snes.i
+	include	snesmac.i
+
+	ifn	PROFILE
+	public	_RLProfileGSU
+
+
+	SECTION	ENGINE_RAMCODE
+;
+;	* * * * * * *       REALITY_ENGINE PROFILE GSU       * * * * * * *
+;
+	dbr	?
+	dpr	0
+	mode	'AX'
+_RLProfileGSU
+;
+;	>>>   INITIALIZE PROFILER HARDWARE/SOFTWARE   <<<
+;
+	lda	#<RLProfileData			; Initialize ProfileDataPointer
+	sta	Temp
+	lda	#^RLProfileData
+	sta	Temp+2
+	lda	#0				; Clear ProfileDataArea
+	tay
+_RLPRO200
+	sta	[Temp],y
+	iny
+	iny
+	bpl	_RLPro200
+;
+	mode	'a!'
+	lda	#$0f				; ENABLE DISPLAY
+	sta	INIDISP
+	lda	#$01				; DISABLE NMIs
+	sta	NMITIMEN
+	ldx	#<_RLIRQProfileGSU		; ProfileGSU IRQ
+	lda	#^_RLIRQProfileGSU
+	jsl	InitIRQ				; Initialize IRQs
+	mode	'A'
+;
+	stz	Temp2				; (TEMP2) = GR0UP TIME
+	stz	Temp2+2
+	stz	Temp3				; (TEMP3) = TOTAL TIME
+	stz	Temp3+2
+;
+	ldx	#0				; Start at Phase0
+;
+;	>>>   TIME GSU PHASE   <<<
+;
+_RLPRO3000
+	stx	GSUPhase			; Save GSUPhase
+	lda	#$1fff				; Reset SP
+	tcs
+	cli					; Enable IRQs
+	lda	>ProfileGSUPhaseR15,x		; Get Starting PC
+	bpl	_RLPRO3200			; Command
+	jmp	_RLPRO3800			; Normal PC
+_RLPRO3200
+	txy
+	pea	#<(_RLPRO6000-1)
+	tax
+	lda	>ProfileGSUCmdJumps,x
+	pha
+	tyx
+	rts
+;
+;	>>>   PROFILER COMMAND CODES   <<<
+;
+ProfileGSUCmdJumps
+	dc.w	<(_RLPROSeperator-1)		; 0 ADD SEPERATOR
+	dc.w	<(_RLPROHalt-1)			; 2 HALT
+	dc.w	<(_RLPROGroupStart-1)		; 4 GROUP START TIMECOUNT
+	dc.w	<(_RLPROGroupTime-1)		; 6 GROUP RECORD TIMECOUNT
+	dc.w	<(_RLPRONOP-1)			; 8 NOP
+
+;
+;	>>>   GROUP RECORD TIMECOUNT   <<<
+;
+_RLPROGroupTime
+	lda	Temp2+2				; RECORD GROUP TIMECOUNT
+	xba
+	sta	[Temp]
+	lda	Temp2
+	xba
+	ldy	#2
+	sta	[Temp],y
+	lda	Temp
+	clc
+	adc	#16
+	sta	Temp
+_RLPRONOP
+	rts
+
+;
+;	>>>   GROUP START TIMECOUNT   <<<
+;
+_RLPROGroupStart
+	stz	Temp2				; RESET GROUP TIMECOUNT
+	stz	Temp2+2
+	rts
+
+;
+;	>>>   HALT   <<<
+;
+_RLPROHalt
+	cop	#0
+	rts
+
+;
+;	>>>   SEPERATOR VALUE   <<<
+;
+_RLPROSeperator
+	inx					; Get SEPERATOR VALUE
+	inx
+	lda	>ProfileGSUPhaseR15,x
+	xba
+	sta	[Temp]
+	ldy	#2
+	sta	[Temp],y
+	lda	Temp
+	clc
+	adc	#16
+	sta	Temp
+	inx					; Get SCREEN COLOUR
+	inx
+	lda	>ProfileGSUPhaseR15,x
+	mode	'a!'
+	stz	CGADD
+	sta	CGDATA
+	xba
+	sta	CGDATA
+	mode	'A!'
+	rts
+
+;
+;	>>>   GSU PHASE PC   <<<
+;
+	mode	'A'
+_RLPRO3800
+	ldx	#0				; .Y/.X = TIMECOUNTER
+	txy
+	sta	sfxR15				; Start GSU Executing
+;
+;	>>>   TIME EXECUTION OF GSU PHASE   <<<
+;
+_RLPRO4000
+	inx					; Increment TIMECOUNT
+	bne	_RLPRO4000
+	iny
+	bne	_RLPRO4000
+	cop	#1				; ERROR DURING PROFILE!
+
+;
+;	>>>   RECORD TIMECOUNT   <<<
+;
+_RLIRQProfileGSU
+_RLPRO5000
+	mode	'a!'
+	lda	_TIMEUP				; Clear IRQ Flag
+	mode	'A!'
+	lda	sfxSFR				; Clear GSU IRQ Flag
+;
+	txa					; Update GROUP TIMECOUNT
+	clc
+	adc	Temp2
+	sta	Temp2
+	tya
+	adc	Temp2+2
+	sta	Temp2+2
+;
+	txa					; Update TOTAL TIMECOUNT
+	clc
+	adc	Temp3
+	sta	Temp3
+	tya
+	adc	Temp3+2
+	sta	Temp3+2
+;
+	tya					; .Y = TIMECOUNT HIGH
+	xba
+	sta	[Temp]
+	ldy	#2				; .X = TIMECOUNT LOW
+	txa
+	xba
+	sta	[Temp],y
+	lda	Temp				; Move to next ProfileData
+	clc
+	adc	#16
+	sta	Temp
+;
+	ldx	GSUPhase			; Next GSU Phase
+_RLPRO6000
+	inx
+	inx
+	cpx	#(MaxProfileGSUPhase)		; Done ALL GSU Phases?
+	beq	_RLPRO8000			; Yes
+	jmp	_RLPRO3000			; No
+
+;
+;	>>>   PROFILING COMPLETE   <<<
+;
+_RLPRO8000
+	lda	#$ffff				; Put ProfileData Terminator
+	sta	[Temp]
+	ldy	#2
+	sta	[Temp],y
+;
+	lda	Temp3+2				; Put ProfileData TOTAL TIME
+	xba
+	ldy	#16
+	sta	[Temp],y
+	lda	Temp3
+	xba
+	ldy	#16+2
+	sta	[Temp],y
+;
+;	>>>   PROFILING COMPLETE   <<<
+;
+	mode	'a!'
+	ifn	WIRE
+	lda	#$81				; ENABLE NMI+JOYREAD
+	sta	NMITIMEN_XS
+	sta	NMITIMEN
+	endif
+	cop	#0
+
+
+;
+;	* * * * * * *       PROFILE GSU PHASE R15 TABLE       * * * * * * *
+;
+;	DC.W	GSUPC					GSU PHASE PC
+;	DC.W	0,SeperatorValue.W,ColourValue.W	ADD SEPERATOR BAR
+;	DC.W	2					HALT PROFILING
+;	DC.W	4					GROUP START TIMECOUNT
+;	DC.W	6					GROUP RECORD TIMECOUNT
+;	DC.W	8					NOP
+;
+ProfileGSUPhaseR15
+	dc.w	4					; >GROUPSTART<
+	dc.w	0,$1111,%000000000010000
+	dc.w	<_RLMisc				; Misc
+	dc.w	<_RLPlayer				; Player
+	dc.w	<_RLWeapons				; Weapons
+	dc.w	<_RLDoSectors				; Sectors
+	dc.w	<_RLDoTasks				; Tasks
+	dc.w	<_RLMSObjects				; Movable Objects StateMachine
+	dc.w	<_RLMAObjects				; Movable Objects AnimMachine
+	dc.w	<_RLEnemiesTarget			; Enemies' Targetting
+	dc.w	<_RLEnemiesTarget2			; Enemies' Targetting 2
+	dc.w	<_RLEnemiesMove				; Enemies' Movement
+	dc.w	<_RLEnemiesAttack			; Enemies' Attacking
+	dc.w	<_RLEnemiesBirth			; Enemies' Birthing
+	dc.w	<_RLMisc2				; Misc2
+	dc.w	6					; >GROUPTOTAL<
+
+	dc.w	4					; >GROUPSTART<
+	dc.w	0,$2211,%000000000011100
+	dc.w	<_RLBuildBSP				; BSP
+	dc.w	6					; >GROUPTOTAL<
+
+	dc.w	4					; >GROUPSTART<
+	dc.w	0,$3311,%000000000011111
+	dc.w	<_RLBuildSegList1			; Build
+	dc.w	<_RLBuildSegList2
+	dc.w	<_RLBuildSegList3
+	dc.w	<_RLBuildSegList4
+	dc.w	<_RLBuildVSegList1
+	dc.w	<_RLBuildVSegList2
+	dc.w	<_RLBuildVSegList3
+	dc.w	<_RLBuildVSegList4
+	dc.w	<_RLBuildVObjList1
+	dc.w	6					; >GROUPTOTAL<
+
+	dc.w	4					; >GROUPSTART<
+	dc.w	0,$AABB,%000001111100000
+	dc.w	<_RLBuildA				; BuildA
+	dc.w	<_RLBuildTrace
+	dc.w	<_RLBuildTraceWalls
+	dc.w	<_RLBuildTraceWalls2
+	dc.w	<_RLBuildTraceWalls3
+	dc.w	<_RLBuildTraceObjs
+	dc.w	<_RLBuildTraceObjs2
+	dc.w	<_RLBuildTraceObjs3
+	dc.w	<_RLBuildTraceFloors
+	dc.w	<_RLBuildTraceWalls4
+	dc.w	<_RLBuildTraceWalls5
+	dc.w	<_RLBuildTraceFloors2
+	dc.w	<_RLBuildTraceFloors3
+	dc.w	6					; >GROUPTOTAL<
+
+	dc.w	4					; >GROUPSTART<
+	dc.w	0,$AADD,%000001111111111
+	dc.w	<_RLDrawA				; Draw A
+	dc.w	<_RLDrawWallsA
+	dc.w	<_RLDrawFloorsA
+	dc.w	<_RLDrawObjsA
+	dc.w	<_RLDrawSpritesA
+	dc.w	<_RLDrawMiscA
+	dc.w	6					; >GROUPTOTAL<
+;
+	dc.w	4					; >GROUPSTART<
+	dc.w	0,$BBBB,%111110000000000
+	dc.w	<_RLBuildB				; Build B
+	dc.w	<_RLBuildTrace
+	dc.w	<_RLBuildTraceWalls
+	dc.w	<_RLBuildTraceWalls2
+	dc.w	<_RLBuildTraceWalls3
+	dc.w	<_RLBuildTraceObjs
+	dc.w	<_RLBuildTraceObjs2
+	dc.w	<_RLBuildTraceObjs3
+	dc.w	<_RLBuildTraceFloors
+	dc.w	<_RLBuildTraceWalls4
+	dc.w	<_RLBuildTraceWalls5
+	dc.w	<_RLBuildTraceFloors2
+	dc.w	<_RLBuildTraceFloors3
+	dc.w	6					; >GROUPTOTAL<
+;
+	dc.w	4					; >GROUPSTART<
+	dc.w	0,$BBDD,%111110000011111
+	dc.w	<_RLDrawB				; Draw B
+	dc.w	<_RLDrawWallsB
+	dc.w	<_RLDrawFloorsB
+	dc.w	<_RLDrawObjsB
+	dc.w	<_RLDrawSpritesB
+	dc.w	<_RLDrawMiscB
+	dc.w	6					; >GROUPTOTAL<
+;
+	dc.w	4					; >GROUPSTART<
+	dc.w	0,$CCBB,%111111111100000
+	dc.w	<_RLBuildC				; Build C
+	dc.w	<_RLBuildTrace
+	dc.w	<_RLBuildTraceWalls
+	dc.w	<_RLBuildTraceWalls2
+	dc.w	<_RLBuildTraceWalls3
+	dc.w	<_RLBuildTraceObjs
+	dc.w	<_RLBuildTraceObjs2
+	dc.w	<_RLBuildTraceObjs3
+	dc.w	<_RLBuildTraceFloors
+	dc.w	<_RLBuildTraceWalls4
+	dc.w	<_RLBuildTraceWalls5
+	dc.w	<_RLBuildTraceFloors2
+	dc.w	<_RLBuildTraceFloors3
+	dc.w	6					; >GROUPTOTAL<
+;
+	dc.w	4					; >GROUPSTART<
+	dc.w	0,$CCDD,%111111111111111
+	dc.w	<_RLDrawC				; Draw C
+	dc.w	<_RLDrawWallsC
+	dc.w	<_RLDrawFloorsC
+	dc.w	<_RLDrawObjsC
+	dc.w	<_RLDrawSpritesC
+	dc.w	<_RLDrawMiscC
+	dc.w	6					; >GROUPTOTAL<
+MaxProfileGSUPhase	equ	(*-ProfileGSUPhaseR15)
+	endif

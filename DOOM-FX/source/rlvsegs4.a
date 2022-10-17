@@ -1,0 +1,436 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                        ENGINE VSEGS MODULE 4                       *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	gsumac.i
+
+	public	_RLBuildVSegList4
+
+
+	SECTION	ENGINE_GSUCODE
+	cpu	sfx
+
+
+;	******************************************************************
+;	******************************************************************
+;	**								**
+;	**  BUILD VSEGMENT LIST 4      CALCULATE VSEGMENTS' TEXTURES 2  **
+;	**								**
+;	******************************************************************
+;	******************************************************************
+
+;
+;	* * * * * * *       CALCULATE VSEGMENTS' TEXTURES 2       * * * * * * *
+;
+rVAngle			equ	r9		; Vertex Angle
+rVSeg			equ	r10		; Pointer to Start of VisibleSegment
+rVSegP			equ	r11		; Pointer within VisibleSegment
+rVSegEnd		equ	r12		; Pointer to End of VisibleSegmentList
+rVDistance		equ	r13		; Distance to Vertex
+
+
+	align	16,(_BV4L9000-_BV4L2200)&$0f
+;
+;	* * * * * * *       FINISHED CALCULATING VSEGMENTS' TEXTURES 2       * * * * * * *
+;
+_BV4L9000
+	iwt	r0,#<_RLBuildVObjList1		; BUILD VISIBLE OBJECT LIST
+	ibt	r8,#^_RLBuildVObjList1
+	ife	PROFILE
+	ljmp	r8
+	endif
+	ifn	PROFILE
+	stop
+	endif
+	nop
+
+;
+;	* * * * * * *       START CALCULATING VSEGMENTS' TEXTURES 2       * * * * * * *
+;
+_RLBuildVSegList4
+	move	rVSeg,#<(_RLVSegList-rlvSize+rlvFlags)  ; START of VisibleSegmentList
+	move	rVSegEnd,(<VSegListEnd)			; END of VisibleSegmentList
+	with	rVSegEnd
+	add	#rlvFlags
+;
+	ibt	r0,#^SinTable			; Bank of CosTable
+	romb
+;
+	CACHEB	_RLBuildVSegList4
+;
+;	* * * * * * *       HANDLE NEXT VISIBLE SEGMENT       * * * * * * *
+;
+_BV4L2200
+	move	r1,#(rlvSize)			; Offset to Next VSEG
+_BV4L2400
+	with	rVSeg				; Move to Next VSEG
+	add	r1
+	from	rVSeg				; At END of VisibleSegmentList?
+;	to	r0				; @CMP@
+	sub	rVSegEnd
+	beq	_BV4L9000			; Yes!  No More VisibleSegments!
+
+;
+;	* * * * * * *       PROCESS NEXT VISIBLE SEGMENT       * * * * * * *
+;
+;	>>>   GET VISIBLESEGMENT FLAGS   <<<
+;
+;	to	r0				; Get VisibleSegmentFlags
+	ldw	(rVSeg)
+	inc	r0				; DOING WALL?
+	bpl	_BV4L2400+1			; No!
+	with	rVSeg				; Move to Next VSEG
+;
+;	>>>   CALCULATE ANGLE TO VERTEX 1   <<<
+;
+	move	r0,#(rlvVertex1-rlvFlags)	; Get Vertex1
+;	with	r0
+	add	rVSeg
+;	to	r0
+	ldw	(r0)
+	to	rDeltaY				; Get Vertex1 Y
+	ldw	(r0)
+	inc	r0
+	inc	r0
+	to	rDeltaX				; Get Vertex1 X
+	ldw	(r0)
+	link	#3
+	iwt	r15,#<_RLGetAngle
+;
+;	>>>   CALCULATE VERTEX DISTANCE   <<<
+;
+	moves	rVAngle,r0			; VERTEX ANGLE
+	bpl	_BV4L4200			; Octant 4/5/6/7?
+	nop
+;	with	r0				; Convert to Octant 0/1/2/3
+	not
+	inc	r0
+_BV4L4200
+	move	r1,#$4000			; r1 = 90 degrees
+;	from	r0				; Octant 2/3?
+	cmp	r1
+	from	r1				; r2 = 45 degrees
+	to	r2
+	blt	_BV4L4400
+	lsr
+	move	r4,#$8000			; Convert to Octant 0/1
+	from	r4
+;	to	r0
+	sub	r0
+_BV4L4400
+;	from	r0				; Octant 0 or 1?
+	cmp	r2
+	blt	_BV4L4600
+	with	rDeltaX				; Octant 0 (0/3/4/7)
+	nop
+	from	r1				; Octant 1 (1/2/5/6)
+;	to	r0				; (Convert to Octant 0)
+	sub	r0
+	with	rDeltaY
+_BV4L4600
+	to	r6
+;	from	r0				; VertexAngle
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr					; >>5
+	lsr					; Remove lowest bit
+;	from	r0
+	to	r1
+	add	r0
+	iwt	r0,#<SecTable
+;	from	r0
+	to	r14
+	add	r1
+	with	r6				; Get |Delta|
+	add	r6
+	bpl	_BV4L4800
+	nop
+	with	r6
+	not
+	inc	r6
+_BV4L4800
+	getb
+	inc	r14
+	getbh
+;	with	r0				; Get Fraction portion of Secant
+	fmult
+;	from	r0				; VERTEX DISTANCE = 1.0 + SEC(VertexAngle)
+	to	rVDistance
+	add	r6
+;
+;	>>>   CALCULATE ROTATED SEGMENT ANGLE   <<<
+;
+	move	r0,#(rlvVertex2-rlvFlags)	; Get Vertex2
+;	with	r0
+	add	rVSeg
+;	to	r0
+	ldw	(r0)
+	to	r1				; R1 = Vertex2 Y
+	ldw	(r0)
+	inc	r0
+	inc	r0
+;	to	r0				; R0 = Vertex2 X
+	ldw	(r0)
+	from	r1				; DeltaY = (V2Y - V1Y)
+	to	rDeltaY
+	sub	rDeltaY
+;	from	r0				; DeltaX = (V2X - V1X)
+	to	rDeltaX
+	sub	rDeltaX
+	link	#4
+	iwt	r15,#<_RLGetAngle
+	nop
+	move	rVSegP,#(rlvRSAngle-rlvFlags)	; ROTATED SEGMENT ANGLE
+	with	rVSegP
+	add	rVSeg
+;	from	r0
+	stw	(rVSegP)
+	inc	rVSegP
+	inc	rVSegP
+;
+;	>>>   CALCULATE VERTEX ANGLE OFFSET   <<<
+;
+	from	rVAngle				; VERTEXANGLEOFFSET = (VAngle-RSNAngle)
+;	to	r0
+	sub	r0
+	move	r1,#$4000
+;	with	r0
+	sub	r1
+;
+;	>>>   CALCULATE ROTATED SEGMENT PERPENDICULAR DISTANCE/VERTEX TEXTURE OFFSET   <<<
+;
+;	from	r0				; VertexAngleOffset
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr					; >>5
+	lsr					; Remove lowest bit
+;	from	r0
+	to	r4
+	add	r0
+	iwt	r0,#<CosTable
+;	from	r0
+	to	r14
+	add	r4
+	iwt	r1,#<SinTable
+	move	r6,rVDistance			; Vertex Distance
+	getb
+	inc	r14
+	getbh
+	from	r1
+	to	r14
+	add	r4
+;
+;	with	r0				; RSPDistance = VDistance*Cos(VAngleOffset)
+	fmult
+;	from	r0
+	to	r1
+	rol
+	from	r1				; ROTATED SEGMENT PERPENDICULAR DISTANCE
+	stw	(rVSegP)
+;
+	getb
+	inc	r14
+;
+	inc	rVSegP
+	inc	rVSegP
+;
+	getbh
+;	with	r0				; VertexTextureOffset = VD*Sin(VAngleOffset)
+	fmult
+;
+	iwt	r15,#<_BV4L2200			; Next VisibleSegment
+;	from	r0				; VERTEX TEXTUREOFFSET
+	stw	(rVSegP)
+
+
+;
+;	* * * * * * *       GET ANGLE       * * * * * * *
+;
+;	rDeltaX	= DeltaX
+;	rDeltaY	= DeltaY
+;
+;	r0	= Angle
+;
+rX			equ	r2		; |DeltaX|
+rY			equ	r3		; |DeltaY|
+rSwap			equ	r5		; 0=DeltaX/DeltaY NOT Swapped
+;
+rDeltaX			equ	r7		; DeltaX
+rDeltaY			equ	r8		; DeltaY
+
+;
+;	>>>   DELTA X = 0   <<<
+;
+_RGAE700
+	moves	rDeltaY,rDeltaY			; Always 90 or 270 degrees
+	bpl	_RGAE750
+	move	r0,#$c000
+	jmp	r11
+	nop
+_RGAE750
+;	move	r0,#$4000
+	dc.w	$4000
+	jmp	r11
+	nop
+_RLGetAngle
+	moves	rX,rDeltaX			; DeltaX = 0?
+	beq	_RGAE700			; Yes, 90 or 270 Degrees
+	nop
+	bpl	_RGAE120
+	with	rX				; |DeltaX|
+	not
+	inc	rX
+_RGAE120
+	moves	rY,rDeltaY			; DeltaY = 0?
+	beq	_RGAE600			; Yes, 0 or 180 Degrees
+	nop
+	bpl	_RGAE140+1			; Ensure Positive
+	from	rY
+	to	rY				; |DeltaY|
+	not
+	inc	rY
+;
+;	>>>   ENSURE RESULTS ARE FROM 0.0 TO 1.0   <<<
+;
+_RGAE140
+	from	rY				; |DeltaY| < |DeltaX|?
+;	to	r0				; @CMP@
+	sub	rX
+	bne	_RGAE160
+	with	rSwap				; Didn't Swap
+	move	r0,#$2000			; |DeltaY| = |DeltaX| (45 Degrees)
+	bra	_RGAE450
+	nop
+_RGAE160
+	blt	_RGAE180			; Yes
+	sub	rSwap
+	move	r0,rX				; No, Swap |DeltaY| / |DeltaX|
+	move	rX,rY
+	move	rY,r0
+	inc	rSwap
+;
+;	>>>   GET SLOPE |DELTAY| / |DELTAX|   <<<
+;
+_RGAE180
+	ibt	r0,#(^InvTable)			; Get InverseTable Entry
+	romb
+	from	rX				; Get |DeltaX|
+;	to	r0
+	add	rX
+	move	r1,#<(InvTable-2)
+;	from	r0
+	to	r14
+	add	r1
+	dec	r0
+	dec	r0
+	to	r6				; Get Inverse Value
+	getb
+	inc	r14
+;	with	r0				; Low/High Gear?
+	hib
+	with	r6
+	getbh
+	bne	_RGAE300			; High
+	from	rY				; Low
+;	to	r0
+	lmult
+	with	r4
+	bra	_RGAE350
+	to	r0
+_RGAE300
+;	to	r0				; <<1
+	add	rY
+;	with	r0
+	lmult
+	with	r4
+	hib
+;	with	r0
+	lob
+;	with	r0
+	swap
+;	with	r0
+	add	r4
+_RGAE350
+;	with	r0				; Get Index into |ArcTan| Table
+	lsr
+	lsr
+	lsr
+	lsr
+;	from	r0
+	to	r1
+	bic	#1
+	ibt	r0,#(^PArcTanTable)		; Get |ArcTan| Table Entry
+	romb
+	move	r0,#<(PArcTanTable)
+;	from	r0
+	to	r14
+	add	r1
+	getb					; Get Angle
+	inc	r14
+	dec	rSwap				; Were DeltaX/DeltaY Swapped?
+	alt1
+	bne	_RGAE450			; No
+	getb
+;
+;	>>>   DETERMINE QUADRANT   <<<
+;
+_RGAE400
+;	with	r0				; Yes, 90-Angle
+	not
+	inc	r0
+	move	r1,#$4000
+;	with	r0
+	add	r1
+_RGAE450
+	moves	rDeltaX,rDeltaX			; DeltaX >= 0?
+	bmi	_RGAE500			; Quad1 or Quad2
+;
+;	>>>   QUAD0 OR QUAD3   <<<
+;
+	moves	rDeltaY,rDeltaY			; DeltaY >= 0?
+	bpl	_RGAE800			; Quad0
+	nop
+;	with	r0				; Quad3 (360-Angle)
+	not
+	jmp	r11
+	inc	r0
+;
+;	>>>   QUAD1 OR QUAD2   <<<
+;
+_RGAE500
+;	moves	rDeltaY,rDeltaY			; DeltaY >= 0?
+	from	rDeltaY
+	bmi	_RGAE520			; Quad2
+	nop
+;	with	r0				; 180-Angle
+	not
+	inc	r0
+_RGAE520
+	move	r1,#$8000			; 180+Angle
+;	with	r0
+	jmp	r11
+	add	r1
+;
+;	>>>   DELTA Y = 0   <<<
+;
+_RGAE600
+	moves	rDeltaX,rDeltaX			; Always 0 or 180 degrees
+;	with	r0
+	bpl	_RGAE800
+	sub	r0
+	move	r0,#$8000
+_RGAE800
+	jmp	r11
+	nop
+
+	CACHEE	_RLBuildVSegList4

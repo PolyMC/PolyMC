@@ -1,0 +1,24 @@
+;**********************************************************************
+;*                                                                    *
+;*                   P R O J E C T :   REALITY_ENGINE                 *
+;*                                                                    *
+;*                       SOUND/MUSIC DATA MODULE                      *
+;*                                                                    *
+;**********************************************************************
+
+	include	rage.i
+	include	rle.i
+	include	music.i
+
+
+	ifn	useSOUND
+
+	SECTION	MUSIC_C,LOAD=$80070000,ORG=$470000
+
+;
+;	* * * * * * *       MUSIC CHUNKS       * * * * * * *
+;
+_MusicChunks
+	image	RLDATA:MUSIC/MUSIC_C
+
+	endif
