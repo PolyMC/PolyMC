@@ -1,7 +1,53 @@
-# PolyMC Code of Conflict
+# Code of Merit
 
-The PolyMC development effort is a very personal process compared to “traditional” ways of developing software. Your code and ideas behind it will be carefully reviewed, often resulting in critique and criticism. The review will almost always require improvements to the code before it can be included in the kernel. Know that this happens because everyone involved wants to see the best possible solution for the overall success of PolyMC. This development process has been proven to create the a solid, robust launcher, and we do not want to do anything to cause the quality of submission and eventual result to ever decrease.
+1. The project creators, lead developers, core team, constitute
+the managing members of the project and have final say in every decision
+of the project, technical or otherwise, including overruling previous decisions.
+There are no limitations to this decisional power.
 
-> If however, anyone feels personally abused, threatened, or otherwise uncomfortable due to this process, that is not acceptable. If so, please contact the Community/Development Team (Users with role named "Community/Development Team") on [Discord](https://discord.gg/xq7fxrgtMP), or the individual members, and they will work to resolve the issue to the best of their ability. 
+2. Contributions are an expected result of your membership on the project.
+Don't expect others to do your work or help you with your work forever. 
 
-As a reviewer of code, please strive to keep things civil and focused on the technical issues involved. We are all humans, and frustrations can be high on both sides of the process. Try to keep in mind the immortal words of Bill and Ted, “Be excellent to each other.”
+3. All members have the same opportunities to seek any challenge they want
+within the project. 
+
+4. Authority or position in the project will be proportional
+to the accrued contribution. Seniority must be earned.
+
+5. Software is evolutive: the better implementations must supersede lesser
+implementations. Technical advantage is the primary evaluation metric.
+
+6. This is a space for technical prowess; topics outside of the project
+will not be tolerated.
+
+7. Non technical conflicts will be discussed in a separate space. Disruption
+of the project will not be allowed.
+
+8. Individual characteristics, including but not limited to,
+body, sex, sexual preference, race, language, religion, nationality,
+or political preferences are irrelevant in the scope of the project and
+will not be taken into account concerning your value or that of your contribution
+to the project.
+
+9. Discuss or debate the idea, not the person.
+
+10. There is no room for ambiguity: Ambiguity will be met with questioning;
+further ambiguity will be met with silence. It is the responsibility
+of the originator to provide requested context.
+
+11. If something is illegal outside the scope of the project, it is illegal
+in the scope of the project. This Code of Merit does not take precedence over
+governing law.
+
+12. This Code of Merit governs the technical procedures of the project not the 
+activities outside of it. 
+
+13. Participation on the project equates to agreement of this Code of Merit.
+
+14. No objectives beyond the stated objectives of this project are relevant
+to the project. Any intent to deviate the project from its original purpose
+of existence will constitute grounds for remedial action which may include
+expulsion from the project.
+
+This document is adapted from the Code of Merit, version 1.0.
+See: https://codeofmerit.org/.
