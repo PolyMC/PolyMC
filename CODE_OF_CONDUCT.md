@@ -1,4 +1,4 @@
-# Code of Merit
+# PolyMC Code of Merit
 
 1. The project creators, lead developers, core team, constitute
 the managing members of the project and have final say in every decision
