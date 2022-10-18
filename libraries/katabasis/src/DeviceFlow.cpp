@@ -230,6 +230,15 @@ void DeviceFlow::onDeviceAuthReplyFinished()
             qWarning() << "DeviceFlow::onDeviceAuthReplyFinished: Mandatory parameters missing from response";
             updateActivity(Activity::FailedHard);
         }
+    } else {
+        qWarning() << "DeviceFlow::onDeviceAuthReplyFinished: Token reply error:" << tokenReply->errorString();
+
+        QVariantMap params = parseJsonResponse(tokenReply->readAll());
+        foreach (QString key, params.keys()) {
+            qDebug() << "\t" << key << ": " << params.value(key).toString();
+        }
+
+        updateActivity(Activity::FailedHard);
     }
     tokenReply->deleteLater();
 }
