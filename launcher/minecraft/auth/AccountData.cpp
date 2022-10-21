@@ -321,7 +321,7 @@ bool AccountData::resumeStateFromV2(QJsonObject data) {
         }
         profiles.append({id, name, legacy});
     }
-    auto & profile = profiles[currentProfileIndex];
+    const AccountProfile& profile = profiles[currentProfileIndex];
 
     type = AccountType::Mojang;
     legacy = profile.legacy;
@@ -434,7 +434,7 @@ QString AccountData::clientToken() const {
     return yggdrasilToken.extra["clientToken"].toString();
 }
 
-void AccountData::setClientToken(QString clientToken) {
+void AccountData::setClientToken(const QString &clientToken) {
     if(type != AccountType::Mojang) {
         return;
     }

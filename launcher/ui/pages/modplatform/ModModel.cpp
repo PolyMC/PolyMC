@@ -66,7 +66,7 @@ auto ListModel::data(const QModelIndex& index, int role) const -> QVariant
             }
             QIcon icon = APPLICATION->getThemedIcon("screenshot-placeholder");
             // un-const-ify this
-            ((ListModel*)this)->requestLogo(pack.logoName, pack.logoUrl);
+            const_cast<ListModel*>(this)->requestLogo(pack.logoName, pack.logoUrl);
             return icon;
         }
         case Qt::SizeHintRole: 
@@ -106,7 +106,7 @@ void ListModel::requestModVersions(ModPlatform::IndexedPack const& current, QMod
     auto profile = (dynamic_cast<MinecraftInstance*>((dynamic_cast<ModPage*>(parent()))->m_instance))->getPackProfile();
 
     m_parent->apiProvider()->getVersions({ current.addonId.toString(), getMineVersions(), profile->getModLoaders() },
-                                         [this, current, index](QJsonDocument& doc, QString addonId) {
+                                         [this, current, index](const QJsonDocument& doc, const QString& addonId) {
                                              if (!s_running.constFind(this).value())
                                                  return;
                                              versionRequestSucceeded(doc, addonId, index);
@@ -253,7 +253,7 @@ void ListModel::searchRequestFinished(QJsonDocument& doc)
     endInsertRows();
 }
 
-void ListModel::searchRequestFailed(QString reason)
+void ListModel::searchRequestFailed(const QString& reason)
 {
     auto failed_action = jobPtr->getFailedActions().at(0);
     if (!failed_action->m_reply) {
@@ -306,7 +306,7 @@ void ListModel::infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack
     m_parent->updateUi();
 }
 
-void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId, const QModelIndex& index)
+void ListModel::versionRequestSucceeded(QJsonDocument doc, const QString& addonId, const QModelIndex& index)
 {
     auto& current = m_parent->getCurrent();
     if (addonId != current.addonId) {

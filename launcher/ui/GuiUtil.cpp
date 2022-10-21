@@ -166,7 +166,7 @@ static QStringList BrowseForFileInternal(QString context, QString caption, QStri
     return {};
 }
 
-QString GuiUtil::BrowseForFile(QString context, QString caption, QString filter, QString defaultPath, QWidget *parentWidget)
+QString GuiUtil::BrowseForFile(const QString &context, const QString &caption, const QString &filter, const QString &defaultPath, QWidget *parentWidget)
 {
     auto resultList = BrowseForFileInternal(context, caption, filter, defaultPath, parentWidget, true);
     if(resultList.size())
@@ -177,7 +177,7 @@ QString GuiUtil::BrowseForFile(QString context, QString caption, QString filter,
 }
 
 
-QStringList GuiUtil::BrowseForFiles(QString context, QString caption, QString filter, QString defaultPath, QWidget *parentWidget)
+QStringList GuiUtil::BrowseForFiles(const QString &context, const QString &caption, const QString &filter, const QString &defaultPath, QWidget *parentWidget)
 {
     return BrowseForFileInternal(context, caption, filter, defaultPath, parentWidget, false);
 }

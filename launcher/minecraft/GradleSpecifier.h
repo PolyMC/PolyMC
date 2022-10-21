@@ -46,7 +46,7 @@ struct GradleSpecifier
     {
         m_valid = false;
     }
-    GradleSpecifier(QString value)
+    GradleSpecifier(const QString & value)
     {
         operator=(value);
     }
@@ -68,7 +68,6 @@ struct GradleSpecifier
             m_invalidValue = value;
             return *this;
         }
-        auto elements = match.captured();
         m_groupId = match.captured(1);
         m_artifactId = match.captured(2);
         m_version = match.captured(3);

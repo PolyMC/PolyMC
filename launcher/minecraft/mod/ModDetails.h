@@ -92,7 +92,7 @@ struct ModDetails
         , status(other.status)
     {}
 
-    ModDetails& operator=(ModDetails& other)
+    ModDetails& operator=(const ModDetails& other)
     {
         this->mod_id = other.mod_id;
         this->name = other.name;

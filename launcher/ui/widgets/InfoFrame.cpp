@@ -205,7 +205,7 @@ void InfoFrame::setName(QString text)
     updateHiddenState();
 }
 
-void InfoFrame::setDescription(QString text)
+void InfoFrame::setDescription(const QString& text)
 {
     if(text.isEmpty())
     {
@@ -261,7 +261,7 @@ void InfoFrame::setImage(QPixmap img)
     }
 }
 
-void InfoFrame::descriptionEllipsisHandler(QString link)
+void InfoFrame::descriptionEllipsisHandler(const QString& link)
 {
     if(!m_current_box)
     {

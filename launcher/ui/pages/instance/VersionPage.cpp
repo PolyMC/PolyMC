@@ -73,7 +73,7 @@ class IconProxy : public QIdentityProxyModel
     Q_OBJECT
 public:
 
-    IconProxy(QWidget *parentWidget) : QIdentityProxyModel(parentWidget)
+    explicit IconProxy(QWidget *parentWidget) : QIdentityProxyModel(parentWidget)
     {
         connect(parentWidget, &QObject::destroyed, this, &IconProxy::widgetGone);
         m_parentWidget = parentWidget;
@@ -207,9 +207,9 @@ void VersionPage::packageCurrent(const QModelIndex &current, const QModelIndex &
             return;
     }
 
-    auto &problems = patch->getProblems();
+    const QList<PatchProblem> problems = patch->getProblems();
     QString problemOut;
-    for (auto &problem: problems)
+    for (const PatchProblem& problem: problems)
     {
         if(problem.m_severity == ProblemSeverity::Error)
         {

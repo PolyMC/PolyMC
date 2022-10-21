@@ -81,8 +81,10 @@ class PackInstallTask : public InstanceTask
 Q_OBJECT
 
 public:
-    explicit PackInstallTask(UserInteractionSupport *support, QString packName, QString version, InstallMode installMode = InstallMode::Install);
-    virtual ~PackInstallTask(){}
+    explicit PackInstallTask(UserInteractionSupport *support, QString packName, const QString &version, InstallMode installMode = InstallMode::Install)
+        : m_support(support), m_install_mode(installMode), m_pack_name(packName),
+          m_pack_safe_name(packName.replace(QRegularExpression("[^A-Za-z0-9]"), "")), m_version_name(version) {}
+    virtual ~PackInstallTask() {}
 
     bool canAbort() const override { return true; }
     bool abort() override;

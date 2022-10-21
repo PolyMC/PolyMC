@@ -40,19 +40,12 @@
 #include <QPainter>
 #include "VersionListView.h"
 
-VersionListView::VersionListView(QWidget *parent)
-    :QTreeView ( parent )
-{
-    m_emptyString = tr("No versions are currently available.");
-}
-
 void VersionListView::rowsInserted(const QModelIndex &parent, int start, int end)
 {
     m_itemCount += end-start+1;
     updateEmptyViewPort();
     QTreeView::rowsInserted(parent, start, end);
 }
-
 
 void VersionListView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
 {
@@ -81,13 +74,13 @@ void VersionListView::reset()
     QTreeView::reset();
 }
 
-void VersionListView::setEmptyString(QString emptyString)
+void VersionListView::setEmptyString(const QString& emptyString)
 {
     m_emptyString = emptyString;
     updateEmptyViewPort();
 }
 
-void VersionListView::setEmptyErrorString(QString emptyErrorString)
+void VersionListView::setEmptyErrorString(const QString& emptyErrorString)
 {
     m_emptyErrorString = emptyErrorString;
     updateEmptyViewPort();

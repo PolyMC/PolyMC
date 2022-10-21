@@ -28,7 +28,7 @@ class ListModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    ListModel(QObject *parent);
+    explicit ListModel(QObject *parent);
     virtual ~ListModel();
 
     int rowCount(const QModelIndex &parent) const override;

@@ -12,7 +12,7 @@
 class SequentialTask : public ConcurrentTask {
     Q_OBJECT
    public:
-    explicit SequentialTask(QObject* parent = nullptr, QString task_name = "");
+    explicit SequentialTask(QObject* parent = nullptr, const QString& task_name = "") : ConcurrentTask(parent, task_name, 1) {}
     ~SequentialTask() override = default;
 
    protected:

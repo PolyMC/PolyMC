@@ -50,9 +50,9 @@ public:
     using WeakPtr = QPointer<Mod>;
 
     Mod() = default;
-    Mod(const QFileInfo &file);
-    Mod(const QDir& mods_dir, const Metadata::ModStruct& metadata);
-    Mod(QString file_path) : Mod(QFileInfo(file_path)) {}
+    explicit Mod(const QFileInfo &file);
+    Mod(const QDir & mods_dir, const Metadata::ModStruct & metadata);
+    explicit Mod(const QString & file_path) : Mod(QFileInfo(file_path)) {}
 
     auto details()     const -> const ModDetails&;
     auto name()        const -> QString override;

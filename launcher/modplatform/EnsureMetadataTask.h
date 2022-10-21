@@ -15,7 +15,7 @@ class EnsureMetadataTask : public Task {
 
    public:
     EnsureMetadataTask(Mod*, QDir, ModPlatform::Provider = ModPlatform::Provider::MODRINTH);
-    EnsureMetadataTask(QList<Mod*>&, QDir, ModPlatform::Provider = ModPlatform::Provider::MODRINTH);
+    EnsureMetadataTask(const QList<Mod*>&, QDir, ModPlatform::Provider = ModPlatform::Provider::MODRINTH);
 
     ~EnsureMetadataTask() = default;
 

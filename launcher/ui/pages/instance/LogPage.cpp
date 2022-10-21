@@ -54,9 +54,7 @@
 class LogFormatProxyModel : public QIdentityProxyModel
 {
 public:
-    LogFormatProxyModel(QObject* parent = nullptr) : QIdentityProxyModel(parent)
-    {
-    }
+    explicit LogFormatProxyModel(QObject* parent = nullptr) : QIdentityProxyModel(parent) {}
     QVariant data(const QModelIndex &index, int role) const override
     {
         switch(role)

@@ -98,10 +98,10 @@ private slots:
     void ftbPackDataDownloadAborted();
 
     void ftbPrivatePackDataDownloadSuccessfully(Modpack pack);
-    void ftbPrivatePackDataDownloadFailed(QString reason, QString packCode);
+    void ftbPrivatePackDataDownloadFailed(const QString& reason, const QString& packCode);
 
-    void onSortingSelectionChanged(QString data);
-    void onVersionSelectionItemChanged(QString data);
+    void onSortingSelectionChanged(const QString& data);
+    void onVersionSelectionItemChanged(const QString& data);
 
     void onPublicPackSelectionChanged(QModelIndex first, QModelIndex second);
     void onThirdPartyPackSelectionChanged(QModelIndex first, QModelIndex second);

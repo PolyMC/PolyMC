@@ -147,7 +147,6 @@ void appDebugOutput(QtMsgType type, const QMessageLogContext &context, const QSt
     qint64 msecstotal = APPLICATION->timeSinceStart();
     qint64 seconds = msecstotal / 1000;
     qint64 msecs = msecstotal % 1000;
-    QString foo;
     char buf[1025] = {0};
     ::snprintf(buf, 1024, "%5lld.%03lld", seconds, msecs);
 
@@ -381,19 +380,19 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
             }
             else
             {
-                ApplicationMessage launch;
-                launch.command = "launch";
-                launch.args["id"] = m_instanceIdToLaunch;
+                ApplicationMessage launchInstance;
+                launchInstance.command = "launch";
+                launchInstance.args["id"] = m_instanceIdToLaunch;
 
                 if(!m_serverToJoin.isEmpty())
                 {
-                    launch.args["server"] = m_serverToJoin;
+                    launchInstance.args["server"] = m_serverToJoin;
                 }
                 if(!m_profileToUse.isEmpty())
                 {
-                    launch.args["profile"] = m_profileToUse;
+                    launchInstance.args["profile"] = m_profileToUse;
                 }
-                m_peerInstance->sendMessage(launch.serialize(), timeout);
+                m_peerInstance->sendMessage(launchInstance.serialize(), timeout);
             }
             m_status = Application::Succeeded;
             return;
@@ -1056,7 +1055,7 @@ void Application::messageReceived(const QByteArray& message)
     ApplicationMessage received;
     received.parse(message);
 
-    auto & command = received.command;
+    const auto & command = received.command;
 
     if(command == "activate")
     {
@@ -1274,7 +1273,7 @@ bool Application::kill(InstancePtr instance)
         qWarning() << "Attempted to kill instance" << instance->id() << ", which isn't running.";
         return false;
     }
-    auto & extras = m_instanceExtras[instance->id()];
+    const auto & extras = m_instanceExtras[instance->id()];
     // NOTE: copy of the shared pointer keeps it alive
     auto controller = extras.controller;
     if(controller)
@@ -1428,7 +1427,7 @@ MainWindow* Application::showMainWindow(bool minimized)
     return m_mainWindow;
 }
 
-InstanceWindow *Application::showInstanceWindow(InstancePtr instance, QString page)
+InstanceWindow *Application::showInstanceWindow(InstancePtr instance, const QString& page)
 {
     if(!instance)
         return nullptr;
@@ -1483,7 +1482,7 @@ void Application::on_windowClose()
     }
 }
 
-void Application::updateProxySettings(QString proxyTypeStr, QString addr, int port, QString user, QString password)
+void Application::updateProxySettings(const QString& proxyTypeStr, QString addr, int port, QString user, QString password)
 {
     // Set the application proxy settings.
     if (proxyTypeStr == "SOCKS5")

@@ -60,15 +60,6 @@ namespace ATLauncher {
 
 static Meta::VersionPtr getComponentVersion(const QString& uid, const QString& version);
 
-PackInstallTask::PackInstallTask(UserInteractionSupport *support, QString packName, QString version, InstallMode installMode)
-{
-    m_support = support;
-    m_pack_name = packName;
-    m_pack_safe_name = packName.replace(QRegularExpression("[^A-Za-z0-9]"), "");
-    m_version_name = version;
-    m_install_mode = installMode;
-}
-
 bool PackInstallTask::abort()
 {
     if(abortable)
@@ -399,7 +390,6 @@ QString PackInstallTask::detectLibrary(VersionLibrary library)
     if (!library.server.isEmpty() && library.server.split("/").length() >= 3) {
         auto lastSlash = library.server.lastIndexOf("/");
         auto locationAndVersion = library.server.mid(0, lastSlash);
-        auto fileName = library.server.mid(lastSlash + 1);
 
         lastSlash = locationAndVersion.lastIndexOf("/");
         auto location = locationAndVersion.mid(0, lastSlash);
@@ -726,11 +716,7 @@ void PackInstallTask::downloadMods()
     qDebug() << "PackInstallTask::installMods: " << QThread::currentThreadId();
 
     QVector<ATLauncher::VersionMod> optionalMods;
-    for (const auto& mod : m_version.mods) {
-        if (mod.optional) {
-            optionalMods.push_back(mod);
-        }
-    }
+    std::copy_if(optionalMods.begin(), optionalMods.end(), std::back_inserter(optionalMods), [](const ATLauncher::VersionMod& mod) { return mod.optional; });
 
     // Select optional mods, if pack contains any
     QVector<QString> selectedMods;
@@ -896,8 +882,8 @@ bool PackInstallTask::extractMods(
 
     setStatus(tr("Extracting mods..."));
     for (auto iter = toExtract.begin(); iter != toExtract.end(); iter++) {
-        auto &modPath = iter.key();
-        auto &mod = iter.value();
+        const QString &modPath = iter.key();
+        const ATLauncher::VersionMod &mod = iter.value();
 
         QString extractToDir;
         if(mod.type == ModType::Extract) {

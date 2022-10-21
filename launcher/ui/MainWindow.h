@@ -172,7 +172,7 @@ private slots:
     /**
      * called when an icon is changed in the icon model.
      */
-    void iconUpdated(QString);
+    void iconUpdated(const QString&);
 
     void showInstanceContextMenu(const QPoint &);
 
@@ -184,7 +184,7 @@ private slots:
 
     void instanceChanged(const QModelIndex &current, const QModelIndex &previous);
 
-    void instanceSelectRequest(QString id);
+    void instanceSelectRequest(const QString &id);
 
     void instanceDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 
@@ -225,7 +225,7 @@ private:
     void addInstance(QString url = QString());
     void activateInstance(InstancePtr instance);
     void setCatBackground(bool enabled);
-    void updateInstanceToolIcon(QString new_icon);
+    void updateInstanceToolIcon(const QString &new_icon);
     void setSelectedInstanceById(const QString &id);
     void updateStatusCenter();
 

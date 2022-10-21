@@ -51,11 +51,6 @@ QByteArray getVariant(SkinUpload::Model model) {
     }
 }
 
-SkinUpload::SkinUpload(QObject *parent, QString token, QByteArray skin, SkinUpload::Model model)
-    : Task(parent), m_model(model), m_skin(skin), m_token(token)
-{
-}
-
 void SkinUpload::executeTask()
 {
     QNetworkRequest request(QUrl("https://api.minecraftservices.com/minecraft/profile/skins"));

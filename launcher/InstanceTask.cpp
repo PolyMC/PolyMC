@@ -42,7 +42,7 @@ QString InstanceName::version() const
     return m_original_version;
 }
 
-void InstanceName::setName(InstanceName& other)
+void InstanceName::setName(const InstanceName& other)
 {
     m_original_name = other.m_original_name;
     m_original_version = other.m_original_version;

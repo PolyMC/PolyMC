@@ -33,5 +33,5 @@ namespace Commandline
  * @param args the argument string
  * @return a QStringList containing all arguments
  */
-QStringList splitArgs(QString args);
+QStringList splitArgs(const QString& args);
 }

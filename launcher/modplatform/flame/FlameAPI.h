@@ -5,17 +5,17 @@
 
 class FlameAPI : public NetworkModAPI {
    public:
-    auto matchFingerprints(const QList<uint>& fingerprints, QByteArray* response) -> NetJob::Ptr;
-    auto getModFileChangelog(int modId, int fileId) -> QString;
-    auto getModDescription(int modId) -> QString;
+    NetJob::Ptr matchFingerprints(const QList<uint>& fingerprints, QByteArray* response);
+    QString getModFileChangelog(int modId, int fileId);
+    QString getModDescription(int modId);
 
-    auto getLatestVersion(VersionSearchArgs&& args) -> ModPlatform::IndexedVersion;
+    ModPlatform::IndexedVersion getLatestVersion(VersionSearchArgs&& args);
 
-    auto getProjects(QStringList addonIds, QByteArray* response) const -> NetJob* override;
-    auto getFiles(const QStringList& fileIds, QByteArray* response) const -> NetJob*;
+    NetJob* getProjects(QStringList addonIds, QByteArray* response) const override;
+    NetJob* getFiles(const QStringList& fileIds, QByteArray* response) const;
 
    private:
-    inline auto getSortFieldInt(QString sortString) const -> int
+    inline int getSortFieldInt(const QString& sortString) const
     {
         return sortString == "Featured"         ? 1
                : sortString == "Popularity"     ? 2
@@ -29,7 +29,7 @@ class FlameAPI : public NetworkModAPI {
     }
 
    private:
-    inline auto getModSearchURL(SearchArgs& args) const -> QString override
+    inline QString getModSearchURL(SearchArgs& args) const override
     {
         auto gameVersionStr = args.versions.size() != 0 ? QString("gameVersion=%1").arg(args.versions.front().toString()) : QString();
 
@@ -52,12 +52,12 @@ class FlameAPI : public NetworkModAPI {
             .arg(gameVersionStr);
     };
 
-    inline auto getModInfoURL(QString& id) const -> QString override
+    inline QString getModInfoURL(QString& id) const override
     {
         return QString("https://api.curseforge.com/v1/mods/%1").arg(id);
     };
 
-    inline auto getVersionsURL(VersionSearchArgs& args) const -> QString override
+    inline QString getVersionsURL(VersionSearchArgs& args) const override
     {
         QString gameVersionQuery = args.mcVersions.size() == 1 ? QString("gameVersion=%1&").arg(args.mcVersions.front().toString()) : "";
         QString modLoaderQuery = QString("modLoaderType=%1&").arg(getMappedModLoader(args.loaders));
@@ -69,7 +69,7 @@ class FlameAPI : public NetworkModAPI {
     };
 
    public:
-    static auto getMappedModLoader(const ModLoaderTypes loaders) -> int
+    static int getMappedModLoader(const ModLoaderTypes loaders)
     {
         // https://docs.curseforge.com/?http#tocS_ModLoaderType
         if (loaders & Forge)

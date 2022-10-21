@@ -103,7 +103,7 @@ void ModDownloadDialog::confirm()
 
     auto confirm_dialog = ReviewMessageBox::create(this, tr("Confirm mods to download"));
 
-    for (auto& task : keys) {
+    for (const QString& task : keys) {
         confirm_dialog->appendMod({ task, modTask.find(task).value()->getFilename() });
     }
 
@@ -151,7 +151,7 @@ void ModDownloadDialog::removeSelectedMod(QString name)
     m_buttons->button(QDialogButtonBox::Ok)->setEnabled(!modTask.isEmpty());
 }
 
-bool ModDownloadDialog::isModSelected(QString name, QString filename) const
+bool ModDownloadDialog::isModSelected(const QString& name, const QString& filename) const
 {
     // FIXME: Is there a way to check for versions without checking the filename
     //        as a heuristic, other than adding such info to ModDownloadTask itself?
@@ -159,7 +159,7 @@ bool ModDownloadDialog::isModSelected(QString name, QString filename) const
     return iter != modTask.end() && (iter.value()->getFilename() == filename);
 }
 
-bool ModDownloadDialog::isModSelected(QString name) const
+bool ModDownloadDialog::isModSelected(const QString& name) const
 {
     auto iter = modTask.find(name);
     return iter != modTask.end();

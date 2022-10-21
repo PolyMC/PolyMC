@@ -38,7 +38,7 @@ public:
      * defVal is the default value that will be returned when the settings object
      * doesn't have any value for this setting.
      */
-    explicit Setting(QStringList synonyms, QVariant defVal = QVariant());
+    explicit Setting(const QStringList& synonyms, QVariant defVal = QVariant()) : QObject(), m_synonyms(synonyms), m_defVal(defVal) {}
 
     /*!
      * \brief Gets this setting's ID.

@@ -45,8 +45,7 @@ private:
 class UseLock
 {
 public:
-    UseLock(shared_qobject_ptr<Usable> usable)
-        : m_usable(usable)
+    explicit UseLock(shared_qobject_ptr<Usable> usable) : m_usable(usable)
     {
         // this doesn't use shared pointer use count, because that wouldn't be correct. this count is separate.
         m_usable->incrementUses();

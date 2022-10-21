@@ -74,7 +74,7 @@ QVariant ListModel::data(const QModelIndex &index, int role) const
 
         for(auto art : pack.art) {
             if(art.type == "square") {
-                ((ListModel *)this)->requestLogo(pack.name, art.url);
+                const_cast<ListModel*>(this)->requestLogo(pack.name, art.url);
             }
         }
         return placeholder;
@@ -142,7 +142,7 @@ void ListModel::requestFinished()
     }
 }
 
-void ListModel::requestFailed(QString reason)
+void ListModel::requestFailed(const QString& reason)
 {
     jobPtr.reset();
     remainingPacks.clear();
@@ -207,7 +207,7 @@ void ListModel::packRequestFinished()
     }
 }
 
-void ListModel::packRequestFailed(QString reason)
+void ListModel::packRequestFailed(const QString& reason)
 {
     jobPtr.reset();
     remainingPacks.removeOne(currentPack);

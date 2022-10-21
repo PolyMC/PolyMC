@@ -140,7 +140,7 @@ QModelIndex InstanceList::index(int row, int column, const QModelIndex& parent) 
     Q_UNUSED(parent);
     if (row < 0 || row >= m_instances.size())
         return QModelIndex();
-    return createIndex(row, column, (void*)m_instances.at(row).get());
+    return createIndex(row, column, m_instances.at(row).get());
 }
 
 QVariant InstanceList::data(const QModelIndex& index, int role) const
@@ -153,7 +153,7 @@ QVariant InstanceList::data(const QModelIndex& index, int role) const
     {
     case InstancePointerRole:
     {
-        QVariant v = QVariant::fromValue((void *)pdata);
+        QVariant v = QVariant::fromValue(pdata);
         return v;
     }
     case InstanceIDRole:
@@ -416,7 +416,7 @@ InstanceList::InstListError InstanceList::loadList()
 
     QList<InstancePtr> newList;
 
-    for (auto& id : discoverInstances()) {
+    for (const QString& id : discoverInstances()) {
         if (existingIds.contains(id)) {
             auto instPair = existingIds[id];
             existingIds.remove(id);
@@ -446,7 +446,7 @@ InstanceList::InstListError InstanceList::loadList()
             front_bookmark = -1;
             back_bookmark = currentItem;
         };
-        for (auto& removedItem : deadList) {
+        for (const auto& removedItem : deadList) {
             auto instPtr = removedItem.first;
             instPtr->invalidate();
             currentItem = removedItem.second;
@@ -475,10 +475,7 @@ InstanceList::InstListError InstanceList::loadList()
 
 void InstanceList::updateTotalPlayTime()
 {
-    totalPlayTime = 0;
-    for (auto const& itr : m_instances) {
-        totalPlayTime += itr.get()->totalTimePlayed();
-    }
+    totalPlayTime = std::accumulate(m_instances.cbegin(), m_instances.cend(), 0, [](int acc, const auto& inst) { return acc + inst.get()->totalTimePlayed(); });
 }
 
 void InstanceList::saveNow()
@@ -523,29 +520,20 @@ void InstanceList::providerUpdated()
     }
 }
 
-InstancePtr InstanceList::getInstanceById(QString instId) const
+InstancePtr InstanceList::getInstanceById(const QString& instId) const
 {
-    if (instId.isEmpty())
+    if (instId.isEmpty() || m_instances.isEmpty())
         return InstancePtr();
-    for (auto& inst : m_instances) {
-        if (inst->id() == instId) {
-            return inst;
-        }
-    }
-    return InstancePtr();
+    auto it = std::find_if(m_instances.cbegin(), m_instances.cend(), [&instId](const auto& inst) { return inst->id() == instId; });
+    return it != m_instances.cend() ? *it : InstancePtr();
 }
 
 InstancePtr InstanceList::getInstanceByManagedName(const QString& managed_name) const
 {
     if (managed_name.isEmpty())
-        return {};
-
-    for (auto instance : m_instances) {
-        if (instance->getManagedPackName() == managed_name)
-            return instance;
-    }
-
-    return {};
+        return InstancePtr();
+    auto it = std::find_if(m_instances.cbegin(), m_instances.cend(), [&managed_name](const auto& inst) { return inst->getManagedPackName() == managed_name; });
+    return it != m_instances.cend() ? *it : InstancePtr();
 }
 
 QModelIndex InstanceList::getInstanceIndexById(const QString &id) const
@@ -555,8 +543,7 @@ QModelIndex InstanceList::getInstanceIndexById(const QString &id) const
 
 int InstanceList::getInstIndex(BaseInstance* inst) const
 {
-    int count = m_instances.count();
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < m_instances.count(); i++) {
         if (inst == m_instances[i].get()) {
             return i;
         }
@@ -706,7 +693,7 @@ void InstanceList::loadGroupList()
 
     // Iterate through all the groups.
     QJsonObject groupMapping = rootObj.value("groups").toObject();
-    for (QJsonObject::iterator iter = groupMapping.begin(); iter != groupMapping.end(); iter++) {
+    for (QJsonObject::iterator iter = groupMapping.begin(); iter != groupMapping.end(); ++iter) {
         QString groupName = iter.key();
 
         // If not an object, complain and skip to the next one.
@@ -734,7 +721,7 @@ void InstanceList::loadGroupList()
         // Iterate through the list of instances in the group.
         QJsonArray instancesArray = groupObj.value("instances").toArray();
 
-        for (QJsonArray::iterator iter2 = instancesArray.begin(); iter2 != instancesArray.end(); iter2++) {
+        for (QJsonArray::iterator iter2 = instancesArray.begin(); iter2 != instancesArray.end(); ++iter2) {
             m_instanceGroupIndex[(*iter2).toString()] = groupName;
         }
     }

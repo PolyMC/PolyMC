@@ -24,19 +24,16 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
     }
 
     // The default icon size will be a square (and height is usually the lower value).
-    auto icon_width = rect.height(), icon_height = rect.height();
+    auto icon_width = rect.height();
     int icon_x_margin = (rect.height() - icon_width) / 2;
-    int icon_y_margin = (rect.height() - icon_height) / 2;
 
     if (!opt.icon.isNull()) {  // Icon painting
-        {
-            auto icon_size = opt.decorationSize;
-            icon_width = icon_size.width();
-            icon_height = icon_size.height();
+        auto icon_size = opt.decorationSize;
+        icon_width = icon_size.width();
+        int icon_height = icon_size.height();
 
-            icon_x_margin = (rect.height() - icon_width) / 2;
-            icon_y_margin = (rect.height() - icon_height) / 2;
-        }
+        icon_x_margin = (rect.height() - icon_width) / 2;
+        int icon_y_margin = (rect.height() - icon_height) / 2;
 
         // Centralize icon with a margin to separate from the other elements
         int x = rect.x() + icon_x_margin;

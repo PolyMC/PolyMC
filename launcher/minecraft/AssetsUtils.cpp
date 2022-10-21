@@ -208,7 +208,6 @@ QDir getAssetsDir(const QString &assetsId, const QString &resourcesFolder)
         return virtualRoot;
     }
 
-    QString targetPath;
     if(index.isVirtual)
     {
         return virtualRoot;
@@ -221,7 +220,7 @@ QDir getAssetsDir(const QString &assetsId, const QString &resourcesFolder)
 }
 
 // FIXME: ugly code duplication
-bool reconstructAssets(QString assetsId, QString resourcesFolder)
+bool reconstructAssets(const QString& assetsId, const QString &resourcesFolder)
 {
     QDir assetsDir = QDir("assets/");
     QDir indexDir = QDir(FS::PathCombine(assetsDir.path(), "indexes"));
@@ -295,7 +294,7 @@ bool reconstructAssets(QString assetsId, QString resourcesFolder)
         // TODO: Write last used time to virtualRoot/.lastused
         if(removeLeftovers)
         {
-            for(auto & file: presentFiles)
+            for(const QString& file: presentFiles)
             {
                 qDebug() << "Would remove" << file;
             }

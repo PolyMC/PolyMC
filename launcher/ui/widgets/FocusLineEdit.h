@@ -4,7 +4,7 @@ class FocusLineEdit : public QLineEdit
 {
     Q_OBJECT
 public:
-    FocusLineEdit(QWidget *parent);
+    explicit FocusLineEdit(QWidget *parent);
     virtual ~FocusLineEdit()
     {
     }

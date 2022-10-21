@@ -96,7 +96,7 @@ class OrSetting : public Setting
 {
     Q_OBJECT
 public:
-    OrSetting(QString id, std::shared_ptr<Setting> a, std::shared_ptr<Setting> b)
+    OrSetting(const QString& id, std::shared_ptr<Setting> a, std::shared_ptr<Setting> b)
     :Setting({id}, false), m_a(a), m_b(b)
     {
     }
@@ -496,7 +496,6 @@ static QString replaceTokensIn(QString text, QMap<QString, QString> with)
     // TODO: does this still work??
     QString result;
     QRegularExpression token_regexp("\\$\\{(.+)\\}", QRegularExpression::InvertedGreedinessOption);
-    QStringList list;
     QRegularExpressionMatchIterator i = token_regexp.globalMatch(text);
     int lastCapturedEnd = 0;
     while (i.hasNext())
@@ -750,7 +749,7 @@ QStringList MinecraftInstance::verboseDescription(AuthSessionPtr session, Minecr
     if(jarMods.size())
     {
         out << "Jar Mods:";
-        for(auto & jarmod: jarMods)
+        for(const auto & jarmod: jarMods)
         {
             auto displayname = jarmod->displayName(runtimeContext());
             auto realname = jarmod->filename(runtimeContext());
@@ -794,7 +793,7 @@ QMap<QString, QString> MinecraftInstance::createCensorFilterFromSession(AuthSess
     }
     auto & sessionRef = *session.get();
     QMap<QString, QString> filter;
-    auto addToFilter = [&filter](QString key, QString value)
+    auto addToFilter = [&filter](QString key, const QString& value)
     {
         if(key.trimmed().size())
         {
@@ -823,7 +822,6 @@ MessageLevel::Enum MinecraftInstance::guessLevel(const QString &line, MessageLev
     if(match.hasMatch())
     {
         // New style logs from log4j
-        QString timestamp = match.captured("timestamp");
         QString levelStr = match.captured("level");
         if(levelStr == "INFO")
             level = MessageLevel::Message;
@@ -880,12 +878,6 @@ QString MinecraftInstance::getLogFileRoot()
 
 QString MinecraftInstance::getStatusbarDescription()
 {
-    QStringList traits;
-    if (hasVersionBroken())
-    {
-        traits.append(tr("broken"));
-    }
-
     QString mcVersion = m_components->getComponentVersion("net.minecraft");
     if (mcVersion.isEmpty())
     {
@@ -1031,7 +1023,7 @@ shared_qobject_ptr<LaunchTask> MinecraftInstance::createLaunchTask(AuthSessionPt
 
     {
         // actually launch the game
-        auto method = launchMethod();
+        QString method = launchMethod();
         if(method == "LauncherPart")
         {
             auto step = new LauncherPartLaunch(pptr);

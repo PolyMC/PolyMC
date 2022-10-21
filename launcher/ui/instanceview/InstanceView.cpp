@@ -54,9 +54,9 @@
 #include <InstanceList.h>
 
 
-template <typename T> bool listsIntersect(const QList<T> &l1, const QList<T> t2)
+template <typename T> bool listsIntersect(const QList<T> &l1, const QList<T>& t2)
 {
-    for (auto &item : l1)
+    for (const T& item : l1)
     {
         if (t2.contains(item))
         {
@@ -129,12 +129,8 @@ void InstanceView::currentChanged(const QModelIndex& current, const QModelIndex&
 class LocaleString : public QString
 {
 public:
-    LocaleString(const char *s) : QString(s)
-    {
-    }
-    LocaleString(const QString &s) : QString(s)
-    {
-    }
+    LocaleString(const char *s) : QString(s) {}
+    LocaleString(const QString &s) : QString(s) {}
 };
 
 inline bool operator<(const LocaleString &lhs, const LocaleString &rhs)
@@ -235,14 +231,8 @@ VisualGroup *InstanceView::category(const QModelIndex &index) const
 
 VisualGroup *InstanceView::category(const QString &cat) const
 {
-    for (auto group : m_groups)
-    {
-        if (group->text == cat)
-        {
-            return group;
-        }
-    }
-    return nullptr;
+    auto it = std::find_if(m_groups.cbegin(), m_groups.cend(), [&cat](auto group) { return group->text == cat; });
+    return it != m_groups.cend() ? *it : nullptr;
 }
 
 VisualGroup *InstanceView::categoryAt(const QPoint &pos, VisualGroup::HitResults & result) const

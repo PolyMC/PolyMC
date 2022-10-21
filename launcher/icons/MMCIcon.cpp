@@ -101,7 +101,7 @@ void MMCIcon::remove(IconType rm_type)
     m_current_type = IconType::ToBeDeleted;
 }
 
-void MMCIcon::replace(IconType new_type, QIcon icon, QString path)
+void MMCIcon::replace(IconType new_type, QIcon icon, const QString &path)
 {
     if (new_type > m_current_type || m_current_type == IconType::ToBeDeleted)
     {
@@ -112,7 +112,7 @@ void MMCIcon::replace(IconType new_type, QIcon icon, QString path)
     m_images[new_type].key = QString();
 }
 
-void MMCIcon::replace(IconType new_type, const QString& key)
+void MMCIcon::replace(IconType new_type, const QString &key)
 {
     if (new_type > m_current_type || m_current_type == IconType::ToBeDeleted)
     {

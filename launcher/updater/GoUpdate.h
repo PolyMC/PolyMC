@@ -27,7 +27,7 @@ struct Status
  */
 struct FileSource
 {
-    FileSource(QString type, QString url, QString compression="")
+    FileSource(const QString& type, const QString& url, const QString& compression="")
     {
         this->type = type;
         this->url = url;

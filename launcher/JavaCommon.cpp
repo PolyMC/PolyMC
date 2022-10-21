@@ -39,7 +39,7 @@
 #include <MMCStrings.h>
 #include <QRegularExpression>
 
-bool JavaCommon::checkJVMArgs(QString jvmargs, QWidget *parent)
+bool JavaCommon::checkJVMArgs(const QString& jvmargs, QWidget *parent)
 {
     if (jvmargs.contains("-XX:PermSize=") || jvmargs.contains(QRegularExpression("-Xm[sx]"))
         || jvmargs.contains("-XX-MaxHeapSize") || jvmargs.contains("-XX:InitialHeapSize"))

@@ -1296,7 +1296,6 @@ void MainWindow::repopulateAccountsMenu()
     auto accounts = APPLICATION->accounts();
     MinecraftAccountPtr defaultAccount = accounts->defaultAccount();
 
-    QString active_profileId = "";
     if (defaultAccount)
     {
         // this can be called before accountMenuButton exists
@@ -1394,7 +1393,7 @@ void MainWindow::updatesAllowedChanged(bool allowed)
  */
 void MainWindow::changeActiveAccount()
 {
-    QAction *sAction = (QAction *)sender();
+    QAction *sAction = static_cast<QAction*>(sender());
 
     // Profile's associated Mojang username
     if (sAction->data().type() != QVariant::Type::Int)
@@ -1803,17 +1802,17 @@ void MainWindow::on_actionChangeInstIcon_triggered()
     }
 }
 
-void MainWindow::iconUpdated(QString icon)
+void MainWindow::iconUpdated(const QString &icon)
 {
     if (icon == m_currentInstIcon)
     {
-        auto icon = APPLICATION->icons()->getIcon(m_currentInstIcon);
-        ui->actionChangeInstIcon->setIcon(icon);
-        ui->changeIconButton->setIcon(icon);
+        QIcon instIcon = APPLICATION->icons()->getIcon(m_currentInstIcon);
+        ui->actionChangeInstIcon->setIcon(instIcon);
+        ui->changeIconButton->setIcon(instIcon);
     }
 }
 
-void MainWindow::updateInstanceToolIcon(QString new_icon)
+void MainWindow::updateInstanceToolIcon(const QString &new_icon)
 {
     m_currentInstIcon = new_icon;
     auto icon = APPLICATION->icons()->getIcon(m_currentInstIcon);
@@ -2205,7 +2204,7 @@ void MainWindow::instanceChanged(const QModelIndex &current, const QModelIndex &
     }
 }
 
-void MainWindow::instanceSelectRequest(QString id)
+void MainWindow::instanceSelectRequest(const QString &id)
 {
     setSelectedInstanceById(id);
 }

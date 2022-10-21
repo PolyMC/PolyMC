@@ -43,7 +43,7 @@
 #include "modplatform/atlauncher/ATLShareCode.h"
 #include "Application.h"
 
-AtlOptionalModListModel::AtlOptionalModListModel(QWidget* parent, ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods)
+AtlOptionalModListModel::AtlOptionalModListModel(QWidget* parent, ATLauncher::PackVersion version, const QVector<ATLauncher::VersionMod> &mods)
     : QAbstractListModel(parent)
     , m_version(version)
     , m_mods(mods)
@@ -239,7 +239,7 @@ void AtlOptionalModListModel::toggleMod(ATLauncher::VersionMod mod, int index) {
                            .arg(m_version.warnings[mod.warning], tr("Are you sure that you want to enable this mod?"));
 
         // fixme: avoid casting here
-        auto result = QMessageBox::warning((QWidget*) this->parent(), tr("Warning"), message, QMessageBox::Yes | QMessageBox::No);
+        auto result = QMessageBox::warning(static_cast<QWidget*>(this->parent()), tr("Warning"), message, QMessageBox::Yes | QMessageBox::No);
         if (result != QMessageBox::Yes) {
             return;
         }
@@ -309,7 +309,7 @@ void AtlOptionalModListModel::setMod(ATLauncher::VersionMod mod, int index, bool
     }
 }
 
-AtlOptionalModDialog::AtlOptionalModDialog(QWidget* parent, ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods)
+AtlOptionalModDialog::AtlOptionalModDialog(QWidget* parent, ATLauncher::PackVersion version, const QVector<ATLauncher::VersionMod> &mods)
     : QDialog(parent)
     , ui(new Ui::AtlOptionalModDialog)
 {

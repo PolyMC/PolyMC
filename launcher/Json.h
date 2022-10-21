@@ -52,7 +52,7 @@ namespace Json
 class JsonException : public ::Exception
 {
 public:
-    JsonException(const QString &message) : Exception(message) {}
+    explicit JsonException(const QString &message) : Exception(message) {}
 };
 
 /// @throw FileSystemException
@@ -173,7 +173,7 @@ T requireIsType(const QJsonObject &parent, const QString &key, const QString &wh
 }
 
 template <typename T>
-T ensureIsType(const QJsonObject &parent, const QString &key, const T default_ = T(), const QString &what = "__placeholder__")
+T ensureIsType(const QJsonObject &parent, const QString &key, const T& default_ = T(), const QString &what = "__placeholder__")
 {
     const QString localWhat = QString(what).replace("__placeholder__", '\'' + key + '\'');
     if (!parent.contains(key))
@@ -188,7 +188,7 @@ QVector<T> requireIsArrayOf(const QJsonDocument &doc)
 {
     const QJsonArray array = requireArray(doc);
     QVector<T> out;
-    for (const QJsonValue val : array)
+    for (const QJsonValue& val : array)
     {
         out.append(requireIsType<T>(val, "Document"));
     }
@@ -200,7 +200,7 @@ QVector<T> ensureIsArrayOf(const QJsonValue &value, const QString &what = "Value
 {
     const QJsonArray array = ensureIsType<QJsonArray>(value, QJsonArray(), what);
     QVector<T> out;
-    for (const QJsonValue val : array)
+    for (const QJsonValue& val : array)
     {
         out.append(requireIsType<T>(val, what));
     }
@@ -208,7 +208,7 @@ QVector<T> ensureIsArrayOf(const QJsonValue &value, const QString &what = "Value
 }
 
 template <typename T>
-QVector<T> ensureIsArrayOf(const QJsonValue &value, const QVector<T> default_, const QString &what = "Value")
+QVector<T> ensureIsArrayOf(const QJsonValue &value, const QVector<T>& default_, const QString &what = "Value")
 {
     if (value.isUndefined())
     {
@@ -247,7 +247,7 @@ QVector<T> ensureIsArrayOf(const QJsonObject &parent, const QString &key,
     { \
         return requireIsType<TYPE>(value, what); \
     } \
-    inline TYPE ensure##NAME(const QJsonValue &value, const TYPE default_ = TYPE(), const QString &what = "Value") \
+    inline TYPE ensure##NAME(const QJsonValue &value, const TYPE &default_ = TYPE(), const QString &what = "Value") \
     { \
         return ensureIsType<TYPE>(value, default_, what); \
     } \
@@ -255,7 +255,7 @@ QVector<T> ensureIsArrayOf(const QJsonObject &parent, const QString &key,
     { \
         return requireIsType<TYPE>(parent, key, what); \
     } \
-    inline TYPE ensure##NAME(const QJsonObject &parent, const QString &key, const TYPE default_ = TYPE(), const QString &what = "__placeholder") \
+    inline TYPE ensure##NAME(const QJsonObject &parent, const QString &key, const TYPE &default_ = TYPE(), const QString &what = "__placeholder") \
     { \
         return ensureIsType<TYPE>(parent, key, default_, what); \
     }

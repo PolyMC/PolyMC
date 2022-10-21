@@ -50,11 +50,11 @@ class ListModel : public QAbstractListModel {
 
    public slots:
     void searchRequestFinished(QJsonDocument& doc);
-    void searchRequestFailed(QString reason);
+    void searchRequestFailed(const QString& reason);
 
     void infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack& pack, const QModelIndex& index);
 
-    void versionRequestSucceeded(QJsonDocument doc, QString addonId, const QModelIndex& index);
+    void versionRequestSucceeded(QJsonDocument doc, const QString& addonId, const QModelIndex& index);
 
    protected slots:
 

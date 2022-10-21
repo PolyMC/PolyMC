@@ -48,7 +48,7 @@ class LaunchController: public Task
 public:
     void executeTask() override;
 
-    LaunchController(QObject * parent = nullptr);
+    explicit LaunchController(QObject * parent = nullptr);
     virtual ~LaunchController(){};
 
     void setInstance(InstancePtr instance) {
@@ -99,7 +99,7 @@ private slots:
     void readyForLaunch();
 
     void onSucceeded();
-    void onFailed(QString reason);
+    void onFailed(const QString& reason);
     void onProgressRequested(Task *task);
 
 private:

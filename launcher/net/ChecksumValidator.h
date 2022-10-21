@@ -43,7 +43,7 @@
 namespace Net {
 class ChecksumValidator : public Validator {
    public:
-    ChecksumValidator(QCryptographicHash::Algorithm algorithm, QByteArray expected = QByteArray())
+    explicit ChecksumValidator(QCryptographicHash::Algorithm algorithm, const QByteArray& expected = QByteArray())
         : m_checksum(algorithm), m_expected(expected){};
     virtual ~ChecksumValidator() = default;
 
@@ -73,7 +73,7 @@ class ChecksumValidator : public Validator {
 
     auto hash() -> QByteArray { return m_checksum.result(); }
 
-    void setExpected(QByteArray expected) { m_expected = expected; }
+    void setExpected(const QByteArray& expected) { m_expected = expected; }
 
    private:
     QCryptographicHash m_checksum;

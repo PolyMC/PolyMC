@@ -70,11 +70,11 @@ class V1 {
     /* Generates the object representing the information in a mod.pw.toml file via
      * its common representation in the launcher, when downloading mods.
      * */
-    static auto createModFormat(QDir& index_dir, ModPlatform::IndexedPack& mod_pack, ModPlatform::IndexedVersion& mod_version) -> Mod;
+    static auto createModFormat(QDir& index_dir, const ModPlatform::IndexedPack& mod_pack, const ModPlatform::IndexedVersion& mod_version) -> Mod;
     /* Generates the object representing the information in a mod.pw.toml file via
      * its common representation in the launcher, plus a necessary slug.
      * */
-    static auto createModFormat(QDir& index_dir, ::Mod& internal_mod, QString slug) -> Mod;
+    static auto createModFormat(QDir& index_dir, ::Mod& internal_mod, const QString& slug) -> Mod;
 
     /* Updates the mod index for the provided mod.
      * This creates a new index if one does not exist already
@@ -86,17 +86,17 @@ class V1 {
     static void deleteModIndex(QDir& index_dir, QString& mod_slug);
 
     /* Deletes the metadata for the mod with the given id. If the metadata doesn't exist, it does nothing. */
-    static void deleteModIndex(QDir& index_dir, QVariant& mod_id);
+    static void deleteModIndex(QDir& index_dir, const QVariant& mod_id);
 
     /* Gets the metadata for a mod with a particular file name.
      * If the mod doesn't have a metadata, it simply returns an empty Mod object.
      * */
-    static auto getIndexForMod(QDir& index_dir, QString slug) -> Mod;
+    static auto getIndexForMod(QDir& index_dir, const QString& slug) -> Mod;
 
     /* Gets the metadata for a mod with a particular id.
      * If the mod doesn't have a metadata, it simply returns an empty Mod object.
      * */
-    static auto getIndexForMod(QDir& index_dir, QVariant& mod_id) -> Mod;
+    static auto getIndexForMod(QDir& index_dir, const QVariant& mod_id) -> Mod;
 };
 
 } // namespace Packwiz

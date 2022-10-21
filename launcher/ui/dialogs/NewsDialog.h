@@ -13,7 +13,7 @@ class NewsDialog : public QDialog {
     Q_OBJECT
 
    public:
-    NewsDialog(QList<NewsEntryPtr> entries, QWidget* parent = nullptr);
+    explicit NewsDialog(QList<NewsEntryPtr> entries, QWidget* parent = nullptr);
     ~NewsDialog();
 
    public slots:

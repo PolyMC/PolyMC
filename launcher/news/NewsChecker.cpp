@@ -40,12 +40,6 @@
 
 #include <QDebug>
 
-NewsChecker::NewsChecker(shared_qobject_ptr<QNetworkAccessManager> network, const QString& feedUrl)
-{
-    m_network = network;
-    m_feedUrl = feedUrl;
-}
-
 void NewsChecker::reloadNews()
 {
     // Start a netjob to download the RSS feed and call rssDownloadFinished() when it's done.

@@ -19,7 +19,7 @@ QString AuthSession::serializeUserProperties()
 
 }
 
-bool AuthSession::MakeOffline(QString offline_playername)
+bool AuthSession::makeOffline(const QString& offline_playername)
 {
     if (status != PlayableOffline && status != PlayableOnline)
     {
@@ -31,7 +31,7 @@ bool AuthSession::MakeOffline(QString offline_playername)
     return true;
 }
 
-void AuthSession::MakeDemo() {
+void AuthSession::makeDemo() {
     player_name = "Player";
     demo = true;
 }

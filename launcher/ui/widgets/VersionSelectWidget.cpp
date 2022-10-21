@@ -46,12 +46,12 @@ void VersionSelectWidget::setCurrentVersion(const QString& version)
     m_proxyModel->setCurrentVersion(version);
 }
 
-void VersionSelectWidget::setEmptyString(QString emptyString)
+void VersionSelectWidget::setEmptyString(const QString& emptyString)
 {
     listView->setEmptyString(emptyString);
 }
 
-void VersionSelectWidget::setEmptyErrorString(QString emptyErrorString)
+void VersionSelectWidget::setEmptyErrorString(const QString& emptyErrorString)
 {
     listView->setEmptyErrorString(emptyErrorString);
 }

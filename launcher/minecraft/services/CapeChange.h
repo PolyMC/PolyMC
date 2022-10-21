@@ -10,7 +10,7 @@ class CapeChange : public Task
 {
     Q_OBJECT
 public:
-    CapeChange(QObject *parent, QString token, QString capeId);
+    CapeChange(QObject *parent, const QString &token, const QString &capeId) : Task(parent), m_capeId(capeId), m_token(token) {}
     virtual ~CapeChange() {}
 
 private:

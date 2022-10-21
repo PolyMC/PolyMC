@@ -5,22 +5,16 @@
 
 #include "Application.h"
 
-LibrariesTask::LibrariesTask(MinecraftInstance * inst)
-{
-    m_inst = inst;
-}
-
 void LibrariesTask::executeTask()
 {
     setStatus(tr("Getting the library files from Mojang..."));
     qDebug() << m_inst->name() << ": downloading libraries";
-    MinecraftInstance *inst = (MinecraftInstance *)m_inst;
 
     // Build a list of URLs that will need to be downloaded.
-    auto components = inst->getPackProfile();
+    auto components = m_inst->getPackProfile();
     auto profile = components->getProfile();
 
-    auto job = new NetJob(tr("Libraries for instance %1").arg(inst->name()), APPLICATION->network());
+    auto job = new NetJob(tr("Libraries for instance %1").arg(m_inst->name()), APPLICATION->network());
     downloadJob.reset(job);
 
     auto metacache = APPLICATION->metacache();
@@ -34,7 +28,7 @@ void LibrariesTask::executeTask()
                 emitFailed(tr("Null jar is specified in the metadata, aborting."));
                 return false;
             }
-            auto dls = lib->getDownloads(inst->runtimeContext(), metacache.get(), errors, localPath);
+            auto dls = lib->getDownloads(m_inst->runtimeContext(), metacache.get(), errors, localPath);
             for(auto dl : dls)
             {
                 downloadJob->addNetAction(dl);
@@ -53,10 +47,10 @@ void LibrariesTask::executeTask()
         libArtifactPool.append(agent->library());
     }
     libArtifactPool.append(profile->getMainJar());
-    processArtifactPool(libArtifactPool, failedLocalLibraries, inst->getLocalLibraryPath());
+    processArtifactPool(libArtifactPool, failedLocalLibraries, m_inst->getLocalLibraryPath());
 
     QStringList failedLocalJarMods;
-    processArtifactPool(profile->getJarMods(), failedLocalJarMods, inst->jarModsDir());
+    processArtifactPool(profile->getJarMods(), failedLocalJarMods, m_inst->jarModsDir());
 
     if (!failedLocalJarMods.empty() || !failedLocalLibraries.empty())
     {
@@ -85,13 +79,8 @@ void LibrariesTask::jarlibFailed(QString reason)
 
 bool LibrariesTask::abort()
 {
-    if(downloadJob)
-    {
+    if (downloadJob)
         return downloadJob->abort();
-    }
-    else
-    {
-        qWarning() << "Prematurely aborted LibrariesTask";
-    }
+    qWarning() << "Prematurely aborted LibrariesTask";
     return true;
 }

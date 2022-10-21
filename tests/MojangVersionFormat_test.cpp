@@ -7,7 +7,7 @@ class MojangVersionFormatTest : public QObject
 {
     Q_OBJECT
 
-    static QJsonDocument readJson(const QString path)
+    static QJsonDocument readJson(const QString& path)
     {
         QFile jsonFile(path);
         jsonFile.open(QIODevice::ReadOnly);

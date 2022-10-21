@@ -56,33 +56,16 @@ void Meta::Version::parse(const QJsonObject& obj)
 
 void Meta::Version::mergeFromList(const Meta::VersionPtr& other)
 {
-    if(other->m_providesRecommendations)
-    {
-        if(m_recommended != other->m_recommended)
-        {
-            setRecommended(other->m_recommended);
-        }
-    }
+    if (other->m_providesRecommendations)
+        setRecommended(other->m_recommended);
     if (m_type != other->m_type)
-    {
         setType(other->m_type);
-    }
     if (m_time != other->m_time)
-    {
         setTime(other->m_time);
-    }
-    if (m_requires != other->m_requires)
-    {
-        m_requires = other->m_requires;
-    }
-    if (m_conflicts != other->m_conflicts)
-    {
-        m_conflicts = other->m_conflicts;
-    }
-    if(m_volatile != other->m_volatile)
-    {
-        setVolatile(other->m_volatile);
-    }
+
+    m_requires = other->m_requires;
+    m_conflicts = other->m_conflicts;
+    setVolatile(other->m_volatile);
 }
 
 void Meta::Version::merge(const VersionPtr &other)

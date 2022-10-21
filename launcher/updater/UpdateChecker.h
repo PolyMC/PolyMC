@@ -28,7 +28,7 @@ class UpdateChecker : public QObject
     Q_OBJECT
 
 public:
-    UpdateChecker(shared_qobject_ptr<QNetworkAccessManager> nam, QString channelUrl, QString currentChannel);
+    UpdateChecker(shared_qobject_ptr<QNetworkAccessManager> nam, const QString& channelUrl, const QString& currentChannel);
     void checkForUpdate(const QString& updateChannel, bool notifyNoUpdate);
 
     /*!

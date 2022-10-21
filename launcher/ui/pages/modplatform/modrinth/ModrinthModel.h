@@ -52,7 +52,7 @@ class ModpackListModel : public QAbstractListModel {
     Q_OBJECT
 
    public:
-    ModpackListModel(ModrinthPage* parent);
+    explicit ModpackListModel(ModrinthPage* parent);
     ~ModpackListModel() override = default;
 
     inline auto rowCount(const QModelIndex& parent) const -> int override { return modpacks.size(); };
@@ -78,7 +78,7 @@ class ModpackListModel : public QAbstractListModel {
 
    public slots:
     void searchRequestFinished(QJsonDocument& doc_all);
-    void searchRequestFailed(QString reason);
+    void searchRequestFailed(const QString& reason);
 
    protected slots:
 

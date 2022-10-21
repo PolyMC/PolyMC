@@ -59,7 +59,7 @@ APIPage::APIPage(QWidget *parent) :
     ui(new Ui::APIPage)
 {
     // This is here so you can reorder the entries in the combobox without messing stuff up
-    int comboBoxEntries[] = {
+    constexpr int comboBoxEntries[] = {
         PasteUpload::PasteType::Mclogs,
         PasteUpload::PasteType::NullPointer,
         PasteUpload::PasteType::PasteGG,

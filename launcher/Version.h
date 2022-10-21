@@ -63,9 +63,8 @@ private:
     QString m_string;
     struct Section
     {
-        explicit Section(const QString &fullString)
+        explicit Section(const QString &fullString) : m_fullString(fullString)
         {
-            m_fullString = fullString;
             int cutoff = m_fullString.size();
             for(int i = 0; i < m_fullString.size(); i++)
             {

@@ -11,7 +11,7 @@ namespace Hashing {
 
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
-Hasher::Ptr createHasher(QString file_path, ModPlatform::Provider provider)
+Hasher::Ptr createHasher(const QString& file_path, ModPlatform::Provider provider)
 {
     switch (provider) {
         case ModPlatform::Provider::MODRINTH:
@@ -25,12 +25,12 @@ Hasher::Ptr createHasher(QString file_path, ModPlatform::Provider provider)
     }
 }
 
-Hasher::Ptr createModrinthHasher(QString file_path)
+Hasher::Ptr createModrinthHasher(const QString& file_path)
 {
     return new ModrinthHasher(file_path);
 }
 
-Hasher::Ptr createFlameHasher(QString file_path)
+Hasher::Ptr createFlameHasher(const QString& file_path)
 {
     return new FlameHasher(file_path);
 }

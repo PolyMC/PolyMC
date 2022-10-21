@@ -126,16 +126,16 @@ public:
     virtual QString modsRoot() const = 0;
 
     QString name() const;
-    void setName(QString val);
+    void setName(const QString& val);
 
     /// Value used for instance window titles
     QString windowTitle() const;
 
     QString iconKey() const;
-    void setIconKey(QString val);
+    void setIconKey(const QString& val);
 
     QString notes() const;
-    void setNotes(QString val);
+    void setNotes(const QString& val);
 
     QString getPreLaunchCommand();
     QString getPostExitCommand();
@@ -148,7 +148,7 @@ public:
     QString getManagedPackVersionID() const;
     QString getManagedPackVersionName() const;
     void setManagedPack(const QString& type, const QString& id, const QString& name, const QString& versionId, const QString& version);
-    void copyManagedPack(BaseInstance& other);
+    void copyManagedPack(const BaseInstance& other);
 
     /// guess log level from a line of game log
     virtual MessageLevel::Enum guessLevel(const QString &line, MessageLevel::Enum level)
@@ -300,10 +300,10 @@ signals:
 
     void runningStatusChanged(bool running);
 
-    void statusChanged(Status from, Status to);
+    void statusChanged(BaseInstance::Status from, BaseInstance::Status to);
 
 protected slots:
-    void iconUpdated(QString key);
+    void iconUpdated(const QString& key);
 
 protected: /* data */
     QString m_rootDir;

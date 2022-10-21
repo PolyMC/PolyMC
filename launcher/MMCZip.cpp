@@ -93,7 +93,7 @@ bool MMCZip::mergeZipFiles(QuaZip *into, QFileInfo from, QSet<QString> &containe
     return true;
 }
 
-bool MMCZip::compressDirFiles(QuaZip *zip, QString dir, QFileInfoList files)
+bool MMCZip::compressDirFiles(QuaZip *zip, const QString &dir, QFileInfoList files)
 {
     QDir directory(dir);
     if (!directory.exists()) return false;
@@ -106,7 +106,7 @@ bool MMCZip::compressDirFiles(QuaZip *zip, QString dir, QFileInfoList files)
     return true;
 }
 
-bool MMCZip::compressDirFiles(QString fileCompressed, QString dir, QFileInfoList files)
+bool MMCZip::compressDirFiles(QString fileCompressed, const QString &dir, QFileInfoList files)
 {
     QuaZip zip(fileCompressed);
     QDir().mkpath(QFileInfo(fileCompressed).absolutePath());
@@ -406,14 +406,14 @@ bool MMCZip::collectFileListRecursively(const QString& rootDir, const QString& s
 
     // recurse directories
     QFileInfoList entries = directory.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Hidden);
-    for (const auto& e: entries) {
+    for (const QFileInfo& e: entries) {
         if (!collectFileListRecursively(rootDir, e.filePath(), files, excludeFilter))
             return false;
     }
 
     // collect files
     entries = directory.entryInfoList(QDir::Files);
-    for (const auto& e: entries) {
+    for (const QFileInfo& e: entries) {
         QString relativeFilePath = rootDirectory.relativeFilePath(e.absoluteFilePath());
         if (excludeFilter && excludeFilter(relativeFilePath)) {
             qDebug() << "Skipping file " << relativeFilePath;

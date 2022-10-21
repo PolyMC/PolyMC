@@ -17,9 +17,8 @@
 #include "Setting.h"
 
 INISettingsObject::INISettingsObject(const QString &path, QObject *parent)
-    : SettingsObject(parent)
+    : SettingsObject(parent), m_filePath(path)
 {
-    m_filePath = path;
     m_ini.loadFile(path);
 }
 

@@ -28,7 +28,7 @@ public:
     class buffer
     {
     public:
-        buffer(size_t unit = 4096)
+        explicit buffer(size_t unit = 4096)
         {
             buf = hoedown_buffer_new(unit);
         }
@@ -42,7 +42,7 @@ public:
         }
         void put(QByteArray input)
         {
-            hoedown_buffer_put(buf, (uint8_t *) input.data(), input.size());
+            hoedown_buffer_put(buf, reinterpret_cast<uint8_t *>(input.data()), input.size());
         }
         const uint8_t * data() const
         {
@@ -64,7 +64,7 @@ public:
         hoedown_document_free(document);
         hoedown_html_renderer_free(renderer);
     }
-    QString process(QByteArray input)
+    QString process(const QByteArray & input)
     {
         ib.put(input);
         hoedown_document_render(document, ob.buf, ib.data(), ib.size());

@@ -84,16 +84,10 @@ bool processFileLists
         }
         bool keep = false;
 
-        //
-        for (VersionFileEntry newEntry : newVersion)
+        if (std::any_of(newVersion.cbegin(), newVersion.cend(), [&entry](const VersionFileEntry& newEntry) { return newEntry.path == entry.path; }))
         {
-            if (newEntry.path == entry.path)
-            {
-                qDebug() << "Not deleting" << entry.path
-                             << "because it is still present in the new version.";
-                keep = true;
-                break;
-            }
+            qDebug() << "Not deleting" << entry.path << "because it is still present in the new version.";
+            keep = true;
         }
 
         // If the loop reaches the end and we didn't find a match, delete the file.
@@ -109,7 +103,6 @@ bool processFileLists
     {
         // TODO: Let's not MD5sum a ton of files on the GUI thread. We should probably find a
         // way to do this in the background.
-        QString fileMD5;
         QString realEntryPath = FS::PathCombine(rootPath, entry.path);
         QFile entryFile(realEntryPath);
         QFileInfo entryInfo(realEntryPath);
@@ -150,7 +143,7 @@ bool processFileLists
             auto foo = entryFile.readAll();
 
             hash.addData(foo);
-            fileMD5 = hash.result().toHex();
+            QString fileMD5 = hash.result().toHex();
             if ((fileMD5 != entry.md5))
             {
                 qDebug() << "MD5Sum does not match!";

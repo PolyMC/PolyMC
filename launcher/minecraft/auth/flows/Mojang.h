@@ -7,7 +7,7 @@ class MojangRefresh : public AuthFlow
 public:
     explicit MojangRefresh(
         AccountData *data,
-        QObject *parent = 0
+        QObject *parent = nullptr
     );
 };
 
@@ -17,8 +17,8 @@ class MojangLogin : public AuthFlow
 public:
     explicit MojangLogin(
         AccountData *data,
-        QString password,
-        QObject *parent = 0
+        const QString &password,
+        QObject *parent = nullptr
     );
 
 private:

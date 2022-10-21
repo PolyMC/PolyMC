@@ -8,15 +8,10 @@
 #include "BuildConfig.h"
 #include "Application.h"
 
-FMLLibrariesTask::FMLLibrariesTask(MinecraftInstance * inst)
-{
-    m_inst = inst;
-}
 void FMLLibrariesTask::executeTask()
 {
     // Get the mod list
-    MinecraftInstance *inst = (MinecraftInstance *)m_inst;
-    auto components = inst->getPackProfile();
+    auto components = m_inst->getPackProfile();
     auto profile = components->getProfile();
 
     if (!profile->hasTrait("legacyFML"))
@@ -46,7 +41,7 @@ void FMLLibrariesTask::executeTask()
     // now check the lib folder inside the instance for files.
     for (auto &lib : libList)
     {
-        QFileInfo libInfo(FS::PathCombine(inst->libDir(), lib.filename));
+        QFileInfo libInfo(FS::PathCombine(m_inst->libDir(), lib.filename));
         if (libInfo.exists())
             continue;
         fmlLibsToProcess.append(lib);
@@ -90,20 +85,19 @@ void FMLLibrariesTask::fmllibsFinished()
     if (!fmlLibsToProcess.isEmpty())
     {
         setStatus(tr("Copying FML libraries into the instance..."));
-        MinecraftInstance *inst = (MinecraftInstance *)m_inst;
         auto metacache = APPLICATION->metacache();
         int index = 0;
         for (auto &lib : fmlLibsToProcess)
         {
             progress(index, fmlLibsToProcess.size());
             auto entry = metacache->resolveEntry("fmllibs", lib.filename);
-            auto path = FS::PathCombine(inst->libDir(), lib.filename);
+            auto path = FS::PathCombine(m_inst->libDir(), lib.filename);
             if (!FS::ensureFilePathExists(path))
             {
                 emitFailed(tr("Failed creating FML library folder inside the instance."));
                 return;
             }
-            if (!QFile::copy(entry->getFullPath(), FS::PathCombine(inst->libDir(), lib.filename)))
+            if (!QFile::copy(entry->getFullPath(), FS::PathCombine(m_inst->libDir(), lib.filename)))
             {
                 emitFailed(tr("Failed copying Forge/FML library: %1.").arg(lib.filename));
                 return;
@@ -123,13 +117,8 @@ void FMLLibrariesTask::fmllibsFailed(QString reason)
 
 bool FMLLibrariesTask::abort()
 {
-    if(downloadJob)
-    {
+    if (downloadJob)
         return downloadJob->abort();
-    }
-    else
-    {
-        qWarning() << "Prematurely aborted FMLLibrariesTask";
-    }
+    qWarning() << "Prematurely aborted FMLLibrariesTask";
     return true;
 }

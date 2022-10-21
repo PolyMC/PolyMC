@@ -62,16 +62,9 @@ struct Server
     };
 
     // Methods
-    Server()
-    {
-        m_name = QObject::tr("Minecraft Server");
-    }
-    Server(const QString & name, const QString & address)
-    {
-        m_name = name;
-        m_address = address;
-    }
-    Server(nbt::tag_compound& server)
+    Server() : m_name(QObject::tr("Minecraft Server")) {}
+    Server(const QString & name, const QString & address) : m_name(name), m_address(address) {}
+    explicit Server(nbt::tag_compound& server)
     {
         std::string addressStr(server["ip"]);
         m_address = QString::fromUtf8(addressStr.c_str());
@@ -181,9 +174,8 @@ public:
         ServerPtrRole = Qt::UserRole,
     };
     explicit ServersModel(const QString &path, QObject *parent = 0)
-        : QAbstractListModel(parent)
+        : QAbstractListModel(parent), m_path(path)
     {
-        m_path = path;
         m_watcher = new QFileSystemWatcher(this);
         connect(m_watcher, &QFileSystemWatcher::fileChanged, this, &ServersModel::fileChanged);
         connect(m_watcher, &QFileSystemWatcher::directoryChanged, this, &ServersModel::dirChanged);
@@ -699,12 +691,12 @@ void ServersPage::currentChanged(const QModelIndex &current, const QModelIndex &
 // WARNING: this is here because currentChanged is not accurate when removing rows. the current item needs to be fixed up after removal.
 void ServersPage::rowsRemoved(const QModelIndex& parent, int first, int last)
 {
-    if(currentServer < first)
+    if (currentServer < first)
     {
         // current was before the removal
         return;
     }
-    else if(currentServer >= first && currentServer <= last)
+    else if (currentServer <= last)
     {
         // current got removed...
         return;

@@ -56,10 +56,7 @@ class PackIgnoreProxy : public QSortFilterProxyModel
     Q_OBJECT
 
 public:
-    PackIgnoreProxy(InstancePtr instance, QObject *parent) : QSortFilterProxyModel(parent)
-    {
-        m_instance = instance;
-    }
+    PackIgnoreProxy(InstancePtr instance, QObject *parent) : QSortFilterProxyModel(parent), m_instance(instance) {}
     // NOTE: Sadly, we have to do sorting ourselves.
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const
     {
@@ -362,7 +359,7 @@ void SaveIcon(InstancePtr m_instance)
 {
     auto iconKey = m_instance->iconKey();
     auto iconList = APPLICATION->icons();
-    auto mmcIcon = iconList->icon(iconKey);
+    auto mmcIcon = iconList->getMMCIcon(iconKey);
     if(!mmcIcon || mmcIcon->isBuiltIn()) {
         return;
     }

@@ -45,7 +45,7 @@ namespace FS {
 
 class FileSystemException : public ::Exception {
    public:
-    FileSystemException(const QString& message) : Exception(message) {}
+    explicit FileSystemException(const QString& message) : Exception(message) {}
 };
 
 /**

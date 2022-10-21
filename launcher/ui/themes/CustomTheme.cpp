@@ -124,9 +124,8 @@ static bool writeThemeJson(const QString &path, const QPalette &palette, double 
     }
 }
 
-CustomTheme::CustomTheme(ITheme* baseTheme, QString folder)
+CustomTheme::CustomTheme(ITheme* baseTheme, const QString& folder) : m_id(folder)
 {
-    m_id = folder;
     QString path = FS::PathCombine("themes", m_id);
     QString pathResources = FS::PathCombine("themes", m_id, "resources");
 

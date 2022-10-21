@@ -88,7 +88,7 @@ QString LogModel::toPlainText()
     out.reserve(m_numLines * 80);
     for(int i = 0; i < m_numLines; i++)
     {
-        QString & line = m_content[(m_firstLine + i) % m_maxLines].line;
+        const QString & line = m_content[(m_firstLine + i) % m_maxLines].line;
         out.append(line + '\n');
     }
     out.squeeze();
@@ -155,10 +155,7 @@ void LogModel::setOverflowMessage(const QString& overflowMessage)
 
 void LogModel::setLineWrap(bool state)
 {
-    if(m_lineWrap != state)
-    {
-        m_lineWrap = state;
-    }
+    m_lineWrap = state;
 }
 
 bool LogModel::wrapLines() const

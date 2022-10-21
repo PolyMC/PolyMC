@@ -83,11 +83,7 @@ signals:
 class ThumbnailRunnable : public QRunnable
 {
 public:
-    ThumbnailRunnable(QString path, SharedIconCachePtr cache)
-    {
-        m_path = path;
-        m_cache = cache;
-    }
+    ThumbnailRunnable(const QString &path, SharedIconCachePtr cache) : m_path(path), m_cache(cache) {}
     void run()
     {
         QFileInfo info(m_path);
@@ -174,7 +170,7 @@ public:
             }
             if (!m_failed.contains(filePath))
             {
-                ((FilterModel *)this)->thumbnailImage(filePath);
+                const_cast<FilterModel*>(this)->thumbnailImage(filePath);
             }
             return (m_thumbnailCache->get("placeholder"));
         }
@@ -191,14 +187,14 @@ public:
         // FIXME: this is a workaround for a bug in QFileSystemModel, where it doesn't
         // sort after renames
         {
-            ((QFileSystemModel *)model)->setNameFilterDisables(true);
-            ((QFileSystemModel *)model)->setNameFilterDisables(false);
+            static_cast<QFileSystemModel*>(model)->setNameFilterDisables(true);
+            static_cast<QFileSystemModel*>(model)->setNameFilterDisables(false);
         }
         return model->setData(mapToSource(index), value.toString() + ".png", role);
     }
 
 private:
-    void thumbnailImage(QString path)
+    void thumbnailImage(const QString& path)
     {
         auto runnable = new ThumbnailRunnable(path, m_thumbnailCache);
         connect(&(runnable->m_resultEmitter), SIGNAL(resultsReady(QString)),
@@ -208,7 +204,7 @@ private:
         ((QThreadPool &)m_thumbnailingPool).start(runnable);
     }
 private slots:
-    void thumbnailReady(QString path) { emit layoutChanged(); }
+    void thumbnailReady(const QString& path) { emit layoutChanged(); }
     void thumbnailFailed(QString path) { m_failed.insert(path); }
     void fileChanged(QString filepath)
     {
@@ -247,7 +243,7 @@ public:
     }
 };
 
-ScreenshotsPage::ScreenshotsPage(QString path, QWidget *parent)
+ScreenshotsPage::ScreenshotsPage(const QString &path, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::ScreenshotsPage)
 {
     m_model.reset(new QFileSystemModel());
@@ -340,8 +336,7 @@ void ScreenshotsPage::onItemActivated(QModelIndex index)
 {
     if (!index.isValid())
         return;
-    auto info = m_model->fileInfo(index);
-    QString fileName = info.absoluteFilePath();
+    QFileInfo info = m_model->fileInfo(index);
     DesktopServices::openFile(info.absoluteFilePath());
 }
 

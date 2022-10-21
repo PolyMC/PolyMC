@@ -9,7 +9,8 @@ class QWidget;
 class UpdateController
 {
 public:
-    UpdateController(QWidget * parent, const QString &root, const QString updateFilesDir, GoUpdate::OperationList operations);
+    UpdateController(QWidget * parent, const QString &root, const QString &updateFilesDir, const GoUpdate::OperationList &operations)
+        : m_root(root), m_updateFilesDir(updateFilesDir), m_operations(operations), m_parent(parent) {}
     void installUpdates();
 
 private:

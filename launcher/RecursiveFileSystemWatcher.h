@@ -8,7 +8,7 @@ class RecursiveFileSystemWatcher : public QObject
 {
     Q_OBJECT
 public:
-    RecursiveFileSystemWatcher(QObject *parent);
+    explicit RecursiveFileSystemWatcher(QObject *parent);
 
     void setRootDir(const QDir &root);
     QDir rootDir() const

@@ -53,14 +53,14 @@ private slots:
     void checkFinished(
         QNetworkReply::NetworkError error,
         QByteArray data,
-        QList<QNetworkReply::RawHeaderPair> headers
+        const QList<QNetworkReply::RawHeaderPair>& headers
     );
     void startCheck();
 
     void setupProfileFinished(
         QNetworkReply::NetworkError error,
         QByteArray data,
-        QList<QNetworkReply::RawHeaderPair> headers
+        const QList<QNetworkReply::RawHeaderPair>& headers
     );
 protected:
     void scheduleCheck(const QString &name);

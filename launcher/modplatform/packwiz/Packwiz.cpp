@@ -35,7 +35,7 @@ auto getRealIndexName(QDir& index_dir, QString normalized_fname, bool should_fin
     QString real_fname = normalized_fname;
     if (!index_file.exists()) {
         // Tries to get similar entries
-        for (auto& file_name : index_dir.entryList(QDir::Filter::Files)) {
+        for (const auto& file_name : index_dir.entryList(QDir::Filter::Files)) {
             if (!QString::compare(normalized_fname, file_name, Qt::CaseInsensitive)) {
                 real_fname = file_name;
                 break;
@@ -63,7 +63,7 @@ static inline auto indexFileName(QString const& mod_slug) -> QString
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
 // Helper functions for extracting data from the TOML file
-auto stringEntry(toml::table table, const std::string entry_name) -> QString
+auto stringEntry(toml::table table, const std::string& entry_name) -> QString
 {
     auto node = table[entry_name];
     if (!node) {
@@ -74,7 +74,7 @@ auto stringEntry(toml::table table, const std::string entry_name) -> QString
     return QString::fromStdString(node.value_or(""));
 }
 
-auto intEntry(toml::table table, const std::string entry_name) -> int
+auto intEntry(toml::table table, const std::string& entry_name) -> int
 {
     auto node = table[entry_name];
     if (!node) {
@@ -85,7 +85,7 @@ auto intEntry(toml::table table, const std::string entry_name) -> int
     return node.value_or(0);
 }
 
-auto V1::createModFormat(QDir& index_dir, ModPlatform::IndexedPack& mod_pack, ModPlatform::IndexedVersion& mod_version) -> Mod
+auto V1::createModFormat(QDir& index_dir, const ModPlatform::IndexedPack& mod_pack, const ModPlatform::IndexedVersion& mod_version) -> Mod
 {
     Mod mod;
 
@@ -110,7 +110,7 @@ auto V1::createModFormat(QDir& index_dir, ModPlatform::IndexedPack& mod_pack, Mo
     return mod;
 }
 
-auto V1::createModFormat(QDir& index_dir, ::Mod& internal_mod, QString slug) -> Mod
+auto V1::createModFormat(QDir& index_dir, ::Mod& internal_mod, const QString& slug) -> Mod
 {
     // Try getting metadata if it exists
     Mod mod{ getIndexForMod(index_dir, slug) };
@@ -204,9 +204,9 @@ void V1::deleteModIndex(QDir& index_dir, QString& mod_slug)
     }
 }
 
-void V1::deleteModIndex(QDir& index_dir, QVariant& mod_id)
+void V1::deleteModIndex(QDir& index_dir, const QVariant& mod_id)
 {
-    for (auto& file_name : index_dir.entryList(QDir::Filter::Files)) {
+    for (const auto& file_name : index_dir.entryList(QDir::Filter::Files)) {
         auto mod = getIndexForMod(index_dir, file_name);
 
         if (mod.mod_id() == mod_id) {
@@ -216,7 +216,7 @@ void V1::deleteModIndex(QDir& index_dir, QVariant& mod_id)
     }
 }
 
-auto V1::getIndexForMod(QDir& index_dir, QString slug) -> Mod
+auto V1::getIndexForMod(QDir& index_dir, const QString& slug) -> Mod
 {
     Mod mod;
 
@@ -293,9 +293,9 @@ auto V1::getIndexForMod(QDir& index_dir, QString slug) -> Mod
     return mod;
 }
 
-auto V1::getIndexForMod(QDir& index_dir, QVariant& mod_id) -> Mod
+auto V1::getIndexForMod(QDir& index_dir, const QVariant& mod_id) -> Mod
 {
-    for (auto& file_name : index_dir.entryList(QDir::Filter::Files)) {
+    for (const auto& file_name : index_dir.entryList(QDir::Filter::Files)) {
         auto mod = getIndexForMod(index_dir, file_name);
 
         if (mod.mod_id() == mod_id)

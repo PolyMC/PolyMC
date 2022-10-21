@@ -50,7 +50,7 @@ struct MMCIcon
     bool has(IconType _type) const;
     QIcon icon() const;
     void remove(IconType rm_type);
-    void replace(IconType new_type, QIcon icon, QString path = QString());
+    void replace(IconType new_type, QIcon icon, const QString &path = QString());
     void replace(IconType new_type, const QString &key);
     bool isBuiltIn() const;
     QString getFilePath() const;

@@ -102,7 +102,7 @@ public:
     void saveNow();
 
     /* O(n) */
-    InstancePtr getInstanceById(QString id) const;
+    InstancePtr getInstanceById(const QString& id) const;
     /* O(n) */
     InstancePtr getInstanceByManagedName(const QString& managed_name) const;
     QModelIndex getInstanceIndexById(const QString &id) const;

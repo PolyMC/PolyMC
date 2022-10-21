@@ -10,7 +10,7 @@ namespace Parsers
     bool getNumber(QJsonValue value, int64_t & out);
     bool getBool(QJsonValue value, bool & out);
 
-    bool parseXTokenResponse(QByteArray &data, Katabasis::Token &output, QString name);
+    bool parseXTokenResponse(QByteArray &data, Katabasis::Token &output, const QString& name);
     bool parseMojangResponse(QByteArray &data, Katabasis::Token &output);
 
     bool parseMinecraftProfile(QByteArray &data, MinecraftProfile &output);

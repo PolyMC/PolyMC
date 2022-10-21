@@ -8,7 +8,7 @@ class FSTreeMatcher : public IPathMatcher
 {
 public:
     virtual ~FSTreeMatcher() {};
-    FSTreeMatcher(SeparatorPrefixTree<'/'> & tree) : m_fsTree(tree)
+    explicit FSTreeMatcher(SeparatorPrefixTree<'/'> & tree) : m_fsTree(tree)
     {
     }
 

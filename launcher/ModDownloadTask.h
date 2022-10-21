@@ -30,7 +30,7 @@ class ModFolderModel;
 class ModDownloadTask : public SequentialTask {
     Q_OBJECT
 public:
-    explicit ModDownloadTask(ModPlatform::IndexedPack mod, ModPlatform::IndexedVersion version, const std::shared_ptr<ModFolderModel> mods, bool is_indexed = true);
+    explicit ModDownloadTask(const ModPlatform::IndexedPack& mod, const ModPlatform::IndexedVersion& version, const std::shared_ptr<ModFolderModel> mods, bool is_indexed = true);
     const QString& getFilename() const { return m_mod_version.fileName; }
 
 private:
@@ -43,7 +43,7 @@ private:
 
     void downloadProgressChanged(qint64 current, qint64 total);
 
-    void downloadFailed(QString reason);
+    void downloadFailed(const QString& reason);
 
     void downloadSucceeded();
 

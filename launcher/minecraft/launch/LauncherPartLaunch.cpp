@@ -139,7 +139,7 @@ void LauncherPartLaunch::executeTask()
     args << "-cp";
 #ifdef Q_OS_WIN
     QStringList processed;
-    for(auto & item: classPath)
+    for(const auto & item: classPath)
     {
         if (!fitsInLocal8bit(item))
         {

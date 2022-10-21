@@ -85,7 +85,7 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
     qDebug() << "Finished with blocked mods : " << blockedProjects.size();
 
     for (auto it = blockedProjects.keyBegin(); it != blockedProjects.keyEnd(); it++) {
-        auto &out = *it;
+        const auto &out = *it;
         auto bytes = blockedProjects[out];
         if (!out->resolved) {
             delete bytes;

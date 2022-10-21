@@ -66,7 +66,6 @@ public:
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
     {
-        const QString pattern = filterRegularExpression().pattern();
         const auto model = static_cast<PageModel *>(sourceModel());
         const auto page = model->pages().at(sourceRow);
         if (!page->shouldDisplay())
@@ -76,7 +75,7 @@ protected:
     }
 };
 
-PageContainer::PageContainer(BasePageProvider *pageProvider, QString defaultId,
+PageContainer::PageContainer(BasePageProvider *pageProvider, const QString& defaultId,
                              QWidget *parent)
     : QWidget(parent)
 {
@@ -116,6 +115,8 @@ bool PageContainer::selectPage(QString pageId)
     QModelIndex index;
     if (page)
     {
+        qDebug() << page->listIndex;
+        qDebug() << m_model->index(page->listIndex);
         index = m_proxyModel->mapFromSource(m_model->index(page->listIndex));
     }
     if(!index.isValid())
@@ -269,12 +270,8 @@ bool PageContainer::prepareToClose()
 
 bool PageContainer::saveAll()
 {
-    for (auto page : m_model->pages())
-    {
-        if (!page->apply())
-            return false;
-    }
-    return true;
+    const QList<BasePage*>& pages = m_model->pages();
+    return std::any_of(pages.cbegin(), pages.cend(), [](BasePage* page) { return page->apply(); });
 }
 
 void PageContainer::changeEvent(QEvent* event)

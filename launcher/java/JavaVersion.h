@@ -15,7 +15,7 @@ class JavaVersion
     friend class JavaVersionTest;
 public:
     JavaVersion() {};
-    JavaVersion(const QString & rhs);
+    explicit JavaVersion(const QString & rhs);
 
     JavaVersion & operator=(const QString & rhs);
 
@@ -27,15 +27,15 @@ public:
 
     QString toString();
 
-    int major()
+    int major() const
     {
         return m_major;
     }
-    int minor()
+    int minor() const
     {
         return m_minor;
     }
-    int security()
+    int security() const
     {
         return m_security;
     }

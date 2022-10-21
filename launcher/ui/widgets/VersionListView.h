@@ -21,7 +21,7 @@ class VersionListView : public QTreeView
     Q_OBJECT
 public:
 
-    explicit VersionListView(QWidget *parent = 0);
+    explicit VersionListView(QWidget *parent = nullptr) : QTreeView ( parent ), m_emptyString(tr("No versions are currently available.")) {}
     virtual void paintEvent(QPaintEvent *event) override;
     virtual void setModel(QAbstractItemModel* model) override;
 
@@ -32,8 +32,8 @@ public:
         ErrorString
     };
 
-    void setEmptyString(QString emptyString);
-    void setEmptyErrorString(QString emptyErrorString);
+    void setEmptyString(const QString& emptyString);
+    void setEmptyErrorString(const QString& emptyErrorString);
     void setEmptyMode(EmptyMode mode);
 
 public slots:

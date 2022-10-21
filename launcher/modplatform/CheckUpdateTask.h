@@ -25,7 +25,7 @@ class CheckUpdateTask : public Task {
         ModDownloadTask* download;
 
        public:
-        UpdatableMod(QString name, QString old_h, QString old_v, QString new_v, QString changelog, ModPlatform::Provider p, ModDownloadTask* t)
+        UpdatableMod(const QString & name, const QString & old_h, const QString & old_v, const QString & new_v, const QString & changelog, ModPlatform::Provider p, ModDownloadTask* t)
             : name(name), old_hash(old_h), old_version(old_v), new_version(new_v), changelog(changelog), provider(p), download(t)
         {}
     };

@@ -7,12 +7,7 @@
 class ColorCache
 {
 public:
-    ColorCache(QColor front, QColor back, qreal bias)
-    {
-        m_front = front;
-        m_back = back;
-        m_bias = bias;
-    };
+    ColorCache(QColor front, QColor back, qreal bias) : m_bias(bias), m_front(front), m_back(back) {}
 
     void addColor(int key, QColor color)
     {

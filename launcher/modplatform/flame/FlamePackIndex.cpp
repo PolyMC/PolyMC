@@ -73,7 +73,7 @@ void Flame::loadIndexedInfo(IndexedPack& pack, QJsonObject& obj)
 
 }
 
-void Flame::loadIndexedPackVersions(Flame::IndexedPack& pack, QJsonArray& arr)
+void Flame::loadIndexedPackVersions(Flame::IndexedPack& pack, const QJsonArray& arr)
 {
     QVector<Flame::IndexedVersion> unsortedVersions;
     for (auto versionIter : arr) {

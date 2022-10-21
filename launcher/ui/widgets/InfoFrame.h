@@ -30,11 +30,11 @@ class InfoFrame : public QFrame {
     Q_OBJECT
 
    public:
-    InfoFrame(QWidget* parent = nullptr);
+    explicit InfoFrame(QWidget* parent = nullptr);
     ~InfoFrame() override;
 
     void setName(QString text = {});
-    void setDescription(QString text = {});
+    void setDescription(const QString& text = {});
     void setImage(QPixmap img = {});
 
     void clear();
@@ -47,7 +47,7 @@ class InfoFrame : public QFrame {
     static QString renderColorCodes(QString input);
 
    public slots:
-    void descriptionEllipsisHandler(QString link);
+    void descriptionEllipsisHandler(const QString& link);
     void boxClosed(int result);
 
    private:

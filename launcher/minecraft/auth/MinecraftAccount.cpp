@@ -129,7 +129,7 @@ QPixmap MinecraftAccount::getFace() const {
 }
 
 
-shared_qobject_ptr<AccountTask> MinecraftAccount::login(QString password) {
+shared_qobject_ptr<AccountTask> MinecraftAccount::login(const QString& password) {
     Q_ASSERT(m_currentTask.get() == nullptr);
 
     m_currentTask.reset(new MojangLogin(&data, password));
@@ -196,7 +196,7 @@ void MinecraftAccount::authSucceeded()
     emit activityChanged(false);
 }
 
-void MinecraftAccount::authFailed(QString reason)
+void MinecraftAccount::authFailed(const QString& reason)
 {
     switch (m_currentTask->taskState()) {
         case AccountTaskState::STATE_OFFLINE:

@@ -320,7 +320,7 @@ void TechnicPage::onSolderLoaded() {
     metadataLoaded();
 }
 
-void TechnicPage::onVersionSelectionChanged(QString data) {
+void TechnicPage::onVersionSelectionChanged(const QString& data) {
     if (data.isNull() || data.isEmpty()) {
         selectedVersion = "";
         return;

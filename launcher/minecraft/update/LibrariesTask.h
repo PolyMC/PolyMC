@@ -7,7 +7,7 @@ class LibrariesTask : public Task
 {
     Q_OBJECT
 public:
-    LibrariesTask(MinecraftInstance * inst);
+    explicit LibrariesTask(MinecraftInstance * inst) : m_inst(inst) {}
     virtual ~LibrariesTask() {};
 
     void executeTask() override;

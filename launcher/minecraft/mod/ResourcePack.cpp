@@ -29,7 +29,7 @@ void ResourcePack::setPackFormat(int new_format_id)
     m_pack_format = new_format_id;
 }
 
-void ResourcePack::setDescription(QString new_description)
+void ResourcePack::setDescription(const QString &new_description)
 {
     QMutexLocker locker(&m_data_lock);
 

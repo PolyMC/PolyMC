@@ -468,7 +468,7 @@ bool PackProfile::remove(const int index)
     return true;
 }
 
-bool PackProfile::remove(const QString id)
+bool PackProfile::remove(const QString & id)
 {
     int i = 0;
     for (auto patch : d->components)
@@ -728,12 +728,12 @@ void PackProfile::invalidateLaunchProfile()
     d->m_profile.reset();
 }
 
-void PackProfile::installJarMods(QStringList selectedFiles)
+void PackProfile::installJarMods(const QStringList& selectedFiles)
 {
     installJarMods_internal(selectedFiles);
 }
 
-void PackProfile::installCustomJar(QString selectedFile)
+void PackProfile::installCustomJar(const QString& selectedFile)
 {
     installCustomJar_internal(selectedFile);
 }

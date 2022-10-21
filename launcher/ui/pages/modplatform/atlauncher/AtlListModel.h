@@ -32,7 +32,7 @@ class ListModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    ListModel(QObject *parent);
+    explicit ListModel(QObject *parent);
     virtual ~ListModel();
 
     int rowCount(const QModelIndex &parent) const override;
@@ -45,7 +45,7 @@ public:
 
 private slots:
     void requestFinished();
-    void requestFailed(QString reason);
+    void requestFailed(const QString &reason);
 
     void logoFailed(QString logo);
     void logoLoaded(QString logo, QIcon out);

@@ -8,7 +8,7 @@
 #include "minecraft/auth/Parsers.h"
 #include "net/NetUtils.h"
 
-XboxAuthorizationStep::XboxAuthorizationStep(AccountData* data, Katabasis::Token *token, QString relyingParty, QString authorizationKind):
+XboxAuthorizationStep::XboxAuthorizationStep(AccountData* data, Katabasis::Token *token, const QString &relyingParty, const QString &authorizationKind):
     AuthStep(data),
     m_token(token),
     m_relyingParty(relyingParty),

@@ -68,7 +68,7 @@ void PackFetchTask::fetchPrivate(const QStringList & toFetch)
 {
     QString privatePackBaseUrl = BuildConfig.LEGACY_FTB_CDN_BASE_URL + "static/%1.xml";
 
-    for (auto &packCode: toFetch)
+    for (const QString &packCode: toFetch)
     {
         QByteArray *data = new QByteArray();
         NetJob *job = new NetJob("Fetching private pack", m_network);
@@ -90,7 +90,7 @@ void PackFetchTask::fetchPrivate(const QStringList & toFetch)
             delete data;
         });
 
-        QObject::connect(job, &NetJob::failed, this, [this, job, packCode, data](QString reason)
+        QObject::connect(job, &NetJob::failed, this, [this, job, packCode, data](const QString& reason)
         {
             emit privateFileDownloadFailed(reason, packCode);
             job->deleteLater();
@@ -207,7 +207,7 @@ bool PackFetchTask::parseAndAddPacks(QByteArray &data, PackType packType, Modpac
     return true;
 }
 
-void PackFetchTask::fileDownloadFailed(QString reason)
+void PackFetchTask::fileDownloadFailed(const QString& reason)
 {
     qWarning() << "Fetching FTBPacks failed:" << reason;
     emit failed(reason);

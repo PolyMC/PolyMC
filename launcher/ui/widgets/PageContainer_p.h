@@ -19,6 +19,7 @@
 #include <QStyledItemDelegate>
 #include <QEvent>
 #include <QScrollBar>
+#include "ui/pages/BasePage.h"
 
 class BasePage;
 const int pageIconSize = 24;
@@ -26,9 +27,7 @@ const int pageIconSize = 24;
 class PageViewDelegate : public QStyledItemDelegate
 {
 public:
-    PageViewDelegate(QObject *parent) : QStyledItemDelegate(parent)
-    {
-    }
+    explicit PageViewDelegate(QObject *parent) : QStyledItemDelegate(parent) {}
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
     {
         QSize size = QStyledItemDelegate::sizeHint(option, index);
@@ -40,7 +39,7 @@ public:
 class PageModel : public QAbstractListModel
 {
 public:
-    PageModel(QObject *parent = 0) : QAbstractListModel(parent)
+    explicit PageModel(QObject *parent = nullptr) : QAbstractListModel(parent)
     {
         QPixmap empty(pageIconSize, pageIconSize);
         empty.fill(Qt::transparent);
@@ -81,14 +80,10 @@ public:
         return m_pages;
     }
 
-    BasePage * findPageEntryById(QString id)
+    BasePage * findPageEntryById(const QString& id)
     {
-        for(auto page: m_pages)
-        {
-            if (page->id() == id)
-                return page;
-        }
-        return nullptr;
+        auto it = std::find_if(m_pages.cbegin(), m_pages.cend(), [&id](BasePage* page) { return page->id() == id; });
+        return it != m_pages.cend() ? *it : nullptr;
     }
 
     QList<BasePage *> m_pages;
@@ -98,7 +93,7 @@ public:
 class PageView : public QListView
 {
 public:
-    PageView(QWidget *parent = 0) : QListView(parent)
+    explicit PageView(QWidget *parent = nullptr) : QListView(parent)
     {
         setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
         setItemDelegate(new PageViewDelegate(this));

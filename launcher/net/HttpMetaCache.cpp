@@ -50,7 +50,7 @@ auto MetaEntry::getFullPath() -> QString
     return FS::PathCombine(basePath, relativePath);
 }
 
-HttpMetaCache::HttpMetaCache(QString path) : QObject(), m_index_file(path)
+HttpMetaCache::HttpMetaCache(const QString& path) : QObject(), m_index_file(path)
 {
     saveBatchingTimer.setSingleShot(true);
     saveBatchingTimer.setTimerType(Qt::VeryCoarseTimer);
@@ -80,7 +80,7 @@ auto HttpMetaCache::getEntry(QString base, QString resource_path) -> MetaEntryPt
     return {};
 }
 
-auto HttpMetaCache::resolveEntry(QString base, QString resource_path, QString expected_etag) -> MetaEntryPtr
+auto HttpMetaCache::resolveEntry(QString base, QString resource_path, const QString& expected_etag) -> MetaEntryPtr
 {
     auto entry = getEntry(base, resource_path);
     // it's not present? generate a default stale entry
@@ -162,7 +162,7 @@ auto HttpMetaCache::evictEntry(MetaEntryPtr entry) -> bool
     return true;
 }
 
-auto HttpMetaCache::staleEntry(QString base, QString resource_path) -> MetaEntryPtr
+auto HttpMetaCache::staleEntry(const QString& base, const QString& resource_path) -> MetaEntryPtr
 {
     auto foo = new MetaEntry();
     foo->baseId = base;
@@ -173,7 +173,7 @@ auto HttpMetaCache::staleEntry(QString base, QString resource_path) -> MetaEntry
     return MetaEntryPtr(foo);
 }
 
-void HttpMetaCache::addBase(QString base, QString base_root)
+void HttpMetaCache::addBase(QString base, const QString& base_root)
 {
     // TODO: report error
     if (m_entries.contains(base))

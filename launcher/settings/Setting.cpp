@@ -16,11 +16,6 @@
 #include "Setting.h"
 #include "settings/SettingsObject.h"
 
-Setting::Setting(QStringList synonyms, QVariant defVal)
-    : QObject(), m_synonyms(synonyms), m_defVal(defVal)
-{
-}
-
 QVariant Setting::get() const
 {
     SettingsObject *sbase = m_storage;

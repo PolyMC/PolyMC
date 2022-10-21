@@ -80,7 +80,7 @@ class ModPage : public QWidget, public BasePage {
     virtual void filterMods();
     void triggerSearch();
     void onSelectionChanged(QModelIndex first, QModelIndex second);
-    void onVersionSelectionChanged(QString data);
+    void onVersionSelectionChanged(const QString& data);
     void onModSelected();
 
    protected:

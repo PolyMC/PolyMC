@@ -211,7 +211,7 @@ void LaunchController::login() {
                         usedname = name;
                         APPLICATION->settings()->set("LastOfflinePlayerName", usedname);
                     }
-                    m_session->MakeOffline(usedname);
+                    m_session->makeOffline(usedname);
                     // offline flavored game from here :3
                 }
                 if(m_accountToUse->ownsMinecraft()) {
@@ -246,7 +246,7 @@ void LaunchController::login() {
                     box.exec();
                     if(box.clickedButton() == demoButton) {
                         // play demo here
-                        m_session->MakeDemo();
+                        m_session->makeDemo();
                         launchInstance();
                     }
                     else {
@@ -437,7 +437,7 @@ void LaunchController::onSucceeded()
     emitSucceeded();
 }
 
-void LaunchController::onFailed(QString reason)
+void LaunchController::onFailed(const QString& reason)
 {
     if(m_instance->settings()->get("ShowConsoleOnError").toBool())
     {

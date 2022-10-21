@@ -23,7 +23,7 @@ class QSortFilterProxyModel;
 class ResourceFolderModel : public QAbstractListModel {
     Q_OBJECT
    public:
-    ResourceFolderModel(QDir, QObject* parent = nullptr);
+    explicit ResourceFolderModel(QDir, QObject* parent = nullptr);
     ~ResourceFolderModel() override;
 
     /** Starts watching the paths for changes.
@@ -31,14 +31,14 @@ class ResourceFolderModel : public QAbstractListModel {
      *  Returns whether starting to watch all the paths was successful.
      *  If one or more fails, it returns false.
      */
-    bool startWatching(const QStringList paths);
+    bool startWatching(const QStringList & paths);
 
     /** Stops watching the paths for changes.
      *
      *  Returns whether stopping to watch all the paths was successful.
      *  If one or more fails, it returns false.
      */
-    bool stopWatching(const QStringList paths);
+    bool stopWatching(const QStringList & paths);
 
     /* Helper methods for subclasses, using a predetermined list of paths. */
     virtual bool startWatching() { return startWatching({ m_dir.absolutePath() }); };
@@ -159,7 +159,7 @@ class ResourceFolderModel : public QAbstractListModel {
     void applyUpdates(QSet<QString>& current_set, QSet<QString>& new_set, QMap<QString, T>& new_resources);
 
    protected slots:
-    void directoryChanged(QString);
+    void directoryChanged(const QString&);
 
     /** Called when the update task is successful.
      *
@@ -223,7 +223,7 @@ class ResourceFolderModel : public QAbstractListModel {
     {                                                                                             \
         return static_cast<T*>(m_resources.last().get());                                         \
     }                                                                                             \
-    [[nodiscard]] T* find(QString id)                                                             \
+    [[nodiscard]] T* find(const QString & id)                                                     \
     {                                                                                             \
         auto iter = std::find_if(m_resources.constBegin(), m_resources.constEnd(),                \
                                  [&](Resource::Ptr const& r) { return r->internal_id() == id; }); \
@@ -276,7 +276,7 @@ void ResourceFolderModel::applyUpdates(QSet<QString>& current_set, QSet<QString>
         removed_set.subtract(new_set);
 
         QList<int> removed_rows;
-        for (auto& removed : removed_set)
+        for (const QString& removed : removed_set)
             removed_rows.append(m_resources_index[removed]);
 
         std::sort(removed_rows.begin(), removed_rows.end(), std::greater<int>());
@@ -310,7 +310,7 @@ void ResourceFolderModel::applyUpdates(QSet<QString>& current_set, QSet<QString>
         if (added_set.size() > 0) {
             beginInsertRows(QModelIndex(), m_resources.size(), m_resources.size() + added_set.size() - 1);
 
-            for (auto& added : added_set) {
+            for (const QString& added : added_set) {
                 auto res = new_resources[added];
                 m_resources.append(res);
                 resolveResource(m_resources.last().get());

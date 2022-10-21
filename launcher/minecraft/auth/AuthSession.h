@@ -10,8 +10,8 @@ class QNetworkAccessManager;
 
 struct AuthSession
 {
-    bool MakeOffline(QString offline_playername);
-    void MakeDemo();
+    bool makeOffline(const QString& offline_playername);
+    void makeDemo();
 
     QString serializeUserProperties();
 

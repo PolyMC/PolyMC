@@ -10,7 +10,7 @@ class SkinDelete : public Task
 {
     Q_OBJECT
 public:
-    SkinDelete(QObject *parent, QString token);
+    SkinDelete(QObject *parent, const QString &token) : Task(parent), m_token(token) {}
     virtual ~SkinDelete() = default;
 
 private:

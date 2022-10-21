@@ -20,7 +20,7 @@
 
 struct GameType {
     GameType() = default;
-    GameType (std::optional<int> original);
+    explicit GameType (std::optional<int> original);
 
     QString toTranslatedString() const;
     QString toLogString() const;
@@ -39,7 +39,7 @@ struct GameType {
 class World
 {
 public:
-    World(const QFileInfo &file);
+    explicit World(const QFileInfo &file);
     QString folderName() const
     {
         return m_folderName;
@@ -98,7 +98,7 @@ public:
 private:
     void readFromZip(const QFileInfo &file);
     void readFromFS(const QFileInfo &file);
-    void loadFromLevelDat(QByteArray data);
+    void loadFromLevelDat(const QByteArray &data);
 
 protected:
 

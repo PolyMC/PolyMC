@@ -8,7 +8,7 @@ class ListModel : public ModPlatform::ListModel {
     Q_OBJECT
 
    public:
-    ListModel(FlameModPage* parent) : ModPlatform::ListModel(parent) {}
+    explicit ListModel(FlameModPage* parent) : ModPlatform::ListModel(parent) {}
     ~ListModel() override = default;
 
    private:

@@ -44,7 +44,7 @@ class VersionFilterModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 public:
-    VersionFilterModel(VersionProxyModel *parent) : QSortFilterProxyModel(parent)
+    explicit VersionFilterModel(VersionProxyModel *parent) : QSortFilterProxyModel(parent)
     {
         m_parent = parent;
         setSortRole(BaseVersionList::SortRole);

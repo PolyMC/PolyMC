@@ -5,7 +5,7 @@ class RegexpMatcher : public IPathMatcher
 {
 public:
     virtual ~RegexpMatcher() {};
-    RegexpMatcher(const QString &regexp)
+    explicit RegexpMatcher(const QString &regexp)
     {
         m_regexp.setPattern(regexp);
         m_onlyFilenamePart = !regexp.contains('/');

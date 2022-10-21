@@ -19,8 +19,8 @@ class ResourcePack : public Resource {
    public:
     using Ptr = shared_qobject_ptr<Resource>;
 
-    ResourcePack(QObject* parent = nullptr) : Resource(parent) {}
-    ResourcePack(QFileInfo file_info) : Resource(file_info) {}
+    explicit ResourcePack(QObject* parent = nullptr) : Resource(parent) {}
+    explicit ResourcePack(QFileInfo file_info) : Resource(file_info) {}
 
     /** Gets the numerical ID of the pack format. */
     [[nodiscard]] int packFormat() const { return m_pack_format; }
@@ -37,7 +37,7 @@ class ResourcePack : public Resource {
     void setPackFormat(int new_format_id);
 
     /** Thread-safe. */
-    void setDescription(QString new_description);
+    void setDescription(const QString &new_description);
 
     /** Thread-safe. */
     void setImage(QImage new_image);

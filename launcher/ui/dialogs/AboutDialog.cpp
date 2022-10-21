@@ -50,11 +50,11 @@ QString getLink(QString link, QString name) {
     return QString("&lt;<a href='%1'>%2</a>&gt;").arg(link).arg(name);
 }
 
-QString getWebsite(QString link) {
+QString getWebsite(const QString& link) {
     return getLink(link, QObject::tr("Website"));
 }
 
-QString getGitHub(QString username) {
+QString getGitHub(const QString& username) {
     return getLink("https://github.com/" + username, "GitHub");
 }
 

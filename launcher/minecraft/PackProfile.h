@@ -80,10 +80,10 @@ public:
     void buildingFromScratch();
 
     /// install more jar mods
-    void installJarMods(QStringList selectedFiles);
+    void installJarMods(const QStringList& selectedFiles);
 
     /// install a jar/zip as a replacement for the main jar
-    void installCustomJar(QString selectedFile);
+    void installCustomJar(const QString& selectedFile);
 
     enum MoveDirection { MoveUp, MoveDown };
     /// move component file # up or down the list
@@ -93,7 +93,7 @@ public:
     bool remove(const int index);
 
     /// remove component file by id - including files/records
-    bool remove(const QString id);
+    bool remove(const QString & id);
 
     bool customize(int index);
 

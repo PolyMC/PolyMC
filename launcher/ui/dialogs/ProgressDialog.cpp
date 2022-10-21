@@ -132,7 +132,7 @@ Task* ProgressDialog::getTask()
 
 void ProgressDialog::onTaskStarted() {}
 
-void ProgressDialog::onTaskFailed(QString failure)
+void ProgressDialog::onTaskFailed(const QString& failure)
 {
     reject();
 }

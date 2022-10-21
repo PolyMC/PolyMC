@@ -42,8 +42,8 @@ typedef shared_qobject_ptr<class ImgurAlbumCreation> ImgurAlbumCreationPtr;
 class ImgurAlbumCreation : public NetAction
 {
 public:
-    explicit ImgurAlbumCreation(QList<ScreenShot::Ptr> screenshots);
-    static ImgurAlbumCreationPtr make(QList<ScreenShot::Ptr> screenshots)
+    explicit ImgurAlbumCreation(const QList<ScreenShot::Ptr>& screenshots);
+    static ImgurAlbumCreationPtr make(const QList<ScreenShot::Ptr>& screenshots)
     {
         return ImgurAlbumCreationPtr(new ImgurAlbumCreation(screenshots));
     }

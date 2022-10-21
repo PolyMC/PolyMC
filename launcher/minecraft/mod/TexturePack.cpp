@@ -25,7 +25,7 @@
 
 #include "minecraft/mod/tasks/LocalTexturePackParseTask.h"
 
-void TexturePack::setDescription(QString new_description)
+void TexturePack::setDescription(const QString& new_description)
 {
     QMutexLocker locker(&m_data_lock);
 

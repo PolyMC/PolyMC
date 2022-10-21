@@ -17,8 +17,8 @@ struct InstanceName {
     [[nodiscard]] QString name() const;
     [[nodiscard]] QString version() const;
 
-    void setName(QString name) { m_modified_name = name; }
-    void setName(InstanceName& other);
+    void setName(const QString& name) { m_modified_name = name; }
+    void setName(const InstanceName& other);
 
    protected:
     QString m_original_name;

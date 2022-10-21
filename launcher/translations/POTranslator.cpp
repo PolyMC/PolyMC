@@ -22,9 +22,7 @@ struct POTranslatorPrivate
 class ParserArray : public QByteArray
 {
 public:
-    ParserArray(const QByteArray &in) : QByteArray(in)
-    {
-    }
+    ParserArray(const QByteArray &in) : QByteArray(in) {}
     bool chomp(const char * data, int length)
     {
         if(startsWith(data))

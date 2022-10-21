@@ -49,7 +49,7 @@ class ListModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    ListModel(QObject *parent);
+    explicit ListModel(QObject *parent);
     virtual ~ListModel();
 
     virtual QVariant data(const QModelIndex& index, int role) const;

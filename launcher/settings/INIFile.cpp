@@ -144,7 +144,7 @@ bool INIFile::loadFile(QByteArray file)
     QStringList lines = in.readAll().split('\n');
     for (int i = 0; i < lines.count(); i++)
     {
-        QString &lineRaw = lines[i];
+        const QString &lineRaw = lines[i];
         // Ignore comments.
         int commentIndex = 0;
         QString line = lineRaw;

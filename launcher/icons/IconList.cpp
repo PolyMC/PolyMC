@@ -45,12 +45,12 @@
 
 #define MAX_SIZE 1024
 
-IconList::IconList(const QStringList &builtinPaths, QString path, QObject *parent) : QAbstractListModel(parent)
+IconList::IconList(const QStringList &builtinPaths, const QString& path, QObject *parent) : QAbstractListModel(parent)
 {
     QSet<QString> builtinNames;
 
     // add builtin icons
-    for(auto & builtinPath: builtinPaths)
+    for(const QString& builtinPath : builtinPaths)
     {
         QDir instance_icons(builtinPath);
         auto file_info_list = instance_icons.entryInfoList(QDir::Files, QDir::Name);
@@ -59,7 +59,7 @@ IconList::IconList(const QStringList &builtinPaths, QString path, QObject *paren
             builtinNames.insert(file_info.completeBaseName());
         }
     }
-    for(auto & builtinName : builtinNames)
+    for(const QString& builtinName : builtinNames)
     {
         addThemeIcon(builtinName);
     }
@@ -112,7 +112,7 @@ void IconList::directoryChanged(const QString &path)
     auto new_set = new_list.toSet();
 #endif
     QList<QString> current_list;
-    for (auto &it : icons)
+    for (const MMCIcon& it : icons)
     {
         if (!it.has(IconType::FileBased))
             continue;
@@ -336,7 +336,7 @@ void IconList::installIcon(const QString &file, const QString &name)
 
 bool IconList::iconFileExists(const QString &key) const
 {
-    auto iconEntry = icon(key);
+    const MMCIcon* iconEntry = getMMCIcon(key);
     if(!iconEntry)
     {
         return false;
@@ -344,7 +344,7 @@ bool IconList::iconFileExists(const QString &key) const
     return iconEntry->has(IconType::FileBased);
 }
 
-const MMCIcon *IconList::icon(const QString &key) const
+const MMCIcon *IconList::getMMCIcon(const QString &key) const
 {
     int iconIdx = getIconIndex(key);
     if (iconIdx == -1)
@@ -357,7 +357,7 @@ bool IconList::deleteIcon(const QString &key)
     int iconIdx = getIconIndex(key);
     if (iconIdx == -1)
         return false;
-    auto &iconEntry = icons[iconIdx];
+    const MMCIcon& iconEntry = icons[iconIdx];
     if (iconEntry.has(IconType::FileBased))
     {
         return QFile::remove(iconEntry.m_images[IconType::FileBased].filename);
@@ -430,12 +430,11 @@ void IconList::saveIcon(const QString &key, const QString &path, const char * fo
     pixmap.save(path, format);
 }
 
-
 void IconList::reindex()
 {
     name_index.clear();
     int i = 0;
-    for (auto &iter : icons)
+    for (const MMCIcon& iter : icons)
     {
         name_index[iter.m_key] = i;
         i++;

@@ -106,18 +106,16 @@ auto NetJob::abort() -> bool
 auto NetJob::getFailedActions() -> QList<NetAction*>
 {
     QList<NetAction*> failed;
-    for (auto index : m_failed) {
-        failed.push_back(dynamic_cast<NetAction*>(index.get()));
-    }
+    failed.reserve(m_failed.size());
+    std::transform(m_failed.cbegin(), m_failed.cend(), std::back_inserter(failed), [](const auto& index) { return dynamic_cast<NetAction*>(index.get()); });
     return failed;
 }
 
 auto NetJob::getFailedFiles() -> QList<QString>
 {
     QList<QString> failed;
-    for (auto index : m_failed) {
-        failed.append(static_cast<NetAction*>(index.get())->url().toString());
-    }
+    failed.reserve(m_failed.size());
+    std::transform(m_failed.cbegin(), m_failed.cend(), std::back_inserter(failed), [](const auto& index) { return static_cast<NetAction*>(index.get())->url().toString(); });
     return failed;
 }
 

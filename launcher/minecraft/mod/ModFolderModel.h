@@ -74,7 +74,7 @@ public:
         Enable,
         Toggle
     };
-    ModFolderModel(const QString &dir, bool is_indexed = false);
+    explicit ModFolderModel(const QString &dir, bool is_indexed = false);
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
@@ -97,7 +97,7 @@ public:
 
     QDir indexDir() { return { QString("%1/.index").arg(dir().absolutePath()) }; }
 
-    auto selectedMods(QModelIndexList& indexes) -> QList<Mod*>;
+    auto selectedMods(const QModelIndexList& indexes) -> QList<Mod*>;
     auto allMods() -> QList<Mod*>;
 
     RESOURCE_HELPERS(Mod)

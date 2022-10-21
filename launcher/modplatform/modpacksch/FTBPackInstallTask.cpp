@@ -302,12 +302,9 @@ void PackInstallTask::install()
     auto components = instance.getPackProfile();
     components->buildingFromScratch();
 
-    for (auto target : m_version.targets) {
-        if (target.type == "game" && target.name == "minecraft") {
-            components->setComponentVersion("net.minecraft", target.version, true);
-            break;
-        }
-    }
+    auto target_it = std::find_if(m_version.targets.cbegin(), m_version.targets.cend(), [](const auto& target) { return target.type == "game" && target.name == "minecraft"; });
+    if (target_it != m_version.targets.cend())
+        components->setComponentVersion("net.minecraft", (*target_it).version, true);
 
     for (auto target : m_version.targets) {
         if (target.type != "modloader")
@@ -324,11 +321,9 @@ void PackInstallTask::install()
     QDir jarModsDir(FS::PathCombine(m_stagingPath, "minecraft", "jarmods"));
     if (jarModsDir.exists()) {
         QStringList jarMods;
-
-        for (const auto& info : jarModsDir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files)) {
-            jarMods.push_back(info.absoluteFilePath());
-        }
-
+        QFileInfoList entryInfoList = jarModsDir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+        jarMods.reserve(entryInfoList.size());
+        std::transform(entryInfoList.cbegin(), entryInfoList.cend(), std::back_inserter(jarMods), [](const auto& info) { return info.absoluteFilePath(); });
         components->installJarMods(jarMods);
     }
 

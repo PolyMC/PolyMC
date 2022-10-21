@@ -68,7 +68,7 @@ public:
 
     static std::array<PasteTypeInfo, 4> PasteTypes;
 
-    PasteUpload(QWidget *window, QString text, QString url, PasteType pasteType);
+    PasteUpload(QWidget *window, const QString& text, const QString& url, PasteType pasteType);
     virtual ~PasteUpload();
 
     QString pasteLink()
@@ -76,7 +76,7 @@ public:
         return m_pasteLink;
     }
 protected:
-    virtual void executeTask();
+    virtual void executeTask() override;
 
 private:
     QWidget *m_window;

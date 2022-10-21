@@ -36,7 +36,7 @@ slots:
     void subTaskProgress(qint64 current, qint64 total);
 
 protected:
-    void setStepStatus(QString status) { m_step_status = status; emit stepStatus(status); };
+    void setStepStatus(const QString& status) { m_step_status = status; emit stepStatus(status); };
 
     virtual void updateState();
 

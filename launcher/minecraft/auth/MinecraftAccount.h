@@ -107,7 +107,7 @@ public: /* manipulation */
      * Attempt to login. Empty password means we use the token.
      * If the attempt fails because we already are performing some task, it returns false.
      */
-    shared_qobject_ptr<AccountTask> login(QString password);
+    shared_qobject_ptr<AccountTask> login(const QString& password);
 
     shared_qobject_ptr<AccountTask> loginMSA();
 
@@ -228,6 +228,6 @@ protected: /* methods */
 private
 slots:
     void authSucceeded();
-    void authFailed(QString reason);
+    void authFailed(const QString& reason);
 };
 

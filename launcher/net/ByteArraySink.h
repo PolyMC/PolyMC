@@ -46,7 +46,7 @@ namespace Net {
  */
 class ByteArraySink : public Sink {
    public:
-    ByteArraySink(QByteArray* output) : m_output(output){};
+    explicit ByteArraySink(QByteArray* output) : m_output(output){};
 
     virtual ~ByteArraySink() = default;
 

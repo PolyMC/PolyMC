@@ -18,7 +18,7 @@ class ProjectItemDelegate final : public QStyledItemDelegate {
     Q_OBJECT
 
     public:
-        ProjectItemDelegate(QWidget* parent);
+        explicit ProjectItemDelegate(QWidget* parent);
 
         void paint(QPainter*, const QStyleOptionViewItem&, const QModelIndex&) const override;
 

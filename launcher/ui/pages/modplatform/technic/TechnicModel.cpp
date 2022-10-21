@@ -68,7 +68,7 @@ QVariant Technic::ListModel::data(const QModelIndex& index, int role) const
             return (m_logoMap.value(pack.logoName));
         }
         QIcon icon = APPLICATION->getThemedIcon("screenshot-placeholder");
-        ((ListModel *)this)->requestLogo(pack.logoName, pack.logoUrl);
+        const_cast<ListModel*>(this)->requestLogo(pack.logoName, pack.logoUrl);
         return icon;
     }
     else if(role == Qt::UserRole)

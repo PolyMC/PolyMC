@@ -46,8 +46,7 @@
 using OAuth2 = Katabasis::DeviceFlow;
 using Activity = Katabasis::Activity;
 
-MSAStep::MSAStep(AccountData* data, Action action) : AuthStep(data), m_action(action) {
-    m_clientId = APPLICATION->getMSAClientID();
+MSAStep::MSAStep(AccountData* data, Action action) : AuthStep(data), m_action(action), m_clientId(APPLICATION->getMSAClientID()) {
     OAuth2::Options opts;
     opts.scope = "XboxLive.signin offline_access";
     opts.clientIdentifier = m_clientId;

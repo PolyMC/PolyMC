@@ -43,7 +43,7 @@ struct VisualGroup
 {
 /* constructors */
     VisualGroup(const QString &text, InstanceView *view);
-    VisualGroup(const VisualGroup *other);
+    explicit VisualGroup(const VisualGroup *other);
 
 /* data */
     InstanceView *view = nullptr;

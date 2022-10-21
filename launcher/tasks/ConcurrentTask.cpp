@@ -89,7 +89,7 @@ void ConcurrentTask::startNext()
     Task::Ptr next = m_queue.dequeue();
 
     connect(next.get(), &Task::succeeded, this, [this, next] { subTaskSucceeded(next); });
-    connect(next.get(), &Task::failed, this, [this, next](QString msg) { subTaskFailed(next, msg); });
+    connect(next.get(), &Task::failed, this, [this, next](const QString& msg) { subTaskFailed(next, msg); });
 
     connect(next.get(), &Task::status, this, &ConcurrentTask::subTaskStatus);
     connect(next.get(), &Task::stepStatus, this, &ConcurrentTask::subTaskStatus);

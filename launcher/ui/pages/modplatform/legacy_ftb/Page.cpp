@@ -234,7 +234,7 @@ void Page::ftbPrivatePackDataDownloadSuccessfully(Modpack pack)
     privateListModel->addPack(pack);
 }
 
-void Page::ftbPrivatePackDataDownloadFailed(QString reason, QString packCode)
+void Page::ftbPrivatePackDataDownloadFailed(const QString& reason, const QString& packCode)
 {
     auto reply = QMessageBox::question(
         this,
@@ -318,7 +318,7 @@ void Page::onPackSelectionChanged(Modpack* pack)
     suggestCurrent();
 }
 
-void Page::onVersionSelectionItemChanged(QString data)
+void Page::onVersionSelectionItemChanged(const QString& data)
 {
     if(data.isNull() || data.isEmpty())
     {
@@ -330,7 +330,7 @@ void Page::onVersionSelectionItemChanged(QString data)
     suggestCurrent();
 }
 
-void Page::onSortingSelectionChanged(QString data)
+void Page::onSortingSelectionChanged(const QString& data)
 {
     FilterModel::Sorting toSet = publicFilterModel->getAvailableSortings().value(data);
     publicFilterModel->setSorting(toSet);

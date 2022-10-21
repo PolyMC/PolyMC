@@ -78,7 +78,7 @@ class ModrinthPage : public QWidget, public BasePage {
 
    private slots:
     void onSelectionChanged(QModelIndex first, QModelIndex second);
-    void onVersionSelectionChanged(QString data);
+    void onVersionSelectionChanged(const QString& data);
     void triggerSearch();
 
    private:

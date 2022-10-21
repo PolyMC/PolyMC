@@ -40,11 +40,6 @@
 
 #include "Application.h"
 
-SkinDelete::SkinDelete(QObject *parent, QString token)
-    : Task(parent), m_token(token)
-{
-}
-
 void SkinDelete::executeTask()
 {
     QNetworkRequest request(QUrl("https://api.minecraftservices.com/minecraft/profile/skins/active"));

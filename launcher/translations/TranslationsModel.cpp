@@ -68,12 +68,7 @@ struct Language
     {
         updated = true;
     }
-    Language(const QString & _key)
-    {
-        key = _key;
-        locale = QLocale(key);
-        updated = (key == defaultLangCode);
-    }
+    explicit Language(const QString & _key) : key(_key), locale(QLocale(key)), updated(key == defaultLangCode) {}
 
     QString languageName() const {
         QString result;
@@ -130,7 +125,7 @@ struct Language
         );
     }
 
-    Language & apply(Language & other)
+    Language & apply(const Language & other)
     {
         if(!isOfSameNameAs(other))
         {
@@ -259,9 +254,9 @@ void readIndex(const QString & path, QMap<QString, Language>& languages)
         return;
     }
 
-    int index = 1;
     try
     {
+        int index = 1;
         auto toplevel_doc = Json::requireDocument(data);
         auto doc = Json::requireObject(toplevel_doc);
         auto file_type = Json::requireString(doc, "file_type");
@@ -382,7 +377,7 @@ void TranslationsModel::reloadLocalFiles()
         return;
     }
     beginInsertRows(QModelIndex(), 0, d->m_languages.size() + languages.size() - 1);
-    for(auto & language: languages)
+    for(const Language& language: languages)
     {
         d->m_languages.append(language);
     }
@@ -497,18 +492,8 @@ int TranslationsModel::columnCount(const QModelIndex& parent) const
 
 Language * TranslationsModel::findLanguage(const QString& key)
 {
-    auto found = std::find_if(d->m_languages.begin(), d->m_languages.end(), [&](Language & lang)
-    {
-        return lang.key == key;
-    });
-    if(found == d->m_languages.end())
-    {
-        return nullptr;
-    }
-    else
-    {
-        return found;
-    }
+    auto found = std::find_if(d->m_languages.begin(), d->m_languages.end(), [&](const Language& lang) { return lang.key == key; });
+    return found != d->m_languages.end() ? found : nullptr;
 }
 
 bool TranslationsModel::selectLanguage(QString key)
@@ -665,7 +650,7 @@ void TranslationsModel::downloadIndex()
     d->m_index_job->start();
 }
 
-void TranslationsModel::updateLanguage(QString key)
+void TranslationsModel::updateLanguage(const QString& key)
 {
     if(key == defaultLangCode)
     {
@@ -684,7 +669,7 @@ void TranslationsModel::updateLanguage(QString key)
     }
 }
 
-void TranslationsModel::downloadTranslation(QString key)
+void TranslationsModel::downloadTranslation(const QString& key)
 {
     if(d->m_dl_job)
     {
@@ -725,7 +710,7 @@ void TranslationsModel::downloadNext()
     }
 }
 
-void TranslationsModel::dlFailed(QString reason)
+void TranslationsModel::dlFailed(const QString& reason)
 {
     qCritical() << "Translations Download Failed:" << reason;
     d->m_dl_job.reset();
@@ -744,7 +729,7 @@ void TranslationsModel::dlGood()
     downloadNext();
 }
 
-void TranslationsModel::indexFailed(QString reason)
+void TranslationsModel::indexFailed(const QString& reason)
 {
     qCritical() << "Translations Index Download Failed:" << reason;
     d->m_index_job.reset();

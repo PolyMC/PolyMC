@@ -38,7 +38,7 @@
 
 #include "Rule.h"
 
-RuleAction RuleAction_fromString(QString name)
+RuleAction RuleAction_fromString(const QString &name)
 {
     if (name == "allow")
         return Allow;
@@ -57,7 +57,6 @@ QList<std::shared_ptr<Rule>> rulesFromJsonV4(const QJsonObject &objectWithRules)
     QJsonArray ruleList = rulesVal.toArray();
     for (auto ruleVal : ruleList)
     {
-        std::shared_ptr<Rule> rule;
         if (!ruleVal.isObject())
             continue;
         auto ruleObj = ruleVal.toObject();

@@ -59,7 +59,7 @@ public: /* application of profile variables from patches */
     void applyLibrary(LibraryPtr library, const RuntimeContext & runtimeContext);
     void applyMavenFile(LibraryPtr library, const RuntimeContext & runtimeContext);
     void applyAgent(AgentPtr agent, const RuntimeContext & runtimeContext);
-    void applyCompatibleJavaMajors(QList<int>& javaMajor);
+    void applyCompatibleJavaMajors(const QList<int>& javaMajor);
     void applyMainJar(LibraryPtr jar);
     void applyProblemSeverity(ProblemSeverity severity);
     /// clear the profile

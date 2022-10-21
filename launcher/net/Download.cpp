@@ -74,7 +74,7 @@ auto Download::makeByteArray(QUrl url, QByteArray* output, Options options) -> D
     return dl;
 }
 
-auto Download::makeFile(QUrl url, QString path, Options options) -> Download::Ptr
+auto Download::makeFile(QUrl url, const QString& path, Options options) -> Download::Ptr
 {
     auto* dl = new Download();
     dl->m_url = url;

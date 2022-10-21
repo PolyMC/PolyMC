@@ -104,7 +104,7 @@ QList<NetAction::Ptr> Library::getDownloads(
         return true;
     };
 
-    auto add_download = [&](QString storage, QString url, QString sha1)
+    auto add_download = [&](QString storage, QString url, const QString &sha1)
     {
         if(local)
         {
@@ -286,7 +286,7 @@ QString Library::getCompatibleNative(const RuntimeContext & runtimeContext) cons
     return entry.value();
 }
 
-void Library::setStoragePrefix(QString prefix)
+void Library::setStoragePrefix(const QString &prefix)
 {
     m_storagePrefix = prefix;
 }

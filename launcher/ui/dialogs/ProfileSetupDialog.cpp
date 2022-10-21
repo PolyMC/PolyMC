@@ -168,7 +168,7 @@ void ProfileSetupDialog::checkName(const QString &name) {
 void ProfileSetupDialog::checkFinished(
     QNetworkReply::NetworkError error,
     QByteArray data,
-    QList<QNetworkReply::RawHeaderPair> headers
+    const QList<QNetworkReply::RawHeaderPair>& headers
 ) {
     auto requestor = qobject_cast<AuthRequest *>(QObject::sender());
     requestor->deleteLater();
@@ -252,7 +252,7 @@ struct MojangError{
 void ProfileSetupDialog::setupProfileFinished(
     QNetworkReply::NetworkError error,
     QByteArray data,
-    QList<QNetworkReply::RawHeaderPair> headers
+    const QList<QNetworkReply::RawHeaderPair>& headers
 ) {
     auto requestor = qobject_cast<AuthRequest *>(QObject::sender());
     requestor->deleteLater();

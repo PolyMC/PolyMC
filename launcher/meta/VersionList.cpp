@@ -140,7 +140,7 @@ VersionPtr VersionList::getVersion(const QString &version)
     return out;
 }
 
-bool VersionList::hasVersion(QString version) const
+bool VersionList::hasVersion(const QString &version) const
 {
     auto ver = std::find_if(m_versions.constBegin(), m_versions.constEnd(),
             [&](Meta::VersionPtr const& a){ return a->version() == version; });

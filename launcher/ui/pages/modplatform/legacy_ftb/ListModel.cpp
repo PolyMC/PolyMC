@@ -165,7 +165,7 @@ QVariant ListModel::data(const QModelIndex &index, int role) const
             return (m_logoMap.value(pack.logo));
         }
         QIcon icon = APPLICATION->getThemedIcon("screenshot-placeholder");
-        ((ListModel *)this)->requestLogo(pack.logo);
+        const_cast<ListModel*>(this)->requestLogo(pack.logo);
         return icon;
     }
     else if(role == Qt::ForegroundRole)

@@ -136,7 +136,7 @@ bool FlameCreationTask::updateInstance()
         // Remove remaining old files (we need to do an API request to know which ids are which files...)
         QStringList fileIds;
 
-        for (auto& file : old_files) {
+        for (const Flame::File& file : old_files) {
             fileIds.append(QString::number(file.fileId));
         }
 
@@ -258,7 +258,7 @@ bool FlameCreationTask::createInstance()
     QString forgeVersion;
     QString fabricVersion;
     // TODO: is Quilt relevant here?
-    for (auto& loader : m_pack.minecraft.modLoaders) {
+    for (const Flame::Modloader& loader : m_pack.minecraft.modLoaders) {
         auto id = loader.id;
         if (id.startsWith("forge-")) {
             id.remove("forge-");
@@ -335,7 +335,7 @@ bool FlameCreationTask::createInstance()
 
     m_mod_id_resolver = new Flame::FileResolvingTask(APPLICATION->network(), m_pack);
     connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::succeeded, this, [this, &loop] { idResolverSucceeded(loop); });
-    connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::failed, [this, &loop](QString reason) {
+    connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::failed, [this, &loop](const QString& reason) {
         m_mod_id_resolver.reset();
         setError(tr("Unable to resolve mod IDs:\n") + reason);
         loop.exit();

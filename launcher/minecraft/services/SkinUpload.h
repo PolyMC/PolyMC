@@ -18,7 +18,8 @@ public:
     };
 
     // Note this class takes ownership of the file.
-    SkinUpload(QObject *parent, QString token, QByteArray skin, Model model = STEVE);
+    SkinUpload(QObject *parent, const QString &token, const QByteArray &skin, Model model = STEVE)
+        : Task(parent), m_model(model), m_skin(skin), m_token(token) {}
     virtual ~SkinUpload() {}
 
 private:

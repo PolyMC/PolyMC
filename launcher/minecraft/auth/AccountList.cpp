@@ -649,7 +649,7 @@ bool AccountList::saveList()
     }
 }
 
-void AccountList::setListFilePath(QString path, bool autosave)
+void AccountList::setListFilePath(const QString& path, bool autosave)
 {
     m_listFilePath = path;
     m_autosave = autosave;
@@ -738,7 +738,7 @@ void AccountList::authSucceeded() {
     m_nextTimer->start(1000 * 20);
 }
 
-void AccountList::authFailed(QString reason) {
+void AccountList::authFailed(const QString& reason) {
     qDebug() << "RefreshSchedule: Background account refresh failed: " << reason;
     m_currentTask.reset();
     m_nextTimer->start(1000 * 20);

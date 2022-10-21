@@ -33,7 +33,7 @@ class IconList : public QAbstractListModel
 {
     Q_OBJECT
 public:
-    explicit IconList(const QStringList &builtinPaths, QString path, QObject *parent = 0);
+    explicit IconList(const QStringList &builtinPaths, const QString &path, QObject *parent = 0);
     virtual ~IconList() {};
 
     QIcon getIcon(const QString &key) const;
@@ -57,7 +57,7 @@ public:
     void installIcons(const QStringList &iconFiles);
     void installIcon(const QString &file, const QString &name);
 
-    const MMCIcon * icon(const QString &key) const;
+    const MMCIcon * getMMCIcon(const QString &key) const;
 
     void startWatching();
     void stopWatching();

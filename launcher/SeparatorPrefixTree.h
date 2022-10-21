@@ -7,19 +7,19 @@ template <char Tseparator>
 class SeparatorPrefixTree
 {
 public:
-    SeparatorPrefixTree(QStringList paths)
+    explicit SeparatorPrefixTree(const QStringList& paths)
     {
         insert(paths);
     }
 
-    SeparatorPrefixTree(bool contained = false)
+    explicit SeparatorPrefixTree(bool contained = false)
     {
         m_contained = contained;
     }
 
     void insert(QStringList paths)
     {
-        for(auto &path: paths)
+        for(const QString& path: paths)
         {
             insert(path);
         }
@@ -46,7 +46,7 @@ public:
     }
 
     /// is the path fully contained in the tree?
-    bool contains(QString path) const
+    bool contains(const QString& path) const
     {
         auto node = find(path);
         return node != nullptr;
@@ -189,7 +189,7 @@ public:
     }
 
     /// Remove a path from the tree
-    bool remove(QString path)
+    bool remove(const QString& path)
     {
         return removeInternal(path) != Failed;
     }
@@ -228,7 +228,7 @@ private:
         Succeeded,
         HasChildren
     };
-    Removal removeInternal(QString path = QString())
+    Removal removeInternal(const QString& path = QString())
     {
         if(path.isEmpty())
         {

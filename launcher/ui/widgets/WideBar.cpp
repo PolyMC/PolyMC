@@ -6,7 +6,7 @@ class ActionButton : public QToolButton
 {
     Q_OBJECT
 public:
-    ActionButton(QAction * action, QWidget * parent = 0) : QToolButton(parent), m_action(action) {
+    explicit ActionButton(QAction * action, QWidget * parent = nullptr) : QToolButton(parent), m_action(action) {
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         connect(action, &QAction::changed, this, &ActionButton::actionChanged);
         connect(this, &ActionButton::clicked, action, &QAction::trigger);
@@ -54,7 +54,7 @@ struct WideBar::BarEntry {
 
 WideBar::~WideBar()
 {
-    for(auto *iter: m_entries) {
+    for (const WideBar::BarEntry *iter : m_entries) {
         delete iter;
     }
 }

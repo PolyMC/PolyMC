@@ -202,7 +202,7 @@ void FlamePage::suggestCurrent()
                        [this, editedLogoName](QString logo) { dialog->setSuggestedIconFromFile(logo, editedLogoName); });
 }
 
-void FlamePage::onVersionSelectionChanged(QString data)
+void FlamePage::onVersionSelectionChanged(const QString& data)
 {
     if (data.isNull() || data.isEmpty()) {
         selectedVersion = "";

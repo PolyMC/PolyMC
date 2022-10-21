@@ -341,9 +341,9 @@ static bool gatherRequirementsFromComponents(const ComponentContainer & input, R
 {
     bool succeeded = true;
     size_t componentNum = 0;
-    for(auto component: input)
+    for(const auto& component: input)
     {
-        auto &componentRequires = component->m_cachedRequires;
+        const auto &componentRequires = component->m_cachedRequires;
         for(const auto & componentRequire: componentRequires)
         {
             auto found = std::find_if(output.cbegin(), output.cend(), [componentRequire](const Meta::Require & req){
@@ -538,7 +538,7 @@ void ComponentUpdateTask::resolveDependencies(bool checkOnly)
         if(!toRemove.isEmpty())
         {
             qDebug() << "Removing obsolete components...";
-            for(auto & remove : toRemove)
+            for(const QString& remove : toRemove)
             {
                 qDebug() << "Removing" << remove;
                 d->m_list->remove(remove);
@@ -699,7 +699,7 @@ void ComponentUpdateTask::checkIfAllFinished()
     {
         // remote load failed... report error and bail
         QStringList allErrorsList;
-        for(auto & item: d->remoteLoadStatusList)
+        for(const RemoteLoadStatus& item: d->remoteLoadStatusList)
         {
             if(!item.succeeded)
             {

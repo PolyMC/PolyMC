@@ -47,7 +47,8 @@ namespace Technic
     {
         Q_OBJECT
     public:
-        explicit SolderPackInstallTask(shared_qobject_ptr<QNetworkAccessManager> network, const QUrl &solderUrl, const QString& pack, const QString& version, const QString &minecraftVersion);
+        explicit SolderPackInstallTask(shared_qobject_ptr<QNetworkAccessManager> network, const QUrl &solderUrl, const QString& pack, const QString& version, const QString &minecraftVersion)
+            : m_network(network), m_solderUrl(solderUrl), m_pack(pack), m_version(version), m_minecraftVersion(minecraftVersion) {}
 
         bool canAbort() const override { return true; }
         bool abort() override;

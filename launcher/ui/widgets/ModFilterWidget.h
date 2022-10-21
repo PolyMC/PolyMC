@@ -52,7 +52,7 @@ public:
     Meta::VersionListPtr versionList() { return m_version_list; }
 
 private:
-    ModFilterWidget(Version def, QWidget* parent = nullptr);
+    explicit ModFilterWidget(Version def, QWidget* parent = nullptr);
 
     inline auto mcVersionStr() const -> QString { return m_instance ? m_instance->getPackProfile()->getComponentVersion("net.minecraft") : ""; }
     inline auto mcVersion() const -> Version { return { mcVersionStr() }; }

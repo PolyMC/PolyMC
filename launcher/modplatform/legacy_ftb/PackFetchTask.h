@@ -13,7 +13,7 @@ class PackFetchTask : public QObject {
     Q_OBJECT
 
 public:
-    PackFetchTask(shared_qobject_ptr<QNetworkAccessManager> network) : QObject(nullptr), m_network(network) {};
+    explicit PackFetchTask(shared_qobject_ptr<QNetworkAccessManager> network) : QObject(nullptr), m_network(network) {};
     virtual ~PackFetchTask() = default;
 
     void fetch();
@@ -32,7 +32,7 @@ private:
 
 protected slots:
     void fileDownloadFinished();
-    void fileDownloadFailed(QString reason);
+    void fileDownloadFailed(const QString& reason);
     void fileDownloadAborted();
 
 signals:

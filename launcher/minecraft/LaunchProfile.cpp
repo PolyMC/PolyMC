@@ -109,7 +109,7 @@ void LaunchProfile::applyTweakers(const QStringList& tweakers)
 {
     // if the applied tweakers override an existing one, skip it. this effectively moves it later in the sequence
     QStringList newTweakers;
-    for(auto & tweaker: m_tweakers)
+    for(const QString& tweaker: m_tweakers)
     {
         if (tweakers.contains(tweaker))
         {
@@ -146,7 +146,7 @@ static int findLibraryByName(QList<LibraryPtr> *haystack, const GradleSpecifier 
 void LaunchProfile::applyMods(const QList<LibraryPtr>& mods)
 {
     QList<LibraryPtr> * list = &m_mods;
-    for(auto & mod: mods)
+    for(const auto & mod: mods)
     {
         auto modCopy = Library::limitedCopy(mod);
 
@@ -168,7 +168,7 @@ void LaunchProfile::applyMods(const QList<LibraryPtr>& mods)
     }
 }
 
-void LaunchProfile::applyCompatibleJavaMajors(QList<int>& javaMajor)
+void LaunchProfile::applyCompatibleJavaMajors(const QList<int>& javaMajor)
 {
     m_compatibleJavaMajors.append(javaMajor);
 }

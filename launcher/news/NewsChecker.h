@@ -30,7 +30,7 @@ public:
     /*!
      * Constructs a news reader to read from the given RSS feed URL.
      */
-    NewsChecker(shared_qobject_ptr<QNetworkAccessManager> network, const QString& feedUrl);
+    NewsChecker(shared_qobject_ptr<QNetworkAccessManager> network, const QString& feedUrl) : m_feedUrl(feedUrl), m_network(network) {}
 
     /*!
      * Returns the error message for the last time the news was loaded.

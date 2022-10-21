@@ -50,12 +50,8 @@
 #include "BuildConfig.h"
 
 BaseInstance::BaseInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString &rootDir)
-    : QObject()
+    : QObject(), m_rootDir(rootDir), m_settings(settings), m_global_settings(globalSettings)
 {
-    m_settings = settings;
-    m_global_settings = globalSettings;
-    m_rootDir = rootDir;
-
     m_settings->registerSetting("name", "Unnamed Instance");
     m_settings->registerSetting("iconKey", "default");
     m_settings->registerSetting("notes", "");
@@ -154,7 +150,7 @@ void BaseInstance::setManagedPack(const QString& type, const QString& id, const 
     m_settings->set("ManagedPackVersionName", version);
 }
 
-void BaseInstance::copyManagedPack(BaseInstance& other)
+void BaseInstance::copyManagedPack(const BaseInstance& other)
 {
     m_settings->set("ManagedPack", other.isManagedPack());
     m_settings->set("ManagedPackType", other.getManagedPackType());
@@ -182,7 +178,7 @@ bool BaseInstance::shouldStopOnConsoleOverflow() const
     return m_settings->get("ConsoleOverflowStop").toBool();
 }
 
-void BaseInstance::iconUpdated(QString key)
+void BaseInstance::iconUpdated(const QString& key)
 {
     if(iconKey() == key)
     {
@@ -318,7 +314,7 @@ void BaseInstance::setLastLaunch(qint64 val)
     emit propertiesChanged(this);
 }
 
-void BaseInstance::setNotes(QString val)
+void BaseInstance::setNotes(const QString& val)
 {
     //FIXME: if no change, do not set. setting involves saving a file.
     m_settings->set("notes", val);
@@ -329,7 +325,7 @@ QString BaseInstance::notes() const
     return m_settings->get("notes").toString();
 }
 
-void BaseInstance::setIconKey(QString val)
+void BaseInstance::setIconKey(const QString& val)
 {
     //FIXME: if no change, do not set. setting involves saving a file.
     m_settings->set("iconKey", val);
@@ -341,7 +337,7 @@ QString BaseInstance::iconKey() const
     return m_settings->get("iconKey").toString();
 }
 
-void BaseInstance::setName(QString val)
+void BaseInstance::setName(const QString& val)
 {
     //FIXME: if no change, do not set. setting involves saving a file.
     m_settings->set("name", val);

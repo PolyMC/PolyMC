@@ -24,7 +24,7 @@
 #include <windows.h>
 #endif
 
-QString stripVariableEntries(QString name, QString target, QString remove);
+QString stripVariableEntries(const QString& name, const QString& target, const QString& remove);
 QProcessEnvironment CleanEnviroment();
 
 class JavaUtils : public QObject

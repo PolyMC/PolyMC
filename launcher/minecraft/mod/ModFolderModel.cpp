@@ -162,18 +162,14 @@ Task* ModFolderModel::createParseTask(Resource& resource)
 
 bool ModFolderModel::uninstallMod(const QString& filename, bool preserve_metadata)
 {
-    for(auto mod : allMods()){
-        if(mod->fileinfo().fileName() == filename){
-            auto index_dir = indexDir();
-            mod->destroy(index_dir, preserve_metadata);
+    QList<Mod *> mods = allMods();
+    auto mod_it = std::find_if(mods.cbegin(), mods.cend(), [&filename](const auto& mod) { return mod->fileinfo().fileName() == filename; });
+    if (mod_it == mods.cend()) return false;
 
-            update();
-
-            return true;
-        }
-    }
-
-    return false;
+    QDir index_dir = indexDir();
+    (*mod_it)->destroy(index_dir, preserve_metadata);
+    update();
+    return true;
 }
 
 bool ModFolderModel::deleteMods(const QModelIndexList& indexes)
@@ -217,7 +213,7 @@ bool ModFolderModel::stopWatching()
     return ResourceFolderModel::stopWatching({ m_dir.absolutePath(), indexDir().absolutePath() });
 }
 
-auto ModFolderModel::selectedMods(QModelIndexList& indexes) -> QList<Mod*>
+auto ModFolderModel::selectedMods(const QModelIndexList& indexes) -> QList<Mod*>
 {
     QList<Mod*> selected_resources;
     for (auto i : indexes) {

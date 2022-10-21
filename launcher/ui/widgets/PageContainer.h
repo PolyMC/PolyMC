@@ -55,7 +55,7 @@ class PageContainer : public QWidget, public BasePageContainer
 {
     Q_OBJECT
 public:
-    explicit PageContainer(BasePageProvider *pageProvider, QString defaultId = QString(),
+    explicit PageContainer(BasePageProvider *pageProvider, const QString& defaultId = QString(),
                         QWidget *parent = 0);
     virtual ~PageContainer() {}
 

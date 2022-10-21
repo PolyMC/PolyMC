@@ -132,7 +132,7 @@ void AtlPage::triggerSearch()
     filterModel->setSearchTerm(ui->searchEdit->text());
 }
 
-void AtlPage::onSortingSelectionChanged(QString data)
+void AtlPage::onSortingSelectionChanged(const QString& data)
 {
     auto toSet = filterModel->getAvailableSortings().value(data);
     filterModel->setSorting(toSet);
@@ -162,7 +162,7 @@ void AtlPage::onSelectionChanged(QModelIndex first, QModelIndex second)
     suggestCurrent();
 }
 
-void AtlPage::onVersionSelectionChanged(QString data)
+void AtlPage::onVersionSelectionChanged(const QString& data)
 {
     if(data.isNull() || data.isEmpty())
     {

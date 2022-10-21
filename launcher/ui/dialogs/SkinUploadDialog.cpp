@@ -55,7 +55,6 @@ void SkinUploadDialog::on_buttonBox_rejected()
 
 void SkinUploadDialog::on_buttonBox_accepted()
 {
-    QString fileName;
     QString input = ui->skinPathTextBox->text();
     ProgressDialog prog(this);
     SequentialTask skinUpload;
@@ -63,6 +62,7 @@ void SkinUploadDialog::on_buttonBox_accepted()
     if (!input.isEmpty()) {
         QRegularExpression urlPrefixMatcher(QRegularExpression::anchoredPattern("^([a-z]+)://.+$"));
         bool isLocalFile = false;
+        QString fileName;
         // it has an URL prefix -> it is an URL
         if(urlPrefixMatcher.match(input).hasMatch())
         {

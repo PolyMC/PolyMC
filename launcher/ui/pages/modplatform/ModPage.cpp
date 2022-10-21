@@ -212,7 +212,7 @@ void ModPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
     updateUi();
 }
 
-void ModPage::onVersionSelectionChanged(QString data)
+void ModPage::onVersionSelectionChanged(const QString& data)
 {
     if (data.isNull() || data.isEmpty()) {
         selectedVersion = -1;
@@ -252,8 +252,6 @@ void ModPage::retranslate()
 void ModPage::updateModVersions(int prev_count)
 {
     auto packProfile = (dynamic_cast<MinecraftInstance*>(m_instance))->getPackProfile();
-
-    QString mcVersion = packProfile->getComponentVersion("net.minecraft");
 
     for (int i = 0; i < current.versions.size(); i++) {
         auto version = current.versions[i];

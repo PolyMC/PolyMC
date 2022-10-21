@@ -133,7 +133,7 @@ void FtbPage::suggestCurrent()
             QString editedLogoName;
             editedLogoName = selected.name;
 
-            listModel->getLogo(selected.name, art.url, [this, editedLogoName](QString logo)
+            listModel->getLogo(selected.name, art.url, [this, editedLogoName](const QString& logo)
             {
                 dialog->setSuggestedIconFromFile(logo + ".small", editedLogoName);
             });
@@ -146,7 +146,7 @@ void FtbPage::triggerSearch()
     filterModel->setSearchTerm(ui->searchEdit->text());
 }
 
-void FtbPage::onSortingSelectionChanged(QString data)
+void FtbPage::onSortingSelectionChanged(const QString& data)
 {
     auto toSet = filterModel->getAvailableSortings().value(data);
     filterModel->setSorting(toSet);
@@ -179,7 +179,7 @@ void FtbPage::onSelectionChanged(QModelIndex first, QModelIndex second)
     suggestCurrent();
 }
 
-void FtbPage::onVersionSelectionChanged(QString data)
+void FtbPage::onVersionSelectionChanged(const QString& data)
 {
     if(data.isNull() || data.isEmpty())
     {

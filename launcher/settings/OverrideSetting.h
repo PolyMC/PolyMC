@@ -32,10 +32,10 @@ class OverrideSetting : public Setting
 public:
     explicit OverrideSetting(std::shared_ptr<Setting> overriden, std::shared_ptr<Setting> gate);
 
-    virtual QVariant defValue() const;
-    virtual QVariant get() const;
-    virtual void set (QVariant value);
-    virtual void reset();
+    virtual QVariant defValue() const override;
+    virtual QVariant get() const override;
+    virtual void set (QVariant value) override;
+    virtual void reset() override;
 
 private:
     bool isOverriding() const;

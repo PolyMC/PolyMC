@@ -27,7 +27,7 @@ class TextPrint: public LaunchStep
 {
     Q_OBJECT
 public:
-    explicit TextPrint(LaunchTask *parent, const QStringList &lines, MessageLevel::Enum level);
+    explicit TextPrint(LaunchTask *parent, const QStringList &lines, MessageLevel::Enum level) : LaunchStep(parent), m_lines(lines), m_level(level) {}
     explicit TextPrint(LaunchTask *parent, const QString &line, MessageLevel::Enum level);
     virtual ~TextPrint(){};
 

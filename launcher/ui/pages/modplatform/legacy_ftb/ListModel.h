@@ -20,7 +20,7 @@ class FilterModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 public:
-    FilterModel(QObject* parent = Q_NULLPTR);
+    explicit FilterModel(QObject* parent = nullptr);
     enum Sorting {
         ByName,
         ByGameVersion
@@ -59,7 +59,7 @@ private slots:
     void logoLoaded(QString logo, QIcon out);
 
 public:
-    ListModel(QObject *parent);
+    explicit ListModel(QObject *parent);
     ~ListModel();
     int rowCount(const QModelIndex &parent) const override;
     int columnCount(const QModelIndex &parent) const override;

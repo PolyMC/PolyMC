@@ -24,7 +24,7 @@ class BasicFolderLoadTask : public Task {
     [[nodiscard]] ResultPtr result() const { return m_result; }
 
    public:
-    BasicFolderLoadTask(QDir dir) : Task(nullptr, false), m_dir(dir), m_result(new Result), m_thread_to_spawn_into(thread())
+    explicit BasicFolderLoadTask(QDir dir) : Task(nullptr, false), m_dir(dir), m_result(new Result), m_thread_to_spawn_into(thread())
     {
         m_create_func = [](QFileInfo const& entry) -> Resource* {
                 return new Resource(entry);

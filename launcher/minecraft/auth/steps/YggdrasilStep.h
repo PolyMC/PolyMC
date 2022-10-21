@@ -10,7 +10,7 @@ class YggdrasilStep : public AuthStep {
     Q_OBJECT
 
 public:
-    explicit YggdrasilStep(AccountData *data, QString password);
+    explicit YggdrasilStep(AccountData *data, const QString &password);
     virtual ~YggdrasilStep() noexcept;
 
     void perform() override;

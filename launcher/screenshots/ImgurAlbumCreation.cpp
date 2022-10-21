@@ -46,7 +46,7 @@
 #include "BuildConfig.h"
 #include "Application.h"
 
-ImgurAlbumCreation::ImgurAlbumCreation(QList<ScreenShot::Ptr> screenshots) : NetAction(), m_screenshots(screenshots)
+ImgurAlbumCreation::ImgurAlbumCreation(const QList<ScreenShot::Ptr>& screenshots) : NetAction(), m_screenshots(screenshots)
 {
     m_url = BuildConfig.IMGUR_BASE_URL + "album.json";
     m_state = State::Inactive;

@@ -116,8 +116,6 @@ void ModFilterWidget::onVersionFilterChanged(int id)
     //ui->lowerVersionComboBox->setEnabled(id == VersionButtonID::Between);
     //ui->upperVersionComboBox->setEnabled(id == VersionButtonID::Between);
 
-    int index = 1;
-
     auto cast_id = (VersionButtonID) id;
     if (cast_id != m_version_id) {
         m_version_id = cast_id;
@@ -137,6 +135,7 @@ void ModFilterWidget::onVersionFilterChanged(int id)
         auto major_version = QString("%1.%2").arg(versionSplit[0], versionSplit[1]);
         QString version_str = major_version;
 
+        int index = 1;
         while (m_version_list->hasVersion(version_str)) {
             m_filter->versions.emplace_back(version_str);
             version_str = QString("%1.%2").arg(major_version, QString::number(index++));

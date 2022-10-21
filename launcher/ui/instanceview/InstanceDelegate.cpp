@@ -54,7 +54,6 @@ static void viewItemTextLayout(QTextLayout &textLayout, int lineWidth, qreal &he
     height = 0;
     widthUsed = 0;
     textLayout.beginLayout();
-    QString str = textLayout.text();
     while (true)
     {
         QTextLine line = textLayout.createLine();
@@ -98,7 +97,7 @@ void drawFocusRect(QPainter *painter, const QStyleOptionViewItem &option, const 
     opt.rect = rect;
     // opt.state           = option.state | QStyle::State_KeyboardFocusChange |
     // QStyle::State_Item;
-    auto col = option.state & QStyle::State_Selected ? QPalette::Highlight : QPalette::Base;
+    auto col = (option.state & QStyle::State_Selected) ? QPalette::Highlight : QPalette::Base;
     opt.backgroundColor = option.palette.color(col);
     // Apparently some widget styles expect this hint to not be set
     painter->setRenderHint(QPainter::Antialiasing, false);
@@ -288,7 +287,7 @@ void ListViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         mode = QIcon::Disabled;
     else if (opt.state & QStyle::State_Selected)
         mode = QIcon::Selected;
-    QIcon::State state = opt.state & QStyle::State_Open ? QIcon::On : QIcon::Off;
+    QIcon::State state = (opt.state & QStyle::State_Open) ? QIcon::On : QIcon::Off;
 
     // draw the icon
     {
@@ -296,8 +295,7 @@ void ListViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         opt.icon.paint(painter, iconbox, Qt::AlignCenter, mode, state);
     }
     // set the text colors
-    QPalette::ColorGroup cg =
-        opt.state & QStyle::State_Enabled ? QPalette::Normal : QPalette::Disabled;
+    QPalette::ColorGroup cg = (opt.state & QStyle::State_Enabled) ? QPalette::Normal : QPalette::Disabled;
     if (cg == QPalette::Normal && !(opt.state & QStyle::State_Active))
         cg = QPalette::Inactive;
     if (opt.state & QStyle::State_Selected)
@@ -334,8 +332,7 @@ void ListViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     }
 
     // FIXME: this really has no business of being here. Make generic.
-    auto instance = (BaseInstance*)index.data(InstanceList::InstancePointerRole)
-            .value<void *>();
+    auto instance = static_cast<BaseInstance*>(index.data(InstanceList::InstancePointerRole).value<void*>());
     if (instance)
     {
         drawBadges(painter, opt, instance, mode, state);

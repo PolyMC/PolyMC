@@ -118,7 +118,7 @@ bool WorldList::update()
     return true;
 }
 
-void WorldList::directoryChanged(QString path)
+void WorldList::directoryChanged(const QString& path)
 {
     update();
 }
@@ -310,11 +310,7 @@ class WorldMimeData : public QMimeData
 Q_OBJECT
 
 public:
-    WorldMimeData(QList<World> worlds)
-    {
-        m_worlds = worlds;
-
-    }
+    explicit WorldMimeData(const QList<World>& worlds) : m_worlds(worlds) {}
     QStringList formats() const
     {
         return QMimeData::formats() << "text/uri-list";

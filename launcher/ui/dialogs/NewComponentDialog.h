@@ -32,7 +32,7 @@ class NewComponentDialog : public QDialog
 public:
     explicit NewComponentDialog(const QString & initialName = QString(), const QString & initialUid = QString(), QWidget *parent = 0);
     virtual ~NewComponentDialog();
-    void setBlacklist(QStringList badUids);
+    void setBlacklist(const QStringList& badUids);
 
     QString name() const;
     QString uid() const;

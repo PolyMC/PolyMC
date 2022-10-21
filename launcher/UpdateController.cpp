@@ -75,13 +75,6 @@ static QFile::Permissions unixModeToPermissions(const int mode)
 
 static const QLatin1String liveCheckFile("live.check");
 
-UpdateController::UpdateController(QWidget * parent, const QString& root, const QString updateFilesDir, GoUpdate::OperationList operations)
-{
-    m_parent = parent;
-    m_root = root;
-    m_updateFilesDir = updateFilesDir;
-    m_operations = operations;
-}
 
 
 void UpdateController::installUpdates()
@@ -236,7 +229,7 @@ void UpdateController::installUpdates()
         scriptFile.close();
 
         // we run it
-        started = QProcess::startDetached("wscript", {scriptPath}, m_root);
+        QProcess::startDetached("wscript", {scriptPath}, m_root);
 
         // and we quit. conscious thought.
         qApp->quit();
@@ -266,7 +259,7 @@ void UpdateController::installUpdates()
     // FIXME: reparse args and construct a safe variant from scratch. This is a workaround for GH-1874:
     QStringList realargs;
     int skip = 0;
-    for(auto & arg: args)
+    for(const QString& arg: args)
     {
         if(skip)
         {
@@ -295,7 +288,6 @@ void UpdateController::installUpdates()
         while(attempts < 10)
         {
             attempts++;
-            QString key;
             std::this_thread::sleep_for(std::chrono::milliseconds(250));
             if(!QFile::exists(liveCheckFile))
             {
@@ -305,7 +297,7 @@ void UpdateController::installUpdates()
             }
             try
             {
-                key = QString::fromUtf8(FS::read(liveCheckFile));
+                QString key = QString::fromUtf8(FS::read(liveCheckFile));
                 auto id = ApplicationId::fromRawString(key);
                 LocalPeer peer(nullptr, id);
                 if(peer.isClient())

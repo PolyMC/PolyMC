@@ -23,7 +23,7 @@ struct MojangDownloadInfo
 
 struct MojangLibraryDownloadInfo
 {
-    MojangLibraryDownloadInfo(MojangDownloadInfo::Ptr artifact): artifact(artifact) {};
+    explicit MojangLibraryDownloadInfo(MojangDownloadInfo::Ptr artifact): artifact(artifact) {};
     MojangLibraryDownloadInfo() {};
 
     // types
@@ -57,7 +57,7 @@ struct MojangAssetIndexInfo : public MojangDownloadInfo
     {
     }
 
-    MojangAssetIndexInfo(QString id)
+    explicit MojangAssetIndexInfo(const QString& id)
     {
         this->id = id;
         // HACK: ignore assets from other version files than Minecraft

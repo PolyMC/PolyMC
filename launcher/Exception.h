@@ -9,7 +9,7 @@
 class Exception : public std::exception
 {
 public:
-    Exception(const QString &message) : std::exception(), m_message(message)
+    explicit Exception(const QString &message) : std::exception(), m_message(message)
     {
         qCritical() << "Exception:" << message;
     }

@@ -27,7 +27,7 @@ class JavaCheckerJob : public Task
 {
     Q_OBJECT
 public:
-    explicit JavaCheckerJob(QString job_name) : Task(), m_job_name(job_name) {};
+    explicit JavaCheckerJob(const QString& job_name) : Task(), m_job_name(job_name) {};
     virtual ~JavaCheckerJob() {};
 
     bool addJavaCheckerAction(JavaCheckerPtr base)
@@ -42,7 +42,8 @@ public:
         }
         return true;
     }
-    QList<JavaCheckResult> getResults()
+
+    QList<JavaCheckResult> getResults() const
     {
         return javaresults;
     }

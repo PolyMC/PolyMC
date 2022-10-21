@@ -6,10 +6,8 @@
 #include <QtConcurrentRun>
 
 InstanceCopyTask::InstanceCopyTask(InstancePtr origInstance, bool copySaves, bool keepPlaytime)
+    : m_origInstance(origInstance), m_keepPlaytime(keepPlaytime)
 {
-    m_origInstance = origInstance;
-    m_keepPlaytime = keepPlaytime;
-
     if(!copySaves)
     {
         // FIXME: get this from the original instance type...

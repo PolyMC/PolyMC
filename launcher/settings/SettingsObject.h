@@ -46,7 +46,7 @@ public:
     class Lock
     {
     public:
-        Lock(SettingsObjectPtr locked)
+        explicit Lock(SettingsObjectPtr locked)
             :m_locked(locked)
         {
             m_locked->suspendSave();

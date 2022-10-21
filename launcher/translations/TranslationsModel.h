@@ -33,7 +33,7 @@ public:
     int columnCount(const QModelIndex & parent) const override;
 
     bool selectLanguage(QString key);
-    void updateLanguage(QString key);
+    void updateLanguage(const QString& key);
     QModelIndex selectedIndex();
     QString selectedLanguage();
 
@@ -42,7 +42,7 @@ public:
 private:
     Language *findLanguage(const QString & key);
     void reloadLocalFiles();
-    void downloadTranslation(QString key);
+    void downloadTranslation(const QString& key);
     void downloadNext();
 
     // hide copy constructor
@@ -52,8 +52,8 @@ private:
 
 private slots:
     void indexReceived();
-    void indexFailed(QString reason);
-    void dlFailed(QString reason);
+    void indexFailed(const QString& reason);
+    void dlFailed(const QString& reason);
     void dlGood();
     void translationDirChanged(const QString &path);
 

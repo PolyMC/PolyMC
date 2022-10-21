@@ -22,7 +22,7 @@
 #include "Application.h"
 #include "minecraft/mod/ModFolderModel.h"
 
-ModDownloadTask::ModDownloadTask(ModPlatform::IndexedPack mod, ModPlatform::IndexedVersion version, const std::shared_ptr<ModFolderModel> mods, bool is_indexed)
+ModDownloadTask::ModDownloadTask(const ModPlatform::IndexedPack& mod, const ModPlatform::IndexedVersion& version, const std::shared_ptr<ModFolderModel> mods, bool is_indexed)
     : m_mod(mod), m_mod_version(version), mods(mods)
 {
     if (is_indexed) {
@@ -53,7 +53,7 @@ void ModDownloadTask::downloadSucceeded()
     }
 }
 
-void ModDownloadTask::downloadFailed(QString reason)
+void ModDownloadTask::downloadFailed(const QString& reason)
 {
     emitFailed(reason);
     m_filesNetJob.reset();

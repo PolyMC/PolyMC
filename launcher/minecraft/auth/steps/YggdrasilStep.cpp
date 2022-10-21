@@ -4,7 +4,7 @@
 #include "minecraft/auth/Parsers.h"
 #include "minecraft/auth/Yggdrasil.h"
 
-YggdrasilStep::YggdrasilStep(AccountData* data, QString password) : AuthStep(data), m_password(password) {
+YggdrasilStep::YggdrasilStep(AccountData* data, const QString &password) : AuthStep(data), m_password(password) {
     m_yggdrasil = new Yggdrasil(m_data, this);
 
     connect(m_yggdrasil, &Task::failed, this, &YggdrasilStep::onAuthFailed);

@@ -31,7 +31,7 @@ EnsureMetadataTask::EnsureMetadataTask(Mod* mod, QDir dir, ModPlatform::Provider
     hash_task->start();
 }
 
-EnsureMetadataTask::EnsureMetadataTask(QList<Mod*>& mods, QDir dir, ModPlatform::Provider prov)
+EnsureMetadataTask::EnsureMetadataTask(const QList<Mod*>& mods, QDir dir, ModPlatform::Provider prov)
     : Task(nullptr), m_index_dir(dir), m_provider(prov), m_current_task(nullptr)
 {
     m_hashing_task = new ConcurrentTask(this, "MakeHashesTask", 10);
@@ -340,9 +340,9 @@ NetJob::Ptr EnsureMetadataTask::flameVersionsTask()
     auto* response = new QByteArray();
 
     QList<uint> fingerprints;
-    for (auto& murmur : m_mods.keys()) {
-        fingerprints.push_back(murmur.toUInt());
-    }
+    fingerprints.reserve(m_mods.size());
+    QStringList modKeys = m_mods.keys();
+    std::transform(modKeys.begin(), modKeys.end(), std::back_inserter(fingerprints), [](const QString& murmur) { return murmur.toUInt(); });
 
     auto ver_task = flame_api.matchFingerprints(fingerprints, response);
 

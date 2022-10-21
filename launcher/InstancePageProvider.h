@@ -21,12 +21,9 @@ class InstancePageProvider : public QObject, public BasePageProvider
 {
     Q_OBJECT
 public:
-    explicit InstancePageProvider(InstancePtr parent)
-    {
-        inst = parent;
-    }
-
+    explicit InstancePageProvider(InstancePtr parent) : inst(parent) {}
     virtual ~InstancePageProvider() {};
+
     virtual QList<BasePage *> getPages() override
     {
         QList<BasePage *> values;

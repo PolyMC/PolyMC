@@ -33,8 +33,8 @@ class TexturePack : public Resource {
    public:
     using Ptr = shared_qobject_ptr<Resource>;
 
-    TexturePack(QObject* parent = nullptr) : Resource(parent) {}
-    TexturePack(QFileInfo file_info) : Resource(file_info) {}
+    explicit TexturePack(QObject* parent = nullptr) : Resource(parent) {}
+    explicit TexturePack(QFileInfo file_info) : Resource(file_info) {}
 
     /** Gets the description of the texture pack. */
     [[nodiscard]] QString description() const { return m_description; }
@@ -43,7 +43,7 @@ class TexturePack : public Resource {
     [[nodiscard]] QPixmap image(QSize size);
 
     /** Thread-safe. */
-    void setDescription(QString new_description);
+    void setDescription(const QString& new_description);
 
     /** Thread-safe. */
     void setImage(QImage new_image);

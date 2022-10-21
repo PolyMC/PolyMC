@@ -55,11 +55,10 @@
 
 
 InstanceSettingsPage::InstanceSettingsPage(BaseInstance *inst, QWidget *parent)
-    : QWidget(parent), ui(new Ui::InstanceSettingsPage), m_instance(inst)
+    : QWidget(parent), ui(new Ui::InstanceSettingsPage), m_instance(inst), m_settings(inst->settings())
 {
-    m_settings = inst->settings();
     ui->setupUi(this);
-    auto sysMB = Sys::getSystemRam() / Sys::mebibyte;
+    ulong sysMB = Sys::getSystemRam() / Sys::mebibyte;
     ui->maxMemSpinBox->setMaximum(sysMB);
     connect(ui->openGlobalJavaSettingsButton, &QCommandLinkButton::clicked, this, &InstanceSettingsPage::globalSettingsButtonClicked);
     connect(APPLICATION, &Application::globalSettingsAboutToOpen, this, &InstanceSettingsPage::applySettings);

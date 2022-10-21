@@ -90,7 +90,7 @@ auto ModpackListModel::data(const QModelIndex& index, int role) const -> QVarian
                 return m_logoMap.value(pack.iconName);
 
             QIcon icon = APPLICATION->getThemedIcon("screenshot-placeholder");
-            ((ModpackListModel*)this)->requestLogo(pack.iconName, pack.iconUrl.toString());
+            const_cast<ModpackListModel*>(this)->requestLogo(pack.iconName, pack.iconUrl.toString());
             return icon;
         }
         case Qt::UserRole: {
@@ -309,7 +309,7 @@ void ModpackListModel::searchRequestFinished(QJsonDocument& doc_all)
     endInsertRows();
 }
 
-void ModpackListModel::searchRequestFailed(QString reason)
+void ModpackListModel::searchRequestFailed(const QString& reason)
 {
     auto failed_action = jobPtr->getFailedActions().at(0);
     if (!failed_action->m_reply) {

@@ -48,7 +48,7 @@ public:
         IconFileRole
     };
 
-    WorldList(const QString &dir);
+    explicit WorldList(const QString &dir);
 
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
@@ -118,7 +118,7 @@ public:
     }
 
 private slots:
-    void directoryChanged(QString path);
+    void directoryChanged(const QString& path);
 
 signals:
     void changed();

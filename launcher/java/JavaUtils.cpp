@@ -52,17 +52,18 @@ JavaUtils::JavaUtils()
 {
 }
 
-QString stripVariableEntries(QString name, QString target, QString remove)
+QString stripVariableEntries(const QString& name, const QString& target, const QString& remove)
 {
-    char delimiter = ':';
 #ifdef Q_OS_WIN32
-    delimiter = ';';
+    char delimiter = ';';
+#else
+    char delimiter = ':';
 #endif
 
     auto targetItems = target.split(delimiter);
     auto toRemove = remove.split(delimiter);
 
-    for (QString item : toRemove) {
+    for (const QString& item : toRemove) {
         bool removed = targetItems.removeOne(item);
         if (!removed)
             qWarning() << "Entry" << item

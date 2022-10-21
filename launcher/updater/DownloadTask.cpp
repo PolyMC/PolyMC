@@ -28,13 +28,11 @@ namespace GoUpdate
 
 DownloadTask::DownloadTask(
     shared_qobject_ptr<QNetworkAccessManager> network,
-    Status status,
-    QString target,
+    const Status& status,
+    const QString& target,
     QObject *parent
-) : Task(parent), m_updateFilesDir(target), m_network(network)
+        ) : Task(parent), m_status(status), m_updateFilesDir(target), m_network(network)
 {
-    m_status = status;
-
     m_updateFilesDir.setAutoRemove(false);
 }
 

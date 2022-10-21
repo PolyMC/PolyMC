@@ -47,8 +47,8 @@ public:
 
     void addSelectedMod(QString name = QString(), ModDownloadTask* task = nullptr);
     void removeSelectedMod(QString name = QString());
-    bool isModSelected(QString name, QString filename) const;
-    bool isModSelected(QString name) const;
+    bool isModSelected(const QString& name, const QString& filename) const;
+    bool isModSelected(const QString& name) const;
 
     const QList<ModDownloadTask*> getTasks();
     const std::shared_ptr<ModFolderModel> &mods;

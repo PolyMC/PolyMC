@@ -66,7 +66,7 @@ QVariant ListModel::data(const QModelIndex &index, int role) const
         auto icon = APPLICATION->getThemedIcon("atlauncher-placeholder");
 
         auto url = QString(BuildConfig.ATL_DOWNLOAD_SERVER_URL + "launcher/images/%1.png").arg(pack.safeName.toLower());
-        ((ListModel *)this)->requestLogo(pack.safeName, url);
+        const_cast<ListModel*>(this)->requestLogo(pack.safeName, url);
 
         return icon;
     }
@@ -140,7 +140,7 @@ void ListModel::requestFinished()
     endInsertRows();
 }
 
-void ListModel::requestFailed(QString reason)
+void ListModel::requestFailed(const QString &reason)
 {
     jobPtr.reset();
 }

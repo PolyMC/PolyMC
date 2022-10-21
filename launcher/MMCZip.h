@@ -61,7 +61,7 @@ namespace MMCZip
      * \param files list of files to compress
      * \return true for success or false for failure
      */
-    bool compressDirFiles(QuaZip *zip, QString dir, QFileInfoList files);
+    bool compressDirFiles(QuaZip *zip, const QString &dir, QFileInfoList files);
 
     /**
      * Compress directory, by providing a list of files to compress
@@ -70,7 +70,7 @@ namespace MMCZip
      * \param files list of files to compress
      * \return true for success or false for failure
      */
-    bool compressDirFiles(QString fileCompressed, QString dir, QFileInfoList files);
+    bool compressDirFiles(QString fileCompressed, const QString &dir, QFileInfoList files);
 
     /**
      * take a source jar, add mods to it, resulting in target jar

@@ -296,15 +296,14 @@ void ModrinthPage::suggestCurrent()
         return;
     }
 
-    for (auto& ver : current.versions) {
-        if (ver.id == selectedVersion) {
-            dialog->setSuggestedPack(current.name, ver.version, new InstanceImportTask(ver.download_url, this));
-            auto iconName = current.iconName;
-            m_model->getLogo(iconName, current.iconUrl.toString(),
-                             [this, iconName](QString logo) { dialog->setSuggestedIconFromFile(logo, iconName); });
-
-            break;
-        }
+    auto selectedVer_it = std::find_if(current.versions.cbegin(), current.versions.cend(), [this](const auto& ver) { return ver.id == selectedVersion; });
+    if (selectedVer_it != current.versions.cend())
+    {
+        Modrinth::ModpackVersion ver = *selectedVer_it;
+        dialog->setSuggestedPack(current.name, ver.version, new InstanceImportTask(ver.download_url, this));
+        QString iconName = current.iconName;
+        m_model->getLogo(iconName, current.iconUrl.toString(),
+                         [this, iconName](QString logo) { dialog->setSuggestedIconFromFile(logo, iconName); });
     }
 }
 
@@ -313,7 +312,7 @@ void ModrinthPage::triggerSearch()
     m_model->searchWithTerm(ui->searchEdit->text(), ui->sortByBox->currentIndex());
 }
 
-void ModrinthPage::onVersionSelectionChanged(QString data)
+void ModrinthPage::onVersionSelectionChanged(const QString& data)
 {
     if (data.isNull() || data.isEmpty()) {
         selectedVersion = "";

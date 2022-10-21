@@ -26,7 +26,7 @@
 class ParsingValidator : public Net::Validator
 {
 public: /* con/des */
-    ParsingValidator(Meta::BaseEntity *entity) : m_entity(entity)
+    explicit ParsingValidator(Meta::BaseEntity *entity) : m_entity(entity)
     {
     };
     virtual ~ParsingValidator()

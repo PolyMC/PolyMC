@@ -23,12 +23,6 @@
 
 #include "Application.h"
 
-Technic::SingleZipPackInstallTask::SingleZipPackInstallTask(const QUrl &sourceUrl, const QString &minecraftVersion)
-{
-    m_sourceUrl = sourceUrl;
-    m_minecraftVersion = minecraftVersion;
-}
-
 bool Technic::SingleZipPackInstallTask::abort() {
     if(m_abortable)
     {

@@ -51,7 +51,7 @@ bool GZip::unzip(const QByteArray &compressedBytes, QByteArray &uncompressedByte
 
     z_stream strm;
     memset(&strm, 0, sizeof(strm));
-    strm.next_in = (Bytef *)compressedBytes.data();
+    strm.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(compressedBytes.data()));
     strm.avail_in = compressedBytes.size();
 
     bool done = false;
@@ -60,8 +60,6 @@ bool GZip::unzip(const QByteArray &compressedBytes, QByteArray &uncompressedByte
     {
         return false;
     }
-
-    int err = Z_OK;
 
     while (!done)
     {
@@ -72,11 +70,11 @@ bool GZip::unzip(const QByteArray &compressedBytes, QByteArray &uncompressedByte
             uncompLength *= 2;
         }
 
-        strm.next_out = (Bytef *)(uncompressedBytes.data() + strm.total_out);
+        strm.next_out = reinterpret_cast<Bytef *>(uncompressedBytes.data() + strm.total_out);
         strm.avail_out = uncompLength - strm.total_out;
 
         // Inflate another chunk.
-        err = inflate(&strm, Z_SYNC_FLUSH);
+        int err = inflate(&strm, Z_SYNC_FLUSH);
         if (err == Z_STREAM_END)
             done = true;
         else if (err != Z_OK)
@@ -114,14 +112,13 @@ bool GZip::zip(const QByteArray &uncompressedBytes, QByteArray &compressedBytes)
         return false;
     }
 
-    zs.next_in = (Bytef*)uncompressedBytes.data();
+    zs.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(uncompressedBytes.data()));
     zs.avail_in = uncompressedBytes.size();
 
     int ret;
     compressedBytes.resize(uncompressedBytes.size());
 
     unsigned offset = 0;
-    unsigned temp = 0;
     do
     {
         auto remaining = compressedBytes.size() - offset;
@@ -129,8 +126,8 @@ bool GZip::zip(const QByteArray &uncompressedBytes, QByteArray &compressedBytes)
         {
             compressedBytes.resize(compressedBytes.size() * 2);
         }
-        zs.next_out = (Bytef *) (compressedBytes.data() + offset);
-        temp = zs.avail_out = compressedBytes.size() - offset;
+        zs.next_out = reinterpret_cast<Bytef *>(compressedBytes.data() + offset);
+        unsigned temp = zs.avail_out = compressedBytes.size() - offset;
         ret = deflate(&zs, Z_FINISH);
         offset += temp - zs.avail_out;
     } while (ret == Z_OK);

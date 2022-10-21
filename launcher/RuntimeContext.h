@@ -52,7 +52,7 @@ struct RuntimeContext {
         return legacyArchitectures.contains(mappedJavaRealArchitecture());
     }
 
-    bool classifierMatches(QString target) const {
+    bool classifierMatches(const QString& target) const {
         // try to match precise classifier "[os]-[arch]"
         bool x = target == getClassifier();
         // try to match imprecise classifier on legacy architectures "[os]"

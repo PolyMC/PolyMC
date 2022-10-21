@@ -303,7 +303,7 @@ void AccountListPage::on_actionDeleteSkin_triggered()
     MinecraftAccountPtr account = selected.data(AccountList::PointerRole).value<MinecraftAccountPtr>();
     ProgressDialog prog(this);
     auto deleteSkinTask = std::make_shared<SkinDelete>(this, account->accessToken());
-    if (prog.execWithTask((Task*)deleteSkinTask.get()) != QDialog::Accepted) {
+    if (prog.execWithTask(dynamic_cast<Task*>(deleteSkinTask.get())) != QDialog::Accepted) {
         CustomMessageBox::selectable(this, tr("Skin Delete"), tr("Failed to delete current skin!"), QMessageBox::Warning)->exec();
         return;
     }

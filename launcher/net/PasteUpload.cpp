@@ -51,7 +51,7 @@ std::array<PasteUpload::PasteTypeInfo, 4> PasteUpload::PasteTypes = {
      {"paste.gg", "https://paste.gg", "/api/v1/pastes"},
      {"mclo.gs", "https://api.mclo.gs", "/1/log"}}};
 
-PasteUpload::PasteUpload(QWidget *window, QString text, QString baseUrl, PasteType pasteType) : m_window(window), m_baseUrl(baseUrl), m_pasteType(pasteType), m_text(text.toUtf8())
+PasteUpload::PasteUpload(QWidget *window, const QString& text, const QString& baseUrl, PasteType pasteType) : m_window(window), m_baseUrl(baseUrl), m_pasteType(pasteType), m_text(text.toUtf8())
 {
     if (m_baseUrl == "")
         m_baseUrl = PasteTypes.at(pasteType).defaultBase;

@@ -48,8 +48,8 @@ public:
     void setFuzzyFilter(BaseVersionList::ModelRoles role, QString filter);
     void setExactFilter(BaseVersionList::ModelRoles role, QString filter);
     void setFilter(BaseVersionList::ModelRoles role, Filter *filter);
-    void setEmptyString(QString emptyString);
-    void setEmptyErrorString(QString emptyErrorString);
+    void setEmptyString(const QString& emptyString);
+    void setEmptyErrorString(const QString& emptyErrorString);
     void setEmptyMode(VersionListView::EmptyMode mode);
     void setResizeOn(int column);
 

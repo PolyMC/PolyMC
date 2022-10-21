@@ -17,7 +17,7 @@ MojangRefresh::MojangRefresh(
 
 MojangLogin::MojangLogin(
     AccountData *data,
-    QString password,
+    const QString &password,
     QObject *parent
 ): AuthFlow(data, parent), m_password(password) {
     m_steps.append(new YggdrasilStep(m_data, m_password));

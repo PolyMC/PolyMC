@@ -46,7 +46,7 @@ class LibraryTest : public QObject
 {
     Q_OBJECT
 private:
-    LibraryPtr readMojangJson(const QString path)
+    LibraryPtr readMojangJson(const QString& path)
     {
         QFile jsonFile(path);
         jsonFile.open(QIODevice::ReadOnly);
@@ -61,7 +61,7 @@ private:
         return {FS::PathCombine(cache->getBasePath("libraries"), relative)};
     }
 
-    RuntimeContext dummyContext(QString system = "linux", QString arch = "64", QString realArch = "amd64") {
+    RuntimeContext dummyContext(const QString& system = "linux", const QString& arch = "64", const QString& realArch = "amd64") {
         RuntimeContext r;
         r.javaArchitecture = arch;
         r.javaRealArchitecture = realArch;

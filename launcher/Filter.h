@@ -13,7 +13,7 @@ public:
 class ContainsFilter: public Filter
 {
 public:
-    ContainsFilter(const QString &pattern);
+    explicit ContainsFilter(const QString &pattern);
     virtual ~ContainsFilter();
     bool accepts(const QString & value) override;
 private:
@@ -23,7 +23,7 @@ private:
 class ExactFilter: public Filter
 {
 public:
-    ExactFilter(const QString &pattern);
+    explicit ExactFilter(const QString &pattern);
     virtual ~ExactFilter();
     bool accepts(const QString & value) override;
 private:

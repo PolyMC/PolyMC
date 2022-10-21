@@ -47,7 +47,7 @@ public:
 public
 slots:
     void onTaskStarted();
-    void onTaskFailed(QString failure);
+    void onTaskFailed(const QString& failure);
     void onTaskSucceeded();
 
     void changeStatus(const QString &status);

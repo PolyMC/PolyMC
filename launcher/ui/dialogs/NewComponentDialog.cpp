@@ -119,7 +119,7 @@ QString NewComponentDialog::uid() const
     return QString();
 }
 
-void NewComponentDialog::setBlacklist(QStringList badUids)
+void NewComponentDialog::setBlacklist(const QStringList& badUids)
 {
     uidBlacklist = badUids;
 }

@@ -24,7 +24,7 @@ class FilterModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 public:
-    FilterModel(QObject* parent = Q_NULLPTR);
+    explicit FilterModel(QObject* parent = nullptr);
     enum Sorting {
         ByPopularity,
         ByGameVersion,
@@ -34,7 +34,7 @@ public:
     QString translateCurrentSorting();
     void setSorting(Sorting sorting);
     Sorting getCurrentSorting();
-    void setSearchTerm(QString term);
+    void setSearchTerm(const QString &term);
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;

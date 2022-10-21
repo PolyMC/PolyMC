@@ -4,10 +4,7 @@ template <typename T>
 class DefaultVariable
 {
 public:
-    DefaultVariable(const T & value)
-    {
-        defaultValue = value;
-    }
+    explicit DefaultVariable(const T & value) : defaultValue(value) {}
     DefaultVariable<T> & operator =(const T & value)
     {
         currentValue = value;

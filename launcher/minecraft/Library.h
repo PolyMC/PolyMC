@@ -61,13 +61,8 @@ class Library
     friend class MojangVersionFormat;
     friend class LibraryTest;
 public:
-    Library()
-    {
-    }
-    Library(const QString &name)
-    {
-        m_name = name;
-    }
+    Library() {}
+    explicit Library(const QString &name) : m_name(name) {}
     /// limited copy without some data. TODO: why?
     static LibraryPtr limitedCopy(LibraryPtr base)
     {
@@ -126,7 +121,7 @@ public: /* methods */
         return m_nativeClassifiers.size() != 0;
     }
 
-    void setStoragePrefix(QString prefix = QString());
+    void setStoragePrefix(const QString &prefix = QString());
 
     /// Set the url base for downloads
     void setRepositoryURL(const QString &base_url)
@@ -170,7 +165,7 @@ public: /* methods */
     }
 
     /// Set the load rules
-    void setRules(QList<std::shared_ptr<Rule>> rules)
+    void setRules(const QList<std::shared_ptr<Rule>>& rules)
     {
         m_rules = rules;
     }

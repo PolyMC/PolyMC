@@ -99,7 +99,7 @@ public:
      * after calling this function to ensure an autosaved change doesn't overwrite the list you intended
      * to load.
      */
-    void setListFilePath(QString path, bool autosave = false);
+    void setListFilePath(const QString& path, bool autosave = false);
 
     bool loadList();
     bool loadV2(QJsonObject &root);
@@ -145,7 +145,7 @@ private slots:
     void tryNext();
 
     void authSucceeded();
-    void authFailed(QString reason);
+    void authFailed(const QString& reason);
 
 protected:
     QList<QString> m_refreshQueue;

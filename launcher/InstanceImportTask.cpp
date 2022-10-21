@@ -55,11 +55,7 @@
 
 #include <quazip/quazipdir.h>
 
-InstanceImportTask::InstanceImportTask(const QUrl sourceUrl, QWidget* parent)
-{
-    m_sourceUrl = sourceUrl;
-    m_parent = parent;
-}
+InstanceImportTask::InstanceImportTask(const QUrl sourceUrl, QWidget* parent) : m_sourceUrl(sourceUrl), m_parent(parent) {}
 
 bool InstanceImportTask::abort()
 {
@@ -108,7 +104,7 @@ void InstanceImportTask::downloadSucceeded()
     m_filesNetJob.reset();
 }
 
-void InstanceImportTask::downloadFailed(QString reason)
+void InstanceImportTask::downloadFailed(const QString& reason)
 {
     emitFailed(reason);
     m_filesNetJob.reset();
@@ -159,7 +155,7 @@ void InstanceImportTask::processZipPack()
         // process as Technic pack
         qDebug() << "Technic:" << technicFound;
         extractDir.mkpath(".minecraft");
-        extractDir.cd(".minecraft");
+        (void)extractDir.cd(".minecraft");
         m_modpackType = ModpackType::Technic;
     }
     else

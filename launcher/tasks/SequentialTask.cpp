@@ -2,8 +2,6 @@
 
 #include <QDebug>
 
-SequentialTask::SequentialTask(QObject* parent, QString task_name) : ConcurrentTask(parent, task_name, 1) {}
-
 void SequentialTask::startNext()
 {
     if (m_failed.size() > 0) {

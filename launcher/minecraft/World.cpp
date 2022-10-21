@@ -477,7 +477,7 @@ GameType read_gametype(nbt::value& parent, const char * name) {
 
 }
 
-void World::loadFromLevelDat(QByteArray data)
+void World::loadFromLevelDat(const QByteArray &data)
 {
     auto levelData = parseLevelDat(data);
     if(!levelData)

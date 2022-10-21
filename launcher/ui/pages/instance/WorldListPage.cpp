@@ -62,7 +62,7 @@ class WorldListProxyModel : public QSortFilterProxyModel
     Q_OBJECT
 
 public:
-    WorldListProxyModel(QObject *parent) : QSortFilterProxyModel(parent) {}
+    explicit WorldListProxyModel(QObject *parent) : QSortFilterProxyModel(parent) {}
 
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const
     {
@@ -237,7 +237,7 @@ QModelIndex WorldListPage::getSelectedWorld()
 {
     auto index = ui->worldTreeView->selectionModel()->currentIndex();
 
-    auto proxy = (QSortFilterProxyModel *) ui->worldTreeView->model();
+    auto proxy = static_cast<QSortFilterProxyModel *>(ui->worldTreeView->model());
     return proxy->mapToSource(index);
 }
 
@@ -399,7 +399,7 @@ void WorldListPage::on_actionCopy_triggered()
         return;
 
     auto worldVariant = m_worlds->data(index, WorldList::ObjectRole);
-    auto world = (World *) worldVariant.value<void *>();
+    auto world = static_cast<World *>(worldVariant.value<void *>());
     bool ok = false;
     QString name = QInputDialog::getText(this, tr("World name"), tr("Enter a new name for the copy."), QLineEdit::Normal, world->name(), &ok);
 
@@ -421,7 +421,7 @@ void WorldListPage::on_actionRename_triggered()
         return;
 
     auto worldVariant = m_worlds->data(index, WorldList::ObjectRole);
-    auto world = (World *) worldVariant.value<void *>();
+    auto world = static_cast<World *>(worldVariant.value<void *>());
 
     bool ok = false;
     QString name = QInputDialog::getText(this, tr("World name"), tr("Enter a new world name."), QLineEdit::Normal, world->name(), &ok);
