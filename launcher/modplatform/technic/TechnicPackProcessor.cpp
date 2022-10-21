@@ -190,8 +190,7 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings, const 
                 // <Technic library name prefix> -> <our component name>
                 static QMap<QString, QString> loaderMap {
                     {"net.minecraftforge:minecraftforge:", "net.minecraftforge"},
-                    {"net.fabricmc:fabric-loader:", "net.fabricmc.fabric-loader"},
-                    {"org.quiltmc:quilt-loader:", "org.quiltmc.quilt-loader"}
+                    {"net.fabricmc:fabric-loader:", "net.fabricmc.fabric-loader"}
                 };
                 for (const auto& loader : loaderMap.keys())
                 {

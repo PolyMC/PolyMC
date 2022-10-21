@@ -16,7 +16,7 @@
     <p>PolyMC is a custom launcher for Minecraft that focuses on predictability, long term stability and simplicity.</p>
     <p>Features:</p>
     <ul>
-      <li>Easily install game modifications, such as Fabric, Forge and Quilt</li>
+      <li>Easily install game modifications, such as Fabric and Forge</li>
       <li>Control your java settings</li>
       <li>Manage worlds and resource packs from the launcher</li>
       <li>See logs and other details easily</li>

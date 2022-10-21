@@ -55,15 +55,13 @@ class ModrinthAPI : public NetworkModAPI {
     static auto getModLoaderStrings(const ModLoaderTypes types) -> const QStringList
     {
         QStringList l;
-        for (auto loader : {Forge, Fabric, Quilt})
+        for (auto loader : {Forge, Fabric})
         {
             if ((types & loader) || types == Unspecified)
             {
                 l << ModAPI::getModLoaderString(loader);
             }
         }
-        if ((types & Quilt) && (~types & Fabric))  // Add Fabric if Quilt is in use, if Fabric isn't already there
-            l << ModAPI::getModLoaderString(Fabric);
         return l;
     }
 
@@ -132,7 +130,7 @@ class ModrinthAPI : public NetworkModAPI {
 
     inline auto validateModLoaders(ModLoaderTypes loaders) const -> bool
     {
-        return (loaders == Unspecified) || (loaders & (Forge | Fabric | Quilt));
+        return (loaders == Unspecified) || (loaders & (Forge | Fabric));
     }
 
 };

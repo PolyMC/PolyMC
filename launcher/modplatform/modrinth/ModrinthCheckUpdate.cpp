@@ -108,7 +108,7 @@ void ModrinthCheckUpdate::executeTask()
                 // Sometimes a version may have multiple files, one with "forge" and one with "fabric",
                 // so we may want to filter it
                 QString loader_filter;
-                static auto flags = { ModAPI::ModLoaderType::Forge, ModAPI::ModLoaderType::Fabric, ModAPI::ModLoaderType::Quilt };
+                static auto flags = { ModAPI::ModLoaderType::Forge, ModAPI::ModLoaderType::Fabric };
                 for (auto flag : flags) {
                     if (m_loaders.testFlag(flag)) {
                         loader_filter = api.getModLoaderString(flag);

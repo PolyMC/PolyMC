@@ -33,7 +33,7 @@ class ModrinthCreationTask final : public InstanceCreationTask {
    private:
     QWidget* m_parent = nullptr;
 
-    QString minecraftVersion, fabricVersion, quiltVersion, forgeVersion;
+    QString minecraftVersion, fabricVersion, forgeVersion;
     QString m_managed_id, m_managed_version_id, m_managed_name;
     QString m_source_url;
 

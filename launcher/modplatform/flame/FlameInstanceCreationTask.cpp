@@ -257,7 +257,6 @@ bool FlameCreationTask::createInstance()
 
     QString forgeVersion;
     QString fabricVersion;
-    // TODO: is Quilt relevant here?
     for (auto& loader : m_pack.minecraft.modLoaders) {
         auto id = loader.id;
         if (id.startsWith("forge-")) {

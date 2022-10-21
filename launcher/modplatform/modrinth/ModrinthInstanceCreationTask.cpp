@@ -211,8 +211,6 @@ bool ModrinthCreationTask::createInstance()
 
     if (!fabricVersion.isEmpty())
         components->setComponentVersion("net.fabricmc.fabric-loader", fabricVersion);
-    if (!quiltVersion.isEmpty())
-        components->setComponentVersion("org.quiltmc.quilt-loader", quiltVersion);
     if (!forgeVersion.isEmpty())
         components->setComponentVersion("net.minecraftforge", forgeVersion);
 
@@ -376,8 +374,6 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
                     minecraftVersion = Json::requireString(*it, "Minecraft version");
                 } else if (name == "fabric-loader") {
                     fabricVersion = Json::requireString(*it, "Fabric Loader version");
-                } else if (name == "quilt-loader") {
-                    quiltVersion = Json::requireString(*it, "Quilt Loader version");
                 } else if (name == "forge") {
                     forgeVersion = Json::requireString(*it, "Forge version");
                 } else {

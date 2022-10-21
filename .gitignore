@@ -47,3 +47,17 @@ result/
 # Flatpak
 .flatpak-builder
 flatbuild
+
+# Cmake Files
+CMakeFiles
+CMakeCache.txt
+
+# Other stuff
+DartConfiguration.tcl
+LauncherScript
+org.polymc.PolyMC.desktop
+org.polymc.PolyMC.metainfo.xml
+polymc.manifest
+polymc.rc
+win_install.nsi
+build.sh

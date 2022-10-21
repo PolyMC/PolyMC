@@ -76,9 +76,6 @@ class FlameAPI : public NetworkModAPI {
             return 1;
         if (loaders & Fabric)
             return 4;
-        // TODO: remove this once Quilt drops official Fabric support
-        if (loaders & Quilt)  // NOTE: Most if not all Fabric mods should work *currently*
-            return 4;  // Quilt would probably be 5
         return 0;
     }
 };
