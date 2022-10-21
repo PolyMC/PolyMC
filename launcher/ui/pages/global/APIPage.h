@@ -80,6 +80,7 @@ private:
     void updateBaseURLPlaceholder(int index);
     void loadSettings();
     void applySettings();
+    void fetchKeyButtonPressed();
 
 private:
     Ui::APIPage *ui;

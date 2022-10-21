@@ -215,10 +215,12 @@ namespace Net {
                 return;
         }
 
-        request.setHeader(QNetworkRequest::UserAgentHeader, APPLICATION->getUserAgent().toUtf8());
         if (APPLICATION->capabilities() & Application::SupportsFlame
                 && request.url().host().contains("api.curseforge.com")) {
             request.setRawHeader("x-api-key", APPLICATION->getFlameAPIKey().toUtf8());
+        }
+        else {
+            request.setHeader(QNetworkRequest::UserAgentHeader, APPLICATION->getUserAgent().toUtf8());
         }
         //TODO other types of post requests ?
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
