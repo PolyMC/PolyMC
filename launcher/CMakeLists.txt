@@ -108,6 +108,8 @@ set(NET_SOURCES
     net/ChecksumValidator.h
     net/Download.cpp
     net/Download.h
+    net/FetchFlameAPIKey.cpp
+    net/FetchFlameAPIKey.h
     net/FileSink.cpp
     net/FileSink.h
     net/HttpMetaCache.cpp
