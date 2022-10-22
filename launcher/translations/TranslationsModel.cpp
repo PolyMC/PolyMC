@@ -492,8 +492,14 @@ int TranslationsModel::columnCount(const QModelIndex& parent) const
 
 Language * TranslationsModel::findLanguage(const QString& key)
 {
-    auto found = std::find_if(d->m_languages.begin(), d->m_languages.end(), [&](const Language& lang) { return lang.key == key; });
-    return found != d->m_languages.end() ? found : nullptr;
+    // for some reason find_if here doesn't build on Windows running qt 6??? (maybe more scenarios, or else i'd just put an ifdef)
+    for (const Language& lang : d->m_languages)
+    {
+        if (lang.key == key)
+            return const_cast<Language*>(&lang);
+    }
+
+    return nullptr;
 }
 
 bool TranslationsModel::selectLanguage(QString key)

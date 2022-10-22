@@ -47,3 +47,5 @@ result/
 # Flatpak
 .flatpak-builder
 flatbuild
+
+bin/
