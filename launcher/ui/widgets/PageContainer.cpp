@@ -270,8 +270,13 @@ bool PageContainer::prepareToClose()
 
 bool PageContainer::saveAll()
 {
-    const QList<BasePage*>& pages = m_model->pages();
-    return std::any_of(pages.cbegin(), pages.cend(), [](BasePage* page) { return page->apply(); });
+    for (BasePage* page : m_model->pages())
+    {
+        if (!page->apply())
+            return false;
+    }
+
+    return true;
 }
 
 void PageContainer::changeEvent(QEvent* event)
