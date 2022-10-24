@@ -59,7 +59,7 @@ QString GuiUtil::fetchFlameKey(QWidget *parentWidget)
     if (!flameKeyTask->wasSuccessful())
     {
         auto message = QObject::tr("Fetching the Curseforge API key failed. Reason: %1").arg(flameKeyTask->failReason());
-        if (!(APPLICATION->capabilities() & Application::SupportsFlame))
+        if (!(APPLICATION->currentCapabilities() & Application::SupportsFlame))
         {
             message += "\n\n" + QObject::tr("Downloading Curseforge modpacks will not work unless you manually set a valid Curseforge Core API key in the settings.");
         }

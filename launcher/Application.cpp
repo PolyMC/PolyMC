@@ -1009,7 +1009,7 @@ void Application::performMainStartupAction()
 
     {
         bool shouldFetch = m_settings->get("FlameKeyShouldBeFetchedOnStartup").toBool();
-        if (shouldFetch && !(capabilities() & Capability::SupportsFlame))
+        if (shouldFetch && !(currentCapabilities() & Capability::SupportsFlame))
         {
             auto response = QMessageBox::question(nullptr,
                                                   tr("Curseforge Core API Key"),
