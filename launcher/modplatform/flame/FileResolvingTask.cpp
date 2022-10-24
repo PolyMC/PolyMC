@@ -41,7 +41,17 @@ void Flame::FileResolvingTask::netJobFinished()
     // job to check modrinth for blocked projects
     auto job = new NetJob("Modrinth check", m_network);
     blockedProjects = QMap<File *,QByteArray *>();
-    auto doc = Json::requireDocument(*result);
+    QJsonDocument doc;
+
+    try {
+        doc = Json::requireDocument(*result);
+    }
+    catch (const JSONValidationError &e) {
+        qDebug() << "Flame::FileResolvingTask: Json Validation error: " << e.what();
+        emitFailed(e.what());
+        return;
+    }
+
     auto array = Json::requireArray(doc.object()["data"]);
     for (QJsonValueRef file : array) {
         auto fileid = Json::requireInteger(Json::requireObject(file)["id"]);
