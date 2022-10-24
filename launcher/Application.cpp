@@ -971,6 +971,7 @@ void Application::performMainStartupAction()
                 if (!apiKey.isEmpty())
                 {
                     m_settings->set("FlameKeyOverride", apiKey);
+                    updateCapabilities();
                 }
             }
 

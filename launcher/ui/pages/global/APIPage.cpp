@@ -182,6 +182,8 @@ void APIPage::applySettings()
     QString flameKey = ui->flameKey->text();
     s->set("FlameKeyOverride", flameKey);
     s->set("UserAgentOverride", ui->userAgentLineEdit->text());
+
+    APPLICATION->updateCapabilities();
 }
 
 void APIPage::fetchKeyButtonPressed()
