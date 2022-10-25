@@ -5,6 +5,8 @@
 #include <QIcon>
 #include <QPainter>
 
+#include <algorithm>
+
 ProjectItemDelegate::ProjectItemDelegate(QWidget* parent) : QStyledItemDelegate(parent) {}
 
 void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
@@ -34,6 +36,13 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
             icon_width = icon_size.width();
             icon_height = icon_size.height();
 
+            float desired_dim = rect.height() - 10;
+
+            auto scaleRatio = icon_width > icon_height ? desired_dim / icon_width : desired_dim / icon_height;
+
+            icon_width *= scaleRatio;
+            icon_height *= scaleRatio;
+
             icon_x_margin = (rect.height() - icon_width) / 2;
             icon_y_margin = (rect.height() - icon_height) / 2;
         }
@@ -47,9 +56,8 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
             opt.icon.paint(painter, x, y, icon_width, icon_height);
     }
 
-    // Change the rect so that funther painting is easier
-    auto remaining_width = rect.width() - icon_width - 2 * icon_x_margin;
-    rect.setRect(rect.x() + icon_width + 2 * icon_x_margin, rect.y(), remaining_width, rect.height());
+    // Change the rect so that further painting is easier
+    rect.setTopLeft(QPoint(rect.x() + icon_width + 2 * icon_x_margin, rect.y() + 4));
 
     {  // Title painting
         auto title = index.data(UserDataTypes::TITLE).toString();
@@ -66,10 +74,15 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
         font.setPointSize(font.pointSize() + 2);
         painter->setFont(font);
 
-        // On the top, aligned to the left after the icon
-        painter->drawText(rect.x(), rect.y() + QFontMetrics(font).height(), title);
+        QFontMetrics fontMetrics{font};
 
+        QRect titleRect(rect.topLeft() + QPoint(0, fontMetrics.ascent() - fontMetrics.height()), QSize(rect.width(), fontMetrics.height()));
+        // On the top, aligned to the left after the icon
+        painter->drawText(titleRect, title, QTextOption(Qt::AlignTop));
         painter->restore();
+
+        // Change the rect again so it takes up the space below the title text
+        rect.setTop(titleRect.bottom());
     }
 
     {  // Description painting
@@ -78,22 +91,45 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
         QTextLayout text_layout(description, opt.font);
 
         qreal height = 0;
-        auto cut_text = viewItemTextLayout(text_layout, remaining_width, height);
+        auto cut_text = viewItemTextLayout(text_layout, rect.size(), height);
 
-        // Get first line unconditionally
-        description = cut_text.first().second;
-        // Get second line, elided if needed
-        if (cut_text.size() > 1) {
-            if (cut_text.size() > 2)
-                description += opt.fontMetrics.elidedText(cut_text.at(1).second, opt.textElideMode, cut_text.at(1).first);
-            else
-                description += cut_text.at(1).second;
-        }
+        description = cut_text.join("\n");
 
-        // On the bottom, aligned to the left after the icon, and featuring at most two lines of text (with some margin space to spare)
-        painter->drawText(rect.x(), rect.y() + rect.height() - 2.2 * opt.fontMetrics.height(), remaining_width,
-                          2 * opt.fontMetrics.height(), Qt::TextWordWrap, description);
+        QRect descriptionRect = rect;
+        painter->drawText(descriptionRect, Qt::TextWordWrap, description);
     }
 
     painter->restore();
+}
+
+QSize ProjectItemDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
+{
+    int height = 0;
+
+    // 2px spacing between top and title
+    height += 2;
+    {  // Ensure enough space for one line with the title font
+        auto font = option.font;
+        if (index.data(UserDataTypes::SELECTED).toBool()) {
+            font.setBold(true);
+            font.setUnderline(true);
+        }
+
+        font.setPointSize(font.pointSize() + 2);
+
+        // Ensure enough space for the title
+        height += QFontMetrics{ font }.height();
+    }
+
+    { // Ensure enough space for 2 lines of description text
+        height += QFontMetrics{ option.font }.lineSpacing() * 2;
+    }
+
+    QSize indexSizeHint = index.data(Qt::SizeHintRole).toSize();
+
+    if (indexSizeHint.isValid()) {
+        return QSize(indexSizeHint.width(), std::max(indexSizeHint.height(), height));
+    }
+
+    return QSize(0, height);
 }
