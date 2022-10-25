@@ -85,7 +85,6 @@ private slots:
 
 private: /* data */
     NetJob::Ptr m_filesNetJob;
-    shared_qobject_ptr<Flame::FileResolvingTask> m_modIdResolver;
     QUrl m_sourceUrl;
     QString m_archivePath;
     bool m_downloadRequired = false;
