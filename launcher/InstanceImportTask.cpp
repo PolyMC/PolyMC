@@ -154,8 +154,12 @@ void InstanceImportTask::processZipPack()
     {
         // process as Technic pack
         qDebug() << "Technic:" << technicFound;
-        extractDir.mkpath(".minecraft");
-        (void)extractDir.cd(".minecraft");
+        if (!extractDir.mkpath(".minecraft") || !extractDir.cd(".minecraft"))
+        {
+            emitFailed(tr("Failed to create .minecraft directory for Technic pack."));
+            return;
+        }
+
         m_modpackType = ModpackType::Technic;
     }
     else

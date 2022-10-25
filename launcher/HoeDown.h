@@ -28,10 +28,7 @@ public:
     class buffer
     {
     public:
-        explicit buffer(size_t unit = 4096)
-        {
-            buf = hoedown_buffer_new(unit);
-        }
+        explicit buffer(size_t unit = 4096) : buf(hoedown_buffer_new(unit)) {}
         ~buffer()
         {
             hoedown_buffer_free(buf);

@@ -32,37 +32,37 @@ class Metadata {
    public:
     using ModStruct = Packwiz::V1::Mod;
 
-    static auto create(QDir& index_dir, ModPlatform::IndexedPack& mod_pack, ModPlatform::IndexedVersion& mod_version) -> ModStruct
+    static auto create(const QDir& index_dir, const ModPlatform::IndexedPack& mod_pack, const ModPlatform::IndexedVersion& mod_version) -> ModStruct
     {
-        return Packwiz::V1::createModFormat(index_dir, mod_pack, mod_version);
+        return Packwiz::V1::createModFormat(mod_pack, mod_version);
     }
 
-    static auto create(QDir& index_dir, Mod& internal_mod, QString mod_slug) -> ModStruct
+    static auto create(const QDir& index_dir, const Mod& internal_mod, const QString& mod_slug) -> ModStruct
     {
-        return Packwiz::V1::createModFormat(index_dir, internal_mod, mod_slug);
+        return Packwiz::V1::createModFormat(index_dir, mod_slug);
     }
 
-    static void update(QDir& index_dir, ModStruct& mod)
+    static void update(const QDir& index_dir, ModStruct& mod)
     {
         Packwiz::V1::updateModIndex(index_dir, mod);
     }
 
-    static void remove(QDir& index_dir, QString mod_slug)
+    static void remove(const QDir& index_dir, const QString& mod_slug)
     {
         Packwiz::V1::deleteModIndex(index_dir, mod_slug);
     }
 
-    static void remove(QDir& index_dir, QVariant& mod_id)
+    static void remove(const QDir& index_dir, const QVariant& mod_id)
     {
         Packwiz::V1::deleteModIndex(index_dir, mod_id);
     }
 
-    static auto get(QDir& index_dir, QString mod_slug) -> ModStruct
+    static auto get(const QDir& index_dir, const QString& mod_slug) -> ModStruct
     {
         return Packwiz::V1::getIndexForMod(index_dir, mod_slug);
     }
 
-    static auto get(QDir& index_dir, QVariant& mod_id) -> ModStruct
+    static auto get(const QDir& index_dir, const QVariant& mod_id) -> ModStruct
     {
         return Packwiz::V1::getIndexForMod(index_dir, mod_id);
     }

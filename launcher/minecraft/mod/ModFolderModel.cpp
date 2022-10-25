@@ -149,8 +149,7 @@ int ModFolderModel::columnCount(const QModelIndex &parent) const
 
 Task* ModFolderModel::createUpdateTask()
 {
-    auto index_dir = indexDir();
-    auto task = new ModFolderLoadTask(dir(), index_dir, m_is_indexed, m_first_folder_load);
+    auto task = new ModFolderLoadTask(dir(), indexDir(), m_is_indexed, m_first_folder_load);
     m_first_folder_load = false;
     return task;
 }
@@ -166,8 +165,7 @@ bool ModFolderModel::uninstallMod(const QString& filename, bool preserve_metadat
     auto mod_it = std::find_if(mods.cbegin(), mods.cend(), [&filename](const auto& mod) { return mod->fileinfo().fileName() == filename; });
     if (mod_it == mods.cend()) return false;
 
-    QDir index_dir = indexDir();
-    (*mod_it)->destroy(index_dir, preserve_metadata);
+    (*mod_it)->destroy(indexDir(), preserve_metadata);
     update();
     return true;
 }
@@ -186,9 +184,8 @@ bool ModFolderModel::deleteMods(const QModelIndexList& indexes)
         if(i.column() != 0) {
             continue;
         }
-        auto m = at(i.row());
-        auto index_dir = indexDir();
-        m->destroy(index_dir);
+        Mod* m = at(i.row());
+        m->destroy(indexDir());
     }
 
     update();

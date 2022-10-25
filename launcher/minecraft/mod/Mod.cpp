@@ -109,7 +109,7 @@ bool Mod::applyFilter(QRegularExpression filter) const
     return Resource::applyFilter(filter);
 }
 
-auto Mod::destroy(QDir& index_dir, bool preserve_metadata) -> bool
+auto Mod::destroy(const QDir& index_dir, bool preserve_metadata) -> bool
 {
     if (!preserve_metadata) {
         qDebug() << QString("Destroying metadata for '%1' on purpose").arg(name());

@@ -4,6 +4,8 @@ project(application)
 
 ######## Sources and headers ########
 
+add_definitions(-DZLIB_CONST)
+
 set(CORE_SOURCES
     # LOGIC - Base classes and infrastructure
     BaseInstaller.h

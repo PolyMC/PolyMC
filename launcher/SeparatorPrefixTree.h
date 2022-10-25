@@ -12,10 +12,7 @@ public:
         insert(paths);
     }
 
-    explicit SeparatorPrefixTree(bool contained = false)
-    {
-        m_contained = contained;
-    }
+    explicit SeparatorPrefixTree(bool contained = false) : m_contained(contained) {}
 
     void insert(QStringList paths)
     {

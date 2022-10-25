@@ -321,7 +321,7 @@ void PackInstallTask::install()
     QDir jarModsDir(FS::PathCombine(m_stagingPath, "minecraft", "jarmods"));
     if (jarModsDir.exists()) {
         QStringList jarMods;
-        QFileInfoList entryInfoList = jarModsDir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+        const QFileInfoList entryInfoList = jarModsDir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
         jarMods.reserve(entryInfoList.size());
         std::transform(entryInfoList.cbegin(), entryInfoList.cend(), std::back_inserter(jarMods), [](const auto& info) { return info.absoluteFilePath(); });
         components->installJarMods(jarMods);

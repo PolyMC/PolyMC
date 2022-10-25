@@ -32,7 +32,7 @@ class Mod;
 
 namespace Packwiz {
 
-auto getRealIndexName(QDir& index_dir, QString normalized_index_name, bool should_match = false) -> QString;
+auto getRealIndexName(const QDir& index_dir, const QString& normalized_index_name, bool should_match = false) -> QString;
 
 auto stringEntry(toml_table_t* parent, const char* entry_name) -> QString;
 auto intEntry(toml_table_t* parent, const char* entry_name) -> int;
@@ -63,40 +63,40 @@ class V1 {
 
         // Different providers can use different names for the same thing
         // Modrinth-specific
-        auto mod_id() -> QVariant& { return project_id; }
-        auto version() -> QVariant& { return file_id; }
+        QVariant mod_id() const { return project_id; }
+        QVariant version() const { return file_id; }
     };
 
     /* Generates the object representing the information in a mod.pw.toml file via
      * its common representation in the launcher, when downloading mods.
      * */
-    static auto createModFormat(QDir& index_dir, const ModPlatform::IndexedPack& mod_pack, const ModPlatform::IndexedVersion& mod_version) -> Mod;
+    static auto createModFormat(const ModPlatform::IndexedPack& mod_pack, const ModPlatform::IndexedVersion& mod_version) -> Mod;
     /* Generates the object representing the information in a mod.pw.toml file via
      * its common representation in the launcher, plus a necessary slug.
      * */
-    static auto createModFormat(QDir& index_dir, ::Mod& internal_mod, const QString& slug) -> Mod;
+    static auto createModFormat(const QDir& index_dir, const QString& slug) -> Mod;
 
     /* Updates the mod index for the provided mod.
      * This creates a new index if one does not exist already
      * TODO: Ask the user if they want to override, and delete the old mod's files, or keep the old one.
      * */
-    static void updateModIndex(QDir& index_dir, Mod& mod);
+    static void updateModIndex(const QDir& index_dir, const Mod& mod);
 
     /* Deletes the metadata for the mod with the given slug. If the metadata doesn't exist, it does nothing. */
-    static void deleteModIndex(QDir& index_dir, QString& mod_slug);
+    static void deleteModIndex(const QDir& index_dir, const QString& mod_slug);
 
     /* Deletes the metadata for the mod with the given id. If the metadata doesn't exist, it does nothing. */
-    static void deleteModIndex(QDir& index_dir, const QVariant& mod_id);
+    static void deleteModIndex(const QDir& index_dir, const QVariant& mod_id);
 
     /* Gets the metadata for a mod with a particular file name.
      * If the mod doesn't have a metadata, it simply returns an empty Mod object.
      * */
-    static auto getIndexForMod(QDir& index_dir, const QString& slug) -> Mod;
+    static auto getIndexForMod(const QDir& index_dir, const QString& slug) -> Mod;
 
     /* Gets the metadata for a mod with a particular id.
      * If the mod doesn't have a metadata, it simply returns an empty Mod object.
      * */
-    static auto getIndexForMod(QDir& index_dir, const QVariant& mod_id) -> Mod;
+    static auto getIndexForMod(const QDir& index_dir, const QVariant& mod_id) -> Mod;
 };
 
 } // namespace Packwiz

@@ -112,7 +112,7 @@ bool GZip::zip(const QByteArray &uncompressedBytes, QByteArray &compressedBytes)
         return false;
     }
 
-    zs.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(uncompressedBytes.data()));
+    zs.next_in = reinterpret_cast<const Bytef *>(uncompressedBytes.data());
     zs.avail_in = uncompressedBytes.size();
 
     int ret;

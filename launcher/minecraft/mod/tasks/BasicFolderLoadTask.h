@@ -24,13 +24,10 @@ class BasicFolderLoadTask : public Task {
     [[nodiscard]] ResultPtr result() const { return m_result; }
 
    public:
-    explicit BasicFolderLoadTask(QDir dir) : Task(nullptr, false), m_dir(dir), m_result(new Result), m_thread_to_spawn_into(thread())
-    {
-        m_create_func = [](QFileInfo const& entry) -> Resource* {
-                return new Resource(entry);
-            };
-    }
-    BasicFolderLoadTask(QDir dir, std::function<Resource*(QFileInfo const&)> create_function)
+    explicit BasicFolderLoadTask(const QDir& dir) : Task(nullptr, false), m_dir(dir), m_result(new Result),
+        m_create_func([](QFileInfo const& entry) -> Resource* { return new Resource(entry); }), m_thread_to_spawn_into(thread())
+    {}
+    BasicFolderLoadTask(const QDir& dir, std::function<Resource*(QFileInfo const&)> create_function)
         : Task(nullptr, false), m_dir(dir), m_result(new Result), m_create_func(std::move(create_function)), m_thread_to_spawn_into(thread())
     {}
 

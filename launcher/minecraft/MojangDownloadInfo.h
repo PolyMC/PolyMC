@@ -53,13 +53,10 @@ struct MojangAssetIndexInfo : public MojangDownloadInfo
     typedef std::shared_ptr<MojangAssetIndexInfo> Ptr;
 
     // methods
-    MojangAssetIndexInfo()
-    {
-    }
+    MojangAssetIndexInfo() {}
 
-    explicit MojangAssetIndexInfo(const QString& id)
+    explicit MojangAssetIndexInfo(const QString& id) : id(id)
     {
-        this->id = id;
         // HACK: ignore assets from other version files than Minecraft
         // workaround for stupid assets issue caused by amazon:
         // https://www.theregister.co.uk/2017/02/28/aws_is_awol_as_s3_goes_haywire/
@@ -72,6 +69,7 @@ struct MojangAssetIndexInfo : public MojangDownloadInfo
         {
             url = "https://s3.amazonaws.com/Minecraft.Download/indexes/" + id + ".json";
         }
+
         known = false;
     }
 

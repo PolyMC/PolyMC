@@ -341,7 +341,7 @@ NetJob::Ptr EnsureMetadataTask::flameVersionsTask()
 
     QList<uint> fingerprints;
     fingerprints.reserve(m_mods.size());
-    QStringList modKeys = m_mods.keys();
+    const QStringList modKeys = m_mods.keys();
     std::transform(modKeys.begin(), modKeys.end(), std::back_inserter(fingerprints), [](const QString& murmur) { return murmur.toUInt(); });
 
     auto ver_task = flame_api.matchFingerprints(fingerprints, response);

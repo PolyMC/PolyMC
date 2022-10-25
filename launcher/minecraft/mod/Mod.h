@@ -73,7 +73,7 @@ public:
     [[nodiscard]] bool applyFilter(QRegularExpression filter) const override;
 
     // Delete all the files of this mod
-    auto destroy(QDir& index_dir, bool preserve_metadata = false) -> bool;
+    auto destroy(const QDir& index_dir, bool preserve_metadata = false) -> bool;
 
     void finishResolvingWithDetails(ModDetails&& details);
 
