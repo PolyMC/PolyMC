@@ -63,8 +63,8 @@ class V1 {
 
         // Different providers can use different names for the same thing
         // Modrinth-specific
-        QVariant mod_id() const { return project_id; }
-        QVariant version() const { return file_id; }
+        auto mod_id() -> QVariant& { return project_id; }
+        auto version() -> QVariant& { return file_id; }
     };
 
     /* Generates the object representing the information in a mod.pw.toml file via
@@ -80,7 +80,7 @@ class V1 {
      * This creates a new index if one does not exist already
      * TODO: Ask the user if they want to override, and delete the old mod's files, or keep the old one.
      * */
-    static void updateModIndex(const QDir& index_dir, const Mod& mod);
+    static void updateModIndex(const QDir& index_dir, Mod& mod);
 
     /* Deletes the metadata for the mod with the given slug. If the metadata doesn't exist, it does nothing. */
     static void deleteModIndex(const QDir& index_dir, const QString& mod_slug);

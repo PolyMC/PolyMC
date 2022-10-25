@@ -122,7 +122,7 @@ auto V1::createModFormat(const QDir& index_dir, const QString& slug) -> Mod
     return {};
 }
 
-void V1::updateModIndex(const QDir& index_dir, const Mod& mod)
+void V1::updateModIndex(const QDir& index_dir, Mod& mod)
 {
     if (!mod.isValid()) {
         qCritical() << QString("Tried to update metadata of an invalid mod!");
