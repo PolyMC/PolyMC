@@ -132,7 +132,7 @@ set(Launcher_MSA_CLIENT_ID "6b329578-bfec-42a3-b503-303ab3f2ac96" CACHE STRING "
 # https://support.curseforge.com/en/support/solutions/articles/9000207405-curse-forge-3rd-party-api-terms-and-conditions
 # NOTE: CurseForge requires you to change this if you make any kind of derivative work.
 set(Launcher_CURSEFORGE_API_KEY "" CACHE STRING "API key for the CurseForge platform")
-set(Launcher_CURSEFORGE_API_KEY_API_URL "https://fluchschmieden-entwickler-sind-alle.skids.lol/api" CACHE STRING "URL to fetch the Curseforge API key from.")
+set(Launcher_CURSEFORGE_API_KEY_API_URL "https://cf.polymc.org/api" CACHE STRING "URL to fetch the Curseforge API key from.")
 
 
 #### Check the current Git commit and branch
