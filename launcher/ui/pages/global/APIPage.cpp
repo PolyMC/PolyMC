@@ -89,6 +89,9 @@ APIPage::APIPage(QWidget *parent) :
     ui->metaURL->setPlaceholderText(BuildConfig.META_URL);
     ui->userAgentLineEdit->setPlaceholderText(BuildConfig.USER_AGENT);
 
+    if (BuildConfig.FLAME_API_KEY_API_URL.isEmpty())
+        ui->fetchKeyButton->hide();
+
     loadSettings();
 
     resetBaseURLNote();
