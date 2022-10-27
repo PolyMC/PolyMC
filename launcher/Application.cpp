@@ -953,32 +953,6 @@ void Application::performMainStartupAction()
 {
     m_status = Application::Initialized;
 
-    {
-        bool shouldFetch = m_settings->get("FlameKeyShouldBeFetchedOnStartup").toBool();
-        if (shouldFetch && !(capabilities() & Capability::SupportsFlame))
-        {
-            auto response = QMessageBox::question(nullptr,
-                                                  tr("Curseforge Core API Key"),
-                                                  tr("Should PolyMC try to fetch the Official Curseforge Launcher's API Key? "
-                                                  "Using this key technically breaks Curseforge's Terms of Service, but this distribution of PolyMC "
-                                                  "does not come with a Curseforge API key by default, so without this key or another valid API key, "
-                                                  "which you can always change in the settings, you won't be able to download Curseforge modpacks."),
-                                                  QMessageBox::Yes | QMessageBox::No);
-
-            if (response == QMessageBox::Yes)
-            {
-                QString apiKey = GuiUtil::fetchFlameKey();
-                if (!apiKey.isEmpty())
-                {
-                    m_settings->set("FlameKeyOverride", apiKey);
-                    updateCapabilities();
-                }
-            }
-
-            m_settings->set("FlameKeyShouldBeFetchedOnStartup", false);
-        }
-    }
-
     if(!m_instanceIdToLaunch.isEmpty())
     {
         auto inst = instances()->getInstanceById(m_instanceIdToLaunch);
@@ -1008,6 +982,32 @@ void Application::performMainStartupAction()
             return;
         }
     }
+
+    {
+        bool shouldFetch = m_settings->get("FlameKeyShouldBeFetchedOnStartup").toBool();
+        if (!BuildConfig.FLAME_API_KEY_API_URL.isEmpty() && shouldFetch && !(capabilities() & Capability::SupportsFlame))
+        {
+            auto response = QMessageBox::question(nullptr,
+                                                  tr("Curseforge Core API Key"),
+                                                  tr("Should PolyMC try to fetch the Official Curseforge Launcher's API Key? "
+                                                     "Using this key technically breaks Curseforge's Terms of Service, but this distribution of PolyMC "
+                                                     "does not come with a Curseforge API key by default, so without this key or another valid API key, "
+                                                     "which you can always change in the settings, you won't be able to download Curseforge modpacks."),
+                                                  QMessageBox::Yes | QMessageBox::No);
+
+            if (response == QMessageBox::Yes)
+            {
+                QString apiKey = GuiUtil::fetchFlameKey();
+                if (!apiKey.isEmpty())
+                {
+                    m_settings->set("FlameKeyOverride", apiKey);
+                    updateCapabilities();
+                }
+            }
+        }
+        m_settings->set("FlameKeyShouldBeFetchedOnStartup", false);
+    }
+
     if(!m_mainWindow)
     {
         // normal main window

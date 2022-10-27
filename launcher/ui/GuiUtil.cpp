@@ -52,6 +52,9 @@
 
 QString GuiUtil::fetchFlameKey(QWidget *parentWidget)
 {
+    if (BuildConfig.FLAME_API_KEY_API_URL.isEmpty())
+        return "";
+
     ProgressDialog prog(parentWidget);
     auto flameKeyTask = std::make_unique<FetchFlameAPIKey>();
     prog.execWithTask(flameKeyTask.get());
