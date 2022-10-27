@@ -2,6 +2,7 @@
 /*
  *  PolyMC - Minecraft Launcher
  *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+ *  Copyright (C) 2022 Lenny McLennington <lenny@sneed.church>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1601,8 +1602,14 @@ InstanceView
 
 void MainWindow::runModalTask(Task *task)
 {
-    connect(task, &Task::failed, [this](QString reason)
+    ProgressDialog loadDialog(this);
+
+    connect(task, &Task::failed, [this, &loadDialog](QString reason)
         {
+            // FIXME:
+            // HACK: I don't know why calling show() on this CustomMessageBox causes loadDialog to not close,
+            // but this forces it to close BEFORE the CustomMessageBox gets opened... I think this is a bad fix
+            loadDialog.close();
             CustomMessageBox::selectable(this, tr("Error"), reason, QMessageBox::Critical)->show();
         });
     connect(task, &Task::succeeded, [this, task]()
@@ -1613,9 +1620,15 @@ void MainWindow::runModalTask(Task *task)
                 CustomMessageBox::selectable(this, tr("Warnings"), warnings.join('\n'), QMessageBox::Warning)->show();
             }
         });
-    ProgressDialog loadDialog(this);
+    connect(task, &Task::aborted, [this, &loadDialog]
+        {
+            // HACK: Same bad hack as above slot for Task::failed
+            loadDialog.close();
+            CustomMessageBox::selectable(this, tr("Task aborted"), tr("The task has been aborted by the user."), QMessageBox::Information)->show();
+        });
     loadDialog.setSkipButton(true, tr("Abort"));
     loadDialog.execWithTask(task);
+    qDebug() << "MainWindow::runModalTask: execWithTask exited properly";
 }
 
 void MainWindow::instanceFromInstanceTask(InstanceTask *rawTask)
