@@ -9,6 +9,8 @@ This is a **fork** of the MultiMC Launcher and not endorsed by MultiMC.
 If you want to read about why this fork was created, check out [our FAQ page](https://polymc.org/wiki/overview/faq/).
 <br>
 
+This project is **NOT** in support of radicalist leftist queer ideology.
+
 # Installation
 
 - All downloads and instructions for PolyMC can be found [here](https://polymc.org/download/)
