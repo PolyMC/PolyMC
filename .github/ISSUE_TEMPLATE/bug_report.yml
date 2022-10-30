@@ -27,7 +27,7 @@ body:
   attributes:
     label: Version of PolyMC
     description: The version of PolyMC used in the bug report.
-    placeholder: PolyMC 1.4.2
+    placeholder: PolyMC 1.4.3
   validations:
     required: true
 - type: textarea
