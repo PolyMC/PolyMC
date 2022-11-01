@@ -188,6 +188,10 @@ void MinecraftInstance::loadSpecificSettings()
     m_settings->registerSetting("JoinServerOnLaunch", false);
     m_settings->registerSetting("JoinServerOnLaunchAddress", "");
 
+    // Account override
+    m_settings->registerSetting("OverrideAccount", false);
+    m_settings->registerSetting("OverrideAccountName", "");
+
     qDebug() << "Instance-type specific settings were loaded!";
 
     setSpecificSettingsLoaded(true);

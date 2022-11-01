@@ -53,11 +53,14 @@
 #include "java/JavaUtils.h"
 #include "FileSystem.h"
 
+#include "minecraft/auth/AccountList.h"
+
 
 InstanceSettingsPage::InstanceSettingsPage(BaseInstance *inst, QWidget *parent)
     : QWidget(parent), ui(new Ui::InstanceSettingsPage), m_instance(inst)
 {
     m_settings = inst->settings();
+    m_accounts = APPLICATION->accounts();
     ui->setupUi(this);
     auto sysMB = Sys::getSystemRam() / Sys::mebibyte;
     ui->maxMemSpinBox->setMaximum(sysMB);
@@ -275,6 +278,18 @@ void InstanceSettingsPage::applySettings()
         m_settings->reset("JoinServerOnLaunchAddress");
     }
 
+    // Account override settings
+    bool accountOverride = ui->accountGroupBox->isChecked();
+    m_settings->set("OverrideAccount", accountOverride);
+    if (accountOverride)
+    {
+        m_settings->set("OverrideAccountName", ui->accountComboBox->currentText());
+    }
+    else
+    {
+        m_settings->reset("OverrideAccountName");
+    }
+
     // FIXME: This should probably be called by a signal instead
     m_instance->updateRuntimeContext();
 }
@@ -372,6 +387,20 @@ void InstanceSettingsPage::loadSettings()
 
     ui->serverJoinGroupBox->setChecked(m_settings->get("JoinServerOnLaunch").toBool());
     ui->serverJoinAddress->setText(m_settings->get("JoinServerOnLaunchAddress").toString());
+
+    for (int i = 0; i < m_accounts->count(); ++i) {
+        MinecraftAccountPtr account = m_accounts->at(i);
+
+        QString profileLabel = account->profileName();
+        QPixmap profileFace = account->getFace();
+        QIcon profileIcon = !profileFace.isNull() ? QIcon(profileFace) : APPLICATION->getThemedIcon("noaccount");
+
+        ui->accountComboBox->addItem(profileIcon, profileLabel);
+    }
+    int accountIndex = ui->accountComboBox->findText(m_settings->get("OverrideAccountName").toString());
+
+    ui->accountGroupBox->setChecked(m_settings->get("OverrideAccount").toBool());
+    ui->accountComboBox->setCurrentIndex(accountIndex == -1 ? 0 : accountIndex);
 }
 
 void InstanceSettingsPage::on_javaDetectBtn_clicked()
