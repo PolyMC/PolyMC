@@ -283,11 +283,11 @@ void InstanceSettingsPage::applySettings()
     m_settings->set("OverrideAccount", accountOverride);
     if (accountOverride)
     {
-        m_settings->set("OverrideAccountName", ui->accountComboBox->currentText());
+        m_settings->set("OverrideAccountIndex", ui->accountComboBox->currentIndex());
     }
     else
     {
-        m_settings->reset("OverrideAccountName");
+        m_settings->reset("OverrideAccountIndex");
     }
 
     // FIXME: This should probably be called by a signal instead
@@ -388,19 +388,28 @@ void InstanceSettingsPage::loadSettings()
     ui->serverJoinGroupBox->setChecked(m_settings->get("JoinServerOnLaunch").toBool());
     ui->serverJoinAddress->setText(m_settings->get("JoinServerOnLaunchAddress").toString());
 
-    for (int i = 0; i < m_accounts->count(); ++i) {
-        MinecraftAccountPtr account = m_accounts->at(i);
-
-        QString profileLabel = account->profileName();
-        QPixmap profileFace = account->getFace();
-        QIcon profileIcon = !profileFace.isNull() ? QIcon(profileFace) : APPLICATION->getThemedIcon("noaccount");
-
-        ui->accountComboBox->addItem(profileIcon, profileLabel);
-    }
-    int accountIndex = ui->accountComboBox->findText(m_settings->get("OverrideAccountName").toString());
-
     ui->accountGroupBox->setChecked(m_settings->get("OverrideAccount").toBool());
-    ui->accountComboBox->setCurrentIndex(accountIndex == -1 ? 0 : accountIndex);
+    if (m_accounts->count() > 0) {
+        for (int i = 0; i < m_accounts->count(); i++) {
+            MinecraftAccountPtr account = m_accounts->at(i);
+
+            QString profileLabel = account->profileName();
+            QString profileType = account->typeString();
+            profileType[0] = profileType[0].toUpper();
+            QPixmap profileFace = account->getFace();
+            QIcon profileIcon = !profileFace.isNull() ? QIcon(profileFace) : APPLICATION->getThemedIcon("noaccount");
+
+            ui->accountComboBox->addItem(profileIcon, QString("%1 (%2)").arg(profileLabel, profileType));
+        }
+
+        int accountIndex = m_settings->get("OverrideAccountIndex").toInt();
+        if (accountIndex >= 0 && accountIndex < m_accounts->count()) {
+            ui->accountComboBox->setCurrentIndex(accountIndex);
+        }
+    } else {
+        ui->accountComboBox->addItem(tr("No accounts available"));
+        ui->accountComboBox->setDisabled(true);
+    }
 }
 
 void InstanceSettingsPage::on_javaDetectBtn_clicked()
