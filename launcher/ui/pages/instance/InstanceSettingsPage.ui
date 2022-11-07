@@ -39,7 +39,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>5</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="minecraftTab">
       <attribute name="title">
@@ -598,7 +598,7 @@
        <item>
         <widget class="QGroupBox" name="accountGroupBox">
          <property name="title">
-          <string>Set a account to use</string>
+          <string>Set an account to use</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
