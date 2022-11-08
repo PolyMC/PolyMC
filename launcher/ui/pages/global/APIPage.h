@@ -45,21 +45,19 @@
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 
-namespace Ui 
+namespace Ui
 {
-    class APIPage;
-    class PMCKeyValidator;
-};
+class APIPage;
+}
 
-class PMCKeyValidator : public QRegularExpressionValidator
+class TrimmedRegExValidator : public QRegularExpressionValidator
 {
     using QRegularExpressionValidator::QRegularExpressionValidator;
 
     virtual QValidator::State validate(QString& input, int& npos) const override
     {
-        QString trimmed_input = input.trimmed();
-        input = trimmed_input;
-        return QRegularExpressionValidator::validate(trimmed_input, npos);
+        input = input.trimmed();
+        return QRegularExpressionValidator::validate(input, npos);
     }
 };
 
