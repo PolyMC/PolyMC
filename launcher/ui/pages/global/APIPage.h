@@ -4,6 +4,7 @@
  *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
  *  Copyright (c) 2022 Jamie Mansfield <jmansfield@cadixdev.org>
  *  Copyright (c) 2022 Lenny McLennington <lenny@sneed.church>
+ *  Copyright (c) 2022 jdp_ (https://github.com/jdpatdiscord)
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,13 +39,28 @@
 #pragma once
 
 #include <QWidget>
+#include <QValidator>
+#include <QRegularExpression>
+#include <QRegularExpressionValidator>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 
-namespace Ui {
+namespace Ui
+{
 class APIPage;
 }
+
+class TrimmedRegExValidator : public QRegularExpressionValidator
+{
+    using QRegularExpressionValidator::QRegularExpressionValidator;
+
+    virtual QValidator::State validate(QString& input, int& npos) const override
+    {
+        input = input.trimmed();
+        return QRegularExpressionValidator::validate(input, npos);
+    }
+};
 
 class APIPage : public QWidget, public BasePage
 {

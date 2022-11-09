@@ -40,10 +40,8 @@
 
 #include <QMessageBox>
 #include <QFileDialog>
-#include <QRegularExpression>
 #include <QStandardPaths>
 #include <QTabBar>
-#include <QValidator>
 #include <QVariant>
 
 #include "settings/SettingsObject.h"
@@ -82,9 +80,9 @@ APIPage::APIPage(QWidget *parent) :
     connect(ui->pasteTypeComboBox, currentIndexChangedSignal, this, &APIPage::updateBaseURLPlaceholder);
     // This function needs to be called even when the ComboBox's index is still in its default state.
     updateBaseURLPlaceholder(ui->pasteTypeComboBox->currentIndex());
-    ui->baseURLEntry->setValidator(new QRegularExpressionValidator(validUrlRegExp, ui->baseURLEntry));
-    ui->msaClientID->setValidator(new QRegularExpressionValidator(validMSAClientID, ui->msaClientID));
-    ui->flameKey->setValidator(new QRegularExpressionValidator(validFlameKey, ui->flameKey));
+    ui->baseURLEntry->setValidator(new TrimmedRegExValidator(validUrlRegExp, ui->baseURLEntry));
+    ui->msaClientID->setValidator(new TrimmedRegExValidator(validMSAClientID, ui->msaClientID));
+    ui->flameKey->setValidator(new TrimmedRegExValidator(validFlameKey, ui->flameKey));
 
     ui->metaURL->setPlaceholderText(BuildConfig.META_URL);
     ui->userAgentLineEdit->setPlaceholderText(BuildConfig.USER_AGENT);
