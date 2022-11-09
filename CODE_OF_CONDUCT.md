@@ -11,8 +11,7 @@ size, visible or invisible disability, ethnicity, education, socio-economic stat
 nationality, personal appearance, race, caste, color, religion, or sexual
 identity and orientation.
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+We pledge to act and interact in ways that contribute to an open, and healthy community.
 
 ## Our Standards
 
