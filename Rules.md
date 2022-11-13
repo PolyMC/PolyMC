@@ -1,16 +1,16 @@
-1. Purpose
+# 1. Purpose
 The Founder of PolyMC, and all of the current developers at the time when this document was composed, have pledged to govern their interactions with each other, 
 with their clients, and with the larger PolyMC user community in accordance with the "instruments of good works" from chapter 4 of The Rule of St. Benedict (hereafter: "The Rule"). 
 This code of ethics has proven its mettle in thousands of diverse communities for over 1,500 years, and has served as a baseline for many civil law codes since the time of Charlemagne. 
 
-1.1. Scope of Application
+# 1.1. Scope of Application
  No one is required to follow The Rule, to know The Rule, or even to think that The Rule is a good idea. 
  The Founder of PolyMC believes that anyone who follows The Rule will live a happier and more productive life, but individuals are free to dispute or ignore that advice if they wish.
  The Founder of PolyMC and all current developers have pledged to follow the spirit of The Rule to the best of their ability.
  They view The Rule as their promise to all PolyMC users of how the developers are expected to behave. This is a one-way promise, or covenant. 
  In other words, the developers are saying: "We will treat you this way regardless of how you treat us." 
 
-2. The Rule
+# 2. The Rule
 
  1. First of all, love the Lord God with your whole heart, your whole soul, and your whole strength.
  2. Then, love your neighbor as yourself.
@@ -85,4 +85,5 @@ This code of ethics has proven its mettle in thousands of diverse communities fo
 71. Make peace with your adversary before the sun sets.
 72. Never despair of God's mercy.
 
+# Credit
 We thank SQLite for their "Code of Ethics" document, which we have adapted to better fit our vision, the original document can be found here: https://sqlite.org/codeofethics.html
