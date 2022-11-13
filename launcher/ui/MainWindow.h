@@ -204,6 +204,8 @@ private slots:
 
     void updateNewsLabel();
 
+    void updateCat();
+
     /*!
      * Runs the DownloadTask and installs updates.
      */

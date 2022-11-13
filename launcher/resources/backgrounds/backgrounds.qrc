@@ -1,8 +1,11 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource prefix="/backgrounds">
-        <file alias="kitteh">catbgrnd2.png</file>
-        <file alias="catmas">catmas.png</file>
-        <file alias="cattiversary">cattiversary.png</file>
+        <file alias="defaultCatmas">catmas.png</file>
+        <file alias="defaultCattiversary">cattiversary.png</file>
+        <file alias="defaultCat">catbackground.png</file>
+        <file alias="jinxCat">jinxbg.png</file>
+        <file alias="jinxCatmas">jinxmas.png</file>
+        <file alias="jinxCattiversary">jinxversary.png</file>
     </qresource>
 </RCC>

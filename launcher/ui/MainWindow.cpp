@@ -1603,15 +1603,21 @@ void MainWindow::setCatBackground(bool enabled)
         QDateTime now = QDateTime::currentDateTime();
         QDateTime birthday(QDate(now.date().year(), 11, 30), QTime(0, 0));
         QDateTime xmas(QDate(now.date().year(), 12, 25), QTime(0, 0));
-        QString cat;
+
+        QString cat = "default";
+        if(APPLICATION->settings()->get("CatStyle").toString() == "Jinx")
+        {
+            cat = "jinx";
+        }
+
         if(non_stupid_abs(now.daysTo(xmas)) <= 4) {
-            cat = "catmas";
+            cat += "Catmas";
         }
         else if (non_stupid_abs(now.daysTo(birthday)) <= 12) {
-            cat = "cattiversary";
+            cat += "Cattiversary";
         }
         else {
-            cat = "kitteh";
+            cat += "Cat";
         }
         view->setStyleSheet(QString(R"(
 InstanceView
@@ -1935,6 +1941,7 @@ void MainWindow::globalSettingsClosed()
     updateMainToolBar();
     updateToolsMenu();
     updateStatusCenter();
+    updateCat();
     // This needs to be done to prevent UI elements disappearing in the event the config is changed
     // but PolyMC exits abnormally, causing the window state to never be saved:
     APPLICATION->settings()->set("MainWindowState", saveState().toBase64());
@@ -2283,6 +2290,11 @@ void MainWindow::updateStatusCenter()
     if (timePlayed > 0) {
         m_statusCenter->setText(tr("Total playtime: %1").arg(Time::prettifyDuration(timePlayed)));
     }
+}
+
+void MainWindow::updateCat()
+{
+    setCatBackground(APPLICATION->settings()->get("TheCat").toBool());
 }
 
 void MainWindow::refreshCurrentInstance(bool running)
