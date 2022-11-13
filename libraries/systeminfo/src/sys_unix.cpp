@@ -66,16 +66,16 @@ uint64_t Sys::getSystemRam()
         // ignore rest of the line
         file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
-#elif defined(Q_OS_FREEBSD)
+#elif defined(Q_OS_OPENBSD) || defined(Q_OS_FREEBSD)
     char buff[512];
-    FILE *fp = popen("sysctl hw.physmem", "r");
+    FILE *fp = popen("sysctl -n hw.physmem", "r");
     if (fp != NULL)
     {
 	while(fgets(buff, 512, fp) != NULL)
 	{
 	    std::string str(buff);
-	    uint64_t mem = std::stoull(str.substr(12, std::string::npos));
-	    return mem * 1024ull;
+	    uint64_t mem = std::stoull(str);
+	    return mem;
 	}
     }
 #endif
