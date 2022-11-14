@@ -61,7 +61,7 @@
 #include "settings/INISettingsObject.h"
 
 #ifdef Q_OS_WIN32
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 const static int GROUP_FILE_FORMAT_VERSION = 1;
