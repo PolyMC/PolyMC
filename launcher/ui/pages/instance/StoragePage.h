@@ -45,7 +45,7 @@ public:
     }
     virtual QIcon icon() const override
     {
-        auto icon = APPLICATION->getThemedIcon("notes");
+        auto icon = APPLICATION->getThemedIcon("storage");
         if(icon.isNull())
             icon = APPLICATION->getThemedIcon("news");
         return icon;

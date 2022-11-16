@@ -40,6 +40,7 @@
         <file>scalable/status-good.svg</file>
         <file>scalable/status-running.svg</file>
         <file>scalable/status-yellow.svg</file>
+        <file>scalable/storage.svg</file>
         <file>scalable/viewfolder.svg</file>
         <file>scalable/worlds.svg</file>
     </qresource>
