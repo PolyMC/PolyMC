@@ -22,10 +22,14 @@
 #pragma once
 
 #include <QWidget>
+#include <QtCharts/QChartView>
+#include <QtCharts/QPieSeries>
+#include <QtCharts/QPieSlice>
 
 #include "BaseInstance.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
+#include <qmessagebox.h>
 
 namespace Ui
 {
@@ -61,15 +65,19 @@ public:
     }
     void retranslate() override;
 
-    void HandleClearScreenshotsButton();
-    void HandleClearLogsButton();
-    void HandleClearAllButton();
+    void handleClearScreenshotsButton();
+    void handleClearLogsButton();
+    void handleClearAllButton();
 
-    void update_calculations();
+    void updateCalculations();
 
 private:
     Ui::StoragePage *ui;
     BaseInstance *m_inst;
 
-    unsigned m_size_resource_packs, m_size_mods, m_size_saves, m_size_screenshots, m_size_logs;
+    QtCharts::QPieSeries *m_series;
+    QtCharts::QChart *m_chart;
+    QtCharts::QChartView *m_chart_view;
+
+    QMessageBox *m_confirmation_box;
 };

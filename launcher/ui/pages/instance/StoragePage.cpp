@@ -17,40 +17,65 @@
  */
 
 #include "StoragePage.h"
+#include <QMessageBox>
+#include <QStorageInfo>
 #include <QTabBar>
 #include "ui_StoragePage.h"
 
-#include <filesystem>
-#include <string>
-
-unsigned get_directory_size(std::string path)
+qint64 getDirectorySize(QString path)
 {
-    if (!std::filesystem::exists(path))
-        return 0;
-    unsigned file_size_total = 0;
-    for (auto const& entry : std::filesystem::directory_iterator(path)) {
-        if (entry.is_directory())
-            file_size_total += get_directory_size(entry.path().string());
-        else
-            file_size_total += entry.file_size();
+    QDirIterator it(path, QDirIterator::Subdirectories);
+    qint64 fileSizeTotal = 0;
+    while (it.hasNext()) {
+        it.next();
+        fileSizeTotal += it.fileInfo().size();
     }
-    return file_size_total;
+    return fileSizeTotal;
 }
 
-void clear_directory_inner(std::string path)
+void clearDirectoryInner(QString path)
 {
-    if (!std::filesystem::exists(path))
-        return;
-
-    for (auto const& entry : std::filesystem::directory_iterator(path))
-        std::filesystem::remove_all(entry);
+    QDir(path).removeRecursively();
 }
 
 StoragePage::StoragePage(BaseInstance* inst, QWidget* parent) : QWidget(parent), ui(new Ui::StoragePage), m_inst(inst)
 {
     ui->setupUi(this);
 
-    update_calculations();
+    m_confirmation_box = new QMessageBox(this);
+    m_confirmation_box->setWindowTitle("Confirmation");
+    m_confirmation_box->setIcon(QMessageBox::Warning);
+    m_confirmation_box->setText("Are you sure you want to proceed?");
+    m_confirmation_box->setStandardButtons(QMessageBox::Yes);
+    m_confirmation_box->addButton(QMessageBox::No);
+    m_confirmation_box->setDefaultButton(QMessageBox::No);
+
+    m_series = new QtCharts::QPieSeries(this);
+    m_series->setLabelsVisible();
+    m_series->setLabelsPosition(QtCharts::QPieSlice::LabelInsideHorizontal);
+    m_chart_view = new QtCharts::QChartView(this);
+    m_chart = new QtCharts::QChart();
+    m_chart->setParent(this);
+    m_chart->addSeries(m_series);
+    m_chart->setBackgroundVisible(false);
+    m_chart->setMargins(QMargins(0, 0, 0, 0));
+    m_chart->legend()->setAlignment(Qt::AlignLeft);
+    m_chart_view->setRenderHint(QPainter::Antialiasing);
+
+    ui->verticalLayout->addWidget(m_chart_view);
+    ui->retranslateUi(this);
+
+    updateCalculations();
+
+    connect(ui->button_goto_resouce_packs, &QPushButton::clicked, this, [&] { m_container->selectPage("resourcepacks"); });
+    connect(ui->button_goto_mods, &QPushButton::clicked, this, [&] { m_container->selectPage("mods"); });
+    connect(ui->button_goto_worlds, &QPushButton::clicked, this, [&] { m_container->selectPage("worlds"); });
+    connect(ui->button_goto_screenshots, &QPushButton::clicked, this, [&] { m_container->selectPage("screenshots"); });
+    connect(ui->button_goto_other_logs, &QPushButton::clicked, this, [&] { m_container->selectPage("logs"); });
+
+    connect(ui->button_clear_screenshots, &QPushButton::clicked, this, &StoragePage::handleClearScreenshotsButton);
+    connect(ui->button_clear_logs, &QPushButton::clicked, this, &StoragePage::handleClearLogsButton);
+    connect(ui->button_clear_all, &QPushButton::clicked, this, &StoragePage::handleClearAllButton);
 }
 
 StoragePage::~StoragePage()
@@ -68,45 +93,67 @@ void StoragePage::retranslate()
     ui->retranslateUi(this);
 }
 
-void StoragePage::HandleClearScreenshotsButton()
+void StoragePage::handleClearScreenshotsButton()
 {
-    auto path = (m_inst->gameRoot() + "/screenshots").toStdString();
-    clear_directory_inner(path);
-    update_calculations();
+    if (m_confirmation_box->exec() != QMessageBox::Yes)
+        return;
+
+    auto path = m_inst->gameRoot() + "/screenshots";
+    QDir(path).removeRecursively();
+    updateCalculations();
 }
 
-void StoragePage::HandleClearLogsButton()
+void StoragePage::handleClearLogsButton()
 {
-    auto path = (m_inst->gameRoot() + "/logs").toStdString();
-    clear_directory_inner(path);
-    update_calculations();
+    if (m_confirmation_box->exec() != QMessageBox::Yes)
+        return;
+
+    auto path = m_inst->gameRoot() + "/logs";
+    QDir(path).removeRecursively();
+    updateCalculations();
 }
 
-void StoragePage::HandleClearAllButton()
+void StoragePage::handleClearAllButton()
 {
-    HandleClearScreenshotsButton();
-    HandleClearLogsButton();
+    if (m_confirmation_box->exec() != QMessageBox::Yes)
+        return;
+
+    handleClearScreenshotsButton();
+    handleClearLogsButton();
 }
 
-void StoragePage::update_calculations()
+void StoragePage::updateCalculations()
 {
-    m_size_resource_packs = get_directory_size((m_inst->gameRoot() + "/texturepacks").toStdString()) +
-                            get_directory_size((m_inst->gameRoot() + "/resourcepacks").toStdString());
-    m_size_mods = get_directory_size(m_inst->modsRoot().toStdString());
-    m_size_saves = get_directory_size((m_inst->gameRoot() + "/saves").toStdString());
-    m_size_screenshots = get_directory_size((m_inst->gameRoot() + "/screenshots").toStdString());
-    m_size_logs = get_directory_size((m_inst->gameRoot() + "/logs").toStdString());
+    auto size_resource_packs =
+        getDirectorySize((m_inst->gameRoot() + "/texturepacks")) + getDirectorySize((m_inst->gameRoot() + "/resourcepacks"));
+    auto size_mods = getDirectorySize(m_inst->modsRoot());
+    auto size_saves = getDirectorySize((m_inst->gameRoot() + "/saves"));
+    auto size_screenshots = getDirectorySize((m_inst->gameRoot() + "/screenshots"));
+    auto size_logs = getDirectorySize((m_inst->gameRoot() + "/logs"));
 
-    QLocale locale = this->locale();
-    ui->label_resource_packs->setText(locale.formattedDataSize(m_size_resource_packs));
-    ui->label_mods->setText(locale.formattedDataSize(m_size_mods));
-    ui->label_saves->setText(locale.formattedDataSize(m_size_saves));
-    ui->label_screenshots->setText(locale.formattedDataSize(m_size_screenshots));
-    ui->label_logs->setText(locale.formattedDataSize(m_size_logs));
-    ui->label_combined->setText(
-        locale.formattedDataSize(m_size_resource_packs + m_size_mods + m_size_saves + m_size_screenshots + m_size_logs));
+    auto storage_info = QStorageInfo(QDir(m_inst->gameRoot()));
+    auto size_remaining = storage_info.bytesAvailable();
+    auto size_used = storage_info.bytesTotal() - size_remaining;
 
-    connect(ui->button_clear_screenshots, &QPushButton::clicked, this, &StoragePage::HandleClearScreenshotsButton);
-    connect(ui->button_clear_logs, &QPushButton::clicked, this, &StoragePage::HandleClearLogsButton);
-    connect(ui->button_clear_all, &QPushButton::clicked, this, &StoragePage::HandleClearAllButton);
+    auto locale = this->locale();
+    ui->label_resource_packs->setText(locale.formattedDataSize(size_resource_packs));
+    ui->label_mods->setText(locale.formattedDataSize(size_mods));
+    ui->label_saves->setText(locale.formattedDataSize(size_saves));
+    ui->label_screenshots->setText(locale.formattedDataSize(size_screenshots));
+    ui->label_logs->setText(locale.formattedDataSize(size_logs));
+    ui->label_combined->setText(locale.formattedDataSize(size_resource_packs + size_mods + size_saves + size_screenshots + size_logs));
+
+    ui->label_used->setText(locale.formattedDataSize(size_used));
+    ui->label_remaining->setText(locale.formattedDataSize(size_remaining));
+
+    m_series->clear();
+    m_series->append("Resource packs", size_resource_packs);
+    m_series->append("Mods", size_mods);
+    m_series->append("Saves", size_saves);
+    m_series->append("Screenshots", size_screenshots);
+    m_series->append("Logs", size_logs);
+
+    m_chart_view->setChart(m_chart);
+    for (auto slice : m_series->slices())
+        slice->setLabel(slice->label() + " " + QString("%1%").arg(100 * slice->percentage(), 0, 'f', 1));
 }
