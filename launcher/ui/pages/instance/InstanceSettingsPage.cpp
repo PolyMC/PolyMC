@@ -62,6 +62,11 @@ InstanceSettingsPage::InstanceSettingsPage(BaseInstance *inst, QWidget *parent)
     m_settings = inst->settings();
     m_accounts = APPLICATION->accounts();
     ui->setupUi(this);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    // This would just be set in the .ui file, if only Qt's uic would just ignore propreties that don't exist. SAD!
+    ui->accountComboBox->setPlaceholderText(tr("No account selected"));
+#endif
+
     auto sysMB = Sys::getSystemRam() / Sys::mebibyte;
     ui->maxMemSpinBox->setMaximum(sysMB);
     connect(ui->openGlobalJavaSettingsButton, &QCommandLinkButton::clicked, this, &InstanceSettingsPage::globalSettingsButtonClicked);
@@ -413,7 +418,12 @@ void InstanceSettingsPage::loadSettings()
         }
         ui->accountComboBox->setCurrentIndex(index);
     } else {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        ui->accountComboBox->setPlaceholderText(tr("No accounts available"));
+        ui->accountComboBox->setCurrentIndex(-1);
+#else
         ui->accountComboBox->addItem(tr("No accounts available"));
+#endif
         ui->accountComboBox->setDisabled(true);
     }
 
