@@ -159,8 +159,8 @@ void LauncherPage::on_instDirBrowseBtn_clicked()
             if (result == QMessageBox::Ok)
             {
                 ui->instDirTextBox->setText(cooked_dir);
-            } 
-        } 
+            }
+        }
         else
         {
             ui->instDirTextBox->setText(cooked_dir);
@@ -317,6 +317,11 @@ void LauncherPage::applySettings()
         break;
     }
 
+    if(s->get("CatStyle") != ui->themeComboBoxCat->currentText())
+    {
+        s->set("CatStyle", ui->themeComboBoxCat->currentText());
+    }
+
     if(original != s->get("IconTheme"))
     {
         APPLICATION->setIconTheme(s->get("IconTheme").toString());
@@ -429,6 +434,19 @@ void LauncherPage::loadSettings()
                 ui->themeComboBoxColors->setCurrentIndex(idx);
             }
             idx++;
+        }
+
+        //TODO: Don't make it hardcoded via strings
+        auto currentCatStyle = s->get("CatStyle").toString();
+        ui->themeComboBoxCat->addItem("BackgroundCat");
+        ui->themeComboBoxCat->addItem("Jinx");
+        if(currentCatStyle == "Jinx")
+        {
+            ui->themeComboBoxCat->setCurrentIndex(1);
+        }
+        else
+        {
+            ui->themeComboBoxCat->setCurrentIndex(0);
         }
     }
 
