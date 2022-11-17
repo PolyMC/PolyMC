@@ -416,6 +416,11 @@ void InstanceSettingsPage::loadSettings()
         ui->accountComboBox->addItem(tr("No accounts available"));
         ui->accountComboBox->setDisabled(true);
     }
+
+    // If there isn't a currently selected account, the override should show as disabled
+    if (ui->accountComboBox->currentIndex() == -1) {
+        ui->accountGroupBox->setChecked(false);
+    }
 }
 
 void InstanceSettingsPage::on_javaDetectBtn_clicked()
