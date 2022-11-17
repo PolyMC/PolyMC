@@ -112,7 +112,18 @@ void LaunchController::decideAccount()
         }
     }
 
+    bool overrideAccount = m_instance->settings()->get("OverrideAccount").toBool();
+    QString overrideAccountProfileId = m_instance->settings()->get("OverrideAccountProfileId").toString();
+
     m_accountToUse = accounts->defaultAccount();
+
+    if (overrideAccount) {
+        int overrideIndex = accounts->findAccountByProfileId(overrideAccountProfileId);
+        if (overrideIndex != -1) {
+            m_accountToUse = accounts->at(overrideIndex);
+        }
+    }
+
     if (!m_accountToUse)
     {
         // If no default account is set, ask the user which one to use.

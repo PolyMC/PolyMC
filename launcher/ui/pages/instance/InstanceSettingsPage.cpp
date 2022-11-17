@@ -53,12 +53,20 @@
 #include "java/JavaUtils.h"
 #include "FileSystem.h"
 
+#include "minecraft/auth/AccountList.h"
+
 
 InstanceSettingsPage::InstanceSettingsPage(BaseInstance *inst, QWidget *parent)
     : QWidget(parent), ui(new Ui::InstanceSettingsPage), m_instance(inst)
 {
     m_settings = inst->settings();
+    m_accounts = APPLICATION->accounts();
     ui->setupUi(this);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    // This would just be set in the .ui file, if only Qt's uic would just ignore propreties that don't exist. SAD!
+    ui->accountComboBox->setPlaceholderText(tr("No account selected"));
+#endif
+
     auto sysMB = Sys::getSystemRam() / Sys::mebibyte;
     ui->maxMemSpinBox->setMaximum(sysMB);
     connect(ui->openGlobalJavaSettingsButton, &QCommandLinkButton::clicked, this, &InstanceSettingsPage::globalSettingsButtonClicked);
@@ -275,6 +283,18 @@ void InstanceSettingsPage::applySettings()
         m_settings->reset("JoinServerOnLaunchAddress");
     }
 
+    // Account override settings
+    bool accountOverride = ui->accountGroupBox->isChecked();
+    m_settings->set("OverrideAccount", accountOverride);
+    if (accountOverride && ui->accountComboBox->currentData().isValid())
+    {
+        m_settings->set("OverrideAccountProfileId", ui->accountComboBox->currentData().toString());
+    }
+    else
+    {
+        m_settings->reset("OverrideAccountProfileId");
+    }
+
     // FIXME: This should probably be called by a signal instead
     m_instance->updateRuntimeContext();
 }
@@ -372,6 +392,45 @@ void InstanceSettingsPage::loadSettings()
 
     ui->serverJoinGroupBox->setChecked(m_settings->get("JoinServerOnLaunch").toBool());
     ui->serverJoinAddress->setText(m_settings->get("JoinServerOnLaunchAddress").toString());
+
+    ui->accountGroupBox->setChecked(m_settings->get("OverrideAccount").toBool());
+    if (m_accounts->count() > 0) {
+        for (int i = 0; i < m_accounts->count(); i++) {
+            MinecraftAccountPtr account = m_accounts->at(i);
+
+            QString profileLabel = account->profileName();
+            QString profileId = account->profileId();
+            QString profileType = account->typeString();
+            profileType[0] = profileType[0].toUpper();
+            QPixmap profileFace = account->getFace();
+            QIcon profileIcon = !profileFace.isNull() ? QIcon(profileFace) : APPLICATION->getThemedIcon("noaccount");
+
+            ui->accountComboBox->addItem(profileIcon, QString("%1 (%2)").arg(profileLabel, profileType), profileId);
+        }
+
+        QString accountProfileId = m_settings->get("OverrideAccountProfileId").toString();
+        int index = -1;
+        if (ui->accountGroupBox->isChecked()) {
+            // Try find the account by the override profile id setting
+            // It'll be -1 if the account doesn't exist, which will just
+            // Set the combobox to the "no option selected" state
+            index = ui->accountComboBox->findData(accountProfileId);
+        }
+        ui->accountComboBox->setCurrentIndex(index);
+    } else {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        ui->accountComboBox->setPlaceholderText(tr("No accounts available"));
+        ui->accountComboBox->setCurrentIndex(-1);
+#else
+        ui->accountComboBox->addItem(tr("No accounts available"));
+#endif
+        ui->accountComboBox->setDisabled(true);
+    }
+
+    // If there isn't a currently selected account, the override should show as disabled
+    if (ui->accountComboBox->currentIndex() == -1) {
+        ui->accountGroupBox->setChecked(false);
+    }
 }
 
 void InstanceSettingsPage::on_javaDetectBtn_clicked()
