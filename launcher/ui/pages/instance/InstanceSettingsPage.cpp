@@ -281,13 +281,13 @@ void InstanceSettingsPage::applySettings()
     // Account override settings
     bool accountOverride = ui->accountGroupBox->isChecked();
     m_settings->set("OverrideAccount", accountOverride);
-    if (accountOverride)
+    if (accountOverride && ui->accountComboBox->currentData().isValid())
     {
-        m_settings->set("OverrideAccountIndex", ui->accountComboBox->currentIndex());
+        m_settings->set("OverrideAccountProfileId", ui->accountComboBox->currentData().toString());
     }
     else
     {
-        m_settings->reset("OverrideAccountIndex");
+        m_settings->reset("OverrideAccountProfileId");
     }
 
     // FIXME: This should probably be called by a signal instead
@@ -394,18 +394,24 @@ void InstanceSettingsPage::loadSettings()
             MinecraftAccountPtr account = m_accounts->at(i);
 
             QString profileLabel = account->profileName();
+            QString profileId = account->profileId();
             QString profileType = account->typeString();
             profileType[0] = profileType[0].toUpper();
             QPixmap profileFace = account->getFace();
             QIcon profileIcon = !profileFace.isNull() ? QIcon(profileFace) : APPLICATION->getThemedIcon("noaccount");
 
-            ui->accountComboBox->addItem(profileIcon, QString("%1 (%2)").arg(profileLabel, profileType));
+            ui->accountComboBox->addItem(profileIcon, QString("%1 (%2)").arg(profileLabel, profileType), profileId);
         }
 
-        int accountIndex = m_settings->get("OverrideAccountIndex").toInt();
-        if (accountIndex >= 0 && accountIndex < m_accounts->count()) {
-            ui->accountComboBox->setCurrentIndex(accountIndex);
+        QString accountProfileId = m_settings->get("OverrideAccountProfileId").toString();
+        int index = -1;
+        if (ui->accountGroupBox->isChecked()) {
+            // Try find the account by the override profile id setting
+            // It'll be -1 if the account doesn't exist, which will just
+            // Set the combobox to the "no option selected" state
+            index = ui->accountComboBox->findData(accountProfileId);
         }
+        ui->accountComboBox->setCurrentIndex(index);
     } else {
         ui->accountComboBox->addItem(tr("No accounts available"));
         ui->accountComboBox->setDisabled(true);

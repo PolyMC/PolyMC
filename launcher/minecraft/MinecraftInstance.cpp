@@ -190,7 +190,7 @@ void MinecraftInstance::loadSpecificSettings()
 
     // Account override
     m_settings->registerSetting("OverrideAccount", false);
-    m_settings->registerSetting("OverrideAccountIndex", -1);
+    m_settings->registerSetting("OverrideAccountProfileId", "");
 
     qDebug() << "Instance-type specific settings were loaded!";
 
