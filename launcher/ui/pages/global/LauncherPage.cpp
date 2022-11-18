@@ -322,6 +322,11 @@ void LauncherPage::applySettings()
         s->set("CatStyle", ui->themeComboBoxCat->currentText());
     }
 
+    if(s->get("CatPosition") != ui->themeComboBoxCatPosition->currentData())
+    {
+      s->set("CatPosition", ui->themeComboBoxCatPosition->currentData());
+    }
+
     if(original != s->get("IconTheme"))
     {
         APPLICATION->setIconTheme(s->get("IconTheme").toString());
@@ -447,6 +452,20 @@ void LauncherPage::loadSettings()
             ui->themeComboBoxCat->setCurrentIndex(1);
         else
             ui->themeComboBoxCat->setCurrentIndex(0);
+
+        auto currentCatPosition = s->get("CatPosition").toString();
+        ui->themeComboBoxCatPosition->addItem(tr("Top Left"), "top left");
+        ui->themeComboBoxCatPosition->addItem(tr("Top Right"), "top right");
+        ui->themeComboBoxCatPosition->addItem(tr("Bottom Left"), "bottom left");
+        ui->themeComboBoxCatPosition->addItem(tr("Bottom Right"), "bottom right");
+        if (currentCatPosition == "top left")
+          ui->themeComboBoxCatPosition->setCurrentIndex(0);
+        else if (currentCatPosition == "bottom left")
+          ui->themeComboBoxCatPosition->setCurrentIndex(2);
+        else if (currentCatPosition == "bottom right")
+          ui->themeComboBoxCatPosition->setCurrentIndex(3);
+        else
+          ui->themeComboBoxCatPosition->setCurrentIndex(1);
     }
 
     // Toolbar/menu bar settings (not applicable if native menu bar is present)
