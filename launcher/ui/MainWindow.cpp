@@ -1605,10 +1605,11 @@ void MainWindow::setCatBackground(bool enabled)
         QDateTime xmas(QDate(now.date().year(), 12, 25), QTime(0, 0));
 
         QString cat = "default";
-        if(APPLICATION->settings()->get("CatStyle").toString() == "Jinx")
-        {
+        QString catStyleOpt = APPLICATION->settings()->get("CatStyle").toString();
+        if(catStyleOpt == "Floppa")
+            cat = "floppa";
+        else if(catStyleOpt == "Jinx")
             cat = "jinx";
-        }
 
         if(non_stupid_abs(now.daysTo(xmas)) <= 4) {
             cat += "Catmas";
