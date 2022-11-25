@@ -53,6 +53,7 @@ ModDetails ReadMCModInfo(QByteArray contents)
         for (auto author : authors) {
             details.authors.append(author.toString());
         }
+        details.loader = "FML";
         return details;
     };
     QJsonParseError jsonError;
@@ -163,6 +164,7 @@ ModDetails ReadMCModTOML(QByteArray contents)
     }
     details.homeurl = homeurl;
 
+    details.loader = "Forge";
     return details;
 }
 
@@ -200,6 +202,8 @@ ModDetails ReadFabricModInfo(QByteArray contents)
             }
         }
     }
+
+    details.loader = "Fabric";
     return details;
 }
 
@@ -236,12 +240,15 @@ ModDetails ReadQuiltModInfo(QByteArray contents)
             details.homeurl = Json::requireString(modContact.value("homepage"));
         }
     }
+
+    details.loader = "Quilt";
     return details;
 }
 
 ModDetails ReadForgeInfo(QByteArray contents)
 {
     ModDetails details;
+
     // Read the data
     details.name = "Minecraft Forge";
     details.mod_id = "Forge";
@@ -256,6 +263,8 @@ ModDetails ReadForgeInfo(QByteArray contents)
     QString build = ini.get("forge.build.number", "0").toString();
 
     details.version = major + "." + minor + "." + revision + "." + build;
+
+    details.loader = "Forge";
     return details;
 }
 
@@ -280,6 +289,8 @@ ModDetails ReadLiteModInfo(QByteArray contents)
     }
     details.description = object.value("description").toString();
     details.homeurl = object.value("url").toString();
+
+    details.loader = "LiteLoader";
     return details;
 }
 
