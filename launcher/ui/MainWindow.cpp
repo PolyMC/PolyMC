@@ -115,6 +115,35 @@
 
 #include "MMCTime.h"
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+// For .lnk creation
+#include <windows.h>
+#include <shobjidl.h>
+
+// https://stackoverflow.com/a/63443879
+HRESULT createLink(const LPCWSTR &target, const LPCWSTR &shortcut_path, const LPCWSTR &description, const LPCWSTR &arguments) {
+    HRESULT hres;
+    IShellLinkW* psl;
+
+    hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&psl));
+    if (SUCCEEDED(hres)) {
+        IPersistFile* ppf;
+        psl->SetPath(target);
+        psl->SetArguments(arguments);
+        psl->SetDescription(description);
+
+        hres = psl->QueryInterface(IID_PPV_ARGS(&ppf));
+        if (SUCCEEDED(hres)) {
+            hres = ppf->Save(shortcut_path, TRUE);
+            ppf->Release();
+        }
+        psl->Release();
+    }
+    return hres;
+}
+
+#endif
+
 namespace {
 QString profileInUseFilter(const QString & profile, bool used)
 {
@@ -230,6 +259,7 @@ public:
     TranslatedAction actionRenameInstance;
     TranslatedAction actionChangeInstGroup;
     TranslatedAction actionChangeInstIcon;
+    TranslatedAction actionCreateShortcut;
     TranslatedAction actionEditInstNotes;
     TranslatedAction actionEditInstance;
     TranslatedAction actionWorlds;
@@ -723,6 +753,15 @@ public:
         actionChangeInstGroup.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Change the selected instance's group."));
         actionChangeInstGroup->setShortcut(QKeySequence(tr("Ctrl+G")));
         all_actions.append(&actionChangeInstGroup);
+        
+        // FIXME: Add a way to create shortcuts on Mac.
+#ifndef __APPLE__
+        actionCreateShortcut = TranslatedAction(MainWindow);
+        actionCreateShortcut->setObjectName(QStringLiteral("actionCreateShortcut"));
+        actionCreateShortcut.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Create desktop shortcut"));
+        actionCreateShortcut.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Create a desktop shortcut to launch the instance."));
+        all_actions.append(&actionCreateShortcut);
+#endif
 
         actionViewSelectedMCFolder = TranslatedAction(MainWindow);
         actionViewSelectedMCFolder->setObjectName(QStringLiteral("actionViewSelectedMCFolder"));
@@ -803,6 +842,9 @@ public:
         instanceToolBar->addAction(actionWorlds);
         instanceToolBar->addAction(actionScreenshots);
         instanceToolBar->addAction(actionChangeInstGroup);
+#ifndef __APPLE__
+        instanceToolBar->addAction(actionCreateShortcut);
+#endif
 
         instanceToolBar->addSeparator();
 
@@ -1859,6 +1901,36 @@ void MainWindow::on_actionChangeInstGroup_triggered()
     {
         APPLICATION->instances()->setInstanceGroup(instId, name);
     }
+}
+
+void MainWindow::on_actionCreateShortcut_triggered()
+{
+    if (!m_selectedInstance)
+        return;
+  
+    auto desktop = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+    auto executable_path = APPLICATION->applicationFilePath();
+    auto instId = m_selectedInstance->id();
+    auto icon = APPLICATION->windowIcon();
+    auto name = m_selectedInstance->name();
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    createLink(
+        executable_path.toStdWString().c_str(),
+        QString("%1\\Launch %2.lnk").arg(desktop, name).toStdWString().c_str(),
+        QString("Launch instance %1").arg(name).toStdWString().c_str(),
+        QString("-l %2").arg(instId).toStdWString().c_str()
+    );
+#else
+    QFile shortcut_file(QString("%1/Launch %2.desktop").arg(desktop, instId));
+    if (shortcut_file.open(QFile::WriteOnly | QFile::Truncate)) {
+      QTextStream out(&shortcut_file);
+      out << "[Desktop Entry]\n"
+          << "Type=Application\n"
+          << "Exec=" << executable_path << " -l " << instId << " %U\n"
+          << "Terminal=false\n";
+    }
+    shortcut_file.close();
+#endif
 }
 
 void MainWindow::deleteGroup()
