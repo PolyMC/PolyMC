@@ -109,7 +109,6 @@
    <addaction name="actionInstall_Fabric"/>
    <addaction name="actionInstall_Quilt"/>
    <addaction name="actionInstall_LiteLoader"/>
-   <addaction name="actionInstall_mods"/>
    <addaction name="separator"/>
    <addaction name="actionAdd_to_Minecraft_jar"/>
    <addaction name="actionReplace_Minecraft_jar"/>

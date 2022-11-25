@@ -267,7 +267,6 @@ void VersionPage::updateButtons(int row)
     ui->actionDownload_All->setEnabled(controlsEnabled);
     ui->actionAdd_Empty->setEnabled(controlsEnabled);
     ui->actionReload->setEnabled(controlsEnabled);
-    ui->actionInstall_mods->setEnabled(controlsEnabled);
     ui->actionReplace_Minecraft_jar->setEnabled(controlsEnabled);
     ui->actionAdd_to_Minecraft_jar->setEnabled(controlsEnabled);
 }
@@ -312,14 +311,6 @@ void VersionPage::on_actionRemove_triggered()
     updateButtons();
     reloadPackProfile();
     m_container->refreshContainer();
-}
-
-void VersionPage::on_actionInstall_mods_triggered()
-{
-    if(m_container)
-    {
-        m_container->selectPage("mods");
-    }
 }
 
 void VersionPage::on_actionAdd_to_Minecraft_jar_triggered()
