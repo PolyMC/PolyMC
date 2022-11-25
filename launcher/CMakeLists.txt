@@ -996,7 +996,7 @@ target_link_libraries(Launcher_logic
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Widgets
-    Qt${QT_VERSION_MAJOR}Charts
+    Qt${QT_VERSION_MAJOR}::Charts
     ${Launcher_QT_LIBS}
 )
 target_link_libraries(Launcher_logic

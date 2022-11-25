@@ -50,11 +50,11 @@ StoragePage::StoragePage(BaseInstance* inst, QWidget* parent) : QWidget(parent),
     m_confirmation_box->addButton(QMessageBox::No);
     m_confirmation_box->setDefaultButton(QMessageBox::No);
 
-    m_series = new QtCharts::QPieSeries(this);
+    m_series = new QPieSeries(this);
     m_series->setLabelsVisible();
-    m_series->setLabelsPosition(QtCharts::QPieSlice::LabelInsideHorizontal);
-    m_chart_view = new QtCharts::QChartView(this);
-    m_chart = new QtCharts::QChart();
+    m_series->setLabelsPosition(QPieSlice::LabelInsideHorizontal);
+    m_chart_view = new QChartView(this);
+    m_chart = new QChart();
     m_chart->setParent(this);
     m_chart->addSeries(m_series);
     m_chart->setBackgroundVisible(false);

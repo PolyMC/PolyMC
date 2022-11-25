@@ -31,6 +31,10 @@
 #include <Application.h>
 #include <qmessagebox.h>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+using namespace QtCharts;
+#endif
+
 namespace Ui
 {
 class StoragePage;
@@ -75,9 +79,9 @@ private:
     Ui::StoragePage *ui;
     BaseInstance *m_inst;
 
-    QtCharts::QPieSeries *m_series;
-    QtCharts::QChart *m_chart;
-    QtCharts::QChartView *m_chart_view;
+    QPieSeries *m_series;
+    QChart *m_chart;
+    QChartView *m_chart_view;
 
     QMessageBox *m_confirmation_box;
 };

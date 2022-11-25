@@ -26,7 +26,7 @@ jobs:
             qt_ver: 6
             qt_host: linux
             qt_version: '6.2.4'
-            qt_modules: 'qt5compat qtimageformats'
+            qt_modules: 'qt5compat qtimageformats qtcharts'
 
           - os: windows-2022
             name: "Windows-Legacy"
@@ -44,7 +44,7 @@ jobs:
             qt_ver: 6
             qt_host: mac
             qt_version: '6.3.0'
-            qt_modules: 'qt5compat qtimageformats'
+            qt_modules: 'qt5compat qtimageformats qtcharts'
 
           - os: macos-12
             name: macOS-Legacy
@@ -52,7 +52,7 @@ jobs:
             qt_ver: 5
             qt_host: mac
             qt_version: '5.15.2'
-            qt_modules: ''
+            qt_modules: 'qtcharts'
 
     runs-on: ${{ matrix.os }}
 
@@ -97,6 +97,7 @@ jobs:
             qt${{ matrix.qt_ver }}-base:p
             qt${{ matrix.qt_ver }}-svg:p
             qt${{ matrix.qt_ver }}-imageformats:p
+            qt${{ matrix.qt_ver }}-charts:p
             quazip-qt${{ matrix.qt_ver }}:p
             ccache:p
             nsis:p
@@ -154,7 +155,7 @@ jobs:
       - name: Install Qt (Linux)
         if: runner.os == 'Linux' && matrix.qt_ver != 6
         run: |
-          sudo apt-get -y install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5core5a libqt5network5 libqt5gui5
+          sudo apt-get -y install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5core5a libqt5network5 libqt5gui5 libqt5charts5-dev
  
       - name: Install Qt (macOS and AppImage)
         if: runner.os == 'Linux' && matrix.qt_ver == 6 || runner.os == 'macOS'
