@@ -85,12 +85,6 @@ auto Download::makeFile(QUrl url, QString path, Options options) -> Download::Pt
 
 void Download::addValidator(Validator* v)
 {
-    auto s = APPLICATION->settings();
-    if(s->get("DisableChecksumVerification").toBool())
-    {
-        qDebug() << "Checksum verification disabled, no validator added";
-        return;
-    }
     m_sink->addValidator(v);
 }
 

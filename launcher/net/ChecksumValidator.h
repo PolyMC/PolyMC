@@ -65,10 +65,15 @@ class ChecksumValidator : public Validator {
 
     auto validate(QNetworkReply&) -> bool override
     {
+        auto s = APPLICATION->settings();
+        if(s->get("DisableChecksumVerification").toBool())
+        {
+            qWarning() << "Checksum verification disabled, skipping";
+            return true;
+        }
         if (m_expected.size() && m_expected != hash())
         {
-            qWarning() << "Checksum mismatch, download is bad.";
-            qDebug() << "Expected" << m_expected.toHex() << "but got" << hash().toHex();
+            qWarning() << "Checksum mismatch, expected" << m_expected.toHex() << "but got" << hash().toHex();
             return false;
         }
         return true;

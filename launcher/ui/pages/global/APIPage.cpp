@@ -185,7 +185,22 @@ void APIPage::applySettings()
     QString flameKey = ui->flameKey->text();
     s->set("FlameKeyOverride", flameKey);
     s->set("UserAgentOverride", ui->userAgentLineEdit->text());
-    s->set("DisableChecksumVerification", ui->disableChecksumVerificationCheckBox->isChecked());
+    bool previous = s->get("DisableChecksumVerification").toBool();
+    if(ui->disableChecksumVerificationCheckBox->isChecked() && previous == false)
+    {
+        QMessageBox::StandardButton reply = QMessageBox::question(this
+                                                                  , "Warning"
+                                                                  , "Are you sure you want to disable checksum validation? \nTHIS IS VERY DANGEROUS, so do it at your own risk."
+                                                                  , QMessageBox::Yes|QMessageBox::No);
+        if(reply == QMessageBox::Yes)
+        {
+            s->set("DisableChecksumVerification", ui->disableChecksumVerificationCheckBox->isChecked());
+        }
+    }
+    else
+    {
+        s->set("DisableChecksumVerification", ui->disableChecksumVerificationCheckBox->isChecked());
+    }
 
     APPLICATION->updateCapabilities();
 }
