@@ -154,6 +154,8 @@ void APIPage::loadSettings()
     ui->flameKey->setText(flameKey);
     QString customUserAgent = s->get("UserAgentOverride").toString();
     ui->userAgentLineEdit->setText(customUserAgent);
+    bool disableChecksumVerificationState = s->get("DisableChecksumVerification").toBool();
+    ui->disableChecksumVerificationCheckBox->setChecked(disableChecksumVerificationState);
 }
 
 void APIPage::applySettings()
@@ -183,6 +185,7 @@ void APIPage::applySettings()
     QString flameKey = ui->flameKey->text();
     s->set("FlameKeyOverride", flameKey);
     s->set("UserAgentOverride", ui->userAgentLineEdit->text());
+    s->set("DisableChecksumVerification", ui->disableChecksumVerificationCheckBox->isChecked());
 
     APPLICATION->updateCapabilities();
 }

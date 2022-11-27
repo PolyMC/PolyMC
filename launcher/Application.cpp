@@ -674,6 +674,9 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("FlameKeyShouldBeFetchedOnStartup", true);
         m_settings->registerSetting("UserAgentOverride", "");
 
+        //Miscellaneous
+        m_settings->registerSetting("DisableChecksumVerification", false);
+
         // Init page provider
         {
             m_globalSettingsProvider = std::make_shared<GenericPageProvider>(tr("Settings"));
