@@ -101,9 +101,8 @@ void ConcurrentTask::startNext()
     setStepStatus(next->isMultiStep() ? next->getStepStatus() : next->getStatus());
     updateState();
 
-    QCoreApplication::processEvents();
-
-    next->start();
+    QMetaObject::invokeMethod(
+        this, [=] { next->start(); }, Qt::QueuedConnection);
 }
 
 void ConcurrentTask::subTaskSucceeded(Task::Ptr task)
