@@ -440,14 +440,13 @@ void LauncherPage::loadSettings()
         auto currentCatStyle = s->get("CatStyle").toString();
         ui->themeComboBoxCat->addItem("BackgroundCat");
         ui->themeComboBoxCat->addItem("Jinx");
-        if(currentCatStyle == "Jinx")
-        {
+        ui->themeComboBoxCat->addItem("Floppa");
+        if(currentCatStyle == "Floppa")
+            ui->themeComboBoxCat->setCurrentIndex(2);
+        else if(currentCatStyle == "Jinx")
             ui->themeComboBoxCat->setCurrentIndex(1);
-        }
         else
-        {
             ui->themeComboBoxCat->setCurrentIndex(0);
-        }
     }
 
     // Toolbar/menu bar settings (not applicable if native menu bar is present)
