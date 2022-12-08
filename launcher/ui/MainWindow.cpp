@@ -1620,16 +1620,21 @@ void MainWindow::setCatBackground(bool enabled)
         else {
             cat += "Cat";
         }
+
+        auto cat_position = APPLICATION->settings()->get("CatPosition").toString().toLower().trimmed();
+        if (cat_position != "top left" && cat_position != "bottom left" && cat_position != "bottom right" && cat_position != "top right")
+          cat_position = "top right";
+
         view->setStyleSheet(QString(R"(
 InstanceView
 {
     background-image: url(:/backgrounds/%1);
     background-attachment: fixed;
     background-clip: padding;
-    background-position: top right;
+    background-position: %2;
     background-repeat: none;
     background-color:palette(base);
-})").arg(cat));
+})").arg(cat, cat_position));
     }
     else
     {

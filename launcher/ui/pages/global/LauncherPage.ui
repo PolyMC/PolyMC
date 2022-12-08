@@ -355,6 +355,17 @@
             </property>
            </widget>
           </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="themeCatPositionLabel">
+            <property name="text">
+             <string>Cat Position</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QComboBox" name="themeComboBoxCatPosition">
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
