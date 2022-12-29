@@ -45,6 +45,8 @@
 #include <QTextStream>
 #include <QUrl>
 
+#include <system_error>
+
 #if defined Q_OS_WIN32
 #include <objbase.h>
 #include <objidl.h>
@@ -174,7 +176,7 @@ bool copy::operator()(const QString& offset)
     auto src = PathCombine(m_src.absolutePath(), offset);
     auto dst = PathCombine(m_dst.absolutePath(), offset);
 
-    std::error_code err;
+    std::error_code err{};
 
     fs::copy_options opt = copy_opts::none;
 
@@ -182,28 +184,49 @@ bool copy::operator()(const QString& offset)
     if (!m_followSymlinks)
         opt |= copy_opts::copy_symlinks;
 
+    const auto testAndCopy = [opt, &err](const QString& s, const QString& d) {
+        if (ensureFilePathExists(d)) {
+            fs::copy(toStdString(s), toStdString(d), opt, err);
+        } else {
+            // mkpath failed which means the destination directory doesn't exist.
+            err = std::make_error_code(std::errc::no_such_file_or_directory);
+        }
+
+        if (err) {
+            qWarning() << "Failed to copy files:" << QString::fromStdString(err.message());
+            qDebug() << "Source file:" << s;
+            qDebug() << "Destination file:" << d;
+        }
+    };
 
     // We can't use copy_opts::recursive because we need to take into account the
     // blacklisted paths, so we iterate over the source directory, and if there's no blacklist
     // match, we copy the file.
-    QDir src_dir(src);
-    QDirIterator source_it(src, QDir::Filter::Files, QDirIterator::Subdirectories);
+    if (QDir src_dir(src); src_dir.exists()) {
+        QDirIterator source_it(src, QDir::Filter::Files, QDirIterator::Subdirectories);
 
-    while (source_it.hasNext()) {
-        auto src_path = source_it.next();
-        auto relative_path = src_dir.relativeFilePath(src_path);
+        while (source_it.hasNext()) {
+            auto src_path = source_it.next();
+            auto relative_path = src_dir.relativeFilePath(src_path);
 
-        if (m_blacklist && m_blacklist->matches(relative_path))
-            continue;
+            auto dst_path = PathCombine(dst, relative_path);
 
-        auto dst_path = PathCombine(dst, relative_path);
-        ensureFilePathExists(dst_path);
+            if (m_blacklist && m_blacklist->matches(relative_path)) {
+                qDebug() << "Attempted to copy blacklisted file:";
+                qDebug() << "Source file:" << src_path;
+                qDebug() << "Destination file:" << dst_path;
+                continue;
+            }
 
-        fs::copy(toStdString(src_path), toStdString(dst_path), opt, err);
-        if (err) {
-            qWarning() << "Failed to copy files:" << QString::fromStdString(err.message());
-            qDebug() << "Source file:" << src_path;
-            qDebug() << "Destination file:" << dst_path;
+            testAndCopy(src_path, dst_path);
+        }
+    } else { // src_dir could still be a file, try to copy it directly.
+        if (m_blacklist && m_blacklist->matches(src)){
+            qDebug() << "Attempted to copy blacklisted file:";
+            qDebug() << "Source file:" << src;
+            qDebug() << "Destination file:" << dst;
+        } else {
+            testAndCopy(src, dst);
         }
     }
 
