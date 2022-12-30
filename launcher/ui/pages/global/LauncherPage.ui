@@ -380,6 +380,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="startFullscreenCheckBox">
+            <property name="text">
+             <string>Start Fullscreen</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>

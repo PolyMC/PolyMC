@@ -610,6 +610,8 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("SelectedInstance", QString());
 
         // Window state and geometry
+        m_settings->registerSetting("StartFullscreen", false);
+
         m_settings->registerSetting("MainWindowState", "");
         m_settings->registerSetting("MainWindowGeometry", "");
 
@@ -1397,6 +1399,8 @@ MainWindow* Application::showMainWindow(bool minimized)
     if(m_mainWindow)
     {
         m_mainWindow->setWindowState(m_mainWindow->windowState() & ~Qt::WindowMinimized);
+        if (APPLICATION->settings()->get("StartFullscreen").toBool())
+          m_mainWindow->setWindowState(m_mainWindow->windowState() & Qt::WindowFullScreen);
         m_mainWindow->raise();
         m_mainWindow->activateWindow();
     }
@@ -1415,9 +1419,9 @@ MainWindow* Application::showMainWindow(bool minimized)
         if(minimized)
         {
             m_mainWindow->showMinimized();
-        }
-        else
-        {
+        } else if (APPLICATION->settings()->get("StartFullscreen").toBool()) {
+            m_mainWindow->showFullScreen();
+        } else {
             m_mainWindow->show();
         }
 

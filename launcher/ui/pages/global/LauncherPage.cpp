@@ -322,6 +322,11 @@ void LauncherPage::applySettings()
         s->set("CatStyle", ui->themeComboBoxCat->currentText());
     }
 
+    if(s->get("StartFullscreen") != ui->startFullscreenCheckBox->isChecked())
+    {
+        s->set("StartFullscreen", ui->startFullscreenCheckBox->isChecked());
+    }
+
     if(original != s->get("IconTheme"))
     {
         APPLICATION->setIconTheme(s->get("IconTheme").toString());
@@ -447,7 +452,10 @@ void LauncherPage::loadSettings()
             ui->themeComboBoxCat->setCurrentIndex(1);
         else
             ui->themeComboBoxCat->setCurrentIndex(0);
+
     }
+
+    ui->startFullscreenCheckBox->setChecked(s->get("StartFullscreen").toBool());
 
     // Toolbar/menu bar settings (not applicable if native menu bar is present)
     ui->toolsBox->setEnabled(!QMenuBar().isNativeMenuBar());
