@@ -694,6 +694,8 @@ SET(LAUNCHER_SOURCES
     ui/pages/instance/ServersPage.h
     ui/pages/instance/WorldListPage.cpp
     ui/pages/instance/WorldListPage.h
+    ui/pages/instance/StoragePage.cpp
+    ui/pages/instance/StoragePage.h
 
     # GUI - global settings pages
     ui/pages/global/AccountListPage.cpp
@@ -910,6 +912,7 @@ qt_wrap_ui(LAUNCHER_UI
     ui/pages/instance/VersionPage.ui
     ui/pages/instance/WorldListPage.ui
     ui/pages/instance/ScreenshotsPage.ui
+    ui/pages/instance/StoragePage.ui
     ui/pages/modplatform/atlauncher/AtlOptionalModDialog.ui
     ui/pages/modplatform/atlauncher/AtlPage.ui
     ui/pages/modplatform/VanillaPage.ui
@@ -993,6 +996,7 @@ target_link_libraries(Launcher_logic
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Charts
     ${Launcher_QT_LIBS}
 )
 target_link_libraries(Launcher_logic

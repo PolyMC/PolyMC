@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 18.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   version="1.1"
+   id="Calque_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 32 32"
+   enable-background="new 0 0 32 32"
+   xml:space="preserve"
+   sodipodi:docname="storage.svg"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+   id="namedview271"
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1.0"
+   inkscape:showpageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1"
+   showgrid="false"
+   inkscape:zoom="9.9878833"
+   inkscape:cx="15.468743"
+   inkscape:cy="20.524869"
+   inkscape:window-width="909"
+   inkscape:window-height="1064"
+   inkscape:window-x="1001"
+   inkscape:window-y="6"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="g3784" /><defs
+   id="defs3662" />
+<g
+   id="g3645">
+	<rect
+   x="6"
+   y="0"
+   fill="none"
+   width="20"
+   height="0"
+   id="rect3635" />
+	<polygon
+   fill="none"
+   points="0,6 0,6 0,26 0,26 0,9  "
+   id="polygon3637" />
+	<polygon
+   fill="none"
+   points="32,6 32,9 32,26 32,26 32,6  "
+   id="polygon3639" />
+	<path
+   fill="#39B54A"
+   d="M32,9V6c0-3.3-2.7-6-6-6H6C2.7,0,0,2.7,0,6v3H32z"
+   id="path3641" />
+	<path
+   fill="#8C6239"
+   d="M0,9v17c0,3.3,2.7,6,6,6h20c3.3,0,6-2.7,6-6V9H0z"
+   id="path3643" />
+</g>
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#F2F2F2"
+   d="M28,6c0-1.1-0.9-2-2-2H6C4.9,4,4,4.9,4,6v20c0,1.1,0.9,2,2,2h20  c1.1,0,2-0.9,2-2V6z"
+   id="path3647" />
+
+<g
+   id="g3784"
+   transform="translate(0.07734108,0.33259869)"
+   style="stroke:#666666;stroke-opacity:1"><rect
+     style="fill:none;stroke:#666666;stroke-width:1.5;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+     id="rect1197"
+     width="17.458458"
+     height="17.458458"
+     x="7.1934299"
+     y="6.9381723"
+     ry="2.1458371" /><rect
+     style="fill:none;stroke:#666666;stroke-width:1.5;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+     id="rect1774"
+     width="17.458458"
+     height="6.6479607"
+     x="7.1934299"
+     y="17.748669"
+     ry="1.7275306" /><circle
+     style="fill:#666666;stroke:none;stroke-width:1.5;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
+     id="path1828"
+     cx="21.224644"
+     cy="21.072649"
+     r="0.95399094" /></g></svg>
