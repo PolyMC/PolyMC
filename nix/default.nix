@@ -17,7 +17,7 @@
 , msaClientID ? ""
 , extraJDKs ? [ ]
 , extra-cmake-modules
-
+, qtcharts
   # flake
 , self
 , version
@@ -51,7 +51,7 @@ stdenv.mkDerivation rec {
   src = lib.cleanSource self;
 
   nativeBuildInputs = [ cmake extra-cmake-modules ninja jdk ghc_filesystem file wrapQtAppsHook ];
-  buildInputs = [ qtbase quazip zlib ];
+  buildInputs = [ qtbase quazip zlib qtcharts ];
 
   dontWrapQtApps = true;
 
