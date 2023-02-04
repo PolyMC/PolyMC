@@ -305,6 +305,11 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
                 Modrinth::File file;
                 file.path = Json::requireString(modInfo, "path");
 
+                if (QDir::isAbsolutePath(file.path) || QDir::cleanPath(file.path).startsWith("..")) {
+                    qDebug() << "Skipped file that tries to place itself in an absolute location or in a parent directory.";
+                    continue;
+                }
+
                 auto env = Json::ensureObject(modInfo, "env");
                 // 'env' field is optional
                 if (!env.isEmpty()) {
