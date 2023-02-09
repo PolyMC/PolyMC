@@ -63,7 +63,7 @@ QString stripVariableEntries(QString name, QString target, QString remove)
     auto toRemove = remove.split(delimiter);
 
     for (QString item : toRemove) {
-        bool removed = targetItems.removeOne(item);
+        bool removed = targetItems.removeAll(item);
         if (!removed)
             qWarning() << "Entry" << item
                 << "could not be stripped from variable" << name;
@@ -136,6 +136,16 @@ QProcessEnvironment CleanEnviroment()
         env.insert(key, value);
     }
 #ifdef Q_OS_LINUX
+    // HACK: On newer versions of OpenJDK on Linux, having /usr/lib and similar in the library path will make Java
+    // runtimes error out with a linker error.
+    // This is an issue because Qt Creator and maybe other IDEs will insert /usr/lib into the library path.
+
+    // So, we need to strip that before we launch the Java runtime:
+    if (env.contains("LD_LIBRARY_PATH")) {
+        env.insert("LD_LIBRARY_PATH", stripVariableEntries("LD_LIBRARY_PATH", env.value("LD_LIBRARY_PATH"),
+                                                           "/lib:/lib32:/lib64:/usr/lib:/usr/lib32:/usr/lib64"));
+    }
+
     // HACK: Workaround for QTBUG-42500
     if(!env.contains("LD_LIBRARY_PATH"))
     {
