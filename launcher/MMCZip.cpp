@@ -292,8 +292,13 @@ std::optional<QStringList> MMCZip::extractSubDir(QuaZip *zip, const QString & su
     do
     {
         QString name = zip->getCurrentFileName();
-        if(!name.startsWith(subdir))
+        if(!QDir::cleanPath(name).startsWith(subdir))
         {
+            continue;
+        }
+        if (QDir::isAbsolutePath(name) || QDir::cleanPath(name).startsWith(".."))
+        {
+            qDebug() << "extractSubDir: Skipping file that tries to place itself in an absolute location or in a parent directory.";
             continue;
         }
 
