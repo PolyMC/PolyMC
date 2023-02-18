@@ -203,7 +203,7 @@ bool copy::operator()(const QString& offset)
     // blacklisted paths, so we iterate over the source directory, and if there's no blacklist
     // match, we copy the file.
     if (QDir src_dir(src); src_dir.exists()) {
-        QDirIterator source_it(src, QDir::Filter::Files, QDirIterator::Subdirectories);
+        QDirIterator source_it(src, QDir::Filter::Files | QDir::Filter::Hidden, QDirIterator::Subdirectories);
 
         while (source_it.hasNext()) {
             auto src_path = source_it.next();
