@@ -30,7 +30,7 @@ jobs:
 
           - os: windows-2022
             name: "Windows-Legacy"
-            msystem: mingw32
+            msystem: mingw64
             qt_ver: 5
 
           - os: windows-2022
@@ -281,7 +281,7 @@ jobs:
 
           cd ${{ env.INSTALL_DIR }}
           if [ "${{ matrix.qt_ver }}" == "5" ]; then
-            cp /mingw32/bin/libcrypto-3.dll /mingw32/bin/libssl-3.dll ./
+            cp /mingw64/bin/libcrypto-3-x64.dll /mingw64/bin/libssl-3-x64.dll ./
           fi
 
       - name: Package (Windows, portable)
