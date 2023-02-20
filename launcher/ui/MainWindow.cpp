@@ -1609,7 +1609,7 @@ void MainWindow::setCatBackground(bool enabled)
         
         if(catStyleOpt == "Manul")
             cat = "manul";
-        if(catStyleOpt == "Floppa")
+        else if(catStyleOpt == "Floppa")
             cat = "floppa";
         else if(catStyleOpt == "Jinx")
             cat = "jinx";
