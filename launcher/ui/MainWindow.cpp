@@ -1606,6 +1606,9 @@ void MainWindow::setCatBackground(bool enabled)
 
         QString cat = "default";
         QString catStyleOpt = APPLICATION->settings()->get("CatStyle").toString();
+        
+        if(catStyleOpt == "Manul")
+            cat = "manul";
         if(catStyleOpt == "Floppa")
             cat = "floppa";
         else if(catStyleOpt == "Jinx")
