@@ -16,7 +16,7 @@ If you want to read about why this fork was created, check out [our FAQ page](ht
 
 ## Development Builds
 
-There are per-commit development builds available [here](https://github.com/PolyMC/PolyMC/actions). These have to debug information in the binaries, so their file sizes are relatively larger.
+There are per-commit development builds available [here](https://github.com/PolyMC/PolyMC/actions). These have debug information in the binaries, so their file sizes are relatively larger.
 Portable builds are provided for AppImage on Linux, Windows, and macOS.
 
 For Debian and Arch, you can use these packages for the latest development versions:  
@@ -26,7 +26,7 @@ For flatpak, you can use [flathub-beta](https://discourse.flathub.org/t/how-to-u
 
 # Help & Support
 
-Feel free to create an issue if you need help. However, you might find it easier to ask on the Discord server.
+Feel free to create an issue if you need help. However, you might find it easier to ask in the Discord server.
 
 [![PolyMC Discord](https://img.shields.io/discord/923671181020766230?label=PolyMC%20Discord)](https://discord.gg/xq7fxrgtMP)
 
