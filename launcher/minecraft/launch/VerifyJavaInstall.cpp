@@ -43,6 +43,9 @@
     #ifdef major
         #undef major
     #endif
+    #ifdef minor
+        #undef minor
+    #endif
 #endif
 
 void VerifyJavaInstall::executeTask() {
