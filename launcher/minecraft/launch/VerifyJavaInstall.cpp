@@ -39,6 +39,12 @@
 #include "minecraft/PackProfile.h"
 #include "minecraft/MinecraftInstance.h"
 
+#ifdef Q_OS_FREEBSD
+    #ifdef major
+        #undef major
+    #endif
+#endif
+
 void VerifyJavaInstall::executeTask() {
     auto instance = std::dynamic_pointer_cast<MinecraftInstance>(m_parent->instance());
     auto packProfile = instance->getPackProfile();
@@ -47,10 +53,6 @@ void VerifyJavaInstall::executeTask() {
     auto ignoreCompatibility = settings->get("IgnoreJavaCompatibility").toBool();
 
     auto compatibleMajors = packProfile->getProfile()->getCompatibleJavaMajors();
-#if defined(Q_OS_FREEBSD)
-    emitSucceeded();
-    return;
-#endif
 
     JavaVersion javaVersion(storedVersion);
 
@@ -68,11 +70,9 @@ void VerifyJavaInstall::executeTask() {
         return;
     }
 
-#if !defined(Q_OS_FREEBSD)
     emit logLine(tr("This instance is not compatible with Java version %1.\n"
                     "Please switch to one of the following Java versions for this instance:").arg(javaVersion.major()),
                  MessageLevel::Error);
-#endif
     for (auto major : compatibleMajors)
     {
         emit logLine(tr("Java version %1").arg(major), MessageLevel::Error);
