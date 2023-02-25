@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <fstream>
 
 #include "BaseEntity.h"
 
@@ -52,10 +53,16 @@ public: /* methods */
         auto fname = m_entity->localFilename();
         try
         {
-            auto doc = Json::requireDocument(data, fname);
-            auto obj = Json::requireObject(doc, fname);
-            m_entity->parse(obj);
-            return true;
+            //auto doc = Json::requireDocument(data, fname);
+            //auto obj = Json::requireObject(doc, fname);
+            try {
+                const auto json = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+                m_entity->parse(json);
+                return true;
+            } catch (const nlohmann::json::parse_error &e) {
+                qWarning() << "Unable to parse " << fname << " response:" << e.what();
+                return false;
+            }
         }
         catch (const Exception &e)
         {
@@ -97,9 +104,10 @@ bool Meta::BaseEntity::loadLocalFile()
     // TODO: check if the file has the expected checksum
     try
     {
-        auto doc = Json::requireDocument(fname, fname);
-        auto obj = Json::requireObject(doc, fname);
-        parse(obj);
+        //auto doc = Json::requireDocument(fname, fname);
+        //auto obj = Json::requireObject(doc, fname);
+        const auto json = nlohmann::json::parse(std::ifstream(fname.toStdString()));
+        parse(json);
         return true;
     }
     catch (const Exception &e)

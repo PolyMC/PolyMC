@@ -78,7 +78,7 @@ public: // for usage only by parsers
     void setVersions(const QVector<VersionPtr> &versions);
     void merge(const VersionListPtr &other);
     void mergeFromIndex(const VersionListPtr &other);
-    void parse(const QJsonObject &obj) override;
+    void parse(const nlohmann::json &obj) override;
 
 signals:
     void nameChanged(const QString &name);

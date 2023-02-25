@@ -98,7 +98,7 @@ VersionPtr Index::get(const QString &uid, const QString &version)
     return list->getVersion(version);
 }
 
-void Index::parse(const QJsonObject& obj)
+void Index::parse(const nlohmann::json& obj)
 {
     parseIndex(obj, this);
 }

@@ -49,7 +49,7 @@ QDateTime Meta::Version::time() const
     return QDateTime::fromMSecsSinceEpoch(m_time * 1000, Qt::UTC);
 }
 
-void Meta::Version::parse(const QJsonObject& obj)
+void Meta::Version::parse(const nlohmann::json& obj)
 {
     parseVersion(obj, this);
 }

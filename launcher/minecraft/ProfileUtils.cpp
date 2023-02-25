@@ -44,6 +44,8 @@
 #include <QRegularExpression>
 #include <QSaveFile>
 
+#include <fstream>
+
 namespace ProfileUtils
 {
 
@@ -111,7 +113,7 @@ static VersionFilePtr createErrorVersionFile(QString fileId, QString filepath, Q
     return outError;
 }
 
-static VersionFilePtr guardedParseJson(const QJsonDocument & doc,const QString &fileId,const QString &filepath,const bool &requireOrder)
+static VersionFilePtr guardedParseJson(const nlohmann::json & doc,const QString &fileId,const QString &filepath,const bool &requireOrder)
 {
     try
     {
@@ -125,12 +127,14 @@ static VersionFilePtr guardedParseJson(const QJsonDocument & doc,const QString &
 
 VersionFilePtr parseJsonFile(const QFileInfo &fileInfo, const bool requireOrder)
 {
+    /*
     QFile file(fileInfo.absoluteFilePath());
     if (!file.open(QFile::ReadOnly))
     {
         auto errorStr = QObject::tr("Unable to open the version file %1: %2.").arg(fileInfo.fileName(), file.errorString());
         return createErrorVersionFile(fileInfo.completeBaseName(), fileInfo.absoluteFilePath(), errorStr);
     }
+
     QJsonParseError error;
     auto data = file.readAll();
     QJsonDocument doc = QJsonDocument::fromJson(data, &error);
@@ -154,11 +158,21 @@ VersionFilePtr parseJsonFile(const QFileInfo &fileInfo, const bool requireOrder)
                 .arg(line).arg(column);
         return createErrorVersionFile(fileInfo.completeBaseName(), fileInfo.absoluteFilePath(), errorStr);
     }
+        */
+    std::fstream file(fileInfo.absoluteFilePath().toStdString());
+    if (!file.is_open())
+    {
+        auto errorStr = QObject::tr("Unable to open the version file %1: %2.").arg(fileInfo.fileName(), "file not found");
+        return createErrorVersionFile(fileInfo.completeBaseName(), fileInfo.absoluteFilePath(), errorStr);
+    }
+    nlohmann::json doc = nlohmann::json::parse(file);
+
     return guardedParseJson(doc, fileInfo.completeBaseName(), fileInfo.absoluteFilePath(), requireOrder);
 }
 
-bool saveJsonFile(const QJsonDocument doc, const QString & filename)
+bool saveJsonFile(const nlohmann::json doc, const QString & filename)
 {
+    /*
     auto data = doc.toJson();
     QSaveFile jsonFile(filename);
     if(!jsonFile.open(QIODevice::WriteOnly))
@@ -173,6 +187,16 @@ bool saveJsonFile(const QJsonDocument doc, const QString & filename)
         qWarning() << "Couldn't save" << filename;
         return false;
     }
+    return true;
+    */
+
+    std::ofstream file(filename.toStdString());
+    if (!file.is_open())
+    {
+        qWarning() << "Couldn't open" << filename << "for writing";
+        return false;
+    }
+    file << doc.dump(4);
     return true;
 }
 

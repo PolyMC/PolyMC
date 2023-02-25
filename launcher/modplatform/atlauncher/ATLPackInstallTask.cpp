@@ -549,7 +549,7 @@ bool PackInstallTask::createLibrariesComponent(QString instanceRoot, std::shared
                     << "for reading:" << file.errorString();
         return false;
     }
-    file.write(OneSixVersionFormat::versionFileToJson(f).toJson());
+    file.write(OneSixVersionFormat::versionFileToJson(f).dump(4).c_str());
     file.close();
 
     profile->appendComponent(new Component(profile.get(), target_id, f));
@@ -638,7 +638,7 @@ bool PackInstallTask::createPackComponent(QString instanceRoot, std::shared_ptr<
                     << "for reading:" << file.errorString();
         return false;
     }
-    file.write(OneSixVersionFormat::versionFileToJson(f).toJson());
+    file.write(OneSixVersionFormat::versionFileToJson(f).dump(4).c_str());
     file.close();
 
     profile->appendComponent(new Component(profile.get(), target_id, f));

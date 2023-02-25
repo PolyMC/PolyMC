@@ -53,6 +53,7 @@ set(CORE_SOURCES
     # JSON parsing helpers
     Json.h
     Json.cpp
+    Json.hpp
 
     FileSystem.h
     FileSystem.cpp

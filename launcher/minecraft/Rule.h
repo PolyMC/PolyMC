@@ -40,6 +40,7 @@
 #include <QJsonObject>
 #include <memory>
 #include "RuntimeContext.h"
+#include "Json.hpp"
 
 class Library;
 class Rule;
@@ -51,7 +52,7 @@ enum RuleAction
     Defer
 };
 
-QList<std::shared_ptr<Rule>> rulesFromJsonV4(const QJsonObject &objectWithRules);
+QList<std::shared_ptr<Rule>> rulesFromJsonV4(const nlohmann::json &objectWithRules);
 
 class Rule
 {
@@ -64,7 +65,7 @@ public:
     {
     }
     virtual ~Rule() {};
-    virtual QJsonObject toJson() = 0;
+    virtual nlohmann::json toJson() = 0;
     RuleAction apply(const Library *parent, const RuntimeContext & runtimeContext)
     {
         if (applies(parent, runtimeContext))
@@ -93,7 +94,7 @@ protected:
     }
 
 public:
-    virtual QJsonObject toJson();
+    virtual nlohmann::json toJson();
     static std::shared_ptr<OsRule> create(RuleAction result, QString system,
                                           QString version_regexp)
     {
@@ -113,7 +114,7 @@ protected:
     }
 
 public:
-    virtual QJsonObject toJson();
+    virtual nlohmann::json toJson();
     static std::shared_ptr<ImplicitRule> create(RuleAction result)
     {
         return std::shared_ptr<ImplicitRule>(new ImplicitRule(result));

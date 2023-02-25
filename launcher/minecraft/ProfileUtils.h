@@ -52,7 +52,7 @@ bool writeOverrideOrders(QString path, const PatchOrder &order);
 VersionFilePtr parseJsonFile(const QFileInfo &fileInfo, const bool requireOrder);
 
 /// Save a JSON file (in any format)
-bool saveJsonFile(const QJsonDocument doc, const QString & filename);
+bool saveJsonFile(const nlohmann::json doc, const QString & filename);
 
 /// Remove LWJGL from a patch file. This is applied to all Mojang-like profile files.
 void removeLwjglFromPatch(VersionFilePtr patch);
