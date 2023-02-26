@@ -3,6 +3,7 @@
 <img src="./program_info/polymc-header.svg#gh-dark-mode-only" alt="PolyMC logo" width="50%"/>
 </p>
 
+This is [**fork** of PolyMC](https://github.com/PolyMC/PolyMC) with offline patches for personal use.<br><br>
 PolyMC is a custom launcher for Minecraft that focuses on predictability, long term stability and simplicity.
 
 This is a **fork** of the MultiMC Launcher and not endorsed by MultiMC.
@@ -11,41 +12,13 @@ If you want to read about why this fork was created, check out [our FAQ page](ht
 
 # Installation
 
-- All downloads and instructions for PolyMC can be found [here](https://polymc.org/download/)
-- Last build status: <https://github.com/PolyMC/PolyMC/actions>
+- Download last release [here](https://github.com/EvilToasterDBU/PolyMC-Offline/releases/latest)
+- Last build status: https://github.com/EvilToasterDBU/PolyMC-Offline/actions
 
 ## Development Builds
 
-There are per-commit development builds available [here](https://github.com/PolyMC/PolyMC/actions). These have debug information in the binaries, so their file sizes are relatively larger.
+There are per-commit development builds available [here](https://github.com/EvilToasterDBU/PolyMC-Offline/actions). These have debug information in the binaries, so their file sizes are relatively larger.
 Portable builds are provided for AppImage on Linux, Windows, and macOS.
-
-For Debian and Arch, you can use these packages for the latest development versions:  
-[![polymc-git](https://img.shields.io/badge/aur-polymc--git-blue)](https://aur.archlinux.org/packages/polymc-git/)
-[![polymc-git](https://img.shields.io/badge/mpr-polymc--git-orange)](https://mpr.makedeb.org/packages/polymc-git)  
-For flatpak, you can use [flathub-beta](https://discourse.flathub.org/t/how-to-use-flathub-beta/2111)
-
-# Help & Support
-
-Feel free to create an issue if you need help. However, you might find it easier to ask in the Discord server.
-
-[![PolyMC Discord](https://img.shields.io/discord/923671181020766230?label=PolyMC%20Discord)](https://discord.gg/xq7fxrgtMP)
-
-For people who don't want to use Discord, we have a Matrix Space which is bridged to the Discord server:
-
-[![PolyMC Space](https://img.shields.io/matrix/polymc:matrix.org?label=PolyMC%20space)](https://matrix.to/#/#polymc:matrix.org)
-
-If there are any issues with the space or you are using a client that does not support the feature here are the individual rooms:
-
-[![News](https://img.shields.io/matrix/polymc-news:matrix.org?label=PolyMC%20News)](https://matrix.to/#/#polymc-news:matrix.org)
-[![Discussion](https://img.shields.io/matrix/polymc-discussion:matrix.org?label=PolyMC%20Discussion)](https://matrix.to/#/#polymc-discussion:matrix.org)
-
-We also have a subreddit you can post your issues and suggestions on:
-
-[r/PolyMCLauncher](https://www.reddit.com/r/PolyMCLauncher/)
-
-# Development
-
-If you want to contribute to PolyMC you might find it useful to join our Discord Server or Matrix Space.
 
 ## Building
 
@@ -55,9 +28,6 @@ If you want to build PolyMC yourself, check [Build Instructions](https://polymc.
 
 The translation effort for PolyMC is hosted on [Weblate](https://hosted.weblate.org/projects/polymc/polymc/) and information about translating PolyMC is available at <https://github.com/PolyMC/Translations>
 
-## Download information
-
-To modify download information or change packaging information send a pull request or issue to the website [here](https://github.com/PolyMC/polymc.github.io/tree/master/src/download).
 
 ## Forking/Redistributing/Custom builds policy
 
@@ -79,16 +49,3 @@ All launcher code is available under the GPL-3.0-only license.
   
 The logo and related assets are under the CC BY-SA 4.0 license.
 
-## Sponsors
-
-Thank you to all our generous backers over at Open Collective! Support PolyMC by [becoming a backer](https://opencollective.com/polymc).
-
-[![OpenCollective Backers](https://opencollective.com/polymc/backers.svg?width=890&limit=1000)](https://opencollective.com/polymc#backers)
-
-Also, thanks to JetBrains for providing us a few licenses for all their products, as part of their [Open Source program](https://www.jetbrains.com/opensource/).
-
-[![JetBrains](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)](https://www.jetbrains.com/opensource/)
-
-Additionally, thanks to the awesome people over at [MacStadium](https://www.macstadium.com/), for providing M1-Macs for development purposes!
-
-<a href="https://www.macstadium.com"><img src="https://uploads-ssl.webflow.com/5ac3c046c82724970fc60918/5c019d917bba312af7553b49_MacStadium-developerlogo.png" alt="Powered by MacStadium" width="300"></a>
