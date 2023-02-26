@@ -53,7 +53,6 @@ set(CORE_SOURCES
     # JSON parsing helpers
     Json.h
     Json.cpp
-    Json.hpp
 
     FileSystem.h
     FileSystem.cpp
@@ -982,6 +981,7 @@ target_link_libraries(Launcher_logic
     Katabasis
     Qt${QT_VERSION_MAJOR}::Widgets
     ghcFilesystem::ghc_filesystem
+    nlohmann_json
 )
 
 if (UNIX AND NOT CYGWIN AND NOT APPLE)

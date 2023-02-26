@@ -40,7 +40,7 @@
 #include <QJsonObject>
 #include <memory>
 #include "RuntimeContext.h"
-#include "Json.hpp"
+#include "json.hpp"
 
 class Library;
 class Rule;

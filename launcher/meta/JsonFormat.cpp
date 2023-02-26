@@ -18,7 +18,7 @@
 // FIXME: remove this from here... somehow
 #include "minecraft/OneSixVersionFormat.h"
 #include "Json.h"
-#include "Json.hpp"
+#include "json.hpp"
 
 #include "Index.h"
 #include "Version.h"

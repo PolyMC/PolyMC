@@ -36,7 +36,7 @@
 #include "MojangVersionFormat.h"
 #include "OneSixVersionFormat.h"
 #include "MojangDownloadInfo.h"
-#include "Json.hpp"
+#include "json.hpp"
 
 #include "Json.h"
 using namespace Json;

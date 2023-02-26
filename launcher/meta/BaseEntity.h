@@ -18,7 +18,7 @@
 #include <QJsonObject>
 #include <QObject>
 #include "QObjectPtr.h"
-#include "Json.hpp"
+#include "json.hpp"
 
 #include "net/Mode.h"
 #include "net/NetJob.h"

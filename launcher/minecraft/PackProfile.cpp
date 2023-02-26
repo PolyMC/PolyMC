@@ -51,7 +51,7 @@
 #include "meta/Index.h"
 #include "minecraft/MinecraftInstance.h"
 #include "Json.h"
-#include "Json.hpp"
+#include "json.hpp"
 
 #include "PackProfile.h"
 #include "PackProfile_p.h"

@@ -35,7 +35,7 @@
 
 #include <QJsonObject>
 #include <QJsonArray>
-#include <Json.hpp>
+#include <json.hpp>
 
 #include "Rule.h"
 

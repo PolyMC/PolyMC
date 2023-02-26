@@ -51,22 +51,16 @@ public: /* methods */
     bool validate(QNetworkReply &) override
     {
         auto fname = m_entity->localFilename();
-        try
+        //auto doc = Json::requireDocument(data, fname);
+        //auto obj = Json::requireObject(doc, fname);
+        try 
         {
-            //auto doc = Json::requireDocument(data, fname);
-            //auto obj = Json::requireObject(doc, fname);
-            try {
-                const auto json = nlohmann::json::parse(data.constData(), data.constData() + data.size());
-                m_entity->parse(json);
-                return true;
-            } catch (const nlohmann::json::parse_error &e) {
-                qWarning() << "Unable to parse " << fname << " response:" << e.what();
-                return false;
-            }
-        }
-        catch (const Exception &e)
+            const auto json = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+            m_entity->parse(json);
+            return true;
+        } catch (const nlohmann::json::parse_error &e) 
         {
-            qWarning() << "Unable to parse response:" << e.cause();
+            qWarning() << "Unable to parse " << fname << " response:" << e.what();
             return false;
         }
     }
@@ -110,9 +104,9 @@ bool Meta::BaseEntity::loadLocalFile()
         parse(json);
         return true;
     }
-    catch (const Exception &e)
+    catch (const nlohmann::json::parse_error &e)
     {
-        qDebug() << QString("Unable to parse file %1: %2").arg(fname, e.cause());
+        qDebug() << QString("Unable to parse file %1: %2").arg(fname, e.what());
         // just make sure it's gone and we never consider it again.
         QFile::remove(fname);
         return false;
