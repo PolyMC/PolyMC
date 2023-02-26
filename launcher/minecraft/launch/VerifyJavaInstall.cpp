@@ -39,14 +39,8 @@
 #include "minecraft/PackProfile.h"
 #include "minecraft/MinecraftInstance.h"
 
-#ifdef Q_OS_FREEBSD
-    #ifdef major
-        #undef major
-    #endif
-    #ifdef minor
-        #undef minor
-    #endif
-#endif
+#under major
+#undef minor
 
 void VerifyJavaInstall::executeTask() {
     auto instance = std::dynamic_pointer_cast<MinecraftInstance>(m_parent->instance());
