@@ -39,6 +39,9 @@
 #include "minecraft/PackProfile.h"
 #include "minecraft/MinecraftInstance.h"
 
+#undef major
+#undef minor
+
 void VerifyJavaInstall::executeTask() {
     auto instance = std::dynamic_pointer_cast<MinecraftInstance>(m_parent->instance());
     auto packProfile = instance->getPackProfile();
