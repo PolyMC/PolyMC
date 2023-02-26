@@ -39,7 +39,7 @@
 #include "minecraft/PackProfile.h"
 #include "minecraft/MinecraftInstance.h"
 
-#under major
+#undef major
 #undef minor
 
 void VerifyJavaInstall::executeTask() {
