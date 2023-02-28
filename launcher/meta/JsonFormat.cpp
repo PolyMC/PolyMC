@@ -17,14 +17,11 @@
 
 // FIXME: remove this from here... somehow
 #include "minecraft/OneSixVersionFormat.h"
-#include "Json.h"
 #include "json.hpp"
 
 #include "Index.h"
 #include "Version.h"
 #include "VersionList.h"
-
-using namespace Json;
 
 namespace Meta
 {
@@ -37,31 +34,16 @@ MetadataVersion currentFormatVersion()
 // Index
 static std::shared_ptr<Index> parseIndexInternal(const nlohmann::json &obj)
 {
-    /*
-    const QVector<QJsonObject> objects = requireIsArrayOf<QJsonObject>(obj, "packages");
-    QVector<VersionListPtr> lists;
-    lists.reserve(objects.size());
-    std::transform(objects.begin(), objects.end(), std::back_inserter(lists), [](const QJsonObject &obj)
-    {
-        VersionListPtr list = std::make_shared<VersionList>(requireString(obj, "uid"));
-        list->setName(ensureString(obj, "name", QString()));
-        return list;
-    });
-    return std::make_shared<Index>(lists);
-        */
-
     QVector<nlohmann::json> objects;
 
     if (obj.contains("packages"))
     {
-        //ensure that the packages are an array
         if (!obj["packages"].is_array())
         {
             throw ParseException("packages is not an array");
         }
         else
         {
-            //iterate over the array and add each object to the vector
             for (auto &package : obj["packages"])
             {
                     objects.push_back(package);
@@ -85,19 +67,6 @@ static std::shared_ptr<Index> parseIndexInternal(const nlohmann::json &obj)
 // Version
 static VersionPtr parseCommonVersion(const QString &uid, const nlohmann::json &obj)
 {
-    /*
-    VersionPtr version = std::make_shared<Version>(uid, requireString(obj, "version"));
-    version->setTime(QDateTime::fromString(requireString(obj, "releaseTime"), Qt::ISODate).toMSecsSinceEpoch() / 1000);
-    version->setType(ensureString(obj, "type", QString()));
-    version->setRecommended(ensureBoolean(obj, QString("recommended"), false));
-    version->setVolatile(ensureBoolean(obj, QString("volatile"), false));
-    RequireSet requires, conflicts;
-    parseRequires(obj, &requires, "requires");
-    parseRequires(obj, &conflicts, "conflicts");
-    version->setRequires(requires, conflicts);
-    return version;
-        */
-
     VersionPtr version = std::make_shared<Version>(uid, QString::fromStdString(obj["version"]));
     version->setTime(QDateTime::fromString(QString::fromStdString(obj["releaseTime"]), Qt::ISODate).toMSecsSinceEpoch() / 1000);
     version->setType(QString::fromStdString(obj.value("type", "")));
@@ -126,35 +95,16 @@ static std::shared_ptr<VersionList> parseVersionListInternal(const nlohmann::jso
 {
     const QString uid = QString::fromStdString(obj["uid"]);
 
-    /*
-    const QVector<QJsonObject> versionsRaw = requireIsArrayOf<QJsonObject>(obj, "versions");
-    QVector<VersionPtr> versions;
-    versions.reserve(versionsRaw.size());
-    std::transform(versionsRaw.begin(), versionsRaw.end(), std::back_inserter(versions), [uid](const QJsonObject &vObj)
-    {
-        auto version = parseCommonVersion(uid, vObj);
-        version->setProvidesRecommendations();
-        return version;
-    });
-
-    VersionListPtr list = std::make_shared<VersionList>(uid);
-    list->setName(ensureString(obj, "name", QString()));
-    list->setVersions(versions);
-    return list;
-        */
-
     QVector<nlohmann::json> versionsRaw;
 
     if (obj.contains("versions"))
     {
-        //ensure that the versions are an array
         if (!obj["versions"].is_array())
         {
             throw ParseException("versions is not an array");
         }
         else
         {
-            //iterate over the array and add each object to the vector
             for (auto &version : obj["versions"])
             {
                 versionsRaw.push_back(version);
@@ -254,11 +204,6 @@ void parseVersion(const nlohmann::json &obj, Version *ptr)
     }
 }
 
-/*
-[
-{"uid":"foo", "equals":"version"}
-]
-*/
 void parseRequires(const nlohmann::json& obj, RequireSet* ptr, const char * keyName)
 {
     if(obj.contains(keyName))
@@ -275,6 +220,7 @@ void parseRequires(const nlohmann::json& obj, RequireSet* ptr, const char * keyN
         }
     }
 }
+
 void serializeRequires(nlohmann::json& obj, RequireSet* ptr, const char * keyName)
 {
     if(!ptr || ptr->empty())
@@ -284,19 +230,6 @@ void serializeRequires(nlohmann::json& obj, RequireSet* ptr, const char * keyNam
     nlohmann::json arrOut;
     for(auto &iter: *ptr)
     {
-        /*
-        QJsonObject reqOut;
-        reqOut.insert("uid", iter.uid);
-        if(!iter.equalsVersion.isEmpty())
-        {
-            reqOut.insert("equals", iter.equalsVersion);
-        }
-        if(!iter.suggests.isEmpty())
-        {
-            reqOut.insert("suggests", iter.suggests);
-        }
-        arrOut.append(reqOut);
-        */
         nlohmann::json reqOut;
         reqOut["uid"] = iter.uid.toStdString();
         if(!iter.equalsVersion.isEmpty())

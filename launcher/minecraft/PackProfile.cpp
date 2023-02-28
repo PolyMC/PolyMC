@@ -38,19 +38,16 @@
 #include <QCryptographicHash>
 #include <Version.h>
 #include <QDir>
-#include <QJsonDocument>
-#include <QJsonArray>
 #include <QDebug>
 #include <QSaveFile>
 #include <QUuid>
 #include <QTimer>
+#include <memory>
 
 #include "Exception.h"
 #include "minecraft/OneSixVersionFormat.h"
 #include "FileSystem.h"
-#include "meta/Index.h"
 #include "minecraft/MinecraftInstance.h"
-#include "Json.h"
 #include "json.hpp"
 
 #include "PackProfile.h"
@@ -69,7 +66,7 @@ static const QMap<QString, ModAPI::ModLoaderType> modloaderMapping{
 PackProfile::PackProfile(MinecraftInstance * instance)
     : QAbstractListModel()
 {
-    d.reset(new PackProfileData);
+    d = std::make_unique<PackProfileData>();
     d->m_instance = instance;
     d->m_saveTimer.setSingleShot(true);
     d->m_saveTimer.setInterval(5000);
@@ -90,46 +87,36 @@ static const int currentComponentsFileVersion = 1;
 static nlohmann::json componentToJsonV1(ComponentPtr component)
 {
     nlohmann::json obj;
-    // critical
-    //obj.insert("uid", component->m_uid);
     obj["uid"] = component->m_uid.toStdString();
     if(!component->m_version.isEmpty())
     {
-        //obj.insert("version", component->m_version);
         obj["version"] = component->m_version.toStdString();
     }
     if(component->m_dependencyOnly)
     {
-        //obj.insert("dependencyOnly", true);
         obj["dependencyOnly"] = true;
     }
     if(component->m_important)
     {
-        //obj.insert("important", true);
         obj["important"] = true;
     }
     if(component->m_disabled)
     {
-        //obj.insert("disabled", true);
         obj["disabled"] = true;
     }
 
-    // cached
     if(!component->m_cachedVersion.isEmpty())
     {
-        //obj.insert("cachedVersion", component->m_cachedVersion);
         obj["cachedVersion"] = component->m_cachedVersion.toStdString();
     }
     if(!component->m_cachedName.isEmpty())
     {
-        //obj.insert("cachedName", component->m_cachedName);
         obj["cachedName"] = component->m_cachedName.toStdString();
     }
     Meta::serializeRequires(obj, &component->m_cachedRequires, "cachedRequires");
     Meta::serializeRequires(obj, &component->m_cachedConflicts, "cachedConflicts");
     if(component->m_cachedVolatile)
     {
-        //obj.insert("cachedVolatile", true);
         obj["cachedVolatile"] = true;
     }
     return obj;
@@ -137,21 +124,16 @@ static nlohmann::json componentToJsonV1(ComponentPtr component)
 
 static ComponentPtr componentFromJsonV1(PackProfile * parent, const QString & componentJsonPattern, const nlohmann::json &obj)
 {
-    // critical
     auto uid = QString::fromStdString(obj["uid"].get<std::string>());
     auto filePath = componentJsonPattern.arg(uid);
     auto component = new Component(parent, uid);
-    //component->m_version = QString::fromStdString(obj["version"].get<std::string>());
     component->m_version = QString::fromStdString(obj.value("version", ""));
     component->m_dependencyOnly = obj.value("dependencyOnly", false);
     component->m_important = obj.value("", false);
 
     // cached
     // TODO @RESILIENCE: ignore invalid values/structure here?
-    qDebug() << "object funny goof: " << obj.dump(4).c_str();
 
-    //component->m_cachedVersion = QString::fromStdString(obj["cachedVersion"].get<std::string>());
-    //component->m_cachedName = QString::fromStdString(obj["cachedName"].get<std::string>());
     component->m_cachedVersion = QString::fromStdString(obj.value("cachedVersion", ""));
     component->m_cachedName = QString::fromStdString(obj.value("cachedName", ""));
     Meta::parseRequires(obj, &component->m_cachedRequires, "cachedRequires");
@@ -165,41 +147,10 @@ static ComponentPtr componentFromJsonV1(PackProfile * parent, const QString & co
 // Save the given component container data to a file
 static bool savePackProfile(const QString & filename, const ComponentContainer & container)
 {
-    /*
-    QJsonObject obj;
-    obj.insert("formatVersion", currentComponentsFileVersion);
-    QJsonArray orderArray;
-    for(auto component: container)
-    {
-        orderArray.append(componentToJsonV1(component));
-    }
-    obj.insert("components", orderArray);
-    QSaveFile outFile(filename);
-    if (!outFile.open(QFile::WriteOnly))
-    {
-        qCritical() << "Couldn't open" << outFile.fileName()
-                     << "for writing:" << outFile.errorString();
-        return false;
-    }
-    auto data = QJsonDocument(obj).toJson(QJsonDocument::Indented);
-    if(outFile.write(data) != data.size())
-    {
-        qCritical() << "Couldn't write all the data into" << outFile.fileName()
-                     << "because:" << outFile.errorString();
-        return false;
-    }
-    if(!outFile.commit())
-    {
-        qCritical() << "Couldn't save" << outFile.fileName()
-                     << "because:" << outFile.errorString();
-    }
-    return true;
-        */
-
    nlohmann::json obj;
    obj["formatVersion"] = currentComponentsFileVersion;
    nlohmann::json orderArray;
-   for(auto component: container)
+   for(const auto& component: container)
    {
        orderArray.push_back(componentToJsonV1(component));
    }
@@ -236,16 +187,6 @@ static bool loadPackProfile(PackProfile * parent, const QString & filename, cons
     }
 
     // and it's valid JSON
-    /*
-    QJsonParseError error;
-    QJsonDocument doc = QJsonDocument::fromJson(componentsFile.readAll(), &error);
-    if (error.error != QJsonParseError::NoError)
-    {
-        qCritical() << "Couldn't parse" << componentsFile.fileName() << ":" << error.errorString();
-        qWarning() << "Ignoring overriden order";
-        return false;
-    }
-   */
    nlohmann::json doc;
    try
    {
@@ -261,17 +202,14 @@ static bool loadPackProfile(PackProfile * parent, const QString & filename, cons
     // and then read it and process it if all above is true.
     try
     {
-        //auto obj = Json::requireObject(doc);
         auto obj = doc;
-        // check order file version.
-        //auto version = Json::requireInteger(obj.value("formatVersion"));
         auto version = obj["formatVersion"].get<int>();
         if (version != currentComponentsFileVersion)
         {
-            throw JSONValidationError(QObject::tr("Invalid component file version, expected %1")
+            throw Exception(QObject::tr("Invalid component file version, expected %1")
                                           .arg(currentComponentsFileVersion));
         }
-        //auto orderArray = Json::requireArray(obj.value("components"));
+
         auto orderArray = obj["components"];
         for(auto item: orderArray)
         {
@@ -279,7 +217,7 @@ static bool loadPackProfile(PackProfile * parent, const QString & filename, cons
             container.append(componentFromJsonV1(parent, componentJsonPattern, obj));
         }
     }
-    catch (const JSONValidationError &err)
+    catch (const Exception &err)
     {
         qCritical() << "Couldn't parse" << componentsFile.fileName() << ": bad file format";
         container.clear();
@@ -804,20 +742,15 @@ bool PackProfile::installEmpty(const QString& uid, const QString& name)
     f->uid = uid;
     f->version = "1";
     QString patchFileName = FS::PathCombine(patchDir, uid + ".json");
-    /*
+
     QFile file(patchFileName);
     if (!file.open(QFile::WriteOnly))
     {
         qCritical() << "Error opening" << file.fileName()
-                    << "for reading:" << file.errorString();
+                << "for reading:" << file.errorString();
         return false;
     }
-    file.write(OneSixVersionFormat::versionFileToJson(f).toJson());
-    file.close();
-        */
-    std::fstream file(patchFileName.toStdString(), std::ios::out);
-    file << OneSixVersionFormat::versionFileToJson(f).dump(4);
-    file.close();
+    file.write(OneSixVersionFormat::versionFileToJson(f).dump(4).c_str());
 
     appendComponent(new Component(this, f->uid, f));
     scheduleSave();
@@ -920,19 +853,14 @@ bool PackProfile::installJarMods_internal(QStringList filepaths)
         f->uid = target_id;
         QString patchFileName = FS::PathCombine(patchDir, target_id + ".json");
 
-        /*
         QFile file(patchFileName);
         if (!file.open(QFile::WriteOnly))
         {
             qCritical() << "Error opening" << file.fileName()
-                        << "for reading:" << file.errorString();
+                    << "for reading:" << file.errorString();
             return false;
         }
-        file.write(OneSixVersionFormat::versionFileToJson(f).toJson());
-        file.close();
-                */
-        std::fstream file(patchFileName.toStdString(), std::ios::out);
-        file << OneSixVersionFormat::versionFileToJson(f).dump(4);
+        file.write(OneSixVersionFormat::versionFileToJson(f).dump(4).c_str());
         file.close();
 
         appendComponent(new Component(this, f->uid, f));

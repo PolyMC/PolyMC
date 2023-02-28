@@ -33,10 +33,6 @@
  *      limitations under the License.
  */
 
-#include <QJsonObject>
-#include <QJsonArray>
-#include <json.hpp>
-
 #include "Rule.h"
 
 RuleAction RuleAction_fromString(QString name)
@@ -80,8 +76,6 @@ QList<std::shared_ptr<Rule>> rulesFromJsonV4(const nlohmann::json &objectWithRul
             continue;
         QString osName = QString::fromStdString(osNameVal.get<std::string>());
 
-        //qDebug() << "osVal: " << osVal.dump(4).c_str();
-        //QString versionRegex = QString::fromStdString(osVal["version"].get<std::string>());
         QString versionRegex = QString::fromStdString(osVal.value("version", ""));
         // add a new OS rule
         rules.append(OsRule::create(action, osName, versionRegex));
@@ -91,11 +85,6 @@ QList<std::shared_ptr<Rule>> rulesFromJsonV4(const nlohmann::json &objectWithRul
 
 nlohmann::json ImplicitRule::toJson()
 {
-    /*
-    QJsonObject ruleObj;
-    ruleObj.insert("action", m_result == Allow ? QString("allow") : QString("disallow"));
-    return ruleObj;
-        */
     nlohmann::json ruleObj;
     ruleObj["action"] = m_result == Allow ? "allow" : "disallow";
     return ruleObj;
@@ -103,20 +92,6 @@ nlohmann::json ImplicitRule::toJson()
 
 nlohmann::json OsRule::toJson()
 {
-        /*
-    QJsonObject ruleObj;
-    ruleObj.insert("action", m_result == Allow ? QString("allow") : QString("disallow"));
-    QJsonObject osObj;
-    {
-        osObj.insert("name", m_system);
-        if(!m_version_regexp.isEmpty())
-        {
-            osObj.insert("version", m_version_regexp);
-        }
-    }
-    ruleObj.insert("os", osObj);
-    return ruleObj;
-        */
    nlohmann::json ruleObj;
    ruleObj["action"] = m_result == Allow ? "allow" : "disallow";
    nlohmann::json osObj;

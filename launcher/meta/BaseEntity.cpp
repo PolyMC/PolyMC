@@ -19,7 +19,6 @@
 #include "net/Download.h"
 #include "net/HttpMetaCache.h"
 #include "net/NetJob.h"
-#include "Json.h"
 
 #include "BuildConfig.h"
 #include "Application.h"
@@ -51,8 +50,7 @@ public: /* methods */
     bool validate(QNetworkReply &) override
     {
         auto fname = m_entity->localFilename();
-        //auto doc = Json::requireDocument(data, fname);
-        //auto obj = Json::requireObject(doc, fname);
+
         try 
         {
             const auto json = nlohmann::json::parse(data.constData(), data.constData() + data.size());
@@ -98,8 +96,6 @@ bool Meta::BaseEntity::loadLocalFile()
     // TODO: check if the file has the expected checksum
     try
     {
-        //auto doc = Json::requireDocument(fname, fname);
-        //auto obj = Json::requireObject(doc, fname);
         const auto json = nlohmann::json::parse(std::ifstream(fname.toStdString()));
         parse(json);
         return true;

@@ -19,7 +19,6 @@
 
 #include "Version.h"
 #include "JsonFormat.h"
-#include "Version.h"
 
 namespace Meta
 {

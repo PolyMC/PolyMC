@@ -17,7 +17,6 @@
 
 #include "BaseVersion.h"
 
-#include <QJsonObject>
 #include <QStringList>
 #include <QVector>
 #include <memory>

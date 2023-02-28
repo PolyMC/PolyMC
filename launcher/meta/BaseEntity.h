@@ -15,13 +15,13 @@
 
 #pragma once
 
-#include <QJsonObject>
 #include <QObject>
 #include "QObjectPtr.h"
-#include "json.hpp"
 
 #include "net/Mode.h"
 #include "net/NetJob.h"
+
+#include "json.hpp"
 
 namespace Meta
 {

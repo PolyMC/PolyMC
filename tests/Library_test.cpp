@@ -51,14 +51,6 @@ class LibraryTest : public QObject
 private:
     LibraryPtr readMojangJson(const QString path)
     {
-        /*
-        QFile jsonFile(path);
-        jsonFile.open(QIODevice::ReadOnly);
-        auto data = jsonFile.readAll();
-        jsonFile.close();
-        ProblemContainer problems;
-        return MojangVersionFormat::libraryFromJson(problems, QJsonDocument::fromJson(data).object(), path);
-        */
         std::fstream jsonFile(path.toStdString());
         nlohmann::json data = nlohmann::json::parse(jsonFile);
         jsonFile.close();

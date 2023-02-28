@@ -17,7 +17,6 @@
 
 #include "BaseEntity.h"
 #include "BaseVersionList.h"
-#include <QJsonObject>
 #include <memory>
 
 namespace Meta

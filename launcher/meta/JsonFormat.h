@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include <QJsonObject>
 #include <memory>
 
 #include "Exception.h"
