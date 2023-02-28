@@ -45,13 +45,11 @@
 #include "Version.h"
 #include "net/ChecksumValidator.h"
 #include "FileSystem.h"
-#include "Json.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "settings/INISettingsObject.h"
 #include "meta/Index.h"
 #include "meta/Version.h"
-#include "meta/VersionList.h"
 
 #include "BuildConfig.h"
 #include "Application.h"
@@ -98,21 +96,23 @@ void PackInstallTask::onDownloadSucceeded()
     qDebug() << "PackInstallTask::onDownloadSucceeded: " << QThread::currentThreadId();
     jobPtr.reset();
 
-    QJsonParseError parse_error {};
-    QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
-    if(parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from ATLauncher at " << parse_error.offset << " reason: " << parse_error.errorString();
-        qWarning() << response;
+    nlohmann::json obj;
+    try
+    {
+        obj = nlohmann::json::parse(response.constData(), response.constData() + response.size());
+    }
+    catch (const nlohmann::json::parse_error &e)
+    {
+        emitFailed(tr("Could not parse pack manifest:\n") + e.what());
         return;
     }
-    auto obj = doc.object();
 
     ATLauncher::PackVersion version;
     try
     {
         ATLauncher::loadVersion(version, obj);
     }
-    catch (const JSONValidationError &e)
+    catch (const Exception &e)
     {
         emitFailed(tr("Could not understand pack manifest:\n") + e.cause());
         return;

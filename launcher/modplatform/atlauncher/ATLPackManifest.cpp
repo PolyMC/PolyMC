@@ -36,8 +36,6 @@
 
 #include "ATLPackManifest.h"
 
-#include "Json.h"
-
 static ATLauncher::DownloadType parseDownloadType(QString rawType) {
     if(rawType == QString("server")) {
         return ATLauncher::DownloadType::Server;
@@ -115,237 +113,232 @@ static ATLauncher::ModType parseModType(QString rawType) {
     return ATLauncher::ModType::Unknown;
 }
 
-static void loadVersionLoader(ATLauncher::VersionLoader & p, QJsonObject & obj) {
-    p.type = Json::requireString(obj, "type");
-    p.choose = Json::ensureBoolean(obj, QString("choose"), false);
+static void loadVersionLibrary(ATLauncher::VersionLibrary& p, const nlohmann::json& obj)
+{
+    p.url = QString::fromStdString(obj["url"]);
+    p.file = QString::fromStdString(obj["file"]);
+    p.md5 = QString::fromStdString(obj["md5"]);
 
-    auto metadata = Json::requireObject(obj, "metadata");
-    p.latest = Json::ensureBoolean(metadata, QString("latest"), false);
-    p.recommended = Json::ensureBoolean(metadata, QString("recommended"), false);
-
-    // Minecraft Forge
-    if (p.type == "forge") {
-        p.version = Json::ensureString(metadata, "version", "");
-    }
-
-    // Fabric Loader
-    if (p.type == "fabric") {
-        p.version = Json::ensureString(metadata, "loader", "");
-    }
-}
-
-static void loadVersionLibrary(ATLauncher::VersionLibrary & p, QJsonObject & obj) {
-    p.url = Json::requireString(obj, "url");
-    p.file = Json::requireString(obj, "file");
-    p.md5 = Json::requireString(obj, "md5");
-
-    p.download_raw = Json::requireString(obj, "download");
+    p.download_raw = QString::fromStdString(obj["download"]);
     p.download = parseDownloadType(p.download_raw);
 
-    p.server = Json::ensureString(obj, "server", "");
+    p.server = QString::fromStdString(obj.value("server", ""));
 }
 
-static void loadVersionConfigs(ATLauncher::VersionConfigs & p, QJsonObject & obj) {
-    p.filesize = Json::requireInteger(obj, "filesize");
-    p.sha1 = Json::requireString(obj, "sha1");
-}
+static void loadVersionMod(ATLauncher::VersionMod& p, const nlohmann::json& obj)
+{
+    p.name = QString::fromStdString(obj["name"]);
+    p.version = QString::fromStdString(obj["version"]);
+    p.url = QString::fromStdString(obj["url"]);
+    p.file = QString::fromStdString(obj["file"]);
+    p.md5 = QString::fromStdString(obj.value("md5", ""));
 
-static void loadVersionMod(ATLauncher::VersionMod & p, QJsonObject & obj) {
-    p.name = Json::requireString(obj, "name");
-    p.version = Json::requireString(obj, "version");
-    p.url = Json::requireString(obj, "url");
-    p.file = Json::requireString(obj, "file");
-    p.md5 = Json::ensureString(obj, "md5", "");
-
-    p.download_raw = Json::requireString(obj, "download");
+    p.download_raw = QString::fromStdString(obj["download"]);
     p.download = parseDownloadType(p.download_raw);
 
-    p.type_raw = Json::requireString(obj, "type");
+    p.type_raw = QString::fromStdString(obj["type"]);
     p.type = parseModType(p.type_raw);
 
-    // This contributes to the Minecraft Forge detection, where we rely on mod.type being "Forge"
-    // when the mod represents Forge. As there is little difference between "Jar" and "Forge, some
+    // This contributes to the Minecraft Forge detection, where we rely on mod type being "Forge"
+    // when the mod represents Forge. As there is little difference between "Jar" and "Forge", some
     // packs regretfully use "Jar". This will correct the type to "Forge" in these cases (as best
     // it can).
-    if(p.name == QString("Minecraft Forge") && p.type == ATLauncher::ModType::Jar) {
+    if(p.name == QString("Minecraft Forge") && p.type == ATLauncher::ModType::Jar)
+    {
         p.type_raw = "forge";
         p.type = ATLauncher::ModType::Forge;
     }
 
-    if(obj.contains("extractTo")) {
+    if(obj.contains("extractTo"))
+    {
+        /*
         p.extractTo_raw = Json::requireString(obj, "extractTo");
         p.extractTo = parseModType(p.extractTo_raw);
         p.extractFolder = Json::ensureString(obj, "extractFolder", "").replace("%s%", "/");
+                */
+        p.extractTo_raw = QString::fromStdString(obj["extractTo"]);
+        p.extractTo = parseModType(p.extractTo_raw);
+        p.extractFolder = QString::fromStdString(obj.value("extractFolder", "")).replace("%s%", "/");
     }
 
-    if(obj.contains("decompType")) {
+    if(obj.contains("decompType"))
+    {
+        /*
         p.decompType_raw = Json::requireString(obj, "decompType");
         p.decompType = parseModType(p.decompType_raw);
         p.decompFile = Json::requireString(obj, "decompFile");
+         */
+        p.decompType_raw = QString::fromStdString(obj["decompType"]);
+        p.decompType = parseModType(p.decompType_raw);
+        p.decompFile = QString::fromStdString(obj["decompFile"]);
     }
 
-    p.description = Json::ensureString(obj, QString("description"), "");
-    p.optional = Json::ensureBoolean(obj, QString("optional"), false);
-    p.recommended = Json::ensureBoolean(obj, QString("recommended"), false);
-    p.selected = Json::ensureBoolean(obj, QString("selected"), false);
-    p.hidden = Json::ensureBoolean(obj, QString("hidden"), false);
-    p.library = Json::ensureBoolean(obj, QString("library"), false);
-    p.group = Json::ensureString(obj, QString("group"), "");
-    if(obj.contains("depends")) {
-        auto dependsArr = Json::requireArray(obj, "depends");
-        for (const auto depends : dependsArr) {
-            p.depends.append(Json::requireString(depends));
+    p.description = QString::fromStdString(obj.value("description", ""));
+    p.optional = obj.value("optional", false);
+    p.recommended = obj.value("recommended", false);
+    p.selected = obj.value("selected", false);
+    p.hidden = obj.value("hidden", false);
+    p.library = obj.value("library", false);
+    p.group = QString::fromStdString(obj.value("group", ""));
+
+
+    if(obj.contains("depends"))
+    {
+        auto dependsArr = obj["depends"];
+        for (const auto& depends : dependsArr)
+        {
+            p.depends.append(QString::fromStdString(depends));
         }
     }
-    p.colour = Json::ensureString(obj, QString("colour"), "");
-    p.warning = Json::ensureString(obj, QString("warning"), "");
+    p.colour = QString::fromStdString(obj.value("colour", ""));
+    p.warning = QString::fromStdString(obj.value("warning", ""));
 
-    p.client = Json::ensureBoolean(obj, QString("client"), false);
+    p.client = obj.value("client", false);
 
     // computed
     p.effectively_hidden = p.hidden || p.library;
 }
 
-static void loadVersionMessages(ATLauncher::VersionMessages& m, QJsonObject& obj)
+static void loadVersionKeeps(ATLauncher::VersionKeeps& k, nlohmann::json& obj)
 {
-    m.install = Json::ensureString(obj, "install", "");
-    m.update = Json::ensureString(obj, "update", "");
-}
-
-static void loadVersionMainClass(ATLauncher::PackVersionMainClass& m, QJsonObject& obj)
-{
-    m.mainClass = Json::ensureString(obj, "mainClass", "");
-    m.depends = Json::ensureString(obj, "depends", "");
-}
-
-static void loadVersionExtraArguments(ATLauncher::PackVersionExtraArguments& a, QJsonObject& obj)
-{
-    a.arguments = Json::ensureString(obj, "arguments", "");
-    a.depends = Json::ensureString(obj, "depends", "");
-}
-
-static void loadVersionKeep(ATLauncher::VersionKeep& k, QJsonObject& obj)
-{
-    k.base = Json::requireString(obj, "base");
-    k.target = Json::requireString(obj, "target");
-}
-
-static void loadVersionKeeps(ATLauncher::VersionKeeps& k, QJsonObject& obj)
-{
-    if (obj.contains("files")) {
-        auto files = Json::requireArray(obj, "files");
-        for (const auto keepRaw : files) {
-            auto keepObj = Json::requireObject(keepRaw);
+    if (obj.contains("files"))
+    {
+        auto files = obj["files"];
+        for (const auto& keepRaw : files)
+        {
             ATLauncher::VersionKeep keep;
-            loadVersionKeep(keep, keepObj);
+            keep.base = QString::fromStdString(keepRaw["base"]);
+            keep.target = QString::fromStdString(keepRaw["target"]);
             k.files.append(keep);
         }
     }
 
-    if (obj.contains("folders")) {
-        auto folders = Json::requireArray(obj, "folders");
-        for (const auto keepRaw : folders) {
-            auto keepObj = Json::requireObject(keepRaw);
+    if (obj.contains("folders"))
+    {
+        auto folders = obj["folders"];
+        for (const auto& keepRaw : folders)
+        {
             ATLauncher::VersionKeep keep;
-            loadVersionKeep(keep, keepObj);
+            keep.base = QString::fromStdString(keepRaw["base"]);
+            keep.target = QString::fromStdString(keepRaw["target"]);
             k.folders.append(keep);
         }
     }
 }
 
-static void loadVersionDelete(ATLauncher::VersionDelete& d, QJsonObject& obj)
+static void loadVersionDeletes(ATLauncher::VersionDeletes& d, nlohmann::json& obj)
 {
-    d.base = Json::requireString(obj, "base");
-    d.target = Json::requireString(obj, "target");
-}
-
-static void loadVersionDeletes(ATLauncher::VersionDeletes& d, QJsonObject& obj)
-{
-    if (obj.contains("files")) {
-        auto files = Json::requireArray(obj, "files");
-        for (const auto deleteRaw : files) {
-            auto deleteObj = Json::requireObject(deleteRaw);
+    if (obj.contains("files"))
+    {
+        auto files = obj["files"];
+        for (const auto& deleteRaw : files)
+        {
             ATLauncher::VersionDelete versionDelete;
-            loadVersionDelete(versionDelete, deleteObj);
+            versionDelete.base = QString::fromStdString(deleteRaw["base"]);
+            versionDelete.target = QString::fromStdString(deleteRaw["target"]);
             d.files.append(versionDelete);
         }
     }
 
-    if (obj.contains("folders")) {
-        auto folders = Json::requireArray(obj, "folders");
-        for (const auto deleteRaw : folders) {
-            auto deleteObj = Json::requireObject(deleteRaw);
+    if (obj.contains("folders"))
+    {
+        auto folders = obj["folders"];
+        for (const auto& deleteRaw : folders)
+        {
             ATLauncher::VersionDelete versionDelete;
-            loadVersionDelete(versionDelete, deleteObj);
+            versionDelete.base = QString::fromStdString(deleteRaw["base"]);
+            versionDelete.target = QString::fromStdString(deleteRaw["target"]);
             d.folders.append(versionDelete);
         }
     }
 }
 
-void ATLauncher::loadVersion(PackVersion & v, QJsonObject & obj)
+void ATLauncher::loadVersion(PackVersion & v, nlohmann::json& obj)
 {
-    v.version = Json::requireString(obj, "version");
-    v.minecraft = Json::requireString(obj, "minecraft");
-    v.noConfigs = Json::ensureBoolean(obj, QString("noConfigs"), false);
+    v.version = QString::fromStdString(obj["version"]);
+    v.minecraft = QString::fromStdString(obj["minecraft"]);
+    v.noConfigs = obj.value("noConfigs", false);
 
-    if(obj.contains("mainClass")) {
-        auto main = Json::requireObject(obj, "mainClass");
-        loadVersionMainClass(v.mainClass, main);
+
+    if(obj.contains("mainClass"))
+    {
+        v.mainClass.mainClass = QString::fromStdString(obj["mainClass"].value("mainClass", ""));
+        v.mainClass.depends = QString::fromStdString(obj["mainClass"].value("depends", ""));
     }
 
-    if(obj.contains("extraArguments")) {
-        auto arguments = Json::requireObject(obj, "extraArguments");
-        loadVersionExtraArguments(v.extraArguments, arguments);
+    if(obj.contains("extraArguments"))
+    {
+        v.extraArguments.arguments = QString::fromStdString(obj["extraArguments"].value("arguments", ""));
+        v.extraArguments.depends = QString::fromStdString(obj["extraArguments"].value("depends", ""));
     }
 
-    if(obj.contains("loader")) {
-        auto loader = Json::requireObject(obj, "loader");
-        loadVersionLoader(v.loader, loader);
+    if(obj.contains("loader"))
+    {
+        v.loader.type = QString::fromStdString(obj["loader"].value("type", ""));
+        v.loader.choose = obj["loader"].value("choose", false);
+
+        v.loader.latest = obj["loader"]["metadata"].value("latest", false);
+        v.loader.recommended = obj["loader"]["metadata"].value("recommended", false);
+
+        if (v.loader.type == "forge")
+            v.loader.version = QString::fromStdString(obj["loader"]["metadata"].value("version", ""));
+
+        if (v.loader.type == "fabric")
+            v.loader.version = QString::fromStdString(obj["loader"]["metadata"].value("loader", ""));
     }
 
-    if(obj.contains("libraries")) {
-        auto libraries = Json::requireArray(obj, "libraries");
-        for (const auto libraryRaw : libraries)
+    if(obj.contains("libraries"))
+    {
+        for (const auto &libraryRaw : obj["libraries"])
         {
-            auto libraryObj = Json::requireObject(libraryRaw);
             ATLauncher::VersionLibrary target;
-            loadVersionLibrary(target, libraryObj);
+            loadVersionLibrary(target, libraryRaw);
             v.libraries.append(target);
         }
+
     }
 
-    if(obj.contains("mods")) {
-        auto mods = Json::requireArray(obj, "mods");
-        for (const auto modRaw : mods)
+    if(obj.contains("mods"))
+    {
+        for (const auto &modRaw : obj["mods"])
         {
-            auto modObj = Json::requireObject(modRaw);
             ATLauncher::VersionMod mod;
-            loadVersionMod(mod, modObj);
+            loadVersionMod(mod, modRaw);
             v.mods.append(mod);
         }
     }
 
-    if(obj.contains("configs")) {
-        auto configsObj = Json::requireObject(obj, "configs");
-        loadVersionConfigs(v.configs, configsObj);
+    if(obj.contains("configs"))
+    {
+        v.configs.filesize = obj["configs"].value("filesize", 0);
+        v.configs.sha1 = QString::fromStdString(obj["configs"].value("sha1", ""));
     }
 
-    auto colourObj = Json::ensureObject(obj, "colours");
-    for (const auto &key : colourObj.keys()) {
-        v.colours[key] = Json::requireString(colourObj.value(key), "colour");
+    auto colourObj = obj.value("colours", nlohmann::json::object());
+    for (const auto &key : colourObj.items())
+    {
+        v.colours[QString::fromStdString(key.key())] = QString::fromStdString(key.value());
     }
 
-    auto warningsObj = Json::ensureObject(obj, "warnings");
-    for (const auto &key : warningsObj.keys()) {
-        v.warnings[key] = Json::requireString(warningsObj.value(key), "warning");
+    auto warningsObj = obj.value("warnings", nlohmann::json::object());
+    for (const auto &key : warningsObj.items())
+    {
+        v.warnings[QString::fromStdString(key.key())] = QString::fromStdString(key.value());
     }
 
-    auto messages = Json::ensureObject(obj, "messages");
-    loadVersionMessages(v.messages, messages);
+    if (obj.contains("messages"))
+    {
+        v.messages.install = QString::fromStdString(obj["messages"].value("install", ""));
+        v.messages.update = QString::fromStdString(obj["messages"].value("update", ""));
+    }
 
-    auto keeps = Json::ensureObject(obj, "keeps");
-    loadVersionKeeps(v.keeps, keeps);
+    if (obj.contains("keeps"))
+    {
+        loadVersionKeeps(v.keeps, obj["keeps"]);
+    }
 
-    auto deletes = Json::ensureObject(obj, "deletes");
-    loadVersionDeletes(v.deletes, deletes);
+    if (obj.contains("deletes"))
+    {
+        loadVersionDeletes(v.deletes, obj["deletes"]);
+    }
 }

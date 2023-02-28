@@ -35,10 +35,11 @@
 
 #pragma once
 
-#include <QJsonObject>
 #include <QMap>
 #include <QString>
 #include <QVector>
+
+#include "json.hpp"
 
 namespace ATLauncher
 {
@@ -203,6 +204,6 @@ struct PackVersion
     VersionDeletes deletes;
 };
 
-void loadVersion(PackVersion & v, QJsonObject & obj);
+void loadVersion(PackVersion & v, nlohmann::json& obj);
 
 }
