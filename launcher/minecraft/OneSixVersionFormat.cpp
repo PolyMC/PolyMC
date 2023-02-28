@@ -34,12 +34,9 @@
  */
 
 #include "OneSixVersionFormat.h"
-#include <Json.h>
 #include "minecraft/Agent.h"
 #include "minecraft/ParseUtils.h"
 #include <minecraft/MojangVersionFormat.h>
-
-using namespace Json;
 
 static void readString(const nlohmann::json &root, const QString &key, QString &variable)
 {
@@ -62,18 +59,6 @@ LibraryPtr OneSixVersionFormat::libraryFromJson(ProblemContainer & problems, con
 
 nlohmann::json OneSixVersionFormat::libraryToJson(Library *library)
 {
-    /*
-    QJsonObject libRoot = MojangVersionFormat::libraryToJson(library);
-    if (library->m_absoluteURL.size())
-        libRoot.insert("MMC-absoluteUrl", library->m_absoluteURL);
-    if (library->m_hint.size())
-        libRoot.insert("MMC-hint", library->m_hint);
-    if (library->m_filename.size())
-        libRoot.insert("MMC-filename", library->m_filename);
-    if (library->m_displayname.size())
-        libRoot.insert("MMC-displayname", library->m_displayname);
-    return libRoot;
-        */
     nlohmann::json libRoot = MojangVersionFormat::libraryToJson(library);
     if (library->m_absoluteURL.size())
         libRoot["MMC-absoluteUrl"] = library->m_absoluteURL.toStdString();
@@ -99,8 +84,6 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
         throw std::runtime_error((filename + " is not an object").toStdString());
     }
 
-    //QJsonObject root = doc.object();
-
     Meta::MetadataVersion formatVersion = Meta::parseFormatVersion(doc, false);
     switch(formatVersion)
     {
@@ -114,10 +97,7 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
     {
         if (doc.contains("order"))
         {
-            //debug print
-            //qDebug() << "order: " << doc["order"].get<int>();
             out->order = doc["order"].get<int>();
-
         }
         else
         {
@@ -138,7 +118,6 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
         out->uid = QString::fromStdString(doc["fileId"]);
     }
 
-    //out->version = root.value("version").toString();
     out->version = QString::fromStdString(doc["version"]);
 
     MojangVersionFormat::readVersionProperties(doc, out.get());
@@ -333,64 +312,48 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
 
 nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patch)
 {
-    //QJsonObject root;
     nlohmann::json root;
-    /*
-    writeString(root, "name", patch->name);
-    writeString(root, "uid", patch->uid);
-    writeString(root, "version", patch->version);
-     */
+
     root["name"] = patch->name.toStdString();
     root["uid"] = patch->uid.toStdString();
     root["version"] = patch->version.toStdString();
 
-
-    //Meta::serializeFormatVersion(root, Meta::MetadataVersion::InitialRelease);
     root["formatVersion"] = int(Meta::MetadataVersion::InitialRelease);
 
     MojangVersionFormat::writeVersionProperties(patch.get(), root);
 
     if(patch->mainJar)
     {
-        //root.insert("mainJar", libraryToJson(patch->mainJar.get()));
         root["mainJar"] = libraryToJson(patch->mainJar.get());
     }
-    /*
-    writeString(root, "appletClass", patch->appletClass);
-    writeStringList(root, "+tweakers", patch->addTweakers);
-    writeStringList(root, "+traits", patch->traits.values());
-     */
 
     root["appletClass"] = patch->appletClass.toStdString();
-        if (!patch->addTweakers.isEmpty())
+    if (!patch->addTweakers.isEmpty())
+    {
+        nlohmann::json array;
+        for (auto value: patch->addTweakers)
         {
-            nlohmann::json array;
-            for (auto value: patch->addTweakers)
-            {
-                array.push_back(value.toStdString());
-            }
-
-            root["+tweakers"] = array;
+            array.push_back(value.toStdString());
         }
 
-        if (!patch->traits.isEmpty())
+        root["+tweakers"] = array;
+    }
+
+    if (!patch->traits.isEmpty())
+    {
+        nlohmann::json array;
+        for (auto value: patch->traits.values())
         {
-                nlohmann::json array;
-                for (auto value: patch->traits.values())
-                {
-                    array.push_back(value.toStdString());
-                }
-
-                root["+traits"] = array;
+            array.push_back(value.toStdString());
         }
-
+        root["+traits"] = array;
+    }
 
     if (!patch->libraries.isEmpty())
     {
         nlohmann::json array;
         for (auto value: patch->libraries)
         {
-            //array.append(OneSixVersionFormat::libraryToJson(value.get()));
             array.push_back(OneSixVersionFormat::libraryToJson(value.get()));
         }
         //root.insert("libraries", array);
@@ -401,7 +364,6 @@ nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patc
         nlohmann::json array;
         for (auto value: patch->mavenFiles)
         {
-            //array.append(OneSixVersionFormat::libraryToJson(value.get()));
             array.push_back(OneSixVersionFormat::libraryToJson(value.get()));
         }
         //root.insert("mavenFiles", array);
@@ -409,14 +371,6 @@ nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patc
     }
     if (!patch->jarMods.isEmpty())
     {
-        /*
-        QJsonArray array;
-        for (auto value: patch->jarMods)
-        {
-            array.append(OneSixVersionFormat::jarModtoJson(value.get()));
-        }
-        root.insert("jarMods", array);
-         */
         nlohmann::json array;
         for (auto value: patch->jarMods)
         {
@@ -429,10 +383,8 @@ nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patc
         nlohmann::json array;
         for (auto value: patch->jarMods)
         {
-            //array.append(OneSixVersionFormat::modtoJson(value.get()));
             array.push_back(OneSixVersionFormat::modtoJson(value.get()));
         }
-        //root.insert("mods", array);
         root["mods"] = array;
     }
     if(!patch->requires.empty())
@@ -445,7 +397,6 @@ nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patc
     }
     if(patch->m_volatile)
     {
-        //root.insert("volatile", true);
         root["volatile"] = true;
     }
     // write the contents to a json document.
@@ -463,8 +414,7 @@ LibraryPtr OneSixVersionFormat::plusJarModFromJson(
     LibraryPtr out(new Library());
     if (!libObj.contains("name"))
     {
-        throw JSONValidationError(filename +
-                                  "contains a jarmod that doesn't have a 'name' field");
+        throw Exception(filename + "contains a jarmod that doesn't have a 'name' field");
     }
 
     // just make up something unique on the spot for the library name.
@@ -481,7 +431,6 @@ LibraryPtr OneSixVersionFormat::plusJarModFromJson(
 
     // read the original name if present - some versions did not set it
     // it is the original jar mod filename before it got renamed at the point of addition
-    //auto displayName = libObj.value("originalName").toString();
     auto displayName = QString::fromStdString(libObj.get<std::string>());
     if(displayName.isEmpty())
     {

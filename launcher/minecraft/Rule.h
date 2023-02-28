@@ -37,7 +37,6 @@
 
 #include <QString>
 #include <QList>
-#include <QJsonObject>
 #include <memory>
 #include "RuntimeContext.h"
 #include "json.hpp"
