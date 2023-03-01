@@ -37,35 +37,65 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QDebug>
 #include <QUuid>
 #include <QRegularExpression>
 
 namespace {
-void tokenToJSONV3(QJsonObject &parent, Katabasis::Token t, const char * tokenName) {
-    if(!t.persistent) {
-        return;
+
+nlohmann::json convertQMapToJsonObject(const QMap<QString, QVariant>& map, const nlohmann::json& in) {
+    nlohmann::json out;
+
+    // better way to do this?
+    for (auto it = map.begin(); it != map.end(); ++it) {
+        switch (it.value().type()) {
+            case QVariant::Type::Map:
+                out[it.key().toStdString()] = convertQMapToJsonObject(it.value().toMap(), in);
+                break;
+            case QVariant::Type::String:
+                out[it.key().toStdString()] = it.value().toString().toStdString();
+                break;
+            case QVariant::Type::Bool:
+                out[it.key().toStdString()] = it.value().toBool();
+                break;
+            case QVariant::Type::Int:
+                out[it.key().toStdString()] = it.value().toInt();
+                break;
+            case QVariant::Type::Double:
+                out[it.key().toStdString()] = it.value().toDouble();
+                break;
+            default:
+                out[it.key().toStdString()] = it.value().toString().toStdString();
+                break;
+        }
     }
-    QJsonObject out;
+
+    return out;
+}
+
+void tokenToJSONV3(nlohmann::json& parent, const Katabasis::Token& t, const char* tokenName) {
+    if(!t.persistent) return;
+
+    nlohmann::json out;
     if(t.issueInstant.isValid()) {
-        out["iat"] = QJsonValue(t.issueInstant.toMSecsSinceEpoch() / 1000);
+        out["iat"] = t.issueInstant.toMSecsSinceEpoch() / 1000;
     }
 
     if(t.notAfter.isValid()) {
-        out["exp"] = QJsonValue(t.notAfter.toMSecsSinceEpoch() / 1000);
+        out["exp"] = t.notAfter.toMSecsSinceEpoch() / 1000;
     }
 
     bool save = false;
     if(!t.token.isEmpty()) {
-        out["token"] = QJsonValue(t.token);
+        out["token"] = t.token.toStdString();
         save = true;
     }
     if(!t.refresh_token.isEmpty()) {
-        out["refresh_token"] = QJsonValue(t.refresh_token);
+        out["refresh_token"] = t.refresh_token.toStdString();
         save = true;
     }
-    if(t.extra.size()) {
-        out["extra"] = QJsonObject::fromVariantMap(t.extra);
+    if(!t.extra.empty()) {
+        //out["extra"] = t.extra.toStdMap();
+        out["extra"] = convertQMapToJsonObject(t.extra, out);
         save = true;
     }
     if(save) {
@@ -107,36 +137,35 @@ Katabasis::Token tokenFromJSONV3(const QJsonObject &parent, const char * tokenNa
     return out;
 }
 
-void profileToJSONV3(QJsonObject &parent, MinecraftProfile p, const char * tokenName) {
-    if(p.id.isEmpty()) {
-        return;
-    }
-    QJsonObject out;
-    out["id"] = QJsonValue(p.id);
-    out["name"] = QJsonValue(p.name);
+void profileToJSONV3(nlohmann::json &parent, MinecraftProfile p, const char* tokenName) {
+    if(p.id.isEmpty()) return;
+
+    nlohmann::json out;
+    out["id"] = p.id.toStdString();
+    out["name"] = p.name.toStdString();
     if(!p.currentCape.isEmpty()) {
-        out["cape"] = p.currentCape;
+        out["cape"] = p.currentCape.toStdString();
     }
 
     {
-        QJsonObject skinObj;
-        skinObj["id"] = p.skin.id;
-        skinObj["url"] = p.skin.url;
-        skinObj["variant"] = p.skin.variant;
+        nlohmann::json skinObj;
+        skinObj["id"] = p.skin.id.toStdString();
+        skinObj["url"] =  p.skin.url.toStdString();
+        skinObj["variant"] = p.skin.variant.toStdString();
         if(p.skin.data.size()) {
-            skinObj["data"] = QString::fromLatin1(p.skin.data.toBase64());
+            skinObj["data"] = QString::fromLatin1(p.skin.data.toBase64()).toStdString();
         }
         out["skin"] = skinObj;
     }
 
-    QJsonArray capesArray;
+    nlohmann::json capesArray;
     for(auto & cape: p.capes) {
-        QJsonObject capeObj;
-        capeObj["id"] = cape.id;
-        capeObj["url"] = cape.url;
-        capeObj["alias"] = cape.alias;
+        nlohmann::json capeObj;
+        capeObj["id"] = cape.id.toStdString();
+        capeObj["url"] = cape.url.toStdString();
+        capeObj["alias"] = cape.alias.toStdString();
         if(cape.data.size()) {
-            capeObj["data"] = QString::fromLatin1(cape.data.toBase64());
+            capeObj["data"] = QString::fromLatin1(cape.data.toBase64()).toStdString();
         }
         capesArray.push_back(capeObj);
     }
@@ -144,98 +173,123 @@ void profileToJSONV3(QJsonObject &parent, MinecraftProfile p, const char * token
     parent[tokenName] = out;
 }
 
-MinecraftProfile profileFromJSONV3(const QJsonObject &parent, const char * tokenName) {
+MinecraftProfile profileFromJSONV3(const nlohmann::json& parent, const char* tokenName) {
     MinecraftProfile out;
-    auto tokenObject = parent.value(tokenName).toObject();
-    if(tokenObject.isEmpty()) {
+    auto tokenObject = parent[tokenName];
+
+    const QRegularExpression base64Regex("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$");
+
+    if(tokenObject.empty())
         return out;
-    }
+
+    //the .contains checks are probably redundant, .value() will probably suffice
     {
-        auto idV = tokenObject.value("id");
-        auto nameV = tokenObject.value("name");
-        if(!idV.isString() || !nameV.isString()) {
+        if (!tokenObject.contains("id") || !tokenObject.contains("name")) {
             qWarning() << "mandatory profile attributes are missing or of unexpected type";
             return MinecraftProfile();
         }
-        out.name = nameV.toString();
-        out.id = idV.toString();
+
+        auto idV = tokenObject["id"];
+        auto nameV = tokenObject["name"];
+
+        if (idV.is_string() || nameV.is_string()) {
+            qWarning() << "mandatory profile attributes are missing or of unexpected type";
+            return MinecraftProfile();
+        }
+
+        out.name = QString::fromStdString(nameV);
+        out.id = QString::fromStdString(idV);
     }
 
     {
-        auto skinV = tokenObject.value("skin");
-        if(!skinV.isObject()) {
+        if (!tokenObject.contains("skin") || !tokenObject["skin"].is_object()) {
             qWarning() << "skin is missing";
             return MinecraftProfile();
         }
-        auto skinObj = skinV.toObject();
-        auto idV = skinObj.value("id");
-        auto urlV = skinObj.value("url");
-        auto variantV = skinObj.value("variant");
-        if(!idV.isString() || !urlV.isString() || !variantV.isString()) {
+
+        auto skinObj = tokenObject["skin"];
+
+        if (!skinObj.contains("id") || !skinObj.contains("url") || !skinObj.contains("variant")) {
             qWarning() << "mandatory skin attributes are missing or of unexpected type";
             return MinecraftProfile();
         }
-        out.skin.id = idV.toString();
-        out.skin.url = urlV.toString();
-        out.skin.variant = variantV.toString();
+
+        out.skin.id = QString::fromStdString(skinObj["id"].get<std::string>());
+        out.skin.url = QString::fromStdString(skinObj["url"].get<std::string>());
+        out.skin.variant = QString::fromStdString(skinObj["variant"].get<std::string>());
 
         // data for skin is optional
-        auto dataV = skinObj.value("data");
-        if(dataV.isString()) {
-            // TODO: validate base64
-            out.skin.data = QByteArray::fromBase64(dataV.toString().toLatin1());
-        }
-        else if (!dataV.isUndefined()) {
-            qWarning() << "skin data is something unexpected";
-            return MinecraftProfile();
+        if (skinObj.contains("data")) {
+            auto dataV = skinObj["data"];
+
+            if (dataV.is_string()) {
+                QString data = QString::fromStdString(dataV.get<std::string>());
+                if (base64Regex.match(data).hasMatch()) {
+                    out.skin.data = QByteArray::fromBase64(data.toLatin1());
+                } else {
+                    qWarning() << "skin data is not base64";
+                    return MinecraftProfile();
+                }
+            } else {
+                qWarning() << "skin data is something unexpected";
+                return MinecraftProfile();
+            }
         }
     }
 
     {
-        auto capesV = tokenObject.value("capes");
-        if(!capesV.isArray()) {
-            qWarning() << "capes is not an array!";
+        if (!tokenObject.contains("capes") || !tokenObject["capes"].is_array()) {
+            qWarning() << "capes is missing";
             return MinecraftProfile();
         }
-        auto capesArray = capesV.toArray();
-        for(auto capeV: capesArray) {
-            if(!capeV.isObject()) {
+
+        auto capesArray = tokenObject["capes"];
+
+        for(const auto& capeV: capesArray) {
+            if(!capeV.is_object()) {
                 qWarning() << "cape is not an object!";
                 return MinecraftProfile();
             }
-            auto capeObj = capeV.toObject();
-            auto idV = capeObj.value("id");
-            auto urlV = capeObj.value("url");
-            auto aliasV = capeObj.value("alias");
-            if(!idV.isString() || !urlV.isString() || !aliasV.isString()) {
-                qWarning() << "mandatory skin attributes are missing or of unexpected type";
+
+            if (!capeV.contains("id") || !capeV.contains("url") || !capeV.contains("alias")) {
+                qWarning() << "mandatory cape attributes are missing or of unexpected type";
                 return MinecraftProfile();
             }
+
             Cape cape;
-            cape.id = idV.toString();
-            cape.url = urlV.toString();
-            cape.alias = aliasV.toString();
+            cape.id = QString::fromStdString(capeV["id"].get<std::string>());
+            cape.url = QString::fromStdString(capeV["url"].get<std::string>());
+            cape.alias = QString::fromStdString(capeV["alias"].get<std::string>());
 
             // data for cape is optional.
-            auto dataV = capeObj.value("data");
-            if(dataV.isString()) {
-                // TODO: validate base64
-                cape.data = QByteArray::fromBase64(dataV.toString().toLatin1());
-            }
-            else if (!dataV.isUndefined()) {
-                qWarning() << "cape data is something unexpected";
-                return MinecraftProfile();
+            if (capeV.contains("data")) {
+                auto dataV = capeV["data"];
+
+                if (dataV.is_string()) {
+                    QString data = QString::fromStdString(dataV.get<std::string>());
+                    if (base64Regex.match(data).hasMatch()) {
+                        cape.data = QByteArray::fromBase64(data.toLatin1());
+                    } else {
+                        qWarning() << "cape data is not base64";
+                        return MinecraftProfile();
+                    }
+                } else {
+                    qWarning() << "cape data is something unexpected";
+                    return MinecraftProfile();
+                }
             }
             out.capes[cape.id] = cape;
         }
     }
     // current cape
     {
-        auto capeV = tokenObject.value("cape");
-        if(capeV.isString()) {
-            auto currentCape = capeV.toString();
-            if(out.capes.contains(currentCape)) {
-                out.currentCape = currentCape;
+        if (tokenObject.contains("cape")) {
+            auto capeV = tokenObject["cape"];
+            if (capeV.is_string()) {
+                auto currentCape = QString::fromStdString(capeV.get<std::string>());
+                if (out.capes.contains(currentCape)) {
+                    out.currentCape = currentCape;
+                }
             }
         }
     }
@@ -274,9 +328,9 @@ bool entitlementFromJSONV3(const QJsonObject &parent, MinecraftEntitlement & out
 
 }
 
-bool AccountData::resumeStateFromV2(QJsonObject data) {
+bool AccountData::resumeStateFromV2(const nlohmann::json& data) {
     // The JSON object must at least have a username for it to be valid.
-    if (!data.value("username").isString())
+    if (!data.contains("username") || !data["username"].is_string())
     {
         qCritical() << "Can't load Mojang account info from JSON object. Username field is missing or of the wrong type.";
         return false;
@@ -339,7 +393,7 @@ bool AccountData::resumeStateFromV2(QJsonObject data) {
     return true;
 }
 
-bool AccountData::resumeStateFromV3(QJsonObject data) {
+bool AccountData::resumeStateFromV3(const nlohmann::json& data) {
     auto typeV = data.value("type");
     if(!typeV.isString()) {
         qWarning() << "Failed to parse account data: type is missing.";
@@ -387,8 +441,8 @@ bool AccountData::resumeStateFromV3(QJsonObject data) {
     return true;
 }
 
-QJsonObject AccountData::saveState() const {
-    QJsonObject output;
+nlohmann::json AccountData::saveState() const {
+    nlohmann::json output;
     if(type == AccountType::Mojang) {
         output["type"] = "Mojang";
         if(legacy) {
@@ -400,7 +454,7 @@ QJsonObject AccountData::saveState() const {
     }
     else if (type == AccountType::MSA) {
         output["type"] = "MSA";
-        output["msa-client-id"] = msaClientID;
+        output["msa-client-id"] = msaClientID.toStdString();
         tokenToJSONV3(output, msaToken, "msa");
         tokenToJSONV3(output, userToken, "utoken");
         tokenToJSONV3(output, xboxApiToken, "xrp-main");

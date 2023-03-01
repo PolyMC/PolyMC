@@ -40,6 +40,8 @@
 #include <katabasis/Bits.h>
 #include <QJsonObject>
 
+#include "json.hpp"
+
 struct Skin {
     QString id;
     QString url;
@@ -89,9 +91,9 @@ enum class AccountState {
 };
 
 struct AccountData {
-    QJsonObject saveState() const;
-    bool resumeStateFromV2(QJsonObject data);
-    bool resumeStateFromV3(QJsonObject data);
+    nlohmann::json saveState() const;
+    bool resumeStateFromV2(const nlohmann::json& data);
+    bool resumeStateFromV3(const nlohmann::json& data);
 
     //! userName for Mojang accounts, gamertag for MSA
     QString accountDisplayString() const;
