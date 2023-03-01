@@ -74,8 +74,8 @@ MetadataVersion parseFormatVersion(const nlohmann::json &obj, bool required = tr
 void serializeFormatVersion(QJsonObject &obj, MetadataVersion version);
 
 // FIXME: this has a different shape than the others...FIX IT!?
-void parseRequires(const nlohmann::json &obj, RequireSet * ptr, const char * keyName = "requires");
-void serializeRequires(nlohmann::json & objOut, RequireSet* ptr, const char * keyName = "requires");
+void parseRequires(const nlohmann::json& obj, RequireSet* ptr, const char* keyName = "requires");
+void serializeRequires(nlohmann::json& objOut, RequireSet* ptr, const char* keyName = "requires");
 MetadataVersion currentFormatVersion();
 }
 

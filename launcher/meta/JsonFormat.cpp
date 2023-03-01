@@ -26,11 +26,6 @@
 namespace Meta
 {
 
-MetadataVersion currentFormatVersion()
-{
-    return MetadataVersion::InitialRelease;
-}
-
 // Index
 static std::shared_ptr<Index> parseIndexInternal(const nlohmann::json &obj)
 {
@@ -156,15 +151,6 @@ MetadataVersion parseFormatVersion(const nlohmann::json &obj, bool required)
     }
 }
 
-void serializeFormatVersion(QJsonObject& obj, Meta::MetadataVersion version)
-{
-    if(version == MetadataVersion::Invalid)
-    {
-        return;
-    }
-    obj.insert("formatVersion", int(version));
-}
-
 void parseIndex(const nlohmann::json &obj, Index *ptr)
 {
     const MetadataVersion version = parseFormatVersion(obj);
@@ -208,9 +194,7 @@ void parseRequires(const nlohmann::json& obj, RequireSet* ptr, const char * keyN
 {
     if(obj.contains(keyName))
     {
-
-       QSet<QString> requires;
-       auto reqArray = obj[keyName];
+        auto reqArray = obj[keyName];
         for (auto &reqObject : reqArray)
         {
             auto uid = QString::fromStdString(reqObject["uid"]);

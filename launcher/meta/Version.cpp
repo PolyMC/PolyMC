@@ -25,9 +25,7 @@ Meta::Version::Version(const QString &uid, const QString &version)
 {
 }
 
-Meta::Version::~Version()
-{
-}
+Meta::Version::~Version() = default;
 
 QString Meta::Version::descriptor()
 {
