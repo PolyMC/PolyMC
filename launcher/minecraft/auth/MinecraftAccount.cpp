@@ -38,13 +38,9 @@
 #include "MinecraftAccount.h"
 
 #include <QUuid>
-#include <QJsonObject>
 #include <QJsonArray>
 #include <QRegularExpression>
-#include <QStringList>
 #include <QJsonDocument>
-
-#include <QDebug>
 
 #include <QPainter>
 
@@ -57,7 +53,7 @@ MinecraftAccount::MinecraftAccount(QObject* parent) : QObject(parent) {
 }
 
 
-MinecraftAccountPtr MinecraftAccount::loadFromJsonV2(const QJsonObject& json) {
+MinecraftAccountPtr MinecraftAccount::loadFromJsonV2(const nlohmann::json& json) {
     MinecraftAccountPtr account(new MinecraftAccount());
     if(account->data.resumeStateFromV2(json)) {
         return account;
@@ -65,7 +61,7 @@ MinecraftAccountPtr MinecraftAccount::loadFromJsonV2(const QJsonObject& json) {
     return nullptr;
 }
 
-MinecraftAccountPtr MinecraftAccount::loadFromJsonV3(const QJsonObject& json) {
+MinecraftAccountPtr MinecraftAccount::loadFromJsonV3(const nlohmann::json& json) {
     MinecraftAccountPtr account(new MinecraftAccount());
     if(account->data.resumeStateFromV3(json)) {
         return account;
@@ -107,7 +103,7 @@ MinecraftAccountPtr MinecraftAccount::createOffline(const QString &username)
 }
 
 
-QJsonObject MinecraftAccount::saveToJson() const
+nlohmann::json MinecraftAccount::saveToJson() const
 {
     return data.saveState();
 }

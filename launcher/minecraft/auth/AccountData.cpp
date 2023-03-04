@@ -40,36 +40,17 @@
 #include <QUuid>
 #include <QRegularExpression>
 
-namespace {
+nlohmann::json convertQMapToJsonObject(const QMap<QString, QVariant>& map) {
+    QByteArray cborArray = QCborValue::fromVariant(map).toCbor();
+    return nlohmann::json::from_cbor(cborArray);
+}
 
-nlohmann::json convertQMapToJsonObject(const QMap<QString, QVariant>& map, const nlohmann::json& in) {
-    nlohmann::json out;
+QMap<QString, QVariant> convertJsonObjectToQMap(const nlohmann::json& json) {
+    std::vector<std::uint8_t> cbor = nlohmann::json::to_cbor(json);
 
-    // better way to do this?
-    for (auto it = map.begin(); it != map.end(); ++it) {
-        switch (it.value().type()) {
-            case QVariant::Type::Map:
-                out[it.key().toStdString()] = convertQMapToJsonObject(it.value().toMap(), in);
-                break;
-            case QVariant::Type::String:
-                out[it.key().toStdString()] = it.value().toString().toStdString();
-                break;
-            case QVariant::Type::Bool:
-                out[it.key().toStdString()] = it.value().toBool();
-                break;
-            case QVariant::Type::Int:
-                out[it.key().toStdString()] = it.value().toInt();
-                break;
-            case QVariant::Type::Double:
-                out[it.key().toStdString()] = it.value().toDouble();
-                break;
-            default:
-                out[it.key().toStdString()] = it.value().toString().toStdString();
-                break;
-        }
-    }
+    QCborValue cborValue = QCborValue::fromCbor(cbor.data(), cbor.size());
 
-    return out;
+    return cborValue.toVariant().toMap();
 }
 
 void tokenToJSONV3(nlohmann::json& parent, const Katabasis::Token& t, const char* tokenName) {
@@ -95,7 +76,7 @@ void tokenToJSONV3(nlohmann::json& parent, const Katabasis::Token& t, const char
     }
     if(!t.extra.empty()) {
         //out["extra"] = t.extra.toStdMap();
-        out["extra"] = convertQMapToJsonObject(t.extra, out);
+        out["extra"] = convertQMapToJsonObject(t.extra);
         save = true;
     }
     if(save) {
@@ -103,41 +84,44 @@ void tokenToJSONV3(nlohmann::json& parent, const Katabasis::Token& t, const char
     }
 }
 
-Katabasis::Token tokenFromJSONV3(const QJsonObject &parent, const char * tokenName) {
+Katabasis::Token tokenFromJSONV3(const nlohmann::json& parent, const char* tokenName) {
     Katabasis::Token out;
-    auto tokenObject = parent.value(tokenName).toObject();
-    if(tokenObject.isEmpty()) {
+    //auto tokenObject = parent.value(tokenName).toObject();
+    if(!parent.contains(tokenName))
         return out;
-    }
-    auto issueInstant = tokenObject.value("iat");
-    if(issueInstant.isDouble()) {
-        out.issueInstant = QDateTime::fromMSecsSinceEpoch(((int64_t) issueInstant.toDouble()) * 1000);
+
+    const auto& tokenObject = parent[tokenName];
+
+    auto issueInstant = tokenObject.value("iat", nlohmann::json{});
+    if(issueInstant.is_number_float()) {
+        out.issueInstant = QDateTime::fromMSecsSinceEpoch(((int64_t) issueInstant.get<float>()) * 1000);
     }
 
-    auto notAfter = tokenObject.value("exp");
-    if(notAfter.isDouble()) {
-        out.notAfter = QDateTime::fromMSecsSinceEpoch(((int64_t) notAfter.toDouble()) * 1000);
+    auto notAfter = tokenObject.value("exp", nlohmann::json{});
+    if(notAfter.is_number_float()) {
+        out.notAfter = QDateTime::fromMSecsSinceEpoch(((int64_t) notAfter.get<float>()) * 1000);
     }
 
-    auto token = tokenObject.value("token");
-    if(token.isString()) {
-        out.token = token.toString();
+    auto token = tokenObject.value("token", nlohmann::json{});
+    if(token.is_string()) {
+        out.token = QString::fromStdString(token.get<std::string>());
         out.validity = Katabasis::Validity::Assumed;
     }
 
-    auto refresh_token = tokenObject.value("refresh_token");
-    if(refresh_token.isString()) {
-        out.refresh_token = refresh_token.toString();
+    auto refresh_token = tokenObject.value("refresh_token", nlohmann::json{});
+    if(refresh_token.is_string()) {
+        out.refresh_token = QString::fromStdString(refresh_token.get<std::string>());
     }
 
-    auto extra = tokenObject.value("extra");
-    if(extra.isObject()) {
-        out.extra = extra.toObject().toVariantMap();
+    auto extra = tokenObject.value("extra", nlohmann::json{});
+    if(extra.is_object()) {
+        out.extra = convertJsonObjectToQMap(extra);
     }
+
     return out;
 }
 
-void profileToJSONV3(nlohmann::json &parent, MinecraftProfile p, const char* tokenName) {
+void profileToJSONV3(nlohmann::json &parent, const MinecraftProfile& p, const char* tokenName) {
     if(p.id.isEmpty()) return;
 
     nlohmann::json out;
@@ -158,7 +142,7 @@ void profileToJSONV3(nlohmann::json &parent, MinecraftProfile p, const char* tok
         out["skin"] = skinObj;
     }
 
-    nlohmann::json capesArray;
+    nlohmann::json capesArray = nlohmann::json::array();
     for(auto & cape: p.capes) {
         nlohmann::json capeObj;
         capeObj["id"] = cape.id.toStdString();
@@ -175,24 +159,16 @@ void profileToJSONV3(nlohmann::json &parent, MinecraftProfile p, const char* tok
 
 MinecraftProfile profileFromJSONV3(const nlohmann::json& parent, const char* tokenName) {
     MinecraftProfile out;
-    auto tokenObject = parent[tokenName];
-
+    const auto tokenObject = parent.value(tokenName, nlohmann::json{});
     const QRegularExpression base64Regex("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$");
 
     if(tokenObject.empty())
         return out;
 
-    //the .contains checks are probably redundant, .value() will probably suffice
     {
-        if (!tokenObject.contains("id") || !tokenObject.contains("name")) {
-            qWarning() << "mandatory profile attributes are missing or of unexpected type";
-            return MinecraftProfile();
-        }
-
-        auto idV = tokenObject["id"];
-        auto nameV = tokenObject["name"];
-
-        if (idV.is_string() || nameV.is_string()) {
+        auto idV = tokenObject.value("id", nlohmann::json{});
+        auto nameV = tokenObject.value("name", nlohmann::json{});
+        if (!idV.is_string() || !nameV.is_string()) {
             qWarning() << "mandatory profile attributes are missing or of unexpected type";
             return MinecraftProfile();
         }
@@ -202,14 +178,17 @@ MinecraftProfile profileFromJSONV3(const nlohmann::json& parent, const char* tok
     }
 
     {
-        if (!tokenObject.contains("skin") || !tokenObject["skin"].is_object()) {
+        auto skinObj = tokenObject.value("skin", nlohmann::json{});
+        if(skinObj.empty())
+        {
             qWarning() << "skin is missing";
             return MinecraftProfile();
         }
 
-        auto skinObj = tokenObject["skin"];
-
-        if (!skinObj.contains("id") || !skinObj.contains("url") || !skinObj.contains("variant")) {
+        auto idV = skinObj.value("id", nlohmann::json{});
+        auto urlV = skinObj.value("url", nlohmann::json{});
+        auto variantV = skinObj.value("variant", nlohmann::json{});
+        if (!idV.is_string() || !urlV.is_string() || !variantV.is_string()) {
             qWarning() << "mandatory skin attributes are missing or of unexpected type";
             return MinecraftProfile();
         }
@@ -217,8 +196,6 @@ MinecraftProfile profileFromJSONV3(const nlohmann::json& parent, const char* tok
         out.skin.id = QString::fromStdString(skinObj["id"].get<std::string>());
         out.skin.url = QString::fromStdString(skinObj["url"].get<std::string>());
         out.skin.variant = QString::fromStdString(skinObj["variant"].get<std::string>());
-
-        // data for skin is optional
         if (skinObj.contains("data")) {
             auto dataV = skinObj["data"];
 
@@ -238,12 +215,12 @@ MinecraftProfile profileFromJSONV3(const nlohmann::json& parent, const char* tok
     }
 
     {
-        if (!tokenObject.contains("capes") || !tokenObject["capes"].is_array()) {
+        auto capesArray = tokenObject.value("capes", nlohmann::json{});
+        if(!capesArray.is_array() || capesArray.is_null())
+        {
             qWarning() << "capes is missing";
             return MinecraftProfile();
         }
-
-        auto capesArray = tokenObject["capes"];
 
         for(const auto& capeV: capesArray) {
             if(!capeV.is_object()) {
@@ -251,20 +228,22 @@ MinecraftProfile profileFromJSONV3(const nlohmann::json& parent, const char* tok
                 return MinecraftProfile();
             }
 
-            if (!capeV.contains("id") || !capeV.contains("url") || !capeV.contains("alias")) {
+            auto idV = capeV.value("id", nlohmann::json{});
+            auto urlV = capeV.value("url", nlohmann::json{});
+            auto aliasV = capeV.value("alias", nlohmann::json{});
+            if (!idV.is_string() || !urlV.is_string() || !aliasV.is_string()) {
                 qWarning() << "mandatory cape attributes are missing or of unexpected type";
                 return MinecraftProfile();
             }
-
             Cape cape;
-            cape.id = QString::fromStdString(capeV["id"].get<std::string>());
-            cape.url = QString::fromStdString(capeV["url"].get<std::string>());
-            cape.alias = QString::fromStdString(capeV["alias"].get<std::string>());
+            cape.id = QString::fromStdString(idV);
+            cape.url = QString::fromStdString(urlV);
+            cape.alias = QString::fromStdString(aliasV);
 
             // data for cape is optional.
-            if (capeV.contains("data")) {
-                auto dataV = capeV["data"];
-
+            auto dataV = capeV.value("data", nlohmann::json{});
+            if(!dataV.empty())
+            {
                 if (dataV.is_string()) {
                     QString data = QString::fromStdString(dataV.get<std::string>());
                     if (base64Regex.match(data).hasMatch()) {
@@ -278,13 +257,15 @@ MinecraftProfile profileFromJSONV3(const nlohmann::json& parent, const char* tok
                     return MinecraftProfile();
                 }
             }
+
             out.capes[cape.id] = cape;
         }
     }
     // current cape
     {
-        if (tokenObject.contains("cape")) {
-            auto capeV = tokenObject["cape"];
+        auto capeV = tokenObject.value("cape", nlohmann::json{});
+        if(!capeV.empty())
+        {
             if (capeV.is_string()) {
                 auto currentCape = QString::fromStdString(capeV.get<std::string>());
                 if (out.capes.contains(currentCape)) {
@@ -293,39 +274,39 @@ MinecraftProfile profileFromJSONV3(const nlohmann::json& parent, const char* tok
             }
         }
     }
+
     out.validity = Katabasis::Validity::Assumed;
     return out;
 }
 
-void entitlementToJSONV3(QJsonObject &parent, MinecraftEntitlement p) {
+void entitlementToJSONV3(nlohmann::json& parent, MinecraftEntitlement p) {
     if(p.validity == Katabasis::Validity::None) {
         return;
     }
-    QJsonObject out;
-    out["ownsMinecraft"] = QJsonValue(p.ownsMinecraft);
-    out["canPlayMinecraft"] = QJsonValue(p.canPlayMinecraft);
+    nlohmann::json out;
+
+    out["ownsMinecraft"] = p.ownsMinecraft;
+    out["canPlayMinecraft"] = p.canPlayMinecraft;
     parent["entitlement"] = out;
 }
 
-bool entitlementFromJSONV3(const QJsonObject &parent, MinecraftEntitlement & out) {
-    auto entitlementObject = parent.value("entitlement").toObject();
-    if(entitlementObject.isEmpty()) {
+bool entitlementFromJSONV3(const nlohmann::json& parent, MinecraftEntitlement& out) {
+    auto entitlementObject = parent.value("entitlement", nlohmann::json{});
+    if(entitlementObject.empty())
         return false;
-    }
+
     {
-        auto ownsMinecraftV = entitlementObject.value("ownsMinecraft");
-        auto canPlayMinecraftV = entitlementObject.value("canPlayMinecraft");
-        if(!ownsMinecraftV.isBool() || !canPlayMinecraftV.isBool()) {
+        auto ownsMinecraftV = entitlementObject.value("ownsMinecraft", nlohmann::json{});
+        auto canPlayMinecraftV = entitlementObject.value("canPlayMinecraft", nlohmann::json{});
+        if(!ownsMinecraftV.is_boolean() || !canPlayMinecraftV.is_boolean()) {
             qWarning() << "mandatory attributes are missing or of unexpected type";
             return false;
         }
-        out.canPlayMinecraft = canPlayMinecraftV.toBool(false);
-        out.ownsMinecraft = ownsMinecraftV.toBool(false);
+        out.canPlayMinecraft = canPlayMinecraftV.get<bool>();
+        out.ownsMinecraft = ownsMinecraftV.get<bool>();
         out.validity = Katabasis::Validity::Assumed;
     }
     return true;
-}
-
 }
 
 bool AccountData::resumeStateFromV2(const nlohmann::json& data) {
@@ -336,12 +317,12 @@ bool AccountData::resumeStateFromV2(const nlohmann::json& data) {
         return false;
     }
 
-    QString userName = data.value("username").toString("");
-    QString clientToken = data.value("clientToken").toString("");
-    QString accessToken = data.value("accessToken").toString("");
+    QString userName = QString::fromStdString(data.value("username", ""));
+    QString clientToken = QString::fromStdString(data.value("clientToken", ""));
+    QString accessToken = QString::fromStdString(data.value("accessToken", ""));
 
-    QJsonArray profileArray = data.value("profiles").toArray();
-    if (profileArray.size() < 1)
+    nlohmann::json profileArray = data.value("profiles", nlohmann::json::array());
+    if (profileArray.empty())
     {
         qCritical() << "Can't load Mojang account with username \"" << userName << "\". No profiles found.";
         return false;
@@ -357,14 +338,13 @@ bool AccountData::resumeStateFromV2(const nlohmann::json& data) {
     QList<AccountProfile> profiles;
     int currentProfileIndex = 0;
     int index = -1;
-    QString currentProfile = data.value("activeProfile").toString("");
-    for (QJsonValue profileVal : profileArray)
+    QString currentProfile = QString::fromStdString(data.value("activeProfile", ""));
+    for (const nlohmann::json& profileVal : profileArray)
     {
         index++;
-        QJsonObject profileObject = profileVal.toObject();
-        QString id = profileObject.value("id").toString("");
-        QString name = profileObject.value("name").toString("");
-        bool legacy = profileObject.value("legacy").toBool(false);
+        QString id = QString::fromStdString(profileVal.value("id", ""));
+        QString name = QString::fromStdString(profileVal.value("name", ""));
+        bool legacy = profileVal.value("legacy", false);
         if (id.isEmpty() || name.isEmpty())
         {
             qWarning() << "Unable to load a profile" << name << "because it was missing an ID or a name.";
@@ -375,7 +355,7 @@ bool AccountData::resumeStateFromV2(const nlohmann::json& data) {
         }
         profiles.append({id, name, legacy});
     }
-    auto & profile = profiles[currentProfileIndex];
+    const auto& profile = profiles[currentProfileIndex];
 
     type = AccountType::Mojang;
     legacy = profile.legacy;
@@ -394,17 +374,17 @@ bool AccountData::resumeStateFromV2(const nlohmann::json& data) {
 }
 
 bool AccountData::resumeStateFromV3(const nlohmann::json& data) {
-    auto typeV = data.value("type");
-    if(!typeV.isString()) {
+    auto typeV = data.value("type", nlohmann::json{});
+    if(!typeV.is_string()) {
         qWarning() << "Failed to parse account data: type is missing.";
         return false;
     }
-    auto typeS = typeV.toString();
-    if(typeS == "MSA") {
+
+    if(typeV == "MSA") {
         type = AccountType::MSA;
-    } else if (typeS == "Mojang") {
+    } else if (typeV == "Mojang") {
         type = AccountType::Mojang;
-    } else if (typeS == "Offline") {
+    } else if (typeV == "Offline") {
         type = AccountType::Offline;
     } else {
         qWarning() << "Failed to parse account data: type is not recognized.";
@@ -412,14 +392,14 @@ bool AccountData::resumeStateFromV3(const nlohmann::json& data) {
     }
 
     if(type == AccountType::Mojang) {
-        legacy = data.value("legacy").toBool(false);
-        canMigrateToMSA = data.value("canMigrateToMSA").toBool(false);
+        legacy = data.value("legacy", false);
+        canMigrateToMSA = data.value("canMigrateToMSA", false);
     }
 
     if(type == AccountType::MSA) {
-        auto clientIDV = data.value("msa-client-id");
-        if (clientIDV.isString()) {
-            msaClientID = clientIDV.toString();
+        auto clientIDV = data.value("msa-client-id", nlohmann::json{});
+        if (clientIDV.is_string()) {
+            msaClientID = QString::fromStdString(clientIDV.get<std::string>());
         } // leave msaClientID empty if it doesn't exist or isn't a string
         msaToken = tokenFromJSONV3(data, "msa");
         userToken = tokenFromJSONV3(data, "utoken");
@@ -472,7 +452,7 @@ nlohmann::json AccountData::saveState() const {
 
 QString AccountData::userName() const {
     if(type == AccountType::MSA) {
-        return QString();
+        return {};
     }
     return yggdrasilToken.extra["userName"].toString();
 }
@@ -483,12 +463,12 @@ QString AccountData::accessToken() const {
 
 QString AccountData::clientToken() const {
     if(type != AccountType::Mojang) {
-        return QString();
+        return {};
     }
     return yggdrasilToken.extra["clientToken"].toString();
 }
 
-void AccountData::setClientToken(QString clientToken) {
+void AccountData::setClientToken(const QString& clientToken) {
     if(type != AccountType::Mojang) {
         return;
     }

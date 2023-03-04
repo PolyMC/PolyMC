@@ -40,9 +40,7 @@
 #include <QIODevice>
 #include <QFile>
 #include <QTextStream>
-#include <QJsonDocument>
 #include <QJsonArray>
-#include <QJsonObject>
 #include <QJsonParseError>
 #include <QDir>
 #include <QTimer>
@@ -51,8 +49,6 @@
 
 #include <FileSystem.h>
 #include <QSaveFile>
-
-#include <chrono>
 
 enum AccountListVersion {
     MojangOnly = 2,
@@ -68,7 +64,7 @@ AccountList::AccountList(QObject *parent) : QAbstractListModel(parent) {
     connect(m_nextTimer, &QTimer::timeout, this, &AccountList::tryNext);
 }
 
-AccountList::~AccountList() noexcept {}
+AccountList::~AccountList() noexcept = default;
 
 int AccountList::findAccountByProfileId(const QString& profileId) const {
     for (int i = 0; i < count(); i++) {
@@ -90,7 +86,7 @@ MinecraftAccountPtr AccountList::getAccountByProfileName(const QString& profileN
     return nullptr;
 }
 
-const MinecraftAccountPtr AccountList::at(int i) const
+MinecraftAccountPtr AccountList::at(int i) const
 {
     return MinecraftAccountPtr(m_accounts.at(i));
 }
@@ -107,7 +103,7 @@ QStringList AccountList::profileNames() const {
     return out;
 }
 
-void AccountList::addAccount(const MinecraftAccountPtr account)
+void AccountList::addAccount(const MinecraftAccountPtr& account)
 {
     // NOTE: Do not allow adding something that's already there. We shouldn't let it continue
     // because of the signal / slot connections after this.
@@ -176,14 +172,14 @@ MinecraftAccountPtr AccountList::defaultAccount() const
     return m_defaultAccount;
 }
 
-void AccountList::setDefaultAccount(MinecraftAccountPtr newAccount)
+void AccountList::setDefaultAccount(const MinecraftAccountPtr& newAccount)
 {
     if (!newAccount && m_defaultAccount)
     {
         int idx = 0;
         auto previousDefaultAccount = m_defaultAccount;
         m_defaultAccount = nullptr;
-        for (MinecraftAccountPtr account : m_accounts)
+        for (const MinecraftAccountPtr& account : m_accounts)
         {
             if (account == previousDefaultAccount)
             {
@@ -200,7 +196,7 @@ void AccountList::setDefaultAccount(MinecraftAccountPtr newAccount)
         auto newDefaultAccount = m_defaultAccount;
         int newDefaultAccountIdx = -1;
         int idx = 0;
-        for (MinecraftAccountPtr account : m_accounts)
+        for (const MinecraftAccountPtr& account : m_accounts)
         {
             if (account == newAccount)
             {
@@ -471,38 +467,28 @@ bool AccountList::loadList()
     QByteArray jsonData = file.readAll();
     file.close();
 
-    QJsonParseError parseError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData, &parseError);
-
-    // Fail if the JSON is invalid.
-    if (parseError.error != QJsonParseError::NoError)
+    nlohmann::json root;
+    try
+    {
+        root = nlohmann::json::parse(jsonData.constBegin(), jsonData.constEnd());
+    }
+    catch (nlohmann::json::parse_error &e)
     {
         qCritical() << QString("Failed to parse account list file: %1 at offset %2")
-                            .arg(parseError.errorString(), QString::number(parseError.offset))
+                            .arg(e.what(), QString::number(e.byte))
                             .toUtf8();
         return false;
     }
 
-    // Make sure the root is an object.
-    if (!jsonDoc.isObject())
-    {
-        qCritical() << "Invalid account list JSON: Root should be an array.";
-        return false;
-    }
-
-    QJsonObject root = jsonDoc.object();
-
     // Make sure the format version matches.
-    auto listVersion = root.value("formatVersion").toVariant().toInt();
-    switch(listVersion) {
+    auto listVersion = root["formatVersion"].get<int>();
+    switch (listVersion) {
         case AccountListVersion::MojangOnly: {
             return loadV2(root);
         }
-        break;
         case AccountListVersion::MojangMSA: {
             return loadV3(root);
         }
-        break;
         default: {
             QString newName = "accounts-old.json";
             qWarning() << "Unknown format version when loading account list. Existing one will be renamed to" << newName;
@@ -513,14 +499,13 @@ bool AccountList::loadList()
     }
 }
 
-bool AccountList::loadV2(QJsonObject& root) {
+bool AccountList::loadV2(nlohmann::json& root) {
     beginResetModel();
-    auto defaultUserName = root.value("activeAccount").toString("");
-    QJsonArray accounts = root.value("accounts").toArray();
-    for (QJsonValue accountVal : accounts)
+    auto defaultUserName = QString::fromStdString(root.value("activeAccount", ""));
+    auto accounts = root.value("accounts", nlohmann::json::array());
+    for (const auto& accountVal : accounts)
     {
-        QJsonObject accountObj = accountVal.toObject();
-        MinecraftAccountPtr account = MinecraftAccount::loadFromJsonV2(accountObj);
+        MinecraftAccountPtr account = MinecraftAccount::loadFromJsonV2(accountVal);
         if (account.get() != nullptr)
         {
             auto profileId = account->profileId();
@@ -546,13 +531,13 @@ bool AccountList::loadV2(QJsonObject& root) {
     return true;
 }
 
-bool AccountList::loadV3(QJsonObject& root) {
+bool AccountList::loadV3(nlohmann::json& root) {
     beginResetModel();
-    QJsonArray accounts = root.value("accounts").toArray();
-    for (QJsonValue accountVal : accounts)
+    nlohmann::json accounts = root.value("accounts", nlohmann::json::array());
+
+    for (const auto& accountVal : accounts)
     {
-        QJsonObject accountObj = accountVal.toObject();
-        MinecraftAccountPtr account = MinecraftAccount::loadFromJsonV3(accountObj);
+        MinecraftAccountPtr account = MinecraftAccount::loadFromJsonV3(accountVal);
         if (account.get() != nullptr)
         {
             auto profileId = account->profileId();
@@ -564,7 +549,7 @@ bool AccountList::loadV3(QJsonObject& root) {
             connect(account.get(), &MinecraftAccount::changed, this, &AccountList::accountChanged);
             connect(account.get(), &MinecraftAccount::activityChanged, this, &AccountList::accountActivityChanged);
             m_accounts.append(account);
-            if(accountObj.value("active").toBool(false)) {
+            if (accountVal.value("active", false)) {
                 m_defaultAccount = account;
             }
         }
@@ -602,27 +587,24 @@ bool AccountList::saveList()
 
     qDebug() << "Building JSON data structure.";
     // Build the JSON document to write to the list file.
-    QJsonObject root;
+    nlohmann::json root;
 
-    root.insert("formatVersion", AccountListVersion::MojangMSA);
+    root["formatVersion"] = AccountListVersion::MojangMSA;
 
     // Build a list of accounts.
     qDebug() << "Building account array.";
-    QJsonArray accounts;
-    for (MinecraftAccountPtr account : m_accounts)
+    nlohmann::json accounts = nlohmann::json::array();
+    for (const MinecraftAccountPtr& account : m_accounts)
     {
-        QJsonObject accountObj = account->saveToJson();
+        nlohmann::json accountObj = account->saveToJson();
         if(m_defaultAccount == account) {
             accountObj["active"] = true;
         }
-        accounts.append(accountObj);
+        accounts.push_back(accountObj);
     }
 
     // Insert the account list into the root object.
-    root.insert("accounts", accounts);
-
-    // Create a JSON document object to convert our JSON to bytes.
-    QJsonDocument doc(root);
+    root["accounts"] = accounts;
 
     // Now that we're done building the JSON object, we can write it to the file.
     qDebug() << "Writing account list to file.";
@@ -637,7 +619,7 @@ bool AccountList::saveList()
     }
 
     // Write the JSON to the file.
-    file.write(doc.toJson());
+    file.write(root.dump(4).c_str());
     file.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ReadUser|QFile::WriteUser);
     if(file.commit()) {
         qDebug() << "Saved account list to" << m_listFilePath;
@@ -657,7 +639,7 @@ void AccountList::setListFilePath(QString path, bool autosave)
 
 bool AccountList::anyAccountIsValid()
 {
-    for(auto account: m_accounts)
+    for(const auto& account: m_accounts)
     {
         if(account->ownsMinecraft()) {
             return true;

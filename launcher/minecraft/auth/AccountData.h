@@ -103,7 +103,7 @@ struct AccountData {
 
     //! Only valid for Mojang accounts.
     QString clientToken() const;
-    void setClientToken(QString clientToken);
+    void setClientToken(const QString& clientToken);
     void invalidateClientToken();
     void generateClientTokenIfMissing();
 
