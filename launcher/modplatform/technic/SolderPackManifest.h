@@ -20,7 +20,7 @@
 
 #include <QString>
 #include <QVector>
-#include <QJsonObject>
+#include "json.hpp"
 
 namespace TechnicSolder {
 
@@ -30,7 +30,7 @@ struct Pack {
     QVector<QString> builds;
 };
 
-void loadPack(Pack& v, QJsonObject& obj);
+void loadPack(Pack& v, nlohmann::json& obj);
 
 struct PackBuildMod {
     QString name;
@@ -44,6 +44,6 @@ struct PackBuild {
     QVector<PackBuildMod> mods;
 };
 
-void loadPackBuild(PackBuild& v, QJsonObject& obj);
+void loadPackBuild(PackBuild& v, nlohmann::json& obj);
 
 }

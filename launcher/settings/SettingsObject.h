@@ -21,6 +21,8 @@
 #include <QVariant>
 #include <memory>
 
+#include "json.hpp"
+
 class Setting;
 class SettingsObject;
 

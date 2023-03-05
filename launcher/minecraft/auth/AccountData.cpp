@@ -86,7 +86,6 @@ void tokenToJSONV3(nlohmann::json& parent, const Katabasis::Token& t, const char
 
 Katabasis::Token tokenFromJSONV3(const nlohmann::json& parent, const char* tokenName) {
     Katabasis::Token out;
-    //auto tokenObject = parent.value(tokenName).toObject();
     if(!parent.contains(tokenName))
         return out;
 
