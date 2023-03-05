@@ -639,12 +639,10 @@ void AccountList::setListFilePath(QString path, bool autosave)
 
 bool AccountList::anyAccountIsValid()
 {
-    for(const auto& account: m_accounts)
-    {
-        if(account->ownsMinecraft()) {
-            return true;
-        }
-    }
+    std::any_of(m_accounts.begin(), m_accounts.end(), [](const MinecraftAccountPtr& account) {
+        return account->ownsMinecraft();
+    });
+
     return false;
 }
 

@@ -104,13 +104,13 @@ Katabasis::Token tokenFromJSONV3(const nlohmann::json& parent, const char* token
 
     auto token = tokenObject.value("token", nlohmann::json{});
     if(token.is_string()) {
-        out.token = QString::fromStdString(token.get<std::string>());
+        out.token = token.get<std::string>().c_str();
         out.validity = Katabasis::Validity::Assumed;
     }
 
     auto refresh_token = tokenObject.value("refresh_token", nlohmann::json{});
     if(refresh_token.is_string()) {
-        out.refresh_token = QString::fromStdString(refresh_token.get<std::string>());
+        out.refresh_token = refresh_token.get<std::string>().c_str();
     }
 
     auto extra = tokenObject.value("extra", nlohmann::json{});
@@ -173,8 +173,8 @@ MinecraftProfile profileFromJSONV3(const nlohmann::json& parent, const char* tok
             return MinecraftProfile();
         }
 
-        out.name = QString::fromStdString(nameV);
-        out.id = QString::fromStdString(idV);
+        out.name = nameV.get<std::string>().c_str();
+        out.id = idV.get<std::string>().c_str();
     }
 
     {
@@ -193,14 +193,14 @@ MinecraftProfile profileFromJSONV3(const nlohmann::json& parent, const char* tok
             return MinecraftProfile();
         }
 
-        out.skin.id = QString::fromStdString(skinObj["id"].get<std::string>());
-        out.skin.url = QString::fromStdString(skinObj["url"].get<std::string>());
-        out.skin.variant = QString::fromStdString(skinObj["variant"].get<std::string>());
+        out.skin.id = skinObj["id"].get<std::string>().c_str();
+        out.skin.url = skinObj["url"].get<std::string>().c_str();
+        out.skin.variant = skinObj["variant"].get<std::string>().c_str();
         if (skinObj.contains("data")) {
             auto dataV = skinObj["data"];
 
             if (dataV.is_string()) {
-                QString data = QString::fromStdString(dataV.get<std::string>());
+                QString data = dataV.get<std::string>().c_str();
                 if (base64Regex.match(data).hasMatch()) {
                     out.skin.data = QByteArray::fromBase64(data.toLatin1());
                 } else {
@@ -236,16 +236,16 @@ MinecraftProfile profileFromJSONV3(const nlohmann::json& parent, const char* tok
                 return MinecraftProfile();
             }
             Cape cape;
-            cape.id = QString::fromStdString(idV);
-            cape.url = QString::fromStdString(urlV);
-            cape.alias = QString::fromStdString(aliasV);
+            cape.id = idV.get<std::string>().c_str();
+            cape.url = urlV.get<std::string>().c_str();
+            cape.alias = aliasV.get<std::string>().c_str();
 
             // data for cape is optional.
             auto dataV = capeV.value("data", nlohmann::json{});
             if(!dataV.empty())
             {
                 if (dataV.is_string()) {
-                    QString data = QString::fromStdString(dataV.get<std::string>());
+                    QString data = dataV.get<std::string>().c_str();
                     if (base64Regex.match(data).hasMatch()) {
                         cape.data = QByteArray::fromBase64(data.toLatin1());
                     } else {
@@ -317,9 +317,9 @@ bool AccountData::resumeStateFromV2(const nlohmann::json& data) {
         return false;
     }
 
-    QString userName = QString::fromStdString(data.value("username", ""));
-    QString clientToken = QString::fromStdString(data.value("clientToken", ""));
-    QString accessToken = QString::fromStdString(data.value("accessToken", ""));
+    QString userName = data.value("username", "").c_str();
+    QString clientToken = data.value("clientToken", "").c_str();
+    QString accessToken = data.value("accessToken", "").c_str();
 
     nlohmann::json profileArray = data.value("profiles", nlohmann::json::array());
     if (profileArray.empty())
@@ -338,7 +338,7 @@ bool AccountData::resumeStateFromV2(const nlohmann::json& data) {
     QList<AccountProfile> profiles;
     int currentProfileIndex = 0;
     int index = -1;
-    QString currentProfile = QString::fromStdString(data.value("activeProfile", ""));
+    QString currentProfile = data.value("activeProfile", "").c_str();
     for (const nlohmann::json& profileVal : profileArray)
     {
         index++;
@@ -399,7 +399,7 @@ bool AccountData::resumeStateFromV3(const nlohmann::json& data) {
     if(type == AccountType::MSA) {
         auto clientIDV = data.value("msa-client-id", nlohmann::json{});
         if (clientIDV.is_string()) {
-            msaClientID = QString::fromStdString(clientIDV.get<std::string>());
+            msaClientID = clientIDV.get<std::string>().c_str();
         } // leave msaClientID empty if it doesn't exist or isn't a string
         msaToken = tokenFromJSONV3(data, "msa");
         userToken = tokenFromJSONV3(data, "utoken");

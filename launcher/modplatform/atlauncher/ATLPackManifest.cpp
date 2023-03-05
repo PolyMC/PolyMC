@@ -115,28 +115,28 @@ static ATLauncher::ModType parseModType(const QString& rawType) {
 
 static void loadVersionLibrary(ATLauncher::VersionLibrary& p, const nlohmann::json& obj)
 {
-    p.url = QString::fromStdString(obj["url"]);
-    p.file = QString::fromStdString(obj["file"]);
-    p.md5 = QString::fromStdString(obj["md5"]);
+    p.url = obj["url"].get<std::string>().c_str();
+    p.file = obj["file"].get<std::string>().c_str();
+    p.md5 = obj["md5"].get<std::string>().c_str();
 
-    p.download_raw = QString::fromStdString(obj["download"]);
+    p.download_raw = obj["download"].get<std::string>().c_str();
     p.download = parseDownloadType(p.download_raw);
 
-    p.server = QString::fromStdString(obj.value("server", ""));
+    p.server = obj.value("server", "").c_str();
 }
 
 static void loadVersionMod(ATLauncher::VersionMod& p, const nlohmann::json& obj)
 {
-    p.name = QString::fromStdString(obj["name"]);
-    p.version = QString::fromStdString(obj["version"]);
-    p.url = QString::fromStdString(obj["url"]);
-    p.file = QString::fromStdString(obj["file"]);
-    p.md5 = QString::fromStdString(obj.value("md5", ""));
+    p.name = obj["name"].get<std::string>().c_str();
+    p.version = obj["version"].get<std::string>().c_str();
+    p.url = obj["url"].get<std::string>().c_str();
+    p.file = obj["file"].get<std::string>().c_str();
+    p.md5 = obj.value("md5", "").c_str();
 
-    p.download_raw = QString::fromStdString(obj["download"]);
+    p.download_raw = obj["download"].get<std::string>().c_str();
     p.download = parseDownloadType(p.download_raw);
 
-    p.type_raw = QString::fromStdString(obj["type"]);
+    p.type_raw = obj["type"].get<std::string>().c_str();
     p.type = parseModType(p.type_raw);
 
     // This contributes to the Minecraft Forge detection, where we rely on mod type being "Forge"
@@ -151,37 +151,36 @@ static void loadVersionMod(ATLauncher::VersionMod& p, const nlohmann::json& obj)
 
     if(obj.contains("extractTo"))
     {
-        p.extractTo_raw = QString::fromStdString(obj["extractTo"]);
+        p.extractTo_raw = obj["extractTo"].get<std::string>().c_str();
         p.extractTo = parseModType(p.extractTo_raw);
         p.extractFolder = QString::fromStdString(obj.value("extractFolder", "")).replace("%s%", "/");
     }
 
     if(obj.contains("decompType"))
     {
-        p.decompType_raw = QString::fromStdString(obj["decompType"]);
+        p.decompType_raw = obj["decompType"].get<std::string>().c_str();
         p.decompType = parseModType(p.decompType_raw);
-        p.decompFile = QString::fromStdString(obj["decompFile"]);
+        p.decompFile = obj["decompFile"].get<std::string>().c_str();
     }
 
-    p.description = QString::fromStdString(obj.value("description", ""));
+    p.description = obj.value("description", "").c_str();
     p.optional = obj.value("optional", false);
     p.recommended = obj.value("recommended", false);
     p.selected = obj.value("selected", false);
     p.hidden = obj.value("hidden", false);
     p.library = obj.value("library", false);
-    p.group = QString::fromStdString(obj.value("group", ""));
+    p.group = obj.value("group", "").c_str();
 
 
     if(obj.contains("depends"))
     {
-        auto dependsArr = obj["depends"];
-        for (const auto& depends : dependsArr)
+        for (const auto& depends : obj["depends"])
         {
-            p.depends.append(QString::fromStdString(depends));
+            p.depends.append(depends.get<std::string>().c_str());
         }
     }
-    p.colour = QString::fromStdString(obj.value("colour", ""));
-    p.warning = QString::fromStdString(obj.value("warning", ""));
+    p.colour = obj.value("colour", "").c_str();
+    p.warning = obj.value("warning", "").c_str();
 
     p.client = obj.value("client", false);
 
@@ -193,24 +192,22 @@ static void loadVersionKeeps(ATLauncher::VersionKeeps& k, nlohmann::json& obj)
 {
     if (obj.contains("files"))
     {
-        auto files = obj["files"];
-        for (const auto& keepRaw : files)
+        for (const auto& keepRaw : obj["files"])
         {
             ATLauncher::VersionKeep keep;
-            keep.base = QString::fromStdString(keepRaw["base"]);
-            keep.target = QString::fromStdString(keepRaw["target"]);
+            keep.base = keepRaw["base"].get<std::string>().c_str();
+            keep.target = keepRaw["target"].get<std::string>().c_str();
             k.files.append(keep);
         }
     }
 
     if (obj.contains("folders"))
     {
-        auto folders = obj["folders"];
-        for (const auto& keepRaw : folders)
+        for (const auto& keepRaw : obj["folders"])
         {
             ATLauncher::VersionKeep keep;
-            keep.base = QString::fromStdString(keepRaw["base"]);
-            keep.target = QString::fromStdString(keepRaw["target"]);
+            keep.base = keepRaw["base"].get<std::string>().c_str();
+            keep.target = keepRaw["target"].get<std::string>().c_str();
             k.folders.append(keep);
         }
     }
@@ -220,24 +217,22 @@ static void loadVersionDeletes(ATLauncher::VersionDeletes& d, nlohmann::json& ob
 {
     if (obj.contains("files"))
     {
-        auto files = obj["files"];
-        for (const auto& deleteRaw : files)
+        for (const auto& deleteRaw : obj["files"])
         {
             ATLauncher::VersionDelete versionDelete;
-            versionDelete.base = QString::fromStdString(deleteRaw["base"]);
-            versionDelete.target = QString::fromStdString(deleteRaw["target"]);
+            versionDelete.base = deleteRaw["base"].get<std::string>().c_str();
+            versionDelete.target = deleteRaw["target"].get<std::string>().c_str();
             d.files.append(versionDelete);
         }
     }
 
     if (obj.contains("folders"))
     {
-        auto folders = obj["folders"];
-        for (const auto& deleteRaw : folders)
+        for (const auto& deleteRaw : obj["folders"])
         {
             ATLauncher::VersionDelete versionDelete;
-            versionDelete.base = QString::fromStdString(deleteRaw["base"]);
-            versionDelete.target = QString::fromStdString(deleteRaw["target"]);
+            versionDelete.base = deleteRaw["base"].get<std::string>().c_str();
+            versionDelete.target = deleteRaw["target"].get<std::string>().c_str();
             d.folders.append(versionDelete);
         }
     }
@@ -245,36 +240,36 @@ static void loadVersionDeletes(ATLauncher::VersionDeletes& d, nlohmann::json& ob
 
 void ATLauncher::loadVersion(PackVersion & v, nlohmann::json& obj)
 {
-    v.version = QString::fromStdString(obj["version"]);
-    v.minecraft = QString::fromStdString(obj["minecraft"]);
+    v.version = obj["version"].get<std::string>().c_str();
+    v.minecraft = obj["minecraft"].get<std::string>().c_str();
     v.noConfigs = obj.value("noConfigs", false);
 
 
     if(obj.contains("mainClass"))
     {
-        v.mainClass.mainClass = QString::fromStdString(obj["mainClass"].value("mainClass", ""));
-        v.mainClass.depends = QString::fromStdString(obj["mainClass"].value("depends", ""));
+        v.mainClass.mainClass = obj["mainClass"].value("mainClass", "").c_str();
+        v.mainClass.depends = obj["mainClass"].value("depends", "").c_str();
     }
 
     if(obj.contains("extraArguments"))
     {
-        v.extraArguments.arguments = QString::fromStdString(obj["extraArguments"].value("arguments", ""));
-        v.extraArguments.depends = QString::fromStdString(obj["extraArguments"].value("depends", ""));
+        v.extraArguments.arguments = obj["extraArguments"].value("arguments", "").c_str();
+        v.extraArguments.depends = obj["extraArguments"].value("depends", "").c_str();
     }
 
     if(obj.contains("loader"))
     {
-        v.loader.type = QString::fromStdString(obj["loader"].value("type", ""));
+        v.loader.type = obj["loader"].value("type", "").c_str();
         v.loader.choose = obj["loader"].value("choose", false);
 
         v.loader.latest = obj["loader"]["metadata"].value("latest", false);
         v.loader.recommended = obj["loader"]["metadata"].value("recommended", false);
 
         if (v.loader.type == "forge")
-            v.loader.version = QString::fromStdString(obj["loader"]["metadata"].value("version", ""));
+            v.loader.version = obj["loader"]["metadata"].value("version", "").c_str();
 
         if (v.loader.type == "fabric")
-            v.loader.version = QString::fromStdString(obj["loader"]["metadata"].value("loader", ""));
+            v.loader.version = obj["loader"]["metadata"].value("loader", "").c_str();
     }
 
     if(obj.contains("libraries"))
@@ -301,25 +296,25 @@ void ATLauncher::loadVersion(PackVersion & v, nlohmann::json& obj)
     if(obj.contains("configs"))
     {
         v.configs.filesize = obj["configs"].value("filesize", 0);
-        v.configs.sha1 = QString::fromStdString(obj["configs"].value("sha1", ""));
+        v.configs.sha1 = obj["configs"].value("sha1", "").c_str();
     }
 
     auto colourObj = obj.value("colours", nlohmann::json::object());
     for (const auto &key : colourObj.items())
     {
-        v.colours[QString::fromStdString(key.key())] = QString::fromStdString(key.value());
+        v.colours[key.key().c_str()] = key.value().get<std::string>().c_str();
     }
 
     auto warningsObj = obj.value("warnings", nlohmann::json::object());
     for (const auto &key : warningsObj.items())
     {
-        v.warnings[QString::fromStdString(key.key())] = QString::fromStdString(key.value());
+        v.warnings[key.key().c_str()] = key.value().get<std::string>().c_str();
     }
 
     if (obj.contains("messages"))
     {
-        v.messages.install = QString::fromStdString(obj["messages"].value("install", ""));
-        v.messages.update = QString::fromStdString(obj["messages"].value("update", ""));
+        v.messages.install = obj["messages"].value("install", "").c_str();
+        v.messages.update = obj["messages"].value("update", "").c_str();
     }
 
     if (obj.contains("keeps"))

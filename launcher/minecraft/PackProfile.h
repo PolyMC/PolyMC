@@ -93,7 +93,7 @@ public:
     bool remove(const int index);
 
     /// remove component file by id - including files/records
-    bool remove(const QString id);
+    bool remove(const QString& id);
 
     bool customize(int index);
 
@@ -111,15 +111,15 @@ public:
     std::shared_ptr<LaunchProfile> getProfile() const;
 
     // NOTE: used ONLY by MinecraftInstance to provide legacy version mappings from instance config
-    void setOldConfigVersion(const QString &uid, const QString &version);
+    void setOldConfigVersion(const QString& uid, const QString& version);
 
-    QString getComponentVersion(const QString &uid) const;
+    QString getComponentVersion(const QString& uid) const;
 
-    bool setComponentVersion(const QString &uid, const QString &version, bool important = false);
+    bool setComponentVersion(const QString& uid, const QString& version, bool important = false);
 
-    bool installEmpty(const QString &uid, const QString &name);
+    bool installEmpty(const QString& uid, const QString& name);
 
-    QString patchFilePathForUid(const QString &uid) const;
+    QString patchFilePathForUid(const QString& uid) const;
 
     /// if there is a save scheduled, do it now.
     void saveNow();
@@ -132,14 +132,14 @@ signals:
 
 public:
     /// get the profile component by id
-    Component * getComponent(const QString &id);
+    Component * getComponent(const QString& id);
 
     /// get the profile component by index
     Component * getComponent(int index);
 
     /// Add the component to the internal list of patches
     // todo(merged): is this the best approach
-    void appendComponent(ComponentPtr component);
+    void appendComponent(const ComponentPtr& component);
 
     ModAPI::ModLoaderTypes getModLoaders();
 
@@ -151,7 +151,7 @@ private:
     void invalidateLaunchProfile();
 
     /// insert component so that its index is ideally the specified one (returns real index)
-    void insertComponent(size_t index, ComponentPtr component);
+    void insertComponent(size_t index, const ComponentPtr& component);
 
     QString componentsFilePath() const;
     QString patchesPattern() const;
@@ -159,15 +159,15 @@ private:
 private slots:
     void save_internal();
     void updateSucceeded();
-    void updateFailed(const QString & error);
+    void updateFailed(const QString& error);
     void componentDataChanged();
     void disableInteraction(bool disable);
 
 private:
     bool load();
-    bool installJarMods_internal(QStringList filepaths);
-    bool installCustomJar_internal(QString filepath);
-    bool removeComponent_internal(ComponentPtr patch);
+    bool installJarMods_internal(const QStringList& filepaths);
+    bool installCustomJar_internal(const QString& filepath);
+    bool removeComponent_internal(const ComponentPtr& patch);
 
 private: /* data */
 

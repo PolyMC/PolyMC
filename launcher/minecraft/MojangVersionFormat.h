@@ -18,10 +18,10 @@ protected:
     static void writeVersionProperties(const VersionFile* in, nlohmann::json& out);
 public:
     // version files / profile patches
-    static VersionFilePtr versionFileFromJson(const nlohmann::json &doc, const QString &filename);
-    static nlohmann::json versionFileToJson(const VersionFilePtr &patch);
+    static VersionFilePtr versionFileFromJson(const nlohmann::json& doc, const QString& filename);
+    static nlohmann::json versionFileToJson(const VersionFilePtr& patch);
 
     // libraries
-    static LibraryPtr libraryFromJson(ProblemContainer & problems, const nlohmann::json &libObj, const QString &filename);
-    static nlohmann::json libraryToJson(Library *library);
+    static LibraryPtr libraryFromJson(ProblemContainer& problems, const nlohmann::json& libObj, const QString& filename);
+    static nlohmann::json libraryToJson(Library* library);
 };

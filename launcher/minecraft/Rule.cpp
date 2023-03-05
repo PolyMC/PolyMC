@@ -35,7 +35,7 @@
 
 #include "Rule.h"
 
-RuleAction RuleAction_fromString(QString name)
+RuleAction RuleAction_fromString(const QString& name)
 {
     if (name == "allow")
         return Allow;
@@ -44,7 +44,7 @@ RuleAction RuleAction_fromString(QString name)
     return Defer;
 }
 
-QList<std::shared_ptr<Rule>> rulesFromJsonV4(const nlohmann::json &objectWithRules)
+QList<std::shared_ptr<Rule>> rulesFromJsonV4(const nlohmann::json& objectWithRules)
 {
     QList<std::shared_ptr<Rule>> rules;
     auto rulesVal = objectWithRules["rules"];
@@ -59,7 +59,7 @@ QList<std::shared_ptr<Rule>> rulesFromJsonV4(const nlohmann::json &objectWithRul
         auto actionVal = ruleVal["action"];
         if (!actionVal.is_string())
             continue;
-        auto action = RuleAction_fromString(QString::fromStdString(actionVal.get<std::string>()));
+        auto action = RuleAction_fromString(actionVal.get<std::string>().c_str());
         if (action == Defer)
             continue;
 
@@ -74,9 +74,9 @@ QList<std::shared_ptr<Rule>> rulesFromJsonV4(const nlohmann::json &objectWithRul
         auto osNameVal = osVal["name"];
         if (!osNameVal.is_string())
             continue;
-        QString osName = QString::fromStdString(osNameVal.get<std::string>());
+        QString osName = osNameVal.get<std::string>().c_str();
 
-        QString versionRegex = QString::fromStdString(osVal.value("version", ""));
+        QString versionRegex = osVal.value("version", "").c_str();
         // add a new OS rule
         rules.append(OsRule::create(action, osName, versionRegex));
     }

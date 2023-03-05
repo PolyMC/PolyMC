@@ -84,7 +84,7 @@ PackProfile::~PackProfile()
 
 static const int currentComponentsFileVersion = 1;
 
-static nlohmann::json componentToJsonV1(ComponentPtr component)
+static nlohmann::json componentToJsonV1(const ComponentPtr& component)
 {
     nlohmann::json obj;
     obj["uid"] = component->m_uid.toStdString();
@@ -122,20 +122,20 @@ static nlohmann::json componentToJsonV1(ComponentPtr component)
     return obj;
 }
 
-static ComponentPtr componentFromJsonV1(PackProfile * parent, const QString & componentJsonPattern, const nlohmann::json &obj)
+static ComponentPtr componentFromJsonV1(PackProfile* parent, const QString& componentJsonPattern, const nlohmann::json& obj)
 {
     auto uid = QString::fromStdString(obj["uid"].get<std::string>());
     auto filePath = componentJsonPattern.arg(uid);
     auto component = new Component(parent, uid);
-    component->m_version = QString::fromStdString(obj.value("version", ""));
+    component->m_version = obj.value("version", "").c_str();
     component->m_dependencyOnly = obj.value("dependencyOnly", false);
-    component->m_important = obj.value("", false);
+    component->m_important = obj.value("important", false);
 
     // cached
     // TODO @RESILIENCE: ignore invalid values/structure here?
 
-    component->m_cachedVersion = QString::fromStdString(obj.value("cachedVersion", ""));
-    component->m_cachedName = QString::fromStdString(obj.value("cachedName", ""));
+    component->m_cachedVersion = obj.value("cachedVersion", "").c_str();
+    component->m_cachedName = obj.value("cachedName", "").c_str();
     Meta::parseRequires(obj, &component->m_cachedRequires, "cachedRequires");
     Meta::parseRequires(obj, &component->m_cachedConflicts, "cachedConflicts");
     component->m_cachedVolatile = obj.value("volatile", false);
@@ -145,7 +145,7 @@ static ComponentPtr componentFromJsonV1(PackProfile * parent, const QString & co
 }
 
 // Save the given component container data to a file
-static bool savePackProfile(const QString & filename, const ComponentContainer & container)
+static bool savePackProfile(const QString& filename, const ComponentContainer& container)
 {
    nlohmann::json obj;
    obj["formatVersion"] = currentComponentsFileVersion;
@@ -170,7 +170,7 @@ static bool savePackProfile(const QString & filename, const ComponentContainer &
 }
 
 // Read the given file into component containers
-static bool loadPackProfile(PackProfile * parent, const QString & filename, const QString & componentJsonPattern, ComponentContainer & container)
+static bool loadPackProfile(PackProfile* parent, const QString& filename, const QString& componentJsonPattern, ComponentContainer& container)
 {
     QFile componentsFile(filename);
     if (!componentsFile.exists())
@@ -202,19 +202,17 @@ static bool loadPackProfile(PackProfile * parent, const QString & filename, cons
     // and then read it and process it if all above is true.
     try
     {
-        auto obj = doc;
-        auto version = obj["formatVersion"].get<int>();
+        auto version = doc["formatVersion"].get<int>();
         if (version != currentComponentsFileVersion)
         {
             throw Exception(QObject::tr("Invalid component file version, expected %1")
                                           .arg(currentComponentsFileVersion));
         }
 
-        auto orderArray = obj["components"];
-        for(auto item: orderArray)
+        auto orderArray = doc["components"];
+        for(const auto& item: orderArray)
         {
-            auto obj = item;
-            container.append(componentFromJsonV1(parent, componentJsonPattern, obj));
+            container.append(componentFromJsonV1(parent, componentJsonPattern, item));
         }
     }
     catch (const Exception &err)
@@ -309,13 +307,13 @@ bool PackProfile::load()
         // FIXME: actually use fine-grained updates, not this...
         beginResetModel();
         // disconnect all the old components
-        for(auto component: d->components)
+        for(const auto& component: d->components)
         {
             disconnect(component.get(), &Component::dataChanged, this, &PackProfile::componentDataChanged);
         }
         d->components.clear();
         d->componentIndex.clear();
-        for(auto component: newComponents)
+        for(const auto& component: newComponents)
         {
             if(d->componentIndex.contains(component->m_uid))
             {
@@ -384,12 +382,12 @@ void PackProfile::updateFailed(const QString& error)
 
 // END: save/load
 
-void PackProfile::appendComponent(ComponentPtr component)
+void PackProfile::appendComponent(const ComponentPtr& component)
 {
     insertComponent(d->components.size(), component);
 }
 
-void PackProfile::insertComponent(size_t index, ComponentPtr component)
+void PackProfile::insertComponent(size_t index, const ComponentPtr& component)
 {
     auto id = component->getID();
     if(id.isEmpty())
@@ -423,7 +421,7 @@ void PackProfile::componentDataChanged()
     }
     // figure out which one is it... in a seriously dumb way.
     int index = 0;
-    for (auto component: d->components)
+    for (const auto& component: d->components)
     {
         if(component.get() == objPtr)
         {
@@ -460,10 +458,10 @@ bool PackProfile::remove(const int index)
     return true;
 }
 
-bool PackProfile::remove(const QString id)
+bool PackProfile::remove(const QString& id)
 {
     int i = 0;
-    for (auto patch : d->components)
+    for (const auto& patch : d->components)
     {
         if (patch->getID() == id)
         {
@@ -510,7 +508,7 @@ bool PackProfile::revertToBase(int index)
     return true;
 }
 
-Component * PackProfile::getComponent(const QString &id)
+Component * PackProfile::getComponent(const QString& id)
 {
     auto iter = d->componentIndex.find(id);
     if (iter == d->componentIndex.end())
@@ -529,7 +527,7 @@ Component * PackProfile::getComponent(int index)
     return d->components[index].get();
 }
 
-QVariant PackProfile::data(const QModelIndex &index, int role) const
+QVariant PackProfile::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid())
         return QVariant();
@@ -758,7 +756,7 @@ bool PackProfile::installEmpty(const QString& uid, const QString& name)
     return true;
 }
 
-bool PackProfile::removeComponent_internal(ComponentPtr patch)
+bool PackProfile::removeComponent_internal(const ComponentPtr& patch)
 {
     bool ok = true;
     // first, remove the patch file. this ensures it's not used anymore
@@ -774,7 +772,7 @@ bool PackProfile::removeComponent_internal(ComponentPtr patch)
     }
 
     // FIXME: we need a generic way of removing local resources, not just jar mods...
-    auto preRemoveJarMod = [&](LibraryPtr jarMod) -> bool
+    auto preRemoveJarMod = [&](const LibraryPtr& jarMod) -> bool
     {
         if (!jarMod->isLocal())
         {
@@ -808,7 +806,7 @@ bool PackProfile::removeComponent_internal(ComponentPtr patch)
     return ok;
 }
 
-bool PackProfile::installJarMods_internal(QStringList filepaths)
+bool PackProfile::installJarMods_internal(const QStringList& filepaths)
 {
     QString patchDir = FS::PathCombine(d->m_instance->instanceRoot(), "patches");
     if(!FS::ensureFolderPathExists(patchDir))
@@ -821,7 +819,7 @@ bool PackProfile::installJarMods_internal(QStringList filepaths)
         return false;
     }
 
-    for(auto filepath:filepaths)
+    for(const auto& filepath: filepaths)
     {
         QFileInfo sourceInfo(filepath);
         auto uuid = QUuid::createUuid();
@@ -870,7 +868,7 @@ bool PackProfile::installJarMods_internal(QStringList filepaths)
     return true;
 }
 
-bool PackProfile::installCustomJar_internal(QString filepath)
+bool PackProfile::installCustomJar_internal(const QString& filepath)
 {
     QString patchDir = FS::PathCombine(d->m_instance->instanceRoot(), "patches");
     if(!FS::ensureFolderPathExists(patchDir))
@@ -938,7 +936,7 @@ std::shared_ptr<LaunchProfile> PackProfile::getProfile() const
         try
         {
             auto profile = std::make_shared<LaunchProfile>();
-            for(auto file: d->components)
+            for(const auto& file: d->components)
             {
                 qDebug() << "Applying" << file->getID() << (file->getProblemSeverity() == ProblemSeverity::Error ? "ERROR" : "GOOD");
                 file->applyTo(profile.get());

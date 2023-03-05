@@ -66,12 +66,12 @@ inline Q_DECL_PURE_FUNCTION uint qHash(const Require &key, uint seed = 0) Q_DECL
 
 using RequireSet = std::set<Require>;
 
-void parseIndex(const nlohmann::json &obj, Index *ptr);
-void parseVersion(const nlohmann::json &obj, Version *ptr);
-void parseVersionList(const nlohmann::json &obj, VersionList *ptr);
+void parseIndex(const nlohmann::json& obj, Index* ptr);
+void parseVersion(const nlohmann::json& obj, Version* ptr);
+void parseVersionList(const nlohmann::json& obj, VersionList* ptr);
 
-MetadataVersion parseFormatVersion(const nlohmann::json &obj, bool required = true);
-void serializeFormatVersion(QJsonObject &obj, MetadataVersion version);
+MetadataVersion parseFormatVersion(const nlohmann::json& obj, bool required = true);
+void serializeFormatVersion(QJsonObject& obj, MetadataVersion version);
 
 // FIXME: this has a different shape than the others...FIX IT!?
 void parseRequires(const nlohmann::json& obj, RequireSet* ptr, const char* keyName = "requires");

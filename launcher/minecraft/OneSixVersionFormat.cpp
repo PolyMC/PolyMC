@@ -38,7 +38,7 @@
 #include "minecraft/ParseUtils.h"
 #include <minecraft/MojangVersionFormat.h>
 
-static void readString(const nlohmann::json &root, const QString &key, QString &variable)
+static void readString(const nlohmann::json& root, const QString& key, QString& variable)
 {
     if (root.contains(key.toStdString()))
     {
@@ -46,7 +46,7 @@ static void readString(const nlohmann::json &root, const QString &key, QString &
     }
 }
 
-LibraryPtr OneSixVersionFormat::libraryFromJson(ProblemContainer & problems, const nlohmann::json &libObj, const QString &filename)
+LibraryPtr OneSixVersionFormat::libraryFromJson(ProblemContainer& problems, const nlohmann::json& libObj, const QString& filename)
 {
     LibraryPtr out = MojangVersionFormat::libraryFromJson(problems, libObj, filename);
     readString(libObj, "MMC-hint", out->m_hint);
@@ -57,7 +57,7 @@ LibraryPtr OneSixVersionFormat::libraryFromJson(ProblemContainer & problems, con
     return out;
 }
 
-nlohmann::json OneSixVersionFormat::libraryToJson(Library *library)
+nlohmann::json OneSixVersionFormat::libraryToJson(Library* library)
 {
     nlohmann::json libRoot = MojangVersionFormat::libraryToJson(library);
     if (library->m_absoluteURL.size())
@@ -72,7 +72,7 @@ nlohmann::json OneSixVersionFormat::libraryToJson(Library *library)
 
 }
 
-VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &doc, const QString &filename, const bool requireOrder)
+VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json& doc, const QString& filename, const bool requireOrder)
 {
     VersionFilePtr out(new VersionFile());
     if (doc.empty() || doc.is_null())
@@ -107,18 +107,18 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
     }
 
     //out->name = root.value("name").toString();
-    out->name = QString::fromStdString(doc["name"]);
+    out->name = doc["name"].get<std::string>().c_str();
 
     if(doc.contains("uid"))
     {
-        out->uid = QString::fromStdString(doc["uid"]);
+        out->uid = doc["uid"].get<std::string>().c_str();
     }
     else
     {
-        out->uid = QString::fromStdString(doc["fileId"]);
+        out->uid = doc["fileId"].get<std::string>().c_str();
     }
 
-    out->version = QString::fromStdString(doc["version"]);
+    out->version = doc["version"].get<std::string>().c_str();
 
     MojangVersionFormat::readVersionProperties(doc, out.get());
 
@@ -127,34 +127,32 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
 
     if (doc.contains("+tweakers"))
     {
-        for (auto tweakerVal : doc["+tweakers"])
+        for (const auto& tweakerVal : doc["+tweakers"])
         {
-            out->addTweakers.append(QString::fromStdString(tweakerVal.get<std::string>()));
+            out->addTweakers.append(tweakerVal.get<std::string>().c_str());
         }
     }
 
     if (doc.contains("+traits"))
     {
-        for (auto tweakerVal : doc["+traits"])
+        for (const auto& tweakerVal : doc["+traits"])
         {
-            out->traits.insert(QString::fromStdString(tweakerVal.get<std::string>()));
+            out->traits.insert(tweakerVal.get<std::string>().c_str());
         }
     }
 
     if (doc.contains("+jvmArgs"))
     {
-        for (auto arg : doc["+jvmArgs"])
+        for (const auto& arg : doc["+jvmArgs"])
         {
-            out->addnJvmArguments.append(QString::fromStdString(arg.get<std::string>()));
+            out->addnJvmArguments.append(arg.get<std::string>().c_str());
         }
     }
 
-
     if (doc.contains("jarMods"))
     {
-        for (auto libVal : doc["jarMods"])
+        for (const auto& libObj : doc["jarMods"])
         {
-            nlohmann::json libObj = libVal;
             // parse the jarmod
             auto lib = OneSixVersionFormat::jarModFromJson(*out, libObj, filename);
             // and add to jar mods
@@ -163,9 +161,8 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
     }
     else if (doc.contains("+jarMods")) // DEPRECATED: old style '+jarMods' are only here for backwards compatibility
     {
-        for (auto libVal : doc["+jarMods"])
+        for (const auto& libObj : doc["+jarMods"])
         {
-            nlohmann::json libObj = libVal;
             // parse the jarmod
             auto lib = OneSixVersionFormat::plusJarModFromJson(*out, libObj, filename, out->name);
             // and add to jar mods
@@ -175,9 +172,8 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
 
     if (doc.contains("mods"))
     {
-        for (auto libVal : doc["mods"])
+        for (const auto& libObj : doc["mods"])
         {
-            nlohmann::json libObj = libVal;
             // parse the jarmod
             auto lib = OneSixVersionFormat::modFromJson(*out, libObj, filename);
             // and add to jar mods
@@ -185,11 +181,10 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
         }
     }
 
-    auto readLibs = [&](const char * which, QList<LibraryPtr> & outList)
+    auto readLibs = [&](const char* which, QList<LibraryPtr>& outList)
     {
-        for (auto libVal : doc[which])
+        for (const auto& libObj : doc[which])
         {
-            nlohmann::json libObj = libVal;
             // parse the library
             auto lib = libraryFromJson(*out, libObj, filename);
             outList.append(lib);
@@ -218,9 +213,8 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
     }
 
     if(doc.contains("+agents")) {
-        for (auto agentVal : doc["+agents"])
+        for (const auto& agentObj : doc["+agents"])
         {
-            nlohmann::json agentObj = agentVal;
             auto lib = libraryFromJson(*out, agentObj, filename);
             QString arg = "";
             if (agentObj.contains("argument"))
@@ -235,8 +229,7 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
     // if we have mainJar, just use it
     if(doc.contains("mainJar"))
     {
-        nlohmann::json libObj = doc["mainJar"];
-        out->mainJar = libraryFromJson(*out, libObj, filename);
+        out->mainJar = libraryFromJson(*out, doc["mainJar"], filename);
     }
     // else reconstruct it from downloads and id ... if that's available
     else if(!out->minecraftVersion.isEmpty())
@@ -266,7 +259,7 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
         Meta::parseRequires(doc, &out->requires);
     }
 
-    QString dependsOnMinecraftVersion = QString::fromStdString(doc.value("mcVersion", ""));
+    QString dependsOnMinecraftVersion = doc.value("mcVersion", "").c_str();
     if(!dependsOnMinecraftVersion.isEmpty())
     {
         Meta::Require mcReq;
@@ -310,7 +303,7 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json &do
     return out;
 }
 
-nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patch)
+nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr& patch)
 {
     nlohmann::json root;
 
@@ -331,7 +324,7 @@ nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patc
     if (!patch->addTweakers.isEmpty())
     {
         nlohmann::json array;
-        for (auto value: patch->addTweakers)
+        for (const auto& value: patch->addTweakers)
         {
             array.push_back(value.toStdString());
         }
@@ -342,7 +335,7 @@ nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patc
     if (!patch->traits.isEmpty())
     {
         nlohmann::json array;
-        for (auto value: patch->traits.values())
+        for (const auto& value: patch->traits)
         {
             array.push_back(value.toStdString());
         }
@@ -352,17 +345,17 @@ nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patc
     if (!patch->libraries.isEmpty())
     {
         nlohmann::json array;
-        for (auto value: patch->libraries)
+        for (const auto& value: patch->libraries)
         {
             array.push_back(OneSixVersionFormat::libraryToJson(value.get()));
         }
-        //root.insert("libraries", array);
+
         root["libraries"] = array;
     }
     if (!patch->mavenFiles.isEmpty())
     {
         nlohmann::json array;
-        for (auto value: patch->mavenFiles)
+        for (const auto& value: patch->mavenFiles)
         {
             array.push_back(OneSixVersionFormat::libraryToJson(value.get()));
         }
@@ -372,7 +365,7 @@ nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patc
     if (!patch->jarMods.isEmpty())
     {
         nlohmann::json array;
-        for (auto value: patch->jarMods)
+        for (const auto& value: patch->jarMods)
         {
             array.push_back(OneSixVersionFormat::jarModtoJson(value.get()));
         }
@@ -381,7 +374,7 @@ nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patc
     if (!patch->mods.isEmpty())
     {
         nlohmann::json array;
-        for (auto value: patch->jarMods)
+        for (const auto& value: patch->jarMods)
         {
             array.push_back(OneSixVersionFormat::modtoJson(value.get()));
         }
@@ -400,16 +393,14 @@ nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patc
         root["volatile"] = true;
     }
     // write the contents to a json document.
-    {
-        return root;
-    }
+    return root;
 }
 
 LibraryPtr OneSixVersionFormat::plusJarModFromJson(
-    ProblemContainer & problems,
-    const nlohmann::json &libObj,
-    const QString &filename,
-    const QString &originalName
+    ProblemContainer& problems,
+    const nlohmann::json& libObj,
+    const QString& filename,
+    const QString& originalName
 ) {
     LibraryPtr out(new Library());
     if (!libObj.contains("name"))
@@ -424,7 +415,7 @@ LibraryPtr OneSixVersionFormat::plusJarModFromJson(
 
     // filename override is the old name
     //out->setFilename(libObj.value("name").toString());
-    out->setFilename(QString::fromStdString(libObj["name"]));
+    out->setFilename(libObj["name"].get<std::string>().c_str());
 
     // it needs to be local, it is stored in the instance jarmods folder
     out->setHint("local");
@@ -445,23 +436,23 @@ LibraryPtr OneSixVersionFormat::plusJarModFromJson(
     return out;
 }
 
-LibraryPtr OneSixVersionFormat::jarModFromJson(ProblemContainer & problems, const nlohmann::json& libObj, const QString& filename)
+LibraryPtr OneSixVersionFormat::jarModFromJson(ProblemContainer& problems, const nlohmann::json& libObj, const QString& filename)
 {
     return libraryFromJson(problems, libObj, filename);
 }
 
 
-nlohmann::json OneSixVersionFormat::jarModtoJson(Library *jarmod)
+nlohmann::json OneSixVersionFormat::jarModtoJson(Library* jarmod)
 {
     return libraryToJson(jarmod);
 }
 
-LibraryPtr OneSixVersionFormat::modFromJson(ProblemContainer & problems, const nlohmann::json& libObj, const QString& filename)
+LibraryPtr OneSixVersionFormat::modFromJson(ProblemContainer& problems, const nlohmann::json& libObj, const QString& filename)
 {
     return  libraryFromJson(problems, libObj, filename);
 }
 
-nlohmann::json OneSixVersionFormat::modtoJson(Library *jarmod)
+nlohmann::json OneSixVersionFormat::modtoJson(Library* jarmod)
 {
     return libraryToJson(jarmod);
 }

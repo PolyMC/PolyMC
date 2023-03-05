@@ -51,8 +51,8 @@ static std::shared_ptr<Index> parseIndexInternal(const nlohmann::json &obj)
 
     std::transform(objects.begin(), objects.end(), std::back_inserter(lists), [](const nlohmann::json &object)
     {
-        VersionListPtr list = std::make_shared<VersionList>(QString::fromStdString(object["uid"]));
-        list->setName(QString::fromStdString(object.value("name", "")));
+        VersionListPtr list = std::make_shared<VersionList>(object["uid"].get<std::string>().c_str());
+        list->setName(object.value("name", "").c_str());
         return list;
     });
 
@@ -60,11 +60,11 @@ static std::shared_ptr<Index> parseIndexInternal(const nlohmann::json &obj)
 }
 
 // Version
-static VersionPtr parseCommonVersion(const QString &uid, const nlohmann::json &obj)
+static VersionPtr parseCommonVersion(const QString& uid, const nlohmann::json& obj)
 {
-    VersionPtr version = std::make_shared<Version>(uid, QString::fromStdString(obj["version"]));
+    VersionPtr version = std::make_shared<Version>(uid, obj["version"].get<std::string>().c_str());
     version->setTime(QDateTime::fromString(QString::fromStdString(obj["releaseTime"]), Qt::ISODate).toMSecsSinceEpoch() / 1000);
-    version->setType(QString::fromStdString(obj.value("type", "")));
+    version->setType(obj.value("type", "").c_str());
     version->setRecommended(obj.value("recommended", false));
     version->setVolatile(obj.value("volatile", false));
     RequireSet requires, conflicts;
@@ -74,10 +74,10 @@ static VersionPtr parseCommonVersion(const QString &uid, const nlohmann::json &o
     return version;
 }
 
-static std::shared_ptr<Version> parseVersionInternal(const nlohmann::json &obj)
+static std::shared_ptr<Version> parseVersionInternal(const nlohmann::json& obj)
 {
     //VersionPtr version = parseCommonVersion(requireString(obj, "uid"), obj);
-    VersionPtr version = parseCommonVersion(QString::fromStdString(obj["uid"]), obj);
+    VersionPtr version = parseCommonVersion(obj["uid"].get<std::string>().c_str(), obj);
 
     version->setData(OneSixVersionFormat::versionFileFromJson(obj,
                                            QString("%1/%2.json").arg(version->uid(), version->version()),
@@ -86,9 +86,9 @@ static std::shared_ptr<Version> parseVersionInternal(const nlohmann::json &obj)
 }
 
 // Version list / package
-static std::shared_ptr<VersionList> parseVersionListInternal(const nlohmann::json &obj)
+static std::shared_ptr<VersionList> parseVersionListInternal(const nlohmann::json& obj)
 {
-    const QString uid = QString::fromStdString(obj["uid"]);
+    const QString uid = obj["uid"].get<std::string>().c_str();
 
     QVector<nlohmann::json> versionsRaw;
 
@@ -110,7 +110,7 @@ static std::shared_ptr<VersionList> parseVersionListInternal(const nlohmann::jso
     QVector<VersionPtr> versions;
     versions.reserve(versionsRaw.size());
 
-    std::transform(versionsRaw.begin(), versionsRaw.end(), std::back_inserter(versions), [uid](const nlohmann::json &vObj)
+    std::transform(versionsRaw.begin(), versionsRaw.end(), std::back_inserter(versions), [uid](const nlohmann::json& vObj)
     {
         auto version = parseCommonVersion(uid, vObj);
         version->setProvidesRecommendations();
@@ -118,14 +118,14 @@ static std::shared_ptr<VersionList> parseVersionListInternal(const nlohmann::jso
     });
 
     VersionListPtr list = std::make_shared<VersionList>(uid);
-    list->setName(QString::fromStdString(obj.value("name", "")));
+    list->setName(obj.value("name", "").c_str());
     list->setVersions(versions);
 
     return list;
 }
 
 
-MetadataVersion parseFormatVersion(const nlohmann::json &obj, bool required)
+MetadataVersion parseFormatVersion(const nlohmann::json& obj, bool required)
 {
     if (!obj.contains("formatVersion"))
     {
@@ -151,7 +151,7 @@ MetadataVersion parseFormatVersion(const nlohmann::json &obj, bool required)
     }
 }
 
-void parseIndex(const nlohmann::json &obj, Index *ptr)
+void parseIndex(const nlohmann::json& obj, Index* ptr)
 {
     const MetadataVersion version = parseFormatVersion(obj);
     switch (version)
@@ -164,7 +164,7 @@ void parseIndex(const nlohmann::json &obj, Index *ptr)
     }
 }
 
-void parseVersionList(const nlohmann::json &obj, VersionList *ptr)
+void parseVersionList(const nlohmann::json& obj, VersionList* ptr)
 {
     const MetadataVersion version = parseFormatVersion(obj);
     switch (version)
@@ -177,7 +177,7 @@ void parseVersionList(const nlohmann::json &obj, VersionList *ptr)
     }
 }
 
-void parseVersion(const nlohmann::json &obj, Version *ptr)
+void parseVersion(const nlohmann::json& obj, Version* ptr)
 {
     const MetadataVersion version = parseFormatVersion(obj);
     switch (version)
@@ -190,12 +190,12 @@ void parseVersion(const nlohmann::json &obj, Version *ptr)
     }
 }
 
-void parseRequires(const nlohmann::json& obj, RequireSet* ptr, const char * keyName)
+void parseRequires(const nlohmann::json& obj, RequireSet* ptr, const char* keyName)
 {
     if(obj.contains(keyName))
     {
         auto reqArray = obj[keyName];
-        for (auto &reqObject : reqArray)
+        for (auto& reqObject : reqArray)
         {
             auto uid = QString::fromStdString(reqObject["uid"]);
             auto equals = QString::fromStdString(reqObject.value("equals", ""));
@@ -205,14 +205,14 @@ void parseRequires(const nlohmann::json& obj, RequireSet* ptr, const char * keyN
     }
 }
 
-void serializeRequires(nlohmann::json& obj, RequireSet* ptr, const char * keyName)
+void serializeRequires(nlohmann::json& obj, RequireSet* ptr, const char* keyName)
 {
     if(!ptr || ptr->empty())
     {
         return;
     }
     nlohmann::json arrOut;
-    for(auto &iter: *ptr)
+    for(auto& iter: *ptr)
     {
         nlohmann::json reqOut;
         reqOut["uid"] = iter.uid.toStdString();
