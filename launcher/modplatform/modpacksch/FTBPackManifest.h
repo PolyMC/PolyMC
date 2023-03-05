@@ -39,8 +39,9 @@
 #include <QString>
 #include <QVector>
 #include <QUrl>
-#include <QJsonObject>
 #include <QMetaType>
+
+#include "json.hpp"
 
 namespace ModpacksCH
 {
@@ -160,9 +161,9 @@ struct VersionChangelog
     int64_t updated;
 };
 
-void loadModpack(Modpack & m, QJsonObject & obj);
+void loadModpack(Modpack& m, const nlohmann::json & obj);
 
-void loadVersion(Version & m, QJsonObject & obj);
+void loadVersion(Version& m, const nlohmann::json& obj);
 }
 
 Q_DECLARE_METATYPE(ModpacksCH::Modpack)

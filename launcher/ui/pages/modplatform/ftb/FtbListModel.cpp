@@ -28,9 +28,7 @@ ListModel::ListModel(QObject *parent) : QAbstractListModel(parent)
 {
 }
 
-ListModel::~ListModel()
-{
-}
+ListModel::~ListModel() = default;
 
 int ListModel::rowCount(const QModelIndex &parent) const
 {
@@ -72,7 +70,7 @@ QVariant ListModel::data(const QModelIndex &index, int role) const
             return placeholder;
         }
 
-        for(auto art : pack.art) {
+        for(const auto& art : pack.art) {
             if(art.type == "square") {
                 ((ListModel *)this)->requestLogo(pack.name, art.url);
             }
@@ -165,16 +163,17 @@ void ListModel::packRequestFinished()
     jobPtr.reset();
     remainingPacks.removeOne(currentPack);
 
-    QJsonParseError parse_error;
-    QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
-
-    if(parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from ModpacksCH at " << parse_error.offset << " reason: " << parse_error.errorString();
+    nlohmann::json obj;
+    try
+    {
+        obj = nlohmann::json::parse(response.constData(), response.constData() + response.size());
+    }
+    catch (const nlohmann::json::parse_error &e)
+    {
+        qWarning() << "Error while parsing JSON response from ModpacksCH at " << e.byte << " reason: " << e.what();
         qWarning() << response;
         return;
     }
-
-    auto obj = doc.object();
 
     ModpacksCH::Modpack pack;
     try
@@ -213,7 +212,7 @@ void ListModel::packRequestFailed(QString reason)
     remainingPacks.removeOne(currentPack);
 }
 
-void ListModel::logoLoaded(QString logo, bool stale)
+void ListModel::logoLoaded(const QString& logo, bool stale)
 {
     auto & logoObj = m_logoMap[logo];
     logoObj.downloadJob.reset();
@@ -254,13 +253,13 @@ void ListModel::logoLoaded(QString logo, bool stale)
     }
 }
 
-void ListModel::logoFailed(QString logo)
+void ListModel::logoFailed(const QString& logo)
 {
     m_logoMap[logo].failed = true;
     m_logoMap[logo].downloadJob.reset();
 }
 
-void ListModel::requestLogo(QString logo, QString url)
+void ListModel::requestLogo(const QString& logo, const QString& url)
 {
     if(m_logoMap.contains(logo)) {
         return;
