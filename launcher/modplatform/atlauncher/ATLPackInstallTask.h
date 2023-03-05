@@ -99,12 +99,12 @@ private slots:
     void onModsExtracted();
 
 private:
-    QString getDirForModType(ModType type, QString raw);
-    QString getVersionForLoader(QString uid);
-    QString detectLibrary(VersionLibrary library);
+    QString getDirForModType(ModType type, const QString& raw);
+    QString getVersionForLoader(const QString& uid);
+    QString detectLibrary(const VersionLibrary& library);
 
-    bool createLibrariesComponent(QString instanceRoot, std::shared_ptr<PackProfile> profile);
-    bool createPackComponent(QString instanceRoot, std::shared_ptr<PackProfile> profile);
+    bool createLibrariesComponent(const QString& instanceRoot, const std::shared_ptr<PackProfile>& profile);
+    bool createPackComponent(const QString& instanceRoot, const std::shared_ptr<PackProfile>& profile);
 
     void deleteExistingFiles();
     void installConfigs();

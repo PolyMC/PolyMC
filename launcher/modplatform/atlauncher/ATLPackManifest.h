@@ -204,6 +204,6 @@ struct PackVersion
     VersionDeletes deletes;
 };
 
-void loadVersion(PackVersion & v, nlohmann::json& obj);
+void loadVersion(PackVersion& v, nlohmann::json& obj);
 
 }

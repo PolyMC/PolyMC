@@ -36,7 +36,7 @@
 
 #include "ATLPackManifest.h"
 
-static ATLauncher::DownloadType parseDownloadType(QString rawType) {
+static ATLauncher::DownloadType parseDownloadType(const QString& rawType) {
     if(rawType == QString("server")) {
         return ATLauncher::DownloadType::Server;
     }
@@ -50,7 +50,7 @@ static ATLauncher::DownloadType parseDownloadType(QString rawType) {
     return ATLauncher::DownloadType::Unknown;
 }
 
-static ATLauncher::ModType parseModType(QString rawType) {
+static ATLauncher::ModType parseModType(const QString& rawType) {
     // See https://wiki.atlauncher.com/mod_types
     if(rawType == QString("root")) {
         return ATLauncher::ModType::Root;
@@ -151,11 +151,6 @@ static void loadVersionMod(ATLauncher::VersionMod& p, const nlohmann::json& obj)
 
     if(obj.contains("extractTo"))
     {
-        /*
-        p.extractTo_raw = Json::requireString(obj, "extractTo");
-        p.extractTo = parseModType(p.extractTo_raw);
-        p.extractFolder = Json::ensureString(obj, "extractFolder", "").replace("%s%", "/");
-                */
         p.extractTo_raw = QString::fromStdString(obj["extractTo"]);
         p.extractTo = parseModType(p.extractTo_raw);
         p.extractFolder = QString::fromStdString(obj.value("extractFolder", "")).replace("%s%", "/");
@@ -163,11 +158,6 @@ static void loadVersionMod(ATLauncher::VersionMod& p, const nlohmann::json& obj)
 
     if(obj.contains("decompType"))
     {
-        /*
-        p.decompType_raw = Json::requireString(obj, "decompType");
-        p.decompType = parseModType(p.decompType_raw);
-        p.decompFile = Json::requireString(obj, "decompFile");
-         */
         p.decompType_raw = QString::fromStdString(obj["decompType"]);
         p.decompType = parseModType(p.decompType_raw);
         p.decompFile = QString::fromStdString(obj["decompFile"]);
