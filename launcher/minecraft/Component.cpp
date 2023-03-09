@@ -340,27 +340,6 @@ bool Component::customize()
     // FIXME: get rid of this try-catch.
     try
     {
-        /*
-        QSaveFile jsonFile(filename);
-        if(!jsonFile.open(QIODevice::WriteOnly))
-        {
-            return false;
-        }
-        auto vfile = getVersionFile();
-        if(!vfile)
-        {
-            return false;
-        }
-        auto document = OneSixVersionFormat::versionFileToJson(vfile);
-        jsonFile.write(document.toJson());
-        if(!jsonFile.commit())
-        {
-            return false;
-        }
-        m_file = vfile;
-        m_metaVersion.reset();
-        emit dataChanged();
-        */
         std::fstream file(filename.toStdString(), std::ios::out);
         auto vfile = getVersionFile();
         if(!vfile)
@@ -376,9 +355,9 @@ bool Component::customize()
         m_metaVersion.reset();
         emit dataChanged();
     }
-    catch (const Exception &error)
+    catch (const std::exception &error)
     {
-        qWarning() << "Version could not be loaded:" << error.cause();
+        qWarning() << "Version could not be loaded:" << error.what();
     }
     return true;
 }

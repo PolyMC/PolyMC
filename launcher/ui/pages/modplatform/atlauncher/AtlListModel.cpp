@@ -18,7 +18,6 @@
 
 #include <BuildConfig.h>
 #include <Application.h>
-#include <Json.h>
 
 namespace Atl {
 
