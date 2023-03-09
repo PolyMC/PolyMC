@@ -41,13 +41,12 @@
 #include <QLocale>
 #include <QDir>
 #include <QLibraryInfo>
-#include <QDebug>
 
 #include "FileSystem.h"
 #include "net/NetJob.h"
 #include "net/ChecksumValidator.h"
 #include "BuildConfig.h"
-#include "Json.h"
+#include "json.hpp"
 
 #include "POTranslator.h"
 
@@ -259,45 +258,41 @@ void readIndex(const QString & path, QMap<QString, Language>& languages)
         return;
     }
 
-    int index = 1;
     try
     {
-        auto toplevel_doc = Json::requireDocument(data);
-        auto doc = Json::requireObject(toplevel_doc);
-        auto file_type = Json::requireString(doc, "file_type");
+        nlohmann::json langObjs = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+        QString file_type = langObjs["file_type"].get<std::string>().c_str();
         if(file_type != "MMC-TRANSLATION-INDEX")
         {
             qCritical() << "Translations Download Failed: index file is of unknown file type" << file_type;
             return;
         }
-        auto version = Json::requireInteger(doc, "version");
+        int version = langObjs["version"].get<int>();
         if(version > 2)
         {
-            qCritical() << "Translations Download Failed: index file is of unknown format version" << file_type;
+            qCritical() << "Translations Download Failed: " << file_type << "index file is of unknown format version: " << version;
             return;
         }
-        auto langObjs = Json::requireObject(doc, "languages");
-        for(auto iter = langObjs.begin(); iter != langObjs.end(); iter++)
-        {
-            Language lang(iter.key());
 
-            auto langObj =  Json::requireObject(iter.value());
+        for (auto& [key, value] : langObjs["languages"].items())
+        {
+            Language lang(key.c_str());
+
             lang.setTranslationStats(
-                Json::ensureInteger(langObj, "translated", 0),
-                Json::ensureInteger(langObj, "untranslated", 0),
-                Json::ensureInteger(langObj, "fuzzy", 0)
+                value["translated"].get<int>(),
+                value["untranslated"].get<int>(),
+                value["fuzzy"].get<int>()
             );
-            lang.file_name = Json::requireString(langObj, "file");
-            lang.file_sha1 = Json::requireString(langObj, "sha1");
-            lang.file_size = Json::requireInteger(langObj, "size");
+            lang.file_name = value["file"].get<std::string>().c_str();
+            lang.file_sha1 = value["sha1"].get<std::string>().c_str();
+            lang.file_size = value["size"].get<int>();
 
             languages.insert(lang.key, lang);
-            index++;
         }
     }
-    catch (Json::JsonException & e)
+    catch (const nlohmann::json::exception& e)
     {
-        qCritical() << "Translations Download Failed: index file could not be parsed as json";
+        qCritical() << "Translations Download Failed: index file could not be parsed as json" << e.what();
     }
 }
 }
