@@ -63,7 +63,7 @@ void FlameMod::loadURLs(ModPlatform::IndexedPack& pack, nlohmann::json& obj)
         pack.extraDataLoaded = true;
 }
 
-void FlameMod::loadBody(ModPlatform::IndexedPack& pack, QJsonObject& obj)
+void FlameMod::loadBody(ModPlatform::IndexedPack& pack, nlohmann::json& obj)
 {
     pack.extraData.body  = api.getModDescription(pack.addonId.toInt());
 

@@ -5,7 +5,7 @@
 class NetworkModAPI : public ModAPI {
    public:
     void searchMods(CallerType* caller, SearchArgs&& args) const override;
-    void getModInfo(ModPlatform::IndexedPack& pack, std::function<void(QJsonDocument&, ModPlatform::IndexedPack&)> callback) override;
+    void getModInfo(ModPlatform::IndexedPack& pack, std::function<void(nlohmann::json&, ModPlatform::IndexedPack&)> callback) override;
     void getVersions(VersionSearchArgs&& args, std::function<void(QJsonDocument&, QString)> callback) const override;
 
     auto getProject(QString addonId, QByteArray* response) const -> NetJob* override;

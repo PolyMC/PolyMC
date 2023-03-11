@@ -42,6 +42,8 @@
 #include "Version.h"
 #include "net/NetJob.h"
 
+#include "json.hpp"
+
 namespace ModPlatform {
 class ListModel;
 struct IndexedPack;
@@ -73,7 +75,7 @@ class ModAPI {
     };
 
     virtual void searchMods(CallerType* caller, SearchArgs&& args) const = 0;
-    virtual void getModInfo(ModPlatform::IndexedPack& pack, std::function<void(QJsonDocument&, ModPlatform::IndexedPack&)> callback) = 0;
+    virtual void getModInfo(ModPlatform::IndexedPack& pack, std::function<void(nlohmann::json&, ModPlatform::IndexedPack&)> callback) = 0;
 
     virtual auto getProject(QString addonId, QByteArray* response) const -> NetJob* = 0;
     virtual auto getProjects(QStringList addonIds, QByteArray* response) const -> NetJob* = 0;

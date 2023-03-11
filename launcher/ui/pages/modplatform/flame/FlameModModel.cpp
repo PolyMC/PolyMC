@@ -13,7 +13,7 @@ void ListModel::loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj
 }
 
 // We already deal with the URLs when initializing the pack, due to the API response's structure
-void ListModel::loadExtraPackInfo(ModPlatform::IndexedPack& m, QJsonObject& obj)
+void ListModel::loadExtraPackInfo(ModPlatform::IndexedPack& m, nlohmann::json& obj)
 {
     FlameMod::loadBody(m, obj);
 }

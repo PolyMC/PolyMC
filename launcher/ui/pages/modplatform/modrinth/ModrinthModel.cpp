@@ -37,8 +37,6 @@
 #include "ModrinthModel.h"
 
 #include "BuildConfig.h"
-#include "Json.h"
-#include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "ui/dialogs/ModDownloadDialog.h"
 #include "ui/widgets/ProjectItem.h"
@@ -144,12 +142,14 @@ void ModpackListModel::performPaginatedSearch()
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchAllUrl), &m_all_response));
 
     QObject::connect(netJob, &NetJob::succeeded, this, [this] {
-        QJsonParseError parse_error_all{};
-
-        QJsonDocument doc_all = QJsonDocument::fromJson(m_all_response, &parse_error_all);
-        if (parse_error_all.error != QJsonParseError::NoError) {
-            qWarning() << "Error while parsing JSON response from " << debugName() << " at " << parse_error_all.offset
-                       << " reason: " << parse_error_all.errorString();
+        nlohmann::json doc_all;
+        try
+        {
+            doc_all = nlohmann::json::parse(m_all_response.constData(), m_all_response.constData() + m_all_response.size());
+        }
+        catch (const nlohmann::json::exception& e)
+        {
+            qWarning() << "Error while parsing JSON response from " << debugName() << " at " << e.what();
             qWarning() << m_all_response;
             return;
         }
@@ -260,7 +260,7 @@ void ModpackListModel::logoLoaded(QString logo, QIcon out)
 {
     m_loadingLogos.removeAll(logo);
     m_logoMap.insert(logo, out);
-    for (int i = 0; i < modpacks.size(); i++) {
+    for (int i = 0; i < modpacks.size();               i++) {
         if (modpacks[i].iconName == logo) {
             emit dataChanged(createIndex(i, 0), createIndex(i, 0), { Qt::DecorationRole });
         }
@@ -273,22 +273,20 @@ void ModpackListModel::logoFailed(QString logo)
     m_loadingLogos.removeAll(logo);
 }
 
-void ModpackListModel::searchRequestFinished(QJsonDocument& doc_all)
+void ModpackListModel::searchRequestFinished(nlohmann::json& doc_all)
 {
     jobPtr.reset();
 
     QList<Modrinth::Modpack> newList;
 
-    auto packs_all = doc_all.object().value("hits").toArray();
-    for (auto packRaw : packs_all) {
-        auto packObj = packRaw.toObject();
-
+    auto packs_all = doc_all["hits"];
+    for (const auto& packObj : packs_all) {
         Modrinth::Modpack pack;
         try {
             Modrinth::loadIndexedPack(pack, packObj);
             newList.append(pack);
-        } catch (const JSONValidationError& e) {
-            qWarning() << "Error while loading mod from " << m_parent->debugName() << ": " << e.cause();
+        } catch (const nlohmann::json::exception& e) {
+            qWarning() << "Error while loading mod from " << m_parent->debugName() << ": " << e.what();
             continue;
         }
     }
@@ -301,7 +299,7 @@ void ModpackListModel::searchRequestFinished(QJsonDocument& doc_all)
     }
 
     // When you have a Qt build with assertions turned on, proceeding here will abort the application
-    if (newList.size() == 0)
+    if (newList.isEmpty())
         return;
 
     beginInsertRows(QModelIndex(), modpacks.size(), modpacks.size() + newList.size() - 1);

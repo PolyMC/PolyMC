@@ -29,75 +29,101 @@ static ModPlatform::ProviderCapabilities ProviderCaps;
 
 void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, nlohmann::json& obj)
 {
-        pack.addonId = obj.value("project_id", "").c_str();
-        if (pack.addonId.toString().isEmpty())
-            pack.addonId = obj.value("id", "").c_str();
+    pack.addonId = obj.value("project_id", "").c_str();
+    if (pack.addonId.toString().isEmpty())
+        pack.addonId = obj.value("id", "").c_str();
 
-        pack.provider = ModPlatform::Provider::MODRINTH;
-        pack.name = obj.value("title", "").c_str();
+    pack.provider = ModPlatform::Provider::MODRINTH;
+    pack.name = obj.value("title", "").c_str();
 
-        pack.slug = obj.value("slug", "").c_str();
-        if (!pack.slug.isEmpty())
-            pack.websiteUrl = "https://modrinth.com/mod/" + pack.slug;
-        else
-            pack.websiteUrl = "";
+    pack.slug = obj.value("slug", "").c_str();
+    if (!pack.slug.isEmpty())
+        pack.websiteUrl = "https://modrinth.com/mod/" + pack.slug;
+    else
+        pack.websiteUrl = "";
 
-        pack.description = obj.value("description", "").c_str();
+    pack.description = obj.value("description", "").c_str();
 
-        nlohmann::json temp;
+    nlohmann::json temp;
 
-        temp = obj.value("icon_url", nlohmann::json());
-        if (!temp.is_null()) {
-            pack.logoUrl = temp.get<std::string>().c_str();
-        }
-
-        pack.logoName = pack.addonId.toString();
-
-        ModPlatform::ModpackAuthor modAuthor;
-        temp = obj.value("authors", nlohmann::json());
-        if (!temp.is_null()) {
-            modAuthor.name = temp.get<std::string>().c_str();
-        }
-
-        modAuthor.url = api.getAuthorURL(modAuthor.name);
-        pack.authors.append(modAuthor);
-
-        // Modrinth can have more data than what's provided by the basic search :)
-        pack.extraDataLoaded = false;
-}
-
-void Modrinth::loadExtraPackData(ModPlatform::IndexedPack& pack, QJsonObject& obj)
-{
-    pack.extraData.issuesUrl = Json::ensureString(obj, "issues_url");
-    if(pack.extraData.issuesUrl.endsWith('/'))
-        pack.extraData.issuesUrl.chop(1);
-
-    pack.extraData.sourceUrl = Json::ensureString(obj, "source_url");
-    if(pack.extraData.sourceUrl.endsWith('/'))
-        pack.extraData.sourceUrl.chop(1);
-
-    pack.extraData.wikiUrl = Json::ensureString(obj, "wiki_url");
-    if(pack.extraData.wikiUrl.endsWith('/'))
-        pack.extraData.wikiUrl.chop(1);
-
-    pack.extraData.discordUrl = Json::ensureString(obj, "discord_url");
-    if(pack.extraData.discordUrl.endsWith('/'))
-        pack.extraData.discordUrl.chop(1);
-
-    auto donate_arr = Json::ensureArray(obj, "donation_urls");
-    for(auto d : donate_arr){
-        auto d_obj = Json::requireObject(d);
-
-        ModPlatform::DonationData donate;
-
-        donate.id = Json::ensureString(d_obj, "id");
-        donate.platform = Json::ensureString(d_obj, "platform");
-        donate.url = Json::ensureString(d_obj, "url");
-
-        pack.extraData.donate.append(donate);
+    temp = obj.value("icon_url", nlohmann::json());
+    if (!temp.is_null()) {
+        pack.logoUrl = temp.get<std::string>().c_str();
     }
 
-    pack.extraData.body = Json::ensureString(obj, "body");
+    pack.logoName = pack.addonId.toString();
+
+    ModPlatform::ModpackAuthor modAuthor;
+    temp = obj.value("authors", nlohmann::json());
+    if (!temp.is_null()) {
+        modAuthor.name = temp.get<std::string>().c_str();
+    }
+
+    modAuthor.url = api.getAuthorURL(modAuthor.name);
+    pack.authors.append(modAuthor);
+
+    // Modrinth can have more data than what's provided by the basic search :)
+    pack.extraDataLoaded = false;
+}
+
+void Modrinth::loadExtraPackData(ModPlatform::IndexedPack& pack, nlohmann::json& obj)
+{
+    nlohmann::json temp;
+
+    temp = obj.value("issues_url", nlohmann::json());
+    if (!temp.is_null()) {
+        pack.extraData.issuesUrl = temp.get<std::string>().c_str();
+    } else {
+        pack.extraData.issuesUrl = "";
+    }
+    if (pack.extraData.issuesUrl.endsWith('/'))
+        pack.extraData.issuesUrl.chop(1);
+
+    temp = obj.value("source_url", nlohmann::json());
+    if (!temp.is_null()) {
+        pack.extraData.sourceUrl = temp.get<std::string>().c_str();
+    } else {
+        pack.extraData.sourceUrl = "";
+    }
+    if (pack.extraData.sourceUrl.endsWith('/'))
+        pack.extraData.sourceUrl.chop(1);
+
+    temp = obj.value("wiki_url", nlohmann::json());
+    if (!temp.is_null()) {
+        pack.extraData.wikiUrl = temp.get<std::string>().c_str();
+    } else {
+        pack.extraData.wikiUrl = "";
+    }
+    if (pack.extraData.wikiUrl.endsWith('/'))
+        pack.extraData.wikiUrl.chop(1);
+
+    temp = obj.value("discord_url", nlohmann::json());
+    if (!temp.is_null()) {
+        pack.extraData.discordUrl = temp.get<std::string>().c_str();
+    } else {
+        pack.extraData.discordUrl = "";
+    }
+    if (pack.extraData.discordUrl.endsWith('/'))
+        pack.extraData.discordUrl.chop(1);
+
+    temp = obj.value("donate_urls", nlohmann::json());
+    if (!temp.is_null()) {
+        auto donate_arr = temp;
+        for (const auto& d : donate_arr) {
+            ModPlatform::DonationData donate;
+            donate.id = d.value("id", "").c_str();
+            donate.platform = d.value("platform", "").c_str();
+            donate.url = d.value("url", "").c_str();
+            pack.extraData.donate.append(donate);
+        }
+    }
+
+    temp = obj.value("body", nlohmann::json());
+    if (!temp.is_null()) {
+        pack.extraData.body = temp.get<std::string>().c_str();
+    } else {
+        pack.extraData.body = "";
+    }
 
     pack.extraDataLoaded = true;
 }

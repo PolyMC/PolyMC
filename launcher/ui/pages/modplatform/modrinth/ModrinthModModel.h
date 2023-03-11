@@ -31,7 +31,7 @@ class ListModel : public ModPlatform::ListModel {
 
    private:
     void loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj) override;
-    void loadExtraPackInfo(ModPlatform::IndexedPack& m, QJsonObject& obj) override;
+    void loadExtraPackInfo(ModPlatform::IndexedPack& m, nlohmann::json& obj) override;
     void loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray& arr) override;
     
     auto documentToArray(QJsonDocument& obj) const -> QJsonArray override;

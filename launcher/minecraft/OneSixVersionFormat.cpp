@@ -106,7 +106,6 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const nlohmann::json& do
         }
     }
 
-    //out->name = root.value("name").toString();
     out->name = doc["name"].get<std::string>().c_str();
 
     if(doc.contains("uid"))
@@ -359,7 +358,7 @@ nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr& patc
         {
             array.push_back(OneSixVersionFormat::libraryToJson(value.get()));
         }
-        //root.insert("mavenFiles", array);
+
         root["mavenFiles"] = array;
     }
     if (!patch->jarMods.isEmpty())
@@ -392,7 +391,7 @@ nlohmann::json OneSixVersionFormat::versionFileToJson(const VersionFilePtr& patc
     {
         root["volatile"] = true;
     }
-    // write the contents to a json document.
+
     return root;
 }
 
@@ -414,7 +413,6 @@ LibraryPtr OneSixVersionFormat::plusJarModFromJson(
     out->setRawName(GradleSpecifier("org.multimc.jarmods:" + id + ":1"));
 
     // filename override is the old name
-    //out->setFilename(libObj.value("name").toString());
     out->setFilename(libObj["name"].get<std::string>().c_str());
 
     // it needs to be local, it is stored in the instance jarmods folder

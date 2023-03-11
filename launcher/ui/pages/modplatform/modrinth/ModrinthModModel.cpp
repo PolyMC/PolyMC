@@ -30,7 +30,7 @@ void ListModel::loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj
     Modrinth::loadIndexedPack(m, obj);
 }
 
-void ListModel::loadExtraPackInfo(ModPlatform::IndexedPack& m, QJsonObject& obj)
+void ListModel::loadExtraPackInfo(ModPlatform::IndexedPack& m, nlohmann::json& obj)
 {
     Modrinth::loadExtraPackData(m, obj);
 }

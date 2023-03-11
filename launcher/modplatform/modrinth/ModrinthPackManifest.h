@@ -106,7 +106,7 @@ struct Modpack {
     QVector<ModpackVersion> versions;
 };
 
-void loadIndexedPack(Modpack&, QJsonObject&);
+void loadIndexedPack(Modpack&, const nlohmann::json& obj);
 void loadIndexedInfo(Modpack& pack, nlohmann::json& obj);
 void loadIndexedVersions(Modpack& pack, nlohmann::json& obj);
 auto loadIndexedVersion(const nlohmann::json& obj) -> ModpackVersion;

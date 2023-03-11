@@ -34,20 +34,25 @@ void NetworkModAPI::searchMods(CallerType* caller, SearchArgs&& args) const
     netJob->start();
 }
 
-void NetworkModAPI::getModInfo(ModPlatform::IndexedPack& pack, std::function<void(QJsonDocument&, ModPlatform::IndexedPack&)> callback)
+void NetworkModAPI::getModInfo(ModPlatform::IndexedPack& pack, std::function<void(nlohmann::json&, ModPlatform::IndexedPack&)> callback)
 {
     auto response = new QByteArray();
     auto job = getProject(pack.addonId.toString(), response);
 
     QObject::connect(job, &NetJob::succeeded, [callback, &pack, response] {
-        QJsonParseError parse_error{};
-        QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-        if (parse_error.error != QJsonParseError::NoError) {
-            qWarning() << "Error while parsing JSON response for mod info at " << parse_error.offset
-                       << " reason: " << parse_error.errorString();
+        nlohmann::json doc;
+        try
+        {
+            doc = nlohmann::json::parse(response->constData(), response->constData() + response->size());
+        }
+        catch (const std::exception& e)
+        {
+            qWarning() << "Error while parsing JSON response for mod info at " << e.what();
             qWarning() << *response;
             return;
         }
+
+        qDebug() << "Got mod doc " << doc.dump().c_str();
 
         callback(doc, pack);
     });

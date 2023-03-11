@@ -123,7 +123,7 @@ void ListModel::performPaginatedSearch()
 
 void ListModel::requestModInfo(ModPlatform::IndexedPack& current, QModelIndex index)
 {
-    m_parent->apiProvider()->getModInfo(current, [this, index](QJsonDocument& doc, ModPlatform::IndexedPack& pack) {
+    m_parent->apiProvider()->getModInfo(current, [this, index](nlohmann::json& doc, ModPlatform::IndexedPack& pack) {
         if (!s_running.constFind(this).value())
             return;
         infoRequestFinished(doc, pack, index);
@@ -222,16 +222,24 @@ void ListModel::searchRequestFinished(nlohmann::json& doc)
     jobPtr.reset();
 
     QList<ModPlatform::IndexedPack> newList;
-    auto packs = doc;
+    nlohmann::json packs;
+    if (doc.contains("hits")) // we got modrinth
+    {
+        packs = doc["hits"];
+    }
+    else if (doc.contains("data")) // we got curseforge
+    {
+        packs = doc["data"];
+    }
 
-    for (auto packObj : doc) {
+    for (auto packObj : packs) {
 
         ModPlatform::IndexedPack pack;
         try {
             loadIndexedPack(pack, packObj);
             newList.append(pack);
         } catch (const std::exception& e) {
-            qWarning() << "Error while loading mod from " << m_parent->debugName() << ": " << e.what();
+            qWarning() << "Error wfualty jsonhile loading mod from " << m_parent->debugName() << ": " << e.what();
             continue;
         }
     }
@@ -280,16 +288,15 @@ void ListModel::searchRequestFailed(QString reason)
     }
 }
 
-void ListModel::infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack& pack, const QModelIndex& index)
+void ListModel::infoRequestFinished(nlohmann::json& doc, ModPlatform::IndexedPack& pack, const QModelIndex& index)
 {
     qDebug() << "Loading mod info";
 
     try {
-        auto obj = Json::requireObject(doc);
-        loadExtraPackInfo(pack, obj);
-    } catch (const JSONValidationError& e) {
-        qDebug() << doc;
-        qWarning() << "Error while reading " << debugName() << " mod info: " << e.cause();
+        loadExtraPackInfo(pack, doc);
+    } catch (const std::exception& e) {
+        qDebug() << doc.dump().c_str();
+        qWarning() << "Error while reading " << debugName() << " mod info: " << e.what();
     }
 
     // Check if the index is still valid for this mod or not

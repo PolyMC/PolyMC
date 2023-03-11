@@ -35,7 +35,6 @@
  */
 
 #include "ModrinthPackManifest.h"
-#include "Json.h"
 
 #include "modplatform/modrinth/ModrinthAPI.h"
 
@@ -47,16 +46,15 @@ static ModrinthAPI api;
 
 namespace Modrinth {
 
-void loadIndexedPack(Modpack& pack, QJsonObject& obj)
+void loadIndexedPack(Modpack& pack, const nlohmann::json& obj)
 {
-    pack.id = Json::ensureString(obj, "project_id");
-
-    pack.name = Json::ensureString(obj, "title");
-    pack.description = Json::ensureString(obj, "description");
-    auto temp_author_name = Json::ensureString(obj, "author");
+    pack.id = obj.value("project_id", "").c_str();
+    pack.name = obj.value("title", "").c_str();
+    pack.description = obj.value("description", "").c_str();
+    auto temp_author_name = obj.value("author", "").c_str();
     pack.author = std::make_tuple(temp_author_name, api.getAuthorURL(temp_author_name));
-    pack.iconName = QString("modrinth_%1").arg(Json::ensureString(obj, "slug"));
-    pack.iconUrl = Json::ensureString(obj, "icon_url");
+    pack.iconName = QString("modrinth_%1").arg(obj.value("slug", "").c_str());
+    pack.iconUrl = obj.value("icon_url", "").c_str();
 }
 
 void loadIndexedInfo(Modpack& pack, nlohmann::json& obj)
