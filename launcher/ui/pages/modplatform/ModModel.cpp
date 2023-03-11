@@ -217,22 +217,21 @@ void ListModel::logoFailed(QString logo)
     m_loadingLogos.removeAll(logo);
 }
 
-void ListModel::searchRequestFinished(QJsonDocument& doc)
+void ListModel::searchRequestFinished(nlohmann::json& doc)
 {
     jobPtr.reset();
 
     QList<ModPlatform::IndexedPack> newList;
-    auto packs = documentToArray(doc);
+    auto packs = doc;
 
-    for (auto packRaw : packs) {
-        auto packObj = packRaw.toObject();
+    for (auto packObj : doc) {
 
         ModPlatform::IndexedPack pack;
         try {
             loadIndexedPack(pack, packObj);
             newList.append(pack);
-        } catch (const JSONValidationError& e) {
-            qWarning() << "Error while loading mod from " << m_parent->debugName() << ": " << e.cause();
+        } catch (const std::exception& e) {
+            qWarning() << "Error while loading mod from " << m_parent->debugName() << ": " << e.what();
             continue;
         }
     }
@@ -245,7 +244,7 @@ void ListModel::searchRequestFinished(QJsonDocument& doc)
     }
 
     // When you have a Qt build with assertions turned on, proceeding here will abort the application
-    if (newList.size() == 0)
+    if (newList.empty())
         return;
 
     beginInsertRows(QModelIndex(), modpacks.size(), modpacks.size() + newList.size() - 1);

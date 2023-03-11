@@ -16,11 +16,14 @@ void NetworkModAPI::searchMods(CallerType* caller, SearchArgs&& args) const
     QObject::connect(netJob, &NetJob::started, caller, [caller, netJob] { caller->setActiveJob(netJob); });
     QObject::connect(netJob, &NetJob::failed, caller, &CallerType::searchRequestFailed);
     QObject::connect(netJob, &NetJob::succeeded, caller, [caller, response] {
-        QJsonParseError parse_error{};
-        QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-        if (parse_error.error != QJsonParseError::NoError) {
-            qWarning() << "Error while parsing JSON response from " << caller->debugName() << " at " << parse_error.offset
-                       << " reason: " << parse_error.errorString();
+        nlohmann::json doc;
+        try
+        {
+            doc = nlohmann::json::parse(response->constData(), response->constData() + response->size());
+        }
+        catch (const std::exception& e)
+        {
+            qWarning() << "Error while parsing JSON response from " << caller->debugName() << " at " << e.what();
             qWarning() << *response;
             return;
         }

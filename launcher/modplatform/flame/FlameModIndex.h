@@ -11,8 +11,8 @@
 
 namespace FlameMod {
 
-void loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj);
-void loadURLs(ModPlatform::IndexedPack& m, QJsonObject& obj);
+void loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj);
+void loadURLs(ModPlatform::IndexedPack& m, nlohmann::json& obj);
 void loadBody(ModPlatform::IndexedPack& m, QJsonObject& obj);
 void loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
                              QJsonArray& arr,

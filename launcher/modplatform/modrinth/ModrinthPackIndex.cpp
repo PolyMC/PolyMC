@@ -27,33 +27,43 @@
 static ModrinthAPI api;
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
-void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj)
+void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, nlohmann::json& obj)
 {
-    pack.addonId = Json::ensureString(obj, "project_id");
-    if (pack.addonId.toString().isEmpty())
-        pack.addonId = Json::requireString(obj, "id");
+        pack.addonId = obj.value("project_id", "").c_str();
+        if (pack.addonId.toString().isEmpty())
+            pack.addonId = obj.value("id", "").c_str();
 
-    pack.provider = ModPlatform::Provider::MODRINTH;
-    pack.name = Json::requireString(obj, "title");
-    
-    pack.slug = Json::ensureString(obj, "slug", "");
-    if (!pack.slug.isEmpty())
-        pack.websiteUrl = "https://modrinth.com/mod/" + pack.slug;
-    else
-        pack.websiteUrl = "";
+        pack.provider = ModPlatform::Provider::MODRINTH;
+        pack.name = obj.value("title", "").c_str();
 
-    pack.description = Json::ensureString(obj, "description", "");
+        pack.slug = obj.value("slug", "").c_str();
+        if (!pack.slug.isEmpty())
+            pack.websiteUrl = "https://modrinth.com/mod/" + pack.slug;
+        else
+            pack.websiteUrl = "";
 
-    pack.logoUrl = Json::requireString(obj, "icon_url");
-    pack.logoName = pack.addonId.toString();
+        pack.description = obj.value("description", "").c_str();
 
-    ModPlatform::ModpackAuthor modAuthor;
-    modAuthor.name = Json::ensureString(obj, "author", QObject::tr("No author(s)"));
-    modAuthor.url = api.getAuthorURL(modAuthor.name);
-    pack.authors.append(modAuthor);
+        nlohmann::json temp;
 
-    // Modrinth can have more data than what's provided by the basic search :)
-    pack.extraDataLoaded = false;
+        temp = obj.value("icon_url", nlohmann::json());
+        if (!temp.is_null()) {
+            pack.logoUrl = temp.get<std::string>().c_str();
+        }
+
+        pack.logoName = pack.addonId.toString();
+
+        ModPlatform::ModpackAuthor modAuthor;
+        temp = obj.value("authors", nlohmann::json());
+        if (!temp.is_null()) {
+            modAuthor.name = temp.get<std::string>().c_str();
+        }
+
+        modAuthor.url = api.getAuthorURL(modAuthor.name);
+        pack.authors.append(modAuthor);
+
+        // Modrinth can have more data than what's provided by the basic search :)
+        pack.extraDataLoaded = false;
 }
 
 void Modrinth::loadExtraPackData(ModPlatform::IndexedPack& pack, QJsonObject& obj)

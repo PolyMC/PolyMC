@@ -5,6 +5,8 @@
 #include "modplatform/ModIndex.h"
 #include "net/NetJob.h"
 
+#include "json.hpp"
+
 class ModPage;
 class Version;
 
@@ -40,7 +42,7 @@ class ListModel : public QAbstractListModel {
     void requestModInfo(ModPlatform::IndexedPack& current, QModelIndex index);
     void requestModVersions(const ModPlatform::IndexedPack& current, QModelIndex index);
 
-    virtual void loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj) = 0;
+    virtual void loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj) = 0;
     virtual void loadExtraPackInfo(ModPlatform::IndexedPack& m, QJsonObject& obj) {};
     virtual void loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray& arr) = 0;
 
@@ -49,7 +51,7 @@ class ListModel : public QAbstractListModel {
     inline auto canFetchMore(const QModelIndex& parent) const -> bool override { return searchState == CanPossiblyFetchMore; };
 
    public slots:
-    void searchRequestFinished(QJsonDocument& doc);
+    void searchRequestFinished(nlohmann::json& doc);
     void searchRequestFailed(QString reason);
 
     void infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack& pack, const QModelIndex& index);

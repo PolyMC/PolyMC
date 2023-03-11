@@ -25,7 +25,7 @@ namespace Modrinth {
 // NOLINTNEXTLINE(modernize-avoid-c-arrays)
 const char* ListModel::sorts[5]{ "relevance", "downloads", "follows", "updated", "newest" };
 
-void ListModel::loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj)
+void ListModel::loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj)
 {
     Modrinth::loadIndexedPack(m, obj);
 }

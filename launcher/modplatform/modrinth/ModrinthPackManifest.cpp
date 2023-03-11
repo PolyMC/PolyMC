@@ -40,7 +40,6 @@
 #include "modplatform/modrinth/ModrinthAPI.h"
 
 #include "minecraft/MinecraftInstance.h"
-#include "minecraft/PackProfile.h"
 
 #include <QSet>
 
@@ -60,36 +59,52 @@ void loadIndexedPack(Modpack& pack, QJsonObject& obj)
     pack.iconUrl = Json::ensureString(obj, "icon_url");
 }
 
-void loadIndexedInfo(Modpack& pack, QJsonObject& obj)
+void loadIndexedInfo(Modpack& pack, nlohmann::json& obj)
 {
-    pack.extra.body = Json::ensureString(obj, "body");
-    pack.extra.projectUrl = QString("https://modrinth.com/modpack/%1").arg(Json::ensureString(obj, "slug"));
+    pack.extra.body = obj["body"].get<std::string>().c_str();
+    pack.extra.projectUrl = QString("https://modrinth.com/modpack/%1").arg(obj["slug"].get<std::string>().c_str());
 
-    pack.extra.issuesUrl = Json::ensureString(obj, "issues_url");
-    if(pack.extra.issuesUrl.endsWith('/'))
-        pack.extra.issuesUrl.chop(1);
+    nlohmann::json temp;
 
-    pack.extra.sourceUrl = Json::ensureString(obj, "source_url");
-    if(pack.extra.sourceUrl.endsWith('/'))
-        pack.extra.sourceUrl.chop(1);
+    temp = obj["issues_url"];
+    if(temp.is_string())
+    {
+        pack.extra.issuesUrl = temp.get<std::string>().c_str();
+        if(pack.extra.issuesUrl.endsWith('/'))
+            pack.extra.issuesUrl.chop(1);
+    }
 
-    pack.extra.wikiUrl = Json::ensureString(obj, "wiki_url");
-    if(pack.extra.wikiUrl.endsWith('/'))
-        pack.extra.wikiUrl.chop(1);
+    temp = obj["source_url"];
+    if(temp.is_string())
+    {
+        pack.extra.sourceUrl = temp.get<std::string>().c_str();
+        if(pack.extra.sourceUrl.endsWith('/'))
+            pack.extra.sourceUrl.chop(1);
+    }
 
-    pack.extra.discordUrl = Json::ensureString(obj, "discord_url");
-    if(pack.extra.discordUrl.endsWith('/'))
-        pack.extra.discordUrl.chop(1);
+    temp = obj["wiki_url"];
+    if(temp.is_string())
+    {
+        pack.extra.wikiUrl = temp.get<std::string>().c_str();
+        if(pack.extra.wikiUrl.endsWith('/'))
+            pack.extra.wikiUrl.chop(1);
+    }
 
-    auto donate_arr = Json::ensureArray(obj, "donation_urls");
-    for(auto d : donate_arr){
-        auto d_obj = Json::requireObject(d);
+    temp = obj["discord_url"];
+    if(temp.is_string())
+    {
+        pack.extra.discordUrl = temp.get<std::string>().c_str();
+        if(pack.extra.discordUrl.endsWith('/'))
+            pack.extra.discordUrl.chop(1);
+    }
 
+    auto donate_arr = obj["donate_urls"];
+    for (const auto& d_obj : donate_arr){
         DonationData donate;
 
-        donate.id = Json::ensureString(d_obj, "id");
-        donate.platform = Json::ensureString(d_obj, "platform");
-        donate.url = Json::ensureString(d_obj, "url");
+        donate.id = d_obj["id"].get<std::string>().c_str();
+        donate.platform = d_obj["platform"].get<std::string>().c_str();
+        donate.url = d_obj["url"].get<std::string>().c_str();
 
         pack.extra.donate.append(donate);
     }
@@ -97,14 +112,11 @@ void loadIndexedInfo(Modpack& pack, QJsonObject& obj)
     pack.extraInfoLoaded = true;
 }
 
-void loadIndexedVersions(Modpack& pack, QJsonDocument& doc)
+void loadIndexedVersions(Modpack& pack, nlohmann::json& doc)
 {
     QVector<ModpackVersion> unsortedVersions;
 
-    auto arr = Json::requireArray(doc);
-
-    for (auto versionIter : arr) {
-        auto obj = Json::requireObject(versionIter);
+    for (const auto& obj : doc) {
         auto file = loadIndexedVersion(obj);
 
         if(!file.id.isEmpty()) // Heuristic to check if the returned value is valid
@@ -122,36 +134,28 @@ void loadIndexedVersions(Modpack& pack, QJsonDocument& doc)
     pack.versionsLoaded = true;
 }
 
-auto loadIndexedVersion(QJsonObject &obj) -> ModpackVersion
+auto loadIndexedVersion(const nlohmann::json& obj) -> ModpackVersion
 {
     ModpackVersion file;
 
-    file.name = Json::requireString(obj, "name");
-    file.version = Json::requireString(obj, "version_number");
+    file.name = obj["name"].get<std::string>().c_str();
+    file.version = obj["version_number"].get<std::string>().c_str();
+    file.id = obj["id"].get<std::string>().c_str();
+    file.project_id = obj["project_id"].get<std::string>().c_str();
+    file.date = obj["date_published"].get<std::string>().c_str();
 
-    file.id = Json::requireString(obj, "id");
-    file.project_id = Json::requireString(obj, "project_id");
-    
-    file.date = Json::requireString(obj, "date_published");
-
-    auto files = Json::requireArray(obj, "files");
-
-
-    for (auto file_iter : files) {
+    for (const auto& parent : obj["files"]) {
         File indexed_file;
-        auto parent = Json::requireObject(file_iter);
-        auto is_primary = Json::ensureBoolean(parent, "primary", false);
+        auto is_primary = parent.value("primary", false);
         if (!is_primary) {
-            auto filename = Json::ensureString(parent, "filename");
+            QString filename = parent["filename"].get<std::string>().c_str();
             // Checking suffix here is fine because it's the response from Modrinth,
             // so one would assume it will always be in English.
             if(!filename.endsWith("mrpack") && !filename.endsWith("zip"))
                 continue;
         }
 
-        auto url = Json::requireString(parent, "url");
-
-        file.download_url = url;
+        file.download_url = parent["url"].get<std::string>().c_str();
         if(is_primary)
             break;
     }

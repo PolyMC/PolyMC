@@ -41,7 +41,6 @@
 
 #include "BuildConfig.h"
 #include "InstanceImportTask.h"
-#include "Json.h"
 
 #include "ui/widgets/ProjectItem.h"
 
@@ -117,7 +116,6 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
     }
 
     current = m_model->data(curr, Qt::UserRole).value<Modrinth::Modpack>();
-    auto name = current.name;
 
     if (!current.extraInfoLoaded) {
         qDebug() << "Loading modrinth modpack information";
@@ -134,22 +132,20 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
                 return;  // wrong request?
             }
 
-            QJsonParseError parse_error;
-            QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-            if (parse_error.error != QJsonParseError::NoError) {
-                qWarning() << "Error while parsing JSON response from Modrinth at " << parse_error.offset
-                           << " reason: " << parse_error.errorString();
-                qWarning() << *response;
+            nlohmann::json obj;
+            try {
+                obj = nlohmann::json::parse(response->constData(), response->constData() + response->size());
+            } catch (const nlohmann::json::exception& e) {
+                qDebug() << *response;
+                qWarning() << "Error while reading modrinth modpack information: " << e.what();
                 return;
             }
 
-            auto obj = Json::requireObject(doc);
-
             try {
                 Modrinth::loadIndexedInfo(current, obj);
-            } catch (const JSONValidationError& e) {
+            } catch (const nlohmann::json::exception& e) {
                 qDebug() << *response;
-                qWarning() << "Error while reading modrinth modpack version: " << e.cause();
+                qWarning() << "Error while reading modrinth modpack version: " << e.what();
             }
 
             updateUI();
@@ -186,23 +182,26 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
                 return;  // wrong request?
             }
 
-            QJsonParseError parse_error;
-            QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-            if (parse_error.error != QJsonParseError::NoError) {
-                qWarning() << "Error while parsing JSON response from Modrinth at " << parse_error.offset
-                           << " reason: " << parse_error.errorString();
+            nlohmann::json doc;
+            try
+            {
+                doc = nlohmann::json::parse(response->constData(), response->constData() + response->size());
+            }
+            catch (const nlohmann::json::exception& e)
+            {
                 qWarning() << *response;
+                qWarning() << "Error while reading modrinth modpack version: " << e.what();
                 return;
             }
 
             try {
                 Modrinth::loadIndexedVersions(current, doc);
-            } catch (const JSONValidationError& e) {
+            } catch (const nlohmann::json::exception& e) {
                 qDebug() << *response;
-                qWarning() << "Error while reading modrinth modpack version: " << e.cause();
+                qWarning() << "Error while reading modrinth modpack version: " << e.what();
             }
 
-            for (auto version : current.versions) {
+            for (const auto& version : current.versions) {
                 if (!version.name.contains(version.version))
                     ui->versionSelectionBox->addItem(QString("%1 — %2").arg(version.name, version.version), QVariant(version.id));
                 else
@@ -224,7 +223,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
         netJob->start();
 
     } else {
-        for (auto version : current.versions) {
+        for (const auto& version : current.versions) {
             if (!version.name.contains(version.version))
                 ui->versionSelectionBox->addItem(QString("%1 - %2").arg(version.name, version.version), QVariant(version.id));
             else
@@ -301,7 +300,7 @@ void ModrinthPage::suggestCurrent()
             dialog->setSuggestedPack(current.name, ver.version, new InstanceImportTask(ver.download_url, this));
             auto iconName = current.iconName;
             m_model->getLogo(iconName, current.iconUrl.toString(),
-                             [this, iconName](QString logo) { dialog->setSuggestedIconFromFile(logo, iconName); });
+                             [this, iconName](const QString& logo) { dialog->setSuggestedIconFromFile(logo, iconName); });
 
             break;
         }
@@ -313,7 +312,7 @@ void ModrinthPage::triggerSearch()
     m_model->searchWithTerm(ui->searchEdit->text(), ui->sortByBox->currentIndex());
 }
 
-void ModrinthPage::onVersionSelectionChanged(QString data)
+void ModrinthPage::onVersionSelectionChanged(const QString& data)
 {
     if (data.isNull() || data.isEmpty()) {
         selectedVersion = "";

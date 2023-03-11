@@ -33,6 +33,7 @@ ModPlatform::IndexedPack getProjectInfo(ModPlatform::IndexedVersion& ver_info)
     get_project_job->addNetAction(dl);
 
     QObject::connect(get_project_job, &NetJob::succeeded, [response, &pack]() {
+        /*
         QJsonParseError parse_error{};
         QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
         if (parse_error.error != QJsonParseError::NoError) {
@@ -41,14 +42,26 @@ ModPlatform::IndexedPack getProjectInfo(ModPlatform::IndexedVersion& ver_info)
             qWarning() << *response;
             return;
         }
+         */
+        nlohmann::json doc;
+        try
+        {
+            doc = nlohmann::json::parse(response->constData(), response->constData() + response->size());
+        }
+        catch (const std::exception& e)
+        {
+            qWarning() << "Error while parsing JSON response from FlameCheckUpdate at " << e.what();
+            qWarning() << *response;
+            return;
+        }
+
+        qDebug() << "got project info" << doc.dump(4).c_str();
 
         try {
-            auto doc_obj = Json::requireObject(doc);
-            auto data_obj = Json::requireObject(doc_obj, "data");
-            FlameMod::loadIndexedPack(pack, data_obj);
-        } catch (Json::JsonException& e) {
-            qWarning() << e.cause();
-            qDebug() << doc;
+            FlameMod::loadIndexedPack(pack, doc["data"]);
+        } catch (const nlohmann::json::exception& e) {
+            qWarning() << e.what();
+            qDebug() << doc.dump(4).c_str();
         }
     });
 

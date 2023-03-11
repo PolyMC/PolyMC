@@ -282,25 +282,22 @@ NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
         return {};
 
     connect(proj_task.get(), &NetJob::succeeded, this, [this, response, addonIds] {
-        QJsonParseError parse_error{};
-        auto doc = QJsonDocument::fromJson(*response, &parse_error);
-        if (parse_error.error != QJsonParseError::NoError) {
-            qWarning() << "Error while parsing JSON response from Modrinth projects task at " << parse_error.offset
-                       << " reason: " << parse_error.errorString();
+        nlohmann::json doc;
+        try
+        {
+            doc = nlohmann::json::parse(response->constData(), response->constData() + response->size());
+        }
+        catch (nlohmann::json::parse_error& e)
+        {
+            qWarning() << "Error while parsing JSON response from Modrinth projects task at " << e.byte << " reason: " << e.what();
             qWarning() << *response;
             return;
         }
 
         try {
-            QJsonArray entries;
-            if (addonIds.size() == 1)
-                entries = { doc.object() };
-            else
-                entries = Json::requireArray(doc);
+            auto entries = doc;
 
-            for (auto entry : entries) {
-                auto entry_obj = Json::requireObject(entry);
-
+            for (auto entry_obj : entries) {
                 ModPlatform::IndexedPack pack;
                 Modrinth::loadIndexedPack(pack, entry_obj);
 
@@ -318,16 +315,16 @@ NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
                     setStatus(tr("Parsing API response from Modrinth for '%1'...").arg(mod->name()));
 
                     modrinthCallback(pack, m_temp_versions.find(hash).value(), mod);
-                } catch (Json::JsonException& e) {
-                    qDebug() << e.cause();
-                    qDebug() << entries;
+                } catch (const std::exception& e) {
+                    qDebug() << e.what();
+                    qDebug() << entries.dump(4).c_str();
 
                     emitFail(mod);
                 }
             }
-        } catch (Json::JsonException& e) {
-            qDebug() << e.cause();
-            qDebug() << doc;
+        } catch (const nlohmann::json::exception& e) {
+            qDebug() << e.what();
+            qDebug() << doc.dump(4).c_str();
         }
     });
 
@@ -429,26 +426,31 @@ NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
         return {};
 
     connect(proj_task.get(), &NetJob::succeeded, this, [this, response, addonIds] {
-        QJsonParseError parse_error{};
-        auto doc = QJsonDocument::fromJson(*response, &parse_error);
-        if (parse_error.error != QJsonParseError::NoError) {
-            qWarning() << "Error while parsing JSON response from Modrinth projects task at " << parse_error.offset
-                       << " reason: " << parse_error.errorString();
+        nlohmann::json doc;
+        try
+        {
+            doc = nlohmann::json::parse(response->constData(), response->constData() + response->size());
+        }
+        catch (const nlohmann::json::exception& e)
+        {
+            qWarning() << "Error while parsing JSON response from Flame projects task at " << e.what();
             qWarning() << *response;
             return;
         }
 
         try {
+            /*
             QJsonArray entries;
             if (addonIds.size() == 1)
                 entries = { Json::requireObject(Json::requireObject(doc), "data") };
             else
                 entries = Json::requireArray(Json::requireObject(doc), "data");
+                */
+            nlohmann::json entries = doc["data"];
 
-            for (auto entry : entries) {
-                auto entry_obj = Json::requireObject(entry);
+            for (auto entry_obj : entries) {
 
-                auto id = QString::number(Json::requireInteger(entry_obj, "id"));
+                auto id = QString::number(entry_obj["id"].get<int>());
                 auto hash = addonIds.find(id).value();
                 auto mod = m_mods.find(hash).value();
 
@@ -459,16 +461,16 @@ NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
                     FlameMod::loadIndexedPack(pack, entry_obj);
 
                     flameCallback(pack, m_temp_versions.find(hash).value(), mod);
-                } catch (Json::JsonException& e) {
-                    qDebug() << e.cause();
-                    qDebug() << entries;
+                } catch (const std::exception& e) {
+                    qDebug() << e.what();
+                    qDebug() << entries.dump(4).c_str();
 
                     emitFail(mod);
                 }
             }
-        } catch (Json::JsonException& e) {
-            qDebug() << e.cause();
-            qDebug() << doc;
+        } catch (const nlohmann::json::exception& e) {
+            qDebug() << e.what();
+            qDebug() << doc.dump(4).c_str();
         }
     });
 

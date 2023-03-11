@@ -12,7 +12,7 @@ class ListModel : public ModPlatform::ListModel {
     ~ListModel() override = default;
 
    private:
-    void loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj) override;
+    void loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj) override;
     void loadExtraPackInfo(ModPlatform::IndexedPack& m, QJsonObject& obj) override;
     void loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray& arr) override;
 

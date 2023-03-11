@@ -7,7 +7,7 @@ namespace FlameMod {
 // NOLINTNEXTLINE(modernize-avoid-c-arrays)
 const char* ListModel::sorts[6]{ "Featured", "Popularity", "LastUpdated", "Name", "Author", "TotalDownloads" };
 
-void ListModel::loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj)
+void ListModel::loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj)
 {
     FlameMod::loadIndexedPack(m, obj);
 }

@@ -8,46 +8,55 @@
 static FlameAPI api;
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
-void FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj)
+void FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, nlohmann::json& obj)
 {
-    pack.addonId = Json::requireInteger(obj, "id");
-    pack.provider = ModPlatform::Provider::FLAME;
-    pack.name = Json::requireString(obj, "name");
-    pack.slug = Json::requireString(obj, "slug");
-    pack.websiteUrl = Json::ensureString(Json::ensureObject(obj, "links"), "websiteUrl", "");
-    pack.description = Json::ensureString(obj, "summary", "");
+        pack.addonId = obj["id"].get<int>();
+        pack.provider = ModPlatform::Provider::FLAME;
+        pack.name = obj["name"].get<std::string>().c_str();
+        pack.slug = obj["slug"].get<std::string>().c_str();
 
-    QJsonObject logo = Json::ensureObject(obj, "logo");
-    pack.logoName = Json::ensureString(logo, "title");
-    pack.logoUrl = Json::ensureString(logo, "thumbnailUrl");
+        nlohmann::json linksobj = obj.value("links", nlohmann::json::object());
+        pack.websiteUrl = linksobj.value("websiteUrl", "").c_str();
 
-    auto authors = Json::ensureArray(obj, "authors");
-    for (auto authorIter : authors) {
-        auto author = Json::requireObject(authorIter);
-        ModPlatform::ModpackAuthor packAuthor;
-        packAuthor.name = Json::requireString(author, "name");
-        packAuthor.url = Json::requireString(author, "url");
-        pack.authors.append(packAuthor);
-    }
+        pack.description = obj.value("summary", "").c_str();
 
-    pack.extraDataLoaded = false;
-    loadURLs(pack, obj);
+        nlohmann::json logo = obj.value("logo", nlohmann::json::object());
+
+        pack.logoName = logo.value("title", "").c_str();
+        pack.logoUrl = logo.value("thumbnailUrl", "").c_str();
+
+        nlohmann::json authors = obj.value("authors", nlohmann::json::array());
+        for (auto author : authors) {
+            ModPlatform::ModpackAuthor packAuthor;
+            packAuthor.name = author["name"].get<std::string>().c_str();
+            packAuthor.url = author["url"].get<std::string>().c_str();
+            pack.authors.append(packAuthor);
+        }
+
+        pack.extraDataLoaded = false;
+        loadURLs(pack, linksobj);
 }
 
-void FlameMod::loadURLs(ModPlatform::IndexedPack& pack, QJsonObject& obj)
+void FlameMod::loadURLs(ModPlatform::IndexedPack& pack, nlohmann::json& obj)
 {
-    auto links_obj = Json::ensureObject(obj, "links");
+    nlohmann::json temp;
 
-    pack.extraData.issuesUrl = Json::ensureString(links_obj, "issuesUrl");
-    if(pack.extraData.issuesUrl.endsWith('/'))
+    temp = obj.value("issuesUrl", nlohmann::json());
+    if (!temp.is_null())
+        pack.extraData.issuesUrl = temp.get<std::string>().c_str();
+    if (pack.extraData.issuesUrl.endsWith('/'))
         pack.extraData.issuesUrl.chop(1);
 
-    pack.extraData.sourceUrl = Json::ensureString(links_obj, "sourceUrl");
-    if(pack.extraData.sourceUrl.endsWith('/'))
+    temp = obj.value("sourceUrl", nlohmann::json());
+    if (!temp.is_null())
+        pack.extraData.sourceUrl = temp.get<std::string>().c_str();
+    if (pack.extraData.sourceUrl.endsWith('/'))
         pack.extraData.sourceUrl.chop(1);
 
-    pack.extraData.wikiUrl = Json::ensureString(links_obj, "wikiUrl");
-    if(pack.extraData.wikiUrl.endsWith('/'))
+    temp = obj.value("wikiUrl", nlohmann::json());
+    if (!temp.is_null())
+        pack.extraData.wikiUrl = temp.get<std::string>().c_str();
+    if (pack.extraData.wikiUrl.endsWith('/'))
         pack.extraData.wikiUrl.chop(1);
 
     if (!pack.extraData.body.isEmpty())
