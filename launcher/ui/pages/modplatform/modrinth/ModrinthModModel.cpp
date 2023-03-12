@@ -35,7 +35,7 @@ void ListModel::loadExtraPackInfo(ModPlatform::IndexedPack& m, nlohmann::json& o
     Modrinth::loadExtraPackData(m, obj);
 }
 
-void ListModel::loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray& arr)
+void ListModel::loadIndexedPackVersions(ModPlatform::IndexedPack& m, nlohmann::json& arr)
 {
     Modrinth::loadIndexedPackVersions(m, arr, APPLICATION->network(), m_parent->m_instance);
 }

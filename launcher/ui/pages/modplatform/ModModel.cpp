@@ -106,7 +106,7 @@ void ListModel::requestModVersions(ModPlatform::IndexedPack const& current, QMod
     auto profile = (dynamic_cast<MinecraftInstance*>((dynamic_cast<ModPage*>(parent()))->m_instance))->getPackProfile();
 
     m_parent->apiProvider()->getVersions({ current.addonId.toString(), getMineVersions(), profile->getModLoaders() },
-                                         [this, current, index](QJsonDocument& doc, QString addonId) {
+                                         [this, current, index](nlohmann::json& doc, QString addonId) {
                                              if (!s_running.constFind(this).value())
                                                  return;
                                              versionRequestSucceeded(doc, addonId, index);
@@ -312,20 +312,28 @@ void ListModel::infoRequestFinished(nlohmann::json& doc, ModPlatform::IndexedPac
     m_parent->updateUi();
 }
 
-void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId, const QModelIndex& index)
+void ListModel::versionRequestSucceeded(nlohmann::json& doc, QString addonId, const QModelIndex& index)
 {
     auto& current = m_parent->getCurrent();
     if (addonId != current.addonId) {
         return;
     }
 
-    auto arr = doc.isObject() ? Json::ensureArray(doc.object(), "data") : doc.array();
+    nlohmann::json arr;
+    if (doc.is_array()) // modrinth
+    {
+        arr = doc;
+    }
+    else if (doc.is_object()) // curseforge
+    {
+        arr = doc["data"];
+    }
 
     try {
         loadIndexedPackVersions(current, arr);
-    } catch (const JSONValidationError& e) {
-        qDebug() << doc;
-        qWarning() << "Error while reading " << debugName() << " mod version: " << e.cause();
+    } catch (const std::exception& e) {
+        qDebug() << doc.dump().c_str();
+        qWarning() << "Error while reading " << debugName() << " mod version: " << e.what();
     }
 
     // Cache info :^)

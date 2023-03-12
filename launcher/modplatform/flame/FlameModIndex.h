@@ -15,9 +15,9 @@ void loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj);
 void loadURLs(ModPlatform::IndexedPack& m, nlohmann::json& obj);
 void loadBody(ModPlatform::IndexedPack& m, nlohmann::json& obj);
 void loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
-                             QJsonArray& arr,
+                             nlohmann::json& arr,
                              const shared_qobject_ptr<QNetworkAccessManager>& network,
                              BaseInstance* inst);
-auto loadIndexedPackVersion(QJsonObject& obj, bool load_changelog = false) -> ModPlatform::IndexedVersion;
+auto loadIndexedPackVersion(const nlohmann::json& obj, bool load_changelog = false) -> ModPlatform::IndexedVersion;
 
 }  // namespace FlameMod

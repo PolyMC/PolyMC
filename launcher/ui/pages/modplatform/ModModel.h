@@ -44,7 +44,7 @@ class ListModel : public QAbstractListModel {
 
     virtual void loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj) = 0;
     virtual void loadExtraPackInfo(ModPlatform::IndexedPack& m, nlohmann::json& obj) {};
-    virtual void loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray& arr) = 0;
+    virtual void loadIndexedPackVersions(ModPlatform::IndexedPack& m, nlohmann::json& arr) = 0;
 
     void getLogo(const QString& logo, const QString& logoUrl, LogoCallback callback);
 
@@ -56,7 +56,7 @@ class ListModel : public QAbstractListModel {
 
     void infoRequestFinished(nlohmann::json& doc, ModPlatform::IndexedPack& pack, const QModelIndex& index);
 
-    void versionRequestSucceeded(QJsonDocument doc, QString addonId, const QModelIndex& index);
+    void versionRequestSucceeded(nlohmann::json& doc, QString addonId, const QModelIndex& index);
 
    protected slots:
 

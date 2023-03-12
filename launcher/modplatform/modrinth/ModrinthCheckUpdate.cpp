@@ -74,14 +74,17 @@ void ModrinthCheckUpdate::executeTask()
     QEventLoop lock;
 
     connect(job.get(), &Task::succeeded, this, [this, response, &mappings, best_hash_type, job] {
-        QJsonParseError parse_error{};
-        QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-        if (parse_error.error != QJsonParseError::NoError) {
-            qWarning() << "Error while parsing JSON response from ModrinthCheckUpdate at " << parse_error.offset
-                       << " reason: " << parse_error.errorString();
+        nlohmann::json doc;
+        try
+        {
+            doc = nlohmann::json::parse(response->constData(), response->constData() + response->size());
+        }
+        catch (const nlohmann::json::exception& e)
+        {
+            qWarning() << "Error while parsing JSON response from ModrinthCheckUpdate at " << e.what();
             qWarning() << *response;
-
-            failed(parse_error.errorString());
+            failed(e.what());
+            
             return;
         }
 
@@ -89,12 +92,12 @@ void ModrinthCheckUpdate::executeTask()
         setProgress(2, 3);
 
         try {
-            for (auto hash : mappings.keys()) {
-                auto project_obj = doc[hash].toObject();
+            for (const auto& hash : mappings.keys()) {
+                auto project_obj = doc[hash.toStdString()];
 
                 // If the returned project is empty, but we have Modrinth metadata,
                 // it means this specific version is not available
-                if (project_obj.isEmpty()) {
+                if (project_obj.empty()) {
                     qDebug() << "Mod " << mappings.find(hash).value()->name() << " got an empty response.";
                     qDebug() << "Hash: " << hash;
 

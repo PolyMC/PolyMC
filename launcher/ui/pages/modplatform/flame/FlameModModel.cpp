@@ -18,7 +18,7 @@ void ListModel::loadExtraPackInfo(ModPlatform::IndexedPack& m, nlohmann::json& o
     FlameMod::loadBody(m, obj);
 }
 
-void ListModel::loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray& arr)
+void ListModel::loadIndexedPackVersions(ModPlatform::IndexedPack& m, nlohmann::json& arr)
 {
     FlameMod::loadIndexedPackVersions(m, arr, APPLICATION->network(), m_parent->m_instance);
 }

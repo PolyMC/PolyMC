@@ -115,24 +115,22 @@ auto FlameAPI::getLatestVersion(VersionSearchArgs&& args) -> ModPlatform::Indexe
     netJob->addNetAction(Net::Download::makeByteArray(getVersionsURL(args), response));
 
     QObject::connect(netJob, &NetJob::succeeded, [response, args, &ver] {
-        QJsonParseError parse_error{};
-        QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-        if (parse_error.error != QJsonParseError::NoError) {
-            qWarning() << "Error while parsing JSON response from latest mod version at " << parse_error.offset
-                       << " reason: " << parse_error.errorString();
+        nlohmann::json doc;
+        try {
+            doc = nlohmann::json::parse(response->constData(), response->constData() + response->size());
+        } catch (nlohmann::json::parse_error& e) {
+            qWarning() << "Error while parsing JSON response from latest mod version at " << e.byte << " reason: " << e.what();
             qWarning() << *response;
             return;
         }
 
         try {
-            auto obj = Json::requireObject(doc);
-            auto arr = Json::requireArray(obj, "data");
+            auto arr = doc["data"];
 
-            QJsonObject latest_file_obj;
+            nlohmann::json latest_file_obj;
             ModPlatform::IndexedVersion ver_tmp;
 
-            for (auto file : arr) {
-                auto file_obj = Json::requireObject(file);
+            for (const auto& file_obj : arr) {
                 auto file_tmp = FlameMod::loadIndexedPackVersion(file_obj);
                 if(file_tmp.date > ver_tmp.date) {
                     ver_tmp = file_tmp;
@@ -141,10 +139,10 @@ auto FlameAPI::getLatestVersion(VersionSearchArgs&& args) -> ModPlatform::Indexe
             }
 
             ver = FlameMod::loadIndexedPackVersion(latest_file_obj);
-        } catch (Json::JsonException& e) {
+        } catch (const std::exception& e) {
             qCritical() << "Failed to parse response from a version request.";
             qCritical() << e.what();
-            qDebug() << doc;
+            qDebug() << doc.dump().c_str();
         }
     });
 
