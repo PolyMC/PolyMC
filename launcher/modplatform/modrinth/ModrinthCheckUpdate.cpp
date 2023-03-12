@@ -2,8 +2,6 @@
 #include "ModrinthAPI.h"
 #include "ModrinthPackIndex.h"
 
-#include "Json.h"
-
 #include "ModDownloadTask.h"
 
 #include "modplatform/helpers/HashUtils.h"
@@ -163,8 +161,8 @@ void ModrinthCheckUpdate::executeTask()
                                              ModPlatform::Provider::MODRINTH, download_task);
                 }
             }
-        } catch (Json::JsonException& e) {
-            failed(e.cause() + " : " + e.what());
+        } catch (std::exception& e) {
+            failed(e.what());
         }
     });
 

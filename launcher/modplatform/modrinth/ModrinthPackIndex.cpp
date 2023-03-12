@@ -19,7 +19,6 @@
 #include "ModrinthPackIndex.h"
 #include "ModrinthAPI.h"
 
-#include "Json.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "net/NetJob.h"
@@ -134,7 +133,6 @@ void Modrinth::loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
                                        BaseInstance* inst)
 {
     QVector<ModPlatform::IndexedVersion> unsortedVersions;
-    QString mcVersion = (static_cast<MinecraftInstance*>(inst))->getPackProfile()->getComponentVersion("net.minecraft");
 
     for (auto obj : arr) {
         auto file = loadIndexedPackVersion(obj);
@@ -155,9 +153,6 @@ auto Modrinth::loadIndexedPackVersion(nlohmann::json &obj, QString preferred_has
 {
     ModPlatform::IndexedVersion file;
 
-    //file.addonId = Json::requireString(obj, "project_id");
-    //file.fileId = Json::requireString(obj, "id");
-    //file.date = Json::requireString(obj, "date_published");
     file.addonId = obj["project_id"].get<std::string>().c_str();
     file.fileId = obj["id"].get<std::string>().c_str();
     file.date = obj["date_published"].get<std::string>().c_str();
@@ -204,13 +199,11 @@ auto Modrinth::loadIndexedPackVersion(nlohmann::json &obj, QString preferred_has
     if (parent.contains("url")) {
         file.downloadUrl = parent["url"].get<std::string>().c_str();
         file.fileName = parent["filename"].get<std::string>().c_str();
-        //file.is_preferred = Json::requireBoolean(parent, "primary") || (files.count() == 1);
         file.is_preferred = parent["primary"].get<bool>() || (files.size() == 1);
         auto hash_list = parent["hashes"];
 
         std::string preferred_hash_type_str = preferred_hash_type.toStdString();
         if (hash_list.contains(preferred_hash_type_str)) {
-            //file.hash = Json::requireString(hash_list, preferred_hash_type);
             file.hash = hash_list[preferred_hash_type_str].get<std::string>().c_str();
             file.hash_type = preferred_hash_type;
         } else {
