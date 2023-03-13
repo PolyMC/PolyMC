@@ -20,7 +20,7 @@ static ModPlatform::ProviderCapabilities ProviderCaps;
 static ModrinthAPI modrinth_api;
 static FlameAPI flame_api;
 
-EnsureMetadataTask::EnsureMetadataTask(Mod* mod, QDir dir, ModPlatform::Provider prov)
+EnsureMetadataTask::EnsureMetadataTask(Mod* mod, const QDir& dir, ModPlatform::Provider prov)
     : Task(nullptr), m_index_dir(dir), m_provider(prov), m_hashing_task(nullptr), m_current_task(nullptr)
 {
     auto hash_task = createNewHash(mod);
@@ -31,7 +31,7 @@ EnsureMetadataTask::EnsureMetadataTask(Mod* mod, QDir dir, ModPlatform::Provider
     hash_task->start();
 }
 
-EnsureMetadataTask::EnsureMetadataTask(QList<Mod*>& mods, QDir dir, ModPlatform::Provider prov)
+EnsureMetadataTask::EnsureMetadataTask(QList<Mod*>& mods, const QDir& dir, ModPlatform::Provider prov)
     : Task(nullptr), m_index_dir(dir), m_provider(prov), m_current_task(nullptr)
 {
     m_hashing_task = new ConcurrentTask(this, "MakeHashesTask", 10);
@@ -76,7 +76,7 @@ QString EnsureMetadataTask::getExistingHash(Mod* mod)
 bool EnsureMetadataTask::abort()
 {
     // Prevent sending signals to a dead object
-    disconnect(this, 0, 0, 0);
+    disconnect(this, nullptr, nullptr, nullptr);
 
     if (m_current_task)
         return m_current_task->abort();
@@ -366,7 +366,6 @@ NetJob::Ptr EnsureMetadataTask::flameVersionsTask()
             }
 
             for (const auto& match_obj : data_arr) {
-                //auto file_obj = Json::ensureObject(match_obj, "file", {});
                 auto file_obj = match_obj.value("file", nlohmann::json());
 
                 if (match_obj.empty() || file_obj.empty()) {
@@ -375,10 +374,19 @@ NetJob::Ptr EnsureMetadataTask::flameVersionsTask()
                     return;
                 }
 
-                auto fingerprint = QString::number(file_obj.value("fileFingerprint", 0));
+                QString fingerprint;
+                try {
+                    fingerprint = QString::number(file_obj.at("fileFingerprint").get<unsigned long>()); //this is to prevent overflows
+                }
+                catch (nlohmann::json::exception& e) {
+                    qWarning() << "finger print does not exist, defaulting to 0";
+                    fingerprint = QString::number(0);
+                }
                 auto mod = m_mods.find(fingerprint);
+
                 if (mod == m_mods.end()) {
                     qWarning() << "Invalid fingerprint from the API response.";
+
                     continue;
                 }
 
