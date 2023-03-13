@@ -20,7 +20,6 @@
 #include "ModrinthAPI.h"
 
 #include "minecraft/MinecraftInstance.h"
-#include "minecraft/PackProfile.h"
 #include "net/NetJob.h"
 
 static ModrinthAPI api;

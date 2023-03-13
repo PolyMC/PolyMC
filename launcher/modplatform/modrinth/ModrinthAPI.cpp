@@ -29,10 +29,8 @@ auto ModrinthAPI::currentVersions(const QStringList& hashes, QString hash_format
     body_obj["algorithm"] = hash_format.toStdString();
 
     QString body_str = body_obj.dump().c_str();
-    QJsonDocument body = QJsonDocument::fromJson(body_str.toUtf8());
-    auto body_raw = body.toJson();
 
-    netJob->addNetAction(Net::Upload::makeByteArray(QString(BuildConfig.MODRINTH_PROD_URL + "/version_files"), response, body_raw));
+    netJob->addNetAction(Net::Upload::makeByteArray(QString(BuildConfig.MODRINTH_PROD_URL + "/version_files"), response, body_str.toUtf8()));
 
     QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 
@@ -58,12 +56,9 @@ auto ModrinthAPI::latestVersion(QString hash,
     }
 
     QString body_str = body_obj.dump().c_str();
-    QJsonDocument body = QJsonDocument::fromJson(body_str.toUtf8());
-    auto body_raw = body.toJson();
-
 
     netJob->addNetAction(Net::Upload::makeByteArray(
-        QString(BuildConfig.MODRINTH_PROD_URL + "/version_file/%1/update?algorithm=%2").arg(hash, hash_format), response, body_raw));
+        QString(BuildConfig.MODRINTH_PROD_URL + "/version_file/%1/update?algorithm=%2").arg(hash, hash_format), response, body_str.toUtf8()));
 
     QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 
@@ -95,10 +90,8 @@ auto ModrinthAPI::latestVersions(const QStringList& hashes,
     }
 
     QString body_str = body_obj.dump().c_str();
-    QJsonDocument body = QJsonDocument::fromJson(body_str.toUtf8());
-    auto body_raw = body.toJson();
 
-    netJob->addNetAction(Net::Upload::makeByteArray(QString(BuildConfig.MODRINTH_PROD_URL + "/version_files/update"), response, body_raw));
+    netJob->addNetAction(Net::Upload::makeByteArray(QString(BuildConfig.MODRINTH_PROD_URL + "/version_files/update"), response, body_str.toUtf8()));
 
     QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 
