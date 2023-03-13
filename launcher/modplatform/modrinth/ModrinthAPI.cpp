@@ -17,7 +17,7 @@ auto ModrinthAPI::currentVersion(QString hash, QString hash_format, QByteArray* 
     return netJob;
 }
 
-auto ModrinthAPI::currentVersions(const QStringList& hashes, QString hash_format, QByteArray* response) -> NetJob::Ptr
+auto ModrinthAPI::currentVersions(const QStringList& hashes, const QString& hash_format, QByteArray* response) -> NetJob::Ptr
 {
     auto* netJob = new NetJob(QString("Modrinth::GetCurrentVersions"), APPLICATION->network());
 
@@ -66,8 +66,8 @@ auto ModrinthAPI::latestVersion(QString hash,
 }
 
 auto ModrinthAPI::latestVersions(const QStringList& hashes,
-                                 QString hash_format,
-                                 std::list<Version> mcVersions,
+                                 const QString& hash_format,
+                                 const std::list<Version>& mcVersions,
                                  ModLoaderTypes loaders,
                                  QByteArray* response) -> NetJob::Ptr
 {

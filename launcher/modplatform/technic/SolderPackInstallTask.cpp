@@ -36,7 +36,6 @@
 #include "SolderPackInstallTask.h"
 
 #include <FileSystem.h>
-#include <Json.h>
 #include <QtConcurrentRun>
 #include <MMCZip.h>
 

@@ -147,34 +147,28 @@ bool FlameCreationTask::updateInstance()
 
         connect(job, &NetJob::succeeded, this, [this, raw_response, fileIds, old_inst_dir, &old_files, old_minecraft_dir] {
             // Parse the API response
-            QJsonParseError parse_error{};
-            auto doc = QJsonDocument::fromJson(*raw_response, &parse_error);
-            if (parse_error.error != QJsonParseError::NoError) {
-                qWarning() << "Error while parsing JSON response from Flame files task at " << parse_error.offset
-                           << " reason: " << parse_error.errorString();
+            nlohmann::json doc;
+            try {
+                doc = nlohmann::json::parse(raw_response->constData(), raw_response->constData() + raw_response->size());
+            } catch (nlohmann::json::parse_error& e) {
+                qWarning() << "Error while parsing JSON response from Flame files task at " << e.byte << " reason: " << e.what();
                 qWarning() << *raw_response;
                 return;
             }
 
             try {
-                QJsonArray entries;
-                if (fileIds.size() == 1)
-                    entries = { Json::requireObject(Json::requireObject(doc), "data") };
-                else
-                    entries = Json::requireArray(Json::requireObject(doc), "data");
+                nlohmann::json entries = doc["data"];
 
-                for (auto entry : entries) {
-                    auto entry_obj = Json::requireObject(entry);
-
+                for (const auto& entry_obj : entries) {
                     Flame::File file;
                     // We don't care about blocked mods, we just need local data to delete the file
                     file.parseFromObject(entry_obj, false);
 
-                    auto id = Json::requireInteger(entry_obj, "id");
+                    auto id = entry_obj["id"].get<int>();
                     old_files.insert(id, file);
                 }
-            } catch (Json::JsonException& e) {
-                qCritical() << e.cause() << e.what();
+            } catch (const std::exception& e) {
+                qCritical() << "Error while parsing JSON response from Flame files task: " << e.what();
             }
 
             // Delete the files

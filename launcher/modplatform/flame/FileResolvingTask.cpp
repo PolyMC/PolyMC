@@ -1,6 +1,7 @@
 #include "FileResolvingTask.h"
 
 #include "Json.h"
+#include "json.hpp"
 #include "net/Upload.h"
 
 Flame::FileResolvingTask::FileResolvingTask(const shared_qobject_ptr<QNetworkAccessManager>& network, Flame::Manifest& toProcess)
@@ -37,28 +38,26 @@ void Flame::FileResolvingTask::executeTask()
 void Flame::FileResolvingTask::netJobFinished()
 {
     setProgress(1, 3);
-    int index = 0;
     // job to check modrinth for blocked projects
     auto job = new NetJob("Modrinth check", m_network);
-    blockedProjects = QMap<File *,QByteArray *>();
-    QJsonDocument doc;
+    blockedProjects = QMap<File*,QByteArray*>();
+    nlohmann::json doc;
 
     try {
-        doc = Json::requireDocument(*result);
+        doc = nlohmann::json::parse(result->constData(), result->constData() + result->size());
     }
-    catch (const JSONValidationError &e) {
+    catch (const nlohmann::json::exception &e) {
         qDebug() << "Flame::FileResolvingTask: Json Validation error: " << e.what();
         emitFailed(e.what());
         return;
     }
 
-    auto array = Json::requireArray(doc.object()["data"]);
-    for (QJsonValueRef file : array) {
-        auto fileid = Json::requireInteger(Json::requireObject(file)["id"]);
+    for (const auto& file : doc["data"]) {
+        auto fileid = file["id"].get<int>();
         auto& out = m_toProcess.files[fileid];
         try {
-           out.parseFromObject(Json::requireObject(file));
-        } catch (const JSONValidationError& e) {
+           out.parseFromObject(file);
+        } catch (const std::exception& e) {
             qDebug() << "Blocked mod on curseforge" << out.fileName;
             auto hash = out.hash;
             if(!hash.isEmpty()) {
@@ -73,7 +72,6 @@ void Flame::FileResolvingTask::netJobFinished()
                 blockedProjects.insert(&out, output);
             }
         }
-        index++;
     }
     connect(job, &NetJob::finished, this, &Flame::FileResolvingTask::modrinthCheckFinished);
 

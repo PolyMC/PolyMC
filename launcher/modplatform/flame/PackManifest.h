@@ -35,18 +35,19 @@
 
 #pragma once
 
-#include <QJsonObject>
 #include <QMap>
 #include <QString>
 #include <QUrl>
 #include <QVector>
+
+#include "json.hpp"
 
 namespace Flame
 {
 struct File
 {
     // NOTE: throws JSONValidationError
-    bool parseFromObject(const QJsonObject& object, bool throw_on_blocked = true);
+    bool parseFromObject(const nlohmann::json& object, bool throw_on_blocked = true);
 
     int projectId = 0;
     int fileId = 0;

@@ -32,7 +32,7 @@ class ModrinthAPI : public NetworkModAPI {
                         QByteArray* response) -> NetJob::Ptr;
 
     auto currentVersions(const QStringList& hashes,
-                         QString hash_format,
+                         const QString& hash_format,
                          QByteArray* response) -> NetJob::Ptr;
 
     auto latestVersion(QString hash,
@@ -41,9 +41,9 @@ class ModrinthAPI : public NetworkModAPI {
                        ModLoaderTypes loaders,
                        QByteArray* response) -> NetJob::Ptr;
 
-    auto latestVersions(const QStringList& hashes,
-                        QString hash_format,
-                        std::list<Version> mcVersions,
+    static auto latestVersions(const QStringList& hashes,
+                        const QString& hash_format,
+                        const std::list<Version>& mcVersions,
                         ModLoaderTypes loaders,
                         QByteArray* response) -> NetJob::Ptr;
 
