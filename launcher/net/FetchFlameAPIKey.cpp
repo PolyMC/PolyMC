@@ -19,10 +19,9 @@
 #include "FetchFlameAPIKey.h"
 #include "Application.h"
 #include <BuildConfig.h>
-#include <Json.h>
+#include "json.hpp"
 
 #include <ui/dialogs/ProgressDialog.h>
-#include <ui/dialogs/CustomMessageBox.h>
 
 FetchFlameAPIKey::FetchFlameAPIKey(QObject *parent)
     : Task{parent}
@@ -54,18 +53,24 @@ void FetchFlameAPIKey::executeTask()
 void FetchFlameAPIKey::downloadFinished()
 {
     auto res = m_reply->readAll();
-    auto doc = QJsonDocument::fromJson(res);
+    nlohmann::json doc;
+    try {
+        doc = nlohmann::json::parse(res.constData(), res.constData() + res.size());
+    }
+    catch (nlohmann::json::parse_error& e) {
+        qCritical() << "Failed to parse JSON: " << e.what();
+        emitFailed("Failed to parse JSON");
+        return;
+    }
 
-    qDebug() << doc;
+    //qDebug() << doc.dump(4).c_str();
 
     try {
-        auto obj = Json::requireObject(doc);
-
-        auto success = Json::requireBoolean(obj, "ok");
+        bool success = doc["ok"];
 
         if (success)
         {
-            m_result = Json::requireString(obj, "token");
+            m_result = doc["token"].get<std::string>().c_str();
             emitSucceeded();
         }
         else
@@ -73,9 +78,9 @@ void FetchFlameAPIKey::downloadFinished()
             emitFailed("The API returned an output indicating failure.");
         }
     }
-    catch (Json::JsonException&)
+    catch (const nlohmann::json::exception& e)
     {
         qCritical() << "Output: " << res;
-        emitFailed("The API returned an unexpected JSON output.");
+        emitFailed("The API returned an unexpected JSON output." + QString::fromStdString(e.what()));
     }
 }
