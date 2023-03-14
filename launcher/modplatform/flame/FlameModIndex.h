@@ -11,11 +11,11 @@
 
 namespace FlameMod {
 
-void loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj);
-void loadURLs(ModPlatform::IndexedPack& m, nlohmann::json& obj);
-void loadBody(ModPlatform::IndexedPack& m, nlohmann::json& obj);
+void loadIndexedPack(ModPlatform::IndexedPack& m, const nlohmann::json& obj);
+void loadURLs(ModPlatform::IndexedPack& m, const nlohmann::json& obj);
+void loadBody(ModPlatform::IndexedPack& m, const nlohmann::json& obj);
 void loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
-                             nlohmann::json& arr,
+                             const nlohmann::json& arr,
                              const shared_qobject_ptr<QNetworkAccessManager>& network,
                              BaseInstance* inst);
 auto loadIndexedPackVersion(const nlohmann::json& obj, bool load_changelog = false) -> ModPlatform::IndexedVersion;

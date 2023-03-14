@@ -1,12 +1,13 @@
 #include "FlameInstanceCreationTask.h"
 
+#include <utility>
+
 #include "modplatform/flame/FlameAPI.h"
 #include "modplatform/flame/PackManifest.h"
 
 #include "Application.h"
 #include "FileSystem.h"
 #include "InstanceList.h"
-#include "Json.h"
 
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
@@ -59,8 +60,8 @@ bool FlameCreationTask::updateInstance()
 
     try {
         Flame::loadManifest(m_pack, index_path);
-    } catch (const JSONValidationError& e) {
-        setError(tr("Could not understand pack manifest:\n") + e.cause());
+    } catch (const std::exception& e) {
+        setError(tr("Could not understand pack manifest:\n") + e.what());
         return false;
     }
 
@@ -157,7 +158,7 @@ bool FlameCreationTask::updateInstance()
             }
 
             try {
-                nlohmann::json entries = doc["data"];
+                const nlohmann::json& entries = doc["data"];
 
                 for (const auto& entry_obj : entries) {
                     Flame::File file;
@@ -227,8 +228,8 @@ bool FlameCreationTask::createInstance()
         FS::ensureFilePathExists(new_index_place);
         QFile::rename(index_path, new_index_place);
 
-    } catch (const JSONValidationError& e) {
-        setError(tr("Could not understand pack manifest:\n") + e.cause());
+    } catch (const std::exception& e) {
+        setError(tr("Could not understand pack manifest:\n") + e.what());
         return false;
     }
 
@@ -329,7 +330,7 @@ bool FlameCreationTask::createInstance()
 
     m_mod_id_resolver = new Flame::FileResolvingTask(APPLICATION->network(), m_pack);
     connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::succeeded, this, [this, &loop] { idResolverSucceeded(loop); });
-    connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::failed, [this, &loop](QString reason) {
+    connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::failed, [this, &loop](const QString& reason) {
         m_mod_id_resolver.reset();
         setError(tr("Unable to resolve mod IDs:\n") + reason);
         loop.exit();
@@ -442,7 +443,7 @@ void FlameCreationTask::setupDownloadJob(QEventLoop& loop)
     });
     connect(m_files_job.get(), &NetJob::failed, [&](QString reason) {
         m_files_job.reset();
-        setError(reason);
+        setError(std::move(reason));
     });
     connect(m_files_job.get(), &NetJob::progress, [&](qint64 current, qint64 total) { setProgress(current, total); });
     connect(m_files_job.get(), &NetJob::finished, &loop, &QEventLoop::quit);

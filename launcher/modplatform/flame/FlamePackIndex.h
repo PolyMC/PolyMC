@@ -5,6 +5,8 @@
 #include <QString>
 #include <QVector>
 
+#include "json.hpp"
+
 namespace Flame {
 
 struct ModpackAuthor {
@@ -43,9 +45,9 @@ struct IndexedPack
     ModpackExtra extra;
 };
 
-void loadIndexedPack(IndexedPack & m, QJsonObject & obj);
-void loadIndexedInfo(IndexedPack&, QJsonObject&);
-void loadIndexedPackVersions(IndexedPack & m, QJsonArray & arr);
+void loadIndexedPack(IndexedPack& m, const nlohmann::json& obj);
+void loadIndexedInfo(IndexedPack& m, const nlohmann::json& obj);
+void loadIndexedPackVersions(IndexedPack& m, const nlohmann::json& arr);
 }
 
 Q_DECLARE_METATYPE(Flame::IndexedPack)

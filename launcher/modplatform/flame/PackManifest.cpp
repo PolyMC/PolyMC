@@ -23,7 +23,7 @@ static void loadMinecraftV1(Flame::Minecraft& m, const nlohmann::json& minecraft
     // intended use is likely hardcoded in the 'Flame' client, the manifest says nothing
     m.libraries = minecraft.value("libraries", "").c_str();
     //auto arr = Json::ensureArray(minecraft, "modLoaders", QJsonArray());
-    auto arr = minecraft.value("modLoaders", nlohmann::json());
+    const auto& arr = minecraft.value("modLoaders", nlohmann::json());
     for (const auto& obj : arr) {
         Flame::Modloader loader;
         loadModloaderV1(loader, obj);
@@ -40,7 +40,7 @@ static void loadManifestV1(Flame::Manifest& pack, const nlohmann::json& manifest
     pack.author = manifest.value("author", "Anonymous").c_str();
 
 
-    auto arr = manifest.value("files", nlohmann::json());
+    const auto& arr = manifest.value("files", nlohmann::json());
     for (const auto& obj : arr) {
         Flame::File file;
         loadFileV1(file, obj);
@@ -55,7 +55,7 @@ static void loadManifestV1(Flame::Manifest& pack, const nlohmann::json& manifest
 
 void Flame::loadManifest(Flame::Manifest& m, const QString& filepath)
 {
-    nlohmann::json obj = nlohmann::json::parse(std::ifstream(filepath.toStdString()));
+    const nlohmann::json& obj = nlohmann::json::parse(std::ifstream(filepath.toStdString()));
 
     m.manifestType = obj["manifestType"].get<std::string>().c_str();
     if (m.manifestType != "minecraftModpack") {

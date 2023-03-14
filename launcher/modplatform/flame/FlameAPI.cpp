@@ -11,18 +11,14 @@ auto FlameAPI::matchFingerprints(const QList<uint>& fingerprints, QByteArray* re
 {
     auto* netJob = new NetJob(QString("Flame::MatchFingerprints"), APPLICATION->network());
 
-    QJsonObject body_obj;
-    QJsonArray fingerprints_arr;
+    nlohmann::json body_obj;
     for (auto& fp : fingerprints) {
-        fingerprints_arr.append(QString("%1").arg(fp));
+        body_obj["fingerprints"].push_back(fp);
     }
 
-    body_obj["fingerprints"] = fingerprints_arr;
+    QString body_str = body_obj.dump().c_str();
 
-    QJsonDocument body(body_obj);
-    auto body_raw = body.toJson();
-
-    netJob->addNetAction(Net::Upload::makeByteArray(QString("https://api.curseforge.com/v1/fingerprints"), response, body_raw));
+    netJob->addNetAction(Net::Upload::makeByteArray(QString("https://api.curseforge.com/v1/fingerprints"), response, body_str.toUtf8()));
 
     QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 
@@ -42,18 +38,17 @@ auto FlameAPI::getModFileChangelog(int modId, int fileId) -> QString
         response));
 
     QObject::connect(netJob, &NetJob::succeeded, [netJob, response, &changelog] {
-        QJsonParseError parse_error{};
-        QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-        if (parse_error.error != QJsonParseError::NoError) {
-            qWarning() << "Error while parsing JSON response from Flame::FileChangelog at " << parse_error.offset
-                       << " reason: " << parse_error.errorString();
+        nlohmann::json doc;
+        try {
+            doc = nlohmann::json::parse(response->constData(), response->constData() + response->size());
+        }
+        catch (const nlohmann::json::exception& e) {
+            qWarning() << "Error while parsing JSON response from Flame::FileChangelog at " << e.what();
             qWarning() << *response;
-
-            netJob->failed(parse_error.errorString());
             return;
         }
 
-        changelog = Json::ensureString(doc.object(), "data");
+        changelog = doc["data"].get<std::string>().c_str();
     });
 
     QObject::connect(netJob, &NetJob::finished, [response, &lock] {
@@ -79,18 +74,17 @@ auto FlameAPI::getModDescription(int modId) -> QString
             .arg(QString::number(modId)), response));
 
     QObject::connect(netJob, &NetJob::succeeded, [netJob, response, &description] {
-        QJsonParseError parse_error{};
-        QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-        if (parse_error.error != QJsonParseError::NoError) {
-            qWarning() << "Error while parsing JSON response from Flame::ModDescription at " << parse_error.offset
-                       << " reason: " << parse_error.errorString();
+        nlohmann::json doc;
+        try {
+            doc = nlohmann::json::parse(response->constData(), response->constData() + response->size());
+        }
+        catch (const nlohmann::json::exception& e) {
+            qWarning() << "Error while parsing JSON response from Flame::ModDescription at " << e.what();
             qWarning() << *response;
-
-            netJob->failed(parse_error.errorString());
             return;
         }
 
-        description = Json::ensureString(doc.object(), "data");
+        description = doc.value("data", "").c_str();
     });
 
     QObject::connect(netJob, &NetJob::finished, [response, &lock] {
@@ -125,7 +119,7 @@ auto FlameAPI::getLatestVersion(VersionSearchArgs&& args) -> ModPlatform::Indexe
         }
 
         try {
-            auto arr = doc["data"];
+            const auto& arr = doc["data"];
 
             nlohmann::json latest_file_obj;
             ModPlatform::IndexedVersion ver_tmp;
@@ -163,21 +157,17 @@ auto FlameAPI::getProjects(QStringList addonIds, QByteArray* response) const -> 
 {
     auto* netJob = new NetJob(QString("Flame::GetProjects"), APPLICATION->network());
 
-    QJsonObject body_obj;
-    QJsonArray addons_arr;
-    for (auto& addonId : addonIds) {
-        addons_arr.append(addonId);
+    nlohmann::json body_obj;
+    for (const auto& addonId : addonIds) {
+        body_obj["modIds"].push_back(addonId.toStdString());
     }
 
-    body_obj["modIds"] = addons_arr;
+    QString body_str = body_obj.dump().c_str();
 
-    QJsonDocument body(body_obj);
-    auto body_raw = body.toJson();
-
-    netJob->addNetAction(Net::Upload::makeByteArray(QString("https://api.curseforge.com/v1/mods"), response, body_raw));
+    netJob->addNetAction(Net::Upload::makeByteArray(QString("https://api.curseforge.com/v1/mods"), response, body_str.toUtf8()));
 
     QObject::connect(netJob, &NetJob::finished, [response, netJob] { delete response; netJob->deleteLater(); });
-    QObject::connect(netJob, &NetJob::failed, [body_raw] { qDebug() << body_raw; });
+    QObject::connect(netJob, &NetJob::failed, [body_str] { qDebug() << body_str; });
 
     return netJob;
 }
@@ -186,21 +176,17 @@ auto FlameAPI::getFiles(const QStringList& fileIds, QByteArray* response) const 
 {
     auto* netJob = new NetJob(QString("Flame::GetFiles"), APPLICATION->network());
 
-    QJsonObject body_obj;
-    QJsonArray files_arr;
-    for (auto& fileId : fileIds) {
-        files_arr.append(fileId);
+    nlohmann::json body_obj;
+    for (const auto& fileId : fileIds) {
+        body_obj["fileIds"].push_back(fileId.toStdString());
     }
 
-    body_obj["fileIds"] = files_arr;
+    QString body_str = body_obj.dump().c_str();
 
-    QJsonDocument body(body_obj);
-    auto body_raw = body.toJson();
-
-    netJob->addNetAction(Net::Upload::makeByteArray(QString("https://api.curseforge.com/v1/mods/files"), response, body_raw));
+    netJob->addNetAction(Net::Upload::makeByteArray(QString("https://api.curseforge.com/v1/mods/files"), response, body_str.toUtf8()));
 
     QObject::connect(netJob, &NetJob::finished, [response, netJob] { delete response; netJob->deleteLater(); });
-    QObject::connect(netJob, &NetJob::failed, [body_raw] { qDebug() << body_raw; });
+    QObject::connect(netJob, &NetJob::failed, [body_str] { qDebug() << body_str; });
 
     return netJob;
 }

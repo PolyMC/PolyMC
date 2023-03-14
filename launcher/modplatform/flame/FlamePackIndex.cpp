@@ -1,96 +1,120 @@
 #include "FlamePackIndex.h"
 
-#include "Json.h"
-
-void Flame::loadIndexedPack(Flame::IndexedPack& pack, QJsonObject& obj)
+void Flame::loadIndexedPack(Flame::IndexedPack& pack, const nlohmann::json& obj)
 {
-    pack.addonId = Json::requireInteger(obj, "id");
-    pack.name = Json::requireString(obj, "name");
-    pack.description = Json::ensureString(obj, "summary", "");
+    pack.addonId = obj["id"];
+    pack.name = obj["name"].get<std::string>().c_str();
+    pack.description = obj.value("summary", "").c_str();
 
-    auto logo = Json::requireObject(obj, "logo");
-    pack.logoName = Json::requireString(logo, "title");
-    pack.logoUrl = Json::requireString(logo, "thumbnailUrl");
+    const auto& logo = obj["logo"];
+    pack.logoName = logo["title"].get<std::string>().c_str();
+    pack.logoUrl = logo["thumbnailUrl"].get<std::string>().c_str();
 
-    auto authors = Json::requireArray(obj, "authors");
-    for (auto authorIter : authors) {
-        auto author = Json::requireObject(authorIter);
+    const auto& authors = obj["authors"];
+    for (const auto& author : authors) {
         Flame::ModpackAuthor packAuthor;
-        packAuthor.name = Json::requireString(author, "name");
-        packAuthor.url = Json::requireString(author, "url");
+        packAuthor.name = author["name"].get<std::string>().c_str();
+        packAuthor.url = author["url"].get<std::string>().c_str();
         pack.authors.append(packAuthor);
     }
-    int defaultFileId = Json::requireInteger(obj, "mainFileId");
+    int defaultFileId = obj["mainFileId"];
 
     bool found = false;
     // check if there are some files before adding the pack
-    auto files = Json::requireArray(obj, "latestFiles");
-    for (auto fileIter : files) {
-        auto file = Json::requireObject(fileIter);
-        int id = Json::requireInteger(file, "id");
+    const auto& files = obj["latestFiles"];
+    for (const auto& file : files) {
+        int id = file["id"];
 
         // NOTE: for now, ignore everything that's not the default...
-        if (id != defaultFileId) {
+        if (id != defaultFileId)
             continue;
-        }
 
-        auto versionArray = Json::requireArray(file, "gameVersions");
-        if (versionArray.size() < 1) {
+        if (file["gameVersions"].empty())
             continue;
-        }
 
         found = true;
         break;
     }
     if (!found) {
-        throw JSONValidationError(QString("Pack with no good file, skipping: %1").arg(pack.name));
+        throw std::runtime_error("Pack with no good file, skipping: " + pack.name.toStdString());
     }
 
     loadIndexedInfo(pack, obj);
 }
 
-void Flame::loadIndexedInfo(IndexedPack& pack, QJsonObject& obj)
+void Flame::loadIndexedInfo(IndexedPack& pack, const nlohmann::json& obj)
 {
-    auto links_obj = Json::ensureObject(obj, "links");
+    const nlohmann::json& links_obj = obj["links"];
+    nlohmann::json temp;
 
-    pack.extra.websiteUrl = Json::ensureString(links_obj, "websiteUrl");
-    if(pack.extra.websiteUrl.endsWith('/'))
-        pack.extra.websiteUrl.chop(1);
+    temp = links_obj.value("websiteUrl", nlohmann::json());
+    if (temp.is_string()) {
+        pack.extra.websiteUrl = temp.get<std::string>().c_str();
+        if (pack.extra.websiteUrl.endsWith('/')) {
+            pack.extra.websiteUrl.chop(1);
+        } else {
+            pack.extra.websiteUrl = "";
+        }
+    } else {
+        pack.extra.websiteUrl = "";
+    }
 
-    pack.extra.issuesUrl = Json::ensureString(links_obj, "issuesUrl");
-    if(pack.extra.issuesUrl.endsWith('/'))
-        pack.extra.issuesUrl.chop(1);
+    temp = links_obj.value("issuesUrl", nlohmann::json());
+    if (temp.is_string()) {
+        pack.extra.issuesUrl = temp.get<std::string>().c_str();
+        if (pack.extra.issuesUrl.endsWith('/')) {
+            pack.extra.issuesUrl.chop(1);
+        } else {
+            pack.extra.issuesUrl = "";
+        }
+    } else {
+        pack.extra.issuesUrl = "";
+    }
 
-    pack.extra.sourceUrl = Json::ensureString(links_obj, "sourceUrl");
-    if(pack.extra.sourceUrl.endsWith('/'))
-        pack.extra.sourceUrl.chop(1);
+    temp = links_obj.value("sourceUrl", nlohmann::json());
+    if (temp.is_string()) {
+        pack.extra.sourceUrl = temp.get<std::string>().c_str();
+        if (pack.extra.sourceUrl.endsWith('/')) {
+            pack.extra.sourceUrl.chop(1);
+        } else {
+            pack.extra.sourceUrl = "";
+        }
+    } else {
+        pack.extra.sourceUrl = "";
+    }
 
-    pack.extra.wikiUrl = Json::ensureString(links_obj, "wikiUrl");
-    if(pack.extra.wikiUrl.endsWith('/'))
-        pack.extra.wikiUrl.chop(1);
+    temp = links_obj.value("wikiUrl", nlohmann::json());
+    if (temp.is_string()) {
+        pack.extra.wikiUrl = temp.get<std::string>().c_str();
+        if (pack.extra.wikiUrl.endsWith('/')) {
+            pack.extra.wikiUrl.chop(1);
+        } else {
+            pack.extra.wikiUrl = "";
+        }
+    } else {
+        pack.extra.wikiUrl = "";
+    }
 
     pack.extraInfoLoaded = true;
-
 }
 
-void Flame::loadIndexedPackVersions(Flame::IndexedPack& pack, QJsonArray& arr)
+void Flame::loadIndexedPackVersions(Flame::IndexedPack& pack, const nlohmann::json& arr)
 {
     QVector<Flame::IndexedVersion> unsortedVersions;
-    for (auto versionIter : arr) {
-        auto version = Json::requireObject(versionIter);
+    for (const auto& version : arr) {
         Flame::IndexedVersion file;
 
         file.addonId = pack.addonId;
-        file.fileId = Json::requireInteger(version, "id");
-        auto versionArray = Json::requireArray(version, "gameVersions");
-        if (versionArray.size() < 1) {
+        file.fileId = version["id"];
+        const auto& versionArray = version["gameVersions"];
+        if (versionArray.empty()) {
             continue;
         }
 
         // pick the latest version supported
-        file.mcVersion = versionArray[0].toString();
-        file.version = Json::requireString(version, "displayName");
-        file.downloadUrl = Json::ensureString(version, "downloadUrl");
+        file.mcVersion = versionArray[0].get<std::string>().c_str();
+        file.version = version["displayName"].get<std::string>().c_str();
+        file.downloadUrl = version["downloadUrl"].get<std::string>().c_str();
 
         // only add if we have a download URL (third party distribution is enabled)
         if (!file.downloadUrl.isEmpty()) {

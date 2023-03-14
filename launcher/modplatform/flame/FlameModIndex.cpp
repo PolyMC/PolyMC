@@ -1,6 +1,5 @@
 #include "FlameModIndex.h"
 
-#include "Json.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "modplatform/flame/FlameAPI.h"
@@ -8,25 +7,25 @@
 static FlameAPI api;
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
-void FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, nlohmann::json& obj)
+void FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, const nlohmann::json& obj)
 {
         pack.addonId = obj["id"].get<int>();
         pack.provider = ModPlatform::Provider::FLAME;
         pack.name = obj["name"].get<std::string>().c_str();
         pack.slug = obj["slug"].get<std::string>().c_str();
 
-        nlohmann::json linksobj = obj.value("links", nlohmann::json::object());
-        pack.websiteUrl = linksobj.value("websiteUrl", "").c_str();
+        const nlohmann::json& links_obj = obj.value("links", nlohmann::json::object());
+        pack.websiteUrl = links_obj.value("websiteUrl", "").c_str();
 
         pack.description = obj.value("summary", "").c_str();
 
-        nlohmann::json logo = obj.value("logo", nlohmann::json::object());
+        const nlohmann::json& logo = obj.value("logo", nlohmann::json::object());
 
         pack.logoName = logo.value("title", "").c_str();
         pack.logoUrl = logo.value("thumbnailUrl", "").c_str();
 
-        nlohmann::json authors = obj.value("authors", nlohmann::json::array());
-        for (auto author : authors) {
+        const nlohmann::json& authors = obj.value("authors", nlohmann::json::array());
+        for (const auto& author : authors) {
             ModPlatform::ModpackAuthor packAuthor;
             packAuthor.name = author["name"].get<std::string>().c_str();
             packAuthor.url = author["url"].get<std::string>().c_str();
@@ -34,10 +33,10 @@ void FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, nlohmann::json& o
         }
 
         pack.extraDataLoaded = false;
-        loadURLs(pack, linksobj);
+        loadURLs(pack, links_obj);
 }
 
-void FlameMod::loadURLs(ModPlatform::IndexedPack& pack, nlohmann::json& obj)
+void FlameMod::loadURLs(ModPlatform::IndexedPack& pack, const nlohmann::json& obj)
 {
     nlohmann::json temp;
 
@@ -63,7 +62,7 @@ void FlameMod::loadURLs(ModPlatform::IndexedPack& pack, nlohmann::json& obj)
         pack.extraDataLoaded = true;
 }
 
-void FlameMod::loadBody(ModPlatform::IndexedPack& pack, nlohmann::json& obj)
+void FlameMod::loadBody(ModPlatform::IndexedPack& pack, const nlohmann::json& obj)
 {
     pack.extraData.body  = api.getModDescription(pack.addonId.toInt());
 
@@ -83,13 +82,12 @@ static QString enumToString(int hash_algorithm)
 }
 
 void FlameMod::loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
-                                       nlohmann::json& arr,
+                                       const nlohmann::json& arr,
                                        const shared_qobject_ptr<QNetworkAccessManager>& network,
                                        BaseInstance* inst)
 {
     QVector<ModPlatform::IndexedVersion> unsortedVersions;
     auto profile = (dynamic_cast<MinecraftInstance*>(inst))->getPackProfile();
-    QString mcVersion = profile->getComponentVersion("net.minecraft");
 
     for (const auto& obj : arr) {
         auto file = loadIndexedPackVersion(obj);
@@ -134,7 +132,6 @@ auto FlameMod::loadIndexedPackVersion(const nlohmann::json& obj, bool load_chang
     auto hash_list = obj.value("hashes", nlohmann::json());
     for (const auto& hash_entry : hash_list) {
         auto hash_types = ProviderCaps.hashType(ModPlatform::Provider::FLAME);
-        //auto hash_algo = enumToString(Json::ensureInteger(hash_entry, "algo", 1, "algorithm"));
         auto hash_algo = enumToString(hash_entry.value("algo", 1));
         if (hash_types.contains(hash_algo)) {
             file.hash = hash_entry.value("value", "").c_str();

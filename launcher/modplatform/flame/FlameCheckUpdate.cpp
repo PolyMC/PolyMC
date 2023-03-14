@@ -5,7 +5,6 @@
 #include <MurmurHash2.h>
 
 #include "FileSystem.h"
-#include "Json.h"
 
 #include "ModDownloadTask.h"
 
@@ -33,16 +32,6 @@ ModPlatform::IndexedPack getProjectInfo(ModPlatform::IndexedVersion& ver_info)
     get_project_job->addNetAction(dl);
 
     QObject::connect(get_project_job, &NetJob::succeeded, [response, &pack]() {
-        /*
-        QJsonParseError parse_error{};
-        QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-        if (parse_error.error != QJsonParseError::NoError) {
-            qWarning() << "Error while parsing JSON response from FlameCheckUpdate at " << parse_error.offset
-                       << " reason: " << parse_error.errorString();
-            qWarning() << *response;
-            return;
-        }
-         */
         nlohmann::json doc;
         try
         {
