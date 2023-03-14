@@ -1,7 +1,6 @@
 #include "ModModel.h"
 
 #include "BuildConfig.h"
-#include "Json.h"
 #include "ModPage.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
@@ -239,7 +238,7 @@ void ListModel::searchRequestFinished(nlohmann::json& doc)
             loadIndexedPack(pack, packObj);
             newList.append(pack);
         } catch (const std::exception& e) {
-            qWarning() << "Error wfualty jsonhile loading mod from " << m_parent->debugName() << ": " << e.what();
+            qWarning() << "Error loading mod from " << m_parent->debugName() << ": " << e.what();
             continue;
         }
     }

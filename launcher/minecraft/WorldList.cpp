@@ -40,7 +40,6 @@
 #include <Qt>
 #include <QMimeData>
 #include <QUrl>
-#include <QUuid>
 #include <QString>
 #include <QFileSystemWatcher>
 #include <QDebug>

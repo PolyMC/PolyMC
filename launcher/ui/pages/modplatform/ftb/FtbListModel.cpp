@@ -18,7 +18,6 @@
 
 #include "BuildConfig.h"
 #include "Application.h"
-#include "Json.h"
 
 #include <QPainter>
 
@@ -180,10 +179,10 @@ void ListModel::packRequestFinished()
     {
         ModpacksCH::loadModpack(pack, obj);
     }
-    catch (const JSONValidationError &e)
+    catch (const nlohmann::json::exception& e)
     {
         qDebug() << QString::fromUtf8(response);
-        qWarning() << "Error while reading pack manifest from ModpacksCH: " << e.cause();
+        qWarning() << "Error while reading pack manifest from ModpacksCH: " << e.what();
         return;
     }
 

@@ -33,7 +33,11 @@ void loadPack(Pack& v, nlohmann::json& obj)
 static void loadPackBuildMod(PackBuildMod& b, const nlohmann::json& obj)
 {
     b.name = obj["name"].get<std::string>().c_str();
-    b.version = obj.value("version", "").c_str();
+
+    const nlohmann::json& temp = obj.value("version", nlohmann::json());
+    if (!temp.is_null())
+        b.version = temp.get<std::string>().c_str();
+
     b.md5 = obj["md5"].get<std::string>().c_str();
     b.url = obj["url"].get<std::string>().c_str();
 }

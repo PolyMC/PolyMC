@@ -36,7 +36,6 @@
 #include "TechnicModel.h"
 #include "Application.h"
 #include "BuildConfig.h"
-#include "Json.h"
 
 #include <QIcon>
 
@@ -44,9 +43,7 @@ Technic::ListModel::ListModel(QObject *parent) : QAbstractListModel(parent)
 {
 }
 
-Technic::ListModel::~ListModel()
-{
-}
+Technic::ListModel::~ListModel() = default;
 
 QVariant Technic::ListModel::data(const QModelIndex& index, int role) const
 {
@@ -145,39 +142,39 @@ void Technic::ListModel::searchRequestFinished()
 {
     jobPtr.reset();
 
-    QJsonParseError parse_error;
-    QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
-    if(parse_error.error != QJsonParseError::NoError)
-    {
-        qWarning() << "Error while parsing JSON response from Technic at " << parse_error.offset << " reason: " << parse_error.errorString();
+    nlohmann::json root;
+    try {
+        root = nlohmann::json::parse(response.constData(), response.constData() + response.size());
+    }
+    catch (nlohmann::json::parse_error &e) {
+        qWarning() << "Error while parsing JSON response from Technic at " << e.byte << " reason: " << e.what();
         qWarning() << response;
         return;
     }
 
     QList<Modpack> newList;
     try {
-        auto root = Json::requireObject(doc);
-
         switch (searchMode) {
             case List: {
-                auto objs = Json::requireArray(root, "modpacks");
-                for (auto technicPack: objs) {
+                const auto& objs = root["modpacks"];
+                for (const auto& technicPackObject: objs) {
                     Modpack pack;
-                    auto technicPackObject = Json::requireObject(technicPack);
-                    pack.name = Json::requireString(technicPackObject, "name");
-                    pack.slug = Json::requireString(technicPackObject, "slug");
+                    pack.name = technicPackObject["name"].get<std::string>().c_str();
+                    pack.slug = technicPackObject["slug"].get<std::string>().c_str();
                     if (pack.slug == "vanilla")
                         continue;
 
-                    auto rawURL = Json::ensureString(technicPackObject, "iconUrl", "null");
-                    if(rawURL == "null") {
-                        pack.logoUrl = "null";
-                        pack.logoName = "null";
-                    }
-                    else {
+                    const nlohmann::json& temp = technicPackObject["iconUrl"];
+                    if (!temp.is_null()) {
+                        QString rawURL = temp.get<std::string>().c_str();
                         pack.logoUrl = rawURL;
                         pack.logoName = rawURL.section(QLatin1Char('/'), -1).section(QLatin1Char('.'), 0, 0);
                     }
+                    else {
+                        pack.logoUrl = "null";
+                        pack.logoName = "null";
+                    }
+
                     pack.broken = false;
                     newList.append(pack);
                 }
@@ -190,12 +187,11 @@ void Technic::ListModel::searchRequestFinished()
                 }
 
                 Modpack pack;
-                pack.name = Json::requireString(root, "displayName");
-                pack.slug = Json::requireString(root, "name");
+                pack.name = root["displayName"].get<std::string>().c_str();
+                pack.slug = root["name"].get<std::string>().c_str();
 
                 if (root.contains("icon")) {
-                    auto iconObj = Json::requireObject(root, "icon");
-                    auto iconUrl = Json::requireString(iconObj, "url");
+                    QString iconUrl = root["icon"]["url"].get<std::string>().c_str();
 
                     pack.logoUrl = iconUrl;
                     pack.logoName = iconUrl.section(QLatin1Char('/'), -1).section(QLatin1Char('.'), 0, 0);
@@ -211,15 +207,15 @@ void Technic::ListModel::searchRequestFinished()
             }
         }
     }
-    catch (const JSONValidationError &err)
+    catch (const nlohmann::json::exception &err)
     {
-        qCritical() << "Couldn't parse technic search results:" << err.cause() ;
+        qCritical() << "Couldn't parse technic search results:" << err.what();
         return;
     }
     searchState = Finished;
 
     // When you have a Qt build with assertions turned on, proceeding here will abort the application
-    if (newList.size() == 0)
+    if (newList.empty())
         return;
 
     beginInsertRows(QModelIndex(), modpacks.size(), modpacks.size() + newList.size() - 1);
@@ -258,7 +254,7 @@ void Technic::ListModel::searchRequestFailed()
 }
 
 
-void Technic::ListModel::logoLoaded(QString logo, QString out)
+void Technic::ListModel::logoLoaded(const QString& logo, const QString& out)
 {
     m_loadingLogos.removeAll(logo);
     m_logoMap.insert(logo, QIcon(out));
@@ -271,13 +267,13 @@ void Technic::ListModel::logoLoaded(QString logo, QString out)
     }
 }
 
-void Technic::ListModel::logoFailed(QString logo)
+void Technic::ListModel::logoFailed(const QString& logo)
 {
     m_failedLogos.append(logo);
     m_loadingLogos.removeAll(logo);
 }
 
-void Technic::ListModel::requestLogo(QString logo, QString url)
+void Technic::ListModel::requestLogo(const QString& logo, const QString& url)
 {
     if(m_loadingLogos.contains(logo) || m_failedLogos.contains(logo) || logo == "null")
     {

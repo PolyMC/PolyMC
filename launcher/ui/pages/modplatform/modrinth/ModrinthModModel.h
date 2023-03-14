@@ -33,8 +33,6 @@ class ListModel : public ModPlatform::ListModel {
     void loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj) override;
     void loadExtraPackInfo(ModPlatform::IndexedPack& m, nlohmann::json& obj) override;
     void loadIndexedPackVersions(ModPlatform::IndexedPack& m, nlohmann::json& arr) override;
-    
-    auto documentToArray(QJsonDocument& obj) const -> QJsonArray override;
 
     // NOLINTNEXTLINE(modernize-avoid-c-arrays)
     static const char* sorts[5];

@@ -294,7 +294,11 @@ NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
         }
 
         try {
-            auto entries = doc;
+            nlohmann::json::array_t entries;
+            if (addonIds.size() == 1)
+                entries = { doc };
+            else
+                entries = doc;
 
             for (auto entry_obj : entries) {
                 ModPlatform::IndexedPack pack;
@@ -316,7 +320,7 @@ NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
                     modrinthCallback(pack, m_temp_versions.find(hash).value(), mod);
                 } catch (const std::exception& e) {
                     qDebug() << e.what();
-                    qDebug() << entries.dump(4).c_str();
+                    //qDebug() << entries.dump(4).c_str();
 
                     emitFail(mod);
                 }
@@ -446,14 +450,11 @@ NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
         }
 
         try {
-            /*
-            QJsonArray entries;
+            nlohmann::json::array_t entries;
             if (addonIds.size() == 1)
-                entries = { Json::requireObject(Json::requireObject(doc), "data") };
+                entries = { doc["data"] };
             else
-                entries = Json::requireArray(Json::requireObject(doc), "data");
-                */
-            nlohmann::json entries = doc["data"];
+                entries = doc["data"];
 
             for (auto entry_obj : entries) {
 
@@ -470,7 +471,7 @@ NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
                     flameCallback(pack, m_temp_versions.find(hash).value(), mod);
                 } catch (const std::exception& e) {
                     qDebug() << e.what();
-                    qDebug() << entries.dump(4).c_str();
+                    //qDebug() << entries.dump(4).c_str();
 
                     emitFail(mod);
                 }

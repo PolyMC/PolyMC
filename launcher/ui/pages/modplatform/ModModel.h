@@ -66,7 +66,6 @@ class ListModel : public QAbstractListModel {
     void performPaginatedSearch();
 
    protected:
-    virtual auto documentToArray(QJsonDocument& obj) const -> QJsonArray = 0;
     virtual auto getSorts() const -> const char** = 0;
 
     void requestLogo(QString file, QString url);

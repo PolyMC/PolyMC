@@ -5,9 +5,6 @@
 #include "ScrollMessageBox.h"
 #include "ui_ReviewMessageBox.h"
 
-#include "FileSystem.h"
-#include "Json.h"
-
 #include "tasks/ConcurrentTask.h"
 
 #include "minecraft/MinecraftInstance.h"

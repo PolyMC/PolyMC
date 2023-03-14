@@ -40,9 +40,4 @@ void ListModel::loadIndexedPackVersions(ModPlatform::IndexedPack& m, nlohmann::j
     Modrinth::loadIndexedPackVersions(m, arr, APPLICATION->network(), m_parent->m_instance);
 }
 
-auto ListModel::documentToArray(QJsonDocument& obj) const -> QJsonArray
-{
-    return obj.object().value("hits").toArray();
-}
-
 }  // namespace Modrinth
