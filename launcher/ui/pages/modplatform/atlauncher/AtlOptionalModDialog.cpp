@@ -39,7 +39,6 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include "BuildConfig.h"
-#include "Json.h"
 #include "modplatform/atlauncher/ATLShareCode.h"
 #include "Application.h"
 

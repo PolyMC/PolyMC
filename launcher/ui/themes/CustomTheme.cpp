@@ -1,27 +1,31 @@
 #include "CustomTheme.h"
 #include <QDir>
-#include <Json.h>
 #include <FileSystem.h>
+#include <fstream>
+#include <filesystem>
 
-const char * themeFile = "theme.json";
-const char * styleFile = "themeStyle.css";
+#include "json.hpp"
 
-static bool readThemeJson(const QString &path, QPalette &palette, double &fadeAmount, QColor &fadeColor, QString &name, QString &widgets)
+const char* themeFile = "theme.json";
+const char* styleFile = "themeStyle.css";
+
+static bool readThemeJson(const QString& path, QPalette& palette, double& fadeAmount, QColor& fadeColor, QString& name, QString& widgets)
 {
-    QFileInfo pathInfo(path);
-    if(pathInfo.exists() && pathInfo.isFile())
+    std::string path_str = path.toStdString();
+    if(std::filesystem::exists(path_str) && std::filesystem::is_regular_file(path_str))
     {
         try
         {
-            auto doc = Json::requireDocument(path, "Theme JSON file");
-            const QJsonObject root = doc.object();
-            name = Json::requireString(root, "name", "Theme name");
-            widgets = Json::requireString(root, "widgets", "Qt widget theme");
-            auto colorsRoot = Json::requireObject(root, "colors", "colors object");
-            auto readColor = [&](QString colorName) -> QColor
+            const nlohmann::json& root = nlohmann::json::parse(std::ifstream(path_str));
+
+            name = root["name"].get<std::string>().c_str();
+            widgets = root["widgets"].get<std::string>().c_str();
+
+            const nlohmann::json& colorsRoot = root["colors"];
+            auto readColor = [&](const char* colorName) -> QColor
             {
-                auto colorValue = Json::ensureString(colorsRoot, colorName, QString());
-                if(!colorValue.isEmpty())
+                auto colorValue = colorsRoot[colorName].get<std::string>().c_str();
+                if(colorValue[0] != '\0')
                 {
                     QColor color(colorValue);
                     if(!color.isValid())
@@ -33,7 +37,7 @@ static bool readThemeJson(const QString &path, QPalette &palette, double &fadeAm
                 }
                 return QColor();
             };
-            auto readAndSetColor = [&](QPalette::ColorRole role, QString colorName)
+            auto readAndSetColor = [&](QPalette::ColorRole role, const char* colorName)
             {
                 auto color = readColor(colorName);
                 if(color.isValid())
@@ -63,12 +67,12 @@ static bool readThemeJson(const QString &path, QPalette &palette, double &fadeAm
 
             //fade
             fadeColor = readColor("fadeColor");
-            fadeAmount = Json::ensureDouble(colorsRoot, "fadeAmount", 0.5, "fade amount");
+            fadeAmount = colorsRoot.value("fadeAmount", 0.5);
 
         }
-        catch (const Exception &e)
+        catch (const std::exception& e)
         {
-            qWarning() << "Couldn't load theme json: " << e.cause();
+            qWarning() << "Couldn't load theme json: " << e.what();
             return false;
         }
     }
@@ -80,16 +84,16 @@ static bool readThemeJson(const QString &path, QPalette &palette, double &fadeAm
     return true;
 }
 
-static bool writeThemeJson(const QString &path, const QPalette &palette, double fadeAmount, QColor fadeColor, QString name, QString widgets)
+static bool writeThemeJson(const QString& path, const QPalette& palette, double fadeAmount, const QColor& fadeColor, QString name, QString widgets)
 {
-    QJsonObject rootObj;
-    rootObj.insert("name", name);
-    rootObj.insert("widgets", widgets);
+    nlohmann::json rootObj;
+    rootObj["name"] = name.toStdString();
+    rootObj["widgets"] = widgets.toStdString();
 
-    QJsonObject colorsObj;
-    auto insertColor = [&](QPalette::ColorRole role, QString colorName)
+    nlohmann::json colorsObj;
+    auto insertColor = [&](QPalette::ColorRole role, const char* colorName)
     {
-        colorsObj.insert(colorName, palette.color(role).name());
+        colorsObj[colorName] = palette.color(role).name().toStdString();
     };
 
     // palette
@@ -108,16 +112,18 @@ static bool writeThemeJson(const QString &path, const QPalette &palette, double 
     insertColor(QPalette::HighlightedText, "HighlightedText");
 
     // fade
-    colorsObj.insert("fadeColor", fadeColor.name());
-    colorsObj.insert("fadeAmount", fadeAmount);
+    colorsObj["fadeColor"] = fadeColor.name().toStdString();
+    colorsObj["fadeAmount"] = fadeAmount;
 
-    rootObj.insert("colors", colorsObj);
+    rootObj["colors"] = colorsObj;
     try
     {
-        Json::write(rootObj, path);
+        std::ofstream file(path.toStdString());
+        file << rootObj.dump(4);
+        file.close();
         return true;
     }
-    catch (const Exception &e)
+    catch (const std::exception& e)
     {
         qWarning() << "Failed to write theme json to" << path;
         return false;

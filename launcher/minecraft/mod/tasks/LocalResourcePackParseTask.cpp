@@ -19,7 +19,7 @@
 #include "LocalResourcePackParseTask.h"
 
 #include "FileSystem.h"
-#include "Json.h"
+#include "json.hpp"
 
 #include <quazip/quazip.h>
 #include <quazip/quazipfile.h>
@@ -119,13 +119,13 @@ void processZIP(ResourcePack& pack)
 void processMCMeta(ResourcePack& pack, QByteArray&& raw_data)
 {
     try {
-        auto json_doc = QJsonDocument::fromJson(raw_data);
-        auto pack_obj = Json::requireObject(json_doc.object(), "pack", {});
+        const nlohmann::json json_doc = nlohmann::json::parse(raw_data.constData(), raw_data.constData() + raw_data.size());
+        const nlohmann::json& pack_obj = json_doc.at("pack");
 
-        pack.setPackFormat(Json::ensureInteger(pack_obj, "pack_format", 0));
-        pack.setDescription(Json::ensureString(pack_obj, "description", ""));
-    } catch (Json::JsonException& e) {
-        qWarning() << "JsonException: " << e.what() << e.cause();
+        pack.setPackFormat(pack_obj.value("pack_format", 0));
+        pack.setDescription(pack_obj.value("description", "").c_str());
+    } catch (const nlohmann::json::exception& e) {
+        qWarning() << "Failed to parse pack.mcmeta:" << e.what();
     }
 }
 
