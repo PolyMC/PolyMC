@@ -46,7 +46,7 @@
 #include "net/NetJob.h"
 #include "net/ChecksumValidator.h"
 #include "BuildConfig.h"
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #include "POTranslator.h"
 

@@ -19,7 +19,7 @@
 #include "LocalResourcePackParseTask.h"
 
 #include "FileSystem.h"
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #include <quazip/quazip.h>
 #include <quazip/quazipfile.h>

@@ -68,7 +68,7 @@ void Flame::loadManifest(Flame::Manifest& m, const QString& filepath)
     loadManifestV1(m, obj);
 }
 
-bool Flame::File::parseFromObject(const nlohmann::json& obj,  bool throw_on_blocked)
+bool Flame::File::parseFromObject(const nlohmann::json& obj, bool throw_on_blocked)
 {
     fileName = obj["fileName"].get<std::string>().c_str();
     // This is a piece of a Flame project JSON pulled out into the file metadata (here) for convenience

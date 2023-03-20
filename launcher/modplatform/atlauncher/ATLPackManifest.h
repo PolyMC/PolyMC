@@ -39,7 +39,7 @@
 #include <QString>
 #include <QVector>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 namespace ATLauncher
 {

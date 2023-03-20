@@ -36,7 +36,7 @@
 #include "MojangVersionFormat.h"
 #include "OneSixVersionFormat.h"
 #include "MojangDownloadInfo.h"
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #include "ParseUtils.h"
 #include <BuildConfig.h>

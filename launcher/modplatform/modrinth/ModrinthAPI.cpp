@@ -3,7 +3,7 @@
 #include "Application.h"
 #include "net/Upload.h"
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 auto ModrinthAPI::currentVersion(QString hash, QString hash_format, QByteArray* response) -> NetJob::Ptr
 {

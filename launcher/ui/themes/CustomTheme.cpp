@@ -4,7 +4,7 @@
 #include <fstream>
 #include <filesystem>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 const char* themeFile = "theme.json";
 const char* styleFile = "themeStyle.css";

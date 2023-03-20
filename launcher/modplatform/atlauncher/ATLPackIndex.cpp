@@ -25,7 +25,7 @@ static void loadIndexedVersion(ATLauncher::IndexedVersion& v, nlohmann::json& ob
     v.minecraft = obj["minecraft"].get<std::string>().c_str();
 }
 
-void ATLauncher::loadIndexedPack(ATLauncher::IndexedPack& m, nlohmann::json& obj)
+void ATLauncher::loadIndexedPack(ATLauncher::IndexedPack& m, const nlohmann::json& obj)
 {
         m.id = obj["id"];
         m.position = obj["position"];
@@ -38,9 +38,9 @@ void ATLauncher::loadIndexedPack(ATLauncher::IndexedPack& m, nlohmann::json& obj
         }
         m.system = obj.value("system", false);
 
-        //.value() excepts, no clue why
-        if (obj.contains("description") && obj["description"].is_string())
-            m.description = obj["description"].get<std::string>().c_str();
+        const nlohmann::json& temp = obj.value("description", nlohmann::json());
+        if (!temp.is_null())
+            m.description = temp.get<std::string>().c_str();
         else
             m.description = "";
 

@@ -6,7 +6,7 @@
 #include <minecraft/Library.h>
 #include <QJsonDocument>
 #include <ProblemProvider.h>
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 class MojangVersionFormat
 {

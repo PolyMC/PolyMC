@@ -41,7 +41,7 @@
 #include <QUrl>
 #include <QMetaType>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 namespace ModpacksCH
 {

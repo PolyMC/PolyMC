@@ -5,7 +5,7 @@
 #include <QDebug>
 #include <fstream>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #ifndef Q_OS_WIN32
 #include <unistd.h>

@@ -35,7 +35,7 @@
 
 #include "HttpMetaCache.h"
 #include "FileSystem.h"
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #include <QCryptographicHash>
 #include <QDateTime>
@@ -205,6 +205,7 @@ void HttpMetaCache::Load()
         return;
 
     // read the entry array
+    nlohmann::json temp;
     for (auto& element_obj : root["entries"]) {
         QString base = element_obj["base"].get<std::string>().c_str();
         if (!m_entries.contains(base))
@@ -217,15 +218,21 @@ void HttpMetaCache::Load()
         foo->m_relativePath = element_obj.value("path", "").c_str();
         foo->m_md5sum = element_obj.value("m_md5sum", "").c_str();
         foo->m_etag = element_obj.value("m_etag", "").c_str();
-        foo->m_local_changed_timestamp = element_obj.value("last_changed_timestamp", 0.0);
+        temp = element_obj.value("last_changed_timestamp", nlohmann::json());
+        if (!temp.is_null())
+            foo->m_local_changed_timestamp = temp.get<qint64>();
 
         foo->m_remote_changed_timestamp = element_obj.value("m_remote_changed_timestamp", "").c_str();
 
-        //foo->makeEternal(Json::ensureBoolean(element_obj, "eternal", false));
         foo->makeEternal(element_obj.value("eternal", false));
         if (!foo->isEternal()) {
-            foo->m_current_age = element_obj.value("m_current_age", 0.0);
-            foo->m_max_age = element_obj.value("m_max_age", 0.0);
+            temp = element_obj.value("current_age", nlohmann::json());
+            if (!temp.is_null())
+                foo->m_current_age = temp.get<qint64>();
+
+            temp = element_obj.value("max_age", nlohmann::json());
+            if (!temp.is_null())
+                foo->m_max_age = temp.get<qint64>();
         }
 
         // presumed innocent until closer examination
@@ -265,7 +272,7 @@ void HttpMetaCache::SaveNow()
             entryObj["path"] = entry->m_relativePath.toStdString();
             entryObj["md5sum"] = entry->m_md5sum.toStdString();
             entryObj["etag"] = entry->m_etag.toStdString();
-            entryObj["last_changed_timestamp"] = entry->m_local_changed_timestamp;
+            entryObj["last_changed_timestamp"] = qint64(entry->m_local_changed_timestamp);
 
             if (!entry->m_remote_changed_timestamp.isEmpty())
                 entryObj["remote_changed_timestamp"] = entry->m_remote_changed_timestamp.toStdString();

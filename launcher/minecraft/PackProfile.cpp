@@ -48,7 +48,7 @@
 #include "minecraft/OneSixVersionFormat.h"
 #include "FileSystem.h"
 #include "minecraft/MinecraftInstance.h"
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #include "PackProfile.h"
 #include "PackProfile_p.h"

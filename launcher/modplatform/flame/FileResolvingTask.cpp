@@ -1,7 +1,7 @@
 #include "FileResolvingTask.h"
 
 #include "Json.h"
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 #include "net/Upload.h"
 
 Flame::FileResolvingTask::FileResolvingTask(const shared_qobject_ptr<QNetworkAccessManager>& network, Flame::Manifest& toProcess)
@@ -22,14 +22,14 @@ void Flame::FileResolvingTask::executeTask()
     m_dljob = new NetJob("Mod id resolver", m_network);
     result.reset(new QByteArray());
     //build json data to send
-    QJsonObject object;
-
-    object["fileIds"] = QJsonArray::fromVariantList(std::accumulate(m_toProcess.files.begin(), m_toProcess.files.end(), QVariantList(), [](QVariantList& l, const File& s) {
+    nlohmann::json data;
+    data["fileIds"] = std::accumulate(m_toProcess.files.begin(), m_toProcess.files.end(), std::vector<int>(), [](std::vector<int>& l, const File& s) {
         l.push_back(s.fileId);
         return l;
-    }));
-    QByteArray data = Json::toText(object);
-    auto dl = Net::Upload::makeByteArray(QUrl("https://api.curseforge.com/v1/mods/files"), result.get(), data);
+    });
+
+    QString dataString = data.dump().c_str();
+    auto dl = Net::Upload::makeByteArray(QUrl("https://api.curseforge.com/v1/mods/files"), result.get(), dataString.toUtf8());
     m_dljob->addNetAction(dl);
     connect(m_dljob.get(), &NetJob::finished, this, &Flame::FileResolvingTask::netJobFinished);
     m_dljob->start();

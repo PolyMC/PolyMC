@@ -3,14 +3,10 @@
 #include <quazip/quazip.h>
 #include <quazip/quazipfile.h>
 #include <toml++/toml.h>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
 #include <QString>
 
 #include "FileSystem.h"
-#include "Json.h"
+#include <nlohmann/json.hpp>
 #include "settings/INIFile.h"
 
 namespace {
@@ -20,22 +16,24 @@ namespace {
 
 // OLD format:
 // https://github.com/MinecraftForge/FML/wiki/FML-mod-information-file/5bf6a2d05145ec79387acc0d45c958642fb049fc
-ModDetails ReadMCModInfo(QByteArray contents)
+ModDetails ReadMCModInfo(const QByteArray& contents)
 {
-    auto getInfoFromArray = [&](QJsonArray arr) -> ModDetails {
-        if (!arr.at(0).isObject()) {
+    auto getInfoFromArray = [&](nlohmann::json::array_t arr) -> ModDetails {
+        if (!arr.at(0).is_object()) {
             return {};
         }
         ModDetails details;
-        auto firstObj = arr.at(0).toObject();
-        details.mod_id = firstObj.value("modid").toString();
-        auto name = firstObj.value("name").toString();
+        auto firstObj = arr.at(0);
+        details.mod_id = firstObj.value("modid", "").c_str();
+        QString name = firstObj.value("name", "").c_str();
         // NOTE: ignore stupid example mods copies where the author didn't even bother to change the name
         if (name != "Example Mod") {
             details.name = name;
         }
-        details.version = firstObj.value("version").toString();
-        auto homeurl = firstObj.value("url").toString().trimmed();
+        details.version = firstObj.value("version", "").c_str();
+        QString homeurl = firstObj.value("url", "").c_str();
+        homeurl = homeurl.trimmed();
+
         if (!homeurl.isEmpty()) {
             // fix up url.
             if (!homeurl.startsWith("http://") && !homeurl.startsWith("https://") && !homeurl.startsWith("ftp://")) {
@@ -43,53 +41,63 @@ ModDetails ReadMCModInfo(QByteArray contents)
             }
         }
         details.homeurl = homeurl;
-        details.description = firstObj.value("description").toString();
-        QJsonArray authors = firstObj.value("authorList").toArray();
-        if (authors.size() == 0) {
+        details.description = firstObj.value("description", "").c_str();
+        nlohmann::json::array_t authors = firstObj.value("authorList", nlohmann::json::array_t());
+        if (authors.empty()) {
             // FIXME: what is the format of this? is there any?
-            authors = firstObj.value("authors").toArray();
+            authors = firstObj.value("authors", nlohmann::json::array_t());
         }
 
-        for (auto author : authors) {
-            details.authors.append(author.toString());
+        for (const auto& author : authors) {
+            details.authors.append(author.get<std::string>().c_str());
         }
         return details;
     };
-    QJsonParseError jsonError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(contents, &jsonError);
+
+    nlohmann::json jsonDoc;
+    try {
+         jsonDoc = nlohmann::json::parse(contents.constData(), contents.constData() + contents.size());
+    }
+    catch (const nlohmann::json::parse_error& e) {
+         qCritical() << "BAD stuff happened to mod json:";
+         qCritical() << contents;
+         qCritical() << e.what() << "id: " << e.id << "byte: " << e.byte;
+         return {};
+    }
     // this is the very old format that had just the array
-    if (jsonDoc.isArray()) {
-        return getInfoFromArray(jsonDoc.array());
-    } else if (jsonDoc.isObject()) {
-        auto val = jsonDoc.object().value("modinfoversion");
-        if (val.isUndefined()) {
-            val = jsonDoc.object().value("modListVersion");
+    if (jsonDoc.is_array()) {
+        return getInfoFromArray(jsonDoc);
+    } else if (jsonDoc.is_object()) {
+        auto val = jsonDoc.value("modinfoversion", nlohmann::json());
+        if (val.is_null()) {
+            val = jsonDoc.value("modListVersion", nlohmann::json());
         }
 
-        int version = Json::ensureInteger(val, -1);
+        int version = val.is_number_integer() ? val.get<int>() : -1;
 
         // Some mods set the number with "", so it's a String instead
         if (version < 0)
-            version = Json::ensureString(val, "").toInt();
+            version = std::stoi(val.get<std::string>());
 
         if (version != 2) {
             qCritical() << "BAD stuff happened to mod json:";
             qCritical() << contents;
             return {};
         }
-        auto arrVal = jsonDoc.object().value("modlist");
-        if (arrVal.isUndefined()) {
-            arrVal = jsonDoc.object().value("modList");
+
+        auto arrVal = jsonDoc.value("modlist", nlohmann::json());
+        if (arrVal.is_null()) {
+            arrVal = jsonDoc.value("modList", nlohmann::json());
         }
-        if (arrVal.isArray()) {
-            return getInfoFromArray(arrVal.toArray());
+        if (arrVal.is_array()) {
+            return getInfoFromArray(arrVal);
         }
     }
     return {};
 }
 
 // https://github.com/MinecraftForge/Documentation/blob/5ab4ba6cf9abc0ac4c0abd96ad187461aefd72af/docs/gettingstarted/structuring.md
-ModDetails ReadMCModTOML(QByteArray contents)
+ModDetails ReadMCModTOML(const QByteArray& contents)
 {
     ModDetails details;
 
@@ -121,10 +129,6 @@ ModDetails ReadMCModTOML(QByteArray contents)
         return {};
     }
     auto modsTable = tomlModsTable0->as_table();
-    if (!tomlModsTable0) {
-        qWarning() << "Corrupted mods.toml? [[mods]] was not a table!";
-        return {};
-    }
 
     // mandatory properties - always in [[mods]]
     if (auto modIdDatum = (*modsTable)["modId"].as_string()) {
@@ -142,21 +146,22 @@ ModDetails ReadMCModTOML(QByteArray contents)
 
     // optional properties - can be in the root table or [[mods]]
     QString authors = "";
-    if (auto authorsDatum = tomlData["authors"].as_string()) {
-        authors = QString::fromStdString(authorsDatum->get());
-    } else if (auto authorsDatum = (*modsTable)["authors"].as_string()) {
-        authors = QString::fromStdString(authorsDatum->get());
+    auto authorsDatum = tomlData["authors"].as_string();
+    if (!authorsDatum) {
+        authorsDatum = (*modsTable)["authors"].as_string();
     }
+    authors = authorsDatum ? QString::fromStdString(authorsDatum->get()) : "";
     if (!authors.isEmpty()) {
         details.authors.append(authors);
     }
 
     QString homeurl = "";
-    if (auto homeurlDatum = tomlData["displayURL"].as_string()) {
-        homeurl = QString::fromStdString(homeurlDatum->get());
-    } else if (auto homeurlDatum = (*modsTable)["displayURL"].as_string()) {
-        homeurl = QString::fromStdString(homeurlDatum->get());
+    auto homeurlDatum = tomlData["displayURL"].as_string();
+    if (!homeurlDatum) {
+        homeurlDatum = (*modsTable)["displayURL"].as_string();
     }
+    homeurl = homeurlDatum ? QString::fromStdString(homeurlDatum->get()) : "";
+
     // fix up url.
     if (!homeurl.isEmpty() && !homeurl.startsWith("http://") && !homeurl.startsWith("https://") && !homeurl.startsWith("ftp://")) {
         homeurl.prepend("http://");
@@ -167,79 +172,81 @@ ModDetails ReadMCModTOML(QByteArray contents)
 }
 
 // https://fabricmc.net/wiki/documentation:fabric_mod_json
-ModDetails ReadFabricModInfo(QByteArray contents)
+ModDetails ReadFabricModInfo(const QByteArray& contents)
 {
-    QJsonParseError jsonError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(contents, &jsonError);
-    auto object = jsonDoc.object();
-    auto schemaVersion = object.contains("schemaVersion") ? object.value("schemaVersion").toInt(0) : 0;
-
+    nlohmann::json jsonDoc;
+    try {
+        jsonDoc = nlohmann::json::parse(contents.constData(), contents.constData() + contents.size());
+    } catch (const nlohmann::json::parse_error& err) {
+        qWarning() << "Failed to parse fabric.mod.json: " << err.what() << " at " << err.byte << " in " << contents;
+        return {};
+    }
     ModDetails details;
 
-    details.mod_id = object.value("id").toString();
-    details.version = object.value("version").toString();
+    details.mod_id = jsonDoc.value("id", "").c_str();
+    details.version = jsonDoc.value("version", "").c_str();
+    details.name = jsonDoc.value("name", details.mod_id.toStdString()).c_str();
+    details.description = jsonDoc.value("description", "").c_str();
 
-    details.name = object.contains("name") ? object.value("name").toString() : details.mod_id;
-    details.description = object.value("description").toString();
-
+    int schemaVersion = jsonDoc.value("schemaVersion", 0);
     if (schemaVersion >= 1) {
-        QJsonArray authors = object.value("authors").toArray();
-        for (auto author : authors) {
-            if (author.isObject()) {
-                details.authors.append(author.toObject().value("name").toString());
+        const nlohmann::json::array_t& authors = jsonDoc.value("authors", nlohmann::json::array_t());
+        for (const auto& author : authors) {
+            if (author.is_object()) {
+                details.authors.append(author.value("name", nlohmann::json()).get<std::string>().c_str());
             } else {
-                details.authors.append(author.toString());
+                details.authors.append(author.get<std::string>().c_str());
             }
         }
 
-        if (object.contains("contact")) {
-            QJsonObject contact = object.value("contact").toObject();
+        if (jsonDoc.contains("contact")) {
+            nlohmann::json contact = jsonDoc["contact"];
 
-            if (contact.contains("homepage")) {
-                details.homeurl = contact.value("homepage").toString();
-            }
+            details.homeurl = contact.value("homepage", "").c_str();
         }
     }
     return details;
 }
 
 // https://github.com/QuiltMC/rfcs/blob/master/specification/0002-quilt.mod.json.md
-ModDetails ReadQuiltModInfo(QByteArray contents)
+ModDetails ReadQuiltModInfo(const QByteArray& contents)
 {
-    QJsonParseError jsonError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(contents, &jsonError);
-    auto object = Json::requireObject(jsonDoc, "quilt.mod.json");
-    auto schemaVersion = Json::ensureInteger(object.value("schema_version"), 0, "Quilt schema_version");
+    const nlohmann::json& jsonDoc = nlohmann::json::parse(contents.constData(), contents.constData() + contents.size());
 
     ModDetails details;
 
-    // https://github.com/QuiltMC/rfcs/blob/be6ba280d785395fefa90a43db48e5bfc1d15eb4/specification/0002-quilt.mod.json.md
+    // https://github.com/QuiltMC/rfcs/blob/be6ba280d785395fefa90a43db48e5bfc1d15eb4/specification/0002-quilt.mod.json.
+    int schemaVersion = jsonDoc.value("schema_version", 0);
     if (schemaVersion == 1) {
-        auto modInfo = Json::requireObject(object.value("quilt_loader"), "Quilt mod info");
+        const nlohmann::json& modInfo = jsonDoc.value("quilt_loader", nlohmann::json());
 
-        details.mod_id = Json::requireString(modInfo.value("id"), "Mod ID");
-        details.version = Json::requireString(modInfo.value("version"), "Mod version");
+        details.mod_id = modInfo["id"].get<std::string>().c_str();
+        details.version = modInfo["version"].get<std::string>().c_str();
 
-        auto modMetadata = Json::ensureObject(modInfo.value("metadata"));
+        const nlohmann::json& modMetadata = modInfo.value("metadata", nlohmann::json());
 
-        details.name = Json::ensureString(modMetadata.value("name"), details.mod_id);
-        details.description = Json::ensureString(modMetadata.value("description"));
+        details.name = modMetadata.value("name", "").c_str();
+        details.description = modMetadata.value("description", "").c_str();
 
-        auto modContributors = Json::ensureObject(modMetadata.value("contributors"));
+        const nlohmann::json& modContributors = modMetadata.value("contributors", nlohmann::json());
 
         // We don't really care about the role of a contributor here
-        details.authors += modContributors.keys();
+        QStringList keys;
+        for (const auto& it: modContributors.items()) {
+            keys.append(it.key().c_str());
+        }
+        details.authors += keys;
 
-        auto modContact = Json::ensureObject(modMetadata.value("contact"));
+        const nlohmann::json& modContact = modMetadata.value("contact", nlohmann::json());
 
         if (modContact.contains("homepage")) {
-            details.homeurl = Json::requireString(modContact.value("homepage"));
+            details.homeurl = modContact["homepage"].get<std::string>().c_str();
         }
     }
     return details;
 }
 
-ModDetails ReadForgeInfo(QByteArray contents)
+ModDetails ReadForgeInfo(const QByteArray& contents)
 {
     ModDetails details;
     // Read the data
@@ -259,27 +266,25 @@ ModDetails ReadForgeInfo(QByteArray contents)
     return details;
 }
 
-ModDetails ReadLiteModInfo(QByteArray contents)
+ModDetails ReadLiteModInfo(const QByteArray& contents)
 {
+    nlohmann::json jsonDoc = nlohmann::json::parse(contents.constData(), contents.constData() + contents.size());
+
     ModDetails details;
-    QJsonParseError jsonError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(contents, &jsonError);
-    auto object = jsonDoc.object();
-    if (object.contains("name")) {
-        details.mod_id = details.name = object.value("name").toString();
+
+    if (jsonDoc.contains("name")) {
+        details.mod_id = details.name = jsonDoc["name"].get<std::string>().c_str();
     }
-    if (object.contains("version")) {
-        details.version = object.value("version").toString("");
+
+    if (jsonDoc.contains("version")) {
+        details.version = jsonDoc["version"].get<std::string>().c_str();
     } else {
-        details.version = object.value("revision").toString("");
+        details.version = jsonDoc["revision"].get<std::string>().c_str();
     }
-    details.mcversion = object.value("mcversion").toString();
-    auto author = object.value("author").toString();
-    if (!author.isEmpty()) {
-        details.authors.append(author);
-    }
-    details.description = object.value("description").toString();
-    details.homeurl = object.value("url").toString();
+    details.mcversion = jsonDoc["mcversion"].get<std::string>().c_str();
+    details.authors.append(jsonDoc.value("author", "").c_str());
+    details.description = jsonDoc.value("description", "").c_str();
+    details.homeurl = jsonDoc.value("url", "").c_str();
     return details;
 }
 

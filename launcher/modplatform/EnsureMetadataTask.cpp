@@ -3,8 +3,6 @@
 #include <MurmurHash2.h>
 #include <QDebug>
 
-#include "Json.h"
-
 #include "minecraft/mod/Mod.h"
 #include "minecraft/mod/tasks/LocalModUpdateTask.h"
 
@@ -550,8 +548,8 @@ void EnsureMetadataTask::flameCallback(ModPlatform::IndexedPack& pack, ModPlatfo
         mod->setMetadata(metadata);
 
         emitReady(mod);
-    } catch (Json::JsonException& e) {
-        qDebug() << e.cause();
+    } catch (const std::exception& e) {
+        qDebug() << e.what();
 
         emitFail(mod);
     }

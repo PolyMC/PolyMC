@@ -21,7 +21,7 @@
 #include "net/Mode.h"
 #include "net/NetJob.h"
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 namespace Meta
 {

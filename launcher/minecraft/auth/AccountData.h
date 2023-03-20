@@ -40,7 +40,7 @@
 #include <katabasis/Bits.h>
 #include <QJsonObject>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 struct Skin {
     QString id;

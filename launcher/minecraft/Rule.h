@@ -39,7 +39,7 @@
 #include <QList>
 #include <memory>
 #include "RuntimeContext.h"
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 class Library;
 class Rule;

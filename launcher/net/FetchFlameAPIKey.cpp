@@ -19,7 +19,7 @@
 #include "FetchFlameAPIKey.h"
 #include "Application.h"
 #include <BuildConfig.h>
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #include <ui/dialogs/ProgressDialog.h>
 

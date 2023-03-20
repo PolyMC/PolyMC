@@ -44,7 +44,7 @@
 #include <QString>
 #include <QUrl>
 #include <QVector>
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 class MinecraftInstance;
 

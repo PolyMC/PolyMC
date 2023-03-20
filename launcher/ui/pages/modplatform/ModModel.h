@@ -5,7 +5,7 @@
 #include "modplatform/ModIndex.h"
 #include "net/NetJob.h"
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 class ModPage;
 class Version;

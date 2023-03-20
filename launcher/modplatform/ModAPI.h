@@ -42,7 +42,7 @@
 #include "Version.h"
 #include "net/NetJob.h"
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 namespace ModPlatform {
 class ListModel;
