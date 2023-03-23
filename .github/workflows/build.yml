@@ -144,13 +144,13 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install ninja-build extra-cmake-modules scdoc
+          sudo apt-get -y install ninja-build extra-cmake-modules scdoc gcc-10 gcc-10-base g++-10 libgcc-10-dev libstdc++-10-dev
 
       - name: Install Dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
           brew update
-          brew install ninja extra-cmake-modules
+          brew install ninja extra-cmake-modules gcc@10
 
       - name: Install Qt (Linux)
         if: runner.os == 'Linux' && matrix.qt_ver != 6

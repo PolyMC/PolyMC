@@ -980,6 +980,7 @@ target_link_libraries(Launcher_logic
     BuildConfig
     Katabasis
     Qt${QT_VERSION_MAJOR}::Widgets
+    stdc++fs
 )
 
 if (UNIX AND NOT CYGWIN AND NOT APPLE)
