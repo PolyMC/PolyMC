@@ -1,8 +1,8 @@
 #include "CustomTheme.h"
 #include <QDir>
-#include <FileSystem.h>
+#include <QFileInfo>
 #include <fstream>
-#include <filesystem>
+#include <FileSystem.h>
 
 #include <nlohmann/json.hpp>
 
@@ -11,12 +11,12 @@ const char* styleFile = "themeStyle.css";
 
 static bool readThemeJson(const QString& path, QPalette& palette, double& fadeAmount, QColor& fadeColor, QString& name, QString& widgets)
 {
-    std::string path_str = path.toStdString();
-    if(std::filesystem::exists(path_str) && std::filesystem::is_regular_file(path_str))
+    QFileInfo pathInfo(path);
+    if(pathInfo.exists() && pathInfo.isFile())
     {
         try
         {
-            const nlohmann::json& root = nlohmann::json::parse(std::ifstream(path_str));
+            const nlohmann::json& root = nlohmann::json::parse(std::ifstream(path.toStdString()));
 
             name = root["name"].get<std::string>().c_str();
             widgets = root["widgets"].get<std::string>().c_str();
