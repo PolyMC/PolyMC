@@ -40,6 +40,7 @@
 #include <QAction>
 #include <QRegularExpressionValidator>
 #include <QJsonDocument>
+#include <nlohmann/json.hpp>
 #include <QDebug>
 
 #include "ui/dialogs/ProgressDialog.h"
@@ -224,16 +225,14 @@ void ProfileSetupDialog::setupProfile(const QString &profileName) {
 namespace {
 
 struct MojangError{
-    static MojangError fromJSON(QByteArray data) {
+    static MojangError fromJSON(const QByteArray& data) {
         MojangError out;
-        out.error = QString::fromUtf8(data);
-        auto doc = QJsonDocument::fromJson(data, &out.parseError);
-        auto object = doc.object();
+        nlohmann::json object = nlohmann::json::parse(data.constData(), data.constData() + data.size());
 
         out.fullyParsed = true;
-        out.fullyParsed &= Parsers::getString(object.value("path"), out.path);
-        out.fullyParsed &= Parsers::getString(object.value("error"), out.error);
-        out.fullyParsed &= Parsers::getString(object.value("errorMessage"), out.errorMessage);
+        out.fullyParsed &= Parsers::getString(object.value("path", nlohmann::json()), out.path);
+        out.fullyParsed &= Parsers::getString(object.value("error", nlohmann::json()), out.error);
+        out.fullyParsed &= Parsers::getString(object.value("errorMessage", nlohmann::json()), out.errorMessage);
 
         return out;
     }

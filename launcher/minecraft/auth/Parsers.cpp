@@ -1,49 +1,40 @@
 #include "Parsers.h"
-#include "Json.h"
 
-#include <QJsonDocument>
-#include <QJsonArray>
 #include <QDebug>
+
+#include <nlohmann/json.hpp>
 
 namespace Parsers {
 
-bool getDateTime(QJsonValue value, QDateTime & out) {
-    if(!value.isString()) {
+bool getDateTime(const nlohmann::json& value, QDateTime& out) {
+    if(!value.is_string())
         return false;
-    }
-    out = QDateTime::fromString(value.toString(), Qt::ISODate);
+
+    out = QDateTime::fromString(value.get<std::string>().c_str(), Qt::ISODate);
     return out.isValid();
 }
 
-bool getString(QJsonValue value, QString & out) {
-    if(!value.isString()) {
+bool getString(const nlohmann::json& value, QString& out) {
+    if(!value.is_string())
         return false;
-    }
-    out = value.toString();
+
+    out = value.get<std::string>().c_str();
     return true;
 }
 
-bool getNumber(QJsonValue value, double & out) {
-    if(!value.isDouble()) {
+bool getNumber(const nlohmann::json& value, int64_t& out) {
+    if(!value.is_number_integer())
         return false;
-    }
-    out = value.toDouble();
+
+    out = value.get<int64_t>();
     return true;
 }
 
-bool getNumber(QJsonValue value, int64_t & out) {
-    if(!value.isDouble()) {
+bool getBool(const nlohmann::json& value, bool& out) {
+    if(!value.is_boolean())
         return false;
-    }
-    out = (int64_t) value.toDouble();
-    return true;
-}
 
-bool getBool(QJsonValue value, bool & out) {
-    if(!value.isBool()) {
-        return false;
-    }
-    out = value.toBool();
+    out = value.get<bool>();
     return true;
 }
 
@@ -73,48 +64,53 @@ bool getBool(QJsonValue value, bool & out) {
 // 2148916238 = child account not linked to a family
 */
 
-bool parseXTokenResponse(QByteArray & data, Katabasis::Token &output, QString name) {
+bool parseXTokenResponse(QByteArray & data, Katabasis::Token &output, const QString& name) {
     qDebug() << "Parsing" << name <<":";
 #ifndef NDEBUG
     qDebug() << data;
 #endif
-    QJsonParseError jsonError;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
-    if(jsonError.error) {
-        qWarning() << "Failed to parse response from user.auth.xboxlive.com as JSON: " << jsonError.errorString();
+    nlohmann::json obj;
+    try {
+        obj = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+    } catch (nlohmann::json::parse_error& e) {
+        qWarning() << "Failed to parse response from user.auth.xboxlive.com as JSON: " << e.what();
         return false;
     }
 
-    auto obj = doc.object();
-    if(!getDateTime(obj.value("IssueInstant"), output.issueInstant)) {
+    //the function calls here are probably unnecessary
+    if(!getDateTime(obj.value("IssueInstant", nlohmann::json()), output.issueInstant)) {
         qWarning() << "User IssueInstant is not a timestamp";
         return false;
     }
-    if(!getDateTime(obj.value("NotAfter"), output.notAfter)) {
+
+    if(!getDateTime(obj.value("NotAfter", nlohmann::json()), output.notAfter)) {
         qWarning() << "User NotAfter is not a timestamp";
         return false;
     }
-    if(!getString(obj.value("Token"), output.token)) {
+
+    if(!getString(obj.value("Token", nlohmann::json()), output.token)) {
         qWarning() << "User Token is not a string";
         return false;
     }
-    auto arrayVal = obj.value("DisplayClaims").toObject().value("xui");
-    if(!arrayVal.isArray()) {
+    //auto arrayVal = obj.value("DisplayClaims").toObject().value("xui");
+    auto arrayVal = obj.value("DisplayClaims", nlohmann::json()).value("xui", nlohmann::json());
+    if(!arrayVal.is_array()) {
         qWarning() << "Missing xui claims array";
         return false;
     }
     bool foundUHS = false;
-    for(auto item: arrayVal.toArray()) {
-        if(!item.isObject()) {
+    //for(auto item: arrayVal.toArray()) {
+    for(const auto& arrObj: arrayVal) {
+        if(!arrObj.is_object()) {
             continue;
         }
-        auto obj = item.toObject();
-        if(obj.contains("uhs")) {
+        if(arrObj.contains("uhs")) {
             foundUHS = true;
         } else {
             continue;
         }
         // consume all 'display claims' ... whatever that means
+        /*
         for(auto iter = obj.begin(); iter != obj.end(); iter++) {
             QString claim;
             if(!getString(obj.value(iter.key()), claim)) {
@@ -123,6 +119,16 @@ bool parseXTokenResponse(QByteArray & data, Katabasis::Token &output, QString na
             }
             output.extra[iter.key()] = claim;
         }
+         */
+        for (auto it = arrObj.begin(); it != arrObj.end(); ++it) {
+            QString claim;
+            if(!getString(it.value(), claim)) {
+                qWarning() << "display claim " << it.key().c_str() << " is not a string...";
+                return false;
+            }
+            output.extra[it.key().c_str()] = claim;
+        }
+
 
         break;
     }
@@ -135,74 +141,74 @@ bool parseXTokenResponse(QByteArray & data, Katabasis::Token &output, QString na
     return true;
 }
 
-bool parseMinecraftProfile(QByteArray & data, MinecraftProfile &output) {
+bool parseMinecraftProfile(QByteArray& data, MinecraftProfile& output) {
     qDebug() << "Parsing Minecraft profile...";
 #ifndef NDEBUG
     qDebug() << data;
 #endif
 
-    QJsonParseError jsonError;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
-    if(jsonError.error) {
-        qWarning() << "Failed to parse response from user.auth.xboxlive.com as JSON: " << jsonError.errorString();
+    nlohmann::json obj;
+    try {
+        obj = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+    } catch (nlohmann::json::parse_error& e) {
+        qWarning() << "Failed to parse response from user.auth.xboxlive.com as JSON: " << e.what();
         return false;
     }
 
-    auto obj = doc.object();
-    if(!getString(obj.value("id"), output.id)) {
+
+    if(!getString(obj.value("id", nlohmann::json()), output.id)) {
         qWarning() << "Minecraft profile id is not a string";
         return false;
     }
 
-    if(!getString(obj.value("name"), output.name)) {
+    if(!getString(obj.value("name", nlohmann::json()), output.name)) {
         qWarning() << "Minecraft profile name is not a string";
         return false;
     }
 
-    auto skinsArray = obj.value("skins").toArray();
-    for(auto skin: skinsArray) {
-        auto skinObj = skin.toObject();
+    //auto skinsArray = obj.value("skins").toArray();
+    auto skinsArray = obj.value("skins", nlohmann::json());
+    for(const auto& skinObj: skinsArray) {
         Skin skinOut;
-        if(!getString(skinObj.value("id"), skinOut.id)) {
+        if(!getString(skinObj.value("id", nlohmann::json()), skinOut.id)) {
             continue;
         }
         QString state;
-        if(!getString(skinObj.value("state"), state)) {
+        if(!getString(skinObj.value("state", nlohmann::json()), state)) {
             continue;
         }
         if(state != "ACTIVE") {
             continue;
         }
-        if(!getString(skinObj.value("url"), skinOut.url)) {
+        if(!getString(skinObj.value("url", nlohmann::json()), skinOut.url)) {
             continue;
         }
-        if(!getString(skinObj.value("variant"), skinOut.variant)) {
+        if(!getString(skinObj.value("variant", nlohmann::json()), skinOut.variant)) {
             continue;
         }
         // we deal with only the active skin
         output.skin = skinOut;
         break;
     }
-    auto capesArray = obj.value("capes").toArray();
 
+    auto capesArray = obj.value("capes", nlohmann::json());
     QString currentCape;
-    for(auto cape: capesArray) {
-        auto capeObj = cape.toObject();
+    for(const auto& capeObj: capesArray) {
         Cape capeOut;
-        if(!getString(capeObj.value("id"), capeOut.id)) {
+        if(!getString(capeObj.value("id", nlohmann::json()), capeOut.id)) {
             continue;
         }
         QString state;
-        if(!getString(capeObj.value("state"), state)) {
+        if(!getString(capeObj.value("state", nlohmann::json()), state)) {
             continue;
         }
         if(state == "ACTIVE") {
             currentCape = capeOut.id;
         }
-        if(!getString(capeObj.value("url"), capeOut.url)) {
+        if(!getString(capeObj.value("url", nlohmann::json()), capeOut.url)) {
             continue;
         }
-        if(!getString(capeObj.value("alias"), capeOut.alias)) {
+        if(!getString(capeObj.value("alias", nlohmann::json()), capeOut.alias)) {
             continue;
         }
 
@@ -216,8 +222,8 @@ bool parseMinecraftProfile(QByteArray & data, MinecraftProfile &output) {
 namespace {
     // these skin URLs are for the MHF_Steve and MHF_Alex accounts (made by a Mojang employee)
     // they are needed because the session server doesn't return skin urls for default skins
-    static const QString SKIN_URL_STEVE = "http://textures.minecraft.net/texture/1a4af718455d4aab528e7a61f86fa25e6a369d1768dcb13f7df319a713eb810b";
-    static const QString SKIN_URL_ALEX = "http://textures.minecraft.net/texture/83cee5ca6afcdb171285aa00e8049c297b2dbeba0efb8ff970a5677a1b644032";
+    const QString SKIN_URL_STEVE = "https://textures.minecraft.net/texture/1a4af718455d4aab528e7a61f86fa25e6a369d1768dcb13f7df319a713eb810b";
+    const QString SKIN_URL_ALEX = "https://textures.minecraft.net/texture/83cee5ca6afcdb171285aa00e8049c297b2dbeba0efb8ff970a5677a1b644032";
 
     bool isDefaultModelSteve(QString uuid) {
         // need to calculate *Java* hashCode of UUID
@@ -273,45 +279,45 @@ decoded base64 "value":
 }
 */
 
-bool parseMinecraftProfileMojang(QByteArray & data, MinecraftProfile &output) {
+bool parseMinecraftProfileMojang(QByteArray& data, MinecraftProfile& output) {
     qDebug() << "Parsing Minecraft profile...";
 #ifndef NDEBUG
     qDebug() << data;
 #endif
 
-    QJsonParseError jsonError;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
-    if(jsonError.error) {
-        qWarning() << "Failed to parse response as JSON: " << jsonError.errorString();
+    nlohmann::json obj;
+    try {
+        obj = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+    } catch (nlohmann::json::parse_error &e) {
+        qWarning() << "Failed to parse response as JSON: " << e.what();
         return false;
     }
 
-    auto obj = Json::requireObject(doc, "mojang minecraft profile");
-    if(!getString(obj.value("id"), output.id)) {
+    if(!getString(obj.value("id", nlohmann::json()), output.id)) {
         qWarning() << "Minecraft profile id is not a string";
         return false;
     }
 
-    if(!getString(obj.value("name"), output.name)) {
+    if(!getString(obj.value("name", nlohmann::json()), output.name)) {
         qWarning() << "Minecraft profile name is not a string";
         return false;
     }
 
-    auto propsArray = obj.value("properties").toArray();
+    auto propsArray = obj.value("properties", nlohmann::json());
     QByteArray texturePayload;
-    for( auto p : propsArray) {
-        auto pObj = p.toObject();
-        auto name = pObj.value("name");
-        if (!name.isString() || name.toString() != "textures") {
+    for (const auto& pObj : propsArray) {
+        auto name = pObj.value("name", nlohmann::json());
+        if (!name.is_string() || name.get<std::string>() != "textures") {
             continue;
         }
 
-        auto value = pObj.value("value");
-        if (value.isString()) {
+        auto value = pObj.value("value", nlohmann::json());
+        if (value.is_string()) {
+            QString valueStr = value.get<std::string>().c_str();
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-            texturePayload = QByteArray::fromBase64(value.toString().toUtf8(), QByteArray::AbortOnBase64DecodingErrors);
+            texturePayload = QByteArray::fromBase64(valueStr.toUtf8(), QByteArray::AbortOnBase64DecodingErrors);
 #else
-            texturePayload = QByteArray::fromBase64(value.toString().toUtf8());
+            texturePayload = QByteArray::fromBase64(valueStr.toUtf8());
 #endif
         }
 
@@ -325,15 +331,15 @@ bool parseMinecraftProfileMojang(QByteArray & data, MinecraftProfile &output) {
         return false;
     }
 
-    doc = QJsonDocument::fromJson(texturePayload, &jsonError);
-    if(jsonError.error) {
-        qWarning() << "Failed to parse response as JSON: " << jsonError.errorString();
+    try {
+        obj = nlohmann::json::parse(texturePayload.constData(), texturePayload.constData() + texturePayload.size());
+    } catch (nlohmann::json::parse_error &e) {
+        qWarning() << "Failed to parse response as JSON: " << e.what();
         return false;
     }
 
-    obj = Json::requireObject(doc, "session texture payload");
-    auto textures = obj.value("textures");
-    if (!textures.isObject()) {
+    auto textures = obj.value("textures", nlohmann::json());
+    if (!textures.is_object()) {
         qWarning() << "No textures array in response";
         return false;
     }
@@ -346,26 +352,29 @@ bool parseMinecraftProfileMojang(QByteArray & data, MinecraftProfile &output) {
     // sadly we can't figure this out, but I don't think it really matters...
     skinOut.id = "00000000-0000-0000-0000-000000000000";
     Cape capeOut;
-    auto tObj = textures.toObject();
-    for (auto idx = tObj.constBegin(); idx != tObj.constEnd(); ++idx) {
-        if (idx->isObject()) {
+    //auto tObj = textures.toObject();
+    //for (auto idx = tObj.constBegin(); idx != tObj.constEnd(); ++idx) {
+    for (auto idx = textures.begin(); idx != textures.end(); ++idx) {
+        if (idx->is_object()) {
             if (idx.key() == "SKIN") {
-                auto skin = idx->toObject();
-                if (!getString(skin.value("url"), skinOut.url)) {
+                //auto skin = idx->toObject();
+                nlohmann::json skin = *idx;
+                if (!getString(skin.value("url", nlohmann::json()), skinOut.url)) {
                     qWarning() << "Skin url is not a string";
                     return false;
                 }
 
                 auto maybeMeta = skin.find("metadata");
-                if (maybeMeta != skin.end() && maybeMeta->isObject()) {
-                    auto meta = maybeMeta->toObject();
+                if (maybeMeta != skin.end() && maybeMeta->is_object()) {
+                    nlohmann::json meta = *maybeMeta;
                     // might not be present
-                    getString(meta.value("model"), skinOut.variant);
+                    getString(meta.value("model", nlohmann::json()), skinOut.variant);
                 }
             }
             else if (idx.key() == "CAPE") {
-                auto cape = idx->toObject();
-                if (!getString(cape.value("url"), capeOut.url)) {
+                //auto cape = idx->toObject();
+                nlohmann::json cape = *idx;
+                if (!getString(cape.value("url", nlohmann::json()), capeOut.url)) {
                     qWarning() << "Cape url is not a string";
                     return false;
                 }
@@ -387,28 +396,26 @@ bool parseMinecraftProfileMojang(QByteArray & data, MinecraftProfile &output) {
     return true;
 }
 
-bool parseMinecraftEntitlements(QByteArray & data, MinecraftEntitlement &output) {
+bool parseMinecraftEntitlements(QByteArray& data, MinecraftEntitlement& output) {
     qDebug() << "Parsing Minecraft entitlements...";
 #ifndef NDEBUG
     qDebug() << data;
 #endif
-
-    QJsonParseError jsonError;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
-    if(jsonError.error) {
-        qWarning() << "Failed to parse response from user.auth.xboxlive.com as JSON: " << jsonError.errorString();
+    nlohmann::json obj;
+    try {
+        obj = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+    } catch (nlohmann::json::parse_error &e) {
+        qWarning() << "Failed to parse response as JSON: " << e.what();
         return false;
     }
 
-    auto obj = doc.object();
     output.canPlayMinecraft = false;
     output.ownsMinecraft = false;
 
-    auto itemsArray = obj.value("items").toArray();
-    for(auto item: itemsArray) {
-        auto itemObj = item.toObject();
+    auto itemsArray = obj.value("items", nlohmann::json());
+    for(const auto& itemObj: itemsArray) {
         QString name;
-        if(!getString(itemObj.value("name"), name)) {
+        if(!getString(itemObj.value("name", nlohmann::json()), name)) {
             continue;
         }
         if(name == "game_minecraft") {
@@ -427,17 +434,16 @@ bool parseRolloutResponse(QByteArray & data, bool& result) {
 #ifndef NDEBUG
     qDebug() << data;
 #endif
-
-    QJsonParseError jsonError;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
-    if(jsonError.error) {
-        qWarning() << "Failed to parse response from https://api.minecraftservices.com/rollout/v1/msamigration as JSON: " << jsonError.errorString();
+    nlohmann::json obj;
+    try {
+        obj = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+    } catch (nlohmann::json::parse_error &e) {
+        qWarning() << "Failed to parse response as JSON: " << e.what();
         return false;
     }
 
-    auto obj = doc.object();
     QString feature;
-    if(!getString(obj.value("feature"), feature)) {
+    if(!getString(obj.value("feature", nlohmann::json()), feature)) {
         qWarning() << "Rollout feature is not a string";
         return false;
     }
@@ -445,7 +451,7 @@ bool parseRolloutResponse(QByteArray & data, bool& result) {
         qWarning() << "Rollout feature is not what we expected (msamigration), but is instead \"" << feature << "\"";
         return false;
     }
-    if(!getBool(obj.value("rollout"), result)) {
+    if(!getBool(obj.value("rollout", nlohmann::json()), result)) {
         qWarning() << "Rollout feature is not a string";
         return false;
     }
@@ -453,20 +459,20 @@ bool parseRolloutResponse(QByteArray & data, bool& result) {
 }
 
 bool parseMojangResponse(QByteArray & data, Katabasis::Token &output) {
-    QJsonParseError jsonError;
     qDebug() << "Parsing Mojang response...";
 #ifndef NDEBUG
     qDebug() << data;
 #endif
-    QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
-    if(jsonError.error) {
-        qWarning() << "Failed to parse response from api.minecraftservices.com/launcher/login as JSON: " << jsonError.errorString();
+    nlohmann::json obj;
+    try {
+        obj = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+    } catch (nlohmann::json::parse_error &e) {
+        qWarning() << "Failed to parse response as JSON: " << e.what();
         return false;
     }
 
-    auto obj = doc.object();
-    double expires_in = 0;
-    if(!getNumber(obj.value("expires_in"), expires_in)) {
+    int64_t expires_in = 0;
+    if(!getNumber(obj.value("expires_in", nlohmann::json()), expires_in)) {
         qWarning() << "expires_in is not a valid number";
         return false;
     }
@@ -475,13 +481,13 @@ bool parseMojangResponse(QByteArray & data, Katabasis::Token &output) {
     output.notAfter = currentTime.addSecs(expires_in);
 
     QString username;
-    if(!getString(obj.value("username"), username)) {
+    if(!getString(obj.value("username", nlohmann::json()), username)) {
         qWarning() << "username is not valid";
         return false;
     }
 
     // TODO: it's a JWT... validate it?
-    if(!getString(obj.value("access_token"), output.token)) {
+    if(!getString(obj.value("access_token", nlohmann::json()), output.token)) {
         qWarning() << "access_token is not valid";
         return false;
     }

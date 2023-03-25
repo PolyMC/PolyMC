@@ -50,10 +50,6 @@ set(CORE_SOURCES
     Filter.h
     Filter.cpp
 
-    # JSON parsing helpers
-    Json.h
-    Json.cpp
-
     FileSystem.h
     FileSystem.cpp
 

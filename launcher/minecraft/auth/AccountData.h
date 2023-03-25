@@ -38,8 +38,6 @@
 #include <QByteArray>
 #include <QVector>
 #include <katabasis/Bits.h>
-#include <QJsonObject>
-
 #include <nlohmann/json.hpp>
 
 struct Skin {

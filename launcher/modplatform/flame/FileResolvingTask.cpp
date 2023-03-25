@@ -1,6 +1,5 @@
 #include "FileResolvingTask.h"
 
-#include "Json.h"
 #include <nlohmann/json.hpp>
 #include "net/Upload.h"
 
@@ -89,18 +88,17 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
             delete bytes;
             continue;
         }
-        QJsonDocument doc = QJsonDocument::fromJson(*bytes);
-        auto obj = doc.object();
-        auto array = Json::requireArray(obj,"files");
+        nlohmann::json doc = nlohmann::json::parse(bytes->constData(), bytes->constData() + bytes->size());
+        auto array = doc["files"];
         for (auto file: array) {
-            auto fileObj = Json::requireObject(file);
-            auto primary = Json::requireBoolean(fileObj,"primary");
+            auto primary = file["primary"].get<bool>();
             if (primary) {
-                out->url = Json::requireUrl(fileObj,"url");
+                out->url = QUrl(file["url"].get<std::string>().c_str(), QUrl::StrictMode);
                 qDebug() << "Found alternative on modrinth " << out->fileName;
                 break;
             }
         }
+
         delete bytes;
     }
     //copy to an output list and filter out projects found on modrinth
@@ -127,9 +125,9 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
             slugJob->deleteLater();
             auto index = 0;
             for (const auto &slugResult: slugs) {
-                auto json = QJsonDocument::fromJson(slugResult);
-                auto base = Json::requireString(Json::requireObject(Json::requireObject(Json::requireObject(json),"data"),"links"),
-                        "websiteUrl");
+                nlohmann::json doc = nlohmann::json::parse(slugResult.constData(), slugResult.constData() + slugResult.size());
+                QString base = doc["data"]["links"]["websiteUrl"].get<std::string>().c_str();
+
                 auto mod = block->at(index);
                 auto link = QString("%1/download/%2").arg(base, QString::number(mod->fileId));
                 mod->websiteUrl = link;

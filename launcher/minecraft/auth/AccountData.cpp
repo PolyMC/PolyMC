@@ -34,9 +34,8 @@
  */
 
 #include "AccountData.h"
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
+#include <QtGlobal>
+#include <QCborValue>
 #include <QUuid>
 #include <QRegularExpression>
 
@@ -75,7 +74,6 @@ void tokenToJSONV3(nlohmann::json& parent, const Katabasis::Token& t, const char
         save = true;
     }
     if(!t.extra.empty()) {
-        //out["extra"] = t.extra.toStdMap();
         out["extra"] = convertQMapToJsonObject(t.extra);
         save = true;
     }

@@ -218,7 +218,7 @@ void MojangVersionFormat::readVersionProperties(const nlohmann::json& in, Versio
 
     if (in.contains("minimumLauncherVersion"))
     {
-        out->minimumLauncherVersion = in.get<int>();
+        out->minimumLauncherVersion = in["minimumLauncherVersion"].get<int>();
         if (out->minimumLauncherVersion > CURRENT_MINIMUM_LAUNCHER_VERSION)
         {
             out->addProblem(
