@@ -34,9 +34,6 @@
  *      limitations under the License.
  */
 
-#include <QJsonArray>
-#include <QJsonDocument>
-
 #include <QDebug>
 
 #include "minecraft/VersionFile.h"

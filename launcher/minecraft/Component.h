@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <QList>
-#include <QJsonDocument>
 #include <QDateTime>
 #include "meta/JsonFormat.h"
 #include "ProblemProvider.h"

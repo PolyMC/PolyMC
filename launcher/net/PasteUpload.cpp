@@ -83,7 +83,7 @@ void PasteUpload::executeTask()
         filePart.setBody(m_text);
         filePart.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
         filePart.setHeader(QNetworkRequest::ContentDispositionHeader,
-                         "form-data; name=\"file\"; filename=\"log.txt\"");
+                         R"(form-data; name="file"; filename="log.txt")");
         multiPart->append(filePart);
 
         rep = APPLICATION->network()->post(request, multiPart);
@@ -104,25 +104,24 @@ void PasteUpload::executeTask()
         break;
     }
     case PasteGG: {
-        QJsonObject obj;
-        QJsonDocument doc;
+        nlohmann::json obj;
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-        obj.insert("expires", QDateTime::currentDateTimeUtc().addDays(100).toString(Qt::DateFormat::ISODate));
+        obj["expires"] = QDateTime::currentDateTimeUtc().addDays(100).toString(Qt::DateFormat::ISODate).toStdString();
 
-        QJsonArray files;
-        QJsonObject logFileInfo;
-        QJsonObject logFileContentInfo;
-        logFileContentInfo.insert("format", "text");
-        logFileContentInfo.insert("value", QString::fromUtf8(m_text));
-        logFileInfo.insert("name", "log.txt");
-        logFileInfo.insert("content", logFileContentInfo);
-        files.append(logFileInfo);
+        nlohmann::json files;
+        nlohmann::json logFileInfo;
+        nlohmann::json logFileContentInfo;
+        logFileContentInfo["format"] = "text";
+        logFileContentInfo["value"] = QString::fromUtf8(m_text).toStdString();
+        logFileInfo["name"] = "log.txt";
+        logFileInfo["content"] = logFileContentInfo;
+        files.push_back(logFileInfo);
 
-        obj.insert("files", files);
+        obj["files"] = files;
 
-        doc.setObject(obj);
-        rep = APPLICATION->network()->post(request, doc.toJson());
+        QString json = obj.dump().c_str();
+        rep = APPLICATION->network()->post(request, json.toUtf8());
         break;
     }
     }

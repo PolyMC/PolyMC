@@ -38,7 +38,6 @@
 #include "minecraft/OneSixVersionFormat.h"
 #include <QDebug>
 
-#include <QRegularExpression>
 #include <QSaveFile>
 
 #include <fstream>
@@ -65,16 +64,6 @@ bool readOverrideOrders(QString path, PatchOrder &order)
     }
 
     // and it's valid JSON
-    /*
-    QJsonParseError error;
-    QJsonDocument doc = QJsonDocument::fromJson(orderFile.readAll(), &error);
-    if (error.error != QJsonParseError::NoError)
-    {
-        qCritical() << "Couldn't parse" << orderFile.fileName() << ":" << error.errorString();
-        qWarning() << "Ignoring overriden order";
-        return false;
-    }
-        */
     nlohmann::json doc;
     try
     {
@@ -90,23 +79,14 @@ bool readOverrideOrders(QString path, PatchOrder &order)
     // and then read it and process it if all above is true.
     try
     {
-        //auto obj = Json::requireObject(doc);
         auto obj = doc; //TODO: fix this
         // check order file version.
-        //auto version = Json::requireInteger(obj.value("version"));
         auto version = obj["version"];
         if (version != currentOrderFileVersion)
         {
             throw Exception(QObject::tr("Invalid order file version, expected %1")
                                           .arg(currentOrderFileVersion));
         }
-        /*
-        auto orderArray = Json::requireArray(obj.value("order"));
-        for(auto item: orderArray)
-        {
-            order.append(Json::requireString(item));
-        }
-        */
         auto orderArray = obj["order"];
         for (auto item: orderArray)
         {

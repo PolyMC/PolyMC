@@ -39,7 +39,6 @@
 #include <QPushButton>
 #include <QAction>
 #include <QRegularExpressionValidator>
-#include <QJsonDocument>
 #include <nlohmann/json.hpp>
 #include <QDebug>
 

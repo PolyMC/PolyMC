@@ -38,7 +38,6 @@
 #include <tasks/Task.h>
 
 #include <QString>
-#include <QJsonObject>
 #include <QTimer>
 #include <qsslerror.h>
 

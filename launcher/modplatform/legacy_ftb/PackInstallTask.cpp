@@ -36,6 +36,9 @@
 #include "PackInstallTask.h"
 
 #include <QtConcurrent>
+#include <memory>
+#include <nlohmann/json.hpp>
+#include <utility>
 
 #include "MMCZip.h"
 #include "BaseInstance.h"
@@ -52,9 +55,9 @@ namespace LegacyFTB {
 
 PackInstallTask::PackInstallTask(shared_qobject_ptr<QNetworkAccessManager> network, Modpack pack, QString version)
 {
-    m_pack = pack;
-    m_version = version;
-    m_network = network;
+    m_pack = std::move(pack);
+    m_version = std::move(version);
+    m_network = std::move(network);
 }
 
 void PackInstallTask::executeTask()
@@ -122,7 +125,7 @@ void PackInstallTask::unzip()
     setStatus(tr("Extracting modpack"));
     QDir extractDir(m_stagingPath);
 
-    m_packZip.reset(new QuaZip(archivePath));
+    m_packZip = std::make_unique<QuaZip>(archivePath);
     if(!m_packZip->open(QuaZip::mdUnzip))
     {
         emitFailed(tr("Failed to open modpack file %1!").arg(archivePath));
@@ -181,15 +184,17 @@ void PackInstallTask::install()
     if(packJson.exists())
     {
         packJson.open(QIODevice::ReadOnly | QIODevice::Text);
-        QJsonDocument doc = QJsonDocument::fromJson(packJson.readAll());
+        const QByteArray& packJsonData = packJson.readAll();
+        nlohmann::json doc = nlohmann::json::parse(packJsonData.constData(), packJsonData.constData() + packJsonData.size());
+
         packJson.close();
 
         //we only care about the libs
-        QJsonArray libs = doc.object().value("libraries").toArray();
+        nlohmann::json libs = doc.value("libraries", nlohmann::json::array());
 
-        foreach (const QJsonValue &value, libs)
+        foreach (auto value, libs)
         {
-            QString nameValue = value.toObject().value("name").toString();
+            QString nameValue = value.value("name", "").c_str();
             if(!nameValue.startsWith("net.minecraftforge"))
             {
                 continue;
@@ -210,7 +215,7 @@ void PackInstallTask::install()
         qDebug() << "Found jarmods, installing...";
 
         QStringList jarmods;
-        for (auto info: jarmodDir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files))
+        for (const auto& info: jarmodDir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files))
         {
             qDebug() << "Jarmod:" << info.fileName();
             jarmods.push_back(info.absoluteFilePath());
