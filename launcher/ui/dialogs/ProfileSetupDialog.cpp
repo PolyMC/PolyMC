@@ -39,8 +39,9 @@
 #include <QPushButton>
 #include <QAction>
 #include <QRegularExpressionValidator>
-#include <QJsonDocument>
+#include <nlohmann/json.hpp>
 #include <QDebug>
+#include <utility>
 
 #include "ui/dialogs/ProgressDialog.h"
 
@@ -50,7 +51,7 @@
 
 
 ProfileSetupDialog::ProfileSetupDialog(MinecraftAccountPtr accountToSetup, QWidget *parent)
-    : QDialog(parent), m_accountToSetup(accountToSetup), ui(new Ui::ProfileSetupDialog)
+    : QDialog(parent), m_accountToSetup(std::move(accountToSetup)), ui(new Ui::ProfileSetupDialog)
 {
     ui->setupUi(this);
     ui->errorLabel->setVisible(false);
@@ -167,16 +168,15 @@ void ProfileSetupDialog::checkName(const QString &name) {
 
 void ProfileSetupDialog::checkFinished(
     QNetworkReply::NetworkError error,
-    QByteArray data,
+    const QByteArray& data,
     QList<QNetworkReply::RawHeaderPair> headers
 ) {
     auto requestor = qobject_cast<AuthRequest *>(QObject::sender());
     requestor->deleteLater();
 
     if(error == QNetworkReply::NoError) {
-        auto doc = QJsonDocument::fromJson(data);
-        auto root = doc.object();
-        auto statusValue = root.value("status").toString("INVALID");
+        nlohmann::json root = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+        QString statusValue = root.value("status", "INVALID").c_str();
         if(statusValue == "AVAILABLE") {
             setNameStatus(NameStatus::Available);
         }
@@ -224,16 +224,14 @@ void ProfileSetupDialog::setupProfile(const QString &profileName) {
 namespace {
 
 struct MojangError{
-    static MojangError fromJSON(QByteArray data) {
+    static MojangError fromJSON(const QByteArray& data) {
         MojangError out;
-        out.error = QString::fromUtf8(data);
-        auto doc = QJsonDocument::fromJson(data, &out.parseError);
-        auto object = doc.object();
+        nlohmann::json object = nlohmann::json::parse(data.constData(), data.constData() + data.size());
 
         out.fullyParsed = true;
-        out.fullyParsed &= Parsers::getString(object.value("path"), out.path);
-        out.fullyParsed &= Parsers::getString(object.value("error"), out.error);
-        out.fullyParsed &= Parsers::getString(object.value("errorMessage"), out.errorMessage);
+        out.fullyParsed &= Parsers::getString(object.value("path", nlohmann::json()), out.path);
+        out.fullyParsed &= Parsers::getString(object.value("error", nlohmann::json()), out.error);
+        out.fullyParsed &= Parsers::getString(object.value("errorMessage", nlohmann::json()), out.errorMessage);
 
         return out;
     }
@@ -251,7 +249,7 @@ struct MojangError{
 
 void ProfileSetupDialog::setupProfileFinished(
     QNetworkReply::NetworkError error,
-    QByteArray data,
+    const QByteArray& data,
     QList<QNetworkReply::RawHeaderPair> headers
 ) {
     auto requestor = qobject_cast<AuthRequest *>(QObject::sender());

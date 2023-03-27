@@ -19,32 +19,31 @@
 
 #include <QRegularExpression>
 
-#include "Json.h"
-
-static void loadIndexedVersion(ATLauncher::IndexedVersion & v, QJsonObject & obj)
+static void loadIndexedVersion(ATLauncher::IndexedVersion& v, nlohmann::json& obj)
 {
-    v.version = Json::requireString(obj, "version");
-    v.minecraft = Json::requireString(obj, "minecraft");
+    v.version = obj["version"].get<std::string>().c_str();
+    v.minecraft = obj["minecraft"].get<std::string>().c_str();
 }
 
-void ATLauncher::loadIndexedPack(ATLauncher::IndexedPack & m, QJsonObject & obj)
+void ATLauncher::loadIndexedPack(ATLauncher::IndexedPack& m, const nlohmann::json& obj)
 {
-    m.id = Json::requireInteger(obj, "id");
-    m.position = Json::requireInteger(obj, "position");
-    m.name = Json::requireString(obj, "name");
-    m.type = Json::requireString(obj, "type") == "private" ?
-            ATLauncher::PackType::Private :
-            ATLauncher::PackType::Public;
-    auto versionsArr = Json::requireArray(obj, "versions");
-    for (const auto versionRaw : versionsArr)
-    {
-        auto versionObj = Json::requireObject(versionRaw);
-        ATLauncher::IndexedVersion version;
-        loadIndexedVersion(version, versionObj);
-        m.versions.append(version);
-    }
-    m.system = Json::ensureBoolean(obj, QString("system"), false);
-    m.description = Json::ensureString(obj, "description", "");
+        m.id = obj["id"];
+        m.position = obj["position"];
+        m.name = obj.value("name", "").c_str();
+        m.type = obj["type"] == "private" ? ATLauncher::PackType::Private : ATLauncher::PackType::Public;
+        for (auto versionRaw : obj["versions"]) {
+            ATLauncher::IndexedVersion version;
+            loadIndexedVersion(version, versionRaw);
+            m.versions.append(version);
+        }
+        m.system = obj.value("system", false);
 
-    m.safeName = Json::requireString(obj, "name").replace(QRegularExpression("[^A-Za-z0-9]"), "");
+        const nlohmann::json& temp = obj.value("description", nlohmann::json());
+        if (!temp.is_null())
+            m.description = temp.get<std::string>().c_str();
+        else
+            m.description = "";
+
+        QString name = obj.value("name", "").c_str();
+        m.safeName = name.replace(QRegularExpression("[^A-Za-z0-9]"), "");
 }

@@ -38,17 +38,13 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileSystemWatcher>
-#include <QJsonArray>
-#include <QJsonDocument>
 #include <QMimeData>
 #include <QSet>
-#include <QStack>
 #include <QPair>
-#include <QTextStream>
 #include <QThread>
 #include <QTimer>
 #include <QUuid>
-#include <QXmlStreamReader>
+#include <fstream>
 
 #include "BaseInstance.h"
 #include "ExponentialSeries.h"
@@ -63,8 +59,6 @@
 #ifdef Q_OS_WIN32
 #include <windows.h>
 #endif
-
-const static int GROUP_FILE_FORMAT_VERSION = 1;
 
 InstanceList::InstanceList(SettingsObjectPtr settings, const QString& instDir, QObject* parent)
     : QAbstractListModel(parent), m_globalSettings(settings)
@@ -84,7 +78,7 @@ InstanceList::InstanceList(SettingsObjectPtr settings, const QString& instDir, Q
     m_watcher->addPath(m_instDir);
 }
 
-InstanceList::~InstanceList() {}
+InstanceList::~InstanceList() = default;
 
 Qt::DropActions InstanceList::supportedDragActions() const
 {
@@ -137,7 +131,7 @@ int InstanceList::rowCount(const QModelIndex& parent) const
 
 QModelIndex InstanceList::index(int row, int column, const QModelIndex& parent) const
 {
-    Q_UNUSED(parent);
+    Q_UNUSED(parent)
     if (row < 0 || row >= m_instances.size())
         return QModelIndex();
     return createIndex(row, column, (void*)m_instances.at(row).get());
@@ -465,7 +459,7 @@ InstanceList::InstListError InstanceList::loadList()
             removeNow();
         }
     }
-    if (newList.size()) {
+    if (!newList.empty()) {
         add(newList);
     }
     m_dirty = false;
@@ -611,7 +605,7 @@ void InstanceList::saveGroupList()
     QString groupFileName = m_instDir + "/instgroups.json";
     QMap<QString, QSet<QString>> reverseGroupMap;
     for (auto iter = m_instanceGroupIndex.begin(); iter != m_instanceGroupIndex.end(); iter++) {
-        QString id = iter.key();
+        const QString& id = iter.key();
         QString group = iter.value();
         if (group.isEmpty())
             continue;
@@ -629,28 +623,29 @@ void InstanceList::saveGroupList()
             set.insert(id);
         }
     }
-    QJsonObject toplevel;
-    toplevel.insert("formatVersion", QJsonValue(QString("1")));
-    QJsonObject groupsArr;
+
+    nlohmann::json toplevel;
+    toplevel["formatVersion"] = "1";
+    nlohmann::json::array_t groupsArr;
     for (auto iter = reverseGroupMap.begin(); iter != reverseGroupMap.end(); iter++) {
         auto list = iter.value();
-        auto name = iter.key();
-        QJsonObject groupObj;
-        QJsonArray instanceArr;
-        groupObj.insert("hidden", QJsonValue(m_collapsedGroups.contains(name)));
-        for (auto item : list) {
-            instanceArr.append(QJsonValue(item));
+        const auto& name = iter.key();
+        nlohmann::json groupObj;
+        nlohmann::json::array_t instanceArr;
+        groupObj["hidden"] = m_collapsedGroups.contains(name);
+        for (const auto& item : list) {
+            instanceArr.emplace_back(item.toStdString());
         }
-        groupObj.insert("instances", instanceArr);
-        groupsArr.insert(name, groupObj);
+        groupObj["instances"] = instanceArr;
+        groupsArr.push_back(groupObj);
     }
-    toplevel.insert("groups", groupsArr);
-    QJsonDocument doc(toplevel);
+
     try {
-        FS::write(groupFileName, doc.toJson());
+        std::ofstream out(groupFileName.toStdString());
+        out << toplevel.dump(4);
         qDebug() << "Group list saved.";
-    } catch (const FS::FileSystemException& e) {
-        qCritical() << "Failed to write instance group file :" << e.cause();
+    } catch (const std::exception& e) {
+        qCritical() << "Failed to write instance group file :" << e.what();
     }
 }
 
@@ -672,31 +667,20 @@ void InstanceList::loadGroupList()
         return;
     }
 
-    QJsonParseError error;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData, &error);
-
-    // if the json was bad, fail
-    if (error.error != QJsonParseError::NoError) {
-        qCritical() << QString("Failed to parse instance group file: %1 at offset %2")
-                           .arg(error.errorString(), QString::number(error.offset))
-                           .toUtf8();
+    nlohmann::json rootObj;
+    try {
+        rootObj = nlohmann::json::parse(jsonData.constData(), jsonData.constData() + jsonData.size());
+    } catch (const nlohmann::json::parse_error& e) {
+        qCritical() << "Failed to parse instance group file :" << e.what() << "at offset" << e.byte;
         return;
     }
-
-    // if the root of the json wasn't an object, fail
-    if (!jsonDoc.isObject()) {
-        qWarning() << "Invalid group file. Root entry should be an object.";
-        return;
-    }
-
-    QJsonObject rootObj = jsonDoc.object();
 
     // Make sure the format version matches, otherwise fail.
-    if (rootObj.value("formatVersion").toVariant().toInt() != GROUP_FILE_FORMAT_VERSION)
+    if (rootObj.value("formatVersion", "0") != "1")
         return;
 
     // Get the groups. if it's not an object, fail
-    if (!rootObj.value("groups").isObject()) {
+    if (!rootObj.contains("groups") || !rootObj["groups"].is_object()) {
         qWarning() << "Invalid group list JSON: 'groups' should be an object.";
         return;
     }
@@ -705,18 +689,18 @@ void InstanceList::loadGroupList()
     m_instanceGroupIndex.clear();
 
     // Iterate through all the groups.
-    QJsonObject groupMapping = rootObj.value("groups").toObject();
-    for (QJsonObject::iterator iter = groupMapping.begin(); iter != groupMapping.end(); iter++) {
-        QString groupName = iter.key();
+    nlohmann::json groupMapping = rootObj["groups"];
+    for (auto iter = groupMapping.begin(); iter != groupMapping.end(); iter++) {
+        QString groupName = iter.key().c_str();
 
         // If not an object, complain and skip to the next one.
-        if (!iter.value().isObject()) {
+        if (!iter.value().is_object()) {
             qWarning() << QString("Group '%1' in the group list should be an object.").arg(groupName).toUtf8();
             continue;
         }
 
-        QJsonObject groupObj = iter.value().toObject();
-        if (!groupObj.value("instances").isArray()) {
+        nlohmann::json groupObj = iter.value();
+        if (!groupObj.value("instances", nlohmann::json()).is_array()) {
             qWarning() << QString("Group '%1' in the group list is invalid. It should contain an array called 'instances'.")
                               .arg(groupName)
                               .toUtf8();
@@ -726,21 +710,21 @@ void InstanceList::loadGroupList()
         // keep a list/set of groups for choosing
         groupSet.insert(groupName);
 
-        auto hidden = groupObj.value("hidden").toBool(false);
+        auto hidden = groupObj.value("hidden", false);
         if (hidden) {
             m_collapsedGroups.insert(groupName);
         }
 
         // Iterate through the list of instances in the group.
-        QJsonArray instancesArray = groupObj.value("instances").toArray();
+        nlohmann::json instancesArray = groupObj["instances"];
 
-        for (QJsonArray::iterator iter2 = instancesArray.begin(); iter2 != instancesArray.end(); iter2++) {
-            m_instanceGroupIndex[(*iter2).toString()] = groupName;
+        for (auto&& iter2 : instancesArray) {
+            m_instanceGroupIndex[iter2.get<std::string>().c_str()] = groupName;
         }
+        m_groupsLoaded = true;
+        m_groupNameCache.unite(groupSet);
+        qDebug() << "Group list loaded.";
     }
-    m_groupsLoaded = true;
-    m_groupNameCache.unite(groupSet);
-    qDebug() << "Group list loaded.";
 }
 
 void InstanceList::instanceDirContentsChanged(const QString& path)
@@ -791,7 +775,7 @@ class InstanceStaging : public Task {
         connect(&m_backoffTimer, &QTimer::timeout, this, &InstanceStaging::childSucceded);
     }
 
-    virtual ~InstanceStaging(){};
+    virtual ~InstanceStaging()= default;;
 
     // FIXME/TODO: add ability to abort during instance commit retries
     bool abort() override

@@ -17,7 +17,6 @@
 
 #include "BaseVersion.h"
 
-#include <QJsonObject>
 #include <QStringList>
 #include <QVector>
 #include <memory>
@@ -80,7 +79,7 @@ public: /* con/des */
 
     void merge(const VersionPtr &other);
     void mergeFromList(const VersionPtr &other);
-    void parse(const QJsonObject &obj) override;
+    void parse(const nlohmann::json &obj) override;
 
     QString localFilename() const override;
 

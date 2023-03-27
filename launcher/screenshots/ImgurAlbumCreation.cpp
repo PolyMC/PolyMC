@@ -37,16 +37,16 @@
 #include "ImgurAlbumCreation.h"
 
 #include <QNetworkRequest>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <nlohmann/json.hpp>
 #include <QUrl>
 #include <QStringList>
 #include <QDebug>
+#include <utility>
 
 #include "BuildConfig.h"
 #include "Application.h"
 
-ImgurAlbumCreation::ImgurAlbumCreation(QList<ScreenShot::Ptr> screenshots) : NetAction(), m_screenshots(screenshots)
+ImgurAlbumCreation::ImgurAlbumCreation(QList<ScreenShot::Ptr> screenshots) : NetAction(), m_screenshots(std::move(screenshots))
 {
     m_url = BuildConfig.IMGUR_BASE_URL + "album.json";
     m_state = State::Inactive;
@@ -62,7 +62,7 @@ void ImgurAlbumCreation::executeTask()
     request.setRawHeader("Accept", "application/json");
 
     QStringList hashes;
-    for (auto shot : m_screenshots)
+    for (const auto& shot : m_screenshots)
     {
         hashes.append(shot->m_imgurDeleteHash);
     }
@@ -91,23 +91,25 @@ void ImgurAlbumCreation::downloadFinished()
     {
         QByteArray data = m_reply->readAll();
         m_reply.reset();
-        QJsonParseError jsonError;
-        QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
-        if (jsonError.error != QJsonParseError::NoError)
-        {
-            qDebug() << jsonError.errorString();
+        nlohmann::json json;
+        try {
+            json = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+        } catch (const nlohmann::json::parse_error &e) {
+            qDebug() << "Imgur album creation failed: " << e.what() << " at " << e.byte;
             emitFailed();
             return;
         }
-        auto object = doc.object();
-        if (!object.value("success").toBool())
+
+        if (!json.value("success", 0))
         {
-            qDebug() << doc.toJson();
+            qDebug() << "Imgur album creation failed: " << json["data"].dump().c_str();
             emitFailed();
             return;
         }
-        m_deleteHash = object.value("data").toObject().value("deletehash").toString();
-        m_id = object.value("data").toObject().value("id").toString();
+
+        const nlohmann::json& dataObj = json.value("data", nlohmann::json::object());
+        m_deleteHash = dataObj.value("deletehash", "").c_str();
+        m_id = dataObj.value("id", "").c_str();
         m_state = State::Succeeded;
         emit succeeded();
         return;

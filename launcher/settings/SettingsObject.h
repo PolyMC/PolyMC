@@ -21,6 +21,8 @@
 #include <QVariant>
 #include <memory>
 
+#include <nlohmann/json.hpp>
+
 class Setting;
 class SettingsObject;
 

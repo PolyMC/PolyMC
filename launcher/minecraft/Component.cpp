@@ -32,7 +32,7 @@
  *      See the License for the specific language governing permissions and
  *      limitations under the License.
  */
-
+#include <fstream>
 #include <meta/VersionList.h>
 #include <meta/Index.h>
 #include "Component.h"
@@ -340,29 +340,24 @@ bool Component::customize()
     // FIXME: get rid of this try-catch.
     try
     {
-        QSaveFile jsonFile(filename);
-        if(!jsonFile.open(QIODevice::WriteOnly))
-        {
-            return false;
-        }
+        std::fstream file(filename.toStdString(), std::ios::out);
         auto vfile = getVersionFile();
         if(!vfile)
         {
             return false;
         }
+
         auto document = OneSixVersionFormat::versionFileToJson(vfile);
-        jsonFile.write(document.toJson());
-        if(!jsonFile.commit())
-        {
-            return false;
-        }
+        file << document.dump(4);
+        file.close();
+
         m_file = vfile;
         m_metaVersion.reset();
         emit dataChanged();
     }
-    catch (const Exception &error)
+    catch (const std::exception &error)
     {
-        qWarning() << "Version could not be loaded:" << error.cause();
+        qWarning() << "Version could not be loaded:" << error.what();
     }
     return true;
 }

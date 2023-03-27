@@ -25,24 +25,19 @@ namespace Modrinth {
 // NOLINTNEXTLINE(modernize-avoid-c-arrays)
 const char* ListModel::sorts[5]{ "relevance", "downloads", "follows", "updated", "newest" };
 
-void ListModel::loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj)
+void ListModel::loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj)
 {
     Modrinth::loadIndexedPack(m, obj);
 }
 
-void ListModel::loadExtraPackInfo(ModPlatform::IndexedPack& m, QJsonObject& obj)
+void ListModel::loadExtraPackInfo(ModPlatform::IndexedPack& m, nlohmann::json& obj)
 {
     Modrinth::loadExtraPackData(m, obj);
 }
 
-void ListModel::loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray& arr)
+void ListModel::loadIndexedPackVersions(ModPlatform::IndexedPack& m, nlohmann::json& arr)
 {
     Modrinth::loadIndexedPackVersions(m, arr, APPLICATION->network(), m_parent->m_instance);
-}
-
-auto ListModel::documentToArray(QJsonDocument& obj) const -> QJsonArray
-{
-    return obj.object().value("hits").toArray();
 }
 
 }  // namespace Modrinth

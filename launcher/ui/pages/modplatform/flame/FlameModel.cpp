@@ -1,5 +1,4 @@
 #include "FlameModel.h"
-#include <Json.h>
 #include "Application.h"
 
 #include <MMCStrings.h>
@@ -192,26 +191,24 @@ void Flame::ListModel::searchRequestFinished()
 {
     jobPtr.reset();
 
-    QJsonParseError parse_error;
-    QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
-    if (parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from CurseForge at " << parse_error.offset
-                   << " reason: " << parse_error.errorString();
+    nlohmann::json doc;
+    try {
+        doc = nlohmann::json::parse(response.constData(), response.constData() + response.size());
+    } catch (const nlohmann::json::parse_error& e) {
+        qWarning() << "Error while parsing JSON response from CurseForge at " << e.byte << " reason: " << e.what();
         qWarning() << response;
         return;
     }
 
     QList<Flame::IndexedPack> newList;
-    auto packs = Json::ensureArray(doc.object(), "data");
-    for (auto packRaw : packs) {
-        auto packObj = packRaw.toObject();
-
+    const auto& packs = doc["data"];
+    for (const auto& packObj : packs) {
         Flame::IndexedPack pack;
         try {
             Flame::loadIndexedPack(pack, packObj);
             newList.append(pack);
-        } catch (const JSONValidationError& e) {
-            qWarning() << "Error while loading pack from CurseForge: " << e.cause();
+        } catch (const std::exception& e) {
+            qWarning() << "Error while loading pack from CurseForge: " << e.what();
             continue;
         }
     }
@@ -223,7 +220,7 @@ void Flame::ListModel::searchRequestFinished()
     }
 
     // When you have a Qt build with assertions turned on, proceeding here will abort the application
-    if (newList.size() == 0)
+    if (newList.empty())
         return;
 
     beginInsertRows(QModelIndex(), modpacks.size(), modpacks.size() + newList.size() - 1);

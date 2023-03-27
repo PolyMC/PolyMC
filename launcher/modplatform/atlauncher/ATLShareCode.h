@@ -20,7 +20,7 @@
 
 #include <QString>
 #include <QVector>
-#include <QJsonObject>
+#include <nlohmann/json.hpp>
 
 namespace ATLauncher {
 
@@ -42,6 +42,6 @@ struct ShareCodeResponse {
     ShareCode data;
 };
 
-void loadShareCodeResponse(ShareCodeResponse& r, QJsonObject& obj);
+void loadShareCodeResponse(ShareCodeResponse& r, nlohmann::json& obj);
 
 }

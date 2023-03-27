@@ -15,10 +15,9 @@
 
 #include "UpdateChecker.h"
 
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QJsonValue>
+#include <nlohmann/json.hpp>
 #include <QDebug>
+#include <utility>
 
 #define API_VERSION 0
 #define CHANLIST_FORMAT 0
@@ -27,9 +26,9 @@
 
 UpdateChecker::UpdateChecker(shared_qobject_ptr<QNetworkAccessManager> nam, QString channelUrl, QString currentChannel)
 {
-    m_network = nam;
-    m_channelUrl = channelUrl;
-    m_currentChannel = currentChannel;
+    m_network = std::move(nam);
+    m_channelUrl = std::move(channelUrl);
+    m_currentChannel = std::move(currentChannel);
 
 #ifdef Q_OS_MAC
     m_externalUpdater = new MacSparkleUpdater();
@@ -90,7 +89,7 @@ void UpdateChecker::checkForUpdate(const QString& updateChannel, bool notifyNoUp
         // found, error.
         QString stableUrl;
         m_newRepoUrl = "";
-        for (ChannelListEntry entry: m_channels)
+        for (const ChannelListEntry& entry: m_channels)
         {
             qDebug() << "channelEntry = " << entry.id;
             if (entry.id == "stable")
@@ -141,39 +140,38 @@ void UpdateChecker::updateCheckFinished(bool notifyNoUpdate)
 {
     qDebug() << "Finished downloading repo index. Checking for new versions.";
 
-    QJsonParseError jsonError;
     indexJob.reset();
+    indexJob.clear();
 
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(indexData, &jsonError);
-    indexData.clear();
-    if (jsonError.error != QJsonParseError::NoError || !jsonDoc.isObject())
+    nlohmann::json object;
+    try
+    {
+        object = nlohmann::json::parse(indexData.toStdString());
+    }
+    catch (nlohmann::json::parse_error &e)
     {
         qCritical() << "Failed to parse GoUpdate repository index. JSON error"
-                     << jsonError.errorString() << "at offset" << jsonError.offset;
+                    << e.what();
         m_updateChecking = false;
         return;
     }
 
-    QJsonObject object = jsonDoc.object();
-
-    bool success = false;
-    int apiVersion = object.value("ApiVersion").toVariant().toInt(&success);
-    if (apiVersion != API_VERSION || !success)
+    const nlohmann::json temp = object.value("ApiVersion", nlohmann::json());
+    if (temp.is_null() || temp.get<int>() != API_VERSION)
     {
         qCritical() << "Failed to check for updates. API version mismatch. We're using"
-                     << API_VERSION << "server has" << apiVersion;
+                    << API_VERSION << "server has" << "null";
         m_updateChecking = false;
         return;
     }
 
+
     qDebug() << "Processing repository version list.";
-    QJsonObject newestVersion;
-    QJsonArray versions = object.value("Versions").toArray();
-    for (QJsonValue versionVal : versions)
+    nlohmann::json newestVersion;
+    nlohmann::json::array_t versions = object.value("Versions", nlohmann::json::array_t());
+    for (const nlohmann::json& version: versions)
     {
-        QJsonObject version = versionVal.toObject();
-        if (newestVersion.value("Id").toVariant().toInt() <
-            version.value("Id").toVariant().toInt())
+        if (newestVersion.value("Id", 0) < version.value("Id", 0))
         {
             newestVersion = version;
         }
@@ -181,7 +179,8 @@ void UpdateChecker::updateCheckFinished(bool notifyNoUpdate)
 
     // We've got the version with the greatest ID number. Now compare it to our current build
     // number and update if they're different.
-    int newBuildNumber = newestVersion.value("Id").toVariant().toInt();
+    //int newBuildNumber = newestVersion.value("Id").toVariant().toInt();
+    int newBuildNumber = newestVersion.value("Id", 0);
     if (newBuildNumber != m_currentBuild)
     {
         qDebug() << "Found newer version with ID" << newBuildNumber;
@@ -227,44 +226,43 @@ void UpdateChecker::updateChanList(bool notifyNoUpdate)
 void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
 {
     chanListJob.reset();
-
-    QJsonParseError jsonError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(chanlistData, &jsonError);
     chanlistData.clear();
-    if (jsonError.error != QJsonParseError::NoError)
+
+    nlohmann::json object;
+    try
     {
-        // TODO: Report errors to the user.
-        qCritical() << "Failed to parse channel list JSON:" << jsonError.errorString() << "at" << jsonError.offset;
+        object = nlohmann::json::parse(chanlistData.toStdString());
+    }
+    catch (nlohmann::json::parse_error &e)
+    {
+        qCritical() << "Failed to parse channel list JSON:" << e.what();
         m_chanListLoading = false;
         return;
     }
 
-    QJsonObject object = jsonDoc.object();
-
-    bool success = false;
-    int formatVersion = object.value("format_version").toVariant().toInt(&success);
-    if (formatVersion != CHANLIST_FORMAT || !success)
+    const nlohmann::json& temp = object.value("format_version", nlohmann::json());
+    if (temp.is_null() || temp.get<int>() != CHANLIST_FORMAT)
     {
         qCritical()
             << "Failed to check for updates. Channel list format version mismatch. We're using"
-            << CHANLIST_FORMAT << "server has" << formatVersion;
+            << CHANLIST_FORMAT << "server has" << "null";
         m_chanListLoading = false;
         return;
     }
 
     // Load channels into a temporary array.
     QList<ChannelListEntry> loadedChannels;
-    QJsonArray channelArray = object.value("channels").toArray();
-    for (QJsonValue chanVal : channelArray)
+    //QJsonArray channelArray = object.value("channels").toArray();
+    nlohmann::json::array_t channelArray = object.value("channels", nlohmann::json::array_t());
+    for (const nlohmann::json& channelObj : channelArray)
     {
-        QJsonObject channelObj = chanVal.toObject();
         ChannelListEntry entry {
-            channelObj.value("id").toVariant().toString(),
-            channelObj.value("name").toVariant().toString(),
-            channelObj.value("description").toVariant().toString(),
-            channelObj.value("url").toVariant().toString()
+            channelObj.value("id", "").c_str(),
+            channelObj.value("name", "").c_str(),
+            channelObj.value("description", "").c_str(),
+            channelObj.value("url", "").c_str()
         };
-        if (entry.id.isEmpty() || entry.name.isEmpty() || entry.url.isEmpty())
+        if (entry.isEmpty())
         {
             qCritical() << "Channel list entry with empty ID, name, or URL. Skipping.";
             continue;
@@ -272,7 +270,7 @@ void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
         loadedChannels.append(entry);
     }
 
-    // Swap  the channel list we just loaded into the object's channel list.
+    // Swap the channel list we just loaded into the object's channel list.
     m_channels.swap(loadedChannels);
 
     m_chanListLoading = false;
@@ -287,10 +285,14 @@ void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
     emit channelListLoaded();
 }
 
-void UpdateChecker::chanListDownloadFailed(QString reason)
+void UpdateChecker::chanListDownloadFailed(const QString& reason)
 {
     m_chanListLoading = false;
     qCritical() << QString("Failed to download channel list: %1").arg(reason);
     emit channelListLoaded();
 }
 
+bool UpdateChecker::ChannelListEntry::isEmpty() const
+{
+    return id.isEmpty() || name.isEmpty() || url.isEmpty();
+}

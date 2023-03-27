@@ -19,7 +19,6 @@
 
 #include "Version.h"
 #include "JsonFormat.h"
-#include "Version.h"
 
 namespace Meta
 {
@@ -173,7 +172,7 @@ void VersionList::setVersions(const QVector<VersionPtr> &versions)
     endResetModel();
 }
 
-void VersionList::parse(const QJsonObject& obj)
+void VersionList::parse(const nlohmann::json& obj)
 {
     parseVersionList(obj, this);
 }

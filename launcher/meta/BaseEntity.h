@@ -15,12 +15,13 @@
 
 #pragma once
 
-#include <QJsonObject>
 #include <QObject>
 #include "QObjectPtr.h"
 
 #include "net/Mode.h"
 #include "net/NetJob.h"
+
+#include <nlohmann/json.hpp>
 
 namespace Meta
 {
@@ -45,7 +46,7 @@ public: /* types */
 public:
     virtual ~BaseEntity();
 
-    virtual void parse(const QJsonObject &obj) = 0;
+    virtual void parse(const nlohmann::json &obj) = 0;
 
     virtual QString localFilename() const = 0;
     virtual QUrl url() const;

@@ -95,11 +95,11 @@ public: /* construction */
 
     static MinecraftAccountPtr createOffline(const QString &username);
 
-    static MinecraftAccountPtr loadFromJsonV2(const QJsonObject &json);
-    static MinecraftAccountPtr loadFromJsonV3(const QJsonObject &json);
+    static MinecraftAccountPtr loadFromJsonV2(const nlohmann::json& json);
+    static MinecraftAccountPtr loadFromJsonV3(const nlohmann::json& json);
 
     //! Saves a MinecraftAccount to a JSON object and returns it.
-    QJsonObject saveToJson() const;
+    nlohmann::json saveToJson() const;
 
 public: /* manipulation */
 

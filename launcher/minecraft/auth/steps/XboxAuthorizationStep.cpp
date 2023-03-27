@@ -1,8 +1,6 @@
 #include "XboxAuthorizationStep.h"
 
 #include <QNetworkRequest>
-#include <QJsonParseError>
-#include <QJsonDocument>
 
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"
@@ -111,24 +109,25 @@ void XboxAuthorizationStep::onRequestDone(
 
 bool XboxAuthorizationStep::processSTSError(
     QNetworkReply::NetworkError error,
-    QByteArray data,
+    const QByteArray& data,
     QList<QNetworkReply::RawHeaderPair> headers
 ) {
     if(error == QNetworkReply::AuthenticationRequiredError) {
-        QJsonParseError jsonError;
-        QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
-        if(jsonError.error) {
-            qWarning() << "Cannot parse error XSTS response as JSON: " << jsonError.errorString();
+        nlohmann::json obj;
+        try {
+            obj = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+        }
+        catch (nlohmann::json::parse_error & e) {
+            qWarning() << "Cannot parse error XSTS response as JSON: " << e.what();
             emit finished(
                 AccountTaskState::STATE_FAILED_SOFT,
-                tr("Cannot parse %1 authorization error response as JSON: %2").arg(m_authorizationKind, jsonError.errorString())
+                tr("Cannot parse %1 authorization error response as JSON: %2").arg(m_authorizationKind, e.what())
             );
             return true;
         }
 
         int64_t errorCode = -1;
-        auto obj = doc.object();
-        if(!Parsers::getNumber(obj.value("XErr"), errorCode)) {
+        if(!Parsers::getNumber(obj.value("XErr", nlohmann::json()), errorCode)) {
             emit finished(
                 AccountTaskState::STATE_FAILED_SOFT,
                 tr("XErr element is missing from %1 authorization error response.").arg(m_authorizationKind)

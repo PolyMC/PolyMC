@@ -1,7 +1,6 @@
 #include "ModModel.h"
 
 #include "BuildConfig.h"
-#include "Json.h"
 #include "ModPage.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
@@ -106,7 +105,7 @@ void ListModel::requestModVersions(ModPlatform::IndexedPack const& current, QMod
     auto profile = (dynamic_cast<MinecraftInstance*>((dynamic_cast<ModPage*>(parent()))->m_instance))->getPackProfile();
 
     m_parent->apiProvider()->getVersions({ current.addonId.toString(), getMineVersions(), profile->getModLoaders() },
-                                         [this, current, index](QJsonDocument& doc, QString addonId) {
+                                         [this, current, index](nlohmann::json& doc, QString addonId) {
                                              if (!s_running.constFind(this).value())
                                                  return;
                                              versionRequestSucceeded(doc, addonId, index);
@@ -123,7 +122,7 @@ void ListModel::performPaginatedSearch()
 
 void ListModel::requestModInfo(ModPlatform::IndexedPack& current, QModelIndex index)
 {
-    m_parent->apiProvider()->getModInfo(current, [this, index](QJsonDocument& doc, ModPlatform::IndexedPack& pack) {
+    m_parent->apiProvider()->getModInfo(current, [this, index](nlohmann::json& doc, ModPlatform::IndexedPack& pack) {
         if (!s_running.constFind(this).value())
             return;
         infoRequestFinished(doc, pack, index);
@@ -217,22 +216,29 @@ void ListModel::logoFailed(QString logo)
     m_loadingLogos.removeAll(logo);
 }
 
-void ListModel::searchRequestFinished(QJsonDocument& doc)
+void ListModel::searchRequestFinished(nlohmann::json& doc)
 {
     jobPtr.reset();
 
     QList<ModPlatform::IndexedPack> newList;
-    auto packs = documentToArray(doc);
+    nlohmann::json packs;
+    if (doc.contains("hits")) // we got modrinth
+    {
+        packs = doc["hits"];
+    }
+    else if (doc.contains("data")) // we got curseforge
+    {
+        packs = doc["data"];
+    }
 
-    for (auto packRaw : packs) {
-        auto packObj = packRaw.toObject();
+    for (auto packObj : packs) {
 
         ModPlatform::IndexedPack pack;
         try {
             loadIndexedPack(pack, packObj);
             newList.append(pack);
-        } catch (const JSONValidationError& e) {
-            qWarning() << "Error while loading mod from " << m_parent->debugName() << ": " << e.cause();
+        } catch (const std::exception& e) {
+            qWarning() << "Error loading mod from " << m_parent->debugName() << ": " << e.what();
             continue;
         }
     }
@@ -245,7 +251,7 @@ void ListModel::searchRequestFinished(QJsonDocument& doc)
     }
 
     // When you have a Qt build with assertions turned on, proceeding here will abort the application
-    if (newList.size() == 0)
+    if (newList.empty())
         return;
 
     beginInsertRows(QModelIndex(), modpacks.size(), modpacks.size() + newList.size() - 1);
@@ -281,16 +287,15 @@ void ListModel::searchRequestFailed(QString reason)
     }
 }
 
-void ListModel::infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack& pack, const QModelIndex& index)
+void ListModel::infoRequestFinished(nlohmann::json& doc, ModPlatform::IndexedPack& pack, const QModelIndex& index)
 {
     qDebug() << "Loading mod info";
 
     try {
-        auto obj = Json::requireObject(doc);
-        loadExtraPackInfo(pack, obj);
-    } catch (const JSONValidationError& e) {
-        qDebug() << doc;
-        qWarning() << "Error while reading " << debugName() << " mod info: " << e.cause();
+        loadExtraPackInfo(pack, doc);
+    } catch (const std::exception& e) {
+        qDebug() << doc.dump().c_str();
+        qWarning() << "Error while reading " << debugName() << " mod info: " << e.what();
     }
 
     // Check if the index is still valid for this mod or not
@@ -306,20 +311,28 @@ void ListModel::infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack
     m_parent->updateUi();
 }
 
-void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId, const QModelIndex& index)
+void ListModel::versionRequestSucceeded(nlohmann::json& doc, QString addonId, const QModelIndex& index)
 {
     auto& current = m_parent->getCurrent();
     if (addonId != current.addonId) {
         return;
     }
 
-    auto arr = doc.isObject() ? Json::ensureArray(doc.object(), "data") : doc.array();
+    nlohmann::json arr;
+    if (doc.is_array()) // modrinth
+    {
+        arr = doc;
+    }
+    else if (doc.is_object()) // curseforge
+    {
+        arr = doc["data"];
+    }
 
     try {
         loadIndexedPackVersions(current, arr);
-    } catch (const JSONValidationError& e) {
-        qDebug() << doc;
-        qWarning() << "Error while reading " << debugName() << " mod version: " << e.cause();
+    } catch (const std::exception& e) {
+        qDebug() << doc.dump().c_str();
+        qWarning() << "Error while reading " << debugName() << " mod version: " << e.what();
     }
 
     // Cache info :^)

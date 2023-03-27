@@ -34,6 +34,7 @@
  */
 
 #include <QTest>
+#include <fstream>
 
 #include <minecraft/MojangVersionFormat.h>
 #include <minecraft/OneSixVersionFormat.h>
@@ -42,18 +43,19 @@
 #include <FileSystem.h>
 #include <RuntimeContext.h>
 
+#include <nlohmann/json.hpp>
+
 class LibraryTest : public QObject
 {
     Q_OBJECT
 private:
     LibraryPtr readMojangJson(const QString path)
     {
-        QFile jsonFile(path);
-        jsonFile.open(QIODevice::ReadOnly);
-        auto data = jsonFile.readAll();
+        std::fstream jsonFile(path.toStdString());
+        nlohmann::json data = nlohmann::json::parse(jsonFile);
         jsonFile.close();
         ProblemContainer problems;
-        return MojangVersionFormat::libraryFromJson(problems, QJsonDocument::fromJson(data).object(), path);
+        return MojangVersionFormat::libraryFromJson(problems, data, path);
     }
     // get absolute path to expected storage, assuming default cache prefix
     QStringList getStorage(QString relative)

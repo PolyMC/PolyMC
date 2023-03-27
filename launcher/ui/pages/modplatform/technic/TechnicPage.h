@@ -91,9 +91,9 @@ private:
 
 private slots:
     void triggerSearch();
-    void onSelectionChanged(QModelIndex first, QModelIndex second);
+    void onSelectionChanged(QModelIndex first);
     void onSolderLoaded();
-    void onVersionSelectionChanged(QString data);
+    void onVersionSelectionChanged(const QString& data);
 
 private:
     Ui::TechnicPage *ui = nullptr;

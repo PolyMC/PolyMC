@@ -1,8 +1,9 @@
 #include "ModrinthAPI.h"
 
 #include "Application.h"
-#include "Json.h"
 #include "net/Upload.h"
+
+#include <nlohmann/json.hpp>
 
 auto ModrinthAPI::currentVersion(QString hash, QString hash_format, QByteArray* response) -> NetJob::Ptr
 {
@@ -16,19 +17,20 @@ auto ModrinthAPI::currentVersion(QString hash, QString hash_format, QByteArray* 
     return netJob;
 }
 
-auto ModrinthAPI::currentVersions(const QStringList& hashes, QString hash_format, QByteArray* response) -> NetJob::Ptr
+auto ModrinthAPI::currentVersions(const QStringList& hashes, const QString& hash_format, QByteArray* response) -> NetJob::Ptr
 {
     auto* netJob = new NetJob(QString("Modrinth::GetCurrentVersions"), APPLICATION->network());
 
-    QJsonObject body_obj;
+    nlohmann::json body_obj;
 
-    Json::writeStringList(body_obj, "hashes", hashes);
-    Json::writeString(body_obj, "algorithm", hash_format);
+    for (auto& hash : hashes) {
+        body_obj["hashes"].push_back(hash.toStdString());
+    }
+    body_obj["algorithm"] = hash_format.toStdString();
 
-    QJsonDocument body(body_obj);
-    auto body_raw = body.toJson();
+    QString body_str = body_obj.dump().c_str();
 
-    netJob->addNetAction(Net::Upload::makeByteArray(QString(BuildConfig.MODRINTH_PROD_URL + "/version_files"), response, body_raw));
+    netJob->addNetAction(Net::Upload::makeByteArray(QString(BuildConfig.MODRINTH_PROD_URL + "/version_files"), response, body_str.toUtf8()));
 
     QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 
@@ -43,21 +45,20 @@ auto ModrinthAPI::latestVersion(QString hash,
 {
     auto* netJob = new NetJob(QString("Modrinth::GetLatestVersion"), APPLICATION->network());
 
-    QJsonObject body_obj;
+    nlohmann::json body_obj;
 
-    Json::writeStringList(body_obj, "loaders", getModLoaderStrings(loaders));
-
-    QStringList game_versions;
-    for (auto& ver : mcVersions) {
-        game_versions.append(ver.toString());
+    for (auto& loader : getModLoaderStrings(loaders)) {
+        body_obj["loaders"].push_back(loader.toStdString());
     }
-    Json::writeStringList(body_obj, "game_versions", game_versions);
 
-    QJsonDocument body(body_obj);
-    auto body_raw = body.toJson();
+    for (auto& ver : mcVersions) {
+        body_obj["game_versions"].push_back(ver.toString().toStdString());
+    }
+
+    QString body_str = body_obj.dump().c_str();
 
     netJob->addNetAction(Net::Upload::makeByteArray(
-        QString(BuildConfig.MODRINTH_PROD_URL + "/version_file/%1/update?algorithm=%2").arg(hash, hash_format), response, body_raw));
+        QString(BuildConfig.MODRINTH_PROD_URL + "/version_file/%1/update?algorithm=%2").arg(hash, hash_format), response, body_str.toUtf8()));
 
     QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 
@@ -65,30 +66,32 @@ auto ModrinthAPI::latestVersion(QString hash,
 }
 
 auto ModrinthAPI::latestVersions(const QStringList& hashes,
-                                 QString hash_format,
-                                 std::list<Version> mcVersions,
+                                 const QString& hash_format,
+                                 const std::list<Version>& mcVersions,
                                  ModLoaderTypes loaders,
                                  QByteArray* response) -> NetJob::Ptr
 {
     auto* netJob = new NetJob(QString("Modrinth::GetLatestVersions"), APPLICATION->network());
 
-    QJsonObject body_obj;
+    nlohmann::json body_obj;
 
-    Json::writeStringList(body_obj, "hashes", hashes);
-    Json::writeString(body_obj, "algorithm", hash_format);
-
-    Json::writeStringList(body_obj, "loaders", getModLoaderStrings(loaders));
-
-    QStringList game_versions;
-    for (auto& ver : mcVersions) {
-        game_versions.append(ver.toString());
+    for (auto& hash : hashes) {
+        body_obj["hashes"].push_back(hash.toStdString());
     }
-    Json::writeStringList(body_obj, "game_versions", game_versions);
 
-    QJsonDocument body(body_obj);
-    auto body_raw = body.toJson();
+    body_obj["algorithm"] = hash_format.toStdString();
 
-    netJob->addNetAction(Net::Upload::makeByteArray(QString(BuildConfig.MODRINTH_PROD_URL + "/version_files/update"), response, body_raw));
+    for (auto& loader : getModLoaderStrings(loaders)) {
+        body_obj["loaders"].push_back(loader.toStdString());
+    }
+
+    for (auto& ver : mcVersions) {
+        body_obj["game_versions"].push_back(ver.toString().toStdString());
+    }
+
+    QString body_str = body_obj.dump().c_str();
+
+    netJob->addNetAction(Net::Upload::makeByteArray(QString(BuildConfig.MODRINTH_PROD_URL + "/version_files/update"), response, body_str.toUtf8()));
 
     QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 

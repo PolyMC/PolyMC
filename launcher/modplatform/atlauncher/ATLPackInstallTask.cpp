@@ -37,6 +37,7 @@
 #include "ATLPackInstallTask.h"
 
 #include <QtConcurrent>
+#include <utility>
 
 #include <quazip/quazip.h>
 
@@ -45,13 +46,11 @@
 #include "Version.h"
 #include "net/ChecksumValidator.h"
 #include "FileSystem.h"
-#include "Json.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "settings/INISettingsObject.h"
 #include "meta/Index.h"
 #include "meta/Version.h"
-#include "meta/VersionList.h"
 
 #include "BuildConfig.h"
 #include "Application.h"
@@ -60,12 +59,12 @@ namespace ATLauncher {
 
 static Meta::VersionPtr getComponentVersion(const QString& uid, const QString& version);
 
-PackInstallTask::PackInstallTask(UserInteractionSupport *support, QString packName, QString version, InstallMode installMode)
+PackInstallTask::PackInstallTask(UserInteractionSupport* support, QString packName, QString version, InstallMode installMode)
 {
     m_support = support;
     m_pack_name = packName;
     m_pack_safe_name = packName.replace(QRegularExpression("[^A-Za-z0-9]"), "");
-    m_version_name = version;
+    m_version_name = std::move(version);
     m_install_mode = installMode;
 }
 
@@ -98,21 +97,23 @@ void PackInstallTask::onDownloadSucceeded()
     qDebug() << "PackInstallTask::onDownloadSucceeded: " << QThread::currentThreadId();
     jobPtr.reset();
 
-    QJsonParseError parse_error {};
-    QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
-    if(parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from ATLauncher at " << parse_error.offset << " reason: " << parse_error.errorString();
-        qWarning() << response;
+    nlohmann::json obj;
+    try
+    {
+        obj = nlohmann::json::parse(response.constData(), response.constData() + response.size());
+    }
+    catch (const nlohmann::json::parse_error &e)
+    {
+        emitFailed(tr("Could not parse pack manifest:\n") + e.what());
         return;
     }
-    auto obj = doc.object();
 
     ATLauncher::PackVersion version;
     try
     {
         ATLauncher::loadVersion(version, obj);
     }
-    catch (const JSONValidationError &e)
+    catch (const Exception &e)
     {
         emitFailed(tr("Could not understand pack manifest:\n") + e.cause());
         return;
@@ -167,7 +168,7 @@ void PackInstallTask::onDownloadFailed(QString reason)
 {
     qDebug() << "PackInstallTask::onDownloadFailed: " << QThread::currentThreadId();
     jobPtr.reset();
-    emitFailed(reason);
+    emitFailed(std::move(reason));
 }
 
 void PackInstallTask::onDownloadAborted()
@@ -286,7 +287,7 @@ void PackInstallTask::deleteExistingFiles()
     }
 }
 
-QString PackInstallTask::getDirForModType(ModType type, QString raw)
+QString PackInstallTask::getDirForModType(ModType type, const QString& raw)
 {
     switch (type) {
         // Mod types that can either be ignored at this stage, or ignored
@@ -334,7 +335,7 @@ QString PackInstallTask::getDirForModType(ModType type, QString raw)
     return Q_NULLPTR;
 }
 
-QString PackInstallTask::getVersionForLoader(QString uid)
+QString PackInstallTask::getVersionForLoader(const QString& uid)
 {
     if(m_version.loader.recommended || m_version.loader.latest || m_version.loader.choose) {
         auto vlist = APPLICATION->metadataIndex()->get(uid);
@@ -393,7 +394,7 @@ QString PackInstallTask::getVersionForLoader(QString uid)
     return m_version.loader.version;
 }
 
-QString PackInstallTask::detectLibrary(VersionLibrary library)
+QString PackInstallTask::detectLibrary(const VersionLibrary& library)
 {
     // Try to detect what the library is
     if (!library.server.isEmpty() && library.server.split("/").length() >= 3) {
@@ -428,14 +429,14 @@ QString PackInstallTask::detectLibrary(VersionLibrary library)
     return "org.multimc.atlauncher:" + library.md5 + ":1";
 }
 
-bool PackInstallTask::createLibrariesComponent(QString instanceRoot, std::shared_ptr<PackProfile> profile)
+bool PackInstallTask::createLibrariesComponent(const QString& instanceRoot, const std::shared_ptr<PackProfile>& profile)
 {
     if(m_version.libraries.isEmpty()) {
         return true;
     }
 
     QList<GradleSpecifier> exempt;
-    for(const auto & componentUid : componentsToInstall.keys()) {
+    for (const auto & componentUid : componentsToInstall.keys()) {
         auto componentVersion = componentsToInstall.value(componentUid);
 
         for(const auto & library : componentVersion->data()->libraries) {
@@ -549,14 +550,14 @@ bool PackInstallTask::createLibrariesComponent(QString instanceRoot, std::shared
                     << "for reading:" << file.errorString();
         return false;
     }
-    file.write(OneSixVersionFormat::versionFileToJson(f).toJson());
+    file.write(OneSixVersionFormat::versionFileToJson(f).dump(4).c_str());
     file.close();
 
     profile->appendComponent(new Component(profile.get(), target_id, f));
     return true;
 }
 
-bool PackInstallTask::createPackComponent(QString instanceRoot, std::shared_ptr<PackProfile> profile)
+bool PackInstallTask::createPackComponent(const QString& instanceRoot, const std::shared_ptr<PackProfile>& profile)
 {
     if (m_version.mainClass.mainClass.isEmpty() && m_version.extraArguments.arguments.isEmpty()) {
         return true;
@@ -599,7 +600,7 @@ bool PackInstallTask::createPackComponent(QString instanceRoot, std::shared_ptr<
 
     QStringList mainClasses;
     QStringList tweakers;
-    for(const auto & componentUid : componentsToInstall.keys()) {
+    for (const auto& componentUid : componentsToInstall.keys()) {
         auto componentVersion = componentsToInstall.value(componentUid);
 
         if(componentVersion->data()->mainClass != QString("")) {
@@ -638,7 +639,7 @@ bool PackInstallTask::createPackComponent(QString instanceRoot, std::shared_ptr<
                     << "for reading:" << file.errorString();
         return false;
     }
-    file.write(OneSixVersionFormat::versionFileToJson(f).toJson());
+    file.write(OneSixVersionFormat::versionFileToJson(f).dump(4).c_str());
     file.close();
 
     profile->appendComponent(new Component(profile.get(), target_id, f));
@@ -675,7 +676,7 @@ void PackInstallTask::installConfigs()
     {
         abortable = false;
         jobPtr.reset();
-        emitFailed(reason);
+        emitFailed(std::move(reason));
     });
     connect(jobPtr.get(), &NetJob::progress, [&](qint64 current, qint64 total)
     {
@@ -836,7 +837,7 @@ void PackInstallTask::downloadMods()
     {
         abortable = false;
         jobPtr.reset();
-        emitFailed(reason);
+        emitFailed(std::move(reason));
     });
     connect(jobPtr.get(), &NetJob::progress, [&](qint64 current, qint64 total)
     {
@@ -1007,7 +1008,7 @@ void PackInstallTask::install()
         return;
     }
 
-    for(const auto & componentUid : componentsToInstall.keys()) {
+    for (const auto& componentUid : componentsToInstall.keys()) {
         auto version = componentsToInstall.value(componentUid);
         components->setComponentVersion(componentUid, version->version());
     }

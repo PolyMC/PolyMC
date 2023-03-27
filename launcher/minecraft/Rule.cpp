@@ -33,12 +33,9 @@
  *      limitations under the License.
  */
 
-#include <QJsonObject>
-#include <QJsonArray>
-
 #include "Rule.h"
 
-RuleAction RuleAction_fromString(QString name)
+RuleAction RuleAction_fromString(const QString& name)
 {
     if (name == "allow")
         return Allow;
@@ -47,67 +44,65 @@ RuleAction RuleAction_fromString(QString name)
     return Defer;
 }
 
-QList<std::shared_ptr<Rule>> rulesFromJsonV4(const QJsonObject &objectWithRules)
+QList<std::shared_ptr<Rule>> rulesFromJsonV4(const nlohmann::json& objectWithRules)
 {
     QList<std::shared_ptr<Rule>> rules;
-    auto rulesVal = objectWithRules.value("rules");
-    if (!rulesVal.isArray())
+    auto rulesVal = objectWithRules["rules"];
+    if (!rulesVal.is_array())
         return rules;
 
-    QJsonArray ruleList = rulesVal.toArray();
-    for (auto ruleVal : ruleList)
+    for (auto ruleVal : rulesVal)
     {
         std::shared_ptr<Rule> rule;
-        if (!ruleVal.isObject())
+        if (!ruleVal.is_object())
             continue;
-        auto ruleObj = ruleVal.toObject();
-        auto actionVal = ruleObj.value("action");
-        if (!actionVal.isString())
+        auto actionVal = ruleVal["action"];
+        if (!actionVal.is_string())
             continue;
-        auto action = RuleAction_fromString(actionVal.toString());
+        auto action = RuleAction_fromString(actionVal.get<std::string>().c_str());
         if (action == Defer)
             continue;
 
-        auto osVal = ruleObj.value("os");
-        if (!osVal.isObject())
+        auto osVal = ruleVal["os"];
+        if (!osVal.is_object())
         {
             // add a new implicit action rule
             rules.append(ImplicitRule::create(action));
             continue;
         }
 
-        auto osObj = osVal.toObject();
-        auto osNameVal = osObj.value("name");
-        if (!osNameVal.isString())
+        auto osNameVal = osVal["name"];
+        if (!osNameVal.is_string())
             continue;
-        QString osName = osNameVal.toString();
-        QString versionRegex = osObj.value("version").toString();
+        QString osName = osNameVal.get<std::string>().c_str();
+
+        QString versionRegex = osVal.value("version", "").c_str();
         // add a new OS rule
         rules.append(OsRule::create(action, osName, versionRegex));
     }
     return rules;
 }
 
-QJsonObject ImplicitRule::toJson()
+nlohmann::json ImplicitRule::toJson()
 {
-    QJsonObject ruleObj;
-    ruleObj.insert("action", m_result == Allow ? QString("allow") : QString("disallow"));
+    nlohmann::json ruleObj;
+    ruleObj["action"] = m_result == Allow ? "allow" : "disallow";
     return ruleObj;
 }
 
-QJsonObject OsRule::toJson()
+nlohmann::json OsRule::toJson()
 {
-    QJsonObject ruleObj;
-    ruleObj.insert("action", m_result == Allow ? QString("allow") : QString("disallow"));
-    QJsonObject osObj;
-    {
-        osObj.insert("name", m_system);
-        if(!m_version_regexp.isEmpty())
-        {
-            osObj.insert("version", m_version_regexp);
-        }
-    }
-    ruleObj.insert("os", osObj);
-    return ruleObj;
+   nlohmann::json ruleObj;
+   ruleObj["action"] = m_result == Allow ? "allow" : "disallow";
+   nlohmann::json osObj;
+   {
+       osObj["name"] = m_system.toStdString();
+       if(!m_version_regexp.isEmpty())
+       {
+           osObj["version"] = m_version_regexp.toStdString();
+       }
+   }
+   ruleObj["os"] = osObj;
+   return ruleObj;
 }
 

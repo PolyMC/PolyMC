@@ -38,7 +38,7 @@
 #include <QByteArray>
 #include <QVector>
 #include <katabasis/Bits.h>
-#include <QJsonObject>
+#include <nlohmann/json.hpp>
 
 struct Skin {
     QString id;
@@ -89,9 +89,9 @@ enum class AccountState {
 };
 
 struct AccountData {
-    QJsonObject saveState() const;
-    bool resumeStateFromV2(QJsonObject data);
-    bool resumeStateFromV3(QJsonObject data);
+    nlohmann::json saveState() const;
+    bool resumeStateFromV2(const nlohmann::json& data);
+    bool resumeStateFromV3(const nlohmann::json& data);
 
     //! userName for Mojang accounts, gamertag for MSA
     QString accountDisplayString() const;
@@ -101,7 +101,7 @@ struct AccountData {
 
     //! Only valid for Mojang accounts.
     QString clientToken() const;
-    void setClientToken(QString clientToken);
+    void setClientToken(const QString& clientToken);
     void invalidateClientToken();
     void generateClientTokenIfMissing();
 

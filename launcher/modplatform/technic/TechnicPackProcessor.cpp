@@ -16,7 +16,6 @@
 #include "TechnicPackProcessor.h"
 
 #include <FileSystem.h>
-#include <Json.h>
 #include <minecraft/MinecraftInstance.h>
 #include <minecraft/PackProfile.h>
 #include <quazip/quazip.h>
@@ -25,13 +24,14 @@
 #include <settings/INISettingsObject.h>
 
 #include <memory>
+#include <utility>
 
 void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings, const QString &instName, const QString &instIcon, const QString &stagingPath, const QString &minecraftVersion, const bool isSolder)
 {
     QString minecraftPath = FS::PathCombine(stagingPath, ".minecraft");
     QString configPath = FS::PathCombine(stagingPath, "instance.cfg");
     auto instanceSettings = std::make_shared<INISettingsObject>(configPath);
-    MinecraftInstance instance(globalSettings, instanceSettings, stagingPath);
+    MinecraftInstance instance(std::move(globalSettings), instanceSettings, stagingPath);
 
     instance.setName(instName);
 
@@ -88,7 +88,7 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings, const 
         else
         {
             if (minecraftVersion.isEmpty())
-                emit failed(tr("Could not find \"version.json\" inside \"bin/modpack.jar\", but Minecraft version is unknown"));
+                emit failed(tr(R"(Could not find "version.json" inside "bin/modpack.jar", but Minecraft version is unknown)"));
             components->setComponentVersion("net.minecraft", minecraftVersion, true);
             components->installJarMods({modpackJar});
 
@@ -149,28 +149,34 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings, const 
 
     try
     {
-        QJsonDocument doc = Json::requireDocument(data);
-        QJsonObject root = Json::requireObject(doc, "version.json");
-        QString minecraftVersion = Json::ensureString(root, "inheritsFrom", QString(), "");
-        if (minecraftVersion.isEmpty())
+        nlohmann::json root;
+        try {
+            root = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+        } catch (nlohmann::json::parse_error &e) {
+            emit failed(tr("Could not parse \"version.json\":\n%1").arg(e.what()));
+            return;
+        }
+
+        QString inheritsFrom = root.value("inheritsFrom", "").c_str();
+        if (inheritsFrom.isEmpty())
         {
             if (fmlMinecraftVersion.isEmpty())
             {
                 emit failed(tr("Could not understand \"version.json\":\ninheritsFrom is missing"));
                 return;
             }
-            minecraftVersion = fmlMinecraftVersion;
+            inheritsFrom = fmlMinecraftVersion;
         }
-        components->setComponentVersion("net.minecraft", minecraftVersion, true);
-        for (auto library: Json::ensureArray(root, "libraries", {}))
+
+        components->setComponentVersion("net.minecraft", inheritsFrom, true);
+        for (const auto& library: root["libraries"])
         {
-            if (!library.isObject())
+            if (!library.is_object())
             {
                 continue;
             }
 
-            auto libraryObject = Json::ensureObject(library, {}, "");
-            auto libraryName = Json::ensureString(libraryObject, "name", "", "");
+            QString libraryName = library.value("name", "").c_str();
 
             if (libraryName.startsWith("net.minecraftforge:forge:") && libraryName.contains('-'))
             {
@@ -193,7 +199,7 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings, const 
                     {"net.fabricmc:fabric-loader:", "net.fabricmc.fabric-loader"},
                     {"org.quiltmc:quilt-loader:", "org.quiltmc.quilt-loader"}
                 };
-                for (const auto& loader : loaderMap.keys())
+                for (const auto& loader : loaderMap)
                 {
                     if (libraryName.startsWith(loader))
                     {
@@ -204,9 +210,9 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings, const 
             }
         }
     }
-    catch (const JSONValidationError &e)
+    catch (const nlohmann::json::exception &e)
     {
-        emit failed(tr("Could not understand \"version.json\":\n") + e.cause());
+        emit failed(tr("Could not understand \"version.json\":\n") + e.what());
         return;
     }
 

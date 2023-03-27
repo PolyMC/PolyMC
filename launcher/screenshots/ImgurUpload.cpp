@@ -40,12 +40,11 @@
 
 #include <QNetworkRequest>
 #include <QHttpMultiPart>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QHttpPart>
 #include <QFile>
 #include <QUrl>
 #include <QDebug>
+
+#include <nlohmann/json.hpp>
 
 ImgurUpload::ImgurUpload(ScreenShot::Ptr shot) : NetAction(), m_shot(shot)
 {
@@ -115,34 +114,37 @@ void ImgurUpload::downloadFinished()
         qCritical() << "Double finished ImgurUpload!";
         return;
     }
-    QByteArray data = m_reply->readAll();
-    m_reply.reset();
-    QJsonParseError jsonError;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
-    if (jsonError.error != QJsonParseError::NoError)
+    nlohmann::json object;
+    try
     {
-        qDebug() << "imgur server did not reply with JSON" << jsonError.errorString();
+        object = nlohmann::json::parse(m_reply->readAll().toStdString());
+    }
+    catch (nlohmann::json::parse_error &e)
+    {
+        qDebug() << "imgur server did not reply with JSON" << e.what();
         finished = true;
         m_reply.reset();
         emitFailed();
         return;
     }
-    auto object = doc.object();
-    if (!object.value("success").toBool())
+
+    if (!object.value("success", false))
     {
-        qDebug() << "Screenshot upload not successful:" << doc.toJson();
+        qDebug() << "Screenshot upload not successful:" << object.dump(4).c_str();
         finished = true;
         m_reply.reset();
         emitFailed();
         return;
     }
-    m_shot->m_imgurId = object.value("data").toObject().value("id").toString();
-    m_shot->m_url = object.value("data").toObject().value("link").toString();
-    m_shot->m_imgurDeleteHash = object.value("data").toObject().value("deletehash").toString();
+
+    const nlohmann::json& data = object.value("data", nlohmann::json());
+
+    m_shot->m_imgurId = data.value("id", "").c_str();
+    m_shot->m_url = data.value("link", "").c_str();
+    m_shot->m_imgurDeleteHash = data.value("deletehash", "").c_str();
     m_state = Task::State::Succeeded;
     finished = true;
     emit succeeded();
-    return;
 }
 void ImgurUpload::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {

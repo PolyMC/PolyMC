@@ -47,11 +47,11 @@ private slots:
     void requestFinished();
     void requestFailed(QString reason);
 
-    void logoFailed(QString logo);
-    void logoLoaded(QString logo, QIcon out);
+    void logoFailed(const QString& logo);
+    void logoLoaded(const QString& logo, const QIcon& out);
 
 private:
-    void requestLogo(QString file, QString url);
+    void requestLogo(const QString& file, const QString& url);
 
 private:
     QList<ATLauncher::IndexedPack> modpacks;

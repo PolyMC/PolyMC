@@ -70,7 +70,7 @@ public:
     explicit AccountList(QObject *parent = 0);
     virtual ~AccountList() noexcept;
 
-    const MinecraftAccountPtr at(int i) const;
+    MinecraftAccountPtr at(int i) const;
     int count() const;
 
     //////// List Model Functions ////////
@@ -81,7 +81,7 @@ public:
     virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
     virtual bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
-    void addAccount(const MinecraftAccountPtr account);
+    void addAccount(const MinecraftAccountPtr& account);
     void removeAccount(QModelIndex index);
     int findAccountByProfileId(const QString &profileId) const;
     MinecraftAccountPtr getAccountByProfileName(const QString &profileName) const;
@@ -102,12 +102,12 @@ public:
     void setListFilePath(QString path, bool autosave = false);
 
     bool loadList();
-    bool loadV2(QJsonObject &root);
-    bool loadV3(QJsonObject &root);
+    bool loadV2(nlohmann::json& root);
+    bool loadV3(nlohmann::json& root);
     bool saveList();
 
     MinecraftAccountPtr defaultAccount() const;
-    void setDefaultAccount(MinecraftAccountPtr profileId);
+    void setDefaultAccount(const MinecraftAccountPtr& profileId);
     bool anyAccountIsValid();
 
     bool isActive() const;

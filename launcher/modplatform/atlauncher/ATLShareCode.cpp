@@ -18,41 +18,39 @@
 
 #include "ATLShareCode.h"
 
-#include "Json.h"
-
 namespace ATLauncher {
 
-static void loadShareCodeMod(ShareCodeMod& m, QJsonObject& obj)
+static void loadShareCodeMod(ShareCodeMod& m, nlohmann::json& obj)
 {
-    m.selected = Json::requireBoolean(obj, "selected");
-    m.name = Json::requireString(obj, "name");
+    m.selected = obj["selected"];
+    m.name = obj["name"].get<std::string>().c_str();
 }
 
-static void loadShareCode(ShareCode& c, QJsonObject& obj)
+static void loadShareCode(ShareCode& c, nlohmann::json& obj)
 {
-    c.pack = Json::requireString(obj, "pack");
-    c.version = Json::requireString(obj, "version");
+    c.pack = obj["pack"].get<std::string>().c_str();
+    c.version = obj["version"].get<std::string>().c_str();
 
-    auto mods = Json::requireObject(obj, "mods");
-    auto optional = Json::requireArray(mods, "optional");
-    for (const auto modRaw : optional) {
-        auto modObj = Json::requireObject(modRaw);
+    auto mods = obj["mods"];
+    auto optional = mods["optional"];
+    for (const auto& modRaw : optional) {
+        auto modObj = modRaw;
         ShareCodeMod mod;
         loadShareCodeMod(mod, modObj);
         c.mods.append(mod);
     }
 }
 
-void loadShareCodeResponse(ShareCodeResponse& r, QJsonObject& obj)
+void loadShareCodeResponse(ShareCodeResponse& r, nlohmann::json& obj)
 {
-    r.error = Json::requireBoolean(obj, "error");
-    r.code = Json::requireInteger(obj, "code");
+    r.error = obj["error"];
+    r.code = obj["code"];
 
-    if (obj.contains("message") && !obj.value("message").isNull())
-        r.message = Json::requireString(obj, "message");
+    if (obj.contains("message") && !obj["message"].is_null())
+        r.message = obj["message"].get<std::string>().c_str();
 
     if (!r.error) {
-        auto dataRaw = Json::requireObject(obj, "data");
+        auto dataRaw = obj["data"];
         loadShareCode(r.data, dataRaw);
     }
 }

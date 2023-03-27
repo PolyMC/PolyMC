@@ -18,7 +18,6 @@
 
 #include <BuildConfig.h>
 #include <Application.h>
-#include <Json.h>
 
 namespace Atl {
 
@@ -26,9 +25,7 @@ ListModel::ListModel(QObject *parent) : QAbstractListModel(parent)
 {
 }
 
-ListModel::~ListModel()
-{
-}
+ListModel::~ListModel() = default;
 
 int ListModel::rowCount(const QModelIndex &parent) const
 {
@@ -100,28 +97,26 @@ void ListModel::requestFinished()
 {
     jobPtr.reset();
 
-    QJsonParseError parse_error;
-    QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
-    if(parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from ATL at " << parse_error.offset << " reason: " << parse_error.errorString();
+    nlohmann::json doc;
+    try {
+        doc = nlohmann::json::parse(response.constData(), response.constData() + response.size());
+    }
+    catch (const nlohmann::json::parse_error &e) {
+        qWarning() << "Error while parsing JSON response from ATL at " << e.byte << " reason: " << e.what();
         qWarning() << response;
         return;
     }
 
     QList<ATLauncher::IndexedPack> newList;
-
-    auto packs = doc.array();
-    for(auto packRaw : packs) {
-        auto packObj = packRaw.toObject();
-
+    for(auto packObj : doc) {
         ATLauncher::IndexedPack pack;
 
         try {
             ATLauncher::loadIndexedPack(pack, packObj);
         }
-        catch (const JSONValidationError &e) {
-            qDebug() << QString::fromUtf8(response);
-            qWarning() << "Error while reading pack manifest from ATLauncher: " << e.cause();
+        catch (const nlohmann::json::parse_error &e) {
+            qWarning() << "Error while parsing JSON response from ATL at " << e.byte << " reason: " << e.what();
+            qWarning() << response;
             return;
         }
 
@@ -157,13 +152,13 @@ void ListModel::getLogo(const QString &logo, const QString &logoUrl, LogoCallbac
     }
 }
 
-void ListModel::logoFailed(QString logo)
+void ListModel::logoFailed(const QString& logo)
 {
     m_failedLogos.append(logo);
     m_loadingLogos.removeAll(logo);
 }
 
-void ListModel::logoLoaded(QString logo, QIcon out)
+void ListModel::logoLoaded(const QString& logo, const QIcon& out)
 {
     m_loadingLogos.removeAll(logo);
     m_logoMap.insert(logo, out);
@@ -175,7 +170,7 @@ void ListModel::logoLoaded(QString logo, QIcon out)
     }
 }
 
-void ListModel::requestLogo(QString file, QString url)
+void ListModel::requestLogo(const QString& file, const QString& url)
 {
     if(m_loadingLogos.contains(file) || m_failedLogos.contains(file))
     {

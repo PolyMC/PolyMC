@@ -41,7 +41,6 @@
 #include "Application.h"
 #include "FlameModel.h"
 #include "InstanceImportTask.h"
-#include "Json.h"
 #include "ui/dialogs/NewInstanceDialog.h"
 
 FlamePage::FlamePage(NewInstanceDialog* dialog, QWidget* parent) : QWidget(parent), ui(new Ui::FlamePage), dialog(dialog)
@@ -131,23 +130,24 @@ void FlamePage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
             if (addonId != current.addonId) {
                 return;  // wrong request
             }
-            QJsonParseError parse_error;
-            QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-            if (parse_error.error != QJsonParseError::NoError) {
-                qWarning() << "Error while parsing JSON response from CurseForge at " << parse_error.offset
-                           << " reason: " << parse_error.errorString();
+
+            nlohmann::json doc;
+            try {
+                doc = nlohmann::json::parse(response->constData(), response->constData() + response->size());
+            } catch (const nlohmann::json::parse_error& e) {
+                qWarning() << "Error while parsing JSON response from CurseForge at " << e.byte << " reason: " << e.what();
                 qWarning() << *response;
                 return;
             }
-            auto arr = Json::ensureArray(doc.object(), "data");
+
             try {
-                Flame::loadIndexedPackVersions(current, arr);
-            } catch (const JSONValidationError& e) {
+                Flame::loadIndexedPackVersions(current, doc["data"]);
+            } catch (const std::exception& e) {
                 qDebug() << *response;
-                qWarning() << "Error while reading flame modpack version: " << e.cause();
+                qWarning() << "Error while reading flame modpack version: " << e.what();
             }
 
-            for (auto version : current.versions) {
+            for (const auto& version : current.versions) {
                 ui->versionSelectionBox->addItem(version.version, QVariant(version.downloadUrl));
             }
 
@@ -169,7 +169,7 @@ void FlamePage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
         });
         netJob->start();
     } else {
-        for (auto version : current.versions) {
+        for (const auto& version : current.versions) {
             ui->versionSelectionBox->addItem(version.version, QVariant(version.downloadUrl));
         }
 

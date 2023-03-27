@@ -39,7 +39,6 @@
 #include "FTBPackInstallTask.h"
 
 #include "FileSystem.h"
-#include "Json.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "modplatform/flame/PackManifest.h"
@@ -104,21 +103,20 @@ void PackInstallTask::onManifestDownloadSucceeded()
 {
     m_net_job.reset();
 
-    QJsonParseError parse_error{};
-    QJsonDocument doc = QJsonDocument::fromJson(m_response, &parse_error);
-    if (parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from ModpacksCH at " << parse_error.offset
-                   << " reason: " << parse_error.errorString();
+    nlohmann::json obj;
+    try {
+        obj = nlohmann::json::parse(m_response.constData(), m_response.constData() + m_response.size());
+    } catch (const nlohmann::json::parse_error& e) {
+        qWarning() << "Error while parsing JSON response from ModpacksCH at " << e.byte << " reason: " << e.what();
         qWarning() << m_response;
         return;
     }
 
     ModpacksCH::Version version;
     try {
-        auto obj = Json::requireObject(doc);
         ModpacksCH::loadVersion(version, obj);
-    } catch (const JSONValidationError& e) {
-        emitFailed(tr("Could not understand pack manifest:\n") + e.cause());
+    } catch (const nlohmann::json::exception& e) {
+        emitFailed(tr("Could not understand pack manifest:\n") + e.what());
         return;
     }
 

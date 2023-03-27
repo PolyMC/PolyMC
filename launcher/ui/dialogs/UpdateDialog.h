@@ -54,7 +54,7 @@ public slots:
     void changelogLoaded();
 
     /// Slot for when the chengelog fails to load...
-    void changelogFailed(QString reason);
+    void changelogFailed(const QString& reason);
 
 protected:
     void closeEvent(QCloseEvent * ) override;

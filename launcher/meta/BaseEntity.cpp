@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <fstream>
 
 #include "BaseEntity.h"
 
 #include "net/Download.h"
 #include "net/HttpMetaCache.h"
 #include "net/NetJob.h"
-#include "Json.h"
 
 #include "BuildConfig.h"
 #include "Application.h"
@@ -29,9 +29,7 @@ public: /* con/des */
     ParsingValidator(Meta::BaseEntity *entity) : m_entity(entity)
     {
     };
-    virtual ~ParsingValidator()
-    {
-    };
+    virtual ~ParsingValidator() = default;
 
 public: /* methods */
     bool init(QNetworkRequest &) override
@@ -50,16 +48,15 @@ public: /* methods */
     bool validate(QNetworkReply &) override
     {
         auto fname = m_entity->localFilename();
-        try
+
+        try 
         {
-            auto doc = Json::requireDocument(data, fname);
-            auto obj = Json::requireObject(doc, fname);
-            m_entity->parse(obj);
+            const auto json = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+            m_entity->parse(json);
             return true;
-        }
-        catch (const Exception &e)
+        } catch (const nlohmann::json::parse_error &e) 
         {
-            qWarning() << "Unable to parse response:" << e.cause();
+            qWarning() << "Unable to parse " << fname << " response:" << e.what();
             return false;
         }
     }
@@ -69,9 +66,7 @@ private: /* data */
     Meta::BaseEntity *m_entity;
 };
 
-Meta::BaseEntity::~BaseEntity()
-{
-}
+Meta::BaseEntity::~BaseEntity() = default;
 
 QUrl Meta::BaseEntity::url() const
 {
@@ -97,14 +92,13 @@ bool Meta::BaseEntity::loadLocalFile()
     // TODO: check if the file has the expected checksum
     try
     {
-        auto doc = Json::requireDocument(fname, fname);
-        auto obj = Json::requireObject(doc, fname);
-        parse(obj);
+        const auto json = nlohmann::json::parse(std::ifstream(fname.toStdString()));
+        parse(json);
         return true;
     }
-    catch (const Exception &e)
+    catch (const nlohmann::json::parse_error &e)
     {
-        qDebug() << QString("Unable to parse file %1: %2").arg(fname, e.cause());
+        qDebug() << QString("Unable to parse file %1: %2").arg(fname, e.what());
         // just make sure it's gone and we never consider it again.
         QFile::remove(fname);
         return false;

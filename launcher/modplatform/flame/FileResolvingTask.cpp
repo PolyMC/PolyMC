@@ -1,6 +1,6 @@
 #include "FileResolvingTask.h"
 
-#include "Json.h"
+#include <nlohmann/json.hpp>
 #include "net/Upload.h"
 
 Flame::FileResolvingTask::FileResolvingTask(const shared_qobject_ptr<QNetworkAccessManager>& network, Flame::Manifest& toProcess)
@@ -21,14 +21,14 @@ void Flame::FileResolvingTask::executeTask()
     m_dljob = new NetJob("Mod id resolver", m_network);
     result.reset(new QByteArray());
     //build json data to send
-    QJsonObject object;
-
-    object["fileIds"] = QJsonArray::fromVariantList(std::accumulate(m_toProcess.files.begin(), m_toProcess.files.end(), QVariantList(), [](QVariantList& l, const File& s) {
+    nlohmann::json data;
+    data["fileIds"] = std::accumulate(m_toProcess.files.begin(), m_toProcess.files.end(), std::vector<int>(), [](std::vector<int>& l, const File& s) {
         l.push_back(s.fileId);
         return l;
-    }));
-    QByteArray data = Json::toText(object);
-    auto dl = Net::Upload::makeByteArray(QUrl("https://api.curseforge.com/v1/mods/files"), result.get(), data);
+    });
+
+    QString dataString = data.dump().c_str();
+    auto dl = Net::Upload::makeByteArray(QUrl("https://api.curseforge.com/v1/mods/files"), result.get(), dataString.toUtf8());
     m_dljob->addNetAction(dl);
     connect(m_dljob.get(), &NetJob::finished, this, &Flame::FileResolvingTask::netJobFinished);
     m_dljob->start();
@@ -37,28 +37,26 @@ void Flame::FileResolvingTask::executeTask()
 void Flame::FileResolvingTask::netJobFinished()
 {
     setProgress(1, 3);
-    int index = 0;
     // job to check modrinth for blocked projects
     auto job = new NetJob("Modrinth check", m_network);
-    blockedProjects = QMap<File *,QByteArray *>();
-    QJsonDocument doc;
+    blockedProjects = QMap<File*,QByteArray*>();
+    nlohmann::json doc;
 
     try {
-        doc = Json::requireDocument(*result);
+        doc = nlohmann::json::parse(result->constData(), result->constData() + result->size());
     }
-    catch (const JSONValidationError &e) {
+    catch (const nlohmann::json::exception &e) {
         qDebug() << "Flame::FileResolvingTask: Json Validation error: " << e.what();
         emitFailed(e.what());
         return;
     }
 
-    auto array = Json::requireArray(doc.object()["data"]);
-    for (QJsonValueRef file : array) {
-        auto fileid = Json::requireInteger(Json::requireObject(file)["id"]);
+    for (const auto& file : doc["data"]) {
+        auto fileid = file["id"].get<int>();
         auto& out = m_toProcess.files[fileid];
         try {
-           out.parseFromObject(Json::requireObject(file));
-        } catch (const JSONValidationError& e) {
+           out.parseFromObject(file);
+        } catch (const std::exception& e) {
             qDebug() << "Blocked mod on curseforge" << out.fileName;
             auto hash = out.hash;
             if(!hash.isEmpty()) {
@@ -73,7 +71,6 @@ void Flame::FileResolvingTask::netJobFinished()
                 blockedProjects.insert(&out, output);
             }
         }
-        index++;
     }
     connect(job, &NetJob::finished, this, &Flame::FileResolvingTask::modrinthCheckFinished);
 
@@ -91,18 +88,17 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
             delete bytes;
             continue;
         }
-        QJsonDocument doc = QJsonDocument::fromJson(*bytes);
-        auto obj = doc.object();
-        auto array = Json::requireArray(obj,"files");
+        nlohmann::json doc = nlohmann::json::parse(bytes->constData(), bytes->constData() + bytes->size());
+        auto array = doc["files"];
         for (auto file: array) {
-            auto fileObj = Json::requireObject(file);
-            auto primary = Json::requireBoolean(fileObj,"primary");
+            auto primary = file["primary"].get<bool>();
             if (primary) {
-                out->url = Json::requireUrl(fileObj,"url");
+                out->url = QUrl(file["url"].get<std::string>().c_str(), QUrl::StrictMode);
                 qDebug() << "Found alternative on modrinth " << out->fileName;
                 break;
             }
         }
+
         delete bytes;
     }
     //copy to an output list and filter out projects found on modrinth
@@ -129,9 +125,9 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
             slugJob->deleteLater();
             auto index = 0;
             for (const auto &slugResult: slugs) {
-                auto json = QJsonDocument::fromJson(slugResult);
-                auto base = Json::requireString(Json::requireObject(Json::requireObject(Json::requireObject(json),"data"),"links"),
-                        "websiteUrl");
+                nlohmann::json doc = nlohmann::json::parse(slugResult.constData(), slugResult.constData() + slugResult.size());
+                QString base = doc["data"]["links"]["websiteUrl"].get<std::string>().c_str();
+
                 auto mod = block->at(index);
                 auto link = QString("%1/download/%2").arg(base, QString::number(mod->fileId));
                 mod->websiteUrl = link;

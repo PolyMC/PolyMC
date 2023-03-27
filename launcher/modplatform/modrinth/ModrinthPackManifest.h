@@ -44,6 +44,7 @@
 #include <QString>
 #include <QUrl>
 #include <QVector>
+#include <nlohmann/json.hpp>
 
 class MinecraftInstance;
 
@@ -105,10 +106,10 @@ struct Modpack {
     QVector<ModpackVersion> versions;
 };
 
-void loadIndexedPack(Modpack&, QJsonObject&);
-void loadIndexedInfo(Modpack&, QJsonObject&);
-void loadIndexedVersions(Modpack&, QJsonDocument&);
-auto loadIndexedVersion(QJsonObject&) -> ModpackVersion;
+void loadIndexedPack(Modpack&, const nlohmann::json& obj);
+void loadIndexedInfo(Modpack& pack, nlohmann::json& obj);
+void loadIndexedVersions(Modpack& pack, nlohmann::json& obj);
+auto loadIndexedVersion(const nlohmann::json& obj) -> ModpackVersion;
 
 auto validateDownloadUrl(QUrl) -> bool;
 

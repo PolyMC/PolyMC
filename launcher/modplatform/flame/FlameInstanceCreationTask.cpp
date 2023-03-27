@@ -1,12 +1,13 @@
 #include "FlameInstanceCreationTask.h"
 
+#include <utility>
+
 #include "modplatform/flame/FlameAPI.h"
 #include "modplatform/flame/PackManifest.h"
 
 #include "Application.h"
 #include "FileSystem.h"
 #include "InstanceList.h"
-#include "Json.h"
 
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
@@ -59,8 +60,8 @@ bool FlameCreationTask::updateInstance()
 
     try {
         Flame::loadManifest(m_pack, index_path);
-    } catch (const JSONValidationError& e) {
-        setError(tr("Could not understand pack manifest:\n") + e.cause());
+    } catch (const std::exception& e) {
+        setError(tr("Could not understand pack manifest:\n") + e.what());
         return false;
     }
 
@@ -147,34 +148,28 @@ bool FlameCreationTask::updateInstance()
 
         connect(job, &NetJob::succeeded, this, [this, raw_response, fileIds, old_inst_dir, &old_files, old_minecraft_dir] {
             // Parse the API response
-            QJsonParseError parse_error{};
-            auto doc = QJsonDocument::fromJson(*raw_response, &parse_error);
-            if (parse_error.error != QJsonParseError::NoError) {
-                qWarning() << "Error while parsing JSON response from Flame files task at " << parse_error.offset
-                           << " reason: " << parse_error.errorString();
+            nlohmann::json doc;
+            try {
+                doc = nlohmann::json::parse(raw_response->constData(), raw_response->constData() + raw_response->size());
+            } catch (nlohmann::json::parse_error& e) {
+                qWarning() << "Error while parsing JSON response from Flame files task at " << e.byte << " reason: " << e.what();
                 qWarning() << *raw_response;
                 return;
             }
 
             try {
-                QJsonArray entries;
-                if (fileIds.size() == 1)
-                    entries = { Json::requireObject(Json::requireObject(doc), "data") };
-                else
-                    entries = Json::requireArray(Json::requireObject(doc), "data");
+                const nlohmann::json& entries = doc["data"];
 
-                for (auto entry : entries) {
-                    auto entry_obj = Json::requireObject(entry);
-
+                for (const auto& entry_obj : entries) {
                     Flame::File file;
                     // We don't care about blocked mods, we just need local data to delete the file
                     file.parseFromObject(entry_obj, false);
 
-                    auto id = Json::requireInteger(entry_obj, "id");
+                    auto id = entry_obj["id"].get<int>();
                     old_files.insert(id, file);
                 }
-            } catch (Json::JsonException& e) {
-                qCritical() << e.cause() << e.what();
+            } catch (const std::exception& e) {
+                qCritical() << "Error while parsing JSON response from Flame files task: " << e.what();
             }
 
             // Delete the files
@@ -233,8 +228,8 @@ bool FlameCreationTask::createInstance()
         FS::ensureFilePathExists(new_index_place);
         QFile::rename(index_path, new_index_place);
 
-    } catch (const JSONValidationError& e) {
-        setError(tr("Could not understand pack manifest:\n") + e.cause());
+    } catch (const std::exception& e) {
+        setError(tr("Could not understand pack manifest:\n") + e.what());
         return false;
     }
 
@@ -335,7 +330,7 @@ bool FlameCreationTask::createInstance()
 
     m_mod_id_resolver = new Flame::FileResolvingTask(APPLICATION->network(), m_pack);
     connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::succeeded, this, [this, &loop] { idResolverSucceeded(loop); });
-    connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::failed, [this, &loop](QString reason) {
+    connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::failed, [this, &loop](const QString& reason) {
         m_mod_id_resolver.reset();
         setError(tr("Unable to resolve mod IDs:\n") + reason);
         loop.exit();
@@ -448,7 +443,7 @@ void FlameCreationTask::setupDownloadJob(QEventLoop& loop)
     });
     connect(m_files_job.get(), &NetJob::failed, [&](QString reason) {
         m_files_job.reset();
-        setError(reason);
+        setError(std::move(reason));
     });
     connect(m_files_job.get(), &NetJob::progress, [&](qint64 current, qint64 total) { setProgress(current, total); });
     connect(m_files_job.get(), &NetJob::finished, &loop, &QEventLoop::quit);

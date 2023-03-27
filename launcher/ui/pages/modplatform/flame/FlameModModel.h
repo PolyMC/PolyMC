@@ -12,11 +12,9 @@ class ListModel : public ModPlatform::ListModel {
     ~ListModel() override = default;
 
    private:
-    void loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj) override;
-    void loadExtraPackInfo(ModPlatform::IndexedPack& m, QJsonObject& obj) override;
-    void loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray& arr) override;
-
-    auto documentToArray(QJsonDocument& obj) const -> QJsonArray override;
+    void loadIndexedPack(ModPlatform::IndexedPack& m, nlohmann::json& obj) override;
+    void loadExtraPackInfo(ModPlatform::IndexedPack& m, nlohmann::json& obj) override;
+    void loadIndexedPackVersions(ModPlatform::IndexedPack& m, nlohmann::json& arr) override;
 
     // NOLINTNEXTLINE(modernize-avoid-c-arrays)
     static const char* sorts[6]; 

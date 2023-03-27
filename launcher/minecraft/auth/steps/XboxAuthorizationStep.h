@@ -20,7 +20,7 @@ public:
 private:
     bool processSTSError(
         QNetworkReply::NetworkError error,
-        QByteArray data,
+        const QByteArray& data,
         QList<QNetworkReply::RawHeaderPair> headers
     );
 

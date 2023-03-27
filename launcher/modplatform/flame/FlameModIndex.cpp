@@ -1,6 +1,5 @@
 #include "FlameModIndex.h"
 
-#include "Json.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "modplatform/flame/FlameAPI.h"
@@ -8,53 +7,62 @@
 static FlameAPI api;
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
-void FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj)
+void FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, const nlohmann::json& obj)
 {
-    pack.addonId = Json::requireInteger(obj, "id");
-    pack.provider = ModPlatform::Provider::FLAME;
-    pack.name = Json::requireString(obj, "name");
-    pack.slug = Json::requireString(obj, "slug");
-    pack.websiteUrl = Json::ensureString(Json::ensureObject(obj, "links"), "websiteUrl", "");
-    pack.description = Json::ensureString(obj, "summary", "");
+        pack.addonId = obj["id"].get<int>();
+        pack.provider = ModPlatform::Provider::FLAME;
+        pack.name = obj["name"].get<std::string>().c_str();
+        pack.slug = obj["slug"].get<std::string>().c_str();
 
-    QJsonObject logo = Json::ensureObject(obj, "logo");
-    pack.logoName = Json::ensureString(logo, "title");
-    pack.logoUrl = Json::ensureString(logo, "thumbnailUrl");
+        const nlohmann::json& links_obj = obj.value("links", nlohmann::json::object());
+        pack.websiteUrl = links_obj.value("websiteUrl", "").c_str();
 
-    auto authors = Json::ensureArray(obj, "authors");
-    for (auto authorIter : authors) {
-        auto author = Json::requireObject(authorIter);
-        ModPlatform::ModpackAuthor packAuthor;
-        packAuthor.name = Json::requireString(author, "name");
-        packAuthor.url = Json::requireString(author, "url");
-        pack.authors.append(packAuthor);
-    }
+        pack.description = obj.value("summary", "").c_str();
 
-    pack.extraDataLoaded = false;
-    loadURLs(pack, obj);
+        const nlohmann::json& logo = obj.value("logo", nlohmann::json::object());
+
+        pack.logoName = logo.value("title", "").c_str();
+        pack.logoUrl = logo.value("thumbnailUrl", "").c_str();
+
+        const nlohmann::json& authors = obj.value("authors", nlohmann::json::array());
+        for (const auto& author : authors) {
+            ModPlatform::ModpackAuthor packAuthor;
+            packAuthor.name = author["name"].get<std::string>().c_str();
+            packAuthor.url = author["url"].get<std::string>().c_str();
+            pack.authors.append(packAuthor);
+        }
+
+        pack.extraDataLoaded = false;
+        loadURLs(pack, links_obj);
 }
 
-void FlameMod::loadURLs(ModPlatform::IndexedPack& pack, QJsonObject& obj)
+void FlameMod::loadURLs(ModPlatform::IndexedPack& pack, const nlohmann::json& obj)
 {
-    auto links_obj = Json::ensureObject(obj, "links");
+    nlohmann::json temp;
 
-    pack.extraData.issuesUrl = Json::ensureString(links_obj, "issuesUrl");
-    if(pack.extraData.issuesUrl.endsWith('/'))
+    temp = obj.value("issuesUrl", nlohmann::json());
+    if (!temp.is_null())
+        pack.extraData.issuesUrl = temp.get<std::string>().c_str();
+    if (pack.extraData.issuesUrl.endsWith('/'))
         pack.extraData.issuesUrl.chop(1);
 
-    pack.extraData.sourceUrl = Json::ensureString(links_obj, "sourceUrl");
-    if(pack.extraData.sourceUrl.endsWith('/'))
+    temp = obj.value("sourceUrl", nlohmann::json());
+    if (!temp.is_null())
+        pack.extraData.sourceUrl = temp.get<std::string>().c_str();
+    if (pack.extraData.sourceUrl.endsWith('/'))
         pack.extraData.sourceUrl.chop(1);
 
-    pack.extraData.wikiUrl = Json::ensureString(links_obj, "wikiUrl");
-    if(pack.extraData.wikiUrl.endsWith('/'))
+    temp = obj.value("wikiUrl", nlohmann::json());
+    if (!temp.is_null())
+        pack.extraData.wikiUrl = temp.get<std::string>().c_str();
+    if (pack.extraData.wikiUrl.endsWith('/'))
         pack.extraData.wikiUrl.chop(1);
 
     if (!pack.extraData.body.isEmpty())
         pack.extraDataLoaded = true;
 }
 
-void FlameMod::loadBody(ModPlatform::IndexedPack& pack, QJsonObject& obj)
+void FlameMod::loadBody(ModPlatform::IndexedPack& pack, const nlohmann::json& obj)
 {
     pack.extraData.body  = api.getModDescription(pack.addonId.toInt());
 
@@ -74,17 +82,14 @@ static QString enumToString(int hash_algorithm)
 }
 
 void FlameMod::loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
-                                       QJsonArray& arr,
+                                       const nlohmann::json& arr,
                                        const shared_qobject_ptr<QNetworkAccessManager>& network,
                                        BaseInstance* inst)
 {
     QVector<ModPlatform::IndexedVersion> unsortedVersions;
     auto profile = (dynamic_cast<MinecraftInstance*>(inst))->getPackProfile();
-    QString mcVersion = profile->getComponentVersion("net.minecraft");
 
-    for (auto versionIter : arr) {
-        auto obj = versionIter.toObject();
-        
+    for (const auto& obj : arr) {
         auto file = loadIndexedPackVersion(obj);
         if(!file.addonId.isValid())
             file.addonId = pack.addonId;
@@ -102,35 +107,34 @@ void FlameMod::loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
     pack.versionsLoaded = true;
 }
 
-auto FlameMod::loadIndexedPackVersion(QJsonObject& obj, bool load_changelog) -> ModPlatform::IndexedVersion
+auto FlameMod::loadIndexedPackVersion(const nlohmann::json& obj, bool load_changelog) -> ModPlatform::IndexedVersion
 {
-    auto versionArray = Json::requireArray(obj, "gameVersions");
-    if (versionArray.isEmpty()) {
+    auto versionArray = obj.value("gameVersions", nlohmann::json());
+    if (versionArray.empty()) {
         return {};
     }
 
     ModPlatform::IndexedVersion file;
-    for (auto mcVer : versionArray) {
-        auto str = mcVer.toString();
 
-        if (str.contains('.'))
-            file.mcVersion.append(str);
+    for (const auto& mcVer : versionArray) {
+        auto str = mcVer.get<std::string>();
+
+        if (str.find('.') != std::string::npos)
+            file.mcVersion.append(str.c_str());
     }
+    file.addonId = obj["modId"].get<int>();
+    file.fileId = obj["id"].get<int>();
+    file.date = obj["fileDate"].get<std::string>().c_str();
+    file.version = obj["displayName"].get<std::string>().c_str();
+    file.downloadUrl = obj["downloadUrl"].get<std::string>().c_str();
+    file.fileName = obj["fileName"].get<std::string>().c_str();
 
-    file.addonId = Json::requireInteger(obj, "modId");
-    file.fileId = Json::requireInteger(obj, "id");
-    file.date = Json::requireString(obj, "fileDate");
-    file.version = Json::requireString(obj, "displayName");
-    file.downloadUrl = Json::ensureString(obj, "downloadUrl");
-    file.fileName = Json::requireString(obj, "fileName");
-
-    auto hash_list = Json::ensureArray(obj, "hashes");
-    for (auto h : hash_list) {
-        auto hash_entry = Json::ensureObject(h);
+    auto hash_list = obj.value("hashes", nlohmann::json());
+    for (const auto& hash_entry : hash_list) {
         auto hash_types = ProviderCaps.hashType(ModPlatform::Provider::FLAME);
-        auto hash_algo = enumToString(Json::ensureInteger(hash_entry, "algo", 1, "algorithm"));
+        auto hash_algo = enumToString(hash_entry.value("algo", 1));
         if (hash_types.contains(hash_algo)) {
-            file.hash = Json::requireString(hash_entry, "value");
+            file.hash = hash_entry.value("value", "").c_str();
             file.hash_type = hash_algo;
             break;
         }

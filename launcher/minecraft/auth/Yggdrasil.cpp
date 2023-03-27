@@ -69,9 +69,9 @@ void Yggdrasil::refresh() {
      *  "requestUser": true/false               // request the user structure
      * }
      */
-    QJsonObject req;
-    req.insert("clientToken", m_data->clientToken());
-    req.insert("accessToken", m_data->accessToken());
+    nlohmann::json req;
+    req["clientToken"] = m_data->clientToken().toStdString();
+    req["accessToken"] = m_data->accessToken().toStdString();
     /*
     {
         auto currentProfile = m_account->currentProfile();
@@ -81,16 +81,15 @@ void Yggdrasil::refresh() {
         req.insert("selectedProfile", profile);
     }
     */
-    req.insert("requestUser", false);
-    QJsonDocument doc(req);
+    req["requestUser"] = false;
 
+    QByteArray requestData(req.dump().c_str());
     QUrl reqUrl("https://authserver.mojang.com/refresh");
-    QByteArray requestData = doc.toJson();
 
     sendRequest(reqUrl, requestData);
 }
 
-void Yggdrasil::login(QString password) {
+void Yggdrasil::login(const QString& password) {
     start();
     /*
      * {
@@ -106,32 +105,27 @@ void Yggdrasil::login(QString password) {
      *   "requestUser": true/false               // request the user structure
      * }
      */
-    QJsonObject req;
+    nlohmann::json req;
 
     {
-        QJsonObject agent;
-        // C++ makes string literals void* for some stupid reason, so we have to tell it
-        // QString... Thanks Obama.
-        agent.insert("name", QString("Minecraft"));
-        agent.insert("version", 1);
-        req.insert("agent", agent);
+        nlohmann::json agent;
+        agent["name"] = "Minecraft";
+        agent["version"] = 1;
+        req["agent"] = agent;
     }
 
-    req.insert("username", m_data->userName());
-    req.insert("password", password);
-    req.insert("requestUser", false);
+    req["username"] = m_data->userName().toStdString();
+    req["password"] = password.toStdString();
+    req["requestUser"] = false;
 
     // If we already have a client token, give it to the server.
     // Otherwise, let the server give us one.
-
     m_data->generateClientTokenIfMissing();
-    req.insert("clientToken", m_data->clientToken());
+    req["clientToken"] = m_data->clientToken().toStdString();
 
-    QJsonDocument doc(req);
+    QByteArray requestData(req.dump().c_str());
 
     QUrl reqUrl("https://authserver.mojang.com/authenticate");
-    QNetworkRequest netRequest(reqUrl);
-    QByteArray requestData = doc.toJson();
 
     sendRequest(reqUrl, requestData);
 }
@@ -164,9 +158,9 @@ void Yggdrasil::abortByTimeout() {
     m_netReply->abort();
 }
 
-void Yggdrasil::sslErrors(QList<QSslError> errors) {
+void Yggdrasil::sslErrors(const QList<QSslError>& errors) {
     int i = 1;
-    for (auto error : errors) {
+    for (const auto& error : errors) {
         qCritical() << "LOGIN SSL Error #" << i << " : " << error.errorString();
         auto cert = error.certificate();
         qCritical() << "Certificate in question:\n" << cert.toText();

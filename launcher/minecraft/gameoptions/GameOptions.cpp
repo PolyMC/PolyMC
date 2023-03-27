@@ -1,6 +1,5 @@
 #include "GameOptions.h"
 #include "FileSystem.h"
-#include <QDebug>
 #include <QSaveFile>
 
 namespace {

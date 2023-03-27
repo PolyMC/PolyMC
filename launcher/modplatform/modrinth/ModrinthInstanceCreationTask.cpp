@@ -3,7 +3,6 @@
 #include "Application.h"
 #include "FileSystem.h"
 #include "InstanceList.h"
-#include "Json.h"
 
 #include "minecraft/PackProfile.h"
 
@@ -16,6 +15,7 @@
 #include "ui/dialogs/CustomMessageBox.h"
 
 #include <QAbstractButton>
+#include <fstream>
 
 bool ModrinthCreationTask::abort()
 {
@@ -285,35 +285,34 @@ bool ModrinthCreationTask::createInstance()
 bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<Modrinth::File>& files, bool set_managed_info, bool show_optional_dialog)
 {
     try {
-        auto doc = Json::requireDocument(index_path);
-        auto obj = Json::requireObject(doc, "modrinth.index.json");
-        int formatVersion = Json::requireInteger(obj, "formatVersion", "modrinth.index.json");
+        nlohmann::json obj = nlohmann::json::parse(std::ifstream(index_path.toStdString()));
+
+        int formatVersion = obj["formatVersion"];
         if (formatVersion == 1) {
-            auto game = Json::requireString(obj, "game", "modrinth.index.json");
-            if (game != "minecraft") {
-                throw JSONValidationError("Unknown game: " + game);
+            auto game = obj["game"].get<std::string>();
+            if (obj["game"].get<std::string>() != "minecraft") {
+                throw std::runtime_error("Unsupported game: " + game);
             }
 
             if (set_managed_info) {
-                m_managed_version_id = Json::ensureString(obj, "versionId", {}, "Managed ID");
-                m_managed_name = Json::ensureString(obj, "name", {}, "Managed Name");
+                m_managed_version_id = obj.value("versionId", "").c_str();
+                m_managed_name = obj.value("name", "").c_str();
             }
 
-            auto jsonFiles = Json::requireIsArrayOf<QJsonObject>(obj, "files", "modrinth.index.json");
             bool had_optional = false;
-            for (const auto& modInfo : jsonFiles) {
+            for (const auto& modInfo : obj["files"]) {
                 Modrinth::File file;
-                file.path = Json::requireString(modInfo, "path");
+                file.path = modInfo["path"].get<std::string>().c_str();
 
                 if (QDir::isAbsolutePath(file.path) || QDir::cleanPath(file.path).startsWith("..")) {
                     qDebug() << "Skipped file that tries to place itself in an absolute location or in a parent directory.";
                     continue;
                 }
 
-                auto env = Json::ensureObject(modInfo, "env");
+                auto env = modInfo.value("env", nlohmann::json::object());
                 // 'env' field is optional
-                if (!env.isEmpty()) {
-                    QString support = Json::ensureString(env, "client", "unsupported");
+                if (!env.empty()) {
+                    QString support = env.value("client", "unsupported").c_str();
                     if (support == "unsupported") {
                         continue;
                     } else if (support == "optional") {
@@ -332,19 +331,19 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
                     }
                 }
 
-                QJsonObject hashes = Json::requireObject(modInfo, "hashes");
+                auto hashes = modInfo.value("hashes", nlohmann::json::object());
                 QString hash;
                 QCryptographicHash::Algorithm hashAlgorithm;
-                hash = Json::ensureString(hashes, "sha1");
+                hash = hashes.value("sha1", "").c_str();
                 hashAlgorithm = QCryptographicHash::Sha1;
                 if (hash.isEmpty()) {
-                    hash = Json::ensureString(hashes, "sha512");
+                    hash = hashes.value("sha512", "").c_str();
                     hashAlgorithm = QCryptographicHash::Sha512;
                     if (hash.isEmpty()) {
-                        hash = Json::ensureString(hashes, "sha256");
+                        hash = hashes.value("sha256", "").c_str();
                         hashAlgorithm = QCryptographicHash::Sha256;
                         if (hash.isEmpty()) {
-                            throw JSONValidationError("No hash found for: " + file.path);
+                            throw std::runtime_error("No hash found for file " + file.path.toStdString());
                         }
                     }
                 }
@@ -354,18 +353,20 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
                 // Do not use requireUrl, which uses StrictMode, instead use QUrl's default TolerantMode
                 // (as Modrinth seems to incorrectly handle spaces)
 
-                auto download_arr = Json::ensureArray(modInfo, "downloads");
-                for (auto download : download_arr) {
-                    qWarning() << download.toString();
-                    bool is_last = download.toString() == download_arr.last().toString();
+                auto download_arr = modInfo["downloads"];
+                for (const auto& download : download_arr) {
+                    //qWarning() << download.toString();
+                    qWarning() << download.get<std::string>().c_str();
+                    //bool is_last = download.toString() == download_arr.last().toString();
+                    bool is_last = download.get<std::string>().c_str() == download_arr.back().get<std::string>().c_str();
 
-                    auto download_url = QUrl(download.toString());
+                    auto download_url = QUrl(download.get<std::string>().c_str());
 
                     if (!download_url.isValid()) {
                         qDebug()
                             << QString("Download URL (%1) for %2 is not a correctly formatted URL").arg(download_url.toString(), file.path);
                         if (is_last && file.downloads.isEmpty())
-                            throw JSONValidationError(tr("Download URL for %1 is not a correctly formatted URL").arg(file.path));
+                            throw std::runtime_error("Download URL for " + file.path.toStdString() + " is not a correctly formatted URL");
                     } else {
                         file.downloads.push_back(download_url);
                     }
@@ -374,27 +375,28 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
                 files.push_back(file);
             }
 
-            auto dependencies = Json::requireObject(obj, "dependencies", "modrinth.index.json");
+            auto dependencies = obj.value("dependencies", nlohmann::json::object());
             for (auto it = dependencies.begin(), end = dependencies.end(); it != end; ++it) {
-                QString name = it.key();
+                const std::string& name = it.key();
                 if (name == "minecraft") {
-                    minecraftVersion = Json::requireString(*it, "Minecraft version");
+                    minecraftVersion = it.value().get<std::string>().c_str();
                 } else if (name == "fabric-loader") {
-                    fabricVersion = Json::requireString(*it, "Fabric Loader version");
+                    fabricVersion = it.value().get<std::string>().c_str();
                 } else if (name == "quilt-loader") {
-                    quiltVersion = Json::requireString(*it, "Quilt Loader version");
+                    quiltVersion = it.value().get<std::string>().c_str();
                 } else if (name == "forge") {
-                    forgeVersion = Json::requireString(*it, "Forge version");
+                    forgeVersion = it.value().get<std::string>().c_str();
                 } else {
-                    throw JSONValidationError("Unknown dependency type: " + name);
+                    throw std::runtime_error("Unknown dependency type: " + name);
                 }
             }
+
         } else {
-            throw JSONValidationError(QStringLiteral("Unknown format version: %s").arg(formatVersion));
+            throw std::runtime_error("Unknown format version: " + std::to_string(formatVersion));
         }
 
-    } catch (const JSONValidationError& e) {
-        setError(tr("Could not understand pack index:\n") + e.cause());
+    } catch (const std::exception& e){
+        setError(tr("Could not understand pack index:\n") + e.what());
         return false;
     }
 

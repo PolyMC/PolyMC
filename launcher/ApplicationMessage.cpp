@@ -35,31 +35,26 @@
 
 #include "ApplicationMessage.h"
 
-#include <QJsonDocument>
-#include <QJsonObject>
-#include "Json.h"
+#include <nlohmann/json.hpp>
 
-void ApplicationMessage::parse(const QByteArray & input) {
-    auto doc = Json::requireDocument(input, "ApplicationMessage");
-    auto root = Json::requireObject(doc, "ApplicationMessage");
+void ApplicationMessage::parse(const QByteArray& input) {
+    nlohmann::json doc = nlohmann::json::parse(input.constData(), input.constData() + input.size());
 
-    command = root.value("command").toString();
+    command = doc["command"].get<std::string>().c_str();
     args.clear();
 
-    auto parsedArgs = root.value("args").toObject();
-    for(auto iter = parsedArgs.begin(); iter != parsedArgs.end(); iter++) {
-        args[iter.key()] = iter.value().toString();
+    for (auto& [key, value] : doc["args"].items()) {
+        args[key.c_str()] = value.get<std::string>().c_str();
     }
 }
 
 QByteArray ApplicationMessage::serialize() {
-    QJsonObject root;
-    root.insert("command", command);
-    QJsonObject outArgs;
+    nlohmann::json root;
+    root["command"] = command.toStdString();
+    nlohmann::json outArgs;
     for (auto iter = args.begin(); iter != args.end(); iter++) {
-        outArgs[iter.key()] = iter.value();
+        outArgs[iter.key().toStdString()] = iter.value().toStdString();
     }
-    root.insert("args", outArgs);
-
-    return Json::toText(root);
+    root["args"] = outArgs;
+    return QByteArray::fromStdString(root.dump());
 }

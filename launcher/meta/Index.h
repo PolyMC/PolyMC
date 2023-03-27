@@ -57,7 +57,7 @@ public:
 
 public: // for usage by parsers only
     void merge(const std::shared_ptr<Index> &other);
-    void parse(const QJsonObject &obj) override;
+    void parse(const nlohmann::json &obj) override;
 
 private:
     QVector<VersionListPtr> m_lists;

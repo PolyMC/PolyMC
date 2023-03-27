@@ -18,37 +18,35 @@
 
 #include "SolderPackManifest.h"
 
-#include "Json.h"
-
 namespace TechnicSolder {
 
-void loadPack(Pack& v, QJsonObject& obj)
+void loadPack(Pack& v, nlohmann::json& obj)
 {
-    v.recommended = Json::requireString(obj, "recommended");
-    v.latest = Json::requireString(obj, "latest");
+    v.recommended = obj["recommended"].get<std::string>().c_str();
+    v.latest = obj["latest"].get<std::string>().c_str();
 
-    auto builds = Json::requireArray(obj, "builds");
-    for (const auto buildRaw : builds) {
-        auto build = Json::requireString(buildRaw);
-        v.builds.append(build);
+    for (const auto& buildv : obj["builds"]) {
+        v.builds.append(buildv.get<std::string>().c_str());
     }
 }
 
-static void loadPackBuildMod(PackBuildMod& b, QJsonObject& obj)
+static void loadPackBuildMod(PackBuildMod& b, const nlohmann::json& obj)
 {
-    b.name = Json::requireString(obj, "name");
-    b.version = Json::ensureString(obj, "version", "");
-    b.md5 = Json::requireString(obj, "md5");
-    b.url = Json::requireString(obj, "url");
+    b.name = obj["name"].get<std::string>().c_str();
+
+    const nlohmann::json& temp = obj.value("version", nlohmann::json());
+    if (!temp.is_null())
+        b.version = temp.get<std::string>().c_str();
+
+    b.md5 = obj["md5"].get<std::string>().c_str();
+    b.url = obj["url"].get<std::string>().c_str();
 }
 
-void loadPackBuild(PackBuild& v, QJsonObject& obj)
+void loadPackBuild(PackBuild& v, nlohmann::json& obj)
 {
-    v.minecraft = Json::requireString(obj, "minecraft");
+    v.minecraft = obj["minecraft"].get<std::string>().c_str();
 
-    auto mods = Json::requireArray(obj, "mods");
-    for (const auto modRaw : mods) {
-        auto modObj = Json::requireObject(modRaw);
+    for (const auto& modObj : obj["mods"]) {
         PackBuildMod mod;
         loadPackBuildMod(mod, modObj);
         v.mods.append(mod);

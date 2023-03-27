@@ -36,9 +36,8 @@
 #include "UpdateDialog.h"
 #include "ui_UpdateDialog.h"
 #include <QDebug>
+#include <utility>
 #include "Application.h"
-#include <settings/SettingsObject.h>
-#include <Json.h>
 
 #include "BuildConfig.h"
 #include "HoeDown.h"
@@ -62,9 +61,7 @@ UpdateDialog::UpdateDialog(bool hasUpdate, QWidget *parent) : QDialog(parent), u
     restoreGeometry(QByteArray::fromBase64(APPLICATION->settings()->get("UpdateDialogGeometry").toByteArray()));
 }
 
-UpdateDialog::~UpdateDialog()
-{
-}
+UpdateDialog::~UpdateDialog() = default;
 
 void UpdateDialog::loadChangelog()
 {
@@ -90,42 +87,39 @@ void UpdateDialog::loadChangelog()
 QString reprocessMarkdown(QByteArray markdown)
 {
     HoeDown hoedown;
-    QString output = hoedown.process(markdown);
+    QString output = hoedown.process(std::move(markdown));
 
     // HACK: easier than customizing hoedown
-    output.replace(QRegularExpression("GH-([0-9]+)"), "<a href=\"https://github.com/PolyMC/PolyMC/issues/\\1\">GH-\\1</a>");
+    output.replace(QRegularExpression("GH-([0-9]+)"), R"(<a href="https://github.com/PolyMC/PolyMC/issues/\1">GH-\1</a>)");
     qDebug() << output;
     return output;
 }
 
-QString reprocessCommits(QByteArray json)
+QString reprocessCommits(const QByteArray& json)
 {
     auto channel = APPLICATION->settings()->get("UpdateChannel").toString();
     try
     {
         QString result;
-        auto document = Json::requireDocument(json);
-        auto rootobject = Json::requireObject(document);
-        auto status = Json::requireString(rootobject, "status");
-        auto diff_url = Json::requireString(rootobject, "html_url");
+        nlohmann::json rootobject = nlohmann::json::parse(json.constData(), json.constData() + json.size());
+
+        std::string status = rootobject["status"].get<std::string>();
+        QString diff_url = rootobject["html_url"].get<std::string>().c_str();
 
         auto print_commits = [&]()
         {
             result += "<table cellspacing=0 cellpadding=2 style='border-width: 1px; border-style: solid'>";
-            auto commitarray = Json::requireArray(rootobject, "commits");
+            auto commitarray = rootobject["commits"];
             for(int i = commitarray.size() - 1; i >= 0; i--)
             {
-                const auto & commitval = commitarray[i];
-                auto commitobj = Json::requireObject(commitval);
-                auto parents_info = Json::ensureArray(commitobj, "parents");
+                nlohmann::json commitobj = commitarray[i];
                 // NOTE: this ignores merge commits, because they have more than one parent
-                if(parents_info.size() > 1)
+                if(commitobj["parents"].size() > 1)
                 {
                     continue;
                 }
-                auto commit_url = Json::requireString(commitobj, "html_url");
-                auto commit_info = Json::requireObject(commitobj, "commit");
-                auto commit_message = Json::requireString(commit_info, "message");
+                QString commit_url = commitobj["html_url"].get<std::string>().c_str();
+                QString commit_message = commitobj["commit"]["message"].get<std::string>().c_str();
                 auto lines = commit_message.split('\n');
                 QRegularExpression regexp("(?<prefix>(GH-(?<issuenr>[0-9]+))|(NOISSUE)|(SCRATCH))? *(?<rest>.*) *");
                 auto match = regexp.match(lines.takeFirst(), 0, QRegularExpression::NormalMatch);
@@ -163,15 +157,15 @@ QString reprocessCommits(QByteArray json)
         }
         else if(status == "diverged")
         {
-            auto commit_ahead = Json::requireInteger(rootobject, "ahead_by");
-            auto commit_behind = Json::requireInteger(rootobject, "behind_by");
+            int commit_ahead = rootobject["ahead_by"].get<int>();
+            int commit_behind = rootobject["behind_by"].get<int>();
             result += QObject::tr("<p>The update removes %1 commits and adds the following %2:</p>").arg(commit_behind).arg(commit_ahead);
             print_commits();
         }
         result += QObject::tr("<p>You can <a href=\"%1\">look at the changes on github</a>.</p>").arg(diff_url);
         return result;
     }
-    catch (const JSONValidationError &e)
+    catch (const std::exception& e)
     {
         qWarning() << "Got an unparseable commit log from github:" << e.what();
         qDebug() << json;
@@ -195,9 +189,9 @@ void UpdateDialog::changelogLoaded()
     ui->changelogBrowser->setHtml(result);
 }
 
-void UpdateDialog::changelogFailed(QString reason)
+void UpdateDialog::changelogFailed(const QString& reason)
 {
-    ui->changelogBrowser->setHtml(tr("<p align=\"center\" <span style=\"font-size:22pt;\">Failed to fetch changelog... Error: %1</span></p>").arg(reason));
+    ui->changelogBrowser->setHtml(tr(R"(<p align="center" <span style="font-size:22pt;">Failed to fetch changelog... Error: %1</span></p>)").arg(reason));
 }
 
 void UpdateDialog::on_btnUpdateLater_clicked()

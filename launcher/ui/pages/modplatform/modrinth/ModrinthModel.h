@@ -77,7 +77,7 @@ class ModpackListModel : public QAbstractListModel {
     inline auto canFetchMore(const QModelIndex& parent) const -> bool override { return searchState == CanPossiblyFetchMore; };
 
    public slots:
-    void searchRequestFinished(QJsonDocument& doc_all);
+    void searchRequestFinished(nlohmann::json& doc_all);
     void searchRequestFailed(QString reason);
 
    protected slots:

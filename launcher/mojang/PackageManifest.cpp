@@ -1,9 +1,11 @@
 #include "PackageManifest.h"
-#include <Json.h>
 #include <QDir>
 #include <QDirIterator>
 #include <QCryptographicHash>
 #include <QDebug>
+#include <fstream>
+
+#include <nlohmann/json.hpp>
 
 #ifndef Q_OS_WIN32
 #include <unistd.h>
@@ -73,32 +75,30 @@ void Package::addSource(const FileSource& source) {
 
 
 namespace {
-void fromJson(QJsonDocument & doc, Package & out) {
+void fromJson(const nlohmann::json& root, Package & out) {
     std::set<Path> seen_paths;
-    if (!doc.isObject())
+    if (!root.is_object())
     {
-        throw JSONValidationError("file manifest is not an object");
+        throw std::runtime_error("file manifest is not an object");
     }
-    QJsonObject root = doc.object();
 
-    auto filesObj = Json::ensureObject(root, "files");
-    auto iter = filesObj.begin();
-    while (iter != filesObj.end())
+    //TODO: make this less stupid
+    auto filesObj = root["files"];
+    for (auto& iter : filesObj.items())
     {
-        Path objectPath = Path(iter.key());
-        auto value = iter.value();
-        iter++;
+        Path objectPath = Path(iter.key().c_str());
+        auto& value = iter.value();
         if(seen_paths.count(objectPath)) {
-            throw JSONValidationError("duplicate path inside manifest, the manifest is invalid");
+            throw std::runtime_error("duplicate path inside manifest, the manifest is invalid");
         }
-        if (!value.isObject())
+        if (!value.is_object())
         {
-            throw JSONValidationError("file entry inside manifest is not an an object");
+            throw std::runtime_error("file entry inside manifest is not an an object");
         }
         seen_paths.insert(objectPath);
 
-        auto fileObject = value.toObject();
-        auto type = Json::requireString(fileObject, "type");
+        auto& fileObject = value;
+        auto type = fileObject["type"].get<std::string>();
         if(type == "directory") {
             out.addFolder(objectPath);
             continue;
@@ -106,17 +106,18 @@ void fromJson(QJsonDocument & doc, Package & out) {
         else if(type == "file") {
             FileSource bestSource;
             File file;
-            file.executable = Json::ensureBoolean(fileObject, QString("executable"), false);
-            auto downloads = Json::requireObject(fileObject, "downloads");
-            for(auto iter2 = downloads.begin(); iter2 != downloads.end(); iter2++) {
+
+            file.executable = fileObject.value("executable", false);
+            auto& downloads = fileObject["downloads"];
+            for(auto& iter2 : downloads.items()) {
                 FileSource source;
 
-                auto downloadObject = Json::requireObject(iter2.value());
-                source.hash = Json::requireString(downloadObject, "sha1");
-                source.size = Json::requireInteger(downloadObject, "size");
-                source.url = Json::requireString(downloadObject, "url");
+                auto& downloadObject = iter2.value();
+                source.hash = downloadObject["sha1"].get<std::string>().c_str();
+                source.size = downloadObject["size"].get<size_t>();
+                source.url = downloadObject["url"].get<std::string>().c_str();
 
-                auto compression = iter2.key();
+                const auto& compression = iter2.key();
                 if(compression == "raw") {
                     file.hash = source.hash;
                     file.size = source.size;
@@ -131,18 +132,18 @@ void fromJson(QJsonDocument & doc, Package & out) {
                 bestSource.upgrade(source);
             }
             if(bestSource.isBad()) {
-                throw JSONValidationError("No valid compression method for file " + iter.key());
+                throw std::runtime_error("No valid compression method for file " + iter.key());
             }
             out.addFile(objectPath, file);
             out.addSource(bestSource);
         }
         else if(type == "link") {
-            auto target = Json::requireString(fileObject, "target");
+            QString target = fileObject["target"].get<std::string>().c_str();
             out.symlinks[objectPath] = target;
             out.addLink(objectPath, target);
         }
         else {
-            throw JSONValidationError("Invalid item type in manifest: " + type);
+            throw std::runtime_error("Invalid item type in manifest: " + type);
         }
     }
     // make sure the containing folder exists
@@ -155,13 +156,13 @@ Package Package::fromManifestContents(const QByteArray& contents)
     Package out;
     try
     {
-        auto doc = Json::requireDocument(contents, "Manifest");
+        nlohmann::json doc = nlohmann::json::parse(contents.constData(), contents.constData() + contents.size());
         fromJson(doc, out);
         return out;
     }
-    catch (const Exception &e)
+    catch (const std::exception &e)
     {
-        qDebug() << QString("Unable to parse manifest: %1").arg(e.cause());
+        qDebug() << QString("Unable to parse manifest: %1").arg(e.what());
         out.valid = false;
         return out;
     }
@@ -171,13 +172,13 @@ Package Package::fromManifestFile(const QString & filename) {
     Package out;
     try
     {
-        auto doc = Json::requireDocument(filename, filename);
+        auto doc = nlohmann::json::parse(std::ifstream(filename.toStdString()));
         fromJson(doc, out);
         return out;
     }
-    catch (const Exception &e)
+    catch (const std::exception& e)
     {
-        qDebug() << QString("Unable to parse manifest file %1: %2").arg(filename, e.cause());
+        qDebug() << QString("Unable to parse manifest file %1: %2").arg(filename, e.what());
         out.valid = false;
         return out;
     }
@@ -337,10 +338,10 @@ UpdateOperations UpdateOperations::resolve(const Package& from, const Package& t
     }
 
     // Files
-    for(auto iter = from.files.begin(); iter != from.files.end(); iter++) {
-        const auto &current_hash = iter->second.hash;
-        const auto &current_executable = iter->second.executable;
-        const auto &path = iter->first;
+    for(const auto & file : from.files) {
+        const auto &current_hash = file.second.hash;
+        const auto &current_executable = file.second.executable;
+        const auto &path = file.first;
 
         auto iter2 = to.files.find(path);
         if(iter2 == to.files.end()) {
@@ -378,7 +379,7 @@ UpdateOperations UpdateOperations::resolve(const Package& from, const Package& t
     // Folders
     std::set<Path, deep_first_sort> remove_folders;
     std::set<Path, shallow_first_sort> make_folders;
-    for(auto from_path: from.folders) {
+    for(const auto& from_path: from.folders) {
         auto iter = to.folders.find(from_path);
         if(iter == to.folders.end()) {
             remove_folders.insert(from_path);
@@ -387,7 +388,7 @@ UpdateOperations UpdateOperations::resolve(const Package& from, const Package& t
     for(auto & rmdir: remove_folders) {
         out.rmdirs.push_back(rmdir);
     }
-    for(auto to_path: to.folders) {
+    for(const auto& to_path: to.folders) {
         auto iter = from.folders.find(to_path);
         if(iter == from.folders.end()) {
             make_folders.insert(to_path);
@@ -398,9 +399,9 @@ UpdateOperations UpdateOperations::resolve(const Package& from, const Package& t
     }
 
     // Symlinks
-    for(auto iter = from.symlinks.begin(); iter != from.symlinks.end(); iter++) {
-        const auto &current_target = iter->second;
-        const auto &path = iter->first;
+    for(const auto & symlink : from.symlinks) {
+        const auto &current_target = symlink.second;
+        const auto &path = symlink.first;
 
         auto iter2 = to.symlinks.find(path);
         if(iter2 == to.symlinks.end()) {
@@ -414,10 +415,10 @@ UpdateOperations UpdateOperations::resolve(const Package& from, const Package& t
             out.mklinks[path] = iter2->second;
         }
     }
-    for(auto iter = to.symlinks.begin(); iter != to.symlinks.end(); iter++) {
-        auto path = iter->first;
+    for(const auto & symlink : to.symlinks) {
+        auto path = symlink.first;
         if(!from.symlinks.count(path)) {
-            out.mklinks[path] = iter->second;
+            out.mklinks[path] = symlink.second;
         }
     }
     out.valid = true;
