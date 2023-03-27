@@ -41,6 +41,7 @@
 #include <QRegularExpressionValidator>
 #include <nlohmann/json.hpp>
 #include <QDebug>
+#include <utility>
 
 #include "ui/dialogs/ProgressDialog.h"
 
@@ -50,7 +51,7 @@
 
 
 ProfileSetupDialog::ProfileSetupDialog(MinecraftAccountPtr accountToSetup, QWidget *parent)
-    : QDialog(parent), m_accountToSetup(accountToSetup), ui(new Ui::ProfileSetupDialog)
+    : QDialog(parent), m_accountToSetup(std::move(accountToSetup)), ui(new Ui::ProfileSetupDialog)
 {
     ui->setupUi(this);
     ui->errorLabel->setVisible(false);
@@ -167,16 +168,15 @@ void ProfileSetupDialog::checkName(const QString &name) {
 
 void ProfileSetupDialog::checkFinished(
     QNetworkReply::NetworkError error,
-    QByteArray data,
+    const QByteArray& data,
     QList<QNetworkReply::RawHeaderPair> headers
 ) {
     auto requestor = qobject_cast<AuthRequest *>(QObject::sender());
     requestor->deleteLater();
 
     if(error == QNetworkReply::NoError) {
-        auto doc = QJsonDocument::fromJson(data);
-        auto root = doc.object();
-        auto statusValue = root.value("status").toString("INVALID");
+        nlohmann::json root = nlohmann::json::parse(data.constData(), data.constData() + data.size());
+        QString statusValue = root.value("status", "INVALID").c_str();
         if(statusValue == "AVAILABLE") {
             setNameStatus(NameStatus::Available);
         }
@@ -249,7 +249,7 @@ struct MojangError{
 
 void ProfileSetupDialog::setupProfileFinished(
     QNetworkReply::NetworkError error,
-    QByteArray data,
+    const QByteArray& data,
     QList<QNetworkReply::RawHeaderPair> headers
 ) {
     auto requestor = qobject_cast<AuthRequest *>(QObject::sender());

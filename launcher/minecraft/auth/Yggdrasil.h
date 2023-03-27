@@ -41,7 +41,7 @@ public:
     virtual ~Yggdrasil() = default;
 
     void refresh();
-    void login(QString password);
+    void login(const QString& password);
 
     struct Error
     {
@@ -82,7 +82,7 @@ protected slots:
     void processReply();
     void refreshTimers(qint64, qint64);
     void heartbeat();
-    void sslErrors(QList<QSslError>);
+    void sslErrors(const QList<QSslError>&);
     void abortByTimeout();
 
 public slots:

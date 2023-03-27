@@ -38,9 +38,7 @@
 #include "MinecraftAccount.h"
 
 #include <QUuid>
-#include <QJsonArray>
 #include <QRegularExpression>
-#include <QJsonDocument>
 
 #include <QPainter>
 

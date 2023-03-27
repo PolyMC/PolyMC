@@ -46,6 +46,8 @@ public:
         QString name;
         QString description;
         QString url;
+
+        bool isEmpty() const;
     };
 
     /*!
@@ -78,7 +80,7 @@ private slots:
     void updateCheckFailed();
 
     void chanListDownloadFinished(bool notifyNoUpdate);
-    void chanListDownloadFailed(QString reason);
+    void chanListDownloadFailed(const QString& reason);
 
 private:
     friend class UpdateCheckerTest;

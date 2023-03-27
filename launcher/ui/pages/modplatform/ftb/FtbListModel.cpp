@@ -119,17 +119,21 @@ void ListModel::requestFinished()
     jobPtr.reset();
     remainingPacks.clear();
 
-    QJsonParseError parse_error {};
-    QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
-    if(parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from ModpacksCH at " << parse_error.offset << " reason: " << parse_error.errorString();
+    nlohmann::json obj;
+    try
+    {
+        obj = nlohmann::json::parse(response.constData(), response.constData() + response.size());
+    }
+    catch (const nlohmann::json::parse_error &e)
+    {
+        qWarning() << "Error while parsing JSON response from ModpacksCH at " << e.byte << " reason: " << e.what();
         qWarning() << response;
         return;
     }
 
-    auto packs = doc.object().value("packs").toArray();
-    for(auto pack : packs) {
-        auto packId = pack.toInt();
+    auto packs = obj["packs"];
+    for(const auto& pack : packs) {
+        auto packId = pack.get<int>();
         remainingPacks.append(packId);
     }
 
