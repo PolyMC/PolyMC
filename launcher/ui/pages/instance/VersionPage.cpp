@@ -422,8 +422,7 @@ void VersionPage::on_actionChange_version_triggered()
 
 void VersionPage::on_actionDownload_All_triggered()
 {
-    if (!APPLICATION->accounts()->anyAccountIsValid())
-    {
+    if (!APPLICATION->accounts()->drmCheck()) {
         CustomMessageBox::selectable(
             this, tr("Error"),
             tr("Cannot download Minecraft or update instances unless you have at least "

@@ -1700,8 +1700,7 @@ void MainWindow::finalizeInstance(InstancePtr inst)
 {
     view->updateGeometries();
     setSelectedInstanceById(inst->id());
-    if (APPLICATION->accounts()->anyAccountIsValid())
-    {
+    if (APPLICATION->accounts()->drmCheck()) {
         ProgressDialog loadDialog(this);
         auto update = inst->createUpdateTask(Net::Mode::Online);
         connect(update.get(), &Task::failed, [this](QString reason)
@@ -1714,9 +1713,7 @@ void MainWindow::finalizeInstance(InstancePtr inst)
             loadDialog.setSkipButton(true, tr("Abort"));
             loadDialog.execWithTask(update.get());
         }
-    }
-    else
-    {
+    } else {
         CustomMessageBox::selectable(
             this,
             tr("Error"),
