@@ -65,7 +65,7 @@ QString AtlUserInteractionSupportImpl::chooseVersion(Meta::VersionListPtr vlist,
     // select recommended build
     for (int i = 0; i < vlist->versions().size(); i++) {
         auto version = vlist->versions().at(i);
-        auto reqs = version->requires();
+        auto reqs = version->required();
 
         // filter by minecraft version, if the loader depends on a certain version.
         if (minecraftVersion != nullptr) {
