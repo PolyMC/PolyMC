@@ -211,6 +211,7 @@ QVariant VersionProxyModel::data(const QModelIndex &index, int role) const
                             return tr("Latest");
                         }
                     }
+                    [[fallthrough]];
                 }
                 default:
                 {
@@ -254,6 +255,7 @@ QVariant VersionProxyModel::data(const QModelIndex &index, int role) const
                         }
                         return pixmap;
                     }
+                    [[fallthrough]];
                 }
                 default:
                 {

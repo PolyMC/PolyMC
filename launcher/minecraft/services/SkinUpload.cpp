@@ -42,12 +42,13 @@
 
 QByteArray getVariant(SkinUpload::Model model) {
     switch (model) {
-        default:
-            qDebug() << "Unknown skin type!";
         case SkinUpload::STEVE:
             return "CLASSIC";
         case SkinUpload::ALEX:
             return "SLIM";
+        default:
+            qDebug() << "Unknown skin type!";
+            return "CLASSIC";
     }
 }
 

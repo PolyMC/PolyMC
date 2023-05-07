@@ -904,7 +904,7 @@ bool InstanceList::commitStagedInstance(const QString& path, InstanceName const&
         QString destination = FS::PathCombine(m_instDir, instID);
 
         if (should_override) {
-            if (!FS::overrideFolder(destination, path)) {
+            if (!FS::mergeFolders(destination, path)) {
                 qWarning() << "Failed to override" << path << "to" << destination;
                 return false;
             }

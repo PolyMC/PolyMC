@@ -363,7 +363,7 @@ QString getDesktopDir()
 // Cross-platform Shortcut creation
 bool createShortCut(QString location, QString dest, QStringList args, QString name, QString icon)
 {
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
+#if !defined(Q_OS_WIN) && !defined(Q_OS_OSX)
     location = PathCombine(location, name + ".desktop");
 
     QFile f(location);
@@ -389,49 +389,35 @@ bool createShortCut(QString location, QString dest, QStringList args, QString na
     f.setPermissions(f.permissions() | QFileDevice::ExeOwner | QFileDevice::ExeGroup | QFileDevice::ExeOther);
 
     return true;
-#elif defined Q_OS_WIN
-    // TODO: Fix
-    //    QFile file(PathCombine(location, name + ".lnk"));
-    //    WCHAR *file_w;
-    //    WCHAR *dest_w;
-    //    WCHAR *args_w;
-    //    file.fileName().toWCharArray(file_w);
-    //    dest.toWCharArray(dest_w);
-
-    //    QString argStr;
-    //    for (int i = 0; i < args.count(); i++)
-    //    {
-    //        argStr.append(args[i]);
-    //        argStr.append(" ");
-    //    }
-    //    argStr.toWCharArray(args_w);
-
-    //    return SUCCEEDED(CreateLink(file_w, dest_w, args_w));
-    return false;
 #else
     qWarning("Desktop Shortcuts not supported on your platform!");
     return false;
 #endif
 }
 
-bool overrideFolder(QString overwritten_path, QString override_path)
+bool mergeFolders(QString dstpath, QString srcpath)
 {
-    using copy_opts = fs::copy_options;
-
-    if (!FS::ensureFolderPathExists(overwritten_path))
-        return false;
-
-    std::error_code err;
-    fs::copy_options opt = copy_opts::recursive | copy_opts::overwrite_existing;
-
-    fs::copy(toStdString(override_path), toStdString(overwritten_path), opt, err);
-
-    if (err) {
-        qCritical() << QString("Failed to apply override from %1 to %2").arg(override_path, overwritten_path);
-        qCritical() << "Reason:" << QString::fromStdString(err.message());
+    std::error_code ec;
+    fs::path fullSrcPath = srcpath.toStdString();
+    fs::path fullDstPath = dstpath.toStdString();
+    for (auto& entry : fs::recursive_directory_iterator(fullSrcPath))
+    {
+        fs::path relativeChild = fs::relative(entry, fullSrcPath);
+        if (entry.is_directory())
+            if (!fs::exists(fullDstPath / relativeChild))
+                fs::create_directory(fullDstPath / relativeChild);
+        if (entry.is_regular_file())
+        {
+            fs::path childDst = fullDstPath / relativeChild;
+            if (fs::exists(childDst))
+                fs::remove(childDst);
+            fs::copy(entry, childDst, fs::copy_options::none, ec);
+            if (ec.value() != 0)
+                qCritical() << QString("File copy failed with: %1. File was %2 -> %3").arg(QString::fromStdString(ec.message()), entry.path().c_str(), childDst.c_str());
+        }
     }
 
-    return err.value() == 0;
+    return ec.value() == 0;
 }
 
 }

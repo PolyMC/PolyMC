@@ -195,8 +195,8 @@ bool ModrinthCreationTask::createInstance()
         Override::createOverrides("client-overrides", parent_folder, client_override_path);
 
         // Apply the overrides
-        if (!FS::overrideFolder(mcPath, client_override_path)) {
-            setError(tr("Could not rename the client overrides folder:\n") + "client overrides");
+        if (!FS::mergeFolders(mcPath, client_override_path)) {
+            setError(tr("Could not overwrite / create new files:\n") + "client overrides");
             return false;
         }
     }

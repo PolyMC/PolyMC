@@ -266,7 +266,7 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const QJsonDocument &doc
 
     if (root.contains("requires"))
     {
-        Meta::parseRequires(root, &out->requires);
+        Meta::parseRequires(root, &out->required);
     }
     QString dependsOnMinecraftVersion = root.value("mcVersion").toString();
     if(!dependsOnMinecraftVersion.isEmpty())
@@ -274,9 +274,9 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(const QJsonDocument &doc
         Meta::Require mcReq;
         mcReq.uid = "net.minecraft";
         mcReq.equalsVersion = dependsOnMinecraftVersion;
-        if (out->requires.count(mcReq) == 0)
+        if (out->required.count(mcReq) == 0)
         {
-            out->requires.insert(mcReq);
+            out->required.insert(mcReq);
         }
     }
     if (root.contains("conflicts"))
@@ -368,9 +368,9 @@ QJsonDocument OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patch
         }
         root.insert("mods", array);
     }
-    if(!patch->requires.empty())
+    if(!patch->required.empty())
     {
-        Meta::serializeRequires(root, &patch->requires, "requires");
+        Meta::serializeRequires(root, &patch->required, "requires");
     }
     if(!patch->conflicts.empty())
     {

@@ -8,16 +8,15 @@ namespace WinDarkmode {
 void setDarkWinTitlebar(WId winid, bool darkmode)
 {
     HWND hwnd = reinterpret_cast<HWND>(winid);
-    BOOL dark = (BOOL) darkmode;
+    BOOL dark = (BOOL)darkmode;
 
     HMODULE hUxtheme = LoadLibraryExW(L"uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     HMODULE hUser32 = GetModuleHandleW(L"user32.dll");
-    fnAllowDarkModeForWindow AllowDarkModeForWindow
-        = reinterpret_cast<fnAllowDarkModeForWindow>(GetProcAddress(hUxtheme, MAKEINTRESOURCEA(133)));
-    fnSetPreferredAppMode SetPreferredAppMode
-        = reinterpret_cast<fnSetPreferredAppMode>(GetProcAddress(hUxtheme, MAKEINTRESOURCEA(135)));
-    fnSetWindowCompositionAttribute SetWindowCompositionAttribute
-        = reinterpret_cast<fnSetWindowCompositionAttribute>(GetProcAddress(hUser32, "SetWindowCompositionAttribute"));
+
+    // For those confused how this works, dlls have export numbers but some can have no name and these have no name. So an address is gotten by export number. If this ever changes, it will break.
+    fnAllowDarkModeForWindow AllowDarkModeForWindow = (fnAllowDarkModeForWindow)(PVOID)GetProcAddress(hUxtheme, MAKEINTRESOURCEA(133));
+    fnSetPreferredAppMode SetPreferredAppMode = (fnSetPreferredAppMode)(PVOID)GetProcAddress(hUxtheme, MAKEINTRESOURCEA(135));
+    fnSetWindowCompositionAttribute SetWindowCompositionAttribute = (fnSetWindowCompositionAttribute)(PVOID)GetProcAddress(hUser32, "SetWindowCompositionAttribute");
 
     SetPreferredAppMode(AllowDark);
     AllowDarkModeForWindow(hwnd, dark);

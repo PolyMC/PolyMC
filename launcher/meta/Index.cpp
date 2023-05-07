@@ -45,11 +45,9 @@ QVariant Index::data(const QModelIndex &index, int role) const
     switch (role)
     {
     case Qt::DisplayRole:
-        switch (index.column())
-        {
-        case 0: return list->humanReadable();
-        default: break;
-        }
+        if (index.column() == 0)
+            return list->humanReadable();
+        break;
     case UidRole: return list->uid();
     case NameRole: return list->name();
     case ListPtrRole: return QVariant::fromValue(list);
@@ -70,10 +68,7 @@ QVariant Index::headerData(int section, Qt::Orientation orientation, int role) c
     {
         return tr("Name");
     }
-    else
-    {
-        return QVariant();
-    }
+    return QVariant();
 }
 
 bool Index::hasUid(const QString &uid) const

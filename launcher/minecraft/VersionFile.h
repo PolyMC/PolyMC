@@ -138,7 +138,7 @@ public: /* data */
      * PolyMC: set of packages this depends on
      * NOTE: this is shared with the meta format!!!
      */
-    Meta::RequireSet requires;
+    Meta::RequireSet required;
 
     /**
      * PolyMC: set of packages this conflicts with

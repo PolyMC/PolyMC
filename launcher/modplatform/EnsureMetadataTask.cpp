@@ -405,7 +405,8 @@ NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
     QHash<QString, QString> addonIds;
     for (auto const& hash : m_mods.keys()) {
         if (m_temp_versions.contains(hash)) {
-            auto const& data = m_temp_versions.find(hash).value();
+            auto const& dataObj = m_temp_versions.find(hash);
+            auto const& data = dataObj.value();
 
             auto id_str = data.addonId.toString();
             if (!id_str.isEmpty())
