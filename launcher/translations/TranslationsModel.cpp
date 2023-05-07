@@ -418,8 +418,6 @@ QVariant TranslationsModel::data(const QModelIndex& index, int role) const
         return QVariant();
 
     int row = index.row();
-    auto column = static_cast<Column>(index.column());
-
     if (row < 0 || row >= d->m_languages.size())
         return QVariant();
 
@@ -428,22 +426,19 @@ QVariant TranslationsModel::data(const QModelIndex& index, int role) const
     {
     case Qt::DisplayRole:
     {
+        auto column = static_cast<Column>(index.column());
         switch(column)
         {
-            case Column::Language:
-            {
+            case Column::Language: 
                 return lang.languageName();
-            }
-            case Column::Completeness:
-            {
+            case Column::Completeness: 
                 return QString("%1%").arg(lang.percentTranslated(), 3, 'f', 1);
-            }
+            default: 
+                return QVariant();
         }
     }
     case Qt::ToolTipRole:
-    {
         return tr("%1:\n%2 translated\n%3 fuzzy\n%4 total").arg(lang.key, QString::number(lang.translated), QString::number(lang.fuzzy), QString::number(lang.total));
-    }
     case Qt::UserRole:
         return lang.key;
     default:

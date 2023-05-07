@@ -66,6 +66,7 @@ std::pair<int, bool> Resource::compare(const Resource& other, SortType type) con
                 return { 1, type == SortType::ENABLED };
             if (!enabled() && other.enabled())
                 return { -1, type == SortType::ENABLED };
+            [[fallthrough]];
         case SortType::NAME: {
             QString this_name{ name() };
             QString other_name{ other.name() };
@@ -76,6 +77,7 @@ std::pair<int, bool> Resource::compare(const Resource& other, SortType type) con
             auto compare_result = QString::compare(this_name, other_name, Qt::CaseInsensitive);
             if (compare_result != 0)
                 return { compare_result, type == SortType::NAME };
+            [[fallthrough]];
         }
         case SortType::DATE:
             if (dateTimeChanged() > other.dateTimeChanged())

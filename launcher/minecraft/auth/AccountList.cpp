@@ -328,6 +328,12 @@ QVariant AccountList::data(const QModelIndex &index, int role) const
                     case AccountState::Gone: {
                         return tr("Gone", "Account status");
                     }
+                    case AccountState::Queued: {
+                        qWarning() << "Unhandled account state Queued";
+                        [[fallthrough]];
+                    }
+                    default:
+                        return tr("Unknown", "Account status");
                 }
             }
 
@@ -341,8 +347,9 @@ QVariant AccountList::data(const QModelIndex &index, int role) const
                 else {
                     return tr("No", "Can Migrate?");
                 }
+                qWarning() << "Unhandled case in MigrationColumn";
+                [[fallthrough]];
             }
-
             default:
                 return QVariant();
             }
@@ -359,7 +366,7 @@ QVariant AccountList::data(const QModelIndex &index, int role) const
                 case ProfileNameColumn:
                     return account == m_defaultAccount ? Qt::Checked : Qt::Unchecked;
             }
-
+            [[fallthrough]];
         default:
             return QVariant();
     }

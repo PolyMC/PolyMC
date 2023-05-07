@@ -85,6 +85,7 @@ enum class AccountState {
     Disabled,
     Errored,
     Expired,
+    Queued,
     Gone
 };
 

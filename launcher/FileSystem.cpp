@@ -363,7 +363,7 @@ QString getDesktopDir()
 // Cross-platform Shortcut creation
 bool createShortCut(QString location, QString dest, QStringList args, QString name, QString icon)
 {
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
+#if !defined(Q_OS_WIN) && !defined(Q_OS_OSX)
     location = PathCombine(location, name + ".desktop");
 
     QFile f(location);
@@ -389,25 +389,6 @@ bool createShortCut(QString location, QString dest, QStringList args, QString na
     f.setPermissions(f.permissions() | QFileDevice::ExeOwner | QFileDevice::ExeGroup | QFileDevice::ExeOther);
 
     return true;
-#elif defined Q_OS_WIN
-    // TODO: Fix
-    //    QFile file(PathCombine(location, name + ".lnk"));
-    //    WCHAR *file_w;
-    //    WCHAR *dest_w;
-    //    WCHAR *args_w;
-    //    file.fileName().toWCharArray(file_w);
-    //    dest.toWCharArray(dest_w);
-
-    //    QString argStr;
-    //    for (int i = 0; i < args.count(); i++)
-    //    {
-    //        argStr.append(args[i]);
-    //        argStr.append(" ");
-    //    }
-    //    argStr.toWCharArray(args_w);
-
-    //    return SUCCEEDED(CreateLink(file_w, dest_w, args_w));
-    return false;
 #else
     qWarning("Desktop Shortcuts not supported on your platform!");
     return false;
