@@ -178,10 +178,9 @@ void ModpackListModel::refresh()
     performPaginatedSearch();
 }
 
-static auto sortFromIndex(int index) -> QString
+static QString sortFromIndex(int index, bool& unhandled)
 {
     switch(index){
-    default:
     case 0:
         return "relevance";
     case 1:
@@ -192,6 +191,10 @@ static auto sortFromIndex(int index) -> QString
         return "newest";
     case 4:
         return "updated";
+    default:
+        unhandled = true;
+        qWarning() << QString("Unhandled case in sortFromIndex (%i)").arg(QString::number(index));
+        break;
     }
 
     return {};
@@ -199,10 +202,10 @@ static auto sortFromIndex(int index) -> QString
 
 void ModpackListModel::searchWithTerm(const QString& term, const int sort)
 {
-    if(sort > 5 || sort < 0)
+    bool unhandled = false;
+    auto sort_str = sortFromIndex(sort, unhandled);
+    if (unhandled)
         return;
-
-    auto sort_str = sortFromIndex(sort);
 
     if (currentSearchTerm == term && currentSearchTerm.isNull() == term.isNull() && currentSort == sort_str) {
         return;
@@ -311,6 +314,8 @@ void ModpackListModel::searchRequestFinished(QJsonDocument& doc_all)
 
 void ModpackListModel::searchRequestFailed(QString reason)
 {
+    qWarning() << QString("searchRequestFailed reason: %1").arg(reason);
+
     auto failed_action = jobPtr->getFailedActions().at(0);
     if (!failed_action->m_reply) {
         // Network error

@@ -135,8 +135,6 @@ void PackInstallTask::resolveMods()
     m_file_id_map.clear();
 
     Flame::Manifest manifest;
-    int index = 0;
-
     for (auto const& file : m_version.files) {
         if (!file.serverOnly && file.url.isEmpty()) {
             if (file.curseforge.file_id <= 0) {
@@ -154,8 +152,6 @@ void PackInstallTask::resolveMods()
         } else {
             m_file_id_map.append(-1);
         }
-
-        index++;
     }
 
     m_mod_id_resolver_task = new Flame::FileResolvingTask(APPLICATION->network(), manifest);

@@ -1168,9 +1168,9 @@ void Application::setApplicationTheme(const QString& name, bool initial)
 #ifdef Q_OS_WIN
         if (m_mainWindow) {
             if (QString::compare(theme->id(), "dark") == 0) {
-                    WinDarkmode::setDarkWinTitlebar(m_mainWindow->winId(), true);
+                    WinDarkmode::setWindowDarkModeEnabled((HWND)m_mainWindow->winId(), true);
             } else {
-                    WinDarkmode::setDarkWinTitlebar(m_mainWindow->winId(), false);
+                    WinDarkmode::setWindowDarkModeEnabled((HWND)m_mainWindow->winId(), false);
             }
         }
 #endif
@@ -1408,9 +1408,9 @@ MainWindow* Application::showMainWindow(bool minimized)
         m_mainWindow->restoreGeometry(QByteArray::fromBase64(APPLICATION->settings()->get("MainWindowGeometry").toByteArray()));
 #ifdef Q_OS_WIN
         if (QString::compare(settings()->get("ApplicationTheme").toString(), "dark") == 0) {
-            WinDarkmode::setDarkWinTitlebar(m_mainWindow->winId(), true);
+            WinDarkmode::setWindowDarkModeEnabled((HWND)m_mainWindow->winId(), true);
         } else {
-            WinDarkmode::setDarkWinTitlebar(m_mainWindow->winId(), false);
+            WinDarkmode::setWindowDarkModeEnabled((HWND)m_mainWindow->winId(), false);
         }
 #endif
         if(minimized)

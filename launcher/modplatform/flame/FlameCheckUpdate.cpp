@@ -158,7 +158,7 @@ void FlameCheckUpdate::executeTask()
             pack.addonId = mod->metadata()->project_id;
             pack.websiteUrl = mod->homeurl();
             for (auto& author : mod->authors())
-                pack.authors.append({ author });
+                pack.authors.append({ author, "" });
             pack.description = mod->description();
             pack.provider = ModPlatform::Provider::FLAME;
 
