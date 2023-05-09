@@ -37,7 +37,6 @@ void Flame::FileResolvingTask::executeTask()
 void Flame::FileResolvingTask::netJobFinished()
 {
     setProgress(1, 3);
-    int index = 0;
     // job to check modrinth for blocked projects
     auto job = new NetJob("Modrinth check", m_network);
     blockedProjects = QMap<File *,QByteArray *>();
@@ -73,7 +72,6 @@ void Flame::FileResolvingTask::netJobFinished()
                 blockedProjects.insert(&out, output);
             }
         }
-        index++;
     }
     connect(job, &NetJob::finished, this, &Flame::FileResolvingTask::modrinthCheckFinished);
 

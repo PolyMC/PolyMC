@@ -218,11 +218,11 @@ bool AccessibleInstanceView::selectRow(int row)
             if ((!row || !view()->selectionModel()->isRowSelected(row - 1, view()->rootIndex())) && !view()->selectionModel()->isRowSelected(row + 1, view()->rootIndex())) {
                 view()->clearSelection();
             }
-        break;
-        }
-        default: {
             break;
         }
+        default:
+            qWarning() << "Unhandled QAbstractItemView selection type!";
+            break;
     }
 
     view()->selectionModel()->select(index, QItemSelectionModel::Select | QItemSelectionModel::Rows);
@@ -248,7 +248,7 @@ bool AccessibleInstanceView::selectColumn(int column)
             if (view()->selectionBehavior() != QAbstractItemView::SelectColumns && rowCount() > 1) {
                 return false;
             }
-            // fallthrough intentional
+            [[fallthrough]];
         }
         case QAbstractItemView::ContiguousSelection: {
             if ((!column || !view()->selectionModel()->isColumnSelected(column - 1, view()->rootIndex())) && !view()->selectionModel()->isColumnSelected(column + 1, view()->rootIndex())) {
@@ -279,7 +279,7 @@ bool AccessibleInstanceView::unselectRow(int row)
     QItemSelection selection(index, index);
     auto selectionModel = view()->selectionModel();
 
-    switch (view()->selectionMode()) {
+    switch (const auto selectionType = view()->selectionMode()) {
         case QAbstractItemView::SingleSelection:
             // no unselect
             if (selectedRowCount() == 1) {
@@ -298,8 +298,13 @@ bool AccessibleInstanceView::unselectRow(int row)
                 //the ones which are down the current row will be deselected
                 selection = QItemSelection(index, view()->model()->index(rowCount() - 1, 0, view()->rootIndex()));
             }
+            break;
         }
+        case QAbstractItemView::NoSelection:
+            break;
         default: {
+            // FIXME: See if MultiSelection / ExtendedSelection need to be handled
+            qWarning() << "Unhandled QAbstractItemView selection type!" << selectionType;
             break;
         }
     }
@@ -342,6 +347,7 @@ bool AccessibleInstanceView::unselectColumn(int column)
                 //of the current row, the ones which are at the right will be deselected
                 selection = QItemSelection(index, model->index(0, columnCount() - 1, view()->rootIndex()));
             }
+            break;
         default:
             break;
     }

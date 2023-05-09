@@ -6,14 +6,14 @@
 
 namespace WinDarkmode {
 
-void setDarkWinTitlebar(WId winid, bool darkmode);
+void setWindowDarkModeEnabled(HWND hWnd, bool Enabled);
 
 enum PreferredAppMode {
-    Default,
-    AllowDark,
-    ForceDark,
-    ForceLight,
-    Max
+    AppMode_Default,
+    AppMode_AllowDark,
+    AppMode_ForceDark,
+    AppMode_ForceLight,
+    AppMode_Max
 };
 
 enum WINDOWCOMPOSITIONATTRIB {
