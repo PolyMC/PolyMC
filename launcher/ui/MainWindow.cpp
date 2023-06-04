@@ -1910,6 +1910,9 @@ void MainWindow::on_actionCreateShortcut_triggered()
   
     auto desktop = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
     auto executable_path = APPLICATION->applicationFilePath();
+    if (APPLICATION->isFlatpak()) {
+      executable_path = "flatpak run org.polymc.PolyMC ";
+    }
     auto instId = m_selectedInstance->id();
     auto icon = APPLICATION->windowIcon();
     auto name = m_selectedInstance->name();
