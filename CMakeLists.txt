@@ -118,6 +118,7 @@ set(Launcher_DISCORD_URL "https://discord.gg/Z52pwxWCHP" CACHE STRING "URL for t
 set(Launcher_SUBREDDIT_URL "https://www.reddit.com/r/PolyMCLauncher/" CACHE STRING "URL for the subreddit.")
 
 # Builds
+set(Launcher_DRM ON CACHE BOOL "Offline mode requires a premium account if enabled")
 set(Launcher_FORCE_BUNDLED_LIBS OFF CACHE BOOL "Prevent using system libraries, if they are available as submodules")
 set(Launcher_QT_VERSION_MAJOR "5" CACHE STRING "Major Qt version to build against")
 

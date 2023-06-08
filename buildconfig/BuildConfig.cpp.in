@@ -112,6 +112,8 @@ Config::Config()
     MATRIX_URL = "@Launcher_MATRIX_URL@";
     DISCORD_URL = "@Launcher_DISCORD_URL@";
     SUBREDDIT_URL = "@Launcher_SUBREDDIT_URL@";
+    
+    DRM = @Launcher_DRM@;
 }
 
 QString Config::versionString() const

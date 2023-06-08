@@ -36,6 +36,8 @@
 
 #include "Application.h"
 
+#include "BuildConfig.h"
+
 #include <QMessageBox>
 #include <QLabel>
 #include <QEvent>
@@ -422,7 +424,7 @@ void VersionPage::on_actionChange_version_triggered()
 
 void VersionPage::on_actionDownload_All_triggered()
 {
-    if (!APPLICATION->accounts()->anyAccountIsValid())
+    if (BuildConfig.DRM && !APPLICATION->accounts()->anyAccountIsValid())
     {
         CustomMessageBox::selectable(
             this, tr("Error"),

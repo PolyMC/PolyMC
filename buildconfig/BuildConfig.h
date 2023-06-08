@@ -35,6 +35,9 @@
  *      limitations under the License.
  */
 
+#define ON true
+#define OFF false
+
 #pragma once
 #include <QString>
 
@@ -141,6 +144,8 @@ class Config {
     QString MATRIX_URL;
     QString DISCORD_URL;
     QString SUBREDDIT_URL;
+    
+    bool DRM;
 
     QString RESOURCE_BASE = "https://resources.download.minecraft.net/";
     QString LIBRARY_BASE = "https://libraries.minecraft.net/";
