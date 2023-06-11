@@ -1610,6 +1610,8 @@ void MainWindow::setCatBackground(bool enabled)
             cat = "floppa";
         else if(catStyleOpt == "Jinx")
             cat = "jinx";
+        else if(catStyleOpt == "Uni")
+            cat = "uni";
 
         if(non_stupid_abs(now.daysTo(xmas)) <= 4) {
             cat += "Catmas";
