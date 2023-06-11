@@ -10,5 +10,8 @@
         <file alias="floppaCat">floppabg.png</file>
         <file alias="floppaCatmas">floppaxmas.png</file>
         <file alias="floppaCattiversary">floppaversary.png</file>
+        <file alias="uniCat">unibg.png</file>
+        <file alias="uniCatmas">unixmas.png</file>
+        <file alias="uniCattiversary">universary.png</file>
     </qresource>
 </RCC>
