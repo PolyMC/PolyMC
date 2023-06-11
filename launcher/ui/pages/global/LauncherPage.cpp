@@ -448,7 +448,7 @@ void LauncherPage::loadSettings()
         ui->themeComboBoxCat->addItem("Floppa");
         ui->themeComboBoxCat->addItem("Uni");
         if (currentCatStyle == "Uni")
-            ui->themeComboBoxCat->setCurrentIndex(3)
+            ui->themeComboBoxCat->setCurrentIndex(3);
         else if(currentCatStyle == "Floppa")
             ui->themeComboBoxCat->setCurrentIndex(2);
         else if(currentCatStyle == "Jinx")
