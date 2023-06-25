@@ -64,31 +64,16 @@ To modify download information or change packaging information send a pull reque
 We don't care what you do with your fork/custom build as long as you follow the terms of the [license](LICENSE) (this is a legal responsibility), and if you made code changes rather than just packaging a custom build, please do the following as a basic courtesy:
 
 - Make it clear that your fork is not PolyMC and is not endorsed by or affiliated with the PolyMC project (<https://polymc.org>).
-- Go through [CMakeLists.txt](CMakeLists.txt) and change PolyMC's API keys to your own or set them to empty strings (`""`) to disable them (this way the program will still compile but the functionality requiring those keys will be disabled).
+- Go through [CMakeLists.txt](CMakeLists.txt) and change PolyMC's API key to your own or set it to an empty string (`""`) to disable it (this way the program will still compile but you won't be able to log into your Minecraft account).
 
 If you have any questions or want any clarification on the above conditions please make an issue and ask us.
 
-Be aware that if you build this software without removing the provided API keys in [CMakeLists.txt](CMakeLists.txt) you are accepting the following terms and conditions:
+Be aware that if you build this software without removing the provided Microsoft API key in [CMakeLists.txt](CMakeLists.txt) you are accepting the following terms and conditions:
 
 - [Microsoft Identity Platform Terms of Use](https://docs.microsoft.com/en-us/legal/microsoft-identity-platform/terms-of-use)
-- [CurseForge 3rd Party API Terms and Conditions](https://support.curseforge.com/en/support/solutions/articles/9000207405-curse-forge-3rd-party-api-terms-and-conditions)
 
-If you do not agree with these terms and conditions, then remove the associated API keys from the [CMakeLists.txt](CMakeLists.txt) file by setting them to an empty string (`""`).
+If you do not agree with these terms and conditions, then remove the Microsoft API keys from the [CMakeLists.txt](CMakeLists.txt) file by setting it to an empty string (`""`).
 
 All launcher code is available under the GPL-3.0-only license.
   
 The logo and related assets are under the CC BY-SA 4.0 license.
-
-## Sponsors
-
-Thank you to all our generous backers over at Open Collective! Support PolyMC by [becoming a backer](https://opencollective.com/polymc).
-
-[![OpenCollective Backers](https://opencollective.com/polymc/backers.svg?width=890&limit=1000)](https://opencollective.com/polymc#backers)
-
-Also, thanks to JetBrains for providing us a few licenses for all their products, as part of their [Open Source program](https://www.jetbrains.com/opensource/).
-
-[![JetBrains](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)](https://www.jetbrains.com/opensource/)
-
-Additionally, thanks to the awesome people over at [MacStadium](https://www.macstadium.com/), for providing M1-Macs for development purposes!
-
-<a href="https://www.macstadium.com"><img src="https://uploads-ssl.webflow.com/5ac3c046c82724970fc60918/5c019d917bba312af7553b49_MacStadium-developerlogo.png" alt="Powered by MacStadium" width="300"></a>
