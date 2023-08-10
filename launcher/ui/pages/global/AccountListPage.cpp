@@ -188,7 +188,7 @@ void AccountListPage::on_actionAddMicrosoft_triggered()
 
 void AccountListPage::on_actionAddOffline_triggered()
 {
-    if (!m_accounts->anyAccountIsValid()) {
+    if (!m_accounts->drmCheck()) {
         QMessageBox::warning(
             this,
             tr("Error"),
