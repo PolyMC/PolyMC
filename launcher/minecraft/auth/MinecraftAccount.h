@@ -91,6 +91,8 @@ public: /* construction */
 
     static MinecraftAccountPtr createFromUsername(const QString &username);
 
+    static MinecraftAccountPtr createAuthlibInjectorFromUsername(const QString &username, QString baseUrl);
+
     static MinecraftAccountPtr createBlankMSA();
 
     static MinecraftAccountPtr createOffline(const QString &username);
@@ -175,6 +177,10 @@ public: /* queries */
             break;
             case AccountType::MSA: {
                 return "msa";
+            }
+            break;
+            case AccountType::AuthlibInjector: {
+              return "authlib-injector";
             }
             break;
             case AccountType::Offline: {

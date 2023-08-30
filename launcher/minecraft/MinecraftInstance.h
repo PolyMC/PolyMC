@@ -173,6 +173,7 @@ protected: // data
     mutable std::shared_ptr<TexturePackFolderModel> m_texture_pack_list;
     mutable std::shared_ptr<WorldList> m_world_list;
     mutable std::shared_ptr<GameOptions> m_game_options;
+    mutable std::shared_ptr<QString> m_authlibinjector_javaagent = std::make_shared<QString>();
 };
 
 typedef std::shared_ptr<MinecraftInstance> MinecraftInstancePtr;

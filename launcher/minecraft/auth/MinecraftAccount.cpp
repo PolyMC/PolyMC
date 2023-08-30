@@ -50,7 +50,9 @@
 
 #include "flows/MSA.h"
 #include "flows/Mojang.h"
+#include "flows/AuthlibInjector.h"
 #include "flows/Offline.h"
+#include "minecraft/auth/AccountData.h"
 
 MinecraftAccount::MinecraftAccount(QObject* parent) : QObject(parent) {
     data.internalId = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
@@ -79,6 +81,16 @@ MinecraftAccountPtr MinecraftAccount::createFromUsername(const QString &username
     account->data.type = AccountType::Mojang;
     account->data.yggdrasilToken.extra["userName"] = username;
     account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
+    return account;
+}
+
+MinecraftAccountPtr MinecraftAccount::createAuthlibInjectorFromUsername(const QString &username, QString baseUrl)
+{
+    MinecraftAccountPtr account = createFromUsername(username);
+    account->data.type = AccountType::AuthlibInjector;
+    account->data.authlibInjectorBaseUrl = baseUrl;
+    account->data.minecraftEntitlement.ownsMinecraft = true;
+    account->data.minecraftEntitlement.canPlayMinecraft = true;
     return account;
 }
 
@@ -132,7 +144,14 @@ QPixmap MinecraftAccount::getFace() const {
 shared_qobject_ptr<AccountTask> MinecraftAccount::login(QString password) {
     Q_ASSERT(m_currentTask.get() == nullptr);
 
-    m_currentTask.reset(new MojangLogin(&data, password));
+    if (data.type == AccountType::Mojang)
+    {
+        m_currentTask.reset(new MojangLogin(&data, password));
+    }
+    else if (data.type == AccountType::AuthlibInjector)
+    {
+        m_currentTask.reset(new AuthlibInjectorLogin(&data, password));
+    }
     connect(m_currentTask.get(), SIGNAL(succeeded()), SLOT(authSucceeded()));
     connect(m_currentTask.get(), SIGNAL(failed(QString)), SLOT(authFailed(QString)));
     connect(m_currentTask.get(), &Task::aborted, this, [this]{ authFailed(tr("Aborted")); });
@@ -172,6 +191,9 @@ shared_qobject_ptr<AccountTask> MinecraftAccount::refresh() {
     }
     else if(data.type == AccountType::Offline) {
         m_currentTask.reset(new OfflineRefresh(&data));
+    }
+    else if(data.type == AccountType::AuthlibInjector) {
+        m_currentTask.reset(new AuthlibInjectorRefresh(&data));
     }
     else {
         m_currentTask.reset(new MojangRefresh(&data));
@@ -300,8 +322,9 @@ void MinecraftAccount::fillSession(AuthSessionPtr session)
     session->player_name = data.profileName();
     // profile ID
     session->uuid = data.profileId();
-    // 'legacy' or 'mojang', depending on account type
+    // 'legacy' or 'mojang', or 'authlib-injector' depending on account type
     session->user_type = typeString();
+    session->authlib_injector_base_url = data.authlibInjectorBaseUrl;
     if (!session->access_token.isEmpty())
     {
         session->session = "token:" + data.accessToken() + ":" + data.profileId();

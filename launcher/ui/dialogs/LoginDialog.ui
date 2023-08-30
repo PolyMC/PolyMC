@@ -34,6 +34,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QLineEdit" name="authlibInjectorBaseTextBox">
+     <property name="placeholderText">
+      <string>AuthlibInjector base URL (e.g. ely.by)</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QLineEdit" name="userTextBox">
      <property name="placeholderText">
       <string>Email</string>

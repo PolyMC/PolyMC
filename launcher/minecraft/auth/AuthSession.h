@@ -38,8 +38,12 @@ struct AuthSession
     QString player_name;
     // profile ID
     QString uuid;
-    // 'legacy' or 'mojang', depending on account type
+    // 'legacy' or 'mojang' or 'authlib-injector', depending on account type
     QString user_type;
+
+    // If not using authlib injector, this is blank.
+    QString authlib_injector_base_url;
+
     // Did the auth server reply?
     bool auth_server_online = false;
     // Did the user request online mode?

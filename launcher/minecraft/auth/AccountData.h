@@ -74,6 +74,7 @@ struct MinecraftProfile {
 enum class AccountType {
     MSA,
     Mojang,
+    AuthlibInjector,
     Offline
 };
 
@@ -115,6 +116,9 @@ struct AccountData {
     QString lastError() const;
 
     AccountType type = AccountType::MSA;
+    QString authlibInjectorBaseUrl;
+    QString authlibInjectorApiLocation;
+
     bool legacy = false;
     bool canMigrateToMSA = false;
 
