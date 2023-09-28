@@ -115,7 +115,7 @@ void processZIP(ResourcePack& pack)
     zip.close();
 }
 
-// https://minecraft.fandom.com/wiki/Tutorials/Creating_a_resource_pack#Formatting_pack.mcmeta
+// https://minecraft.wiki/w/Tutorials/Creating_a_resource_pack#Formatting_pack.mcmeta
 void processMCMeta(ResourcePack& pack, QByteArray&& raw_data)
 {
     try {
