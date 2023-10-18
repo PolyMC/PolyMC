@@ -73,8 +73,10 @@ void setWindowDarkModeEnabled(HWND hWnd, bool Enabled)
         sizeof(DarkEnabled)
     };
 
+#ifdef _WIN64
     constexpr int NtUserSetWindowCompositionAttribute_NT6_2 = 0x13b4;
     constexpr int NtUserSetWindowCompositionAttribute_NT6_3 = 0x13e5;
+
     if (IsWindows8_0_Only())
         WinSyscall<NtUserSetWindowCompositionAttribute_NT6_2>(hWnd, &data);
     else if (IsWindows8_1_Only())
@@ -87,6 +89,16 @@ void setWindowDarkModeEnabled(HWND hWnd, bool Enabled)
         ((fnSetPreferredAppMode)(PVOID)GetProcAddress(GetModuleHandleW(L"uxtheme.dll"), MAKEINTRESOURCEA(135)))
             (AppMode_AllowDark);
     }
+#else
+    if (IsWindows10_Only())
+    {
+        ((fnSetWindowCompositionAttribute)(PVOID)GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetWindowCompositionAttribute"))
+            (hWnd, &data);
+        // Verified this ordinal is the same through Win11 22H2 (5/8/2023)
+        ((fnSetPreferredAppMode)(PVOID)GetProcAddress(GetModuleHandleW(L"uxtheme.dll"), MAKEINTRESOURCEA(135)))
+            (AppMode_AllowDark);
+    }
+#endif
 
 }
 
