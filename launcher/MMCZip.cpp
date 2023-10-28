@@ -40,6 +40,7 @@
 #include "FileSystem.h"
 
 #include <QDebug>
+#include <deque>
 
 // ours
 bool MMCZip::mergeZipFiles(QuaZip *into, QFileInfo from, QSet<QString> &contained, const FilterFunction filter)
@@ -228,23 +229,27 @@ bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath, const
 }
 
 // ours
-QString MMCZip::findFolderOfFileInZip(QuaZip * zip, const QString & what, const QString &root)
+std::pair<QString, QString> MMCZip::findFolderOfFileInZip(QuaZip * zip, QSet<const QString> what, const QString &root)
 {
-    QuaZipDir rootDir(zip, root);
-    for(auto fileName: rootDir.entryList(QDir::Files))
+    std::deque<QString> pathsToTraverse;
+    pathsToTraverse.push_back(root);
+    while (!pathsToTraverse.empty())
     {
-        if(fileName == what)
-            return root;
-    }
-    for(auto fileName: rootDir.entryList(QDir::Dirs))
-    {
-        QString result = findFolderOfFileInZip(zip, what, root + fileName);
-        if(!result.isEmpty())
+        QString currentPath = pathsToTraverse.front();
+        pathsToTraverse.pop_front();
+        QuaZipDir rootDir(zip, currentPath);
+
+        for(auto fileName: rootDir.entryList(QDir::Files))
         {
-            return result;
+            if (what.contains(fileName))
+                return {currentPath, fileName};
+        }
+        for(auto fileName: rootDir.entryList(QDir::Dirs))
+        {
+            pathsToTraverse.push_back(root);
         }
     }
-    return QString();
+    return {QString(), QString()};
 }
 
 // ours
