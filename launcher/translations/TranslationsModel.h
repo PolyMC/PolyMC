@@ -40,7 +40,7 @@ public:
     void downloadIndex();
 
 private:
-    Language *findLanguage(const QString & key);
+    QVector<Language>::iterator findLanguage(const QString & key);
     void reloadLocalFiles();
     void downloadTranslation(QString key);
     void downloadNext();
