@@ -96,7 +96,7 @@
              <string notr="true"> MiB</string>
             </property>
             <property name="minimum">
-             <number>128</number>
+             <number>1</number>
             </property>
             <property name="maximum">
              <number>65536</number>
