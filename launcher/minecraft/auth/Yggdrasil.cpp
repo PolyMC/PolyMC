@@ -27,6 +27,25 @@
 
 #include "Application.h"
 
+
+QString Yggdrasil::getBaseUrl()
+{
+    switch (m_data->type)
+    {
+        case AccountType::Mojang: {
+          return "https://authserver.mojang.com";
+        }
+        case AccountType::AuthlibInjector: {
+            return m_data->authlibInjectorApiLocation + "/authserver";
+        }
+        // Silence warnings about unhandled enum values for values we know shouldn't be handled.
+        case AccountType::MSA:
+        case AccountType::Offline:
+        break;
+    }
+    return "";
+}
+
 Yggdrasil::Yggdrasil(AccountData *data, QObject *parent)
     : AccountTask(data, parent)
 {
@@ -84,7 +103,7 @@ void Yggdrasil::refresh() {
     req.insert("requestUser", false);
     QJsonDocument doc(req);
 
-    QUrl reqUrl("https://authserver.mojang.com/refresh");
+    QUrl reqUrl = getBaseUrl() + "/refresh";
     QByteArray requestData = doc.toJson();
 
     sendRequest(reqUrl, requestData);
@@ -129,7 +148,8 @@ void Yggdrasil::login(QString password) {
 
     QJsonDocument doc(req);
 
-    QUrl reqUrl("https://authserver.mojang.com/authenticate");
+    QUrl reqUrl = getBaseUrl() + "/authenticate";
+    qDebug() << "baseurl = " << getBaseUrl() << "requrl = " << reqUrl;
     QNetworkRequest netRequest(reqUrl);
     QByteArray requestData = doc.toJson();
 

@@ -20,9 +20,10 @@
 
 #include <QtWidgets/QPushButton>
 
-LoginDialog::LoginDialog(QWidget *parent) : QDialog(parent), ui(new Ui::LoginDialog)
+LoginDialog::LoginDialog(QWidget *parent, AccountType type) : QDialog(parent), ui(new Ui::LoginDialog), m_accountType{type}
 {
     ui->setupUi(this);
+    ui->authlibInjectorBaseTextBox->setVisible(m_accountType == AccountType::AuthlibInjector);
     ui->progressBar->setVisible(false);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 
@@ -42,7 +43,14 @@ void LoginDialog::accept()
     ui->progressBar->setVisible(true);
 
     // Setup the login task and start it
-    m_account = MinecraftAccount::createFromUsername(ui->userTextBox->text());
+    if (m_accountType == AccountType::Mojang)
+    {
+        m_account = MinecraftAccount::createFromUsername(ui->userTextBox->text());
+    }
+    else if (m_accountType == AccountType::AuthlibInjector)
+    {
+        m_account = MinecraftAccount::createAuthlibInjectorFromUsername(ui->userTextBox->text(), ui->authlibInjectorBaseTextBox->text());
+    }
     m_loginTask = m_account->login(ui->passTextBox->text());
     connect(m_loginTask.get(), &Task::failed, this, &LoginDialog::onTaskFailed);
     connect(m_loginTask.get(), &Task::succeeded, this, &LoginDialog::onTaskSucceeded);
@@ -106,10 +114,9 @@ void LoginDialog::onTaskProgress(qint64 current, qint64 total)
     ui->progressBar->setValue(current);
 }
 
-// Public interface
-MinecraftAccountPtr LoginDialog::newAccount(QWidget *parent, QString msg)
+MinecraftAccountPtr LoginDialog::newAccount(QWidget *parent, QString msg, AccountType type)
 {
-    LoginDialog dlg(parent);
+    LoginDialog dlg(parent, type);
     dlg.ui->label->setText(msg);
     if (dlg.exec() == QDialog::Accepted)
     {

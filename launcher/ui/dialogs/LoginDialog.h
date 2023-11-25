@@ -18,6 +18,7 @@
 #include <QtWidgets/QDialog>
 #include <QtCore/QEventLoop>
 
+#include "minecraft/auth/AccountData.h"
 #include "minecraft/auth/MinecraftAccount.h"
 #include "tasks/Task.h"
 
@@ -33,10 +34,13 @@ class LoginDialog : public QDialog
 public:
     ~LoginDialog();
 
-    static MinecraftAccountPtr newAccount(QWidget *parent, QString message);
+    /*
+     * @param type: Mojang or Authlib
+     */
+    static MinecraftAccountPtr newAccount(QWidget *parent, QString message, AccountType type = AccountType::Mojang);
 
 private:
-    explicit LoginDialog(QWidget *parent = 0);
+    explicit LoginDialog(QWidget *parent = 0, AccountType type = AccountType::Mojang);
 
     void setUserInputsEnabled(bool enable);
 
@@ -56,4 +60,5 @@ private:
     Ui::LoginDialog *ui;
     MinecraftAccountPtr m_account;
     Task::Ptr m_loginTask;
+    AccountType m_accountType;
 };

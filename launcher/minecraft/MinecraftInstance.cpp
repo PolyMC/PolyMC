@@ -60,6 +60,7 @@
 #include "launch/steps/QuitAfterGameStop.h"
 
 #include "minecraft/launch/LauncherPartLaunch.h"
+#include "minecraft/launch/ConfigureAuthlibInjector.h"
 #include "minecraft/launch/DirectJavaLaunch.h"
 #include "minecraft/launch/ModMinecraftJar.h"
 #include "minecraft/launch/ClaimAccount.h"
@@ -387,6 +388,11 @@ QStringList MinecraftInstance::extraArguments()
 QStringList MinecraftInstance::javaArguments()
 {
     QStringList args;
+
+    if (!m_authlibinjector_javaagent->isNull())
+    {
+        args.append(QString("-javaagent:%1").arg(*m_authlibinjector_javaagent));
+    }
 
     // custom args go first. we want to override them if we have our own here.
     args.append(extraArguments());
@@ -988,6 +994,12 @@ shared_qobject_ptr<LaunchTask> MinecraftInstance::createLaunchTask(AuthSessionPt
         auto step = new PreLaunchCommand(pptr);
         step->setWorkingDirectory(gameRoot());
         process->appendStep(step);
+    }
+
+    *m_authlibinjector_javaagent = QString();
+    if (!session->authlib_injector_base_url.isNull())
+    {
+        process->appendStep(new ConfigureAuthlibInjector(pptr, session->authlib_injector_base_url, m_authlibinjector_javaagent));
     }
 
     // if we aren't in offline mode,.

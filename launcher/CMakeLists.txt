@@ -205,11 +205,15 @@ set(MINECRAFT_SOURCES
     minecraft/auth/flows/AuthFlow.h
     minecraft/auth/flows/Mojang.cpp
     minecraft/auth/flows/Mojang.h
+    minecraft/auth/flows/AuthlibInjector.cpp
+    minecraft/auth/flows/AuthlibInjector.h
     minecraft/auth/flows/MSA.cpp
     minecraft/auth/flows/MSA.h
     minecraft/auth/flows/Offline.cpp
     minecraft/auth/flows/Offline.h
 
+    minecraft/auth/steps/AuthlibInjectorStep.cpp
+    minecraft/auth/steps/AuthlibInjectorStep.h
     minecraft/auth/steps/OfflineStep.cpp
     minecraft/auth/steps/OfflineStep.h
     minecraft/auth/steps/EntitlementsStep.cpp
@@ -249,6 +253,8 @@ set(MINECRAFT_SOURCES
 
     minecraft/launch/ClaimAccount.cpp
     minecraft/launch/ClaimAccount.h
+    minecraft/launch/ConfigureAuthlibInjector.cpp
+    minecraft/launch/ConfigureAuthlibInjector.h
     minecraft/launch/CreateGameFolders.cpp
     minecraft/launch/CreateGameFolders.h
     minecraft/launch/ModMinecraftJar.cpp

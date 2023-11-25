@@ -90,6 +90,7 @@ public slots:
 
 private:
     void sendRequest(QUrl endpoint, QByteArray content);
+    QString getBaseUrl();
 
 protected:
     QNetworkReply *m_netReply = nullptr;

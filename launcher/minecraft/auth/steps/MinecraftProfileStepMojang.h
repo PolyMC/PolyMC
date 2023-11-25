@@ -19,4 +19,7 @@ public:
 
 private slots:
     void onRequestDone(QNetworkReply::NetworkError, QByteArray, QList<QNetworkReply::RawHeaderPair>);
+
+private:
+    QString getBaseUrl();
 };

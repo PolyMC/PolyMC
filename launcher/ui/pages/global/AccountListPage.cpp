@@ -157,6 +157,36 @@ void AccountListPage::on_actionAddMojang_triggered()
     }
 }
 
+void AccountListPage::on_actionAddAuthlibInjector_triggered()
+{
+    if (!m_accounts->drmCheck()) {
+        QMessageBox::warning(
+            this,
+            tr("Error"),
+            tr(
+                "You must add a Microsoft or Mojang account that owns Minecraft before you can add an Authlib Injector account."
+                "<br><br>"
+                "If you have lost your account you can contact Microsoft for support."
+            )
+        );
+        return;
+    }
+
+    MinecraftAccountPtr account = LoginDialog::newAccount(
+        this,
+        tr("Please enter the AuthlibInjector base URL, and enter your account email and password to add your account."),
+        AccountType::AuthlibInjector
+    );
+
+    if (account)
+    {
+        m_accounts->addAccount(account);
+        if (m_accounts->count() == 1) {
+            m_accounts->setDefaultAccount(account);
+        }
+    }
+}
+
 void AccountListPage::on_actionAddMicrosoft_triggered()
 {
     if(BuildConfig.BUILD_PLATFORM == "osx64") {

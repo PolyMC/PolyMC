@@ -6,8 +6,24 @@
 #include "minecraft/auth/Parsers.h"
 #include "net/NetUtils.h"
 
-MinecraftProfileStepMojang::MinecraftProfileStepMojang(AccountData* data) : AuthStep(data) {
+MinecraftProfileStepMojang::MinecraftProfileStepMojang(AccountData* data) : AuthStep(data) {}
 
+QString MinecraftProfileStepMojang::getBaseUrl()
+{
+    switch (m_data->type)
+    {
+        case AccountType::Mojang: {
+          return "https://sessionserver.mojang.com";
+        }
+        case AccountType::AuthlibInjector: {
+            return m_data->authlibInjectorApiLocation + "/sessionserver";
+        }
+        // Silence warnings about unhandled enum values for values we know shouldn't be handled.
+        case AccountType::MSA:
+        case AccountType::Offline:
+        break;
+    }
+    return "";
 }
 
 MinecraftProfileStepMojang::~MinecraftProfileStepMojang() noexcept = default;
@@ -24,7 +40,7 @@ void MinecraftProfileStepMojang::perform() {
     }
 
     // use session server instead of profile due to profile endpoint being locked for locked Mojang accounts
-    QUrl url = QUrl("https://sessionserver.mojang.com/session/minecraft/profile/" + m_data->minecraftProfile.id);
+    QUrl url = getBaseUrl() + "/session/minecraft/profile/" + m_data->minecraftProfile.id;
     QNetworkRequest req = QNetworkRequest(url);
     AuthRequest *request = new AuthRequest(this);
     connect(request, &AuthRequest::finished, this, &MinecraftProfileStepMojang::onRequestDone);
