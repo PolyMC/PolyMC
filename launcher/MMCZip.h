@@ -78,11 +78,11 @@ namespace MMCZip
     bool createModdedJar(QString sourceJarPath, QString targetJarPath, const QList<Mod*>& mods);
 
     /**
-     * Find a single file in archive by file name (not path)
+     * Breath-first find a single file in archive by a list of file names (not path)
      *
-     * \return the path prefix where the file is
+     * \return pair of {file parent directory, file name}
      */
-    QString findFolderOfFileInZip(QuaZip * zip, const QString & what, const QString &root = QString(""));
+    std::pair<QString, QString> findFolderOfFileInZip(QuaZip * zip, QSet<const QString> what, const QString &root = QString(""));
 
     /**
      * Find a multiple files of the same name in archive by file name
