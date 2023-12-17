@@ -7,21 +7,7 @@
 #include "net/NetUtils.h"
 
 MinecraftProfileStep::MinecraftProfileStep(AccountData* data) : AuthStep(data) {
-    switch (m_data->type)
-    {
-        case AccountType::Mojang: {
-            baseUrl = "https://api.minecraftservices.com";
-            break;
-        }
-        case AccountType::AuthlibInjector: {
-            baseUrl = m_data->authlibInjectorApiLocation + "/minecraftservices";
-            break;
-        }
-        // Silence warnings about unhandled enum values for values we know shouldn't be handled.
-        case AccountType::MSA:
-        case AccountType::Offline:
-        break;
-    }
+
 }
 
 MinecraftProfileStep::~MinecraftProfileStep() noexcept = default;
@@ -32,7 +18,7 @@ QString MinecraftProfileStep::describe() {
 
 
 void MinecraftProfileStep::perform() {
-    QUrl url = baseUrl + "/minecraft/profile";
+    auto url = QUrl("https://api.minecraftservices.com/minecraft/profile");
     QNetworkRequest request = QNetworkRequest(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Authorization", QString("Bearer %1").arg(m_data->yggdrasilToken.token).toUtf8());
