@@ -54,6 +54,36 @@
 #include "flows/Offline.h"
 #include "minecraft/auth/AccountData.h"
 
+// Basically the same as https://github.com/qt/qtbase/blob/5.12/src/corelib/plugin/quuid.cpp#L152C1-L173C2, but unfortunately they don't allow
+// us to specify a byte array for the namespace, we only get to specify a fixed length Uuid so I have to copy it and modify it ever so slightly.
+static QUuid createUuidFromName(const QByteArray &ns, const QByteArray &baseData, QCryptographicHash::Algorithm algorithm, int version)
+{
+    QByteArray hashResult;
+
+    // create a scope so later resize won't reallocate
+    {
+        QCryptographicHash hash(algorithm);
+        hash.addData(ns);
+        hash.addData(baseData);
+        hashResult = hash.result();
+    }
+    hashResult.resize(16); // Sha1 will be too long
+
+    QUuid result = QUuid::fromRfc4122(hashResult);
+
+    result.data3 &= 0x0FFF;
+    result.data3 |= (version << 12);
+    result.data4[0] &= 0x3F;
+    result.data4[0] |= 0x80;
+
+    return result;
+}
+
+static QUuid createUuidV3(const QByteArray &ns, const QByteArray &baseData)
+{
+    return createUuidFromName(ns, baseData, QCryptographicHash::Md5, 3);
+}
+
 MinecraftAccount::MinecraftAccount(QObject* parent) : QObject(parent) {
     data.internalId = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
 }
@@ -112,7 +142,7 @@ MinecraftAccountPtr MinecraftAccount::createOffline(const QString &username)
     account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
     account->data.minecraftEntitlement.ownsMinecraft = true;
     account->data.minecraftEntitlement.canPlayMinecraft = true;
-    account->data.minecraftProfile.id = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
+    account->data.minecraftProfile.id = createUuidV3("OfflinePlayer:", username.toUtf8()).toString().remove(QRegularExpression("[{}-]"));
     account->data.minecraftProfile.name = username;
     account->data.minecraftProfile.validity = Katabasis::Validity::Certain;
     return account;
