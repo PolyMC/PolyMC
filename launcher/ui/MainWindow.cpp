@@ -1602,7 +1602,8 @@ void MainWindow::setCatBackground(bool enabled)
     {
         QDateTime now = QDateTime::currentDateTime();
         QDateTime birthday(QDate(now.date().year(), 11, 30), QTime(0, 0));
-        QDateTime xmas(QDate(now.date().year(), 12, 25), QTime(0, 0));
+        QDateTime christmasStart(QDate(now.date().year(), 12, 25), QTime(0, 0));
+        QDateTime christmasEnd(QDate(now.date().year(), 1, 7), QTime(0, 0)); //end at midnight of the 7th
 
         QString cat = "default";
         QString catStyleOpt = APPLICATION->settings()->get("CatStyle").toString();
@@ -1611,7 +1612,7 @@ void MainWindow::setCatBackground(bool enabled)
         else if(catStyleOpt == "Jinx")
             cat = "jinx";
 
-        if(non_stupid_abs(now.daysTo(xmas)) <= 4) {
+        if(christmasStart <= now || now < christmasEnd) {
             cat += "Catmas";
         }
         else if (non_stupid_abs(now.daysTo(birthday)) <= 12) {
