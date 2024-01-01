@@ -75,6 +75,9 @@ public:
 
     void updateCalculations();
 
+protected:
+    bool eventFilter(QObject *object, QEvent *event) override;
+
 private:
     Ui::StoragePage *ui;
     BaseInstance *m_inst;

@@ -60,7 +60,9 @@ StoragePage::StoragePage(BaseInstance* inst, QWidget* parent) : QWidget(parent),
     m_chart->setBackgroundVisible(false);
     m_chart->setMargins(QMargins(0, 0, 0, 0));
     m_chart->legend()->setAlignment(Qt::AlignLeft);
+    m_chart->legend()->setLabelColor(QApplication::palette().text().color());
     m_chart_view->setRenderHint(QPainter::Antialiasing);
+    m_chart_view->installEventFilter(this);
 
     ui->verticalLayout->addWidget(m_chart_view);
     ui->retranslateUi(this);
@@ -156,4 +158,14 @@ void StoragePage::updateCalculations()
     m_chart_view->setChart(m_chart);
     for (auto slice : m_series->slices())
         slice->setLabel(slice->label() + " " + QString("%1%").arg(100 * slice->percentage(), 0, 'f', 1));
+}
+
+bool StoragePage::eventFilter(QObject *object, QEvent *event)
+{
+    if(event->type() == QEvent::PaletteChange)
+    {
+        m_chart->legend()->setLabelColor(QApplication::palette().text().color());
+        return true;
+    }
+    return false;
 }
