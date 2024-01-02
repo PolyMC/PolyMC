@@ -448,6 +448,7 @@ QList<QString> JavaUtils::FindJavaPaths()
     scanJavaDir("/opt/jdks");
     // flatpak
     scanJavaDir("/app/jdk");
+    scanJavaDir(FS::PathCombine(QDir::homePath(), ".sdkman/candidates/java"));
     return addJavasFromEnv(javas);
 }
 #else
