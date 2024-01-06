@@ -246,7 +246,7 @@ std::pair<QString, QString> MMCZip::findFolderOfFileInZip(QuaZip * zip, QSet<con
         }
         for(auto fileName: rootDir.entryList(QDir::Dirs))
         {
-            pathsToTraverse.push_back(root);
+            pathsToTraverse.push_back(rootDir.path() + fileName);
         }
     }
     return {QString(), QString()};
