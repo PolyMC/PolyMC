@@ -448,7 +448,16 @@ QList<QString> JavaUtils::FindJavaPaths()
     scanJavaDir("/opt/jdks");
     // flatpak
     scanJavaDir("/app/jdk");
-    scanJavaDir(FS::PathCombine(QDir::homePath(), ".sdkman/candidates/java"));
+
+    // Default SDKMAN directory can be overwritten via SDKMAN_DIR env var (default $HOME/.sdkman)
+    // see https://sdkman.io/install
+    auto sdkmanInstallPath = qEnvironmentVariable("SDKMAN_DIR", FS::PathCombine(QDir::homePath(), ".sdkman"));
+    scanJavaDir(FS::PathCombine(sdkmanInstallPath, "candidates/java"));
+    // Default ASDF directory can be overwritten via ASDF_DIR or ASDF_DATA_DIR env vars (default $HOME/.asdf)
+    // see https://asdf-vm.com/manage/configuration.html#asdf-dir
+    auto asdfDataPath = qEnvironmentVariable("ASDF_DATA_DIR", qEnvironmentVariable("ASDF_DIR", FS::PathCombine(QDir::homePath(), ".asdf")));
+    scanJavaDir(FS::PathCombine(asdfDataPath, "installs/java"));
+
     return addJavasFromEnv(javas);
 }
 #else
