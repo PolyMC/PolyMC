@@ -155,13 +155,17 @@ bool ensureFilePathExists(QString filenamepath)
     return success;
 }
 
-bool ensureFolderPathExists(QString foldernamepath)
+bool ensureFolderPathExists(const QFileInfo folderPath)
 {
-    QFileInfo a(foldernamepath);
     QDir dir;
-    QString ensuredPath = a.filePath();
+    QString ensuredPath = folderPath.filePath();
     bool success = dir.mkpath(ensuredPath);
     return success;
+}
+
+bool ensureFolderPathExists(const QString folderPathName)
+{
+    return ensureFolderPathExists(QFileInfo(folderPathName));
 }
 
 bool copy::operator()(const QString& offset)
