@@ -450,7 +450,7 @@ QIcon IconList::getIcon(const QString &key) const
         return icons[icon_index].icon();
 
     // Fallback for icons that don't exist.
-    icon_index = getIconIndex("grass");
+    icon_index = getIconIndex("polymc");
 
     if (icon_index != -1)
         return icons[icon_index].icon();
@@ -459,7 +459,7 @@ QIcon IconList::getIcon(const QString &key) const
 
 int IconList::getIconIndex(const QString &key) const
 {
-    auto iter = name_index.find(key == "default" ? "grass" : key);
+    auto iter = name_index.find(key == "default" ? "polymc" : key);
     if (iter != name_index.end())
         return *iter;
 

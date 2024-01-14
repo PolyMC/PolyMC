@@ -3,6 +3,7 @@
 *  PolyMC - Minecraft Launcher
 *  Copyright (c) 2022 flowln <flowlnlnln@gmail.com>
 *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+*  Copyright (C) 2022 Slendi <slendi@socopon.com>
 *
 *  This program is free software: you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -69,6 +70,15 @@ QVariant ModFolderModel::data(const QModelIndex &index, int role) const
         {
         case NameColumn:
             return m_resources[row]->name();
+        case LoaderColumn:
+            switch(m_resources[row]->type()) {
+                case ResourceType::SINGLEFILE:
+                case ResourceType::LITEMOD:
+                case ResourceType::ZIPFILE:
+                    return at(row)->loader();
+                default:
+                    return QString("-");
+            };
         case VersionColumn: {
             switch(m_resources[row]->type()) {
                 case ResourceType::FOLDER:
@@ -114,6 +124,8 @@ QVariant ModFolderModel::headerData(int section, Qt::Orientation orientation, in
             return QString();
         case NameColumn:
             return tr("Name");
+        case LoaderColumn:
+            return tr("Loader");
         case VersionColumn:
             return tr("Version");
         case DateColumn:
@@ -129,6 +141,8 @@ QVariant ModFolderModel::headerData(int section, Qt::Orientation orientation, in
             return tr("Is the mod enabled?");
         case NameColumn:
             return tr("The name of the mod.");
+        case LoaderColumn:
+            return tr("The loader this mod is for.");
         case VersionColumn:
             return tr("The version of the mod.");
         case DateColumn:

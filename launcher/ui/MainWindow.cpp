@@ -277,7 +277,7 @@ public:
     QMenuBar *menuBar = nullptr;
     QMenu *fileMenu;
     QMenu *viewMenu;
-    QMenu *profileMenu;
+    QMenu *accountMenu;
 
     TranslatedAction actionCloseWindow;
 
@@ -532,9 +532,9 @@ public:
 
         menuBar->addMenu(foldersMenu);
 
-        profileMenu = menuBar->addMenu(tr("&Profiles"));
-        profileMenu->setSeparatorsCollapsible(false);
-        profileMenu->addAction(actionManageAccounts);
+        accountMenu = menuBar->addMenu(tr("&Accounts"));
+        accountMenu->setSeparatorsCollapsible(false);
+        accountMenu->addAction(actionManageAccounts);
 
         helpMenu = menuBar->addMenu(tr("&Help"));
         helpMenu->setSeparatorsCollapsible(false);
@@ -1087,11 +1087,11 @@ void MainWindow::retranslateUi()
     auto accounts = APPLICATION->accounts();
     MinecraftAccountPtr defaultAccount = accounts->defaultAccount();
     if(defaultAccount) {
-        auto profileLabel = profileInUseFilter(defaultAccount->profileName(), defaultAccount->isInUse());
-        accountMenuButton->setText(profileLabel);
+        auto accountLabel = profileInUseFilter(defaultAccount->profileName(), defaultAccount->isInUse());
+        accountMenuButton->setText(accountLabel);
     }
     else {
-        accountMenuButton->setText(tr("Profiles"));
+        accountMenuButton->setText(tr("Accounts"));
     }
 
     if (m_selectedInstance) {
@@ -1291,7 +1291,7 @@ void MainWindow::updateToolsMenu()
 void MainWindow::repopulateAccountsMenu()
 {
     accountMenu->clear();
-    ui->profileMenu->clear();
+    ui->accountMenu->clear();
 
     auto accounts = APPLICATION->accounts();
     MinecraftAccountPtr defaultAccount = accounts->defaultAccount();
@@ -1315,7 +1315,7 @@ void MainWindow::repopulateAccountsMenu()
         ui->actionNoAccountsAdded.setTextId(QT_TRANSLATE_NOOP("MainWindow", "No accounts added!"));
         ui->actionNoAccountsAdded->setEnabled(false);
         accountMenu->addAction(ui->actionNoAccountsAdded);
-        ui->profileMenu->addAction(ui->actionNoAccountsAdded);
+        ui->accountMenu->addAction(ui->actionNoAccountsAdded);
         ui->all_actions.append(&ui->actionNoAccountsAdded);
     }
     else
@@ -1348,13 +1348,13 @@ void MainWindow::repopulateAccountsMenu()
             }
 
             accountMenu->addAction(action);
-            ui->profileMenu->addAction(action);
+            ui->accountMenu->addAction(action);
             connect(action, SIGNAL(triggered(bool)), SLOT(changeActiveAccount()));
         }
     }
 
     accountMenu->addSeparator();
-    ui->profileMenu->addSeparator();
+    ui->accountMenu->addSeparator();
 
     ui->all_actions.removeAll(&ui->actionNoDefaultAccount);
     ui->actionNoDefaultAccount = TranslatedAction(this);
@@ -1369,15 +1369,15 @@ void MainWindow::repopulateAccountsMenu()
     }
 
     accountMenu->addAction(ui->actionNoDefaultAccount);
-    ui->profileMenu->addAction(ui->actionNoDefaultAccount);
+    ui->accountMenu->addAction(ui->actionNoDefaultAccount);
     connect(ui->actionNoDefaultAccount, SIGNAL(triggered(bool)), SLOT(changeActiveAccount()));
     ui->all_actions.append(&ui->actionNoDefaultAccount);
     ui->actionNoDefaultAccount.retranslate();
 
     accountMenu->addSeparator();
-    ui->profileMenu->addSeparator();
+    ui->accountMenu->addSeparator();
     accountMenu->addAction(ui->actionManageAccounts);
-    ui->profileMenu->addAction(ui->actionManageAccounts);
+    ui->accountMenu->addAction(ui->actionManageAccounts);
 }
 
 void MainWindow::updatesAllowedChanged(bool allowed)
@@ -1434,7 +1434,7 @@ void MainWindow::defaultAccountChanged()
 
     // Set the icon to the "no account" icon.
     accountMenuButton->setIcon(APPLICATION->getThemedIcon("noaccount"));
-    accountMenuButton->setText(tr("Profiles"));
+    accountMenuButton->setText(tr("Accounts"));
 }
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *ev)

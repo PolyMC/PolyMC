@@ -57,7 +57,7 @@ public:
     virtual ~VanillaPage();
     virtual QString displayName() const override
     {
-        return tr("Vanilla");
+        return tr("Custom");
     }
     virtual QIcon icon() const override
     {

@@ -72,6 +72,9 @@ struct ModDetails
     /* List of the author's names */
     QStringList authors = {};
 
+    /* The loader used by the mod */
+    QString loader = {};
+
     /* Installation status of the mod */
     ModStatus status = ModStatus::Unknown;
 
@@ -89,6 +92,7 @@ struct ModDetails
         , homeurl(other.homeurl)
         , description(other.description)
         , authors(other.authors)
+        , loader(other.loader)
         , status(other.status)
     {}
 
@@ -101,6 +105,7 @@ struct ModDetails
         this->homeurl = other.homeurl;
         this->description = other.description;
         this->authors = other.authors;
+        this->loader = other.loader;
         this->status = other.status;
 
         return *this;
@@ -115,6 +120,7 @@ struct ModDetails
         this->homeurl = other.homeurl;
         this->description = other.description;
         this->authors = other.authors;
+        this->loader = other.loader;
         this->status = other.status;
 
         return *this;

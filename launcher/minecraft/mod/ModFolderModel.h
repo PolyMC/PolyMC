@@ -3,6 +3,7 @@
 *  PolyMC - Minecraft Launcher
 *  Copyright (c) 2022 flowln <flowlnlnln@gmail.com>
 *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+*  Copyright (C) 2022 Slendi <slendi@socopon.com>
 *
 *  This program is free software: you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -65,6 +66,7 @@ public:
     {
         ActiveColumn = 0,
         NameColumn,
+        LoaderColumn,
         VersionColumn,
         DateColumn,
         NUM_COLUMNS
