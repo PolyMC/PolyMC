@@ -105,6 +105,9 @@ private slots:
     void on_actionChangeInstGroup_triggered();
 
     void on_actionChangeInstIcon_triggered();
+
+    void on_actionCreateShortcut_triggered();
+
     void on_changeIconButton_clicked(bool)
     {
         on_actionChangeInstIcon_triggered();
