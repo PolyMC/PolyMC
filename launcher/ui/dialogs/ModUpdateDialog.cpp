@@ -36,13 +36,15 @@ static ModAPI::ModLoaderTypes mcLoaders(BaseInstance* inst)
 ModUpdateDialog::ModUpdateDialog(QWidget* parent,
                                  BaseInstance* instance,
                                  const std::shared_ptr<ModFolderModel> mods,
-                                 QList<Mod*>& search_for)
+                                 QList<Mod*>& search_for,
+                                 bool update_mods)
     : ReviewMessageBox(parent, tr("Confirm mods to update"), "")
     , m_parent(parent)
     , m_mod_model(mods)
     , m_candidates(search_for)
     , m_second_try_metadata(new ConcurrentTask())
     , m_instance(instance)
+    , m_update_mods(update_mods)
 {
     ReviewMessageBox::setGeometry(0, 0, 800, 600);
 
@@ -302,7 +304,7 @@ auto ModUpdateDialog::ensureMetadata() -> bool
 void ModUpdateDialog::onMetadataEnsured(Mod* mod)
 {
     // When the mod is a folder, for instance
-    if (!mod->metadata())
+    if (!mod->metadata() || !m_update_mods)
         return;
 
     switch (mod->metadata()->provider) {

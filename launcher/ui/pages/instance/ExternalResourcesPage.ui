@@ -158,6 +158,17 @@
     <string>Try to check or update all selected resources (all resources if none are selected)</string>
    </property>
   </action>
+  <action name="actionDisableUpdates">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Disable Update Check</string>
+   </property>
+   <property name="toolTip">
+    <string>Disable mod updates for selected resources</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

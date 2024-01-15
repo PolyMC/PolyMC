@@ -51,7 +51,7 @@
 
 ModFolderModel::ModFolderModel(const QString &dir, bool is_indexed) : ResourceFolderModel(QDir(dir)), m_is_indexed(is_indexed)
 {
-    m_column_sort_keys = { SortType::ENABLED, SortType::NAME, SortType::VERSION, SortType::DATE };
+    m_column_sort_keys = { SortType::ENABLED, SortType::NAME, SortType::VERSION, SortType::DATE, SortType::DO_UPDATES };
 }
 
 QVariant ModFolderModel::data(const QModelIndex &index, int role) const
@@ -82,7 +82,13 @@ QVariant ModFolderModel::data(const QModelIndex &index, int role) const
         }
         case DateColumn:
             return m_resources[row]->dateTimeChanged();
-
+        case ModUpdateColumn:
+            if(at(row)->metadata() && at(row)->metadata()->hasDoUpdates() && at(row)->metadata()->do_updates == "true") {
+                return QChar(11123);
+            } else if(!at(row)->metadata()) {
+                return QChar(11198);
+            }
+            return QString();
         default:
             return QVariant();
         }
@@ -112,6 +118,8 @@ QVariant ModFolderModel::headerData(int section, Qt::Orientation orientation, in
         {
         case ActiveColumn:
             return QString();
+        case ModUpdateColumn:
+            return QString();
         case NameColumn:
             return tr("Name");
         case VersionColumn:
@@ -127,6 +135,8 @@ QVariant ModFolderModel::headerData(int section, Qt::Orientation orientation, in
         {
         case ActiveColumn:
             return tr("Is the mod enabled?");
+        case ModUpdateColumn:
+            return tr("Are update checks enabled?");
         case NameColumn:
             return tr("The name of the mod.");
         case VersionColumn:

@@ -67,6 +67,7 @@ public:
         NameColumn,
         VersionColumn,
         DateColumn,
+        ModUpdateColumn,
         NUM_COLUMNS
     };
     enum ModStatusAction {

@@ -56,10 +56,12 @@ class V1 {
         ModPlatform::Provider provider {};
         QVariant file_id {};
         QVariant project_id {};
+        QString do_updates {"true"};
 
        public:
         // This is a totally heuristic, but should work for now.
         auto isValid() const -> bool { return !slug.isEmpty() && !project_id.isNull(); }
+        auto hasDoUpdates() const -> bool { return !do_updates.isNull(); }
 
         // Different providers can use different names for the same thing
         // Modrinth-specific

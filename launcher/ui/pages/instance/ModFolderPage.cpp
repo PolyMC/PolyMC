@@ -84,6 +84,12 @@ ModFolderPage::ModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel>
         ui->actionsToolbar->insertActionAfter(ui->actionAddItem, ui->actionUpdateItem);
         connect(ui->actionUpdateItem, &QAction::triggered, this, &ModFolderPage::updateMods);
 
+        connect(ui->actionDisableUpdates, &QAction::triggered, this, &ModFolderPage::disableUpdates);
+        connect(ui->treeView->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this] {
+            ui->actionDisableUpdates->setEnabled(ui->treeView->selectionModel()->hasSelection());
+            onDisableUpdatesChange();
+        });
+
         auto check_allow_update = [this] {
             return (!m_instance || !m_instance->isRunning()) &&
                    (ui->treeView->selectionModel()->hasSelection() || !m_model->empty());
@@ -192,11 +198,19 @@ void ModFolderPage::installMods()
 void ModFolderPage::updateMods()
 {
     auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection()).indexes();
-
     auto mods_list = m_model->selectedMods(selection);
+
     bool use_all = mods_list.empty();
-    if (use_all)
+    if (use_all) {
         mods_list = m_model->allMods();
+    }
+
+    auto tempModList = mods_list;
+    for(auto mod : tempModList) {
+        if (mod->metadata() && mod->metadata()->hasDoUpdates() && mod->metadata()->do_updates == "false") {
+            mods_list.removeAll(mod);
+        }
+    }
 
     ModUpdateDialog update_dialog(this, m_instance, m_model, mods_list);
     update_dialog.checkCandidates();
@@ -246,6 +260,48 @@ void ModFolderPage::updateMods()
         loadDialog.execWithTask(tasks);
 
         m_model->update();
+    }
+}
+
+void ModFolderPage::disableUpdates()
+{
+    auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection()).indexes();
+    auto mods_list = m_model->selectedMods(selection);
+
+    for (auto mod : mods_list) {
+        if(mod->metadata() && mod->metadata()->hasDoUpdates()) {
+            mod->metadata()->do_updates == "true" ? mod->metadata()->do_updates = "false" : mod->metadata()->do_updates = "true";
+            QDir Dir = m_model->indexDir();
+            Metadata::update(Dir, *(mod->metadata()));
+        } else if(!mod->metadata()) {
+            ModUpdateDialog MetadataGenDialog(this, m_instance, m_model, mods_list, false);
+            MetadataGenDialog.ensureMetadata();
+            if(mods_list.length()>1){
+                mod->metadata()->do_updates = "false";
+            }
+        }
+    }
+    
+    onDisableUpdatesChange();
+}
+
+void ModFolderPage::onDisableUpdatesChange()
+{
+    auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection()).indexes();
+    auto mods_list = m_model->selectedMods(selection);
+
+    if(ui->treeView->selectionModel()->hasSelection()){
+        if(mods_list.length() > 1) {
+            ui->actionDisableUpdates->setText(tr("Invert Update Check"));
+        } else if (mods_list.first()->metadata() && mods_list.first()->metadata()->hasDoUpdates() && mods_list.first()->metadata()->do_updates == "true") {
+            ui->actionDisableUpdates->setText(tr("Disable Update Check"));
+        } else if (!mods_list.first()->metadata()) {
+            ui->actionDisableUpdates->setText(tr("Generate Metadata"));
+        } else {
+            ui->actionDisableUpdates->setText(tr("Enable Update Check"));
+        }
+    } else {
+        ui->actionDisableUpdates->setText(tr("Disable Update Check"));
     }
 }
 

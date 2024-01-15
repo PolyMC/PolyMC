@@ -52,10 +52,9 @@ void ModListView::setModel ( QAbstractItemModel* model )
     }
     if(!string.size())
     {
-        head->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-        head->setSectionResizeMode(1, QHeaderView::Stretch);
-        for(int i = 2; i < head->count(); i++)
+        for(int i = 0; i < head->count(); i++)
             head->setSectionResizeMode(i, QHeaderView::ResizeToContents);
+        head->setSectionResizeMode(1, QHeaderView::Stretch);
     }
     else
     {
