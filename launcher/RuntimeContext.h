@@ -73,6 +73,16 @@ struct RuntimeContext {
         return "freebsd";
 #elif defined(Q_OS_OPENBSD)
         return "openbsd";
+#elif defined(Q_OS_NETBSD)
+        return "netbsd";
+#elif defined(Q_OS_SOLARIS)
+        return "solaris";
+#elif defined(Q_OS_AIX)
+        return "aix";
+#elif defined(Q_OS_ANDROID)
+        return "android";
+#elif defined(Q_OS_UNIX)
+        return "unix";
 #else
         return "unknown";
 #endif
