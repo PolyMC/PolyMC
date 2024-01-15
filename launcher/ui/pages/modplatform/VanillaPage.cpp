@@ -50,7 +50,6 @@ VanillaPage::VanillaPage(NewInstanceDialog *dialog, QWidget *parent)
     : QWidget(parent), dialog(dialog), ui(new Ui::VanillaPage)
 {
     ui->setupUi(this);
-    ui->tabWidget->tabBar()->hide();
     connect(ui->versionList, &VersionSelectWidget::selectedVersionChanged, this, &VanillaPage::setSelectedVersion);
     filterChanged();
     connect(ui->alphaFilter, &QCheckBox::stateChanged, this, &VanillaPage::filterChanged);

@@ -151,33 +151,10 @@ void PageContainer::createUI()
 {
     m_pageStack = new QStackedLayout;
     m_pageList = new PageView;
-    m_header = new QLabel();
-    m_iconHeader = new IconLabel(this, QIcon(), QSize(24, 24));
-
-    QFont headerLabelFont = m_header->font();
-    headerLabelFont.setBold(true);
-    const int pointSize = headerLabelFont.pointSize();
-    if (pointSize > 0)
-        headerLabelFont.setPointSize(pointSize + 2);
-    m_header->setFont(headerLabelFont);
-
-    QHBoxLayout *headerHLayout = new QHBoxLayout;
-    const int leftMargin = APPLICATION->style()->pixelMetric(QStyle::PM_LayoutLeftMargin);
-    headerHLayout->addSpacerItem(new QSpacerItem(leftMargin, 0, QSizePolicy::Fixed, QSizePolicy::Ignored));
-    headerHLayout->addWidget(m_header);
-    headerHLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Ignored));
-    headerHLayout->addWidget(m_iconHeader);
-    const int rightMargin = APPLICATION->style()->pixelMetric(QStyle::PM_LayoutRightMargin);
-    headerHLayout->addSpacerItem(new QSpacerItem(rightMargin, 0, QSizePolicy::Fixed, QSizePolicy::Ignored));
-    headerHLayout->setContentsMargins(0, 6, 0, 0);
-
-    m_pageStack->setContentsMargins(0, 0, 0, 0);
-    m_pageStack->addWidget(new QWidget(this));
 
     m_layout = new QGridLayout;
-    m_layout->addLayout(headerHLayout, 0, 1, 1, 1);
-    m_layout->addWidget(m_pageList, 0, 0, 2, 1);
-    m_layout->addLayout(m_pageStack, 1, 1, 1, 1);
+    m_layout->addWidget(m_pageList, 0, 0, 1, 1);
+    m_layout->addLayout(m_pageStack, 0, 1, 1, 1);
     m_layout->setColumnStretch(1, 4);
     m_layout->setContentsMargins(0,0,0,6);
     setLayout(m_layout);
@@ -185,9 +162,6 @@ void PageContainer::createUI()
 
 void PageContainer::retranslate()
 {
-    if (m_currentPage)
-        m_header->setText(m_currentPage->displayName());
-
     for (auto page : m_model->pages())
         page->retranslate();
 }
@@ -219,15 +193,11 @@ void PageContainer::showPage(int row)
     if (m_currentPage)
     {
         m_pageStack->setCurrentIndex(m_currentPage->stackIndex);
-        m_header->setText(m_currentPage->displayName());
-        m_iconHeader->setIcon(m_currentPage->icon());
         m_currentPage->opened();
     }
     else
     {
         m_pageStack->setCurrentIndex(0);
-        m_header->setText(QString());
-        m_iconHeader->setIcon(APPLICATION->getThemedIcon("bug"));
     }
 }
 

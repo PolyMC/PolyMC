@@ -57,11 +57,11 @@ public:
     virtual ~VanillaPage();
     virtual QString displayName() const override
     {
-        return tr("Vanilla");
+        return tr("Custom");
     }
     virtual QIcon icon() const override
     {
-        return APPLICATION->getThemedIcon("minecraft");
+        return APPLICATION->getThemedIcon("launcher");
     }
     virtual QString id() const override
     {
