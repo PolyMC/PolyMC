@@ -1,7 +1,7 @@
 ## PolyMC
 
      PolyMC - Minecraft Launcher
-     Copyright (C) 2021-2022 PolyMC Contributors
+     Copyright (C) 2021-2024 PolyMC Contributors
 
      This program is free software: you can redistribute it and/or modify
      it under the terms of the GNU General Public License as published by
@@ -240,7 +240,7 @@
 ## launcher (`libraries/launcher`)
 
      PolyMC - Minecraft Launcher
-     Copyright (C) 2021-2022 PolyMC Contributors
+     Copyright (C) 2021-2024 PolyMC Contributors
 
      This program is free software: you can redistribute it and/or modify
      it under the terms of the GNU General Public License as published by
