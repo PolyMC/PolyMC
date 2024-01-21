@@ -244,7 +244,7 @@ if(UNIX AND APPLE)
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${Launcher_VERSION_NAME}")
     set(MACOSX_BUNDLE_LONG_VERSION_STRING "${Launcher_VERSION_NAME}")
     set(MACOSX_BUNDLE_ICON_FILE ${Launcher_Name}.icns)
-    set(MACOSX_BUNDLE_COPYRIGHT "Copyright 2021-2022 ${Launcher_Copyright}")
+    set(MACOSX_BUNDLE_COPYRIGHT "Copyright 2021-2024 ${Launcher_Copyright}")
     set(MACOSX_SPARKLE_UPDATE_PUBLIC_KEY "idALcUIazingvKSSsEa9U7coDVxZVx/ORpOEE/QtJfg=")
     set(MACOSX_SPARKLE_UPDATE_FEED_URL "https://polymc.org/feed/appcast.xml")
 
