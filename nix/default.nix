@@ -18,6 +18,8 @@
 , extraJDKs ? [ ]
 , extra-cmake-modules
 , qtcharts
+, qtwayland
+, wayland
   # flake
 , self
 , version
@@ -36,6 +38,7 @@ let
     libXxf86vm
     libpulseaudio
     libGL
+    wayland
   ];
 
   # This variable will be passed to Minecraft by PolyMC
@@ -51,7 +54,7 @@ stdenv.mkDerivation rec {
   src = lib.cleanSource self;
 
   nativeBuildInputs = [ cmake extra-cmake-modules ninja jdk ghc_filesystem file wrapQtAppsHook ];
-  buildInputs = [ qtbase quazip zlib qtcharts ];
+  buildInputs = [ qtbase quazip zlib qtcharts qtwayland ];
 
   dontWrapQtApps = true;
 
