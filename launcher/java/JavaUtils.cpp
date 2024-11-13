@@ -453,6 +453,9 @@ QList<QString> JavaUtils::FindJavaPaths()
     // flatpak
     scanJavaDir("/app/jdk");
 
+    // sdkman
+    scanJavaDir(QDir::homePath() + "/.sdkman/candidates/java/");
+
     // Default SDKMAN directory can be overwritten via SDKMAN_DIR env var (default $HOME/.sdkman)
     // see https://sdkman.io/install
     auto sdkmanInstallPath = qEnvironmentVariable("SDKMAN_DIR", FS::PathCombine(QDir::homePath(), ".sdkman"));
