@@ -7,6 +7,6 @@ Terminal=false
 Exec=@Launcher_APP_BINARY_NAME@
 StartupNotify=true
 Icon=org.polymc.PolyMC
-Categories=Game;
+Categories=Game;PackageManager;
 Keywords=game;minecraft;launcher;mc;
 StartupWMClass=PolyMC
