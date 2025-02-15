@@ -31,7 +31,7 @@ void ConfigureAuthlibInjector::executeTask()
         Net::Download::makeCached(QUrl("https://authlib-injector.yushi.moe/artifact/latest.json"), entry, Net::Download::Option::NoOptions);
     m_job->addNetAction(latestJsonDl);
     connect(m_job.get(), &NetJob::succeeded, this, [this, entry, downloadFailed] {
-        QFile authlibInjectorLatestJson = entry->getFullPath();
+        QFile authlibInjectorLatestJson{entry->getFullPath()};
         authlibInjectorLatestJson.open(QIODevice::ReadOnly);
         if (!authlibInjectorLatestJson.isOpen())
             return emitFailed(QString("Failed to open authlib-injector info json: %1").arg(authlibInjectorLatestJson.errorString()));

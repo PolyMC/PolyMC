@@ -80,4 +80,10 @@ void serializeRequires(QJsonObject & objOut, RequireSet* ptr, const char * keyNa
 MetadataVersion currentFormatVersion();
 }
 
+// HACK: Qt needs the items of container metatypes to be QDebug-able so just implement it to do nothing since we dont actually use it
+inline QDebug operator<<(QDebug debug, const Meta::Require &set)
+{
+    return debug;
+}
+
 Q_DECLARE_METATYPE(std::set<Meta::Require>)
