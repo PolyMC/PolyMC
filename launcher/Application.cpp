@@ -136,6 +136,21 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
+// Patch for Qt 6.9.0
+// https://bugreports.qt.io/browse/QTBUG-135800
+#if QT_VERSION == QT_VERSION_CHECK(6, 9, 0)
+class QNetworkAccessManagerPatched: public QNetworkAccessManager
+{
+    protected:
+        virtual QNetworkReply *createRequest(Operation op, const QNetworkRequest &request, QIODevice *outgoingData = nullptr) override
+        {
+            QNetworkRequest req(request);
+            req.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+            return QNetworkAccessManager::createRequest(op, req, outgoingData);
+        }
+};
+#endif
+
 static const QLatin1String liveCheckFile("live.check");
 
 namespace {
@@ -698,7 +713,13 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
 
     // initialize network access and proxy setup
     {
+        // Patch for Qt 6.9.0
+        // https://bugreports.qt.io/browse/QTBUG-135800
+#if QT_VERSION == QT_VERSION_CHECK(6, 9, 0)
+        m_network = new QNetworkAccessManagerPatched();
+#else
         m_network = new QNetworkAccessManager();
+#endif
         QString proxyTypeStr = settings()->get("ProxyType").toString();
         QString addr = settings()->get("ProxyAddr").toString();
         int port = settings()->get("ProxyPort").value<qint16>();
