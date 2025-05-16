@@ -46,6 +46,8 @@
 #include "FileSystem.h"
 #include "Application.h"
 
+#include <set>
+
 #define IBUS "@im=ibus"
 
 JavaUtils::JavaUtils()
@@ -172,12 +174,12 @@ JavaInstallPtr JavaUtils::GetDefaultJava()
     return javaVersion;
 }
 
-QStringList addJavasFromEnv(QList<QString> javas)
+QStringList addJavasFromEnv(std::set<QString> javas)
 {
     auto env = qEnvironmentVariable("POLYMC_JAVA_PATHS");
 #if defined(Q_OS_WIN32)
     QList<QString> javaPaths = env.replace("\\", "/").split(QLatin1String(";"));
-    
+
     auto envPath = qEnvironmentVariable("PATH");
     QList<QString> javaPathsfromPath = envPath.replace("\\", "/").split(QLatin1String(";"));
     for (QString string : javaPathsfromPath) {
@@ -186,11 +188,15 @@ QStringList addJavasFromEnv(QList<QString> javas)
 #else
     QList<QString> javaPaths = env.split(QLatin1String(":"));
 #endif
-    for(QString i : javaPaths)
-    {
-        javas.append(i);
+    for (QString i : javaPaths) {
+        javas.emplace(i);
     };
-    return javas;
+
+    QStringList result;
+    for (QString i : javas) {
+        result.append(i);
+    }
+    return result;
 }
 
 #if defined(Q_OS_WIN32)
@@ -272,7 +278,13 @@ QList<JavaInstallPtr> JavaUtils::FindJavaFromRegistryKey(DWORD keyType, QString 
 
 QList<QString> JavaUtils::FindJavaPaths()
 {
-    QList<JavaInstallPtr> java_candidates;
+    std::set<QString> javas;
+
+    auto emplaceCandidates = [&javas](QList<JavaInstallPtr> runtimes) {
+        for (auto x : runtimes) {
+            javas.emplace(x->path);
+        }
+    };
 
     // Oracle
     QList<JavaInstallPtr> JRE64s = this->FindJavaFromRegistryKey(
@@ -337,70 +349,61 @@ QList<QString> JavaUtils::FindJavaPaths()
         KEY_WOW64_32KEY, "SOFTWARE\\BellSoft\\Liberica", "InstallationPath");
 
     // List x64 before x86
-    java_candidates.append(JRE64s);
-    java_candidates.append(NEWJRE64s);
-    java_candidates.append(ADOPTOPENJRE64s);
-    java_candidates.append(ADOPTIUMJRE64s);
-    java_candidates.append(MakeJavaPtr("C:/Program Files/Java/jre8/bin/javaw.exe"));
-    java_candidates.append(MakeJavaPtr("C:/Program Files/Java/jre7/bin/javaw.exe"));
-    java_candidates.append(MakeJavaPtr("C:/Program Files/Java/jre6/bin/javaw.exe"));
-    java_candidates.append(JDK64s);
-    java_candidates.append(NEWJDK64s);
-    java_candidates.append(ADOPTOPENJDK64s);
-    java_candidates.append(FOUNDATIONJDK64s);
-    java_candidates.append(ADOPTIUMJDK64s);
-    java_candidates.append(MICROSOFTJDK64s);
-    java_candidates.append(ZULU64s);
-    java_candidates.append(LIBERICA64s);
+    emplaceCandidates(JRE64s);
+    emplaceCandidates(NEWJRE64s);
+    emplaceCandidates(ADOPTOPENJRE64s);
+    emplaceCandidates(ADOPTIUMJRE64s);
+    javas.emplace("C:/Program Files/Java/jre8/bin/javaw.exe");
+    javas.emplace("C:/Program Files/Java/jre7/bin/javaw.exe");
+    javas.emplace("C:/Program Files/Java/jre6/bin/javaw.exe");
+    emplaceCandidates(JDK64s);
+    emplaceCandidates(NEWJDK64s);
+    emplaceCandidates(ADOPTOPENJDK64s);
+    emplaceCandidates(FOUNDATIONJDK64s);
+    emplaceCandidates(ADOPTIUMJDK64s);
+    emplaceCandidates(MICROSOFTJDK64s);
+    emplaceCandidates(ZULU64s);
+    emplaceCandidates(LIBERICA64s);
 
-    java_candidates.append(JRE32s);
-    java_candidates.append(NEWJRE32s);
-    java_candidates.append(ADOPTOPENJRE32s);
-    java_candidates.append(ADOPTIUMJRE32s);
-    java_candidates.append(MakeJavaPtr("C:/Program Files (x86)/Java/jre8/bin/javaw.exe"));
-    java_candidates.append(MakeJavaPtr("C:/Program Files (x86)/Java/jre7/bin/javaw.exe"));
-    java_candidates.append(MakeJavaPtr("C:/Program Files (x86)/Java/jre6/bin/javaw.exe"));
-    java_candidates.append(JDK32s);
-    java_candidates.append(NEWJDK32s);
-    java_candidates.append(ADOPTOPENJDK32s);
-    java_candidates.append(FOUNDATIONJDK32s);
-    java_candidates.append(ADOPTIUMJDK32s);
-    java_candidates.append(ZULU32s);
-    java_candidates.append(LIBERICA32s);
+    emplaceCandidates(JRE32s);
+    emplaceCandidates(NEWJRE32s);
+    emplaceCandidates(ADOPTOPENJRE32s);
+    emplaceCandidates(ADOPTIUMJRE32s);
+    javas.emplace("C:/Program Files (x86)/Java/jre8/bin/javaw.exe");
+    javas.emplace("C:/Program Files (x86)/Java/jre7/bin/javaw.exe");
+    javas.emplace("C:/Program Files (x86)/Java/jre6/bin/javaw.exe");
+    emplaceCandidates(JDK32s);
+    emplaceCandidates(NEWJDK32s);
+    emplaceCandidates(ADOPTOPENJDK32s);
+    emplaceCandidates(FOUNDATIONJDK32s);
+    emplaceCandidates(ADOPTIUMJDK32s);
+    emplaceCandidates(ZULU32s);
+    emplaceCandidates(LIBERICA32s);
 
-    java_candidates.append(MakeJavaPtr(this->GetDefaultJava()->path));
+    javas.emplace(this->GetDefaultJava()->path);
 
-    QList<QString> candidates;
-    for(JavaInstallPtr java_candidate : java_candidates)
-    {
-        if(!candidates.contains(java_candidate->path))
-        {
-            candidates.append(java_candidate->path);
-        }
-    }
-
-    return addJavasFromEnv(candidates);
+    return addJavasFromEnv(javas);
 }
 
 #elif defined(Q_OS_MAC)
 QList<QString> JavaUtils::FindJavaPaths()
 {
-    QList<QString> javas;
-    javas.append(this->GetDefaultJava()->path);
-    javas.append("/Applications/Xcode.app/Contents/Applications/Application Loader.app/Contents/MacOS/itms/java/bin/java");
-    javas.append("/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/bin/java");
-    javas.append("/System/Library/Frameworks/JavaVM.framework/Versions/Current/Commands/java");
+    std::set<QString> javas;
+    javas.emplace(this->GetDefaultJava()->path);
+    javas.emplace("/Applications/Xcode.app/Contents/Applications/Application Loader.app/Contents/MacOS/itms/java/bin/java");
+    javas.emplace("/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/bin/java");
+    javas.emplace("/System/Library/Frameworks/JavaVM.framework/Versions/Current/Commands/java");
     QDir libraryJVMDir("/Library/Java/JavaVirtualMachines/");
     QStringList libraryJVMJavas = libraryJVMDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
     foreach (const QString &java, libraryJVMJavas) {
-        javas.append(libraryJVMDir.absolutePath() + "/" + java + "/Contents/Home/bin/java");
-        javas.append(libraryJVMDir.absolutePath() + "/" + java + "/Contents/Home/jre/bin/java");
+        javas.emplace(libraryJVMDir.absolutePath() + "/" + java + "/Contents/Home/bin/java");
+        javas.emplace(libraryJVMDir.absolutePath() + "/" + java + "/Contents/Home/jre/bin/java");
     }
     QDir systemLibraryJVMDir("/System/Library/Java/JavaVirtualMachines/");
     QStringList systemLibraryJVMJavas = systemLibraryJVMDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
     foreach (const QString &java, systemLibraryJVMJavas) {
-        javas.append(systemLibraryJVMDir.absolutePath() + "/" + java + "/Contents/Home/bin/java");
-        javas.append(systemLibraryJVMDir.absolutePath() + "/" + java + "/Contents/Commands/java");
+        javas.emplace(systemLibraryJVMDir.absolutePath() + "/" + java + "/Contents/Home/bin/java");
+        javas.emplace(systemLibraryJVMDir.absolutePath() + "/" + java + "/Contents/Commands/java");
     }
     return addJavasFromEnv(javas);
 }
@@ -410,29 +413,22 @@ QList<QString> JavaUtils::FindJavaPaths()
 {
     qDebug() << "Linux Java detection incomplete - defaulting to \"java\"";
 
-    QList<QString> javas;
-    javas.append(this->GetDefaultJava()->path);
-    auto scanJavaDir = [&](const QString & dirPath)
-    {
+    std::set<QString> javas;
+    javas.emplace(this->GetDefaultJava()->path);
+    auto scanJavaDir = [&](const QString& dirPath) {
         QDir dir(dirPath);
-        if(!dir.exists())
+        if (!dir.exists())
             return;
-        auto entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks);
-        for(auto & entry: entries)
-        {
-
-            QString prefix;
-            if(entry.isAbsolute())
-            {
-                prefix = entry.absoluteFilePath();
+        auto entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+        for (auto& entry : entries) {
+            QString prefix = entry.filePath();
+            if (entry.isAbsolute()) {
+                javas.emplace(QDir{ FS::PathCombine(prefix, "jre/bin/java") }.canonicalPath());
+                javas.emplace(QDir{ FS::PathCombine(prefix, "bin/java") }.canonicalPath());
+            } else {
+                javas.emplace(FS::PathCombine(prefix, "jre/bin/java"));
+                javas.emplace(FS::PathCombine(prefix, "bin/java"));
             }
-            else
-            {
-                prefix = entry.filePath();
-            }
-
-            javas.append(FS::PathCombine(prefix, "jre/bin/java"));
-            javas.append(FS::PathCombine(prefix, "bin/java"));
         }
     };
     // oracle RPMs
