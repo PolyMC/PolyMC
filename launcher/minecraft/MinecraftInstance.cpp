@@ -495,6 +495,7 @@ QProcessEnvironment MinecraftInstance::createLaunchEnvironment()
         env.insert("__NV_PRIME_RENDER_OFFLOAD", "1");
         env.insert("__VK_LAYER_NV_optimus", "NVIDIA_only");
         env.insert("__GLX_VENDOR_LIBRARY_NAME", "nvidia");
+        env.insert("__GL_THREADED_OPTIMIZATIONS", "0");
     }
 #endif
 
