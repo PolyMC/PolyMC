@@ -85,6 +85,7 @@ public:
     void removeAccount(QModelIndex index);
     int findAccountByProfileId(const QString &profileId) const;
     MinecraftAccountPtr getAccountByProfileName(const QString &profileName) const;
+    MinecraftAccountPtr getAccountByProfileId(const QString &profileId) const;
     QStringList profileNames() const;
 
     // requesting a refresh pushes it to the front of the queue
