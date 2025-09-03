@@ -41,6 +41,7 @@
 #include "java/JavaInstallList.h"
 #include "java/JavaCheckerJob.h"
 #include "java/JavaUtils.h"
+#include "FileSystem.h"
 #include "MMCStrings.h"
 #include "minecraft/VersionFilterData.h"
 
@@ -176,6 +177,8 @@ void JavaListLoadTask::executeTask()
     int id = 0;
     for(QString candidate : candidate_paths)
     {
+        if (FS::ResolveExecutable(candidate).isEmpty())
+            continue;
         qDebug() << " " << candidate;
 
         auto candidate_checker = new JavaChecker();
