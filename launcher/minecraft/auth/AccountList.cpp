@@ -90,6 +90,14 @@ MinecraftAccountPtr AccountList::getAccountByProfileName(const QString& profileN
     return nullptr;
 }
 
+MinecraftAccountPtr AccountList::getAccountByProfileId(const QString& profileId) const {
+    int idx = findAccountByProfileId(profileId);
+    if(idx == -1) {
+        return nullptr;
+    }
+    return at(idx);
+}
+
 const MinecraftAccountPtr AccountList::at(int i) const
 {
     return MinecraftAccountPtr(m_accounts.at(i));
