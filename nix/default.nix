@@ -9,7 +9,7 @@
 , jdk21
 , xorg
 , gamemode
-, glxinfo
+, mesa-demos
 , libpulseaudio
 , qtbase
 , libGL
@@ -73,7 +73,7 @@ symlinkJoin {
       runtimeBins = [
         # Required by old LWJGL versions
         xorg.xrandr
-        glxinfo
+        mesa-demos # For glxinfo
       ] ++ additionalBins;
     in
     [
