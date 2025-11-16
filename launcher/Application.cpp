@@ -1601,7 +1601,7 @@ void Application::updateCapabilities()
         m_capabilities |= SupportsGameMode;
 
     {
-        void *dummy = dlopen("libMangoHud_dlsym.so", RTLD_LAZY);
+        void *dummy = dlopen("libMangoHud_shim.so", RTLD_LAZY);
         // try normal variant as well
         if (dummy == NULL)
             dummy = dlopen("libMangoHud.so", RTLD_LAZY);
