@@ -43,11 +43,7 @@ void LoginDialog::accept()
     ui->progressBar->setVisible(true);
 
     // Setup the login task and start it
-    if (m_accountType == AccountType::Mojang)
-    {
-        m_account = MinecraftAccount::createFromUsername(ui->userTextBox->text());
-    }
-    else if (m_accountType == AccountType::AuthlibInjector)
+    if (m_accountType == AccountType::AuthlibInjector)
     {
         m_account = MinecraftAccount::createAuthlibInjectorFromUsername(ui->userTextBox->text(), ui->authlibInjectorBaseTextBox->text());
     }

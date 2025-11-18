@@ -38,7 +38,7 @@ struct AuthSession
     QString player_name;
     // profile ID
     QString uuid;
-    // 'legacy' or 'mojang' or 'authlib-injector', depending on account type
+    // account type
     QString user_type;
 
     // If not using authlib injector, this is blank.

@@ -203,8 +203,6 @@ set(MINECRAFT_SOURCES
 
     minecraft/auth/flows/AuthFlow.cpp
     minecraft/auth/flows/AuthFlow.h
-    minecraft/auth/flows/Mojang.cpp
-    minecraft/auth/flows/Mojang.h
     minecraft/auth/flows/AuthlibInjector.cpp
     minecraft/auth/flows/AuthlibInjector.h
     minecraft/auth/flows/MSA.cpp

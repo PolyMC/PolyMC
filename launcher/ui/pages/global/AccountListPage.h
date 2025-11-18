@@ -82,7 +82,6 @@ public:
     void retranslate() override;
 
 public slots:
-    void on_actionAddMojang_triggered();
     void on_actionAddAuthlibInjector_triggered();
     void on_actionAddMicrosoft_triggered();
     void on_actionAddOffline_triggered();

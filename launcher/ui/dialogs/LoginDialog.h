@@ -37,10 +37,10 @@ public:
     /*
      * @param type: Mojang or Authlib
      */
-    static MinecraftAccountPtr newAccount(QWidget *parent, QString message, AccountType type = AccountType::Mojang);
+    static MinecraftAccountPtr newAccount(QWidget *parent, QString message, AccountType type = AccountType::AuthlibInjector);
 
 private:
-    explicit LoginDialog(QWidget *parent = 0, AccountType type = AccountType::Mojang);
+    explicit LoginDialog(QWidget *parent = 0, AccountType type = AccountType::AuthlibInjector);
 
     void setUserInputsEnabled(bool enable);
 

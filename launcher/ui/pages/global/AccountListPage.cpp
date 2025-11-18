@@ -141,22 +141,6 @@ void AccountListPage::listChanged()
     updateButtonStates();
 }
 
-void AccountListPage::on_actionAddMojang_triggered()
-{
-    MinecraftAccountPtr account = LoginDialog::newAccount(
-        this,
-        tr("Please enter your Mojang account email and password to add your account.")
-    );
-
-    if (account)
-    {
-        m_accounts->addAccount(account);
-        if (m_accounts->count() == 1) {
-            m_accounts->setDefaultAccount(account);
-        }
-    }
-}
-
 void AccountListPage::on_actionAddAuthlibInjector_triggered()
 {
     if (!m_accounts->drmCheck()) {
@@ -164,7 +148,7 @@ void AccountListPage::on_actionAddAuthlibInjector_triggered()
             this,
             tr("Error"),
             tr(
-                "You must add a Microsoft or Mojang account that owns Minecraft before you can add an Authlib Injector account."
+                "You must add a Microsoft account that owns Minecraft before you can add an Authlib Injector account."
                 "<br><br>"
                 "If you have lost your account you can contact Microsoft for support."
             )
@@ -223,7 +207,7 @@ void AccountListPage::on_actionAddOffline_triggered()
             this,
             tr("Error"),
             tr(
-                "You must add a Microsoft or Mojang account that owns Minecraft before you can add an offline account."
+                "You must add a Microsoft account that owns Minecraft before you can add an offline account."
                 "<br><br>"
                 "If you have lost your account you can contact Microsoft for support."
             )

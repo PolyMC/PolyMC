@@ -43,8 +43,6 @@
 #include <QMap>
 #include <QPixmap>
 
-#include <memory>
-
 #include "AuthSession.h"
 #include "Usable.h"
 #include "AccountData.h"
@@ -68,7 +66,6 @@ struct AccountProfile
 {
     QString id;
     QString name;
-    bool legacy;
 };
 
 /**
@@ -89,15 +86,12 @@ public: /* construction */
     //! Default constructor
     explicit MinecraftAccount(QObject *parent = 0);
 
-    static MinecraftAccountPtr createFromUsername(const QString &username);
-
     static MinecraftAccountPtr createAuthlibInjectorFromUsername(const QString &username, QString baseUrl);
 
     static MinecraftAccountPtr createBlankMSA();
 
     static MinecraftAccountPtr createOffline(const QString &username);
 
-    static MinecraftAccountPtr loadFromJsonV2(const QJsonObject &json);
     static MinecraftAccountPtr loadFromJsonV3(const QJsonObject &json);
 
     //! Saves a MinecraftAccount to a JSON object and returns it.
@@ -168,13 +162,6 @@ public: /* queries */
 
     QString typeString() const {
         switch(data.type) {
-            case AccountType::Mojang: {
-                if(data.legacy) {
-                    return "legacy";
-                }
-                return "mojang";
-            }
-            break;
             case AccountType::MSA: {
                 return "msa";
             }

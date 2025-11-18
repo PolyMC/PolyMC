@@ -55,7 +55,6 @@
 #include <chrono>
 
 enum AccountListVersion {
-    MojangOnly = 2,
     MojangMSA = 3
 };
 
@@ -527,10 +526,6 @@ bool AccountList::loadList()
     // Make sure the format version matches.
     auto listVersion = root.value("formatVersion").toVariant().toInt();
     switch(listVersion) {
-        case AccountListVersion::MojangOnly: {
-            return loadV2(root);
-        }
-        break;
         case AccountListVersion::MojangMSA: {
             return loadV3(root);
         }
@@ -543,39 +538,6 @@ bool AccountList::loadList()
             return false;
         }
     }
-}
-
-bool AccountList::loadV2(QJsonObject& root) {
-    beginResetModel();
-    auto defaultUserName = root.value("activeAccount").toString("");
-    QJsonArray accounts = root.value("accounts").toArray();
-    for (QJsonValue accountVal : accounts)
-    {
-        QJsonObject accountObj = accountVal.toObject();
-        MinecraftAccountPtr account = MinecraftAccount::loadFromJsonV2(accountObj);
-        if (account.get() != nullptr)
-        {
-            auto profileId = account->profileId();
-            if(!profileId.size()) {
-                continue;
-            }
-            if(findAccountByProfileId(profileId) != -1) {
-                continue;
-            }
-            connect(account.get(), &MinecraftAccount::changed, this, &AccountList::accountChanged);
-            connect(account.get(), &MinecraftAccount::activityChanged, this, &AccountList::accountActivityChanged);
-            m_accounts.append(account);
-            if (defaultUserName.size() && account->mojangUserName() == defaultUserName) {
-                m_defaultAccount = account;
-            }
-        }
-        else
-        {
-            qWarning() << "Failed to load an account.";
-        }
-    }
-    endResetModel();
-    return true;
 }
 
 bool AccountList::loadV3(QJsonObject& root) {
