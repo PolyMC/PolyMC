@@ -32,9 +32,6 @@ QString Yggdrasil::getBaseUrl()
 {
     switch (m_data->type)
     {
-        case AccountType::Mojang: {
-          return "https://authserver.mojang.com";
-        }
         case AccountType::AuthlibInjector: {
             return m_data->authlibInjectorApiLocation + "/authserver";
         }

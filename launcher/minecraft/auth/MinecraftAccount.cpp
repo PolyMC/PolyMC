@@ -49,7 +49,6 @@
 #include <QPainter>
 
 #include "flows/MSA.h"
-#include "flows/Mojang.h"
 #include "flows/AuthlibInjector.h"
 #include "flows/Offline.h"
 #include "minecraft/auth/AccountData.h"
@@ -88,15 +87,6 @@ MinecraftAccount::MinecraftAccount(QObject* parent) : QObject(parent) {
     data.internalId = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
 }
 
-
-MinecraftAccountPtr MinecraftAccount::loadFromJsonV2(const QJsonObject& json) {
-    MinecraftAccountPtr account(new MinecraftAccount());
-    if(account->data.resumeStateFromV2(json)) {
-        return account;
-    }
-    return nullptr;
-}
-
 MinecraftAccountPtr MinecraftAccount::loadFromJsonV3(const QJsonObject& json) {
     MinecraftAccountPtr account(new MinecraftAccount());
     if(account->data.resumeStateFromV3(json)) {
@@ -105,20 +95,13 @@ MinecraftAccountPtr MinecraftAccount::loadFromJsonV3(const QJsonObject& json) {
     return nullptr;
 }
 
-MinecraftAccountPtr MinecraftAccount::createFromUsername(const QString &username)
-{
-    MinecraftAccountPtr account = new MinecraftAccount();
-    account->data.type = AccountType::Mojang;
-    account->data.yggdrasilToken.extra["userName"] = username;
-    account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
-    return account;
-}
-
 MinecraftAccountPtr MinecraftAccount::createAuthlibInjectorFromUsername(const QString &username, QString baseUrl)
 {
-    MinecraftAccountPtr account = createFromUsername(username);
+    MinecraftAccountPtr account = new MinecraftAccount();
     account->data.type = AccountType::AuthlibInjector;
     account->data.authlibInjectorBaseUrl = baseUrl;
+    account->data.yggdrasilToken.extra["userName"] = username;
+    account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
     account->data.minecraftEntitlement.ownsMinecraft = true;
     account->data.minecraftEntitlement.canPlayMinecraft = true;
     return account;
@@ -170,15 +153,10 @@ QPixmap MinecraftAccount::getFace() const {
     return skin.scaled(64, 64, Qt::KeepAspectRatio);
 }
 
-
 shared_qobject_ptr<AccountTask> MinecraftAccount::login(QString password) {
     Q_ASSERT(m_currentTask.get() == nullptr);
-
-    if (data.type == AccountType::Mojang)
-    {
-        m_currentTask.reset(new MojangLogin(&data, password));
-    }
-    else if (data.type == AccountType::AuthlibInjector)
+    
+    if (data.type == AccountType::AuthlibInjector)
     {
         m_currentTask.reset(new AuthlibInjectorLogin(&data, password));
     }
@@ -224,9 +202,6 @@ shared_qobject_ptr<AccountTask> MinecraftAccount::refresh() {
     }
     else if(data.type == AccountType::AuthlibInjector) {
         m_currentTask.reset(new AuthlibInjectorRefresh(&data));
-    }
-    else {
-        m_currentTask.reset(new MojangRefresh(&data));
     }
 
     connect(m_currentTask.get(), SIGNAL(succeeded()), SLOT(authSucceeded()));
@@ -352,7 +327,7 @@ void MinecraftAccount::fillSession(AuthSessionPtr session)
     session->player_name = data.profileName();
     // profile ID
     session->uuid = data.profileId();
-    // 'legacy' or 'mojang', or 'authlib-injector' depending on account type
+    // account type
     session->user_type = typeString();
     session->authlib_injector_base_url = data.authlibInjectorBaseUrl;
     if (!session->access_token.isEmpty())
