@@ -128,23 +128,40 @@ void AccountList::addAccount(const MinecraftAccountPtr account)
     connect(account.get(), &MinecraftAccount::changed, this, &AccountList::accountChanged);
     connect(account.get(), &MinecraftAccount::activityChanged, this, &AccountList::accountActivityChanged);
 
-    // override/replace existing account with the same profileId
+    // override/replace existing account with the same profileId AND account type
     auto profileId = account->profileId();
     if(profileId.size()) {
         auto existingAccount = findAccountByProfileId(profileId);
         if(existingAccount != -1) {
-            qDebug() << "Replacing old account with a new one with the same profile ID!";
-
             MinecraftAccountPtr existingAccountPtr = m_accounts[existingAccount];
-            m_accounts[existingAccount] = account;
-            if(m_defaultAccount == existingAccountPtr) {
-                m_defaultAccount = account;
+            bool shouldReplace = false;
+            
+            // Check if account types match
+            if(existingAccountPtr->accountData()->type == account->accountData()->type) {
+                // For authlib injector accounts, also check the server URL
+                if(account->accountData()->type == AccountType::AuthlibInjector) {
+                    if(existingAccountPtr->accountData()->authlibInjectorBaseUrl == account->accountData()->authlibInjectorBaseUrl) {
+                        shouldReplace = true;
+                    }
+                } else {
+                    // For other account types, matching type is enough
+                    shouldReplace = true;
+                }
             }
-            // disconnect notifications for changes in the account being replaced
-            existingAccountPtr->disconnect(this);
-            emit dataChanged(index(existingAccount), index(existingAccount, columnCount(QModelIndex()) - 1));
-            onListChanged();
-            return;
+            
+            if(shouldReplace) {
+                qDebug() << "Replacing old account with a new one with the same profile ID, account type, and server!";
+
+                m_accounts[existingAccount] = account;
+                if(m_defaultAccount == existingAccountPtr) {
+                    m_defaultAccount = account;
+                }
+                // disconnect notifications for changes in the account being replaced
+                existingAccountPtr->disconnect(this);
+                emit dataChanged(index(existingAccount), index(existingAccount, columnCount(QModelIndex()) - 1));
+                onListChanged();
+                return;
+            }
         }
     }
 
