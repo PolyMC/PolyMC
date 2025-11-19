@@ -51,7 +51,7 @@ jobs:
             qt_version: '6.3.0'
             qt_modules: 'qt5compat qtimageformats qtcharts'
 
-          - os: macos-13
+          - os: macos-15
             name: macOS-Legacy
             macosx_deployment_target: 10.13
             qt_ver: 5
