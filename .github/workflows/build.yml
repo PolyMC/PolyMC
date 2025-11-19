@@ -38,7 +38,7 @@ jobs:
             msystem: mingw64
             qt_ver: 6
 
-          - os: macos-13
+          - os: macos-15
             name: macOS
             macosx_deployment_target: 10.15
             qt_ver: 6
@@ -46,7 +46,7 @@ jobs:
             qt_version: '6.3.0'
             qt_modules: 'qt5compat qtimageformats qtcharts'
 
-          - os: macos-13
+          - os: macos-15
             name: macOS-Legacy
             macosx_deployment_target: 10.13
             qt_ver: 5
@@ -190,7 +190,7 @@ jobs:
       - name: Configure CMake (macOS-Legacy)
         if: runner.os == 'macOS' && matrix.qt_ver == 5
         run: |
-          cmake -S . -B ${{ env.BUILD_DIR }} -DCMAKE_INSTALL_PREFIX=${{ env.INSTALL_DIR }} -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} -DENABLE_LTO=ON -DLauncher_BUILD_PLATFORM=${{ matrix.name }} -DCMAKE_C_COMPILER_LAUNCHER=${{ env.CCACHE_VAR }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ env.CCACHE_VAR }} -DLauncher_QT_VERSION_MAJOR=${{ matrix.qt_ver }} -DMACOSX_SPARKLE_UPDATE_PUBLIC_KEY="" -DMACOSX_SPARKLE_UPDATE_FEED_URL="" -G Ninja
+          cmake -S . -B ${{ env.BUILD_DIR }} -DCMAKE_INSTALL_PREFIX=${{ env.INSTALL_DIR }} -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} -DENABLE_LTO=ON -DLauncher_BUILD_PLATFORM=${{ matrix.name }} -DCMAKE_C_COMPILER_LAUNCHER=${{ env.CCACHE_VAR }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ env.CCACHE_VAR }} -DLauncher_QT_VERSION_MAJOR=${{ matrix.qt_ver }} -DMACOSX_SPARKLE_UPDATE_PUBLIC_KEY="" -DMACOSX_SPARKLE_UPDATE_FEED_URL="" -DCMAKE_OSX_ARCHITECTURES="x86_64" -G Ninja
 
       - name: Configure CMake (Windows)
         if: runner.os == 'Windows'
