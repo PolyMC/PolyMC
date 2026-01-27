@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QDialog>
 #include <QtCore/QEventLoop>
+#include <QRegularExpression>
 
 #include "minecraft/auth/MinecraftAccount.h"
 #include "tasks/Task.h"
@@ -35,10 +36,11 @@ slots:
     void onTaskProgress(qint64 current, qint64 total);
 
     void on_userTextBox_textEdited(const QString &newText);
-    void on_allowLongUsernames_stateChanged(int value);
+    void on_ignoreUsernameGuidelines_stateChanged(int value);
 
 private:
     Ui::OfflineLoginDialog *ui;
     MinecraftAccountPtr m_account;
     Task::Ptr m_loginTask;
+    QRegularExpression regex;
 };
