@@ -4,6 +4,11 @@
 #include "minecraft/auth/AccountTask.h"
 
 #include <QtWidgets/QPushButton>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
+#include <QString>
+
+bool regexDisabled;
 
 OfflineLoginDialog::OfflineLoginDialog(QWidget *parent) : QDialog(parent), ui(new Ui::OfflineLoginDialog)
 {
@@ -13,6 +18,8 @@ OfflineLoginDialog::OfflineLoginDialog(QWidget *parent) : QDialog(parent), ui(ne
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    regex = QRegularExpression("^[a-zA-Z0-9_]{2,16}$");
 }
 
 OfflineLoginDialog::~OfflineLoginDialog()
@@ -42,20 +49,25 @@ void OfflineLoginDialog::setUserInputsEnabled(bool enable)
     ui->buttonBox->setEnabled(enable);
 }
 
-void OfflineLoginDialog::on_allowLongUsernames_stateChanged(int value)
+void OfflineLoginDialog::on_ignoreUsernameGuidelines_stateChanged(int value)
 {
+    regexDisabled = (bool) value;
+
     if (value == Qt::Checked) {
         ui->userTextBox->setMaxLength(INT_MAX);
     } else {
         ui->userTextBox->setMaxLength(16);
     }
+
+    OfflineLoginDialog::on_userTextBox_textEdited(ui->userTextBox->text());
 }
 
 // Enable the OK button only when the textbox contains something.
 void OfflineLoginDialog::on_userTextBox_textEdited(const QString &newText)
 {
-    ui->buttonBox->button(QDialogButtonBox::Ok)
-        ->setEnabled(!newText.isEmpty());
+    bool expr = !regexDisabled ? regex.match(newText).hasMatch(): true;
+
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!newText.isEmpty() && expr);
 }
 
 void OfflineLoginDialog::onTaskFailed(const QString &reason)

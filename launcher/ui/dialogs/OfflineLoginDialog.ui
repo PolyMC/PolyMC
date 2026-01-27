@@ -44,12 +44,13 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="allowLongUsernames">
+    <widget class="QCheckBox" name="ignoreUsernameGuidelines">
      <property name="toolTip">
-      <string>Usernames longer than 16 characters cannot be used for LAN games or offline-mode servers.</string>
+      <string>Normally, Minecraft only allows usernames with alphanumeric characters.
+Username length has to be 2 to 16 characters long. Underscores are allowed.</string>
      </property>
      <property name="text">
-      <string>Allow long usernames</string>
+      <string>Ignore username rules</string>
      </property>
     </widget>
    </item>
