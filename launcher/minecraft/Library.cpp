@@ -190,7 +190,19 @@ QList<NetAction::Ptr> Library::getDownloads(
             if(m_mojangDownloads->artifact)
             {
                 auto artifact = m_mojangDownloads->artifact;
-                add_download(raw_storage, artifact->url, artifact->sha1);
+                bool isNetty = artifact->contains("netty-1.8.8") || artifact->contains("patchy-1.3.9");
+                if (isNetty)
+                {
+                  add_download(
+                    raw_storage,
+                    "https://codeberg.org/glowiak/mmc-fbsd-bins/releases/download/netty-hack/netty-1.8.8.jar",
+                    "1e36899f4afec3475c602362dcd836337a844401"
+                  );
+                }
+                else
+                {
+                  add_download(raw_storage, artifact->url, artifact->sha1);
+                }
             }
             else
             {
