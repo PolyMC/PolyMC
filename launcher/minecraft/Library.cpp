@@ -190,7 +190,7 @@ QList<NetAction::Ptr> Library::getDownloads(
             if(m_mojangDownloads->artifact)
             {
                 auto artifact = m_mojangDownloads->artifact;
-                bool isNetty = artifact->contains("netty-1.8.8") || artifact->contains("patchy-1.3.9");
+                bool isNetty = artifact->url.contains("netty-1.8.8") || artifact->url.contains("patchy-1.3.9");
                 if (isNetty)
                 {
                   add_download(
