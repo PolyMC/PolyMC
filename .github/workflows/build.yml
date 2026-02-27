@@ -106,7 +106,7 @@ jobs:
             qt${{ matrix.qt_ver }}-charts:p
             quazip-qt${{ matrix.qt_ver }}:p
             ccache:p
-            nsis:p
+            nsis:m
             ${{ matrix.qt_ver == 6 && 'qt6-5compat:p' || '' }}
 
       - name: Setup ccache
