@@ -40,7 +40,7 @@ if (CMAKE_OSX_ARCHITECTURES)
     set(ARCHITECTURE "${CMAKE_OSX_ARCHITECTURES}")
 
     # hope and pray the architecture names match
-    foreach(ARCH IN ${CMAKE_OSX_ARCHITECTURES})
+    foreach(ARCH ${CMAKE_OSX_ARCHITECTURES})
         set(ARCHITECTURE_${ARCH} 1 PARENT_SCOPE)
         add_definitions(-DARCHITECTURE_${ARCH}=1)
     endforeach()
