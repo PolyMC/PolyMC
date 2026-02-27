@@ -105,7 +105,7 @@ jobs:
             qt${{ matrix.qt_ver }}-charts:p
             quazip-qt${{ matrix.qt_ver }}:p
             ccache:p
-            nsis:m
+            ${{ matrix.msystem != 'clangarm64' && 'nsis:m' || '' }}
             ${{ matrix.qt_ver == 6 && 'qt6-5compat:p' || '' }}
 
       - name: Setup ccache
@@ -297,7 +297,7 @@ jobs:
           cmake --install ${{ env.BUILD_DIR }} --prefix ${{ env.INSTALL_PORTABLE_DIR }} --component portable
 
       - name: Package (Windows, installer)
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && matrix.msystem != 'clangarm64'
         shell: msys2 {0}
         run: |
           cd ${{ env.INSTALL_DIR }}
@@ -377,7 +377,7 @@ jobs:
           path: ${{ env.INSTALL_PORTABLE_DIR }}/**
 
       - name: Upload installer (Windows)
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && matrix.msystem != 'clangarm64'
         uses: actions/upload-artifact@v4
         with:
           name: PolyMC-${{ matrix.name }}-Setup-${{ env.VERSION }}-${{ inputs.build_type }}
