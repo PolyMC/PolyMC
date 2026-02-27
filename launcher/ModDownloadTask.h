@@ -24,19 +24,18 @@
 
 #include "modplatform/ModIndex.h"
 #include "minecraft/mod/tasks/LocalModUpdateTask.h"
-
-class ModFolderModel;
+#include "minecraft/mod/ResourceFolderModel.h"
 
 class ModDownloadTask : public SequentialTask {
     Q_OBJECT
 public:
-    explicit ModDownloadTask(ModPlatform::IndexedPack mod, ModPlatform::IndexedVersion version, const std::shared_ptr<ModFolderModel> mods, bool is_indexed = true);
+    explicit ModDownloadTask(ModPlatform::IndexedPack mod, ModPlatform::IndexedVersion version, const std::shared_ptr<ResourceFolderModel> mods, bool is_indexed = true);
     const QString& getFilename() const { return m_mod_version.fileName; }
 
 private:
     ModPlatform::IndexedPack m_mod;
     ModPlatform::IndexedVersion m_mod_version;
-    const std::shared_ptr<ModFolderModel> mods;
+    const std::shared_ptr<ResourceFolderModel> mods;
 
     NetJob::Ptr m_filesNetJob;
     LocalModUpdateTask::Ptr m_update_task;

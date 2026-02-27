@@ -44,12 +44,12 @@ class FlameModPage : public ModPage {
     Q_OBJECT
 
    public:
-    static FlameModPage* create(ModDownloadDialog* dialog, BaseInstance* instance)
+    static FlameModPage* create(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI::ResourceType type = ModAPI::Mod)
     {
-        return ModPage::create<FlameModPage>(dialog, instance);
+        return ModPage::create<FlameModPage>(dialog, instance, type);
     }
 
-    FlameModPage(ModDownloadDialog* dialog, BaseInstance* instance);
+    FlameModPage(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI::ResourceType type = ModAPI::Mod);
     ~FlameModPage() override = default;
 
     inline auto displayName() const -> QString override { return "CurseForge"; }

@@ -18,6 +18,8 @@ class ReviewMessageBox : public QDialog {
     };
 
     void appendMod(ModInformation&& info);
+    void setDescription(const QString& text);
+    void setCheckedLabel(const QString& text);
     auto deselectedMods() -> QStringList;
 
     ~ReviewMessageBox();

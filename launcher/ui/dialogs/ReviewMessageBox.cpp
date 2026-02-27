@@ -39,6 +39,16 @@ void ReviewMessageBox::appendMod(ModInformation&& info)
     ui->modTreeWidget->addTopLevelItem(itemTop);
 }
 
+void ReviewMessageBox::setDescription(const QString& text)
+{
+    ui->explainLabel->setText(text);
+}
+
+void ReviewMessageBox::setCheckedLabel(const QString& text)
+{
+    ui->onlyCheckedLabel->setText(text);
+}
+
 auto ReviewMessageBox::deselectedMods() -> QStringList
 {
     QStringList list;

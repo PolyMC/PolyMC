@@ -39,8 +39,8 @@
 #include "FlameModModel.h"
 #include "ui/dialogs/ModDownloadDialog.h"
 
-FlameModPage::FlameModPage(ModDownloadDialog* dialog, BaseInstance* instance) 
-    : ModPage(dialog, instance, new FlameAPI())
+FlameModPage::FlameModPage(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI::ResourceType type) 
+    : ModPage(dialog, instance, new FlameAPI(), type)
 {
     listModel = new FlameMod::ListModel(this);
     ui->packView->setModel(listModel);

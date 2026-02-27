@@ -44,12 +44,12 @@ class ModrinthModPage : public ModPage {
     Q_OBJECT
 
    public:
-    static ModrinthModPage* create(ModDownloadDialog* dialog, BaseInstance* instance)
+    static ModrinthModPage* create(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI::ResourceType type = ModAPI::Mod)
     {
-        return ModPage::create<ModrinthModPage>(dialog, instance);
+        return ModPage::create<ModrinthModPage>(dialog, instance, type);
     }
 
-    ModrinthModPage(ModDownloadDialog* dialog, BaseInstance* instance);
+    ModrinthModPage(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI::ResourceType type = ModAPI::Mod);
     ~ModrinthModPage() override = default;
 
     inline auto displayName() const -> QString override { return "Modrinth"; }

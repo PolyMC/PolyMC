@@ -54,6 +54,12 @@ class ModAPI {
    public:
     virtual ~ModAPI() = default;
 
+    enum ResourceType {
+        Mod,
+        ResourcePack,
+        ShaderPack
+    };
+
     enum ModLoaderType {
         Unspecified = 0,
         Forge = 1 << 0,
@@ -71,9 +77,11 @@ class ModAPI {
         QString sorting;
         ModLoaderTypes loaders;
         std::list<Version> versions;
+        ResourceType type = Mod;
     };
 
     virtual void searchMods(CallerType* caller, SearchArgs&& args) const = 0;
+
     virtual void getModInfo(ModPlatform::IndexedPack& pack, std::function<void(QJsonDocument&, ModPlatform::IndexedPack&)> callback) = 0;
 
     virtual auto getProject(QString addonId, QByteArray* response) const -> NetJob* = 0;
@@ -84,6 +92,7 @@ class ModAPI {
         QString addonId;
         std::list<Version> mcVersions;
         ModLoaderTypes loaders;
+        ResourceType type = Mod;
     };
 
     virtual void getVersions(VersionSearchArgs&& args, std::function<void(QJsonDocument&, QString)> callback) const = 0;

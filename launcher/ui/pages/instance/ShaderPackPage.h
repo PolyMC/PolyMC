@@ -44,20 +44,22 @@ class ShaderPackPage : public ExternalResourcesPage
 {
     Q_OBJECT
 public:
-    explicit ShaderPackPage(MinecraftInstance *instance, std::shared_ptr<ShaderPackFolderModel> model, QWidget *parent = 0)
-        : ExternalResourcesPage(instance, model, parent)
-    {
-        ui->actionViewConfigs->setVisible(false);
-    }
+    explicit ShaderPackPage(MinecraftInstance *instance, std::shared_ptr<ShaderPackFolderModel> model, QWidget *parent = 0);
     virtual ~ShaderPackPage() {}
 
     QString displayName() const override { return tr("Shader packs"); }
     QIcon icon() const override { return APPLICATION->getThemedIcon("shaderpacks"); }
     QString id() const override { return "shaderpacks"; }
-    QString helpPage() const override { return "Resource-packs"; }
+    QString helpPage() const override { return "Shader-packs"; }
 
     virtual bool shouldDisplay() const override
     {
         return true;
     }
+
+   private slots:
+    void installShaderPacks();
+
+   private:
+    std::shared_ptr<ShaderPackFolderModel> m_spModel;
 };

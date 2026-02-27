@@ -105,7 +105,7 @@ void ListModel::requestModVersions(ModPlatform::IndexedPack const& current, QMod
 {
     auto profile = (dynamic_cast<MinecraftInstance*>((dynamic_cast<ModPage*>(parent()))->m_instance))->getPackProfile();
 
-    m_parent->apiProvider()->getVersions({ current.addonId.toString(), getMineVersions(), profile->getModLoaders() },
+    m_parent->apiProvider()->getVersions({ current.addonId.toString(), getMineVersions(), profile->getModLoaders(), m_parent->resourceType() },
                                          [this, current, index](QJsonDocument& doc, QString addonId) {
                                              if (!s_running.constFind(this).value())
                                                  return;
@@ -118,7 +118,7 @@ void ListModel::performPaginatedSearch()
     auto profile = (dynamic_cast<MinecraftInstance*>((dynamic_cast<ModPage*>(parent()))->m_instance))->getPackProfile();
 
     m_parent->apiProvider()->searchMods(
-        this, { nextSearchOffset, currentSearchTerm, getSorts()[currentSort], profile->getModLoaders(), getMineVersions() });
+        this, { nextSearchOffset, currentSearchTerm, getSorts()[currentSort], profile->getModLoaders(), getMineVersions(), m_parent->resourceType() });
 }
 
 void ListModel::requestModInfo(ModPlatform::IndexedPack& current, QModelIndex index)
