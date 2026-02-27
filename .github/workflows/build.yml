@@ -38,6 +38,11 @@ jobs:
             msystem: mingw64
             qt_ver: 6
 
+          - os: windows-11-arm
+            name: "Windows-arm64"
+            msystem: clangarm64
+            qt_ver: 6
+
           - os: macos-15
             name: macOS
             macosx_deployment_target: 10.15
@@ -157,7 +162,7 @@ jobs:
         if: runner.os == 'Linux' && matrix.qt_ver != 6
         run: |
           sudo apt-get -y install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5core5a libqt5network5 libqt5gui5 libqt5charts5-dev
- 
+
       - name: Install Qt (macOS and AppImage)
         if: runner.os == 'Linux' && matrix.qt_ver == 6 || runner.os == 'macOS'
         uses: jurplel/install-qt-action@v3
@@ -334,7 +339,7 @@ jobs:
           cp -r ${{ github.workspace }}/JREs/jre17/* ${{ env.INSTALL_APPIMAGE_DIR }}/usr/lib/jvm/java-17-openjdk
 
           cp -r /home/runner/work/PolyMC/Qt/${{ matrix.qt_version }}/gcc_64/plugins/iconengines/* ${{ env.INSTALL_APPIMAGE_DIR }}/usr/plugins/iconengines
-          
+
           cp /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 ${{ env.INSTALL_APPIMAGE_DIR }}/usr/lib/
           cp /usr/lib/x86_64-linux-gnu/libssl.so.1.1 ${{ env.INSTALL_APPIMAGE_DIR }}//usr/lib/
 
@@ -413,5 +418,3 @@ jobs:
         with:
           name: PolyMC-${{ runner.os }}-${{ env.VERSION }}-${{ inputs.build_type }}-x86_64.AppImage
           path: PolyMC-${{ runner.os }}-${{ env.VERSION }}-${{ inputs.build_type }}-x86_64.AppImage
-
-
