@@ -6,8 +6,12 @@ namespace WinDarkmode {
 
 template<int syscall_id, typename... arglist> __attribute((naked)) uint32_t __fastcall WinSyscall([[maybe_unused]] arglist... args)
 {
+#ifdef ARCHITECTURE_x86_64
     asm volatile("mov %%rcx, %%r10; movl %0, %%eax; syscall; ret"
             :: "i"(syscall_id));
+#elif ARCHITECTURE_arm64
+    asm volatile("svc %0" :: "i"(syscall_id) : "x0", "memory");
+#endif
 }
 
 VOID ApplyStringProp(HWND hWnd, LPCWSTR lpString, WORD Property)
@@ -46,7 +50,7 @@ BOOL IsWindows10_Only()
     HMODULE hKern32 = GetModuleHandleW(L"kernel32.dll");
     HMODULE hNtuser = GetModuleHandleW(L"ntdll.dll");
     return GetProcAddress(hKern32, "SetThreadSelectedCpuSets") != NULL
-            && GetProcAddress(hNtuser, "ZwSetInformationCpuPartition") == NULL; 
+            && GetProcAddress(hNtuser, "ZwSetInformationCpuPartition") == NULL;
 }
 
 BOOL IsWindows8_0_Only()
