@@ -36,7 +36,7 @@ jobs:
         run: |
           mv ${{ github.workspace }}/PolyMC-source PolyMC-${{ env.VERSION }}
           mv PolyMC-Linux-Qt6-Portable*/PolyMC-portable.tar.gz PolyMC-Linux-Qt6-Portable-${{ env.VERSION }}.tar.gz
-          mv PolyMC-Linux-Qt6*/PolyMC.tar.gz PolyMC-Linux-Qt6-${{ env.VERSION }}.tar.gz          
+          mv PolyMC-Linux-Qt6*/PolyMC.tar.gz PolyMC-Linux-Qt6-${{ env.VERSION }}.tar.gz
           mv PolyMC-Linux-Portable*/PolyMC-portable.tar.gz PolyMC-Linux-Portable-${{ env.VERSION }}.tar.gz
           mv PolyMC-Linux*/PolyMC.tar.gz PolyMC-Linux-${{ env.VERSION }}.tar.gz
           mv PolyMC-*.AppImage/PolyMC-*.AppImage PolyMC-Linux-${{ env.VERSION }}-x86_64.AppImage
@@ -80,6 +80,9 @@ jobs:
             PolyMC-Windows-${{ env.VERSION }}.zip
             PolyMC-Windows-Portable-${{ env.VERSION }}.zip
             PolyMC-Windows-Setup-${{ env.VERSION }}.exe
+            PolyMC-Windows-arm64-${{ env.VERSION }}.zip
+            PolyMC-Windows-arm64-Portable-${{ env.VERSION }}.zip
+            PolyMC-Windows-arm64-Setup-${{ env.VERSION }}.exe
             PolyMC-macOS-${{ env.VERSION }}.tar.gz
             PolyMC-macOS-Legacy-${{ env.VERSION }}.tar.gz
             PolyMC-${{ env.VERSION }}.tar.gz
