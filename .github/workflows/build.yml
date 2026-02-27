@@ -70,6 +70,10 @@ jobs:
       BUILD_DIR: "build"
       CCACHE_VAR: ""
 
+    defaults:
+      run:
+        shell: ${{ matrix.msystem && 'msys2 {0}' || 'bash' }}
+
     steps:
       ##
       # PREPARE
@@ -110,35 +114,10 @@ jobs:
             ${{ matrix.qt_ver == 6 && 'qt6-5compat:p' || '' }}
 
       - name: Setup ccache
-        if: runner.os != 'Windows' && inputs.build_type == 'Debug'
-        uses: hendrikmuhs/ccache-action@v1.2.18
+        uses: crueter/ccache-action@master
         with:
           key: ${{ matrix.os }}-qt${{ matrix.qt_ver }}
-
-      - name: Setup ccache (Windows)
-        if: runner.os == 'Windows' && inputs.build_type == 'Debug'
-        shell: msys2 {0}
-        run: |
-          ccache --set-config=cache_dir='${{ github.workspace }}\.ccache'
-          ccache --set-config=max_size='500M'
-          ccache --set-config=compression=true
-          ccache -p  # Show config
-          ccache -z  # Zero stats
-
-      - name: Use ccache on Debug builds only
-        if: inputs.build_type == 'Debug'
-        shell: bash
-        run: |
-          echo "CCACHE_VAR=ccache" >> $GITHUB_ENV
-
-      - name: Retrieve ccache cache (Windows)
-        if: runner.os == 'Windows' && inputs.build_type == 'Debug'
-        uses: actions/cache@v3.4.3
-        with:
-          path: '${{ github.workspace }}\.ccache'
-          key: ${{ matrix.os }}-qt${{ matrix.qt_ver }}
-          restore-keys: |
-              ${{ matrix.os }}-qt${{ matrix.qt_ver }}
+          install: binary
 
       - name: Set short version
         shell: bash
@@ -190,36 +169,34 @@ jobs:
       - name: Configure CMake (macOS)
         if: runner.os == 'macOS' && matrix.qt_ver == 6
         run: |
-          cmake -S . -B ${{ env.BUILD_DIR }} -DCMAKE_INSTALL_PREFIX=${{ env.INSTALL_DIR }} -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} -DENABLE_LTO=ON -DLauncher_BUILD_PLATFORM=${{ matrix.name }} -DCMAKE_C_COMPILER_LAUNCHER=${{ env.CCACHE_VAR }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ env.CCACHE_VAR }} -DLauncher_QT_VERSION_MAJOR=${{ matrix.qt_ver }} -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -G Ninja
+          cmake -S . -B ${{ env.BUILD_DIR }} -DCMAKE_INSTALL_PREFIX=${{ env.INSTALL_DIR }} -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+            -DENABLE_LTO=ON -DLauncher_BUILD_PLATFORM=${{ matrix.name }} -DUSE_CCACHE=ON -DLauncher_QT_VERSION_MAJOR=${{ matrix.qt_ver }} \
+            -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -G Ninja
 
       - name: Configure CMake (macOS-Legacy)
         if: runner.os == 'macOS' && matrix.qt_ver == 5
         run: |
-          cmake -S . -B ${{ env.BUILD_DIR }} -DCMAKE_INSTALL_PREFIX=${{ env.INSTALL_DIR }} -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} -DENABLE_LTO=ON -DLauncher_BUILD_PLATFORM=${{ matrix.name }} -DCMAKE_C_COMPILER_LAUNCHER=${{ env.CCACHE_VAR }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ env.CCACHE_VAR }} -DLauncher_QT_VERSION_MAJOR=${{ matrix.qt_ver }} -DMACOSX_SPARKLE_UPDATE_PUBLIC_KEY="" -DMACOSX_SPARKLE_UPDATE_FEED_URL="" -DCMAKE_OSX_ARCHITECTURES="x86_64" -G Ninja
+          cmake -S . -B ${{ env.BUILD_DIR }} -DCMAKE_INSTALL_PREFIX=${{ env.INSTALL_DIR }} -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+            -DENABLE_LTO=ON -DLauncher_BUILD_PLATFORM=${{ matrix.name }} -DUSE_CCACHE=ON -DLauncher_QT_VERSION_MAJOR=${{ matrix.qt_ver }} \
+            -DMACOSX_SPARKLE_UPDATE_PUBLIC_KEY="" -DMACOSX_SPARKLE_UPDATE_FEED_URL="" -DCMAKE_OSX_ARCHITECTURES="x86_64" -G Ninja
 
       - name: Configure CMake (Windows)
         if: runner.os == 'Windows'
-        shell: msys2 {0}
         run: |
-          cmake -S . -B ${{ env.BUILD_DIR }} -DCMAKE_INSTALL_PREFIX=${{ env.INSTALL_DIR }} -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} -DENABLE_LTO=ON -DLauncher_BUILD_PLATFORM=${{ matrix.name }} -DCMAKE_C_COMPILER_LAUNCHER=${{ env.CCACHE_VAR }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ env.CCACHE_VAR }} -DLauncher_QT_VERSION_MAJOR=${{ matrix.qt_ver }} -G Ninja
+          cmake -S . -B ${{ env.BUILD_DIR }} -DCMAKE_INSTALL_PREFIX=${{ env.INSTALL_DIR }} -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+            -DENABLE_LTO=ON -DLauncher_BUILD_PLATFORM=${{ matrix.name }} -DUSE_CCACHE=ON -DLauncher_QT_VERSION_MAJOR=${{ matrix.qt_ver }} -G Ninja
 
       - name: Configure CMake (Linux)
         if: runner.os == 'Linux'
         run: |
-          cmake -S . -B ${{ env.BUILD_DIR }} -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} -DENABLE_LTO=ON -DLauncher_BUILD_PLATFORM=Linux -DCMAKE_C_COMPILER_LAUNCHER=${{ env.CCACHE_VAR }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ env.CCACHE_VAR }} -DLauncher_QT_VERSION_MAJOR=${{ matrix.qt_ver }} -G Ninja
+          cmake -S . -B ${{ env.BUILD_DIR }} -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+            -DENABLE_LTO=ON -DLauncher_BUILD_PLATFORM=Linux -DUSE_CCACHE=ON -DLauncher_QT_VERSION_MAJOR=${{ matrix.qt_ver }} -G Ninja
 
       ##
       # BUILD
       ##
 
       - name: Build
-        if: runner.os != 'Windows'
-        run: |
-          cmake --build ${{ env.BUILD_DIR }}
-
-      - name: Build (Windows)
-        if: runner.os == 'Windows'
-        shell: msys2 {0}
         run: |
           cmake --build ${{ env.BUILD_DIR }}
 
@@ -228,13 +205,6 @@ jobs:
       ##
 
       - name: Test
-        if: runner.os != 'Windows'
-        run: |
-          ctest --test-dir build --output-on-failure
-
-      - name: Test (Windows)
-        if: runner.os == 'Windows'
-        shell: msys2 {0}
         run: |
           ctest --test-dir build --output-on-failure
 
@@ -281,7 +251,6 @@ jobs:
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
-        shell: msys2 {0}
         run: |
           cmake --install ${{ env.BUILD_DIR }}
 
@@ -292,14 +261,12 @@ jobs:
 
       - name: Package (Windows, portable)
         if: runner.os == 'Windows'
-        shell: msys2 {0}
         run: |
           cp -r ${{ env.INSTALL_DIR }} ${{ env.INSTALL_PORTABLE_DIR }}  # cmake install on Windows is slow, let's just copy instead
           cmake --install ${{ env.BUILD_DIR }} --prefix ${{ env.INSTALL_PORTABLE_DIR }} --component portable
 
       - name: Package (Windows, installer)
         if: runner.os == 'Windows' && matrix.msystem != 'clangarm64'
-        shell: msys2 {0}
         run: |
           cd ${{ env.INSTALL_DIR }}
           makensis -NOCD "${{ github.workspace }}/${{ env.BUILD_DIR }}/program_info/win_install.nsi"
