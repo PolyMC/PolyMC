@@ -24,7 +24,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
   build_debug:
     name: Build Debug
     uses: ./.github/workflows/build.yml
@@ -32,3 +31,25 @@ jobs:
       build_type: Debug
     secrets:
       SPARKLE_ED25519_KEY: ${{ secrets.SPARKLE_ED25519_KEY }}
+
+  test_release:
+    needs: build_debug
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+          path: 'PolyMC-source'
+
+      - name: Grab and store version
+        run: echo "VERSION=$(git rev-parse --short=10 HEAD)" >> $GITHUB_ENV
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+
+      - name: Package artifacts properly
+        run: ./.ci/pack.sh
