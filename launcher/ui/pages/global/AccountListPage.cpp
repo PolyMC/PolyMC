@@ -189,6 +189,7 @@ void AccountListPage::on_actionAddAuthlibInjector_triggered()
 
 void AccountListPage::on_actionAddMicrosoft_triggered()
 {
+    // TODO: ????
     if(BuildConfig.BUILD_PLATFORM == "osx64") {
         CustomMessageBox::selectable(
             this,

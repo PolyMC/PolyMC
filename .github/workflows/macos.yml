@@ -1,0 +1,73 @@
+name: macOS
+
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        type: string
+        default: Debug
+      version:
+        type: string
+    secrets:
+      SPARKLE_ED25519_KEY:
+        required: false
+
+jobs:
+  build:
+    name: "macOS ${{ matrix.arch }} (Qt ${{ matrix.qt_ver }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            arch: aarch64
+            macosx_deployment_target: 10.15
+            qt_ver: 6
+            qt_host: mac
+            qt_version: '6.3.0'
+            qt_modules: 'qt5compat qtimageformats qtcharts'
+
+          - os: macos-15
+            arch: universal
+            macosx_deployment_target: 10.13
+            qt_ver: 5
+            qt_host: mac
+            qt_version: '5.15.2'
+            qt_modules: 'qtcharts'
+
+    runs-on: ${{ matrix.os }}
+    env:
+      MACOSX_DEPLOYMENT_TARGET: ${{ matrix.macosx_deployment_target }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Setup
+        uses: ./.github/workflows/setup
+        with:
+          os: ${{ matrix.os }}
+          arch: ${{ matrix.arch }}
+          qt_ver: ${{ matrix.qt_ver }}
+          version: ${{ inputs.version }}
+
+      - name: Install Dependencies
+        run: ./.ci/macos/deps.sh
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+           version: ${{ matrix.qt_version }}
+           host: ${{ matrix.qt_host }}
+           target: 'desktop'
+           modules: ${{ matrix.qt_modules }}
+           cache: true
+           cache-key-prefix: ${{ matrix.qt_host }}-${{ matrix.qt_version }}-"${{ matrix.qt_modules }}"-qt_cache
+
+      - name: Build
+        uses: ./.github/workflows/build
+        with:
+          build_type: ${{ inputs.build_type }}
+          sparkle_key: ${{ secrets.SPARKLE_ED25519_KEY }}

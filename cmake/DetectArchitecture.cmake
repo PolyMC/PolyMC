@@ -48,6 +48,8 @@ if (CMAKE_OSX_ARCHITECTURES)
     return()
 endif()
 
+set(MULTIARCH_BUILD 0)
+
 include(CheckSymbolExists)
 function(detect_architecture symbol arch)
     # The output variable needs to be unset between invocations otherwise

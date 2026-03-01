@@ -19,7 +19,7 @@ cmake-build-*/
 Debug
 
 # Build dirs
-build
+/build
 /build-*
 
 # Install dirs

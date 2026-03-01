@@ -37,6 +37,7 @@
 
 #pragma once
 #include <QString>
+#include <QList>
 
 /**
  * \brief The Config class holds all the build-time information passed from the build system.
@@ -65,8 +66,14 @@ class Config {
 
     bool UPDATER_ENABLED = false;
 
-    /// A short string identifying this build's platform. For example, "lin64" or "win32".
+    /// The target system identifier.
     QString BUILD_PLATFORM;
+
+    /// The target architecture, or architectures.
+    QStringList BUILD_ARCHITECTURE;
+
+    /// Whether or not this is a "legacy" build, targeting older operating systems.
+    bool LEGACY_BUILD;
 
     /// A string containing the build timestamp
     QString BUILD_DATE;

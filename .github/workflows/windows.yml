@@ -1,0 +1,65 @@
+name: Windows
+
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        type: string
+        default: Debug
+      version:
+        type: string
+
+jobs:
+  build:
+    name: "Windows ${{ matrix.arch }} (Qt ${{ matrix.qt_ver }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            arch: amd64
+            msystem: mingw64
+            qt_ver: 5
+          - os: windows-2022
+            arch: amd64
+            msystem: mingw64
+            qt_ver: 6
+          - os: windows-11-arm
+            arch: aarch64
+            msystem: clangarm64
+            qt_ver: 6
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Setup
+        uses: ./.github/workflows/setup
+        with:
+          os: ${{ matrix.os }}
+          arch: ${{ matrix.arch }}
+          qt_ver: ${{ matrix.qt_ver }}
+          version: ${{ inputs.version }}
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.msystem }}
+          update: true
+          install: git
+          pacboy: >-
+            toolchain:p cmake:p extra-cmake-modules:p ninja:p 7zip:p
+            qt${{ matrix.qt_ver }}-base:p qt${{ matrix.qt_ver }}-svg:p
+            qt${{ matrix.qt_ver }}-imageformats:p qt${{ matrix.qt_ver }}-charts:p
+            quazip-qt${{ matrix.qt_ver }}:p ccache:p
+            ${{ matrix.msystem != 'clangarm64' && 'nsis:m' || '' }}
+            ${{ matrix.qt_ver == 6 && 'qt6-5compat:p' || '' }}
+
+      - name: Build
+        uses: ./.github/workflows/build
+        with:
+          build_type: ${{ inputs.build_type }}
+          shell: msys2 {0}

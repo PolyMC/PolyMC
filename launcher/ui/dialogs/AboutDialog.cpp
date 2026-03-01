@@ -142,10 +142,10 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent), ui(new Ui::AboutDia
 
     ui->versionLabel->setText(BuildConfig.printableVersionString());
 
-    if (!BuildConfig.BUILD_PLATFORM.isEmpty())
-        ui->platformLabel->setText(tr("Platform") +": " + BuildConfig.BUILD_PLATFORM);
-    else
-        ui->platformLabel->setVisible(false);
+    const QString legacyText = BuildConfig.LEGACY_BUILD ? tr(" (Legacy)") : "";
+    const QString archText = BuildConfig.BUILD_ARCHITECTURE.join(',');
+
+    ui->platformLabel->setText(tr("Built for %1 %2%3").arg(BuildConfig.BUILD_PLATFORM, archText, legacyText));
 
     if (!BuildConfig.GIT_COMMIT.isEmpty())
         ui->commitLabel->setText(tr("Commit: %1").arg(BuildConfig.GIT_COMMIT));

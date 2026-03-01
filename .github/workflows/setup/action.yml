@@ -1,0 +1,41 @@
+name: 'Setup Environment'
+description: 'setup stuff'
+inputs:
+  os:
+    required: true
+  arch:
+    required: true
+  qt_ver:
+    required: true
+  version:
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup ccache
+      uses: crueter/ccache-action@master
+      with:
+        key: ${{ inputs.os }}-qt${{ inputs.qt_ver }}
+        install: binary
+
+    - name: Setup Variables
+      shell: bash
+      run: |
+        git config --global --add safe.directory "$PWD"
+
+        _ver="${{ inputs.version }}"
+        if [ -z "$_ver" ]; then
+          _ver="$(git rev-parse --short=10 HEAD)"
+        fi
+
+        echo "VERSION=${_ver}" >> $GITHUB_ENV
+        echo "PLATFORM=$(echo ${{ runner.os }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+        LEGACY_BUILD="${{ inputs.qt_ver == '5' && 'true' || 'false' }}"
+        BUILD_NAME="${{ runner.os }}-${{ inputs.arch }}-Qt${{ inputs.qt_ver }}$([ "$LEGACY_BUILD" = "true" ] && echo "-Legacy" || echo "")"
+
+        echo "BUILD_ID=$BUILD_NAME" >> $GITHUB_ENV
+        echo "LEGACY_BUILD=$LEGACY_BUILD" >> $GITHUB_ENV
+        echo "QT_VERSION=${{ inputs.qt_ver }}" >> $GITHUB_ENV
+        echo "ARCH=${{ inputs.arch }}" >> $GITHUB_ENV

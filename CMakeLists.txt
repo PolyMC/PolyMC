@@ -96,8 +96,8 @@ set(Launcher_VERSION_NAME "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}")
 set(Launcher_VERSION_NAME4 "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.0.0")
 set(Launcher_VERSION_NAME4_COMMA "${Launcher_VERSION_MAJOR},${Launcher_VERSION_MINOR},0,0")
 
-# Build platform.
-set(Launcher_BUILD_PLATFORM "" CACHE STRING "A short string identifying the platform that this build was built for. Only used to display in the about dialog.")
+# Legacy
+option(Launcher_LEGACY_BUILD "Mark this build as a special 'legacy' build for older operating systems." OFF)
 
 # Channel list URL
 set(Launcher_UPDATER_BASE "" CACHE STRING "Base URL for the updater.")
@@ -201,6 +201,7 @@ ecm_query_qt(QT_PLUGINS_DIR  QT_INSTALL_PLUGINS)
 ecm_query_qt(QT_LIBS_DIR     QT_INSTALL_LIBS)
 ecm_query_qt(QT_LIBEXECS_DIR QT_INSTALL_LIBEXECS)
 ecm_query_qt(QT_DATA_DIR     QT_HOST_DATA)
+ecm_query_qt(QT_BINS_DIR     QT_INSTALL_BINS)
 set(QT_MKSPECS_DIR ${QT_DATA_DIR}/mkspecs)
 
 # NOTE: Qt 6 already sets this by default
@@ -302,7 +303,7 @@ elseif(WIN32)
     set(APPS "\${CMAKE_INSTALL_PREFIX}/${Launcher_Name}.exe")
 
     # directories to look for dependencies
-    set(DIRS ${QT_LIBS_DIR} ${QT_LIBEXECS_DIR} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    set(DIRS ${QT_LIBS_DIR} ${QT_BINS_DIR} ${QT_LIBEXECS_DIR} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
     # install as bundle
     set(INSTALL_BUNDLE "full")
