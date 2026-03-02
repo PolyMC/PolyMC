@@ -39,6 +39,8 @@
 
 const Config BuildConfig;
 
+#cmakedefine01 Launcher_LEGACY_BUILD
+
 Config::Config()
 {
     // Name and copyright
@@ -57,7 +59,14 @@ Config::Config()
     VERSION_MAJOR = @Launcher_VERSION_MAJOR@;
     VERSION_MINOR = @Launcher_VERSION_MINOR@;
 
-    BUILD_PLATFORM = "@Launcher_BUILD_PLATFORM@";
+    BUILD_PLATFORM = "@CMAKE_SYSTEM_NAME@";
+#if @MULTIARCH_BUILD@
+    BUILD_ARCHITECTURE = QStringLiteral("@ARCHITECTURE@").split(QLatin1Char(';'));
+#else
+    BUILD_ARCHITECTURE = QStringList{"@ARCHITECTURE@"};
+#endif
+
+    LEGACY_BUILD = Launcher_LEGACY_BUILD;
     BUILD_DATE = "@Launcher_BUILD_TIMESTAMP@";
     UPDATER_BASE = "@Launcher_UPDATER_BASE@";
 

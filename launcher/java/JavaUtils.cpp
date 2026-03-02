@@ -177,7 +177,7 @@ QStringList addJavasFromEnv(QList<QString> javas)
     auto env = qEnvironmentVariable("POLYMC_JAVA_PATHS");
 #if defined(Q_OS_WIN32)
     QList<QString> javaPaths = env.replace("\\", "/").split(QLatin1String(";"));
-    
+
     auto envPath = qEnvironmentVariable("PATH");
     QList<QString> javaPathsfromPath = envPath.replace("\\", "/").split(QLatin1String(";"));
     for (QString string : javaPathsfromPath) {
@@ -453,6 +453,10 @@ QList<QString> JavaUtils::FindJavaPaths()
     scanJavaDir("/opt/jdks");
     // flatpak
     scanJavaDir("/app/jdk");
+
+    // appimage
+    auto appimagePath = qEnvironmentVariable("APPIMAGE");
+    scanJavaDir(FS::PathCombine(appimagePath, "usr/lib/jvm"));
 
     // Default SDKMAN directory can be overwritten via SDKMAN_DIR env var (default $HOME/.sdkman)
     // see https://sdkman.io/install

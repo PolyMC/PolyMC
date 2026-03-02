@@ -1,0 +1,51 @@
+name: Linux
+
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        type: string
+        default: Debug
+      version:
+        type: string
+
+jobs:
+  build:
+    name: "AppImage (${{ matrix.os.arch }})"
+    runs-on: ${{ matrix.os.runs-on }}
+    container:
+      image: ghcr.io/pkgforge-dev/archlinux:latest
+      options: --privileged --device /dev/fuse
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - runs-on: ubuntu-24.04
+            arch: amd64
+
+    steps:
+      - name: Install Git
+        run: pacman -Syu --noconfirm git
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Setup
+        uses: ./.github/workflows/setup
+        with:
+          os: ${{ matrix.os.runs-on }}
+          arch: ${{ matrix.os.arch }}
+          qt_ver: 6
+          version: ${{ inputs.version }}
+
+      - name: Install Dependencies
+        run: ./.ci/linux/deps.sh
+
+      - name: Build
+        uses: ./.github/workflows/build
+        with:
+          build_type: ${{ inputs.build_type }}
+          run_codeql: 'true'
