@@ -14,7 +14,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup ccache
-      uses: crueter/ccache-action@master
+      uses: hendrikmuhs/ccache-action@main
       with:
         key: ${{ inputs.os }}-qt${{ inputs.qt_ver }}
         install: binary
@@ -33,7 +33,7 @@ runs:
         echo "PLATFORM=$(echo ${{ runner.os }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
         LEGACY_BUILD="${{ inputs.qt_ver == '5' && 'true' || 'false' }}"
-        BUILD_NAME="${{ runner.os }}-${{ inputs.arch }}-Qt${{ inputs.qt_ver }}$([ "$LEGACY_BUILD" = "true" ] && echo "-Legacy" || echo "")"
+        BUILD_NAME="${{ runner.os }}-${{ inputs.arch }}-Qt${{ inputs.qt_ver }}$([ "$LEGACY_BUILD" = "true" ] && echo "-Legacy" || echo "")-${_ver}"
 
         echo "BUILD_ID=$BUILD_NAME" >> $GITHUB_ENV
         echo "LEGACY_BUILD=$LEGACY_BUILD" >> $GITHUB_ENV

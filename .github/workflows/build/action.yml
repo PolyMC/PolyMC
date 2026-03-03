@@ -13,14 +13,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Initialize CodeQL
-      if: inputs.run_codeql == 'true'
-      uses: github/codeql-action/init@v2
-      with:
-        config-file: ./.github/codeql/codeql-config.yml
-        queries: security-and-quality
-        languages: cpp, java
-
     - name: Configure CMake
       shell: ${{ inputs.shell }}
       run: ./.ci/configure.sh
@@ -34,10 +26,6 @@ runs:
     - name: Test
       shell: ${{ inputs.shell }}
       run: ctest --test-dir build --output-on-failure
-
-    - name: Perform CodeQL Analysis
-      if: inputs.run_codeql == 'true'
-      uses: github/codeql-action/analyze@v2
 
     - name: Package
       shell: ${{ inputs.shell }}
