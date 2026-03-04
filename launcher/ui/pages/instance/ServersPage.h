@@ -39,6 +39,7 @@
 #include <QMainWindow>
 #include <QString>
 #include <QTimer>
+#include <QPersistentModelIndex>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>
@@ -112,6 +113,7 @@ private: // data
     int currentServer = -1;
     bool m_locked = true;
     QTimer m_pingDebounce;
+    QPersistentModelIndex m_pingDebounceTarget;
     Ui::ServersPage *ui = nullptr;
     ServersModel * m_model = nullptr;
     InstancePtr m_inst = nullptr;

@@ -53,6 +53,8 @@
 #include <QJsonObject>
 #include <QElapsedTimer>
 #include <QDateTime>
+#include <QDnsLookup>
+#include <QHostAddress>
 
 static const int COLUMN_COUNT = 4; // Name, Address, Players, Ping
 
@@ -180,11 +182,13 @@ static bool serializeServerDat(const QString& filename, nbt::tag_compound * leve
 static QString stripMinecraftFormatting(const QString& str)
 {
     QString result;
-    for (int i = 0; i < str.size(); ++i) {
+    int i = 0;
+    while (i < str.size()) {
         if (str[i] == QChar(0xA7) && i + 1 < str.size()) {
-            ++i;
+            i += 2;
         } else {
             result.append(str[i]);
+            ++i;
         }
     }
     return result;
@@ -209,12 +213,20 @@ public:
         m_timeout.setSingleShot(true);
         m_timeout.setInterval(5000);
         connect(&m_timeout, &QTimer::timeout, this, &ServerPinger::onTimeout);
+
+        m_dns = new QDnsLookup(QDnsLookup::SRV, "_minecraft._tcp." + host, this);
+        connect(m_dns, &QDnsLookup::finished, this, &ServerPinger::onSrvLookupDone);
     }
 
     void ping()
     {
         m_timeout.start();
-        m_socket->connectToHost(m_host, m_port);
+        // Skip SRV lookup for bare IP addresses
+        if (QHostAddress().setAddress(m_host)) {
+            m_socket->connectToHost(m_host, m_port);
+        } else {
+            m_dns->lookup();
+        }
     }
 
 signals:
@@ -259,6 +271,18 @@ private slots:
         m_socket->abort();
         emit done(false, 0, 0, 0, {}, {});
         deleteLater();
+    }
+
+    void onSrvLookupDone()
+    {
+        if (m_dns->error() == QDnsLookup::NoError && !m_dns->serviceRecords().isEmpty()) {
+            auto srv = m_dns->serviceRecords().first();
+            m_host = srv.target();
+            if (m_host.endsWith('.'))
+                m_host.chop(1);
+            m_port = srv.port();
+        }
+        m_socket->connectToHost(m_host, m_port);
     }
 
 private:
@@ -373,6 +397,7 @@ private:
     }
 
     QTcpSocket*   m_socket;
+    QDnsLookup*   m_dns;
     QTimer        m_timeout;
     QElapsedTimer m_pingTimer;
     QString       m_host;
@@ -753,6 +778,8 @@ public:
         if (row < 0 || row >= m_servers.size())
             return;
 
+        QPersistentModelIndex persistentIdx(index(row, 0));
+
         m_servers[row].m_checked = false;
         m_servers[row].m_up      = false;
         emit dataChanged(index(row, 0), index(row, COLUMN_COUNT - 1));
@@ -761,33 +788,58 @@ public:
         if (addr.isEmpty())
             return;
 
-        // Parse optional ":port" suffix
-        QString host  = addr;
-        quint16 port  = 25565;
-        int colonIdx  = addr.lastIndexOf(':');
-        if (colonIdx != -1) {
-            bool ok;
-            int p = addr.mid(colonIdx + 1).toInt(&ok);
-            if (ok && p > 0 && p <= 65535) {
-                host = addr.left(colonIdx);
-                port = static_cast<quint16>(p);
+        QString host;
+        quint16 port = 25565;
+
+        if (addr.startsWith('[')) {
+            // [IPv6]:port or [IPv6]
+            int closeBracket = addr.indexOf(']');
+            if (closeBracket != -1) {
+                host = addr.mid(1, closeBracket - 1);
+                if (addr.size() > closeBracket + 2 && addr[closeBracket + 1] == ':') {
+                    bool ok;
+                    int p = addr.mid(closeBracket + 2).toInt(&ok);
+                    if (ok && p > 0 && p <= 65535)
+                        port = static_cast<quint16>(p);
+                }
+            } else {
+                host = addr;
+            }
+        } else if (addr.count(':') > 1) {
+            // Bare IPv6 address, no port
+            host = addr;
+        } else {
+            // hostname:port or hostname
+            int colonIdx = addr.lastIndexOf(':');
+            if (colonIdx != -1) {
+                bool ok;
+                int p = addr.mid(colonIdx + 1).toInt(&ok);
+                if (ok && p > 0 && p <= 65535) {
+                    host = addr.left(colonIdx);
+                    port = static_cast<quint16>(p);
+                } else {
+                    host = addr;
+                }
+            } else {
+                host = addr;
             }
         }
 
         auto* pinger = new ServerPinger(host, port, this);
         connect(pinger, &ServerPinger::done, this,
-            [this, row](bool success, int current, int max, int ping, const QString& motd, const QByteArray& icon) {
-                if (row < 0 || row >= m_servers.size())
+            [this, persistentIdx](bool success, int current, int max, int ping, const QString& motd, const QByteArray& icon) {
+                if (!persistentIdx.isValid())
                     return;
-                m_servers[row].m_checked        = true;
-                m_servers[row].m_up             = success;
-                m_servers[row].m_currentPlayers = current;
-                m_servers[row].m_maxPlayers     = max;
-                m_servers[row].m_ping           = ping;
-                m_servers[row].m_motd           = motd;
+                int r = persistentIdx.row();
+                m_servers[r].m_checked        = true;
+                m_servers[r].m_up             = success;
+                m_servers[r].m_currentPlayers = current;
+                m_servers[r].m_maxPlayers     = max;
+                m_servers[r].m_ping           = ping;
+                m_servers[r].m_motd           = motd;
                 if (!icon.isEmpty())
-                    m_servers[row].m_icon = icon;
-                emit dataChanged(index(row, 0), index(row, COLUMN_COUNT - 1));
+                    m_servers[r].m_icon = icon;
+                emit dataChanged(index(r, 0), index(r, COLUMN_COUNT - 1));
             });
         pinger->ping();
     }
@@ -936,7 +988,8 @@ ServersPage::ServersPage(InstancePtr inst, QWidget* parent)
     m_pingDebounce.setSingleShot(true);
     m_pingDebounce.setInterval(1500);
     connect(&m_pingDebounce, &QTimer::timeout, this, [this]() {
-        m_model->pingServer(currentServer);
+        if (m_pingDebounceTarget.isValid())
+            m_model->pingServer(m_pingDebounceTarget.row());
     });
 
     m_locked = m_inst->isRunning();
@@ -1035,8 +1088,10 @@ void ServersPage::nameEdited(const QString& name)
 void ServersPage::addressEdited(const QString& address)
 {
     m_model->setAddress(currentServer, address);
-    if (!address.trimmed().isEmpty())
+    if (!address.trimmed().isEmpty()) {
+        m_pingDebounceTarget = m_model->index(currentServer, 0);
         m_pingDebounce.start();
+    }
 }
 
 void ServersPage::resourceIndexChanged(int index)
