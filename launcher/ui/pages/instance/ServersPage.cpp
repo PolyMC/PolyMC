@@ -45,11 +45,23 @@
 #include <tag_list.h>
 #include <tag_compound.h>
 #include <minecraft/MinecraftInstance.h>
+#include <minecraft/launch/MinecraftServerTarget.h>
 
 #include <QFileSystemWatcher>
 #include <QMenu>
+#include <QTcpSocket>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QElapsedTimer>
+#include <QDateTime>
+#include <QDnsLookup>
+#include <QHostAddress>
+#include <QJsonParseError>
+#include <QQueue>
+#include <QImageReader>
+#include <QBuffer>
 
-static const int COLUMN_COUNT = 2; // 3 , TBD: latency and other nice things.
+static const int COLUMN_COUNT = 4; // Name, Address, Players, Ping
 
 struct Server
 {
@@ -128,6 +140,7 @@ struct Server
     int m_ping = 0;
     int m_currentPlayers = 0;
     int m_maxPlayers = 0;
+    quint64 m_pingGeneration = 0;
 };
 
 static std::unique_ptr <nbt::tag_compound> parseServersDat(const QString& filename)
@@ -172,6 +185,267 @@ static bool serializeServerDat(const QString& filename, nbt::tag_compound * leve
     }
 }
 
+static QString stripMinecraftFormatting(const QString& str)
+{
+    QString result;
+    int i = 0;
+    while (i < str.size()) {
+        if (str[i] == QChar(0xA7) && i + 1 < str.size()) {
+            i += 2;
+        } else {
+            result.append(str[i]);
+            ++i;
+        }
+    }
+    return result;
+}
+
+class ServerPinger : public QObject
+{
+    Q_OBJECT
+public:
+    static constexpr int MAX_STATUS_PACKET_SIZE = 1024 * 1024; // 1 MB
+    static constexpr int MAX_FAVICON_SIZE = 64 * 1024; // 64 KB decoded
+
+    explicit ServerPinger(const QString& host, quint16 port, QObject* parent = nullptr)
+        : QObject(parent), m_handshakeHost(host), m_connectHost(host), m_port(port)
+    {
+        m_socket = new QTcpSocket(this);
+        connect(m_socket, &QTcpSocket::connected, this, &ServerPinger::onConnected);
+        connect(m_socket, &QTcpSocket::readyRead,  this, &ServerPinger::onReadyRead);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        connect(m_socket, &QAbstractSocket::errorOccurred, this, &ServerPinger::onSocketError);
+#else
+        connect(m_socket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error),
+                this, &ServerPinger::onSocketError);
+#endif
+        m_timeout.setSingleShot(true);
+        m_timeout.setInterval(5000);
+        connect(&m_timeout, &QTimer::timeout, this, &ServerPinger::onTimeout);
+
+        m_dns = new QDnsLookup(QDnsLookup::SRV, "_minecraft._tcp." + host, this);
+        connect(m_dns, &QDnsLookup::finished, this, &ServerPinger::onSrvLookupDone);
+    }
+
+    void ping()
+    {
+        m_timeout.start();
+        if (QHostAddress().setAddress(m_connectHost)) {
+            m_socket->connectToHost(m_connectHost, m_port);
+        } else {
+            m_dns->lookup();
+        }
+    }
+
+signals:
+    void done(bool success, int currentPlayers, int maxPlayers, int pingMs, const QString& motd, const QByteArray& icon);
+
+private:
+    void finish(bool success, int currentPlayers = 0, int maxPlayers = 0, int pingMs = 0,
+                const QString& motd = {}, const QByteArray& icon = {})
+    {
+        if (m_finished)
+            return;
+        m_finished = true;
+        m_timeout.stop();
+        m_dns->abort();
+        m_socket->abort();
+        emit done(success, currentPlayers, maxPlayers, pingMs, motd, icon);
+        deleteLater();
+    }
+
+private slots:
+    void onConnected()
+    {
+        if (m_finished) return;
+
+        QByteArray handshake;
+        writeVarInt(handshake, 0x00);
+        writeVarInt(handshake, 47);      // Protocol version (1.8; servers accept any for status)
+        writeString(handshake, m_handshakeHost);
+        handshake.append(static_cast<char>((m_port >> 8) & 0xFF));
+        handshake.append(static_cast<char>( m_port        & 0xFF));
+        writeVarInt(handshake, 1);       // Next state: status (1)
+        m_socket->write(framePacket(handshake));
+
+        QByteArray statusReq;
+        writeVarInt(statusReq, 0x00);
+        m_socket->write(framePacket(statusReq));
+
+        m_state = WaitingStatusResponse;
+    }
+
+    void onReadyRead()
+    {
+        if (m_finished) return;
+        m_buffer.append(m_socket->readAll());
+        tryParsePackets();
+    }
+
+    void onSocketError(QAbstractSocket::SocketError)
+    {
+        finish(false);
+    }
+
+    void onTimeout()
+    {
+        finish(false);
+    }
+
+    void onSrvLookupDone()
+    {
+        if (m_finished) return;
+        if (m_dns->error() == QDnsLookup::NoError && !m_dns->serviceRecords().isEmpty()) {
+            auto srv = m_dns->serviceRecords().first();
+            m_connectHost = srv.target();
+            if (m_connectHost.endsWith('.'))
+                m_connectHost.chop(1);
+            m_port = srv.port();
+        }
+        m_socket->connectToHost(m_connectHost, m_port);
+    }
+
+private:
+    enum State { Idle, WaitingStatusResponse, WaitingPong };
+
+    static void writeVarInt(QByteArray& buf, int value)
+    {
+        do {
+            quint8 temp = static_cast<quint8>(value & 0x7F);
+            value = static_cast<int>(static_cast<unsigned int>(value) >> 7);
+            if (value != 0)
+                temp |= 0x80;
+            buf.append(static_cast<char>(temp));
+        } while (value != 0);
+    }
+
+    static void writeString(QByteArray& buf, const QString& str)
+    {
+        QByteArray utf8 = str.toUtf8();
+        writeVarInt(buf, utf8.size());
+        buf.append(utf8);
+    }
+
+    static QByteArray framePacket(const QByteArray& payload)
+    {
+        QByteArray result;
+        writeVarInt(result, payload.size());
+        result.append(payload);
+        return result;
+    }
+
+    bool tryReadVarInt(int& pos, int& out) const
+    {
+        out = 0;
+        int shift = 0;
+        while (true) {
+            if (pos >= m_buffer.size())
+                return false;
+            quint8 b = static_cast<quint8>(m_buffer.at(pos++));
+            out |= (b & 0x7F) << shift;
+            shift += 7;
+            if (!(b & 0x80))
+                return true;
+            if (shift >= 35)
+                return false;
+        }
+    }
+
+    void tryParsePackets()
+    {
+        while (!m_buffer.isEmpty() && !m_finished) {
+            int pos = 0;
+            int packetLen;
+            if (!tryReadVarInt(pos, packetLen) || packetLen <= 0)
+                return;
+            if (packetLen > MAX_STATUS_PACKET_SIZE) {
+                finish(false);
+                return;
+            }
+            if (m_buffer.size() - pos < packetLen)
+                return;
+
+            int packetEnd = pos + packetLen;
+            int packetId;
+            if (!tryReadVarInt(pos, packetId)) {
+                m_buffer.remove(0, packetEnd);
+                continue;
+            }
+
+            if (m_state == WaitingStatusResponse && packetId == 0x00) {
+                int jsonLen;
+                if (!tryReadVarInt(pos, jsonLen) || jsonLen <= 0 || jsonLen > MAX_STATUS_PACKET_SIZE || pos + jsonLen > packetEnd) {
+                    m_buffer.remove(0, packetEnd);
+                    continue;
+                }
+                QString jsonStr = QString::fromUtf8(m_buffer.constData() + pos, jsonLen);
+
+                QJsonParseError parseError;
+                QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8(), &parseError);
+                if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+                    finish(false);
+                    return;
+                }
+                QJsonObject root = doc.object();
+
+                QJsonValue desc = root["description"];
+                if (desc.isObject())
+                    m_motd = desc.toObject()["text"].toString();
+                else if (desc.isString())
+                    m_motd = desc.toString();
+
+                QJsonObject players = root["players"].toObject();
+                m_currentPlayers = players["online"].toInt();
+                m_maxPlayers     = players["max"].toInt();
+
+                QString favicon = root["favicon"].toString();
+                if (favicon.startsWith("data:image/png;base64,")) {
+                    QByteArray decoded = QByteArray::fromBase64(favicon.mid(22).toLatin1());
+                    if (decoded.size() <= MAX_FAVICON_SIZE) {
+                        QBuffer faviconBuf(&decoded);
+                        faviconBuf.open(QIODevice::ReadOnly);
+                        QImageReader reader(&faviconBuf, "PNG");
+                        QSize dims = reader.size();
+                        if (dims.isValid() && dims.width() <= 64 && dims.height() <= 64 && reader.canRead())
+                            m_icon = decoded;
+                    }
+                }
+
+                QByteArray pingPayload;
+                writeVarInt(pingPayload, 0x01);
+                qint64 ts = QDateTime::currentMSecsSinceEpoch();
+                for (int i = 7; i >= 0; i--)
+                    pingPayload.append(static_cast<char>((ts >> (i * 8)) & 0xFF));
+                m_socket->write(framePacket(pingPayload));
+                m_pingTimer.start();
+                m_state = WaitingPong;
+
+            } else if (m_state == WaitingPong && packetId == 0x01) {
+                int pingMs = static_cast<int>(m_pingTimer.elapsed());
+                finish(true, m_currentPlayers, m_maxPlayers, pingMs, m_motd, m_icon);
+                return;
+            }
+
+            m_buffer.remove(0, packetEnd);
+        }
+    }
+
+    QTcpSocket*   m_socket;
+    QDnsLookup*   m_dns;
+    QTimer        m_timeout;
+    QElapsedTimer m_pingTimer;
+    QString       m_handshakeHost;
+    QString       m_connectHost;
+    quint16       m_port;
+    QByteArray    m_buffer;
+    State         m_state = Idle;
+    bool          m_finished = false;
+    QString       m_motd;
+    QByteArray    m_icon;
+    int           m_currentPlayers = 0;
+    int           m_maxPlayers     = 0;
+};
+
 class ServersModel: public QAbstractListModel
 {
     Q_OBJECT
@@ -190,6 +464,9 @@ public:
         m_saveTimer.setSingleShot(true);
         m_saveTimer.setInterval(5000);
         connect(&m_saveTimer, &QTimer::timeout, this, &ServersModel::save_internal);
+
+        m_pingStaggerTimer.setInterval(100);
+        connect(&m_pingStaggerTimer, &QTimer::timeout, this, &ServersModel::pingNextBatch);
     }
     virtual ~ServersModel() {};
 
@@ -334,7 +611,9 @@ public:
                 case 1:
                     return tr("Address");
                 case 2:
-                    return tr("Latency");
+                    return tr("Players");
+                case 3:
+                    return tr("Ping");
             }
         }
 
@@ -372,6 +651,10 @@ public:
                 }
                 case Qt::DisplayRole:
                     return m_servers[row].m_name;
+                case Qt::ToolTipRole:
+                    if (m_servers[row].m_checked && !m_servers[row].m_motd.isEmpty())
+                        return stripMinecraftFormatting(m_servers[row].m_motd);
+                    return QVariant();
                 case ServerPtrRole:
                     return QVariant::fromValue<void *>((void *)&m_servers[row]);
                 default:
@@ -389,7 +672,43 @@ public:
                 switch (role)
                 {
                 case Qt::DisplayRole:
-                    return m_servers[row].m_ping;
+                    if (!m_servers[row].m_checked)
+                        return QVariant();
+                    if (!m_servers[row].m_up)
+                        return tr("Offline");
+                    return tr("%1 / %2 players")
+                        .arg(QLocale().toString(m_servers[row].m_currentPlayers))
+                        .arg(QLocale().toString(m_servers[row].m_maxPlayers));
+                case Qt::ForegroundRole:
+                    if (!m_servers[row].m_checked || !m_servers[row].m_up)
+                        return QVariant();
+                    if (m_servers[row].m_currentPlayers == 0)
+                        return QColor(Qt::gray);
+                    if (m_servers[row].m_currentPlayers >= m_servers[row].m_maxPlayers)
+                        return QColor(Qt::red);
+                    return QColor(Qt::green);
+                default:
+                    return QVariant();
+                }
+            case 3:
+                switch (role)
+                {
+                case Qt::DisplayRole:
+                    if (!m_servers[row].m_checked || !m_servers[row].m_up)
+                        return QVariant();
+                    return tr("%1 ms").arg(m_servers[row].m_ping);
+                case Qt::ForegroundRole: {
+                    if (!m_servers[row].m_checked || !m_servers[row].m_up)
+                        return QVariant();
+                    int ping = m_servers[row].m_ping;
+                    if (ping < 80)
+                        return QColor(Qt::green);
+                    if (ping < 150)
+                        return QColor(Qt::yellow);
+                    if (ping < 200)
+                        return QColor(QColor(255, 165, 0)); // orange
+                    return QColor(Qt::red);
+                }
                 default:
                     return QVariant();
                 }
@@ -493,6 +812,55 @@ public:
         }
     }
 
+    void pingServer(int row)
+    {
+        if (row < 0 || row >= m_servers.size())
+            return;
+
+        QPersistentModelIndex persistentIdx(index(row, 0));
+        quint64 generation = ++m_servers[row].m_pingGeneration;
+
+        m_servers[row].m_checked = false;
+        m_servers[row].m_up      = false;
+        emit dataChanged(index(row, 0), index(row, COLUMN_COUNT - 1));
+
+        QString addr = m_servers[row].m_address.trimmed();
+        if (addr.isEmpty())
+            return;
+
+        auto target = MinecraftServerTarget::parse(addr);
+
+        auto* pinger = new ServerPinger(target.address, target.port, this);
+        connect(pinger, &ServerPinger::done, this,
+            [this, persistentIdx, generation](bool success, int current, int max, int ping, const QString& motd, const QByteArray& icon) {
+                if (!persistentIdx.isValid())
+                    return;
+                int r = persistentIdx.row();
+                if (m_servers[r].m_pingGeneration != generation)
+                    return;
+                m_servers[r].m_checked        = true;
+                m_servers[r].m_up             = success;
+                m_servers[r].m_currentPlayers = current;
+                m_servers[r].m_maxPlayers     = max;
+                m_servers[r].m_ping           = ping;
+                m_servers[r].m_motd           = motd;
+                if (!icon.isEmpty()) {
+                    m_servers[r].m_icon = icon;
+                    scheduleSave();
+                }
+                emit dataChanged(index(r, 0), index(r, COLUMN_COUNT - 1));
+            });
+        pinger->ping();
+    }
+
+    void pingAll()
+    {
+        m_pingQueue.clear();
+        for (int i = 0; i < m_servers.size(); i++)
+            m_pingQueue.enqueue(QPersistentModelIndex(index(i, 0)));
+        if (!m_pingStaggerTimer.isActive())
+            pingNextBatch();
+    }
 
 public slots:
     void dirChanged(const QString& path)
@@ -598,6 +966,26 @@ private:
     QList<Server> m_servers;
     QFileSystemWatcher *m_watcher = nullptr;
     QTimer m_saveTimer;
+    QQueue<QPersistentModelIndex> m_pingQueue;
+    QTimer m_pingStaggerTimer;
+
+    static constexpr int PING_BATCH_SIZE = 3;
+
+    void pingNextBatch()
+    {
+        int launched = 0;
+        while (!m_pingQueue.isEmpty() && launched < PING_BATCH_SIZE) {
+            auto idx = m_pingQueue.dequeue();
+            if (idx.isValid()) {
+                pingServer(idx.row());
+                launched++;
+            }
+        }
+        if (m_pingQueue.isEmpty())
+            m_pingStaggerTimer.stop();
+        else if (!m_pingStaggerTimer.isActive())
+            m_pingStaggerTimer.start();
+    }
 };
 
 ServersPage::ServersPage(InstancePtr inst, QWidget* parent)
@@ -628,6 +1016,13 @@ ServersPage::ServersPage(InstancePtr inst, QWidget* parent)
     connect(ui->addressLine, &QLineEdit::textEdited, this, &ServersPage::addressEdited);
     connect(ui->resourceComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(resourceIndexChanged(int)));
     connect(m_model, &QAbstractItemModel::rowsRemoved, this, &ServersPage::rowsRemoved);
+
+    m_pingDebounce.setSingleShot(true);
+    m_pingDebounce.setInterval(1500);
+    connect(&m_pingDebounce, &QTimer::timeout, this, [this]() {
+        if (m_pingDebounceTarget.isValid())
+            m_model->pingServer(m_pingDebounceTarget.row());
+    });
 
     m_locked = m_inst->isRunning();
     if(m_locked)
@@ -725,6 +1120,10 @@ void ServersPage::nameEdited(const QString& name)
 void ServersPage::addressEdited(const QString& address)
 {
     m_model->setAddress(currentServer, address);
+    if (!address.trimmed().isEmpty()) {
+        m_pingDebounceTarget = m_model->index(currentServer, 0);
+        m_pingDebounce.start();
+    }
 }
 
 void ServersPage::resourceIndexChanged(int index)
@@ -765,6 +1164,7 @@ void ServersPage::updateState()
 void ServersPage::openedImpl()
 {
     m_model->observe();
+    m_model->pingAll();
 }
 
 void ServersPage::closedImpl()
@@ -812,6 +1212,11 @@ void ServersPage::on_actionJoin_triggered()
 {
     const auto &address = m_model->at(currentServer)->m_address;
     APPLICATION->launch(m_inst, true, false, nullptr, std::make_shared<MinecraftServerTarget>(MinecraftServerTarget::parse(address)));
+}
+
+void ServersPage::on_actionRefresh_triggered()
+{
+    m_model->pingAll();
 }
 
 #include "ServersPage.moc"
