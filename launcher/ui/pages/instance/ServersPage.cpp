@@ -45,6 +45,7 @@
 #include <tag_list.h>
 #include <tag_compound.h>
 #include <minecraft/MinecraftInstance.h>
+#include <minecraft/launch/MinecraftServerTarget.h>
 
 #include <QFileSystemWatcher>
 #include <QMenu>
@@ -55,6 +56,8 @@
 #include <QDateTime>
 #include <QDnsLookup>
 #include <QHostAddress>
+#include <QJsonParseError>
+#include <QQueue>
 
 static const int COLUMN_COUNT = 4; // Name, Address, Players, Ping
 
@@ -198,8 +201,11 @@ class ServerPinger : public QObject
 {
     Q_OBJECT
 public:
+    static constexpr int MAX_STATUS_PACKET_SIZE = 1024 * 1024; // 1 MB
+    static constexpr int MAX_FAVICON_SIZE = 64 * 1024; // 64 KB decoded
+
     explicit ServerPinger(const QString& host, quint16 port, QObject* parent = nullptr)
-        : QObject(parent), m_host(host), m_port(port)
+        : QObject(parent), m_handshakeHost(host), m_connectHost(host), m_port(port)
     {
         m_socket = new QTcpSocket(this);
         connect(m_socket, &QTcpSocket::connected, this, &ServerPinger::onConnected);
@@ -221,9 +227,8 @@ public:
     void ping()
     {
         m_timeout.start();
-        // Skip SRV lookup for bare IP addresses
-        if (QHostAddress().setAddress(m_host)) {
-            m_socket->connectToHost(m_host, m_port);
+        if (QHostAddress().setAddress(m_connectHost)) {
+            m_socket->connectToHost(m_connectHost, m_port);
         } else {
             m_dns->lookup();
         }
@@ -232,20 +237,34 @@ public:
 signals:
     void done(bool success, int currentPlayers, int maxPlayers, int pingMs, const QString& motd, const QByteArray& icon);
 
+private:
+    void finish(bool success, int currentPlayers = 0, int maxPlayers = 0, int pingMs = 0,
+                const QString& motd = {}, const QByteArray& icon = {})
+    {
+        if (m_finished)
+            return;
+        m_finished = true;
+        m_timeout.stop();
+        m_dns->abort();
+        m_socket->abort();
+        emit done(success, currentPlayers, maxPlayers, pingMs, motd, icon);
+        deleteLater();
+    }
+
 private slots:
     void onConnected()
     {
-        // Handshake packet
+        if (m_finished) return;
+
         QByteArray handshake;
         writeVarInt(handshake, 0x00);
         writeVarInt(handshake, 47);      // Protocol version (1.8; servers accept any for status)
-        writeString(handshake, m_host);
-        handshake.append(static_cast<char>((m_port >> 8) & 0xFF)); // Port high byte
-        handshake.append(static_cast<char>( m_port        & 0xFF)); // Port low byte
+        writeString(handshake, m_handshakeHost);
+        handshake.append(static_cast<char>((m_port >> 8) & 0xFF));
+        handshake.append(static_cast<char>( m_port        & 0xFF));
         writeVarInt(handshake, 1);       // Next state: status (1)
         m_socket->write(framePacket(handshake));
 
-        // Status Request packet
         QByteArray statusReq;
         writeVarInt(statusReq, 0x00);
         m_socket->write(framePacket(statusReq));
@@ -255,34 +274,32 @@ private slots:
 
     void onReadyRead()
     {
+        if (m_finished) return;
         m_buffer.append(m_socket->readAll());
         tryParsePackets();
     }
 
     void onSocketError(QAbstractSocket::SocketError)
     {
-        m_timeout.stop();
-        emit done(false, 0, 0, 0, {}, {});
-        deleteLater();
+        finish(false);
     }
 
     void onTimeout()
     {
-        m_socket->abort();
-        emit done(false, 0, 0, 0, {}, {});
-        deleteLater();
+        finish(false);
     }
 
     void onSrvLookupDone()
     {
+        if (m_finished) return;
         if (m_dns->error() == QDnsLookup::NoError && !m_dns->serviceRecords().isEmpty()) {
             auto srv = m_dns->serviceRecords().first();
-            m_host = srv.target();
-            if (m_host.endsWith('.'))
-                m_host.chop(1);
+            m_connectHost = srv.target();
+            if (m_connectHost.endsWith('.'))
+                m_connectHost.chop(1);
             m_port = srv.port();
         }
-        m_socket->connectToHost(m_host, m_port);
+        m_socket->connectToHost(m_connectHost, m_port);
     }
 
 private:
@@ -333,12 +350,15 @@ private:
 
     void tryParsePackets()
     {
-        while (!m_buffer.isEmpty()) {
+        while (!m_buffer.isEmpty() && !m_finished) {
             int pos = 0;
             int packetLen;
             if (!tryReadVarInt(pos, packetLen) || packetLen <= 0)
                 return;
-            // Wait until the full packet body is buffered
+            if (packetLen > MAX_STATUS_PACKET_SIZE) {
+                finish(false);
+                return;
+            }
             if (m_buffer.size() - pos < packetLen)
                 return;
 
@@ -350,14 +370,19 @@ private:
             }
 
             if (m_state == WaitingStatusResponse && packetId == 0x00) {
-                // Status Response: VarInt length-prefixed JSON string
                 int jsonLen;
-                if (!tryReadVarInt(pos, jsonLen) || pos + jsonLen > packetEnd) {
+                if (!tryReadVarInt(pos, jsonLen) || jsonLen <= 0 || jsonLen > MAX_STATUS_PACKET_SIZE || pos + jsonLen > packetEnd) {
                     m_buffer.remove(0, packetEnd);
                     continue;
                 }
                 QString jsonStr = QString::fromUtf8(m_buffer.constData() + pos, jsonLen);
-                QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8());
+
+                QJsonParseError parseError;
+                QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8(), &parseError);
+                if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+                    finish(false);
+                    return;
+                }
                 QJsonObject root = doc.object();
 
                 QJsonValue desc = root["description"];
@@ -371,8 +396,14 @@ private:
                 m_maxPlayers     = players["max"].toInt();
 
                 QString favicon = root["favicon"].toString();
-                if (favicon.startsWith("data:image/png;base64,"))
-                    m_icon = QByteArray::fromBase64(favicon.mid(22).toLatin1());
+                if (favicon.startsWith("data:image/png;base64,")) {
+                    QByteArray decoded = QByteArray::fromBase64(favicon.mid(22).toLatin1());
+                    if (decoded.size() <= MAX_FAVICON_SIZE) {
+                        QPixmap px;
+                        if (px.loadFromData(decoded, "PNG") && px.width() <= 64 && px.height() <= 64)
+                            m_icon = decoded;
+                    }
+                }
 
                 QByteArray pingPayload;
                 writeVarInt(pingPayload, 0x01);
@@ -384,11 +415,8 @@ private:
                 m_state = WaitingPong;
 
             } else if (m_state == WaitingPong && packetId == 0x01) {
-                m_timeout.stop();
                 int pingMs = static_cast<int>(m_pingTimer.elapsed());
-                emit done(true, m_currentPlayers, m_maxPlayers, pingMs, m_motd, m_icon);
-                m_socket->close();
-                deleteLater();
+                finish(true, m_currentPlayers, m_maxPlayers, pingMs, m_motd, m_icon);
                 return;
             }
 
@@ -400,10 +428,12 @@ private:
     QDnsLookup*   m_dns;
     QTimer        m_timeout;
     QElapsedTimer m_pingTimer;
-    QString       m_host;
+    QString       m_handshakeHost;
+    QString       m_connectHost;
     quint16       m_port;
     QByteArray    m_buffer;
     State         m_state = Idle;
+    bool          m_finished = false;
     QString       m_motd;
     QByteArray    m_icon;
     int           m_currentPlayers = 0;
@@ -428,6 +458,9 @@ public:
         m_saveTimer.setSingleShot(true);
         m_saveTimer.setInterval(5000);
         connect(&m_saveTimer, &QTimer::timeout, this, &ServersModel::save_internal);
+
+        m_pingStaggerTimer.setInterval(100);
+        connect(&m_pingStaggerTimer, &QTimer::timeout, this, &ServersModel::pingNextBatch);
     }
     virtual ~ServersModel() {};
 
@@ -788,44 +821,9 @@ public:
         if (addr.isEmpty())
             return;
 
-        QString host;
-        quint16 port = 25565;
+        auto target = MinecraftServerTarget::parse(addr);
 
-        if (addr.startsWith('[')) {
-            // [IPv6]:port or [IPv6]
-            int closeBracket = addr.indexOf(']');
-            if (closeBracket != -1) {
-                host = addr.mid(1, closeBracket - 1);
-                if (addr.size() > closeBracket + 2 && addr[closeBracket + 1] == ':') {
-                    bool ok;
-                    int p = addr.mid(closeBracket + 2).toInt(&ok);
-                    if (ok && p > 0 && p <= 65535)
-                        port = static_cast<quint16>(p);
-                }
-            } else {
-                host = addr;
-            }
-        } else if (addr.count(':') > 1) {
-            // Bare IPv6 address, no port
-            host = addr;
-        } else {
-            // hostname:port or hostname
-            int colonIdx = addr.lastIndexOf(':');
-            if (colonIdx != -1) {
-                bool ok;
-                int p = addr.mid(colonIdx + 1).toInt(&ok);
-                if (ok && p > 0 && p <= 65535) {
-                    host = addr.left(colonIdx);
-                    port = static_cast<quint16>(p);
-                } else {
-                    host = addr;
-                }
-            } else {
-                host = addr;
-            }
-        }
-
-        auto* pinger = new ServerPinger(host, port, this);
+        auto* pinger = new ServerPinger(target.address, target.port, this);
         connect(pinger, &ServerPinger::done, this,
             [this, persistentIdx](bool success, int current, int max, int ping, const QString& motd, const QByteArray& icon) {
                 if (!persistentIdx.isValid())
@@ -837,8 +835,10 @@ public:
                 m_servers[r].m_maxPlayers     = max;
                 m_servers[r].m_ping           = ping;
                 m_servers[r].m_motd           = motd;
-                if (!icon.isEmpty())
+                if (!icon.isEmpty()) {
                     m_servers[r].m_icon = icon;
+                    scheduleSave();
+                }
                 emit dataChanged(index(r, 0), index(r, COLUMN_COUNT - 1));
             });
         pinger->ping();
@@ -846,8 +846,11 @@ public:
 
     void pingAll()
     {
+        m_pingQueue.clear();
         for (int i = 0; i < m_servers.size(); i++)
-            pingServer(i);
+            m_pingQueue.enqueue(QPersistentModelIndex(index(i, 0)));
+        if (!m_pingStaggerTimer.isActive())
+            pingNextBatch();
     }
 
 public slots:
@@ -954,6 +957,26 @@ private:
     QList<Server> m_servers;
     QFileSystemWatcher *m_watcher = nullptr;
     QTimer m_saveTimer;
+    QQueue<QPersistentModelIndex> m_pingQueue;
+    QTimer m_pingStaggerTimer;
+
+    static constexpr int PING_BATCH_SIZE = 3;
+
+    void pingNextBatch()
+    {
+        int launched = 0;
+        while (!m_pingQueue.isEmpty() && launched < PING_BATCH_SIZE) {
+            auto idx = m_pingQueue.dequeue();
+            if (idx.isValid()) {
+                pingServer(idx.row());
+                launched++;
+            }
+        }
+        if (m_pingQueue.isEmpty())
+            m_pingStaggerTimer.stop();
+        else if (!m_pingStaggerTimer.isActive())
+            m_pingStaggerTimer.start();
+    }
 };
 
 ServersPage::ServersPage(InstancePtr inst, QWidget* parent)
