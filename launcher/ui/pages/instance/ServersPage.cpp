@@ -58,6 +58,8 @@
 #include <QHostAddress>
 #include <QJsonParseError>
 #include <QQueue>
+#include <QImageReader>
+#include <QBuffer>
 
 static const int COLUMN_COUNT = 4; // Name, Address, Players, Ping
 
@@ -138,6 +140,7 @@ struct Server
     int m_ping = 0;
     int m_currentPlayers = 0;
     int m_maxPlayers = 0;
+    quint64 m_pingGeneration = 0;
 };
 
 static std::unique_ptr <nbt::tag_compound> parseServersDat(const QString& filename)
@@ -399,8 +402,11 @@ private:
                 if (favicon.startsWith("data:image/png;base64,")) {
                     QByteArray decoded = QByteArray::fromBase64(favicon.mid(22).toLatin1());
                     if (decoded.size() <= MAX_FAVICON_SIZE) {
-                        QPixmap px;
-                        if (px.loadFromData(decoded, "PNG") && px.width() <= 64 && px.height() <= 64)
+                        QBuffer faviconBuf(&decoded);
+                        faviconBuf.open(QIODevice::ReadOnly);
+                        QImageReader reader(&faviconBuf, "PNG");
+                        QSize dims = reader.size();
+                        if (dims.isValid() && dims.width() <= 64 && dims.height() <= 64 && reader.canRead())
                             m_icon = decoded;
                     }
                 }
@@ -812,6 +818,7 @@ public:
             return;
 
         QPersistentModelIndex persistentIdx(index(row, 0));
+        quint64 generation = ++m_servers[row].m_pingGeneration;
 
         m_servers[row].m_checked = false;
         m_servers[row].m_up      = false;
@@ -825,10 +832,12 @@ public:
 
         auto* pinger = new ServerPinger(target.address, target.port, this);
         connect(pinger, &ServerPinger::done, this,
-            [this, persistentIdx](bool success, int current, int max, int ping, const QString& motd, const QByteArray& icon) {
+            [this, persistentIdx, generation](bool success, int current, int max, int ping, const QString& motd, const QByteArray& icon) {
                 if (!persistentIdx.isValid())
                     return;
                 int r = persistentIdx.row();
+                if (m_servers[r].m_pingGeneration != generation)
+                    return;
                 m_servers[r].m_checked        = true;
                 m_servers[r].m_up             = success;
                 m_servers[r].m_currentPlayers = current;
