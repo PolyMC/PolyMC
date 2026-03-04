@@ -1,0 +1,53 @@
+name: CodeQL
+
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        type: string
+        default: Debug
+      version:
+        type: string
+
+jobs:
+  build:
+    name: "CodeQL"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Setup
+        uses: ./.github/workflows/setup
+        with:
+          os: codeql
+          arch: amd64
+          qt_ver: 6
+          version: ${{ inputs.version }}
+
+      - name: Install Dependencies
+        run: ./.ci/codeql/deps.sh
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+            config-file: ./.github/codeql/codeql-config.yml
+            queries: security-and-quality
+            languages: cpp, java
+
+      - name: Configure CMake
+        run: ./.ci/configure.sh
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4

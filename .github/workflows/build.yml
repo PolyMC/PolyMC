@@ -22,6 +22,12 @@ jobs:
       build_type: ${{ github.event.inputs.build_type || 'Debug' }}
       version: ${{ inputs.version }}
 
+  codeql:
+    uses: ./.github/workflows/codeql.yml
+    with:
+      build_type: ${{ github.event.inputs.build_type || 'Debug' }}
+      version: ${{ inputs.version }}
+
   windows:
     uses: ./.github/workflows/windows.yml
     with:
