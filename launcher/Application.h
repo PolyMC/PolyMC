@@ -186,6 +186,10 @@ public:
         return m_capabilities;
     }
 
+    const QString &chosenmango() {
+        return m_chosenmango;
+    }
+
     /*!
      * Opens a json file using either a system default editor, or, if not empty, the editor
      * specified in the settings
@@ -264,6 +268,7 @@ private:
     QMap<QString, std::shared_ptr<BaseProfilerFactory>> m_profilers;
 
     QString m_rootPath;
+    QString m_chosenmango;
     Status m_status = Application::StartingUp;
     Capabilities m_capabilities;
 
