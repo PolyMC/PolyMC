@@ -38,6 +38,7 @@
 
 #include <QMainWindow>
 #include <QString>
+#include <QTimer>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>
@@ -97,6 +98,7 @@ private slots:
     void on_actionMove_Up_triggered();
     void on_actionMove_Down_triggered();
     void on_actionJoin_triggered();
+    void on_actionRefresh_triggered();
 
     void runningStateChanged(bool running);
 
@@ -109,6 +111,7 @@ private slots:
 private: // data
     int currentServer = -1;
     bool m_locked = true;
+    QTimer m_pingDebounce;
     Ui::ServersPage *ui = nullptr;
     ServersModel * m_model = nullptr;
     InstancePtr m_inst = nullptr;
