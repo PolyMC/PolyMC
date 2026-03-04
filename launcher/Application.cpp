@@ -1601,14 +1601,28 @@ void Application::updateCapabilities()
         m_capabilities |= SupportsGameMode;
 
     {
-        void *dummy = dlopen("libMangoHud_shim.so", RTLD_LAZY);
-        // try normal variant as well
-        if (dummy == NULL)
-            dummy = dlopen("libMangoHud.so", RTLD_LAZY);
+        /*
+         * Yes, we have other DLLS such as `libMangoHud_opengl.so` and `libMangoHud.so`.
+         * However, you're supposed to use the shim.
+         *
+         * As a fallback, we'll also look for `libMangoHud_dlsym.so`.
+         */
+        static std::vector<QString> MangoHudDLLs = {
+            "libMangoHud_shim.so",
+            "libMangoHud_dlsym.so"
+        };
 
-        if (dummy != NULL) {
-            dlclose(dummy);
-            m_capabilities |= SupportsMangoHud;
+        for (auto DLL: MangoHudDLLs)
+        {
+            void *dummy = dlopen(DLL.toStdString().c_str(), RTLD_LAZY);
+            
+            if (dummy != NULL) 
+            {
+                dlclose(dummy);
+                m_capabilities |= SupportsMangoHud;
+                m_chosenmango = DLL;
+                break;
+            }
         }
     }
 #endif

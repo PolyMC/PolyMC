@@ -9,6 +9,7 @@
 , jdk21
 , xorg
 , gamemode
+, mangohud
 , mesa-demos
 , libpulseaudio
 , qtbase
@@ -78,7 +79,7 @@ symlinkJoin {
     in
     [
       "--prefix POLYMC_JAVA_PATHS : ${lib.makeSearchPath "bin/java" jdks}"
-      "--set LD_LIBRARY_PATH ${addDriverRunpath.driverLink}/lib:${lib.makeLibraryPath runtimeLibs}"
+      "--set LD_LIBRARY_PATH ${addDriverRunpath.driverLink}/lib:${lib.makeLibraryPath runtimeLibs}:${mangohud}/lib/mangohud"
       "--prefix PATH : ${lib.makeBinPath runtimeBins}"
     ];
 
