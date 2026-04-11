@@ -54,7 +54,8 @@ jobs:
             toolchain:p cmake:p extra-cmake-modules:p ninja:p 7zip:p
             qt${{ matrix.qt_ver }}-base:p qt${{ matrix.qt_ver }}-svg:p
             qt${{ matrix.qt_ver }}-imageformats:p qt${{ matrix.qt_ver }}-charts:p
-            quazip-qt${{ matrix.qt_ver }}:p ccache:p
+            ccache:p
+            ${{ matrix.qt_ver == 6 && 'quazip-qt6:p' || '' }}
             ${{ matrix.msystem != 'clangarm64' && 'nsis:m' || '' }}
             ${{ matrix.qt_ver == 6 && 'qt6-5compat:p' || '' }}
 
