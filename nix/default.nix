@@ -1,32 +1,46 @@
-{ stdenv
-, lib
-, symlinkJoin
-, addDriverRunpath
-, polymc-unwrapped
-, wrapQtAppsHook
-, jdk8
-, jdk17
-, jdk21
-, xorg
-, gamemode
-, glxinfo
-, libpulseaudio
-, qtbase
-, libGL
-, vulkan-loader
-, glfw
-, openal
-, udev
-, wayland
-, qtwayland
-, msaClientID ? ""
-, jdks ? [ jdk21 jdk17 jdk8 ]
-, enableLTO ? false
-, gamemodeSupport ? stdenv.isLinux
-, additionalLibs ? [ ]
-, additionalBins ? [ ]
-, self
-, version
+{
+  stdenv,
+  lib,
+  symlinkJoin,
+  addDriverRunpath,
+  polymc-unwrapped,
+  wrapQtAppsHook,
+  jdk8,
+  jdk17,
+  jdk21,
+  jdk25,
+  libX11,
+  libXext,
+  libXcursor,
+  libXrandr,
+  libXxf86vm,
+  xrandr,
+  gamemode,
+  mangohud,
+  mesa-demos,
+  libpulseaudio,
+  qtbase,
+  libGL,
+  vulkan-loader,
+  glfw,
+  openal,
+  udev,
+  wayland,
+  qtwayland,
+  msaClientID ? "",
+  jdks ? [
+    jdk25
+    jdk21
+    jdk17
+    jdk8
+  ],
+  enableLTO ? false,
+  gamemodeSupport ? stdenv.isLinux,
+  additionalLibs ? [ ],
+  additionalBins ? [ ],
+  self,
+  version,
+}
   # flake
 }:
 
@@ -41,7 +55,10 @@ symlinkJoin {
   paths = [ polymcInner ];
 
   nativeBuildInputs = [ wrapQtAppsHook ];
-  buildInputs = [ qtbase qtwayland ];
+  buildInputs = [
+    qtbase
+    qtwayland
+  ];
 
   postBuild = ''
     wrapQtAppsHook
@@ -49,32 +66,34 @@ symlinkJoin {
 
   qtWrapperArgs =
     let
-      runtimeLibs = (with xorg; [
+      runtimeLibs = [
         libX11
         libXext
         libXcursor
         libXrandr
         libXxf86vm
-      ]) ++
-      # lwjgl
-      [
-        libpulseaudio
-        libGL
-        glfw
-        openal
-        stdenv.cc.cc.lib
-        udev # OSHI
-        wayland
-        vulkan-loader # VulkanMod's lwjgl
       ]
+      ++
+        # lwjgl
+        [
+          libpulseaudio
+          libGL
+          glfw
+          openal
+          stdenv.cc.cc.lib
+          udev # OSHI
+          wayland
+          vulkan-loader # VulkanMod's lwjgl
+        ]
       ++ lib.optional gamemodeSupport gamemode.lib
       ++ additionalLibs;
 
       runtimeBins = [
         # Required by old LWJGL versions
-        xorg.xrandr
-        glxinfo
-      ] ++ additionalBins;
+        xrandr
+        mesa-demos # For glxinfo
+      ]
+      ++ additionalBins;
     in
     [
       "--prefix POLYMC_JAVA_PATHS : ${lib.makeSearchPath "bin/java" jdks}"
