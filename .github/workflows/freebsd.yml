@@ -24,7 +24,8 @@ jobs:
         uses: vmactions/freebsd-vm@v1
         with:
           arch: ${{ matrix.os.vm-arch }}
-          usesh: true
+          usesh: true'
+          envs: 'GITHUB_WORKSPACE'
           prepare: |
             pkg update
             pkg install -y ccache
