@@ -34,6 +34,12 @@ jobs:
       build_type: ${{ github.event.inputs.build_type || 'Debug' }}
       version: ${{ inputs.version }}
 
+  freebsd:
+    uses: ./.github/workflows/freebsd.yml
+    with:
+      build_type: ${{ github.event.inputs.build_type || 'Debug' }}
+      version: ${{ inputs.version }}
+
   macos:
     uses: ./.github/workflows/macos.yml
     with:

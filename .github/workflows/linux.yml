@@ -51,4 +51,3 @@ jobs:
         uses: ./.github/workflows/build
         with:
           build_type: ${{ inputs.build_type }}
-          run_codeql: 'true'

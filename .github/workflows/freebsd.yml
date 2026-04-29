@@ -1,0 +1,61 @@
+name: FreeBSD
+
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        type: string
+        default: Debug
+      version:
+        type: string
+
+jobs:
+  build:
+    name: "FreeBSD"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Start VM
+        uses: vmactions/freebsd-vm@v1
+        with:
+          arch: ${{ matrix.os.vm-arch }}
+          usesh: true
+          prepare: |
+            pkg update
+            pkg install -y ccache
+            ccache --set-config=cache_dir="$GITHUB_WORKSPACE/.ccache"
+            ccache --set-config=max_size='500M'
+            ccache --set-config=compression=true
+
+      - name: Setup
+        uses: ./.github/workflows/setup
+        with:
+          os: freebsd
+          arch: amd64
+          qt_ver: 6
+          version: ${{ inputs.version }}
+          shell: "freebsd {0}"
+
+      - name: Install dependencies
+        shell: freebsd {0}
+        run: |
+          cd "${{ github.workspace }}"
+          ./.ci/freebsd/deps.sh
+
+      - name: Configure CMake
+        shell: freebsd {0}
+        run: ./.ci/configure.sh
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+
+      - name: Build
+        shell: freebsd {0}
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure

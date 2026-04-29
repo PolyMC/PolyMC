@@ -1,8 +1,6 @@
 name: 'Build and Package'
 description: 'build and package PolyMC'
 inputs:
-  run_codeql:
-    default: 'false'
   sparkle_key:
     required: false
   shell:

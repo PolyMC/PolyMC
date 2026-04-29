@@ -9,6 +9,8 @@ inputs:
     required: true
   version:
     required: false
+  shell:
+    default: bash
 
 runs:
   using: "composite"
@@ -20,7 +22,7 @@ runs:
         install: binary
 
     - name: Setup Variables
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         git config --global --add safe.directory "$PWD"
 
