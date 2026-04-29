@@ -3,7 +3,7 @@
 pkg update
 pkg install -y \
     ninja \
-    extra-cmake-modules \
+    kf6-extra-cmake-modules \
     scdoc \
     qt6-base \
     qt6-charts \
