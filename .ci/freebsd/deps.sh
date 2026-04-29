@@ -9,4 +9,5 @@ pkg install -y \
     qt6-charts \
     qt6-5compat \
     qt6-imageformats \
-	cmake
+	cmake \
+	openjdk8
