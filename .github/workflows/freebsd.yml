@@ -28,8 +28,8 @@ jobs:
           envs: 'GITHUB_WORKSPACE'
           prepare: |
             pkg update
-            pkg install -y ccache
-            ccache --set-config=cache_dir="$GITHUB_WORKSPACE/.ccache"
+            pkg install -y ccache git
+            ccache --set-config=cache_dir="${{ github.workspace }}/.ccache"
             ccache --set-config=max_size='500M'
             ccache --set-config=compression=true
 
