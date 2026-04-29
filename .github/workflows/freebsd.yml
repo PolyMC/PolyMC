@@ -49,13 +49,20 @@ jobs:
 
       - name: Configure CMake
         shell: freebsd {0}
-        run: ./.ci/configure.sh
+        run: |
+            cd "${{ github.workspace }}"
+            ./.ci/configure.sh
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
 
       - name: Build
         shell: freebsd {0}
-        run: cmake --build build
+        run: |
+            cd "${{ github.workspace }}"
+            cmake --build build
 
       - name: Test
-        run: ctest --test-dir build --output-on-failure
+        shell: freebsd {0}
+        run: |
+            cd "${{ github.workspace }}"
+            ctest --test-dir build --output-on-failure
