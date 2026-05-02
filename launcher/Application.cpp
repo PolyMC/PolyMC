@@ -80,6 +80,7 @@
 #include <QAccessible>
 #include <QCommandLineParser>
 #include <QDir>
+#include <QFileOpenEvent>
 #include <QFileInfo>
 #include <QNetworkAccessManager>
 #include <QTranslator>
@@ -262,8 +263,10 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         {{"s", "server"}, "Join the specified server on launch (only valid in combination with --launch)", "address"},
         {{"a", "profile"}, "Use the account specified by its profile name (only valid in combination with --launch)", "profile"},
         {"alive", "Write a small '" + liveCheckFile + "' file after the launcher starts"},
-        {{"I", "import"}, "Import instance from specified zip (local path or URL)", "file"}
+        {{"I", "import"}, "Import instance from specified zip (local path or URL)", "url"}
     });
+    // Has to be positional for some OSes to hand URL protocol invocations to the app properly.
+    parser.addPositionalArgument("URL", "Import the instance at the given URL (same as -I / --import)", "[URL...]");
     parser.addHelpOption();
     parser.addVersionOption();
 
@@ -273,7 +276,14 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
     m_serverToJoin = parser.value("server");
     m_profileToUse = parser.value("profile");
     m_liveCheck = parser.isSet("alive");
-    m_zipToImport = parser.value("import");
+
+    for (auto url : parser.values("import")) {
+        m_urlsToImport.append(normalizeImportUrl(url));
+    }
+
+    for (auto url : parser.positionalArguments()) {
+        m_urlsToImport.append(normalizeImportUrl(url));
+    }
 
     // error if --launch is missing with --server or --profile
     if((!m_serverToJoin.isEmpty() || !m_profileToUse.isEmpty()) && m_instanceIdToLaunch.isEmpty())
@@ -386,12 +396,14 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
                 activate.command = "activate";
                 m_peerInstance->sendMessage(activate.serialize(), timeout);
 
-                if(!m_zipToImport.isEmpty())
+                if(!m_urlsToImport.isEmpty())
                 {
-                    ApplicationMessage import;
-                    import.command = "import";
-                    import.args.insert("path", m_zipToImport.toString());
-                    m_peerInstance->sendMessage(import.serialize(), timeout);
+                    for (auto url : m_urlsToImport) {
+                        ApplicationMessage import;
+                        import.command = "import";
+                        import.args.insert("url", url.toString());
+                        m_peerInstance->sendMessage(import.serialize(), timeout);
+                    }
                 }
             }
             else
@@ -965,6 +977,15 @@ bool Application::event(QEvent* event) {
         m_prevAppState = ev->applicationState();
     }
 #endif
+
+    if (event->type() == QEvent::FileOpen) {
+        if (!m_mainWindow) {
+            showMainWindow(false);
+        }
+        auto ev = static_cast<QFileOpenEvent*>(event);
+        m_mainWindow->droppedURLs({ ev->url() });
+    }
+
     return QApplication::event(event);
 }
 
@@ -1039,10 +1060,10 @@ void Application::performMainStartupAction()
         showMainWindow(false);
         qDebug() << "<> Main window shown.";
     }
-    if(!m_zipToImport.isEmpty())
+    if(!m_urlsToImport.isEmpty())
     {
-        qDebug() << "<> Importing instance from zip:" << m_zipToImport;
-        m_mainWindow->droppedURLs({ m_zipToImport });
+        qDebug() << "<> Importing instance from URL:" << m_urlsToImport;
+        m_mainWindow->droppedURLs(m_urlsToImport);
     }
 }
 
@@ -1051,6 +1072,15 @@ void Application::showFatalErrorMessage(const QString& title, const QString& con
     m_status = Application::Failed;
     auto dialog = CustomMessageBox::selectable(nullptr, title, content, QMessageBox::Critical);
     dialog->exec();
+}
+
+QUrl Application::normalizeImportUrl(const QString& url)
+{
+    auto local_file = QFileInfo(url);
+    if (local_file.exists()) {
+        return QUrl::fromLocalFile(local_file.absoluteFilePath());
+    }
+    return QUrl::fromUserInput(url);
 }
 
 Application::~Application()
@@ -1089,13 +1119,16 @@ void Application::messageReceived(const QByteArray& message)
     }
     else if(command == "import")
     {
-        QString path = received.args["path"];
-        if(path.isEmpty())
+        QString url = received.args["url"];
+        if(url.isEmpty())
         {
             qWarning() << "Received" << command << "message without a zip path/URL.";
             return;
         }
-        m_mainWindow->droppedURLs({ QUrl(path) });
+        if (!m_mainWindow) {
+            showMainWindow(false);
+        }
+        m_mainWindow->droppedURLs({ normalizeImportUrl(url) });
     }
     else if(command == "launch")
     {

@@ -203,6 +203,7 @@ public:
     bool updatesAreAllowed();
 
     void ShowGlobalSettings(class QWidget * parent, QString open_page = QString());
+    QUrl normalizeImportUrl(const QString& url);
 
 signals:
     void updateAllowedChanged(bool status);
@@ -305,7 +306,7 @@ public:
     QString m_serverToJoin;
     QString m_profileToUse;
     bool m_liveCheck = false;
-    QUrl m_zipToImport;
+    QList<QUrl> m_urlsToImport;
     std::unique_ptr<QFile> logFile;
 };
 

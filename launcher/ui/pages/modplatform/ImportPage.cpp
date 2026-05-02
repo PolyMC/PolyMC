@@ -38,9 +38,18 @@
 #include "ui_ImportPage.h"
 
 #include <QFileDialog>
+#include <QMessageBox>
+#include <QMimeDatabase>
+#include <QUrlQuery>
 #include <QValidator>
 
+#include "Json.h"
+#include "BuildConfig.h"
+#include "modplatform/flame/FlameAPI.h"
+#include "modplatform/flame/FlameModIndex.h"
+#include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/NewInstanceDialog.h"
+#include "ui/dialogs/ProgressDialog.h"
 
 #include "InstanceImportTask.h"
 
@@ -106,6 +115,11 @@ void ImportPage::updateState()
     {
         QString input = ui->modpackEdit->text();
         auto url = QUrl::fromUserInput(input);
+        url = resolveUrl(url);
+        if (!url.isValid() || url.isEmpty()) {
+            dialog->setSuggestedPack();
+            return;
+        }
         if(url.isLocalFile())
         {
             // FIXME: actually do some validation of what's inside here... this is fake AF
@@ -129,6 +143,11 @@ void ImportPage::updateState()
                 input.chop(9);
                 input.append("/file");
                 url = QUrl::fromUserInput(input);
+                url = resolveUrl(url);
+                if (!url.isValid() || url.isEmpty()) {
+                    dialog->setSuggestedPack();
+                    return;
+                }
             }
             // hook, line and sinker.
             QFileInfo fi(url.fileName());
@@ -140,6 +159,82 @@ void ImportPage::updateState()
     {
         dialog->setSuggestedPack();
     }
+}
+
+QUrl ImportPage::resolveUrl(const QUrl& url)
+{
+    if (url.scheme() != "curseforge" && !(url.scheme() == BuildConfig.LAUNCHER_APP_BINARY_NAME && url.host() == "install")) {
+        return url;
+    }
+
+    if (url == m_lastResolvedUrl) {
+        return m_lastResolvedDownloadUrl;
+    }
+
+    QUrlQuery query(url);
+    if (url.scheme() == BuildConfig.LAUNCHER_APP_BINARY_NAME && query.queryItemValue("platform").toLower() != "curseforge") {
+        CustomMessageBox::selectable(this, tr("Error"), tr("Invalid mod distribution platform."), QMessageBox::Critical)->show();
+        return {};
+    }
+
+    auto fileIds = query.allQueryItemValues("fileId");
+    if (query.allQueryItemValues("addonId").isEmpty() || fileIds.isEmpty()) {
+        CustomMessageBox::selectable(this, tr("Error"), tr("Invalid CurseForge import link."), QMessageBox::Critical)->show();
+        return {};
+    }
+
+    QByteArray* response = new QByteArray();
+    auto job = FlameAPI().getFiles({ fileIds.first() }, response);
+    QUrl downloadUrl;
+    QString fileName;
+    QString parseError;
+    bool fetchSucceeded = false;
+
+    connect(job, &Task::failed, this,
+            [this](QString reason) { CustomMessageBox::selectable(this, tr("Error"), reason, QMessageBox::Critical)->show(); });
+    connect(job, &Task::succeeded, this, [this, response, &downloadUrl, &fileName, &parseError, &fetchSucceeded] {
+        try {
+            auto doc = Json::requireDocument(*response);
+            auto data = doc.object()["data"].toArray();
+            if (data.isEmpty()) {
+                parseError = tr("CurseForge did not return a file for this import link.");
+                return;
+            }
+            auto fileObj = data.first().toObject();
+            auto version = FlameMod::loadIndexedPackVersion(fileObj);
+            downloadUrl = QUrl(version.downloadUrl);
+            fileName = version.fileName;
+            fetchSucceeded = true;
+        } catch (Exception& e) {
+            parseError = e.cause();
+        }
+    });
+
+    {
+        ProgressDialog dialog(this);
+        dialog.setSkipButton(true, tr("Abort"));
+        dialog.execWithTask(job);
+    }
+
+    if (!fetchSucceeded) {
+        if (!parseError.isEmpty()) {
+            CustomMessageBox::selectable(this, tr("Error"), parseError, QMessageBox::Critical)->show();
+        }
+        return {};
+    }
+
+    if (!downloadUrl.isValid() || downloadUrl.isEmpty()) {
+        CustomMessageBox::selectable(
+            this, tr("Error"),
+            tr("The modpack %1 is blocked for third-party launchers. Please download it manually.").arg(fileName),
+            QMessageBox::Critical)
+            ->show();
+        return {};
+    }
+
+    m_lastResolvedUrl = url;
+    m_lastResolvedDownloadUrl = downloadUrl;
+    return downloadUrl;
 }
 
 void ImportPage::setUrl(const QString& url)

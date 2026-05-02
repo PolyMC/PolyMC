@@ -45,6 +45,7 @@
 
 #include <QVariant>
 #include <QUrl>
+#include <QUrlQuery>
 #include <QDir>
 #include <QFileInfo>
 
@@ -82,6 +83,9 @@
 #include <net/NetJob.h>
 #include <net/Download.h>
 #include <news/NewsChecker.h>
+#include <Json.h>
+#include <modplatform/flame/FlameAPI.h>
+#include <modplatform/flame/FlameModIndex.h>
 #include <tools/BaseProfiler.h>
 #include <updater/DownloadTask.h>
 #include <updater/UpdateChecker.h>
@@ -1798,6 +1802,76 @@ void MainWindow::droppedURLs(QList<QUrl> urls)
 {
     for(auto & url:urls)
     {
+        if (url.scheme().isEmpty()) {
+            url.setScheme("file");
+        }
+
+        if (url.scheme() == "curseforge" || (url.scheme() == BuildConfig.LAUNCHER_APP_BINARY_NAME && url.host() == "install")) {
+            // Resolve curseforge://install?addonId=...&fileId=... to the actual modpack download URL.
+            QUrlQuery query(url);
+            if (url.scheme() == BuildConfig.LAUNCHER_APP_BINARY_NAME && query.queryItemValue("platform").toLower() != "curseforge") {
+                CustomMessageBox::selectable(this, tr("Error"), tr("Invalid mod distribution platform."), QMessageBox::Critical)->show();
+                continue;
+            }
+
+            auto addonIds = query.allQueryItemValues("addonId");
+            auto fileIds = query.allQueryItemValues("fileId");
+            if (addonIds.isEmpty() || fileIds.isEmpty()) {
+                CustomMessageBox::selectable(this, tr("Error"), tr("Invalid CurseForge import link."), QMessageBox::Critical)->show();
+                continue;
+            }
+
+            QByteArray* response = new QByteArray();
+            auto job = FlameAPI().getFiles({ fileIds.first() }, response);
+            QUrl downloadUrl;
+            QString fileName;
+            QString parseError;
+            bool fetchSucceeded = false;
+
+            connect(job, &Task::failed, this,
+                    [this](QString reason) { CustomMessageBox::selectable(this, tr("Error"), reason, QMessageBox::Critical)->show(); });
+            connect(job, &Task::succeeded, this, [response, &downloadUrl, &fileName, &parseError, &fetchSucceeded] {
+                try {
+                    auto doc = Json::requireDocument(*response);
+                    auto data = doc.object()["data"].toArray();
+                    if (data.isEmpty()) {
+                        parseError = tr("CurseForge did not return a file for this import link.");
+                        return;
+                    }
+                    auto fileObj = data.first().toObject();
+                    auto version = FlameMod::loadIndexedPackVersion(fileObj);
+                    downloadUrl = QUrl(version.downloadUrl);
+                    fileName = version.fileName;
+                    fetchSucceeded = true;
+                } catch (Exception& e) {
+                    parseError = e.cause();
+                }
+            });
+
+            {
+                ProgressDialog dialog(this);
+                dialog.setSkipButton(true, tr("Abort"));
+                dialog.execWithTask(job);
+            }
+
+            if (!fetchSucceeded) {
+                if (!parseError.isEmpty()) {
+                    CustomMessageBox::selectable(this, tr("Error"), parseError, QMessageBox::Critical)->show();
+                }
+                continue;
+            }
+
+            if (!downloadUrl.isValid() || downloadUrl.isEmpty()) {
+                CustomMessageBox::selectable(
+                    this, tr("Error"),
+                    tr("The modpack %1 is blocked for third-party launchers. Please download it manually.").arg(fileName),
+                    QMessageBox::Critical)
+                    ->show();
+                continue;
+            }
+            url = downloadUrl;
+        }
+
         if(url.isLocalFile())
         {
             addInstance(url.toLocalFile());

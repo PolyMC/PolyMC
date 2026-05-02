@@ -82,10 +82,13 @@ private slots:
     void updateState();
 
 private:
+    QUrl resolveUrl(const QUrl& url);
     QUrl modpackUrl() const;
 
 private:
     Ui::ImportPage *ui = nullptr;
     NewInstanceDialog* dialog = nullptr;
+    QUrl m_lastResolvedUrl;
+    QUrl m_lastResolvedDownloadUrl;
 };
 
