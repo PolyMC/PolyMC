@@ -15,6 +15,7 @@ OfflineLoginDialog::OfflineLoginDialog(QWidget *parent) : QDialog(parent), ui(ne
     ui->setupUi(this);
     ui->progressBar->setVisible(false);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    ui->userTextBox->setFocus();
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
