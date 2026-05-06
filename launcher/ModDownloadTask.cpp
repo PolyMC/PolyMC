@@ -22,9 +22,20 @@
 #include "Application.h"
 #include "minecraft/mod/ModFolderModel.h"
 
-ModDownloadTask::ModDownloadTask(ModPlatform::IndexedPack mod, ModPlatform::IndexedVersion version, const std::shared_ptr<ResourceFolderModel> mods, bool is_indexed)
-    : m_mod(mod), m_mod_version(version), mods(mods)
-{
+
+ModDownloadTask::ModDownloadTask(ModPlatform::IndexedPack mod, ModPlatform::IndexedVersion version,
+                                 const std::shared_ptr<ResourceFolderModel> mods, bool is_indexed)
+    : m_mod(mod), m_mod_version(version), mods(mods) {
+    init(is_indexed);
+}
+
+ModDownloadTask::ModDownloadTask(ModPlatform::IndexedPack mod, ModPlatform::IndexedVersion version,
+                                 const std::shared_ptr<ModFolderModel> mods, bool is_indexed)
+    : m_mod(mod), m_mod_version(version), mods(std::dynamic_pointer_cast<ResourceFolderModel>(mods)) {
+    init(is_indexed);
+}
+
+void ModDownloadTask::init(bool is_indexed) {
     // Only do metadata indexing for actual mods (ModFolderModel has indexDir())
     auto modFolderModel = std::dynamic_pointer_cast<ModFolderModel>(mods);
     if (is_indexed && modFolderModel) {
@@ -36,7 +47,7 @@ ModDownloadTask::ModDownloadTask(ModPlatform::IndexedPack mod, ModPlatform::Inde
 
     m_filesNetJob.reset(new NetJob(tr("Mod download"), APPLICATION->network()));
     m_filesNetJob->setStatus(tr("Downloading mod:\n%1").arg(m_mod_version.downloadUrl));
-    
+
     m_filesNetJob->addNetAction(Net::Download::makeFile(m_mod_version.downloadUrl, mods->dir().absoluteFilePath(getFilename())));
     connect(m_filesNetJob.get(), &NetJob::succeeded, this, &ModDownloadTask::downloadSucceeded);
     connect(m_filesNetJob.get(), &NetJob::progress, this, &ModDownloadTask::downloadProgressChanged);
