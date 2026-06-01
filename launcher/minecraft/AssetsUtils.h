@@ -44,6 +44,9 @@ struct AssetsIndex
 /// FIXME: this is absolutely horrendous. REDO!!!!
 namespace AssetsUtils
 {
+/// Returns whether a host name or address belongs to the local machine or a local network.
+bool isLocalMetadataHost(const QString &host);
+
 bool loadAssetsIndexJson(const QString &id, const QString &file, AssetsIndex& index);
 
 QDir getAssetsDir(const QString &assetsId, const QString &resourcesFolder);

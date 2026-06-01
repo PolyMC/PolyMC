@@ -42,11 +42,14 @@
 #include <QJsonObject>
 #include <QVariant>
 #include <QDebug>
+#include <QHostAddress>
+#include <QUrl>
 
 #include "AssetsUtils.h"
 #include "FileSystem.h"
 #include "net/Download.h"
 #include "net/ChecksumValidator.h"
+#include "settings/SettingsObject.h"
 #include "BuildConfig.h"
 
 #include "Application.h"
@@ -76,11 +79,71 @@ QSet<QString> collectPathsFromDir(QString dirPath)
     }
     return out;
 }
+
+QUrl assetResourceBaseUrl()
+{
+    QUrl baseUrl(BuildConfig.RESOURCE_BASE);
+    const QUrl metaOverride(APPLICATION->settings()->get("MetaURLOverride").toString());
+    if (!metaOverride.isEmpty() && AssetsUtils::isLocalMetadataHost(metaOverride.host()))
+    {
+        baseUrl = metaOverride;
+        baseUrl.setPath("/resources/");
+        baseUrl.setQuery(QString());
+        baseUrl.setFragment(QString());
+    }
+    return baseUrl;
+}
 }
 
 
 namespace AssetsUtils
 {
+
+bool isLocalMetadataHost(const QString &host)
+{
+    auto normalizedHost = host.trimmed().toLower();
+    if (normalizedHost.endsWith('.'))
+    {
+        normalizedHost.chop(1);
+    }
+
+    if (normalizedHost == "localhost"
+        || normalizedHost.endsWith(".localhost")
+        || normalizedHost == "localhost.localdomain")
+    {
+        return true;
+    }
+
+    QHostAddress address;
+    if (!address.setAddress(normalizedHost))
+    {
+        return false;
+    }
+
+    if (address.isLoopback() || address == QHostAddress::AnyIPv4 || address == QHostAddress::AnyIPv6)
+    {
+        return true;
+    }
+
+    const QPair<QHostAddress, int> localSubnets[] = {
+        { QHostAddress("10.0.0.0"), 8 },
+        { QHostAddress("169.254.0.0"), 16 },
+        { QHostAddress("172.16.0.0"), 12 },
+        { QHostAddress("192.168.0.0"), 16 },
+        { QHostAddress("fc00::"), 7 },
+        { QHostAddress("fe80::"), 10 },
+    };
+
+    for (const auto &subnet : localSubnets)
+    {
+        if (address.isInSubnet(subnet.first, subnet.second))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /*
  * Returns true on success, with index populated
@@ -330,7 +393,7 @@ QString AssetObject::getLocalPath()
 
 QUrl AssetObject::getUrl()
 {
-    return BuildConfig.RESOURCE_BASE + getRelPath();
+    return assetResourceBaseUrl().resolved(QUrl(getRelPath()));
 }
 
 QString AssetObject::getRelPath()
