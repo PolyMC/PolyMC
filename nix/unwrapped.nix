@@ -9,7 +9,7 @@
 , file
 , qtbase
 , quazip
-, extra-cmake-modules
+, kdePackages
 , qtcharts
 , qtwayland
   # flake
