@@ -15,6 +15,7 @@ pacman -Syu --noconfirm --overwrite "*" \
 	git \
 	jdk8-openjdk \
 	ninja \
+	patchelf \
 	qt6-tools \
 	qt6-charts \
 	qt6-5compat \
