@@ -42,7 +42,7 @@ run/
 .cache/
 
 # Nix/NixOS
-result/
+result*
 
 # Flatpak
 .flatpak-builder
