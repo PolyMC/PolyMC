@@ -19,25 +19,25 @@ jobs:
   linux:
     uses: ./.github/workflows/linux.yml
     with:
-      build_type: ${{ github.event.inputs.build_type || 'Debug' }}
+      build_type: ${{ inputs.build_type || 'Debug' }}
       version: ${{ inputs.version }}
 
   codeql:
     uses: ./.github/workflows/codeql.yml
     with:
-      build_type: ${{ github.event.inputs.build_type || 'Debug' }}
+      build_type: ${{ inputs.build_type || 'Debug' }}
       version: ${{ inputs.version }}
 
   windows:
     uses: ./.github/workflows/windows.yml
     with:
-      build_type: ${{ github.event.inputs.build_type || 'Debug' }}
+      build_type: ${{ inputs.build_type || 'Debug' }}
       version: ${{ inputs.version }}
 
   macos:
     uses: ./.github/workflows/macos.yml
     with:
-      build_type: ${{ github.event.inputs.build_type || 'Debug' }}
+      build_type: ${{ inputs.build_type || 'Debug' }}
       version: ${{ inputs.version }}
     secrets:
       SPARKLE_ED25519_KEY: ${{ secrets.SPARKLE_ED25519_KEY }}
