@@ -14,6 +14,7 @@ mkzip() {
 	_prev="$PWD"
 
 	# add additional identifier for portable, and legacy
+	_id=""
 	if [ "${LEGACY_BUILD:-false}" = 'true' ]; then
 		_id="-Legacy"
 	fi
@@ -47,8 +48,10 @@ PORTABLE=1 mkzip "$INSTALL_PORTABLE"
 cd "$INSTALL"
 makensis -NOCD "$BUILD/program_info/win_install.nsi"
 
-if [ "${LEGACY_BUILD:-false}" != 'true' ]; then
+if [ "${LEGACY_BUILD:-false}" = 'true' ]; then
 	_id="-Legacy"
+else
+	_id=""
 fi
 
 cp "$ROOTDIR"/*.exe "$ARTIFACTS_DIR/PolyMC-Windows-Setup${_id}-${ARCH}-${VERSION}.exe"

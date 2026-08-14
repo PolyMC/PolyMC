@@ -118,7 +118,7 @@ void Download::executeTask()
     }
 
     if (APPLICATION->capabilities() & Application::SupportsFlame
-            && request.url().host().contains("api.curseforge.com")) {
+            && (request.url().host().contains("api.curseforge.com") || request.url().host().contains("edge.forgecdn.net"))) {
         request.setRawHeader("x-api-key", APPLICATION->getFlameAPIKey().toUtf8());
     }
     else {
