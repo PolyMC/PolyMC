@@ -395,7 +395,7 @@
        <item>
         <widget class="QCheckBox" name="showCatButtonCheckBox">
          <property name="text">
-          <string>Show cat button</string>
+          <string>Show Cat Button</string>
          </property>
         </widget>
        </item>
