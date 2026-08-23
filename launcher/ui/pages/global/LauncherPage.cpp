@@ -327,6 +327,8 @@ void LauncherPage::applySettings()
       s->set("CatPosition", ui->themeComboBoxCatPosition->currentData());
     }
 
+    s->set("ShowCatButton", ui->showCatButtonCheckBox->isChecked());
+
     if(original != s->get("IconTheme"))
     {
         APPLICATION->setIconTheme(s->get("IconTheme").toString());
@@ -471,6 +473,8 @@ void LauncherPage::loadSettings()
           ui->themeComboBoxCatPosition->setCurrentIndex(3);
         else
           ui->themeComboBoxCatPosition->setCurrentIndex(1);
+
+        ui->showCatButtonCheckBox->setChecked(s->get("ShowCatButton").toBool());
     }
 
     // Toolbar/menu bar settings (not applicable if native menu bar is present)
