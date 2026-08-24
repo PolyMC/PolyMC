@@ -3,12 +3,13 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs2511.url = ""github:nixos/nixpkgs/nixpkgs-26.11";
     flake-compat = { url = "github:edolstra/flake-compat"; flake = false; };
     libnbtplusplus = { url = "github:PolyMC/libnbtplusplus"; flake = false; };
     tomlplusplus = { url = "github:marzer/tomlplusplus"; flake = false; };
   };
 
-  outputs = { self, nixpkgs, libnbtplusplus, tomlplusplus, ... }:
+  outputs = { self, nixpkgs, nixpkgs2511, libnbtplusplus, tomlplusplus, ... }:
     let
       # User-friendly version number.
       version = builtins.substring 0 8 self.lastModifiedDate;
@@ -21,12 +22,13 @@
 
       # Nixpkgs instantiated for supported systems.
       pkgs = forAllSystems (system: nixpkgs.legacyPackages.${system});
+      pkgsold = forAllSystems (system: nixpkgs2511.legacyPackages.${system});
 
       packagesFn = pkgs: rec {
         polymc-unwrapped = pkgs.qt6Packages.callPackage ./nix/unwrapped.nix { inherit version self libnbtplusplus tomlplusplus; };
-        #polymc-qt5-unwrapped = pkgs.libsForQt5.callPackage ./nix/unwrapped.nix { inherit version self libnbtplusplus tomlplusplus; };
+        polymc-qt5-unwrapped = pkgsold.libsForQt5.callPackage ./nix/unwrapped.nix { inherit version self libnbtplusplus tomlplusplus; };
         polymc = pkgs.qt6Packages.callPackage ./nix { inherit version self polymc-unwrapped; };
-        #polymc-qt5 = pkgs.libsForQt5.callPackage ./nix { inherit version self; polymc-unwrapped = polymc-qt5-unwrapped; };
+        polymc-qt5 = pkgsold.libsForQt5.callPackage ./nix { inherit version self; polymc-unwrapped = polymc-qt5-unwrapped; };
         default = polymc;
       };
     in
