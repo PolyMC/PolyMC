@@ -109,7 +109,8 @@ bool isLocalMetadataHost(const QString &host)
 
     if (normalizedHost == "localhost"
         || normalizedHost.endsWith(".localhost")
-        || normalizedHost == "localhost.localdomain")
+        || normalizedHost == "localhost.localdomain"
+        || normalizedHost.endsWith(".local"))
     {
         return true;
     }
