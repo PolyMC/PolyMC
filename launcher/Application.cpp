@@ -620,6 +620,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
 
         // The cat
         m_settings->registerSetting("TheCat", false);
+        m_settings->registerSetting("ShowCatButton", true);
         m_settings->registerSetting("CatStyle", "BackgroundCat");
         m_settings->registerSetting("CatPosition", "top right");
 

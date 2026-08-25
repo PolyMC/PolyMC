@@ -430,6 +430,7 @@ class MainWindow::Ui
         actionCAT.setTextId(QT_TRANSLATE_NOOP("MainWindow", "&Meow"));
         actionCAT.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "It's a fluffy kitty :3"));
         actionCAT->setPriority(QAction::LowPriority);
+        actionCAT->setVisible(APPLICATION->settings()->get("ShowCatButton").toBool());
         all_actions.append(&actionCAT);
 
                 // profile menu and its actions
@@ -2003,6 +2004,7 @@ void MainWindow::globalSettingsClosed()
     updateToolsMenu();
     updateStatusCenter();
     updateCat();
+    ui->actionCAT->setVisible(APPLICATION->settings()->get("ShowCatButton").toBool());
     // This needs to be done to prevent UI elements disappearing in the event the config is changed
     // but PolyMC exits abnormally, causing the window state to never be saved:
     APPLICATION->settings()->set("MainWindowState", saveState().toBase64());
