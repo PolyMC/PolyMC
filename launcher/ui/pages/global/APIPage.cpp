@@ -47,6 +47,7 @@
 #include "settings/SettingsObject.h"
 #include "tools/BaseProfiler.h"
 #include "Application.h"
+#include "minecraft/AssetsUtils.h"
 #include "net/PasteUpload.h"
 #include "BuildConfig.h"
 
@@ -173,8 +174,11 @@ void APIPage::applySettings()
         path.append('/');
         metaURL.setPath(path);
     }
-    // Don't allow HTTP, since meta is basically RCE with all the jar files.
-    if(!metaURL.isEmpty() && metaURL.scheme() == "http")
+    // Don't allow HTTP for remote metadata, since meta is basically RCE with all the jar files.
+    // Local HTTP is useful for development and offline metadata mirrors.
+    if(!metaURL.isEmpty()
+        && metaURL.scheme() == "http"
+        && !AssetsUtils::isLocalMetadataHost(metaURL.host()))
     {
         metaURL.setScheme("https");
     }
