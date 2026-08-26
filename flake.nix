@@ -24,9 +24,9 @@
 
       packagesFn = pkgs: rec {
         polymc-unwrapped = pkgs.qt6Packages.callPackage ./nix/unwrapped.nix { inherit version self libnbtplusplus tomlplusplus; };
-        polymc-qt5-unwrapped = pkgs.libsForQt5.callPackage ./nix/unwrapped.nix { inherit version self libnbtplusplus tomlplusplus; };
+        #polymc-qt5-unwrapped = pkgs.libsForQt5.callPackage ./nix/unwrapped.nix { inherit version self libnbtplusplus tomlplusplus; };
         polymc = pkgs.qt6Packages.callPackage ./nix { inherit version self polymc-unwrapped; };
-        polymc-qt5 = pkgs.libsForQt5.callPackage ./nix { inherit version self; polymc-unwrapped = polymc-qt5-unwrapped; };
+        #polymc-qt5 = pkgs.libsForQt5.callPackage ./nix { inherit version self; polymc-unwrapped = polymc-qt5-unwrapped; };
         default = polymc;
       };
     in

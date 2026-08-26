@@ -9,7 +9,7 @@
 , file
 , qtbase
 , quazip
-, extra-cmake-modules
+, kdePackages
 , qtcharts
 , qtwayland
   # flake
@@ -28,7 +28,7 @@ stdenv.mkDerivation {
 
   src = lib.cleanSource self;
 
-  nativeBuildInputs = [ cmake extra-cmake-modules ninja jdk8 ghc_filesystem file ];
+  nativeBuildInputs = [ cmake kdePackages.extra-cmake-modules ninja jdk8 ghc_filesystem file ];
   buildInputs = [ qtbase quazip zlib qtcharts ]
     ++ lib.optional (lib.versionAtLeast qtbase.version "6") qtwayland
     ++ lib.optional gamemodeSupport gamemode;
