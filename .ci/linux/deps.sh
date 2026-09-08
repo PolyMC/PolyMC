@@ -20,6 +20,7 @@ pacman -Syu --noconfirm --overwrite "*" \
 	qt6-charts \
 	qt6-5compat \
 	qt6-imageformats \
+	qt6-svg \
 	scdoc \
 	strace \
 	unzip \
