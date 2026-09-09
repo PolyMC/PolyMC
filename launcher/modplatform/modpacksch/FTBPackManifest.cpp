@@ -130,6 +130,14 @@ void ModpacksCH::loadModpack(ModpacksCH::Modpack & m, QJsonObject & obj)
     m.updated = Json::requireInteger(obj, "updated");
 }
 
+static int readCurseForgeInteger(QJsonObject & obj, const QString & key)
+{
+    const auto value = obj.value(key);
+    if (value.isString())
+        return value.toString().toInt();
+    return Json::ensureInteger(obj, key);
+}
+
 static void loadVersionTarget(ModpacksCH::VersionTarget & a, QJsonObject & obj)
 {
     a.id = Json::requireInteger(obj, "id");
@@ -154,8 +162,8 @@ static void loadVersionFile(ModpacksCH::VersionFile & a, QJsonObject & obj)
     a.optional = Json::requireBoolean(obj, "optional");
     a.updated = Json::requireInteger(obj, "updated");
     auto curseforgeObj = Json::ensureObject(obj, "curseforge");  // optional
-    a.curseforge.project_id = Json::ensureInteger(curseforgeObj, "project");
-    a.curseforge.file_id = Json::ensureInteger(curseforgeObj, "file");
+    a.curseforge.project_id = readCurseForgeInteger(curseforgeObj, "project");
+    a.curseforge.file_id = readCurseForgeInteger(curseforgeObj, "file");
 }
 
 void ModpacksCH::loadVersion(ModpacksCH::Version & m, QJsonObject & obj)

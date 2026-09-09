@@ -255,7 +255,7 @@ QVector<T> ensureIsArrayOf(const QJsonObject &parent, const QString &key,
     { \
         return requireIsType<TYPE>(parent, key, what); \
     } \
-    inline TYPE ensure##NAME(const QJsonObject &parent, const QString &key, const TYPE default_ = TYPE(), const QString &what = "__placeholder") \
+    inline TYPE ensure##NAME(const QJsonObject &parent, const QString &key, const TYPE default_ = TYPE(), const QString &what = "__placeholder__") \
     { \
         return ensureIsType<TYPE>(parent, key, default_, what); \
     }

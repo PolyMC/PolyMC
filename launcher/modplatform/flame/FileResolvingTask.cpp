@@ -18,6 +18,12 @@ void Flame::FileResolvingTask::executeTask()
 {
     setStatus(tr("Resolving mod IDs..."));
     setProgress(0, 3);
+
+    if (m_toProcess.files.isEmpty()) {
+        emitSucceeded();
+        return;
+    }
+
     m_dljob = new NetJob("Mod id resolver", m_network);
     result.reset(new QByteArray());
     //build json data to send
