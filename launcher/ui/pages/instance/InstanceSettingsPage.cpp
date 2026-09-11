@@ -49,7 +49,6 @@
 #include "JavaCommon.h"
 #include "Application.h"
 
-#include "java/JavaInstallList.h"
 #include "java/JavaUtils.h"
 #include "FileSystem.h"
 
@@ -72,6 +71,18 @@ InstanceSettingsPage::InstanceSettingsPage(BaseInstance *inst, QWidget *parent)
     connect(ui->openGlobalJavaSettingsButton, &QCommandLinkButton::clicked, this, &InstanceSettingsPage::globalSettingsButtonClicked);
     connect(APPLICATION, &Application::globalSettingsAboutToOpen, this, &InstanceSettingsPage::applySettings);
     connect(APPLICATION, &Application::globalSettingsClosed, this, &InstanceSettingsPage::loadSettings);
+
+    // TODO(crueter): add warning theme icons.
+    ui->lowMemWarnIcon->setPixmap(QMessageBox::standardIcon(QMessageBox::Warning).scaled(24, 24));
+
+    connect(ui->minMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &InstanceSettingsPage::updateMemoryWarning);
+
+    connect(ui->maxMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &InstanceSettingsPage::updateMemoryWarning);
+
+    updateMemoryWarning();
+
     loadSettings();
 }
 
@@ -97,6 +108,24 @@ void InstanceSettingsPage::globalSettingsButtonClicked(bool)
         case 2:
             APPLICATION->ShowGlobalSettings(this, "custom-commands");
             return;
+    }
+}
+
+void InstanceSettingsPage::updateMemoryWarning() {
+    int minMem = ui->minMemSpinBox->value();
+    int maxMem = ui->maxMemSpinBox->value();
+
+    if (minMem > maxMem) {
+        ui->maxMemSpinBox->setValue(minMem);
+        maxMem = minMem;
+    }
+
+    if (maxMem < 1024) {
+        ui->lowMemWarnLabel->setText(tr("Allocating less than 1024 MiB may cause performance "
+                                        "issues on newer versions! Use with caution."));
+        ui->lowMemWarnWidget->show();
+    } else {
+        ui->lowMemWarnWidget->hide();
     }
 }
 

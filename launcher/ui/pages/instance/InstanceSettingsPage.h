@@ -89,6 +89,9 @@ private slots:
 
     void globalSettingsButtonClicked(bool checked);
 
+    void updateMemoryWarning();
+
+
 private:
     Ui::InstanceSettingsPage *ui;
     BaseInstance *m_instance;

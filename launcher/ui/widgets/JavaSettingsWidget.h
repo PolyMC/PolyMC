@@ -92,6 +92,11 @@ private: /* data */
     QIcon yellowIcon;
     QIcon badIcon;
 
+    QWidget *m_lowMemWarnWidget = nullptr;
+    QHBoxLayout *m_lowMemWarnLayout = nullptr;
+    QLabel *m_lowMemWarnIcon = nullptr;
+    QLabel *m_lowMemWarnLabel = nullptr;
+
     int observedMinMemory = 0;
     int observedMaxMemory = 0;
     int observedPermGenMemory = 0;

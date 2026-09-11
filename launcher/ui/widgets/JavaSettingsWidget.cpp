@@ -79,7 +79,7 @@ void JavaSettingsWidget::setupUi()
     m_minMemSpinBox = new QSpinBox(m_memoryGroupBox);
     m_minMemSpinBox->setObjectName(QStringLiteral("minMemSpinBox"));
     m_minMemSpinBox->setSuffix(QStringLiteral(" MiB"));
-    m_minMemSpinBox->setMinimum(128);
+    m_minMemSpinBox->setMinimum(1);
     m_minMemSpinBox->setMaximum(m_availableMemory);
     m_minMemSpinBox->setSingleStep(128);
     m_labelMinMem->setBuddy(m_minMemSpinBox);
@@ -92,16 +92,28 @@ void JavaSettingsWidget::setupUi()
     m_maxMemSpinBox = new QSpinBox(m_memoryGroupBox);
     m_maxMemSpinBox->setObjectName(QStringLiteral("maxMemSpinBox"));
     m_maxMemSpinBox->setSuffix(QStringLiteral(" MiB"));
-    m_maxMemSpinBox->setMinimum(128);
+    m_maxMemSpinBox->setMinimum(8);
     m_maxMemSpinBox->setMaximum(m_availableMemory);
     m_maxMemSpinBox->setSingleStep(128);
     m_labelMaxMem->setBuddy(m_maxMemSpinBox);
     m_gridLayout_2->addWidget(m_maxMemSpinBox, 1, 1, 1, 1);
 
+    m_lowMemWarnWidget = new QWidget(m_memoryGroupBox);
+    m_lowMemWarnWidget->setVisible(false);
+    m_lowMemWarnLayout = new QHBoxLayout(m_lowMemWarnWidget);
+    m_lowMemWarnIcon = new QLabel(m_lowMemWarnWidget);
+    // TODO(crueter): add warning theme icons.
+    m_lowMemWarnIcon->setPixmap(QMessageBox::standardIcon(QMessageBox::Warning).scaled(24, 24));
+    m_lowMemWarnLabel = new QLabel(m_lowMemWarnWidget);
+    m_lowMemWarnLabel->setWordWrap(true);
+    m_lowMemWarnLayout->addWidget(m_lowMemWarnIcon);
+    m_lowMemWarnLayout->addWidget(m_lowMemWarnLabel, 1);
+    m_gridLayout_2->addWidget(m_lowMemWarnWidget, 2, 0, 1, 2);
+
     m_labelPermGen = new QLabel(m_memoryGroupBox);
     m_labelPermGen->setObjectName(QStringLiteral("labelPermGen"));
     m_labelPermGen->setText(QStringLiteral("PermGen:"));
-    m_gridLayout_2->addWidget(m_labelPermGen, 2, 0, 1, 1);
+    m_gridLayout_2->addWidget(m_labelPermGen, 3, 0, 1, 1);
     m_labelPermGen->setVisible(false);
 
     m_permGenSpinBox = new QSpinBox(m_memoryGroupBox);
@@ -110,7 +122,7 @@ void JavaSettingsWidget::setupUi()
     m_permGenSpinBox->setMinimum(64);
     m_permGenSpinBox->setMaximum(m_availableMemory);
     m_permGenSpinBox->setSingleStep(8);
-    m_gridLayout_2->addWidget(m_permGenSpinBox, 2, 1, 1, 1);
+    m_gridLayout_2->addWidget(m_permGenSpinBox, 3, 1, 1, 1);
     m_permGenSpinBox->setVisible(false);
 
     m_verticalLayout->addWidget(m_memoryGroupBox);
@@ -130,6 +142,8 @@ void JavaSettingsWidget::initialize()
     m_minMemSpinBox->setValue(observedMinMemory);
     m_maxMemSpinBox->setValue(observedMaxMemory);
     m_permGenSpinBox->setValue(observedPermGenMemory);
+
+    m_lowMemWarnWidget->setVisible(m_maxMemSpinBox->value() < 256);
 }
 
 void JavaSettingsWidget::refresh()
@@ -242,6 +256,14 @@ void JavaSettingsWidget::memoryValueChanged(int)
     if(actuallyChanged)
     {
         checkJavaPathOnEdit(m_javaPathTextBox->text());
+    }
+
+    if (max < 1024) {
+        m_lowMemWarnLabel->setText(
+            tr("Allocating less than 1024 MiB may cause performance issues on newer versions! Use with caution."));
+        m_lowMemWarnWidget->show();
+    } else {
+        m_lowMemWarnWidget->hide();
     }
 }
 
@@ -431,6 +453,7 @@ void JavaSettingsWidget::retranslate()
     m_maxMemSpinBox->setToolTip(tr("The maximum amount of memory Minecraft is allowed to use."));
     m_labelMinMem->setText(tr("Minimum memory allocation:"));
     m_labelMaxMem->setText(tr("Maximum memory allocation:"));
+    m_lowMemWarnLabel->setText(tr("Values below 256 MiB may cause instability on newer versions! Use with caution."));
     m_minMemSpinBox->setToolTip(tr("The amount of memory Minecraft is started with."));
     m_permGenSpinBox->setToolTip(tr("The amount of memory available to store loaded Java classes."));
     m_javaBrowseBtn->setText(tr("Browse"));
