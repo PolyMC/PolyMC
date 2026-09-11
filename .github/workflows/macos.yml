@@ -8,6 +8,9 @@ on:
         default: Debug
       version:
         type: string
+      devel:
+        type: string
+        default: "true"
     secrets:
       SPARKLE_ED25519_KEY:
         required: false
@@ -71,3 +74,4 @@ jobs:
         with:
           build_type: ${{ inputs.build_type }}
           sparkle_key: ${{ secrets.SPARKLE_ED25519_KEY }}
+          devel: ${{ inputs.devel }}

@@ -8,6 +8,9 @@ on:
         default: Debug
       version:
         type: string
+      devel:
+        type: string
+        default: "true"
 
 jobs:
   build:
@@ -64,3 +67,4 @@ jobs:
         with:
           build_type: ${{ inputs.build_type }}
           shell: msys2 {0}
+          devel: ${{ inputs.devel }}

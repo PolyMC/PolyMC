@@ -15,7 +15,13 @@ export DESKTOP="$BUILDDIR/program_info/org.polymc.PolyMC.desktop"
 export OPTIMIZE_LAUNCH=1
 export DEPLOY_OPENGL=0
 export DEPLOY_VULKAN=0
-export ADD_HOOKS=""
+
+ADD_HOOKS=""
+if [ "${DEVEL:-true}" != "true" ]; then
+	ADD_HOOKS="self-updater.hook"
+fi
+
+export ADD_HOOKS
 export OUTPATH="$ARTIFACTS_DIR"
 export OUTNAME="PolyMC-Linux-$ARCH-$VERSION.AppImage"
 UPINFO="gh-releases-zsync|PolyMC|PolyMC|latest|PolyMC-Linux-${ARCH}-*.AppImage.zsync"
