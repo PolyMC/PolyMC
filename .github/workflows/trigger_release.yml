@@ -13,6 +13,7 @@ jobs:
     with:
       build_type: Release
       version: ${{ github.ref_name }}
+      devel: "false"
     secrets:
       SPARKLE_ED25519_KEY: ${{ secrets.SPARKLE_ED25519_KEY }}
 

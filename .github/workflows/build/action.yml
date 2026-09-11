@@ -1,14 +1,14 @@
 name: 'Build and Package'
 description: 'build and package PolyMC'
 inputs:
-  run_codeql:
-    default: 'false'
   sparkle_key:
     required: false
   shell:
     default: 'bash'
   build_type:
     required: true
+  devel:
+    default: true
 
 runs:
   using: "composite"
@@ -32,6 +32,7 @@ runs:
       run: ./.ci/${{ env.PLATFORM }}/package.sh
       env:
         SPARKLE_KEY: ${{ inputs.sparkle_key }}
+        DEVEL: ${{ inputs.devel }}
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v7

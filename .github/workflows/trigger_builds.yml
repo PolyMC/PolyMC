@@ -29,6 +29,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       build_type: Debug
+      devel: "true"
     secrets:
       SPARKLE_ED25519_KEY: ${{ secrets.SPARKLE_ED25519_KEY }}
 

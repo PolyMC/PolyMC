@@ -11,9 +11,15 @@ on:
         description: Version identifier
         type: string
         required: false
+      devel:
+        description: 'Development mode (disables update checker)'
+        type: string
+        required: false
+        default: 'true'
     secrets:
       SPARKLE_ED25519_KEY:
         required: false
+
 
 jobs:
   linux:
@@ -27,17 +33,20 @@ jobs:
     with:
       build_type: ${{ inputs.build_type || 'Debug' }}
       version: ${{ inputs.version }}
+      devel: ${{ inputs.devel }}
 
   windows:
     uses: ./.github/workflows/windows.yml
     with:
       build_type: ${{ inputs.build_type || 'Debug' }}
       version: ${{ inputs.version }}
+      devel: ${{ inputs.devel }}
 
   macos:
     uses: ./.github/workflows/macos.yml
     with:
       build_type: ${{ inputs.build_type || 'Debug' }}
       version: ${{ inputs.version }}
+      devel: ${{ inputs.devel }}
     secrets:
       SPARKLE_ED25519_KEY: ${{ secrets.SPARKLE_ED25519_KEY }}
