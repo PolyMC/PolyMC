@@ -27,13 +27,13 @@ jobs:
     with:
       build_type: ${{ inputs.build_type || 'Debug' }}
       version: ${{ inputs.version }}
+      devel: ${{ inputs.devel }}
 
   codeql:
     uses: ./.github/workflows/codeql.yml
     with:
       build_type: ${{ inputs.build_type || 'Debug' }}
       version: ${{ inputs.version }}
-      devel: ${{ inputs.devel }}
 
   windows:
     uses: ./.github/workflows/windows.yml
