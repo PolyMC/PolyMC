@@ -70,7 +70,7 @@ ModFolderPage::ModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel>
     // This is structured like that so that these changes
     // do not affect the Resource pack and Shader pack tabs
     {
-        ui->actionDownloadItem->setText(tr("Download mods"));
+        ui->actionDownloadItem->setText(tr("Download Mods"));
         ui->actionDownloadItem->setToolTip(tr("Download mods from online mod platforms"));
         ui->actionDownloadItem->setEnabled(true);
         ui->actionAddItem->setText(tr("Add file"));

@@ -45,7 +45,6 @@
 
 #include "updater/UpdateChecker.h"
 
-#include "settings/SettingsObject.h"
 #include <FileSystem.h>
 #include "Application.h"
 #include "BuildConfig.h"

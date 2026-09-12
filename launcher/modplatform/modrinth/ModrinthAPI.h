@@ -80,10 +80,20 @@ class ModrinthAPI : public NetworkModAPI {
    private:
     inline auto getModSearchURL(SearchArgs& args) const -> QString override
     {
-        if (!validateModLoaders(args.loaders)) {
-            qWarning() << "Modrinth only have Forge, NeoForge and Fabric-compatible mods!";
+        if (args.type == Mod && !validateModLoaders(args.loaders)) {
+            qWarning() << "Modrinth only has Forge, NeoForge and Fabric-compatible mods!";
             return "";
         }
+
+        auto projectType = [&args]() -> QString {
+            switch (args.type) {
+                case ResourcePack: return "resourcepack";
+                case ShaderPack: return "shader";
+                default: return "mod";
+            }
+        }();
+
+        auto loaderFilter = (args.type == Mod) ? QString("[%1],").arg(getModLoaderFilters(args.loaders)) : QString();
 
         return QString(BuildConfig.MODRINTH_PROD_URL +
                        "/search?"
@@ -91,12 +101,13 @@ class ModrinthAPI : public NetworkModAPI {
                        "limit=25&"
                        "query=%2&"
                        "index=%3&"
-                       "facets=[[%4],%5[\"project_type:mod\"]]")
+                       "facets=[%4%5[\"project_type:%6\"]]")
             .arg(args.offset)
             .arg(args.search)
             .arg(args.sorting)
-            .arg(getModLoaderFilters(args.loaders))
-            .arg(getGameVersionsArray(args.versions));
+            .arg(loaderFilter)
+            .arg(getGameVersionsArray(args.versions))
+            .arg(projectType);
     };
 
     inline auto getModInfoURL(QString& id) const -> QString override
@@ -111,15 +122,21 @@ class ModrinthAPI : public NetworkModAPI {
 
     inline auto getVersionsURL(VersionSearchArgs& args) const -> QString override
     {
-        return QString(BuildConfig.MODRINTH_PROD_URL +
+        QString url = QString(BuildConfig.MODRINTH_PROD_URL +
                        "/project/%1/version?"
-                       "game_versions=[%2]&"
-                       "loaders=[\"%3\"]")
+                       "game_versions=[%2]")
             .arg(args.addonId,
-             getGameVersionsString(args.mcVersions),
-             getModLoaderStrings(args.loaders).join("\",\""));
+             getGameVersionsString(args.mcVersions));
+
+        if (args.type == Mod) {
+            url += QString("&loaders=[\"%1\"]")
+                .arg(getModLoaderStrings(args.loaders).join("\",\""));
+        }
+
+        return url;
     };
 
+   private:
     auto getGameVersionsArray(std::list<Version> mcVersions) const -> QString
     {
         QString s;

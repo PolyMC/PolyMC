@@ -40,8 +40,8 @@
 #include "ModrinthModModel.h"
 #include "ui/dialogs/ModDownloadDialog.h"
 
-ModrinthModPage::ModrinthModPage(ModDownloadDialog* dialog, BaseInstance* instance)
-    : ModPage(dialog, instance, new ModrinthAPI())
+ModrinthModPage::ModrinthModPage(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI::ResourceType type)
+    : ModPage(dialog, instance, new ModrinthAPI(), type)
 {
     listModel = new Modrinth::ListModel(this);
     ui->packView->setModel(listModel);
@@ -63,6 +63,9 @@ ModrinthModPage::ModrinthModPage(ModDownloadDialog* dialog, BaseInstance* instan
 
 auto ModrinthModPage::validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders) const -> bool
 {
+    if (m_resourceType != ModAPI::Mod)
+        return ver.mcVersion.contains(mineVer);
+
     auto loaderStrings = ModrinthAPI::getModLoaderStrings(loaders);
 
     auto loaderCompatible = false;
