@@ -16,6 +16,12 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="leftMargin">
     <number>0</number>
@@ -54,7 +60,7 @@
              <string notr="true"> MiB</string>
             </property>
             <property name="minimum">
-             <number>128</number>
+             <number>8</number>
             </property>
             <property name="maximum">
              <number>65536</number>
@@ -64,6 +70,38 @@
             </property>
             <property name="value">
              <number>1024</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelMaxMem">
+            <property name="text">
+             <string>Ma&amp;ximum memory allocation:</string>
+            </property>
+            <property name="buddy">
+             <cstring>maxMemSpinBox</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="permGenSpinBox">
+            <property name="toolTip">
+             <string>The amount of memory available to store loaded Java classes.</string>
+            </property>
+            <property name="suffix">
+             <string notr="true"> MiB</string>
+            </property>
+            <property name="minimum">
+             <number>64</number>
+            </property>
+            <property name="maximum">
+             <number>999999999</number>
+            </property>
+            <property name="singleStep">
+             <number>8</number>
+            </property>
+            <property name="value">
+             <number>64</number>
             </property>
            </widget>
           </item>
@@ -77,13 +115,13 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelMaxMem">
+          <item row="3" column="0">
+           <widget class="QLabel" name="labelPermGen">
             <property name="text">
-             <string>Ma&amp;ximum memory allocation:</string>
+             <string notr="true">&amp;PermGen:</string>
             </property>
             <property name="buddy">
-             <cstring>maxMemSpinBox</cstring>
+             <cstring>permGenSpinBox</cstring>
             </property>
            </widget>
           </item>
@@ -109,36 +147,45 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="labelPermGen">
-            <property name="text">
-             <string notr="true">&amp;PermGen:</string>
+          <item row="2" column="0" colspan="2">
+           <widget class="QWidget" name="lowMemWarnWidget" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
             </property>
-            <property name="buddy">
-             <cstring>permGenSpinBox</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QSpinBox" name="permGenSpinBox">
-            <property name="toolTip">
-             <string>The amount of memory available to store loaded Java classes.</string>
-            </property>
-            <property name="suffix">
-             <string notr="true"> MiB</string>
-            </property>
-            <property name="minimum">
-             <number>64</number>
-            </property>
-            <property name="maximum">
-             <number>999999999</number>
-            </property>
-            <property name="singleStep">
-             <number>8</number>
-            </property>
-            <property name="value">
-             <number>64</number>
-            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <widget class="QLabel" name="lowMemWarnIcon">
+               <property name="minimumSize">
+                <size>
+                 <width>24</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lowMemWarnLabel">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>1</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Allocating less than 1024 MiB may cause performance issues on newer versions! Use with caution.</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
          </layout>
@@ -175,7 +222,7 @@
              <string>JVM arguments:</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -285,7 +332,7 @@
        <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>

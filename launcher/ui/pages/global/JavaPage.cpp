@@ -46,9 +46,7 @@
 #include "ui/dialogs/VersionSelectDialog.h"
 
 #include "java/JavaUtils.h"
-#include "java/JavaInstallList.h"
 
-#include "settings/SettingsObject.h"
 #include <FileSystem.h>
 #include "Application.h"
 #include <sys.h>
@@ -60,6 +58,19 @@ JavaPage::JavaPage(QWidget *parent) : QWidget(parent), ui(new Ui::JavaPage)
 
     auto sysMiB = Sys::getSystemRam() / Sys::mebibyte;
     ui->maxMemSpinBox->setMaximum(sysMiB);
+    ui->lowMemWarnWidget->hide();
+
+    // TODO(crueter): add warning theme icons.
+    ui->lowMemWarnIcon->setPixmap(QMessageBox::standardIcon(QMessageBox::Warning).scaled(24, 24));
+
+    connect(ui->minMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &JavaPage::updateMemoryWarning);
+
+    connect(ui->maxMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &JavaPage::updateMemoryWarning);
+
+    updateMemoryWarning();
+
     loadSettings();
 }
 
@@ -123,6 +134,24 @@ void JavaPage::loadSettings()
     ui->jvmArgsTextBox->setPlainText(s->get("JvmArgs").toString());
     ui->skipCompatibilityCheckbox->setChecked(s->get("IgnoreJavaCompatibility").toBool());
     ui->skipJavaWizardCheckbox->setChecked(s->get("IgnoreJavaWizard").toBool());
+}
+
+void JavaPage::updateMemoryWarning() {
+    int minMem = ui->minMemSpinBox->value();
+    int maxMem = ui->maxMemSpinBox->value();
+
+    if (minMem > maxMem) {
+        ui->maxMemSpinBox->setValue(minMem);
+        maxMem = minMem;
+    }
+
+    if (maxMem < 1024) {
+        ui->lowMemWarnLabel->setText(
+            tr("Allocating less than 1024 MiB may cause performance issues on newer versions! Use with caution."));
+        ui->lowMemWarnWidget->show();
+    } else {
+        ui->lowMemWarnWidget->hide();
+    }
 }
 
 void JavaPage::on_javaDetectBtn_clicked()
