@@ -679,6 +679,34 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="agentGroupBox">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="title">
+          <string>Override global Yggdrasil agent setting</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_16">
+         <item>
+          <widget class="QCheckBox" name="agentCheckbox">
+            <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Uses unmojang's Loki instead of authlib-injector (forced on versions &amp;lt; 1.7.2, preferred on versions &amp;lt; 1.7.6)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           <property name="text">
+            <string>Use Loki instead of authlib-injector</string>
+           </property>
+          </widget>
+         </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacerMiscellaneous">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>

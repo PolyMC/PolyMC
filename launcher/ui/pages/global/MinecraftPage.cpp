@@ -99,6 +99,7 @@ void MinecraftPage::applySettings()
     // Miscellaneous
     s->set("CloseAfterLaunch", ui->closeAfterLaunchCheck->isChecked());
     s->set("QuitAfterGameStop", ui->quitAfterGameStopCheck->isChecked());
+    s->set("UseLoki", ui->agentCheckbox->isChecked());
 }
 
 void MinecraftPage::loadSettings()
@@ -133,6 +134,7 @@ void MinecraftPage::loadSettings()
 
     ui->closeAfterLaunchCheck->setChecked(s->get("CloseAfterLaunch").toBool());
     ui->quitAfterGameStopCheck->setChecked(s->get("QuitAfterGameStop").toBool());
+    ui->agentCheckbox->setChecked(s->get("UseLoki").toBool());
 }
 
 void MinecraftPage::retranslate()

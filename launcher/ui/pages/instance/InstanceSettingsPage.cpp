@@ -324,6 +324,14 @@ void InstanceSettingsPage::applySettings()
         m_settings->reset("OverrideAccountProfileId");
     }
 
+    bool agentOverride = ui->agentGroupBox->isChecked();
+    m_settings->set("OverrideAgent", agentOverride);
+    if (agentOverride) {
+        m_settings->set("UseLoki", ui->agentCheckbox->isChecked());
+    } else {
+        m_settings->reset("UseLoki");
+    }
+
     // FIXME: This should probably be called by a signal instead
     m_instance->updateRuntimeContext();
 }
@@ -460,6 +468,9 @@ void InstanceSettingsPage::loadSettings()
     if (ui->accountComboBox->currentIndex() == -1) {
         ui->accountGroupBox->setChecked(false);
     }
+
+    ui->agentGroupBox->setChecked(m_settings->get("OverrideAgent").toBool());
+    ui->agentCheckbox->setChecked(m_settings->get("UseLoki").toBool());
 }
 
 void InstanceSettingsPage::on_javaDetectBtn_clicked()
