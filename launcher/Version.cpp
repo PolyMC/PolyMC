@@ -112,22 +112,22 @@ void Version::parse()
         cleanStr = cleanStr.mid(10).trimmed();
     }
 
-    if (cleanStr.startsWith("rd-", Qt::CaseInsensitive)) {
+    if (cleanStr.startsWith("rd-", Qt::CaseInsensitive)) { // rubydung/cave game
         m_era = -5;
         cleanStr = cleanStr.mid(3);
-    } else if (cleanStr.startsWith("c", Qt::CaseInsensitive) && cleanStr.length() > 1 && cleanStr[1].isDigit()) {
+    } else if (cleanStr.startsWith("c", Qt::CaseInsensitive) && cleanStr.length() > 1 && cleanStr[1].isDigit()) { // classic
         m_era = -4;
         cleanStr = cleanStr.mid(1);
-    } else if (cleanStr.startsWith("in-", Qt::CaseInsensitive)) {
+    } else if (cleanStr.startsWith("in-", Qt::CaseInsensitive)) { // indev
         m_era = -3;
         cleanStr = cleanStr.mid(3);
-    } else if (cleanStr.startsWith("a", Qt::CaseInsensitive) && cleanStr.length() > 1 && cleanStr[1].isDigit()) {
+    } else if (cleanStr.startsWith("a", Qt::CaseInsensitive) && cleanStr.length() > 1 && cleanStr[1].isDigit()) { // alpha
         m_era = -2;
         cleanStr = cleanStr.mid(1);
-    } else if (cleanStr.startsWith("b", Qt::CaseInsensitive) && cleanStr.length() > 1 && cleanStr[1].isDigit()) {
+    } else if (cleanStr.startsWith("b", Qt::CaseInsensitive) && cleanStr.length() > 1 && cleanStr[1].isDigit()) { // beta
         m_era = -1;
         cleanStr = cleanStr.mid(1);
-    } else {
+    } else { // official release
         m_era = 0;
     }
 

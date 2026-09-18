@@ -44,24 +44,36 @@ void ConfigureLoki::executeTask()
             if (parseError.error != QJsonParseError::NoError || !indexDoc.isObject())
                 return emitFailed(QString("Failed to parse Loki index json: %1").arg(parseError.errorString()));
 
-            QJsonArray versions = indexDoc.object()["versions"].toArray();
+            QJsonArray versions = indexDoc.object().value("versions").toArray();
             if (versions.isEmpty())
                 return emitFailed("Failed to parse Loki index json: no versions found");
 
-            QString latestVersion = versions[0].toObject()["version"].toString();
-            if (latestVersion.isEmpty())
-                return emitFailed("Failed to parse Loki index json: invalid version entry");
+            QString selectedVersion;
+            for (const QJsonValue &version : versions) {
+                if (!version.isObject())
+                    continue;
 
-            auto versionEntry = APPLICATION->metacache()->resolveEntry("loki", QString("%1.json").arg(latestVersion));
+                if (version.toObject().value("recommended").toBool()) {
+                    selectedVersion = version.toObject().value("version").toString();
+                    break;
+                }
+            }
+
+            if (selectedVersion.isEmpty()) {
+                qDebug() << "Failed to find recommended Loki version, falling back to latest";
+                selectedVersion = versions.first().toObject().value("version").toString();
+            }
+
+            auto versionEntry = APPLICATION->metacache()->resolveEntry("loki", QString("%1.json").arg(selectedVersion));
             m_job = std::make_unique<NetJob>("Download Loki version json", APPLICATION->network());
             auto versionDl =
-                Net::Download::makeCached(QUrl(QString("https://meta.unmojang.org/v1/org.unmojang.loki/%1.json").arg(latestVersion)),
+                Net::Download::makeCached(QUrl(QString("https://meta.unmojang.org/v1/org.unmojang.loki/%1.json").arg(selectedVersion)),
                                           versionEntry, Net::Download::Option::NoOptions);
             m_job->addNetAction(versionDl);
 
             connect(
                 m_job.get(), &NetJob::succeeded, this,
-                [this, versionEntry, latestVersion, downloadFailed] {
+                [this, versionEntry, selectedVersion, downloadFailed] {
                     QFile versionFile{ versionEntry->getFullPath() };
                     if (!versionFile.open(QIODevice::ReadOnly))
                         return emitFailed(QString("Failed to open Loki version json: %1").arg(versionFile.errorString()));
@@ -73,35 +85,22 @@ void ConfigureLoki::executeTask()
                     if (versionParseError.error != QJsonParseError::NoError || !versionDoc.isObject())
                         return emitFailed(QString("Failed to parse Loki version json: %1").arg(versionParseError.errorString()));
 
-                    QJsonArray agents = versionDoc.object()["+agents"].toArray();
+                    QJsonArray agents = versionDoc.object().value("+agents").toArray();
                     if (agents.isEmpty())
                         return emitFailed("Failed to parse Loki version json: '+agents' missing or empty");
 
-                    QJsonObject agentObj = agents[0].toObject();
-                    QString lokiJarUrl = agentObj["MMC-absoluteUrl"].toString();
-                    if (lokiJarUrl.isEmpty())
-                        lokiJarUrl = agentObj["url"].toString();
-                    if (lokiJarUrl.isEmpty())
-                        lokiJarUrl = agentObj["download_url"].toString();
+                    QJsonObject agentObj = agents.first().toObject();
+                    QString lokiJarUrl = agentObj.value("MMC-absoluteUrl").toString();
                     if (lokiJarUrl.isEmpty())
                         return emitFailed("Failed to parse Loki version json: download url missing");
 
-                    QString sha256Sum = agentObj["checksums"].toObject()["sha256"].toString();
-                    if (sha256Sum.isEmpty())
-                        sha256Sum = agentObj["sha256"].toString();
-
                     QString filename = QFileInfo(QUrl(lokiJarUrl).path()).fileName();
                     if (filename.isEmpty())
-                        filename = QString("loki-%1.jar").arg(latestVersion);
+                        filename = QString("Loki-%1.jar").arg(selectedVersion);
 
                     auto javaAgentEntry = APPLICATION->metacache()->resolveEntry("loki", filename);
                     m_job = std::make_unique<NetJob>("Download Loki java agent", APPLICATION->network());
                     auto javaAgentDl = Net::Download::makeCached(QUrl(lokiJarUrl), javaAgentEntry, Net::Download::Option::MakeEternal);
-
-                    if (!sha256Sum.isEmpty()) {
-                        auto sha256SumRaw = QByteArray::fromHex(sha256Sum.toLatin1());
-                        javaAgentDl->addValidator(new Net::ChecksumValidator(QCryptographicHash::Sha256, sha256SumRaw));
-                    }
 
                     m_job->addNetAction(javaAgentDl);
 

@@ -270,7 +270,7 @@
         <item>
         <widget class="QCheckBox" name="agentCheckbox">
           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Uses unmojang's Loki instead of authlib-injector (forced on versions &amp;lt; 1.7.2)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Uses unmojang's Loki instead of authlib-injector (forced on versions &amp;lt; 1.7.2, preferred on versions &amp;lt; 1.7.6)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>Use Loki instead of authlib-injector</string>
