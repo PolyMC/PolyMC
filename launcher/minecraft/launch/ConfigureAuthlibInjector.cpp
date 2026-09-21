@@ -12,10 +12,8 @@
 #include "net/HttpMetaCache.h"
 #include "net/NetAction.h"
 
-ConfigureAuthlibInjector::ConfigureAuthlibInjector(LaunchTask* parent,
-                                                   QString authlibinjector_base_url,
-                                                   std::shared_ptr<QString> javaagent_arg)
-    : LaunchStep(parent), m_javaagent_arg{ javaagent_arg }, m_authlibinjector_base_url{ authlibinjector_base_url }
+ConfigureAuthlibInjector::ConfigureAuthlibInjector(LaunchTask* parent, QString yggdrasil_base_url, std::shared_ptr<QString> javaagent_arg)
+    : LaunchStep(parent), m_javaagent_arg{ javaagent_arg }, m_yggdrasil_base_url{ yggdrasil_base_url }
 {}
 
 void ConfigureAuthlibInjector::executeTask()
@@ -64,7 +62,7 @@ void ConfigureAuthlibInjector::executeTask()
         connect(m_job.get(), &NetJob::succeeded, this, [this, javaAgentEntry] {
             auto path = javaAgentEntry->getFullPath();
             qDebug() << path;
-            *m_javaagent_arg = QString("%1=%2").arg(path).arg(m_authlibinjector_base_url);
+            *m_javaagent_arg = QString("%1=%2").arg(path).arg(m_yggdrasil_base_url);
             emitSucceeded();
         });
         connect(m_job.get(), &NetJob::failed, this, downloadFailed);

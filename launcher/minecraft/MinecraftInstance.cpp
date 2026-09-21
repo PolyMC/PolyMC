@@ -59,11 +59,12 @@
 #include "launch/steps/CheckJava.h"
 #include "launch/steps/QuitAfterGameStop.h"
 
-#include "minecraft/launch/LauncherPartLaunch.h"
-#include "minecraft/launch/ConfigureAuthlibInjector.h"
-#include "minecraft/launch/DirectJavaLaunch.h"
-#include "minecraft/launch/ModMinecraftJar.h"
 #include "minecraft/launch/ClaimAccount.h"
+#include "minecraft/launch/ConfigureAuthlibInjector.h"
+#include "minecraft/launch/ConfigureLoki.h"
+#include "minecraft/launch/DirectJavaLaunch.h"
+#include "minecraft/launch/LauncherPartLaunch.h"
+#include "minecraft/launch/ModMinecraftJar.h"
 #include "minecraft/launch/ReconstructAssets.h"
 #include "minecraft/launch/ScanModFolders.h"
 #include "minecraft/launch/VerifyJavaInstall.h"
@@ -181,6 +182,10 @@ void MinecraftInstance::loadSpecificSettings()
         auto miscellaneousOverride = m_settings->registerSetting("OverrideMiscellaneous", false);
         m_settings->registerOverride(global_settings->getSetting("CloseAfterLaunch"), miscellaneousOverride);
         m_settings->registerOverride(global_settings->getSetting("QuitAfterGameStop"), miscellaneousOverride);
+
+        // Alternative Yggdrasil agent
+        auto agentOverride = m_settings->registerSetting("OverrideAgent", false);
+        m_settings->registerOverride(global_settings->getSetting("UseLoki"), agentOverride);
 
         m_settings->set("InstanceType", "OneSix");
     }
@@ -389,9 +394,8 @@ QStringList MinecraftInstance::javaArguments()
 {
     QStringList args;
 
-    if (!m_authlibinjector_javaagent->isNull())
-    {
-        args.append(QString("-javaagent:%1").arg(*m_authlibinjector_javaagent));
+    if (!m_yggdrasil_javaagent->isNull()) {
+        args.append(QString("-javaagent:%1").arg(*m_yggdrasil_javaagent));
     }
 
     // custom args go first. we want to override them if we have our own here.
@@ -996,10 +1000,15 @@ shared_qobject_ptr<LaunchTask> MinecraftInstance::createLaunchTask(AuthSessionPt
         process->appendStep(step);
     }
 
-    *m_authlibinjector_javaagent = QString();
+    *m_yggdrasil_javaagent = QString();
+    Version instance_ver{ getPackProfile()->getComponentVersion("net.minecraft") };
     if (!session->authlib_injector_base_url.isNull())
     {
-        process->appendStep(new ConfigureAuthlibInjector(pptr, session->authlib_injector_base_url, m_authlibinjector_javaagent));
+        if (m_settings->get("UseLoki").toBool() || instance_ver.isPreAuthlib()) {
+            process->appendStep(new ConfigureLoki(pptr, session->authlib_injector_base_url, m_yggdrasil_javaagent));
+        } else {
+            process->appendStep(new ConfigureAuthlibInjector(pptr, session->authlib_injector_base_url, m_yggdrasil_javaagent));
+        }
     }
 
     // if we aren't in offline mode,.

@@ -18,9 +18,10 @@ QString AuthlibInjectorStep::describe() {
 
 void AuthlibInjectorStep::perform() {
     // Default to the same as the base URL
-    QUrl url;
-    url.setScheme("https");
-    url.setAuthority(m_data->authlibInjectorBaseUrl);
+    QUrl url(m_data->authlibInjectorBaseUrl);
+    if (url.scheme() != "http" && url.scheme() != "https") {
+        url = QUrl("https://" + m_data->authlibInjectorBaseUrl);
+    }
     qDebug() << url << url.toString() << url.isLocalFile();
     m_data->authlibInjectorApiLocation = url.toString();
     QNetworkRequest request = QNetworkRequest(url);
