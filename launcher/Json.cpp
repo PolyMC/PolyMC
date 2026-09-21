@@ -82,7 +82,6 @@ QJsonDocument requireDocument(const QByteArray &data, const QString &what)
         QJsonDocument doc = QJsonDocument::fromJson(data, &error);
         if (error.error != QJsonParseError::NoError)
         {
-            qDebug() << "Epic fail:" << data;
             throw JsonException(what + ": Error parsing JSON: " + error.errorString());
         }
         return doc;

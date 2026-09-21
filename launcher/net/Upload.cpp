@@ -232,7 +232,7 @@ namespace Net {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         connect(rep, &QNetworkReply::errorOccurred, this, &Net::Upload::downloadError);
 #else
-        connect(rep, &QNetworkReply::error, this, &Net::Upload::downloadError);
+        connect(rep, QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error), this, &Net::Upload::downloadError);
 #endif
         connect(rep, &QNetworkReply::sslErrors, this, &Upload::sslErrors);
         connect(rep, &QNetworkReply::readyRead, this, &Upload::downloadReadyRead);
