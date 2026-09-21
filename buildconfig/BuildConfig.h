@@ -155,7 +155,7 @@ class Config {
     QString FMLLIBS_BASE_URL = "https://files.polymc.org/fmllibs/";
     QString TRANSLATIONS_BASE_URL = "https://i18n.polymc.org/";
 
-    QString MODPACKSCH_API_BASE_URL = "https://api.modpacks.ch/";
+    QString FTB_API_BASE_URL = "https://api.feed-the-beast.com/v1/modpacks/public";
 
     QString LEGACY_FTB_CDN_BASE_URL = "https://dist.creeper.host/FTB2/";
 

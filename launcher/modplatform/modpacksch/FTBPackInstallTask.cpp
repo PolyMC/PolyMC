@@ -88,7 +88,7 @@ void PackInstallTask::executeTask()
 
     auto* netJob = new NetJob("ModpacksCH::VersionFetch", APPLICATION->network());
 
-    auto searchUrl = QString(BuildConfig.MODPACKSCH_API_BASE_URL + "public/modpack/%1/%2").arg(m_pack.id).arg(version.id);
+    auto searchUrl = QString(BuildConfig.FTB_API_BASE_URL + "/modpack/%1/%2").arg(m_pack.id).arg(version.id);
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchUrl), &m_response));
 
     QObject::connect(netJob, &NetJob::succeeded, this, &PackInstallTask::onManifestDownloadSucceeded);

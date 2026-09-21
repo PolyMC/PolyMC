@@ -108,7 +108,7 @@ void ListModel::request()
     endResetModel();
 
     auto *netJob = new NetJob("Ftb::Request", APPLICATION->network());
-    auto url = QString(BuildConfig.MODPACKSCH_API_BASE_URL + "public/modpack/all");
+    auto url = QString(BuildConfig.FTB_API_BASE_URL + "/modpack/all");
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(url), &response));
     jobPtr = netJob;
     jobPtr->start();
@@ -151,7 +151,7 @@ void ListModel::requestFailed(QString reason)
 void ListModel::requestPack()
 {
     auto *netJob = new NetJob("Ftb::Search", APPLICATION->network());
-    auto searchUrl = QString(BuildConfig.MODPACKSCH_API_BASE_URL + "public/modpack/%1").arg(currentPack);
+    auto searchUrl = QString(BuildConfig.FTB_API_BASE_URL + "/modpack/%1").arg(currentPack);
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchUrl), &response));
     jobPtr = netJob;
     jobPtr->start();
