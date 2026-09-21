@@ -59,7 +59,9 @@ public:
         return m_string;
     }
 
-private:
+    bool isPreAuthlib() const;
+
+   private:
     QString m_string;
     struct Section
     {
@@ -143,6 +145,7 @@ private:
             }
         }
     };
+    int m_era = 0;
     QList<Section> m_sections;
 
     void parse();

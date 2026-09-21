@@ -601,6 +601,9 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("ShowGlobalGameTime", true);
         m_settings->registerSetting("RecordGameTime", true);
 
+        // Alternative Yggdrasil agent
+        m_settings->registerSetting("UseLoki", false);
+
         // Minecraft launch method
         m_settings->registerSetting("MCLaunchMethod", "LauncherPart");
 
@@ -842,6 +845,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_metacache->addBase("icons", QDir("cache/icons").absolutePath());
         m_metacache->addBase("meta", QDir("meta").absolutePath());
         m_metacache->addBase("authlibinjector", QDir("cache/authlibinjector").absolutePath());
+        m_metacache->addBase("loki", QDir("cache/loki").absolutePath());
         m_metacache->Load();
         qDebug() << "<> Cache initialized.";
     }
