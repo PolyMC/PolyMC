@@ -22,9 +22,9 @@ class ModPage : public QWidget, public BasePage {
 
    public:
     template<typename T>
-    static T* create(ModDownloadDialog* dialog, BaseInstance* instance)
+    static T* create(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI::ResourceType type = ModAPI::Mod)
     {
-        auto page = new T(dialog, instance);
+        auto page = new T(dialog, instance, type);
 
         auto filter_widget = ModFilterWidget::create(static_cast<MinecraftInstance*>(instance)->getPackProfile()->getComponentVersion("net.minecraft"), page);
         page->setFilterWidget(filter_widget);
@@ -56,6 +56,7 @@ class ModPage : public QWidget, public BasePage {
     auto apiProvider() -> ModAPI* { return api.get(); };
     auto getFilter() const -> const std::shared_ptr<ModFilterWidget::Filter> { return m_filter; }
     auto getDialog() const -> const ModDownloadDialog* { return dialog; }
+    auto resourceType() const -> ModAPI::ResourceType { return m_resourceType; }
 
     /** Get the current term in the search bar. */
     auto getSearchTerm() const -> QString;
@@ -73,7 +74,7 @@ class ModPage : public QWidget, public BasePage {
     BaseInstance* m_instance;
 
    protected:
-    ModPage(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI* api);
+    ModPage(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI* api, ModAPI::ResourceType type = ModAPI::Mod);
     void updateSelectionButton();
 
    protected slots:
@@ -96,6 +97,8 @@ class ModPage : public QWidget, public BasePage {
     ModPlatform::IndexedPack current;
 
     std::unique_ptr<ModAPI> api;
+
+    ModAPI::ResourceType m_resourceType = ModAPI::Mod;
 
     int selectedVersion = -1;
 

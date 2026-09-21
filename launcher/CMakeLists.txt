@@ -683,7 +683,9 @@ SET(LAUNCHER_SOURCES
     ui/pages/instance/VersionPage.h
     ui/pages/instance/TexturePackPage.h
     ui/pages/instance/ResourcePackPage.h
+    ui/pages/instance/ResourcePackPage.cpp
     ui/pages/instance/ShaderPackPage.h
+    ui/pages/instance/ShaderPackPage.cpp
     ui/pages/instance/ModFolderPage.cpp
     ui/pages/instance/ModFolderPage.h
     ui/pages/instance/NotesPage.cpp
@@ -866,6 +868,8 @@ SET(LAUNCHER_SOURCES
     ui/widgets/PageContainer_p.h
     ui/widgets/ProjectItem.h
     ui/widgets/ProjectItem.cpp
+    ui/widgets/RemoteTextBrowser.h
+    ui/widgets/RemoteTextBrowser.cpp
     ui/widgets/VersionListView.cpp
     ui/widgets/VersionListView.h
     ui/widgets/VersionSelectWidget.cpp

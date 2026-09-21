@@ -28,27 +28,38 @@ class FlameAPI : public NetworkModAPI {
                                                 : 1;
     }
 
-   private:
+    inline auto getClassId(ResourceType type) const -> int
+    {
+        switch (type) {
+            case ResourcePack: return 12;
+            case ShaderPack: return 6552;
+            default: return 6;
+        }
+    }
+
     inline auto getModSearchURL(SearchArgs& args) const -> QString override
     {
         auto gameVersionStr = args.versions.size() != 0 ? QString("gameVersion=%1").arg(args.versions.front().toString()) : QString();
 
+        auto modLoaderStr = (args.type == Mod) ? QString("modLoaderType=%1&").arg(getMappedModLoader(args.loaders)) : QString();
+
         return QString(
                    "https://api.curseforge.com/v1/mods/search?"
                    "gameId=432&"
-                   "classId=6&"
+                   "classId=%1&"
 
-                   "index=%1&"
+                   "index=%2&"
                    "pageSize=25&"
-                   "searchFilter=%2&"
-                   "sortField=%3&"
+                   "searchFilter=%3&"
+                   "sortField=%4&"
                    "sortOrder=desc&"
-                   "modLoaderType=%4&"
-                   "%5")
+                   "%5"
+                   "%6")
+            .arg(getClassId(args.type))
             .arg(args.offset)
             .arg(args.search)
             .arg(getSortFieldInt(args.sorting))
-            .arg(getMappedModLoader(args.loaders))
+            .arg(modLoaderStr)
             .arg(gameVersionStr);
     };
 
@@ -60,7 +71,7 @@ class FlameAPI : public NetworkModAPI {
     inline auto getVersionsURL(VersionSearchArgs& args) const -> QString override
     {
         QString gameVersionQuery = args.mcVersions.size() == 1 ? QString("gameVersion=%1&").arg(args.mcVersions.front().toString()) : "";
-        QString modLoaderQuery = QString("modLoaderType=%1&").arg(getMappedModLoader(args.loaders));
+        QString modLoaderQuery = (args.type == Mod) ? QString("modLoaderType=%1&").arg(getMappedModLoader(args.loaders)) : "";
 
         return QString("https://api.curseforge.com/v1/mods/%1/files?pageSize=10000&%2%3")
             .arg(args.addonId)

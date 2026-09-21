@@ -22,7 +22,8 @@
 #include <QVBoxLayout>
 
 #include "ModDownloadTask.h"
-#include "minecraft/mod/ModFolderModel.h"
+#include "minecraft/mod/ResourceFolderModel.h"
+#include "modplatform/ModAPI.h"
 #include "ui/pages/BasePageProvider.h"
 
 namespace Ui
@@ -30,6 +31,7 @@ namespace Ui
 class ModDownloadDialog;
 }
 
+class BaseInstance;
 class PageContainer;
 class QDialogButtonBox;
 class ModrinthModPage;
@@ -39,7 +41,8 @@ class ModDownloadDialog final : public QDialog, public BasePageProvider
     Q_OBJECT
 
 public:
-    explicit ModDownloadDialog(const std::shared_ptr<ModFolderModel>& mods, QWidget* parent, BaseInstance* instance);
+    explicit ModDownloadDialog(const std::shared_ptr<ResourceFolderModel>& mods, QWidget* parent, BaseInstance* instance,
+                               ModAPI::ResourceType type = ModAPI::Mod);
     ~ModDownloadDialog() override = default;
 
     QString dialogTitle() override;
@@ -51,7 +54,8 @@ public:
     bool isModSelected(QString name) const;
 
     const QList<ModDownloadTask*> getTasks();
-    const std::shared_ptr<ModFolderModel> &mods;
+    const std::shared_ptr<ResourceFolderModel> &mods;
+    ModAPI::ResourceType m_resourceType;
 
 public slots:
     void confirm();
@@ -62,6 +66,7 @@ private slots:
     void selectedPageChanged(BasePage* previous, BasePage* selected);
 
 private:
+    void updateOkButtonText();
     Ui::ModDownloadDialog *ui = nullptr;
     PageContainer * m_container = nullptr;
     QDialogButtonBox * m_buttons = nullptr;

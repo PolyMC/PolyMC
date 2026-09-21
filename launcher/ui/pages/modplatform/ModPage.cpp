@@ -48,13 +48,14 @@
 #include "ui/widgets/ProjectItem.h"
 
 
-ModPage::ModPage(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI* api)
+ModPage::ModPage(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI* api, ModAPI::ResourceType type)
     : QWidget(dialog)
     , m_instance(instance)
     , ui(new Ui::ModPage)
     , dialog(dialog)
     , m_fetch_progress(this, false)
     , api(api)
+    , m_resourceType(type)
 {
     ui->setupUi(this);
 
@@ -231,7 +232,7 @@ void ModPage::onModSelected()
     if (dialog->isModSelected(current.name, version.fileName)) {
         dialog->removeSelectedMod(current.name);
     } else {
-        bool is_indexed = !APPLICATION->settings()->get("ModMetadataDisabled").toBool();
+        bool is_indexed = !APPLICATION->settings()->get("ModMetadataDisabled").toBool() && m_resourceType == ModAPI::Mod;
         dialog->addSelectedMod(current.name, new ModDownloadTask(current, version, dialog->mods, is_indexed));
     }
 
@@ -283,15 +284,25 @@ void ModPage::updateSelectionButton()
 {
     if (!isOpened || selectedVersion < 0) {
         ui->modSelectionButton->setEnabled(false);
+        if (m_resourceType == ModAPI::Mod)
+            ui->modSelectionButton->setText(tr("Select mod for download"));
+        else
+            ui->modSelectionButton->setText(tr("Select pack for download"));
         return;
     }
 
     ui->modSelectionButton->setEnabled(true);
     auto& version = current.versions[selectedVersion];
     if (!dialog->isModSelected(current.name, version.fileName)) {
-        ui->modSelectionButton->setText(tr("Select mod for download"));
+        if (m_resourceType == ModAPI::Mod)
+            ui->modSelectionButton->setText(tr("Select mod for download"));
+        else
+            ui->modSelectionButton->setText(tr("Select pack for download"));
     } else {
-        ui->modSelectionButton->setText(tr("Deselect mod for download"));
+        if (m_resourceType == ModAPI::Mod)
+            ui->modSelectionButton->setText(tr("Deselect mod for download"));
+        else
+            ui->modSelectionButton->setText(tr("Deselect pack for download"));
     }
 }
 

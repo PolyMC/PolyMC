@@ -7,6 +7,7 @@
 #include "minecraft/mod/ModFolderModel.h"
 
 #include "modplatform/CheckUpdateTask.h"
+#include "modplatform/ModAPI.h"
 
 class Mod;
 class ModrinthCheckUpdate;
@@ -20,7 +21,8 @@ class ModUpdateDialog final : public ReviewMessageBox {
                              BaseInstance* instance,
                              const std::shared_ptr<ModFolderModel> mod_model,
                              QList<Mod*>& search_for,
-                             bool update_mods = true);
+                             bool update_mods = true,
+                             ModAPI::ResourceType resourceType = ModAPI::Mod);
 
     void checkCandidates();
 
@@ -61,4 +63,5 @@ class ModUpdateDialog final : public ReviewMessageBox {
     bool m_aborted = false;
 
     bool m_update_mods = true;
+    ModAPI::ResourceType m_resource_type;
 };

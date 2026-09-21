@@ -37,19 +37,22 @@ ModUpdateDialog::ModUpdateDialog(QWidget* parent,
                                  BaseInstance* instance,
                                  const std::shared_ptr<ModFolderModel> mods,
                                  QList<Mod*>& search_for,
-                                 bool update_mods)
-    : ReviewMessageBox(parent, tr("Confirm mods to update"), "")
+                                 bool update_mods,
+                                 ModAPI::ResourceType resourceType)
+    : ReviewMessageBox(parent, tr("Confirm %1 to update").arg(resourceType == ModAPI::Mod ? tr("mods") : tr("packs")), "")
     , m_parent(parent)
     , m_mod_model(mods)
     , m_candidates(search_for)
     , m_second_try_metadata(new ConcurrentTask())
     , m_instance(instance)
     , m_update_mods(update_mods)
+    , m_resource_type(resourceType)
 {
     ReviewMessageBox::setGeometry(0, 0, 800, 600);
 
-    ui->explainLabel->setText(tr("You're about to update the following mods:"));
-    ui->onlyCheckedLabel->setText(tr("Only mods with a check will be updated!"));
+    QString itemType = (m_resource_type == ModAPI::Mod) ? tr("mods") : tr("packs");
+    ui->explainLabel->setText(tr("You're about to update the following %1:").arg(itemType));
+    ui->onlyCheckedLabel->setText(tr("Only %1 with a check will be updated!").arg(itemType));
 }
 
 void ModUpdateDialog::checkCandidates()

@@ -14,7 +14,7 @@
    <item row="1" column="0" colspan="4">
     <layout class="QGridLayout" name="gridLayout_3">
      <item row="1" column="2">
-      <widget class="QTextBrowser" name="packDescription">
+      <widget class="RemoteTextBrowser" name="packDescription">
        <property name="openExternalLinks">
         <bool>true</bool>
        </property>
@@ -106,6 +106,13 @@
   <tabstop>sortByBox</tabstop>
   <tabstop>versionSelectionBox</tabstop>
  </tabstops>
+ <customwidgets>
+  <customwidget>
+   <class>RemoteTextBrowser</class>
+   <extends>QTextBrowser</extends>
+   <header>ui/widgets/RemoteTextBrowser.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
