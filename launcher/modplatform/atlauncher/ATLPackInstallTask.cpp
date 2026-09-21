@@ -437,15 +437,19 @@ bool PackInstallTask::createLibrariesComponent(QString instanceRoot, std::shared
     QList<GradleSpecifier> exempt;
     for(const auto & componentUid : componentsToInstall.keys()) {
         auto componentVersion = componentsToInstall.value(componentUid);
+        auto data = componentVersion->data();
 
-        for(const auto & library : componentVersion->data()->libraries) {
-            GradleSpecifier lib(library->rawName());
-            exempt.append(lib);
+        if (data) {
+            for(const auto & library : std::as_const(data->libraries)) {
+                GradleSpecifier lib(library->rawName());
+                exempt.append(lib);
+            }
         }
     }
 
-    {
-        for(const auto & library : minecraftVersion->data()->libraries) {
+    auto data = minecraftVersion->data();
+    if (data) {
+        for(const auto & library : std::as_const(data->libraries)) {
             GradleSpecifier lib(library->rawName());
             exempt.append(lib);
         }
@@ -497,7 +501,7 @@ bool PackInstallTask::createLibrariesComponent(QString instanceRoot, std::shared
             { "b9bef8abc8dc309069aeba6fbbe58980", "1.12.1-SNAPSHOT" }
     };
 
-    for(const auto & lib : m_version.libraries) {
+    for(const auto & lib : std::as_const(m_version.libraries)) {
         // If the library is LiteLoader, we need to ignore it and handle it separately.
         if (liteLoaderMap.contains(lib.md5)) {
             auto ver = getComponentVersion("com.mumfrey.liteloader", liteLoaderMap.value(lib.md5));
@@ -569,7 +573,7 @@ bool PackInstallTask::createPackComponent(QString instanceRoot, std::shared_ptr<
     auto hasExtraArgumentsDepends = !m_version.extraArguments.depends.isEmpty();
     if (hasMainClassDepends || hasExtraArgumentsDepends) {
         QSet<QString> mods;
-        for (const auto& item : m_version.mods) {
+        for (const auto& item : std::as_const(m_version.mods)) {
             mods.insert(item.name);
         }
 
@@ -601,11 +605,14 @@ bool PackInstallTask::createPackComponent(QString instanceRoot, std::shared_ptr<
     QStringList tweakers;
     for(const auto & componentUid : componentsToInstall.keys()) {
         auto componentVersion = componentsToInstall.value(componentUid);
+        auto data = componentVersion->data();
 
-        if(componentVersion->data()->mainClass != QString("")) {
-            mainClasses.append(componentVersion->data()->mainClass);
+        if (data) {
+            if(data->mainClass != QString("")) {
+                mainClasses.append(data->mainClass);
+            }
+            tweakers.append(data->addTweakers);
         }
-        tweakers.append(componentVersion->data()->addTweakers);
     }
 
     auto f = std::make_shared<VersionFile>();
@@ -617,7 +624,7 @@ bool PackInstallTask::createPackComponent(QString instanceRoot, std::shared_ptr<
     // Parse out tweakers
     auto args = extraArguments.split(" ");
     QString previous;
-    for(auto arg : args) {
+    for(auto arg : std::as_const(args)) {
         if(arg.startsWith("--tweakClass=") || previous == "--tweakClass") {
             auto tweakClass = arg.remove("--tweakClass=");
             if(tweakers.contains(tweakClass)) continue;
@@ -1045,15 +1052,25 @@ static Meta::VersionPtr getComponentVersion(const QString& uid, const QString& v
     if (!vlist)
         return {};
 
-    if (!vlist->isLoaded())
-        vlist->load(Net::Mode::Online);
+    if (!vlist->isLoaded()) {
+        QEventLoop loop;
+        auto task = vlist->getLoadTask();
+
+        QObject::connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
+        loop.exec();
+    }
 
     auto ver = vlist->getVersion(version);
     if (!ver)
         return {};
 
-    if (!ver->isLoaded())
-        ver->load(Net::Mode::Online);
+    if (!ver->isLoaded()) {
+        QEventLoop loop;
+        auto task = vlist->getLoadTask();
+
+        QObject::connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
+        loop.exec();
+    }
 
     return ver;
 }
