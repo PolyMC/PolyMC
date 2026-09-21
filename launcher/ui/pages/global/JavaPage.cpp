@@ -63,11 +63,14 @@ JavaPage::JavaPage(QWidget *parent) : QWidget(parent), ui(new Ui::JavaPage)
     // TODO(crueter): add warning theme icons.
     ui->lowMemWarnIcon->setPixmap(QMessageBox::standardIcon(QMessageBox::Warning).scaled(24, 24));
 
-    connect(ui->minMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
-            this, &JavaPage::updateMemoryWarning);
+    connect(ui->minMemSpinBox, &QSpinBox::editingFinished,
+            this, &JavaPage::normalizeMemory);
 
     connect(ui->maxMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
             this, &JavaPage::updateMemoryWarning);
+
+    connect(ui->maxMemSpinBox, &QSpinBox::editingFinished,
+            this, &JavaPage::normalizeMemory);
 
     updateMemoryWarning();
 
@@ -137,13 +140,7 @@ void JavaPage::loadSettings()
 }
 
 void JavaPage::updateMemoryWarning() {
-    int minMem = ui->minMemSpinBox->value();
     int maxMem = ui->maxMemSpinBox->value();
-
-    if (minMem > maxMem) {
-        ui->maxMemSpinBox->setValue(minMem);
-        maxMem = minMem;
-    }
 
     if (maxMem < 1024) {
         ui->lowMemWarnLabel->setText(
@@ -152,6 +149,14 @@ void JavaPage::updateMemoryWarning() {
     } else {
         ui->lowMemWarnWidget->hide();
     }
+}
+
+void JavaPage::normalizeMemory() {
+    int minMem = ui->minMemSpinBox->value();
+    int maxMem = ui->maxMemSpinBox->value();
+
+    if (minMem > maxMem)
+        ui->maxMemSpinBox->setValue(minMem);
 }
 
 void JavaPage::on_javaDetectBtn_clicked()

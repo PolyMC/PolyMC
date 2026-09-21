@@ -34,6 +34,10 @@ JavaSettingsWidget::JavaSettingsWidget(QWidget* parent) : QWidget(parent)
     connect(m_minMemSpinBox, SIGNAL(valueChanged(int)), this, SLOT(memoryValueChanged(int)));
     connect(m_maxMemSpinBox, SIGNAL(valueChanged(int)), this, SLOT(memoryValueChanged(int)));
     connect(m_permGenSpinBox, SIGNAL(valueChanged(int)), this, SLOT(memoryValueChanged(int)));
+
+    connect(m_minMemSpinBox, &QSpinBox::editingFinished, this, &JavaSettingsWidget::normalizeMemory);
+    connect(m_maxMemSpinBox, &QSpinBox::editingFinished, this, &JavaSettingsWidget::normalizeMemory);
+
     connect(m_versionWidget, &VersionSelectWidget::selectedVersionChanged, this, &JavaSettingsWidget::javaVersionSelected);
     connect(m_javaBrowseBtn, &QPushButton::clicked, this, &JavaSettingsWidget::on_javaBrowseBtn_clicked);
     connect(m_javaPathTextBox, &QLineEdit::textEdited, this, &JavaSettingsWidget::javaPathEdited);
@@ -229,34 +233,14 @@ void JavaSettingsWidget::memoryValueChanged(int)
     int permgen = m_permGenSpinBox->value();
     QObject *obj = sender();
     if (obj == m_minMemSpinBox && min != observedMinMemory)
-    {
-        observedMinMemory = min;
         actuallyChanged = true;
-        if (min > max)
-        {
-            observedMaxMemory = min;
-            m_maxMemSpinBox->setValue(min);
-        }
-    }
     else if (obj == m_maxMemSpinBox && max != observedMaxMemory)
-    {
-        observedMaxMemory = max;
         actuallyChanged = true;
-        if (min > max)
-        {
-            observedMinMemory = max;
-            m_minMemSpinBox->setValue(max);
-        }
-    }
     else if (obj == m_permGenSpinBox && permgen != observedPermGenMemory)
-    {
-        observedPermGenMemory = permgen;
         actuallyChanged = true;
-    }
+
     if(actuallyChanged)
-    {
         checkJavaPathOnEdit(m_javaPathTextBox->text());
-    }
 
     if (max < 1024) {
         m_lowMemWarnLabel->setText(
@@ -265,6 +249,14 @@ void JavaSettingsWidget::memoryValueChanged(int)
     } else {
         m_lowMemWarnWidget->hide();
     }
+}
+
+void JavaSettingsWidget::normalizeMemory() {
+    int minMem = m_minMemSpinBox->value();
+    int maxMem = m_maxMemSpinBox->value();
+
+    if (minMem > maxMem)
+        m_maxMemSpinBox->setValue(minMem);
 }
 
 void JavaSettingsWidget::javaVersionSelected(BaseVersionPtr version)
