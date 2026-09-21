@@ -154,6 +154,12 @@ void PackInstallTask::resolveMods()
         }
     }
 
+    // don't try to resolve mods if there aren't any curseforge IDs
+    if (manifest.files.isEmpty()) {
+        downloadPack();
+        return;
+    }
+
     m_mod_id_resolver_task = new Flame::FileResolvingTask(APPLICATION->network(), manifest);
 
     connect(m_mod_id_resolver_task.get(), &Flame::FileResolvingTask::succeeded, this, &PackInstallTask::onResolveModsSucceeded);

@@ -151,8 +151,8 @@ static void loadVersionFile(FTB::VersionFile & a, QJsonObject & obj)
     a.optional = Json::requireBoolean(obj, "optional");
     a.updated = Json::requireInteger(obj, "updated");
     auto curseforgeObj = Json::ensureObject(obj, "curseforge");  // optional
-    a.curseforge.project_id = Json::ensureInteger(curseforgeObj, "project");
-    a.curseforge.file_id = Json::ensureInteger(curseforgeObj, "file");
+    a.curseforge.project_id = Json::ensureString(curseforgeObj, "project").toInt();
+    a.curseforge.file_id = Json::ensureString(curseforgeObj, "file").toInt();
 }
 
 void FTB::loadVersion(FTB::Version & m, QJsonObject & obj)
