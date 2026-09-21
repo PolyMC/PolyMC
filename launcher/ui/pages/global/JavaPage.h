@@ -87,6 +87,7 @@ slots:
     void on_javaBrowseBtn_clicked();
     void checkerFinished();
     void updateMemoryWarning();
+    void normalizeMemory();
 
 private:
     Ui::JavaPage *ui;

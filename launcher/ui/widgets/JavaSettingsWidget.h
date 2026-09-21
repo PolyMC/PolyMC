@@ -59,6 +59,8 @@ public:
 
 protected slots:
     void memoryValueChanged(int);
+    void normalizeMemory();
+
     void javaPathEdited(const QString &path);
     void javaVersionSelected(BaseVersionPtr version);
     void on_javaBrowseBtn_clicked();

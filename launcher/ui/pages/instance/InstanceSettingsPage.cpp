@@ -75,11 +75,14 @@ InstanceSettingsPage::InstanceSettingsPage(BaseInstance *inst, QWidget *parent)
     // TODO(crueter): add warning theme icons.
     ui->lowMemWarnIcon->setPixmap(QMessageBox::standardIcon(QMessageBox::Warning).scaled(24, 24));
 
-    connect(ui->minMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
-            this, &InstanceSettingsPage::updateMemoryWarning);
+    connect(ui->minMemSpinBox, &QSpinBox::editingFinished,
+            this, &InstanceSettingsPage::normalizeMemory);
 
     connect(ui->maxMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
             this, &InstanceSettingsPage::updateMemoryWarning);
+
+    connect(ui->maxMemSpinBox, &QSpinBox::editingFinished,
+            this, &InstanceSettingsPage::normalizeMemory);
 
     updateMemoryWarning();
 
@@ -112,13 +115,7 @@ void InstanceSettingsPage::globalSettingsButtonClicked(bool)
 }
 
 void InstanceSettingsPage::updateMemoryWarning() {
-    int minMem = ui->minMemSpinBox->value();
     int maxMem = ui->maxMemSpinBox->value();
-
-    if (minMem > maxMem) {
-        ui->maxMemSpinBox->setValue(minMem);
-        maxMem = minMem;
-    }
 
     if (maxMem < 1024) {
         ui->lowMemWarnLabel->setText(tr("Allocating less than 1024 MiB may cause performance "
@@ -127,6 +124,14 @@ void InstanceSettingsPage::updateMemoryWarning() {
     } else {
         ui->lowMemWarnWidget->hide();
     }
+}
+
+void InstanceSettingsPage::normalizeMemory() {
+    int minMem = ui->minMemSpinBox->value();
+    int maxMem = ui->maxMemSpinBox->value();
+
+    if (minMem > maxMem)
+        ui->maxMemSpinBox->setValue(minMem);
 }
 
 bool InstanceSettingsPage::apply()

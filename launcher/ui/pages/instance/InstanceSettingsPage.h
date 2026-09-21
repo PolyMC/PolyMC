@@ -90,6 +90,7 @@ private slots:
     void globalSettingsButtonClicked(bool checked);
 
     void updateMemoryWarning();
+    void normalizeMemory();
 
 
 private:
