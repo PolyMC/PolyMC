@@ -18,7 +18,7 @@
 
 #include <QDebug>
 
-#include "modplatform/modpacksch/FTBPackManifest.h"
+#include "modplatform/ftb/FTBPackManifest.h"
 #include <MMCStrings.h>
 
 namespace Ftb {
@@ -65,14 +65,14 @@ bool FilterModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParen
     }
 
     auto index = sourceModel()->index(sourceRow, 0, sourceParent);
-    auto pack = sourceModel()->data(index, Qt::UserRole).value<ModpacksCH::Modpack>();
+    auto pack = sourceModel()->data(index, Qt::UserRole).value<FTB::Modpack>();
     return pack.name.contains(searchTerm, Qt::CaseInsensitive);
 }
 
 bool FilterModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
-    ModpacksCH::Modpack leftPack = sourceModel()->data(left, Qt::UserRole).value<ModpacksCH::Modpack>();
-    ModpacksCH::Modpack rightPack = sourceModel()->data(right, Qt::UserRole).value<ModpacksCH::Modpack>();
+    FTB::Modpack leftPack = sourceModel()->data(left, Qt::UserRole).value<FTB::Modpack>();
+    FTB::Modpack rightPack = sourceModel()->data(right, Qt::UserRole).value<FTB::Modpack>();
 
     if (currentSorting == ByPlays) {
         return leftPack.plays < rightPack.plays;

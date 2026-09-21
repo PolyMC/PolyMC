@@ -42,7 +42,7 @@
 #include <QJsonObject>
 #include <QMetaType>
 
-namespace ModpacksCH
+namespace FTB
 {
 
 struct Specs
@@ -161,4 +161,4 @@ void loadModpack(Modpack & m, QJsonObject & obj);
 void loadVersion(Version & m, QJsonObject & obj);
 }
 
-Q_DECLARE_METATYPE(ModpacksCH::Modpack)
+Q_DECLARE_METATYPE(FTB::Modpack)

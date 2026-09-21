@@ -50,7 +50,7 @@ QVariant ListModel::data(const QModelIndex &index, int role) const
         return QString("INVALID INDEX %1").arg(pos);
     }
 
-    ModpacksCH::Modpack pack = modpacks.at(pos);
+    FTB::Modpack pack = modpacks.at(pos);
     if(role == Qt::DisplayRole)
     {
         return pack.name;
@@ -93,7 +93,7 @@ void ListModel::getLogo(const QString &logo, const QString &logoUrl, LogoCallbac
 {
     if(m_logoMap.contains(logo))
     {
-        callback(APPLICATION->metacache()->resolveEntry("ModpacksCHPacks", QString("logos/%1").arg(logo.section(".", 0, 0)))->getFullPath());
+        callback(APPLICATION->metacache()->resolveEntry("FTBPacks", QString("logos/%1").arg(logo.section(".", 0, 0)))->getFullPath());
     }
     else
     {
@@ -125,7 +125,7 @@ void ListModel::requestFinished()
     QJsonParseError parse_error {};
     QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
     if(parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from ModpacksCH at " << parse_error.offset << " reason: " << parse_error.errorString();
+        qWarning() << "Error while parsing JSON response from FTB at " << parse_error.offset << " reason: " << parse_error.errorString();
         qWarning() << response;
         return;
     }
@@ -169,22 +169,22 @@ void ListModel::packRequestFinished()
     QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
 
     if(parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from ModpacksCH at " << parse_error.offset << " reason: " << parse_error.errorString();
+        qWarning() << "Error while parsing JSON response from FTB at " << parse_error.offset << " reason: " << parse_error.errorString();
         qWarning() << response;
         return;
     }
 
     auto obj = doc.object();
 
-    ModpacksCH::Modpack pack;
+    FTB::Modpack pack;
     try
     {
-        ModpacksCH::loadModpack(pack, obj);
+        FTB::loadModpack(pack, obj);
     }
     catch (const JSONValidationError &e)
     {
         qDebug() << QString::fromUtf8(response);
-        qWarning() << "Error while reading pack manifest from ModpacksCH: " << e.cause();
+        qWarning() << "Error while reading pack manifest from FTB: " << e.cause();
         return;
     }
 
@@ -192,7 +192,7 @@ void ListModel::packRequestFinished()
     // ignore those "dud" packs.
     if (pack.versions.empty())
     {
-        qWarning() << "ModpacksCH Pack " << pack.id << " ignored. reason: lacking any versions";
+        qWarning() << "FTB Pack " << pack.id << " ignored. reason: lacking any versions";
     }
     else
     {
@@ -266,11 +266,11 @@ void ListModel::requestLogo(QString logo, QString url)
         return;
     }
 
-    MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry("ModpacksCHPacks", QString("logos/%1").arg(logo.section(".", 0, 0)));
+    MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry("FTBPacks", QString("logos/%1").arg(logo.section(".", 0, 0)));
 
     bool stale = entry->isStale();
 
-    NetJob *job = new NetJob(QString("ModpacksCH Icon Download %1").arg(logo), APPLICATION->network());
+    NetJob *job = new NetJob(QString("FTB Icon Download %1").arg(logo), APPLICATION->network());
     job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
 
     auto fullPath = entry->getFullPath();

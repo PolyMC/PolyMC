@@ -18,7 +18,7 @@
 
 #include <QAbstractListModel>
 
-#include "modplatform/modpacksch/FTBPackManifest.h"
+#include "modplatform/ftb/FTBPackManifest.h"
 #include "net/NetJob.h"
 #include <QIcon>
 
@@ -65,7 +65,7 @@ private:
     void requestLogo(QString file, QString url);
 
 private:
-    QList<ModpacksCH::Modpack> modpacks;
+    QList<FTB::Modpack> modpacks;
     LogoMap m_logoMap;
 
     NetJob::Ptr jobPtr;

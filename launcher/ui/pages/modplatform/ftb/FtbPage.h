@@ -97,7 +97,7 @@ private:
     Ftb::ListModel* listModel = nullptr;
     Ftb::FilterModel* filterModel = nullptr;
 
-    ModpacksCH::Modpack selected;
+    FTB::Modpack selected;
     QString selectedVersion;
 
     bool initialised { false };
