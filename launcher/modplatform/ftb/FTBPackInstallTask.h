@@ -46,7 +46,7 @@
 
 #include <QWidget>
 
-namespace ModpacksCH {
+namespace FTB {
 
 class PackInstallTask final : public InstanceTask
 {

@@ -472,7 +472,7 @@ set(API_SOURCES
     modplatform/helpers/OverrideUtils.cpp
 )
 
-set(FTB_SOURCES
+set(LEGACY_FTB_SOURCES
     modplatform/legacy_ftb/PackFetchTask.h
     modplatform/legacy_ftb/PackFetchTask.cpp
     modplatform/legacy_ftb/PackInstallTask.h
@@ -510,11 +510,11 @@ set(MODRINTH_SOURCES
     modplatform/modrinth/ModrinthInstanceCreationTask.h
 )
 
-set(MODPACKSCH_SOURCES
-    modplatform/modpacksch/FTBPackInstallTask.h
-    modplatform/modpacksch/FTBPackInstallTask.cpp
-    modplatform/modpacksch/FTBPackManifest.h
-    modplatform/modpacksch/FTBPackManifest.cpp
+set(FTB_SOURCES
+    modplatform/ftb/FTBPackInstallTask.h
+    modplatform/ftb/FTBPackInstallTask.cpp
+    modplatform/ftb/FTBPackManifest.h
+    modplatform/ftb/FTBPackManifest.cpp
 )
 
 set(PACKWIZ_SOURCES
@@ -567,10 +567,10 @@ set(LOGIC_SOURCES
     ${META_SOURCES}
     ${ICONS_SOURCES}
     ${API_SOURCES}
-    ${FTB_SOURCES}
+    ${LEGACY_FTB_SOURCES}
     ${FLAME_SOURCES}
     ${MODRINTH_SOURCES}
-    ${MODPACKSCH_SOURCES}
+    ${FTB_SOURCES}
     ${PACKWIZ_SOURCES}
     ${TECHNIC_SOURCES}
     ${ATLAUNCHER_SOURCES}

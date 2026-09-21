@@ -835,7 +835,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_metacache->addBase("general", QDir("cache").absolutePath());
         m_metacache->addBase("ATLauncherPacks", QDir("cache/ATLauncherPacks").absolutePath());
         m_metacache->addBase("FTBPacks", QDir("cache/FTBPacks").absolutePath());
-        m_metacache->addBase("ModpacksCHPacks", QDir("cache/ModpacksCHPacks").absolutePath());
+        m_metacache->addBase("FTBPacks", QDir("cache/FTBPacks").absolutePath());
         m_metacache->addBase("TechnicPacks", QDir("cache/TechnicPacks").absolutePath());
         m_metacache->addBase("FlamePacks", QDir("cache/FlamePacks").absolutePath());
         m_metacache->addBase("FlameMods", QDir("cache/FlameMods").absolutePath());
@@ -1620,8 +1620,8 @@ void Application::updateCapabilities()
         for (auto DLL: MangoHudDLLs)
         {
             void *dummy = dlopen(DLL.toStdString().c_str(), RTLD_LAZY);
-            
-            if (dummy != NULL) 
+
+            if (dummy != NULL)
             {
                 dlclose(dummy);
                 m_capabilities |= SupportsMangoHud;

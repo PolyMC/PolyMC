@@ -41,7 +41,7 @@
 #include <QKeyEvent>
 
 #include "ui/dialogs/NewInstanceDialog.h"
-#include "modplatform/modpacksch/FTBPackInstallTask.h"
+#include "modplatform/ftb/FTBPackInstallTask.h"
 
 #include "HoeDown.h"
 
@@ -127,7 +127,7 @@ void FtbPage::suggestCurrent()
         return;
     }
 
-    dialog->setSuggestedPack(selected.name, selectedVersion, new ModpacksCH::PackInstallTask(selected, selectedVersion, this));
+    dialog->setSuggestedPack(selected.name, selectedVersion, new FTB::PackInstallTask(selected, selectedVersion, this));
     for(auto art : selected.art) {
         if(art.type == "square") {
             QString editedLogoName;
@@ -165,7 +165,7 @@ void FtbPage::onSelectionChanged(QModelIndex first, QModelIndex second)
         return;
     }
 
-    selected = filterModel->data(first, Qt::UserRole).value<ModpacksCH::Modpack>();
+    selected = filterModel->data(first, Qt::UserRole).value<FTB::Modpack>();
 
     HoeDown hoedown;
     QString output = hoedown.process(selected.description.toUtf8());

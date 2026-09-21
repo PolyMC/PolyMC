@@ -42,7 +42,7 @@
 #include <QJsonObject>
 #include <QMetaType>
 
-namespace ModpacksCH
+namespace FTB
 {
 
 struct Specs
@@ -67,7 +67,6 @@ struct Art
     int height;
     bool compressed;
     QString sha1;
-    int size;
     int64_t updated;
 };
 
@@ -100,7 +99,6 @@ struct Modpack
     int installs;
     int plays;
     int64_t updated;
-    int64_t refreshed;
     QVector<Art> art;
     QVector<Author> authors;
     QVector<VersionInfo> versions;
@@ -131,7 +129,6 @@ struct VersionFile
     QString version;
     QString url;
     QString sha1;
-    int size;
     bool clientOnly;
     bool serverOnly;
     bool optional;
@@ -148,7 +145,6 @@ struct Version
     int installs;
     int plays;
     int64_t updated;
-    int64_t refreshed;
     Specs specs;
     QVector<VersionTarget> targets;
     QVector<VersionFile> files;
@@ -165,4 +161,4 @@ void loadModpack(Modpack & m, QJsonObject & obj);
 void loadVersion(Version & m, QJsonObject & obj);
 }
 
-Q_DECLARE_METATYPE(ModpacksCH::Modpack)
+Q_DECLARE_METATYPE(FTB::Modpack)

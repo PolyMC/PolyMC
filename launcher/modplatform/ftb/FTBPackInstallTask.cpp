@@ -50,7 +50,7 @@
 #include "BuildConfig.h"
 #include "ui/dialogs/BlockedModsDialog.h"
 
-namespace ModpacksCH {
+namespace FTB {
 
 PackInstallTask::PackInstallTask(Modpack pack, QString version, QWidget* parent)
     : m_pack(std::move(pack)), m_version_name(std::move(version)), m_parent(parent)
@@ -77,7 +77,7 @@ void PackInstallTask::executeTask()
 
     // Find pack version
     auto version_it = std::find_if(m_pack.versions.constBegin(), m_pack.versions.constEnd(),
-                                   [this](ModpacksCH::VersionInfo const& a) { return a.name == m_version_name; });
+                                   [this](FTB::VersionInfo const& a) { return a.name == m_version_name; });
 
     if (version_it == m_pack.versions.constEnd()) {
         emitFailed(tr("Failed to find pack version %1").arg(m_version_name));
@@ -86,9 +86,9 @@ void PackInstallTask::executeTask()
 
     auto version = *version_it;
 
-    auto* netJob = new NetJob("ModpacksCH::VersionFetch", APPLICATION->network());
+    auto* netJob = new NetJob("FTB::VersionFetch", APPLICATION->network());
 
-    auto searchUrl = QString(BuildConfig.MODPACKSCH_API_BASE_URL + "public/modpack/%1/%2").arg(m_pack.id).arg(version.id);
+    auto searchUrl = QString(BuildConfig.FTB_API_BASE_URL + "/modpack/%1/%2").arg(m_pack.id).arg(version.id);
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchUrl), &m_response));
 
     QObject::connect(netJob, &NetJob::succeeded, this, &PackInstallTask::onManifestDownloadSucceeded);
@@ -107,16 +107,16 @@ void PackInstallTask::onManifestDownloadSucceeded()
     QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(m_response, &parse_error);
     if (parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from ModpacksCH at " << parse_error.offset
+        qWarning() << "Error while parsing JSON response from FTB at " << parse_error.offset
                    << " reason: " << parse_error.errorString();
         qWarning() << m_response;
         return;
     }
 
-    ModpacksCH::Version version;
+    FTB::Version version;
     try {
         auto obj = Json::requireObject(doc);
-        ModpacksCH::loadVersion(version, obj);
+        FTB::loadVersion(version, obj);
     } catch (const JSONValidationError& e) {
         emitFailed(tr("Could not understand pack manifest:\n") + e.cause());
         return;
@@ -152,6 +152,12 @@ void PackInstallTask::resolveMods()
         } else {
             m_file_id_map.append(-1);
         }
+    }
+
+    // don't try to resolve mods if there aren't any curseforge IDs
+    if (manifest.files.isEmpty()) {
+        downloadPack();
+        return;
     }
 
     m_mod_id_resolver_task = new Flame::FileResolvingTask(APPLICATION->network(), manifest);
@@ -225,7 +231,7 @@ void PackInstallTask::downloadPack()
         QFileInfo file_info(file.name);
         auto cacheName = file_info.completeBaseName() + "-" + file.sha1 + "." + file_info.suffix();
 
-        auto entry = APPLICATION->metacache()->resolveEntry("ModpacksCHPacks", cacheName);
+        auto entry = APPLICATION->metacache()->resolveEntry("FTBPacks", cacheName);
         entry->setStale(true);
 
         auto relpath = FS::PathCombine("minecraft", file.path, file.name);
@@ -334,7 +340,7 @@ void PackInstallTask::install()
 
     instance.setName(name());
     instance.setIconKey(m_instIcon);
-    instance.setManagedPack("modpacksch", QString::number(m_pack.id), m_pack.name, QString::number(m_version.id), m_version.name);
+    instance.setManagedPack("ftb", QString::number(m_pack.id), m_pack.name, QString::number(m_version.id), m_version.name);
     instanceSettings->resumeSave();
 
     emitSucceeded();
@@ -356,4 +362,4 @@ void PackInstallTask::onModDownloadFailed(QString reason)
     emitFailed(reason);
 }
 
-}  // namespace ModpacksCH
+}  // namespace FTB
