@@ -470,7 +470,7 @@ set(API_SOURCES
     modplatform/helpers/OverrideUtils.cpp
 )
 
-set(FTB_SOURCES
+set(LEGACY_FTB_SOURCES
     modplatform/legacy_ftb/PackFetchTask.h
     modplatform/legacy_ftb/PackFetchTask.cpp
     modplatform/legacy_ftb/PackInstallTask.h
@@ -565,7 +565,7 @@ set(LOGIC_SOURCES
     ${META_SOURCES}
     ${ICONS_SOURCES}
     ${API_SOURCES}
-    ${FTB_SOURCES}
+    ${LEGACY_FTB_SOURCES}
     ${FLAME_SOURCES}
     ${MODRINTH_SOURCES}
     ${FTB_SOURCES}
