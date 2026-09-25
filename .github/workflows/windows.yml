@@ -59,7 +59,7 @@ jobs:
             qt${{ matrix.qt_ver }}-imageformats:p qt${{ matrix.qt_ver }}-charts:p
             ccache:p
             ${{ matrix.qt_ver == 6 && 'quazip-qt6:p' || '' }}
-            ${{ matrix.msystem != 'clangarm64' && 'nsis:m' || '' }}
+            ${{ matrix.msystem != 'clangarm64' && 'nsis:p' || '' }}
             ${{ matrix.qt_ver == 6 && 'qt6-5compat:p' || '' }}
 
       - name: Build
