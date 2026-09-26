@@ -595,7 +595,7 @@ void InstanceSettingsPage::updateSecWarnVisibility(const QString &javaPath)
     }
 }
 
-void InstanceSettingsPage::secWarnCheckFinished(JavaCheckResult result)
+void InstanceSettingsPage::secWarnCheckFinished(const JavaCheckResult &result)
 {
     m_secWarnChecker.reset();
 

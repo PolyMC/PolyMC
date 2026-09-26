@@ -81,7 +81,7 @@ private slots:
     void on_javaDetectBtn_clicked();
     void on_javaTestBtn_clicked();
     void on_javaBrowseBtn_clicked();
-    void secWarnCheckFinished(JavaCheckResult result);
+    void secWarnCheckFinished(const JavaCheckResult& result);
 
     void applySettings();
     void loadSettings();
