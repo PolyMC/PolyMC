@@ -17,6 +17,7 @@ set(SRC
     org/polymc/utils/Parameters.java
     org/polymc/utils/Utils.java
     net/minecraft/Launcher.java
+    com/mojang/patchy/BlockedServers.java
 )
 add_jar(NewLaunch ${SRC})
 install_jar(NewLaunch "${JARS_DEST_DIR}")
