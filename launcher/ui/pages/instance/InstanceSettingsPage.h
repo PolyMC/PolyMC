@@ -81,6 +81,7 @@ private slots:
     void on_javaDetectBtn_clicked();
     void on_javaTestBtn_clicked();
     void on_javaBrowseBtn_clicked();
+    void secWarnCheckFinished(const JavaCheckResult& result);
 
     void applySettings();
     void loadSettings();
@@ -94,9 +95,15 @@ private slots:
 
 
 private:
+    void updateSecWarnVisibility(const QString &javaPath);
+
     Ui::InstanceSettingsPage *ui;
     BaseInstance *m_instance;
     SettingsObjectPtr m_settings;
     shared_qobject_ptr<AccountList> m_accounts;
     unique_qobject_ptr<JavaCommon::TestCheck> checker;
+    std::shared_ptr<JavaChecker> m_secWarnChecker;
+    QString m_secWarnJavaPath;
+    JavaVersion m_secWarnJavaVersion;
+    bool m_secWarnJavaChecked = false;
 };

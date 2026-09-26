@@ -144,6 +144,7 @@ void MinecraftInstance::loadSpecificSettings()
         m_settings->registerOverride(global_settings->getSetting("JavaPath"), javaOrLocation);
         m_settings->registerOverride(global_settings->getSetting("JvmArgs"), javaOrArgs);
         m_settings->registerOverride(global_settings->getSetting("IgnoreJavaCompatibility"), javaOrLocation);
+        m_settings->registerOverride(global_settings->getSetting("IgnoreJavaSecWarn"), javaOrLocation);
 
         // special!
         m_settings->registerPassthrough(global_settings->getSetting("JavaTimestamp"), javaOrLocation);
@@ -447,6 +448,14 @@ QStringList MinecraftInstance::javaArguments()
     }
 
     args << "-Duser.language=en";
+
+    // Modern Java 8 runtimes don't support SHA1, which breaks some old modpacks
+    // forge also requires ignoreInvalidMinecraftCertificates on older versions, especially e.g. for liteloader
+    if (javaVersion.requiresSecBypass() && m_settings->get("IgnoreJavaSecWarn").toBool()) {
+        const auto propPath = APPLICATION->getPropertiesPath("legacy-jar-security.properties");
+        args << QStringLiteral("-Djava.security.properties=%1").arg(propPath);
+        args << "-Dfml.ignoreInvalidMinecraftCertificates=true";
+    }
 
     return args;
 }

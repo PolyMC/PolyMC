@@ -56,6 +56,13 @@ bool JavaVersion::requiresPermGen()
     return true;
 }
 
+bool JavaVersion::requiresSecBypass() {
+    if (m_parseable) {
+        return m_major <= 8;
+    }
+    return true;
+}
+
 bool JavaVersion::operator<(const JavaVersion &rhs)
 {
     if(m_parseable && rhs.m_parseable)
