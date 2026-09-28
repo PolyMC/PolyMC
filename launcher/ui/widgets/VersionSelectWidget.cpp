@@ -142,8 +142,6 @@ void VersionSelectWidget::loadList()
 
     sneakyProgressBar->setHidden(false);
     ignoreDuplicates->setHidden(true);
-
-    qDebug() << "SYM prog" << sneakyProgressBar->height() << "CHK" << ignoreDuplicates->height();
 }
 
 void VersionSelectWidget::onTaskSucceeded()
