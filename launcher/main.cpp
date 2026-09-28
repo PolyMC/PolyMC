@@ -76,9 +76,8 @@ int main(int argc, char *argv[])
     QFont f = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
     // if this is left at the default, Apple's asinine scaling will make the font extremely small
     // so you have to explicitly tell the stylesheet to respect the system font size
-    app.setStyleSheet(QStringLiteral("* {font-size: %1pt}").arg(f.pointSizeF()));
+    app.setStyleSheet(QStringLiteral("QWidget {font-size: %1pt}").arg(f.pointSizeF()));
     app.setFont(f);
-
 #endif
 
     switch (app.status())
