@@ -33,7 +33,14 @@ VersionSelectWidget::VersionSelectWidget(QWidget* parent)
 
     ignoreDuplicates = new QCheckBox(this);
     ignoreDuplicates->setChecked(APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool());
-    connect(ignoreDuplicates, &QCheckBox::checkStateChanged, this, &VersionSelectWidget::updateSymlinkSetting);
+    connect(ignoreDuplicates,
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+        &QCheckBox::stateChanged,
+#else
+        &QCheckBox::checkStateChanged,
+#endif
+        this, &VersionSelectWidget::updateSymlinkSetting);
+
     verticalLayout->addWidget(ignoreDuplicates);
 
     sneakyProgressBar = new QProgressBar(this);
