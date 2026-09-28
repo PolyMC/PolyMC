@@ -185,13 +185,17 @@ LogPage::LogPage(InstancePtr instance, QWidget *parent)
         connect(m_instance.get(), &BaseInstance::launchTaskChanged, this, &LogPage::onInstanceLaunchTaskChanged);
     }
 
-    auto findShortcut = new QShortcut(QKeySequence(QKeySequence::Find), this);
-    connect(findShortcut, SIGNAL(activated()), SLOT(findActivated()));
-    auto findNextShortcut = new QShortcut(QKeySequence(QKeySequence::FindNext), this);
-    connect(findNextShortcut, SIGNAL(activated()), SLOT(findNextActivated()));
+    auto newShortcut = [this](QKeySequence::StandardKey key) {
+        return new QShortcut(QKeySequence(key), this);
+    };
+
+    connect(newShortcut(QKeySequence::Find), &QShortcut::activated, this, &LogPage::findActivated);
+    connect(newShortcut(QKeySequence::FindNext), &QShortcut::activated, this,
+            &LogPage::findNextActivated);
+    connect(newShortcut(QKeySequence::FindPrevious), &QShortcut::activated, this,
+            &LogPage::findPreviousActivated);
+
     connect(ui->searchBar, SIGNAL(returnPressed()), SLOT(on_findButton_clicked()));
-    auto findPreviousShortcut = new QShortcut(QKeySequence(QKeySequence::FindPrevious), this);
-    connect(findPreviousShortcut, SIGNAL(activated()), SLOT(findPreviousActivated()));
 }
 
 LogPage::~LogPage()

@@ -175,5 +175,18 @@ void LogView::scrollToBottom()
 
 void LogView::findNext(const QString& what, bool reverse)
 {
-    find(what, reverse ? QTextDocument::FindFlag::FindBackward : QTextDocument::FindFlag(0));
+    auto flags = QTextDocument::FindFlags(0);
+    if (reverse)
+        flags |= QTextDocument::FindBackward;
+
+    // initial search
+    bool found = find(what, flags);
+
+    // wrap and search again if not found
+    if (!found) {
+        auto cursor = textCursor();
+        cursor.movePosition(reverse ? QTextCursor::End : QTextCursor::Start);
+        setTextCursor(cursor);
+        find(what, flags);
+    }
 }
