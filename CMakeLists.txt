@@ -236,6 +236,7 @@ if(UNIX AND APPLE)
     set(FRAMEWORK_DEST_DIR "${Launcher_Name}.app/Contents/Frameworks")
     set(RESOURCES_DEST_DIR "${Launcher_Name}.app/Contents/Resources")
     set(JARS_DEST_DIR "${Launcher_Name}.app/Contents/MacOS/jars")
+    set(PROP_DEST_DIR "${Launcher_Name}.app/Contents/Resources")
 
     # Apps to bundle
     set(APPS "\${CMAKE_INSTALL_PREFIX}/${Launcher_Name}.app")
@@ -269,6 +270,7 @@ elseif(UNIX)
     set(BINARY_DEST_DIR "bin")
     set(LIBRARY_DEST_DIR "lib${LIB_SUFFIX}")
     set(JARS_DEST_DIR "share/jars")
+    set(PROP_DEST_DIR "share/polymc")
     set(LAUNCHER_DESKTOP_DEST_DIR "share/applications" CACHE STRING "Path to the desktop file directory")
     set(LAUNCHER_METAINFO_DEST_DIR "share/metainfo" CACHE STRING "Path to the metainfo directory")
     set(LAUNCHER_ICON_DEST_DIR "share/icons/hicolor/scalable/apps" CACHE STRING "Path to the scalable icon directory")
@@ -297,6 +299,7 @@ elseif(WIN32)
     set(LIBRARY_DEST_DIR ".")
     set(PLUGIN_DEST_DIR ".")
     set(RESOURCES_DEST_DIR ".")
+    set(PROP_DEST_DIR ".")
     set(JARS_DEST_DIR "jars")
 
     # Apps to bundle

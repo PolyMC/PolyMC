@@ -172,6 +172,8 @@ public:
      */
     QString getJarPath(QString jarFile);
 
+    QString getPropertiesPath(QString propFile);
+
     QString getMSAClientID();
     QString getFlameAPIKey();
     QString getUserAgent();

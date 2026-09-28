@@ -25,6 +25,10 @@ public:
 
     bool requiresPermGen();
 
+    // Java 8 and below runtimes tend to have issues w/ forge,
+    // and SHA1 is disabled
+    bool requiresSecBypass();
+
     QString toString();
 
     int major()

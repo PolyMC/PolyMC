@@ -585,6 +585,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("LastHostname", "");
         m_settings->registerSetting("JvmArgs", "");
         m_settings->registerSetting("IgnoreJavaCompatibility", false);
+        m_settings->registerSetting("IgnoreJavaSecWarn", false);
         m_settings->registerSetting("IgnoreJavaWizard", false);
 
         // Native library workarounds
@@ -1647,6 +1648,23 @@ QString Application::getJarPath(QString jarFile)
         QString jarPath = FS::PathCombine(p, jarFile);
         if (QFileInfo(jarPath).isFile())
             return jarPath;
+    }
+    return {};
+}
+
+QString Application::getPropertiesPath(QString propFile) {
+    QStringList potentialPaths = {
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD) || defined(Q_OS_OPENBSD)
+        FS::PathCombine(m_rootPath, "share/polymc"),
+#endif
+        FS::PathCombine(m_rootPath, "Contents/Resources"),
+        applicationDirPath()
+    };
+    for(const QString &p : potentialPaths)
+    {
+        QString propPath = FS::PathCombine(p, propFile);
+        if (QFileInfo(propPath).isFile())
+            return propPath;
     }
     return {};
 }

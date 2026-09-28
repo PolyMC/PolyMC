@@ -50,6 +50,7 @@
 #include "Application.h"
 
 #include "java/JavaUtils.h"
+#include "java/JavaVersion.h"
 #include "FileSystem.h"
 
 #include "minecraft/auth/AccountList.h"
@@ -223,11 +224,13 @@ void InstanceSettingsPage::applySettings()
     {
         m_settings->set("JavaPath", ui->javaPathTextBox->text());
         m_settings->set("IgnoreJavaCompatibility", ui->skipCompatibilityCheckbox->isChecked());
+        m_settings->set("IgnoreJavaSecWarn", ui->secWarnCheckbox->isChecked());
     }
     else
     {
         m_settings->reset("JavaPath");
         m_settings->reset("IgnoreJavaCompatibility");
+        m_settings->reset("IgnoreJavaSecWarn");
     }
 
     // Java arguments
@@ -374,17 +377,18 @@ void InstanceSettingsPage::loadSettings()
         ui->minMemSpinBox->setValue(max);
         ui->maxMemSpinBox->setValue(min);
     }
+
     ui->permGenSpinBox->setValue(m_settings->get("PermGen").toInt());
     bool permGenVisible = m_settings->get("PermGenVisible").toBool();
     ui->permGenSpinBox->setVisible(permGenVisible);
     ui->labelPermGen->setVisible(permGenVisible);
     ui->labelPermgenNote->setVisible(permGenVisible);
 
-
     // Java Settings
     bool overrideJava = m_settings->get("OverrideJava").toBool();
     bool overrideLocation = m_settings->get("OverrideJavaLocation").toBool() || overrideJava;
     bool overrideArgs = m_settings->get("OverrideJavaArgs").toBool() || overrideJava;
+    bool secWarn = m_settings->get("IgnoreJavaSecWarn").toBool();
 
     ui->javaSettingsGroupBox->setChecked(overrideLocation);
     ui->javaPathTextBox->setText(m_settings->get("JavaPath").toString());
@@ -392,6 +396,9 @@ void InstanceSettingsPage::loadSettings()
 
     ui->javaArgumentsGroupBox->setChecked(overrideArgs);
     ui->jvmArgsTextBox->setPlainText(m_settings->get("JvmArgs").toString());
+
+    ui->secWarnCheckbox->setChecked(secWarn);
+    updateSecWarnVisibility(FS::ResolveExecutable(m_settings->get("JavaPath").toString()));
 
     // Custom commands
     ui->customCommands->initialize(
@@ -495,11 +502,17 @@ void InstanceSettingsPage::on_javaDetectBtn_clicked()
     {
         java = std::dynamic_pointer_cast<JavaInstall>(vselect.selectedVersion());
         ui->javaPathTextBox->setText(java->path);
+
         bool visible = java->id.requiresPermGen() && m_settings->get("OverrideMemory").toBool();
         ui->permGenSpinBox->setVisible(visible);
         ui->labelPermGen->setVisible(visible);
         ui->labelPermgenNote->setVisible(visible);
         m_settings->set("PermGenVisible", visible);
+
+        m_secWarnJavaPath = FS::ResolveExecutable(java->path);
+        m_secWarnJavaVersion = java->id;
+        m_secWarnJavaChecked = true;
+        ui->secWarnCheckbox->setVisible(m_secWarnJavaVersion.requiresSecBypass());
     }
 }
 
@@ -525,7 +538,10 @@ void InstanceSettingsPage::on_javaBrowseBtn_clicked()
     ui->permGenSpinBox->setVisible(true);
     ui->labelPermGen->setVisible(true);
     ui->labelPermgenNote->setVisible(true);
+
     m_settings->set("PermGenVisible", true);
+
+    updateSecWarnVisibility(FS::ResolveExecutable(cooked_path));
 }
 
 void InstanceSettingsPage::on_javaTestBtn_clicked()
@@ -544,6 +560,65 @@ void InstanceSettingsPage::on_javaTestBtn_clicked()
 void InstanceSettingsPage::checkerFinished()
 {
     checker.reset();
+}
+
+// only show the security errors checkbox if java <= 8
+void InstanceSettingsPage::updateSecWarnVisibility(const QString &javaPath)
+{
+    if (javaPath.isEmpty() || JavaUtils::getJavaCheckPath().isEmpty())
+    {
+        m_secWarnJavaPath.clear();
+        m_secWarnJavaChecked = false;
+        m_secWarnJavaVersion = JavaVersion();
+        ui->secWarnCheckbox->setVisible(false);
+        return;
+    }
+
+    if (javaPath == m_secWarnJavaPath)
+    {
+        ui->secWarnCheckbox->setVisible(m_secWarnJavaChecked && m_secWarnJavaVersion.requiresSecBypass());
+        return;
+    }
+
+    m_secWarnJavaPath = javaPath;
+    m_secWarnJavaChecked = false;
+    m_secWarnJavaVersion = JavaVersion();
+    ui->secWarnCheckbox->setVisible(false);
+
+    if (!m_secWarnChecker)
+    {
+        m_secWarnChecker.reset(new JavaChecker());
+        connect(m_secWarnChecker.get(), SIGNAL(checkFinished(JavaCheckResult)), this,
+                SLOT(secWarnCheckFinished(JavaCheckResult)));
+        m_secWarnChecker->m_path = javaPath;
+        m_secWarnChecker->performCheck();
+    }
+}
+
+void InstanceSettingsPage::secWarnCheckFinished(const JavaCheckResult &result)
+{
+    m_secWarnChecker.reset();
+
+    if (m_secWarnJavaChecked)
+    {
+        return;
+    }
+
+    if (result.path != m_secWarnJavaPath)
+    {
+        auto wantedPath = m_secWarnJavaPath;
+        m_secWarnJavaPath.clear();
+        updateSecWarnVisibility(wantedPath);
+        return;
+    }
+
+    if (result.validity == JavaCheckResult::Validity::Valid)
+    {
+        m_secWarnJavaVersion = result.javaVersion;
+        m_secWarnJavaChecked = true;
+    }
+
+    ui->secWarnCheckbox->setVisible(m_secWarnJavaChecked && m_secWarnJavaVersion.requiresSecBypass());
 }
 
 void InstanceSettingsPage::retranslate()
