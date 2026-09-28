@@ -49,6 +49,7 @@ jobs:
 
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
+        id: msys2
         with:
           msystem: ${{ matrix.msystem }}
           update: true
@@ -59,8 +60,12 @@ jobs:
             qt${{ matrix.qt_ver }}-imageformats:p qt${{ matrix.qt_ver }}-charts:p
             ccache:p
             ${{ matrix.qt_ver == 6 && 'quazip-qt6:p' || '' }}
-            ${{ matrix.msystem != 'clangarm64' && 'nsis:p' || '' }}
+            nsis:u
             ${{ matrix.qt_ver == 6 && 'qt6-5compat:p' || '' }}
+
+      - name: Put MSYS2 location in env
+        shell: bash
+        run: echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> "$GITHUB_ENV"
 
       - name: Build
         uses: ./.github/workflows/build
