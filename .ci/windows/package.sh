@@ -42,6 +42,9 @@ cmake --install "$BUILD" --prefix "$INSTALL_PORTABLE" --component portable
 PORTABLE=1 mkzip "$INSTALL_PORTABLE"
 
 # setup package
+: "${MSYS2_LOCATION:=C:/msys64}"
+export PATH="$PATH:${MSYS2_LOCATION}/ucrt64"
+
 cd "$INSTALL"
 makensis -NOCD "$BUILD/program_info/win_install.nsi"
 
