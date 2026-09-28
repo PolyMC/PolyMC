@@ -42,9 +42,6 @@ cmake --install "$BUILD" --prefix "$INSTALL_PORTABLE" --component portable
 PORTABLE=1 mkzip "$INSTALL_PORTABLE"
 
 # setup package
-# disable on arm for now
-[ "$ARCH" = amd64 ] || exit 0
-
 cd "$INSTALL"
 makensis -NOCD "$BUILD/program_info/win_install.nsi"
 
