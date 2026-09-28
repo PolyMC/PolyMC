@@ -15,8 +15,9 @@
 
 #pragma once
 
-#include <QWidget>
+#include <QCheckBox>
 #include <QSortFilterProxyModel>
+#include <QWidget>
 #include "BaseVersionList.h"
 #include "VersionListView.h"
 
@@ -53,6 +54,8 @@ public:
     void setEmptyMode(VersionListView::EmptyMode mode);
     void setResizeOn(int column);
 
+    void retranslate();
+
 signals:
     void selectedVersionChanged(BaseVersionPtr version);
 
@@ -64,6 +67,7 @@ private slots:
     void onTaskFailed(const QString &reason);
     void changeProgress(qint64 current, qint64 total);
     void currentRowChanged(const QModelIndex &current, const QModelIndex &);
+    void updateSymlinkSetting();
 
 private:
     void preselect();
@@ -79,5 +83,6 @@ private:
 private:
     QVBoxLayout *verticalLayout = nullptr;
     VersionListView *listView = nullptr;
+    QCheckBox *ignoreDuplicates = nullptr;
     QProgressBar *sneakyProgressBar = nullptr;
 };

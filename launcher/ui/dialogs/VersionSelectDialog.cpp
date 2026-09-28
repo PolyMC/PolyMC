@@ -22,21 +22,16 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QDebug>
 
-#include "ui/dialogs/ProgressDialog.h"
 #include "ui/widgets/VersionSelectWidget.h"
-#include "ui/dialogs/CustomMessageBox.h"
 
 #include "BaseVersion.h"
 #include "BaseVersionList.h"
-#include "tasks/Task.h"
-#include "Application.h"
-#include "VersionProxyModel.h"
 
 VersionSelectDialog::VersionSelectDialog(BaseVersionList *vlist, QString title, QWidget *parent, bool cancelable)
     : QDialog(parent)
 {
     setObjectName(QStringLiteral("VersionSelectDialog"));
-    resize(400, 347);
+    resize(450, 347);
     m_verticalLayout = new QVBoxLayout(this);
     m_verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
 
@@ -81,6 +76,8 @@ void VersionSelectDialog::retranslate()
     setWindowTitle(tr("Choose Version"));
     m_refreshButton->setToolTip(tr("Reloads the version list."));
     m_refreshButton->setText(tr("&Refresh"));
+
+    m_versionWidget->retranslate();
 }
 
 void VersionSelectDialog::setCurrentVersion(const QString& version)

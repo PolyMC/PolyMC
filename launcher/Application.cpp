@@ -587,6 +587,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_settings->registerSetting("IgnoreJavaCompatibility", false);
         m_settings->registerSetting("IgnoreJavaSecWarn", false);
         m_settings->registerSetting("IgnoreJavaWizard", false);
+        m_settings->registerSetting("IgnoreJavaSymlinks", false);
 
         // Native library workarounds
         m_settings->registerSetting("UseNativeOpenAL", false);

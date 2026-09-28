@@ -39,14 +39,14 @@
 #include <QDebug>
 
 #include "java/JavaInstallList.h"
+#include "Application.h"
 #include "java/JavaCheckerJob.h"
 #include "java/JavaUtils.h"
 #include "FileSystem.h"
-#include "MMCStrings.h"
-#include "minecraft/VersionFilterData.h"
 
 JavaInstallList::JavaInstallList(QObject *parent) : BaseVersionList(parent)
 {
+    prevIgnoreSymlinks = APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool();
 }
 
 Task::Ptr JavaInstallList::getLoadTask()
@@ -81,7 +81,11 @@ const BaseVersionPtr JavaInstallList::at(int i) const
 
 bool JavaInstallList::isLoaded()
 {
-    return m_status == JavaInstallList::Status::Done;
+    // reload the list if the ignore symlinks option has changed
+    const auto ignoreSymlinks = APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool();
+    const auto changed = ignoreSymlinks != prevIgnoreSymlinks;
+    prevIgnoreSymlinks = ignoreSymlinks;
+    return m_status == JavaInstallList::Status::Done && !changed;
 }
 
 int JavaInstallList::count() const
@@ -175,14 +179,20 @@ void JavaListLoadTask::executeTask()
 
     qDebug() << "Probing the following Java paths: ";
     int id = 0;
-    for(QString candidate : candidate_paths)
+    QSet<QString> found;
+    const auto canonical = APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool();
+
+    for(const QString &candidate : std::as_const(candidate_paths))
     {
-        if (FS::ResolveExecutable(candidate).isEmpty())
+        const auto clean = canonical ? QDir(candidate).canonicalPath() : QDir::cleanPath(candidate);
+        if (FS::ResolveExecutable(candidate).isEmpty() || found.contains(clean))
             continue;
-        qDebug() << " " << candidate;
+        found.insert(clean);
+
+        qDebug() << " " << clean;
 
         auto candidate_checker = new JavaChecker();
-        candidate_checker->m_path = candidate;
+        candidate_checker->m_path = clean;
         candidate_checker->m_id = id;
         m_job->addJavaCheckerAction(JavaCheckerPtr(candidate_checker));
 
@@ -198,7 +208,7 @@ void JavaListLoadTask::javaCheckerFinished()
     auto results = m_job->getResults();
 
     qDebug() << "Found the following valid Java installations:";
-    for(JavaCheckResult result : results)
+    for(const JavaCheckResult &result : std::as_const(results))
     {
         if(result.validity == JavaCheckResult::Validity::Valid)
         {
@@ -214,7 +224,7 @@ void JavaListLoadTask::javaCheckerFinished()
     }
 
     QList<BaseVersionPtr> javas_bvp;
-    for (auto java : candidates)
+    for (const auto &java : candidates)
     {
         //qDebug() << java->id << java->arch << " at " << java->path;
         BaseVersionPtr bp_java = std::dynamic_pointer_cast<BaseVersion>(java);
