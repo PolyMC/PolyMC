@@ -44,6 +44,10 @@
 #include <chrono>
 #endif
 
+#ifdef __APPLE__
+#include <QFontDatabase>
+#endif
+
 int main(int argc, char *argv[])
 {
 #ifdef BREAK_INFINITE_LOOP
@@ -63,9 +67,18 @@ int main(int argc, char *argv[])
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
     // initialize Qt
     Application app(argc, argv);
+
+#ifdef __APPLE__
+    QFont f = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
+    // if this is left at the default, Apple's asinine scaling will make the font extremely small
+    // so you have to explicitly tell the stylesheet to respect the system font size
+    app.setStyleSheet(QStringLiteral("QWidget {font-size: %1pt}").arg(f.pointSizeF()));
+    app.setFont(f);
+#endif
 
     switch (app.status())
     {

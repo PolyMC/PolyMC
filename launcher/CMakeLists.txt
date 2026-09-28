@@ -1,5 +1,3 @@
-project(application)
-
 ################################ FILES ################################
 
 ######## Sources and headers ########
@@ -1043,6 +1041,12 @@ endif()
 if(DEFINED Launcher_APP_BINARY_DEFS)
     target_compile_definitions(${Launcher_Name} PRIVATE ${Launcher_APP_BINARY_DEFS})
     target_compile_definitions(Launcher_logic PRIVATE ${Launcher_APP_BINARY_DEFS})
+endif()
+
+if (UNIX AND APPLE)
+    # liquid glass icon
+    include(MacOSIcon)
+    MacOSIcon(${PROJECT_SOURCE_DIR}/program_info polymc ${Launcher_Name})
 endif()
 
 install(TARGETS ${Launcher_Name}
