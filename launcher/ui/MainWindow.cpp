@@ -919,15 +919,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
 {
     ui->setupUi(this);
 
-#ifndef _WIN32
-    // without this, macOS fonts will be abnormally small
-    // some bad GTK environments also dislike point size
-    // FIXME: find a better solution
-    QFont f = APPLICATION->font();
-    f.setPixelSize(12);
-    APPLICATION->setFont(f);
-#endif
-
             // OSX magic.
     setUnifiedTitleAndToolBarOnMac(true);
 
