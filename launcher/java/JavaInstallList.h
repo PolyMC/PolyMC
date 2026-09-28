@@ -60,6 +60,7 @@ protected:
     Status m_status = Status::NotDone;
     shared_qobject_ptr<JavaListLoadTask> m_loadTask;
     QList<BaseVersionPtr> m_vlist;
+    bool prevIgnoreSymlinks;
 };
 
 class JavaListLoadTask : public Task
