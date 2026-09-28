@@ -470,7 +470,7 @@ class MainWindow::Ui
         if (!BuildConfig.BUG_TRACKER_URL.isEmpty()) {
             helpMenu->addAction(actionReportBug);
         }
-        
+
         if (!BuildConfig.DISCORD_URL.isEmpty()) {
             helpMenu->addAction(actionDISCORD);
         }
@@ -738,7 +738,7 @@ class MainWindow::Ui
         actionChangeInstGroup.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Change the selected instance's group."));
         actionChangeInstGroup->setShortcut(QKeySequence(tr("Ctrl+G")));
         all_actions.append(&actionChangeInstGroup);
-        
+
         // FIXME: Add a way to create shortcuts on Mac.
 #ifndef __APPLE__
         actionCreateShortcut = TranslatedAction(MainWindow);
@@ -918,6 +918,12 @@ class MainWindow::Ui
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow::Ui)
 {
     ui->setupUi(this);
+
+    // without this, macOS fonts will be abnormally small
+    // FIXME: find a better solution
+    QFont f = APPLICATION->font();
+    f.setPixelSize(12);
+    APPLICATION->setFont(f);
 
             // OSX magic.
     setUnifiedTitleAndToolBarOnMac(true);
@@ -1634,7 +1640,7 @@ void MainWindow::setCatBackground(bool enabled)
 
         QString cat = "default";
         QString catStyleOpt = APPLICATION->settings()->get("CatStyle").toString();
-        
+
         if(catStyleOpt == "Manul")
             cat = "manul";
         else if(catStyleOpt == "Floppa")
@@ -1894,7 +1900,7 @@ void MainWindow::on_actionCreateShortcut_triggered()
 {
     if (!m_selectedInstance)
         return;
-  
+
     auto desktop = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
     auto executable_path = APPLICATION->applicationFilePath();
     if (APPLICATION->isFlatpak()) {
