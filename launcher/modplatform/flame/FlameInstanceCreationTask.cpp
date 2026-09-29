@@ -240,6 +240,42 @@ bool FlameCreationTask::createInstance()
 
     if (!m_pack.overrides.isEmpty()) {
         QString overridePath = FS::PathCombine(m_stagingPath, m_pack.overrides);
+
+        // An override is trying to break the fourth wall, this is bad (usually)
+        const auto overrideAbsolute = QFileInfo(overridePath).canonicalPath();
+        const auto stagingAbsolute = QFileInfo(m_stagingPath).canonicalPath();
+        if (overrideAbsolute != stagingAbsolute &&
+            !overrideAbsolute.startsWith(stagingAbsolute + QDir::separator())) {
+            auto warn = CustomMessageBox::selectable(
+                m_parent, tr("Dangerous Path Override!"),
+                tr("This pack has an override path located outside of its dedicated directory "
+                   "(%1). This is DANGEROUS! You should only proceed if you are 100% POSITIVE this "
+                   "is safe.")
+                    .arg(overrideAbsolute),
+                QMessageBox::Critical, QMessageBox::Yes | QMessageBox::No);
+            warn->setButtonText(QMessageBox::Yes, tr("I know what I'm doing"));
+            warn->setButtonText(QMessageBox::No, tr("Cancel"));
+
+            warn->exec();
+
+            if (warn->clickedButton() == warn->button(QMessageBox::No))
+                return false;
+
+            auto warn2 = CustomMessageBox::selectable(
+                m_parent, tr("Are you really sure?!"),
+                tr("The override path (%1) is outside of its dedicated directory (%2). "
+                   "This is a security risk! Are you sure you want to continue?")
+                    .arg(overrideAbsolute, stagingAbsolute),
+                QMessageBox::Critical, QMessageBox::Yes | QMessageBox::No);
+            warn2->setButtonText(QMessageBox::Yes, tr("Yes, I'm sure"));
+            warn2->setButtonText(QMessageBox::No, tr("Cancel"));
+
+            warn2->exec();
+
+            if (warn2->clickedButton() == warn2->button(QMessageBox::No))
+                return false;
+        }
+
         if (QFile::exists(overridePath)) {
             // Create a list of overrides in "overrides.txt" inside flame/
             Override::createOverrides("overrides", parent_folder, overridePath);
