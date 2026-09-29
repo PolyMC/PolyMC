@@ -680,6 +680,7 @@ SET(LAUNCHER_SOURCES
     ui/pages/instance/VersionPage.cpp
     ui/pages/instance/VersionPage.h
     ui/pages/instance/TexturePackPage.h
+    ui/pages/instance/TexturePackPage.cpp
     ui/pages/instance/DownloadableResourcesPage.h
     ui/pages/instance/DownloadableResourcesPage.cpp
     ui/pages/instance/ResourcePackPage.h
