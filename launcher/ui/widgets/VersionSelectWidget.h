@@ -35,7 +35,7 @@ public:
     ~VersionSelectWidget();
 
     //! loads the list if needed.
-    void initialize(BaseVersionList *vlist);
+    void initialize(BaseVersionList *vlist, bool isJava = false);
 
     //! Starts a task that loads the list.
     void loadList();
@@ -74,6 +74,7 @@ private:
 
 private:
     QString m_currentVersion;
+    bool m_isJava = false;
     BaseVersionList *m_vlist = nullptr;
     VersionProxyModel *m_proxyModel = nullptr;
     int resizeOnColumn = 0;

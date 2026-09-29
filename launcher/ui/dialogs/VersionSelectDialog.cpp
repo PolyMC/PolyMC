@@ -26,6 +26,7 @@
 
 #include "BaseVersion.h"
 #include "BaseVersionList.h"
+#include "java/JavaInstallList.h"
 
 VersionSelectDialog::VersionSelectDialog(BaseVersionList *vlist, QString title, QWidget *parent, bool cancelable)
     : QDialog(parent)
@@ -104,7 +105,8 @@ void VersionSelectDialog::setResizeOn(int column)
 int VersionSelectDialog::exec()
 {
     QDialog::open();
-    m_versionWidget->initialize(m_vlist);
+    bool isJava = dynamic_cast<JavaInstallList*>(m_vlist) != nullptr;
+    m_versionWidget->initialize(m_vlist, isJava);
     if(resizeOnColumn != -1)
     {
         m_versionWidget->setResizeOn(resizeOnColumn);

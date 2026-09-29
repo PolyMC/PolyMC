@@ -136,7 +136,7 @@ void JavaSettingsWidget::setupUi()
 
 void JavaSettingsWidget::initialize()
 {
-    m_versionWidget->initialize(APPLICATION->javalist().get());
+    m_versionWidget->initialize(APPLICATION->javalist().get(), true);
     m_versionWidget->setResizeOn(2);
     auto s = APPLICATION->settings();
     // Memory
