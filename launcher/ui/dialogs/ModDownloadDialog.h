@@ -21,8 +21,11 @@
 #include <QDialog>
 #include <QVBoxLayout>
 
+#include "BaseInstance.h"
+#include "modplatform/ModAPI.h"
+
 #include "ModDownloadTask.h"
-#include "minecraft/mod/ModFolderModel.h"
+#include "minecraft/mod/ResourceFolderModel.h"
 #include "ui/pages/BasePageProvider.h"
 
 namespace Ui
@@ -39,7 +42,8 @@ class ModDownloadDialog final : public QDialog, public BasePageProvider
     Q_OBJECT
 
 public:
-    explicit ModDownloadDialog(const std::shared_ptr<ModFolderModel>& mods, QWidget* parent, BaseInstance* instance);
+    explicit ModDownloadDialog(const std::shared_ptr<ResourceFolderModel>& mods, QWidget* parent,
+                               ModAPI::ResourceType type, BaseInstance* instance);
     ~ModDownloadDialog() override = default;
 
     QString dialogTitle() override;
@@ -51,7 +55,7 @@ public:
     bool isModSelected(QString name) const;
 
     const QList<ModDownloadTask*> getTasks();
-    const std::shared_ptr<ModFolderModel> &mods;
+    const std::shared_ptr<ResourceFolderModel> mods;
 
 public slots:
     void confirm();
@@ -68,5 +72,7 @@ private:
     QVBoxLayout *m_verticalLayout = nullptr;
 
     QHash<QString, ModDownloadTask*> modTask;
+    ModAPI::ResourceType m_type;
+    QString m_typeString;
     BaseInstance *m_instance;
 };

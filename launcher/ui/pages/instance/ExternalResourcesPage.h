@@ -3,7 +3,6 @@
 #include <QMainWindow>
 #include <QSortFilterProxyModel>
 
-#include "Application.h"
 #include "minecraft/MinecraftInstance.h"
 #include "ui/pages/BasePage.h"
 
@@ -18,8 +17,10 @@ class ExternalResourcesPage;
 class ExternalResourcesPage : public QMainWindow, public BasePage {
     Q_OBJECT
 
-   public:
-    explicit ExternalResourcesPage(BaseInstance* instance, std::shared_ptr<ResourceFolderModel> model, QWidget* parent = nullptr);
+public:
+    explicit ExternalResourcesPage(BaseInstance* instance,
+                                   std::shared_ptr<ResourceFolderModel> model,
+                                   QWidget* parent = nullptr);
     virtual ~ExternalResourcesPage();
 
     virtual QString displayName() const override = 0;
@@ -34,17 +35,23 @@ class ExternalResourcesPage : public QMainWindow, public BasePage {
 
     void retranslate() override;
 
-   protected:
+    void setFilter(const QString& filter) {
+        m_fileSelectionFilter = filter;
+    }
+
+protected:
     bool eventFilter(QObject* obj, QEvent* ev) override;
     bool listFilter(QKeyEvent* ev);
     QMenu* createPopupMenu() override;
 
-   public slots:
+    void setupDownloadAction(const QString& text, const QString& tooltip);
+
+public slots:
     bool current(const QModelIndex& current, const QModelIndex& previous);
 
     virtual bool onSelectionChanged(const QModelIndex& current, const QModelIndex& previous);
 
-   protected slots:
+protected slots:
     void itemActivated(const QModelIndex& index);
     void filterTextChanged(const QString& newContents);
     virtual void runningStateChanged(bool running);
@@ -60,7 +67,7 @@ class ExternalResourcesPage : public QMainWindow, public BasePage {
 
     void ShowContextMenu(const QPoint& pos);
 
-   protected:
+protected:
     BaseInstance* m_instance = nullptr;
 
     Ui::ExternalResourcesPage* ui = nullptr;

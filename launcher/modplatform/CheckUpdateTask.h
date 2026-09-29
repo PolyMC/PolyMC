@@ -1,6 +1,7 @@
 #pragma once
 
 #include "minecraft/mod/Mod.h"
+#include "minecraft/mod/ResourceFolderModel.h"
 #include "modplatform/ModAPI.h"
 #include "modplatform/ModIndex.h"
 #include "tasks/Task.h"
@@ -12,7 +13,7 @@ class CheckUpdateTask : public Task {
     Q_OBJECT
 
    public:
-    CheckUpdateTask(QList<Mod*>& mods, std::list<Version>& mcVersions, ModAPI::ModLoaderTypes loaders, std::shared_ptr<ModFolderModel> mods_folder)
+    CheckUpdateTask(QList<Mod*>& mods, std::list<Version>& mcVersions, ModAPI::ModLoaderTypes loaders, std::shared_ptr<ResourceFolderModel> mods_folder)
         : Task(nullptr), m_mods(mods), m_game_versions(mcVersions), m_loaders(loaders), m_mods_folder(mods_folder) {};
 
     struct UpdatableMod {
@@ -45,7 +46,7 @@ class CheckUpdateTask : public Task {
     QList<Mod*>& m_mods;
     std::list<Version>& m_game_versions;
     ModAPI::ModLoaderTypes m_loaders;
-    std::shared_ptr<ModFolderModel> m_mods_folder;
+    std::shared_ptr<ResourceFolderModel> m_mods_folder;
 
     std::vector<UpdatableMod> m_updatable;
 };

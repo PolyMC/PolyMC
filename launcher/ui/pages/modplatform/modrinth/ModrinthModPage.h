@@ -38,18 +38,16 @@
 #include "modplatform/ModAPI.h"
 #include "ui/pages/modplatform/ModPage.h"
 
-#include "modplatform/modrinth/ModrinthAPI.h"
-
 class ModrinthModPage : public ModPage {
     Q_OBJECT
 
    public:
-    static ModrinthModPage* create(ModDownloadDialog* dialog, BaseInstance* instance)
+    static ModrinthModPage* create(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance)
     {
-        return ModPage::create<ModrinthModPage>(dialog, instance);
+        return ModPage::create<ModrinthModPage>(dialog, type, instance);
     }
 
-    ModrinthModPage(ModDownloadDialog* dialog, BaseInstance* instance);
+    ModrinthModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance);
     ~ModrinthModPage() override = default;
 
     inline auto displayName() const -> QString override { return "Modrinth"; }

@@ -5,9 +5,6 @@
 #include "ScrollMessageBox.h"
 #include "ui_ReviewMessageBox.h"
 
-#include "FileSystem.h"
-#include "Json.h"
-
 #include "tasks/ConcurrentTask.h"
 
 #include "minecraft/MinecraftInstance.h"
@@ -33,23 +30,19 @@ static ModAPI::ModLoaderTypes mcLoaders(BaseInstance* inst)
     return { static_cast<MinecraftInstance*>(inst)->getPackProfile()->getModLoaders() };
 }
 
-ModUpdateDialog::ModUpdateDialog(QWidget* parent,
-                                 BaseInstance* instance,
+ModUpdateDialog::ModUpdateDialog(QWidget* parent, ModAPI::ResourceType type, BaseInstance* instance,
                                  const std::shared_ptr<ModFolderModel> mods,
-                                 QList<Mod*>& search_for,
-                                 bool update_mods)
-    : ReviewMessageBox(parent, tr("Confirm mods to update"), "")
-    , m_parent(parent)
-    , m_mod_model(mods)
-    , m_candidates(search_for)
-    , m_second_try_metadata(new ConcurrentTask())
-    , m_instance(instance)
-    , m_update_mods(update_mods)
-{
+                                 QList<Mod*>& search_for, bool update_mods)
+    : ReviewMessageBox(parent, "", ""), m_parent(parent), m_mod_model(mods),
+      m_candidates(search_for), m_second_try_metadata(new ConcurrentTask()), m_type(type),
+      m_typeString(m_type == ModAPI::Mod ? tr("mod") : tr("pack")), m_instance(instance),
+      m_update_mods(update_mods) {
     ReviewMessageBox::setGeometry(0, 0, 800, 600);
 
-    ui->explainLabel->setText(tr("You're about to update the following mods:"));
-    ui->onlyCheckedLabel->setText(tr("Only mods with a check will be updated!"));
+    setWindowTitle(tr("Confirm %1s to update").arg(m_typeString));
+
+    ui->explainLabel->setText(tr("You're about to update the following %1s:").arg(m_typeString));
+    ui->onlyCheckedLabel->setText(tr("Only %1s with a check will be updated!").arg(m_typeString));
 }
 
 void ModUpdateDialog::checkCandidates()
@@ -64,15 +57,15 @@ void ModUpdateDialog::checkCandidates()
     // Report failed metadata generation
     if (!m_failed_metadata.empty()) {
         QString text;
-        for (const auto& failed : m_failed_metadata) {
+        for (const auto& failed : std::as_const(m_failed_metadata)) {
             const auto& mod = std::get<0>(failed);
             const auto& reason = std::get<1>(failed);
-            text += tr("Mod name: %1<br>File name: %2<br>Reason: %3<br><br>").arg(mod->name(), mod->fileinfo().fileName(), reason);
+            text += tr("Name: %1<br>File name: %2<br>Reason: %3<br><br>").arg(mod->name(), mod->fileinfo().fileName(), reason);
         }
 
         ScrollMessageBox message_dialog(m_parent, tr("Metadata generation failed"),
-                                        tr("Could not generate metadata for the following mods:<br>"
-                                           "Do you wish to proceed without those mods?"),
+                                        tr("Could not generate metadata for the following %1s:<br>"
+                                           "Do you wish to proceed without them?").arg(m_typeString),
                                         text);
         message_dialog.setModal(true);
         if (message_dialog.exec() == QDialog::Rejected) {
@@ -149,7 +142,7 @@ void ModUpdateDialog::checkCandidates()
     // Report failed update checking
     if (!m_failed_check_update.empty()) {
         QString text;
-        for (const auto& failed : m_failed_check_update) {
+        for (const auto& failed : std::as_const(m_failed_check_update)) {
             const auto& mod = std::get<0>(failed);
             const auto& reason = std::get<1>(failed);
             const auto& recover_url = std::get<2>(failed);
@@ -167,8 +160,8 @@ void ModUpdateDialog::checkCandidates()
         }
 
         ScrollMessageBox message_dialog(m_parent, tr("Failed to check for updates"),
-                                        tr("Could not check or get the following mods for updates:<br>"
-                                           "Do you wish to proceed without those mods?"),
+                                        tr("Could not check or get the following %1s for updates:<br>"
+                                           "Do you wish to proceed without them?").arg(m_typeString),
                                         text);
         message_dialog.setModal(true);
         if (message_dialog.exec() == QDialog::Rejected) {
@@ -227,7 +220,7 @@ auto ModUpdateDialog::ensureMetadata() -> bool
         }
     };
 
-    for (auto candidate : m_candidates) {
+    for (auto candidate : std::as_const(m_candidates)) {
         if (candidate->status() != ModStatus::NoMetadata) {
             onMetadataEnsured(candidate);
             continue;
@@ -243,10 +236,11 @@ auto ModUpdateDialog::ensureMetadata() -> bool
         }
 
         ChooseProviderDialog chooser(this);
-        chooser.setDescription(tr("The mod '%1' does not have a metadata yet. We need to generate it in order to track relevant "
-                                  "information on how to update this mod. "
-                                  "To do this, please select a mod provider which we can use to check for updates for this mod.")
-                                   .arg(candidate->name()));
+        chooser.setDescription(tr("'%1' does not have any metadata yet. We need to generate it in "
+                                  "order to track relevant information on how to update this %2. "
+                                  "To do this, please select a %2 provider which we can use to "
+                                  "check for updates for this %2.")
+                                   .arg(candidate->name(), m_typeString));
         auto confirmed = chooser.exec() == QDialog::DialogCode::Accepted;
 
         auto response = chooser.getResponse();
@@ -340,7 +334,7 @@ void ModUpdateDialog::onMetadataFailed(Mod* mod, bool try_others, ModPlatform::P
 
         m_second_try_metadata->addTask(task);
     } else {
-        QString reason{ tr("Couldn't find a valid version on the selected mod provider(s)") };
+        QString reason{ tr("Couldn't find a valid version on the selected %1 provider(s)").arg(m_typeString) };
 
         m_failed_metadata.append({mod, reason});
     }

@@ -20,7 +20,6 @@
 
 #include "BuildConfig.h"
 #include "modplatform/ModAPI.h"
-#include "modplatform/ModIndex.h"
 #include "modplatform/helpers/NetworkModAPI.h"
 
 #include <QDebug>
@@ -52,6 +51,17 @@ class ModrinthAPI : public NetworkModAPI {
    public:
     inline auto getAuthorURL(const QString& name) const -> QString { return "https://modrinth.com/user/" + name; };
 
+    inline QString getProjectType(ResourceType type) const {
+        switch (type) {
+        case ResourcePack:
+            return "resourcepack";
+        case ShaderPack:
+            return "shader";
+        default:
+            return "mod";
+        }
+    }
+
     static auto getModLoaderStrings(const ModLoaderTypes types) -> const QStringList
     {
         QStringList l;
@@ -70,7 +80,7 @@ class ModrinthAPI : public NetworkModAPI {
     static auto getModLoaderFilters(ModLoaderTypes types) -> const QString
     {
         QStringList l;
-        for (auto loader : getModLoaderStrings(types))
+        for (const auto &loader : getModLoaderStrings(types))
         {
             l << QString("\"categories:%1\"").arg(loader);
         }
@@ -85,18 +95,18 @@ class ModrinthAPI : public NetworkModAPI {
             return "";
         }
 
-        return QString(BuildConfig.MODRINTH_PROD_URL +
-                       "/search?"
-                       "offset=%1&"
-                       "limit=25&"
-                       "query=%2&"
-                       "index=%3&"
-                       "facets=[[%4],%5[\"project_type:mod\"]]")
-            .arg(args.offset)
-            .arg(args.search)
-            .arg(args.sorting)
-            .arg(getModLoaderFilters(args.loaders))
-            .arg(getGameVersionsArray(args.versions));
+        const auto off = QString::number(args.offset);
+        const auto filter = args.type == Mod ? QStringLiteral("[%1],").arg(getModLoaderFilters(args.loaders)) : "";
+        const auto projType = getProjectType(args.type);
+
+        return QString(BuildConfig.MODRINTH_PROD_URL + "/search?"
+                                                       "offset=%1&"
+                                                       "limit=25&"
+                                                       "query=%2&"
+                                                       "index=%3&"
+                                                       "facets=[%4%5[\"project_type:%6\"]]")
+            .arg(off, args.search, args.sorting, filter,
+                 getGameVersionsArray(args.versions), projType);
     };
 
     inline auto getModInfoURL(QString& id) const -> QString override
@@ -111,13 +121,14 @@ class ModrinthAPI : public NetworkModAPI {
 
     inline auto getVersionsURL(VersionSearchArgs& args) const -> QString override
     {
-        return QString(BuildConfig.MODRINTH_PROD_URL +
-                       "/project/%1/version?"
-                       "game_versions=[%2]&"
-                       "loaders=[\"%3\"]")
-            .arg(args.addonId,
-             getGameVersionsString(args.mcVersions),
-             getModLoaderStrings(args.loaders).join("\",\""));
+        const auto loaders = args.type == Mod
+                                 ? QStringLiteral("&loaders=[\"%1\"]")
+                                       .arg(getModLoaderStrings(args.loaders).join("\",\""))
+                                 : "";
+        return QString(BuildConfig.MODRINTH_PROD_URL + "/project/%1/version?"
+                                                       "game_versions=[%2]"
+                                                       "%3")
+            .arg(args.addonId, getGameVersionsString(args.mcVersions), loaders);
     };
 
     auto getGameVersionsArray(std::list<Version> mcVersions) const -> QString

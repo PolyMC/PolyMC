@@ -35,36 +35,39 @@
 
 #pragma once
 
-#include "ExternalResourcesPage.h"
-#include "ui_ExternalResourcesPage.h"
+#include "Application.h"
+#include "DownloadableResourcesPage.h"
 
 #include "minecraft/mod/ResourcePackFolderModel.h"
+#include "ui_ExternalResourcesPage.h"
 
-class ResourcePackPage : public ExternalResourcesPage
-{
+class ResourcePackPage : public DownloadableResourcesPage {
     Q_OBJECT
 public:
-    explicit ResourcePackPage(MinecraftInstance *instance, std::shared_ptr<ResourcePackFolderModel> model, QWidget *parent = 0)
-        : ExternalResourcesPage(instance, model, parent)
-    {
-        ui->actionViewConfigs->setVisible(false);
-    }
+    explicit ResourcePackPage(MinecraftInstance* instance,
+                              std::shared_ptr<ResourcePackFolderModel> model, QWidget* parent = 0);
     virtual ~ResourcePackPage() {}
 
-    QString displayName() const override { return tr("Resource packs"); }
-    QIcon icon() const override { return APPLICATION->getThemedIcon("resourcepacks"); }
-    QString id() const override { return "resourcepacks"; }
-    QString helpPage() const override { return "Resource-packs"; }
+    QString displayName() const override {
+        return tr("Resource packs");
+    }
+    QIcon icon() const override {
+        return APPLICATION->getThemedIcon("resourcepacks");
+    }
+    QString id() const override {
+        return "resourcepacks";
+    }
+    QString helpPage() const override {
+        return "Resource-packs";
+    }
 
-    virtual bool shouldDisplay() const override
-    {
+    virtual bool shouldDisplay() const override {
         return !m_instance->traits().contains("no-texturepacks") &&
                !m_instance->traits().contains("texturepacks");
     }
 
-   public slots:
-    bool onSelectionChanged(const QModelIndex& current, const QModelIndex& previous) override
-    {
+public slots:
+    bool onSelectionChanged(const QModelIndex& current, const QModelIndex& previous) override {
         auto sourceCurrent = m_filterModel->mapToSource(current);
         int row = sourceCurrent.row();
         auto& rp = static_cast<ResourcePack&>(m_model->at(row));
@@ -72,4 +75,7 @@ public:
 
         return true;
     }
+
+private slots:
+    void installResourcePacks();
 };

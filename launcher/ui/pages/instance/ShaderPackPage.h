@@ -35,29 +35,46 @@
 
 #pragma once
 
-#include "ExternalResourcesPage.h"
-#include "ui_ExternalResourcesPage.h"
+#include "Application.h"
+#include "DownloadableResourcesPage.h"
 
 #include "minecraft/mod/ShaderPackFolderModel.h"
+#include "ui_ExternalResourcesPage.h"
 
-class ShaderPackPage : public ExternalResourcesPage
-{
+class ShaderPackPage : public DownloadableResourcesPage {
     Q_OBJECT
 public:
-    explicit ShaderPackPage(MinecraftInstance *instance, std::shared_ptr<ShaderPackFolderModel> model, QWidget *parent = 0)
-        : ExternalResourcesPage(instance, model, parent)
-    {
-        ui->actionViewConfigs->setVisible(false);
-    }
+    explicit ShaderPackPage(MinecraftInstance* instance,
+                            std::shared_ptr<ShaderPackFolderModel> model, QWidget* parent = 0);
     virtual ~ShaderPackPage() {}
 
-    QString displayName() const override { return tr("Shader packs"); }
-    QIcon icon() const override { return APPLICATION->getThemedIcon("shaderpacks"); }
-    QString id() const override { return "shaderpacks"; }
-    QString helpPage() const override { return "Resource-packs"; }
+    QString displayName() const override {
+        return tr("Shader packs");
+    }
 
-    virtual bool shouldDisplay() const override
-    {
+    QIcon icon() const override {
+        return APPLICATION->getThemedIcon("shaderpacks");
+    }
+
+    QString id() const override {
+        return "shaderpacks";
+    }
+
+    QString helpPage() const override {
+        return "Shader-packs";
+    }
+
+    virtual bool shouldDisplay() const override {
         return true;
     }
+public slots:
+    bool onSelectionChanged(const QModelIndex& current, const QModelIndex& previous) override {
+        auto sourceCurrent = m_filterModel->mapToSource(current);
+        int row = sourceCurrent.row();
+        ui->frame->updateWithResource(m_model->at(row));
+        return true;
+    }
+
+private slots:
+    void installShaderPacks();
 };
