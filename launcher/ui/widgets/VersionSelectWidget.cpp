@@ -97,12 +97,15 @@ void VersionSelectWidget::retranslate() {
     ignoreDuplicates->setText(tr("Don't list duplicate runtimes"));
 }
 
-void VersionSelectWidget::initialize(BaseVersionList *vlist)
+void VersionSelectWidget::initialize(BaseVersionList *vlist, bool isJava)
 {
     m_vlist = vlist;
+    m_isJava = isJava;
     m_proxyModel->setSourceModel(vlist);
     listView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     listView->header()->setSectionResizeMode(resizeOnColumn, QHeaderView::Stretch);
+
+    ignoreDuplicates->setHidden(!isJava);
 
     if (!m_vlist->isLoaded())
     {
@@ -151,7 +154,7 @@ void VersionSelectWidget::onTaskSucceeded()
         listView->setEmptyMode(VersionListView::String);
     }
     sneakyProgressBar->setHidden(true);
-    ignoreDuplicates->setHidden(false);
+    ignoreDuplicates->setHidden(!m_isJava);
     preselect();
     loadTask = nullptr;
 }
