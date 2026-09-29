@@ -35,21 +35,17 @@
 
 #pragma once
 
-#include "ExternalResourcesPage.h"
+#include "Application.h"
+#include "ui/pages/instance/DownloadableResourcesPage.h"
 #include "ui_ExternalResourcesPage.h"
 
 #include "minecraft/mod/TexturePackFolderModel.h"
 #include "minecraft/mod/TexturePack.h"
 
-class TexturePackPage : public ExternalResourcesPage
-{
-    Q_OBJECT
+class TexturePackPage : public DownloadableResourcesPage
+{ Q_OBJECT
 public:
-    explicit TexturePackPage(MinecraftInstance *instance, std::shared_ptr<TexturePackFolderModel> model, QWidget *parent = 0)
-        : ExternalResourcesPage(instance, model, parent)
-    {
-        ui->actionViewConfigs->setVisible(false);
-    }
+    explicit TexturePackPage(MinecraftInstance *instance, std::shared_ptr<TexturePackFolderModel> model, QWidget *parent = 0);
     virtual ~TexturePackPage() {}
 
     QString displayName() const override { return tr("Texture packs"); }
@@ -72,4 +68,6 @@ public:
 
         return true;
     }
+private slots:
+    void installTexturePacks();
 };

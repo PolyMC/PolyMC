@@ -44,14 +44,9 @@
 #include <QMessageBox>
 #include <QSortFilterProxyModel>
 
-#include "Application.h"
-
-#include "ui/GuiUtil.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ModDownloadDialog.h"
 #include "ui/dialogs/ModUpdateDialog.h"
-
-#include "DesktopServices.h"
 
 #include "minecraft/PackProfile.h"
 #include "minecraft/VersionFilterData.h"
@@ -60,24 +55,13 @@
 
 #include "modplatform/ModAPI.h"
 
-#include "Version.h"
-#include "tasks/ConcurrentTask.h"
-#include "ui/dialogs/ProgressDialog.h"
-
 ModFolderPage::ModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel> mods, QWidget* parent)
-    : ExternalResourcesPage(inst, mods, parent), m_model(mods)
+    : DownloadableResourcesPage(inst, mods, parent), m_model(mods)
 {
     // This is structured like that so that these changes
     // do not affect the Resource pack and Shader pack tabs
     {
-        ui->actionDownloadItem->setText(tr("Download mods"));
-        ui->actionDownloadItem->setToolTip(tr("Download mods from online mod platforms"));
-        ui->actionDownloadItem->setEnabled(true);
-        ui->actionAddItem->setText(tr("Add file"));
-        ui->actionAddItem->setToolTip(tr("Add a locally downloaded file"));
-
-        ui->actionsToolbar->insertActionBefore(ui->actionAddItem, ui->actionDownloadItem);
-
+        setupDownloadAction(tr("Download mods"), tr("Download mods from online mod platforms"));
         connect(ui->actionDownloadItem, &QAction::triggered, this, &ModFolderPage::installMods);
 
         ui->actionUpdateItem->setToolTip(tr("Try to check or update all selected mods (all mods if none are selected)"));
@@ -143,7 +127,6 @@ bool ModFolderPage::onSelectionChanged(const QModelIndex& current, const QModelI
 
 void ModFolderPage::removeItem()
 {
-
     if (!m_controlsEnabled)
         return;
 
@@ -151,8 +134,7 @@ void ModFolderPage::removeItem()
     m_model->deleteMods(selection.indexes());
 }
 
-void ModFolderPage::installMods()
-{
+void ModFolderPage::installMods() {
     if (!m_controlsEnabled)
         return;
     if (m_instance->typeName() != "Minecraft")
@@ -164,34 +146,9 @@ void ModFolderPage::installMods()
         return;
     }
 
-    ModDownloadDialog mdownload(m_model, this, m_instance);
+    ModDownloadDialog mdownload(m_model, this, ModAPI::Mod, m_instance);
     if (mdownload.exec()) {
-        ConcurrentTask* tasks = new ConcurrentTask(this);
-        connect(tasks, &Task::failed, [this, tasks](QString reason) {
-            CustomMessageBox::selectable(this, tr("Error"), reason, QMessageBox::Critical)->show();
-            tasks->deleteLater();
-        });
-        connect(tasks, &Task::aborted, [this, tasks]() {
-            CustomMessageBox::selectable(this, tr("Aborted"), tr("Download stopped by user."), QMessageBox::Information)->show();
-            tasks->deleteLater();
-        });
-        connect(tasks, &Task::succeeded, [this, tasks]() {
-            QStringList warnings = tasks->warnings();
-            if (warnings.count())
-                CustomMessageBox::selectable(this, tr("Warnings"), warnings.join('\n'), QMessageBox::Warning)->show();
-
-            tasks->deleteLater();
-        });
-
-        for (auto& task : mdownload.getTasks()) {
-            tasks->addTask(task);
-        }
-
-        ProgressDialog loadDialog(this);
-        loadDialog.setSkipButton(true, tr("Abort"));
-        loadDialog.execWithTask(tasks);
-
-        m_model->update();
+        runTasks(mdownload.getTasks());
     }
 }
 
@@ -212,7 +169,7 @@ void ModFolderPage::updateMods()
         }
     }
 
-    ModUpdateDialog update_dialog(this, m_instance, m_model, mods_list);
+    ModUpdateDialog update_dialog(this, ModAPI::Mod, m_instance, m_model, mods_list);
     update_dialog.checkCandidates();
 
     if (update_dialog.aborted()) {
@@ -234,32 +191,7 @@ void ModFolderPage::updateMods()
     }
 
     if (update_dialog.exec()) {
-        ConcurrentTask* tasks = new ConcurrentTask(this);
-        connect(tasks, &Task::failed, [this, tasks](QString reason) {
-            CustomMessageBox::selectable(this, tr("Error"), reason, QMessageBox::Critical)->show();
-            tasks->deleteLater();
-        });
-        connect(tasks, &Task::aborted, [this, tasks]() {
-            CustomMessageBox::selectable(this, tr("Aborted"), tr("Download stopped by user."), QMessageBox::Information)->show();
-            tasks->deleteLater();
-        });
-        connect(tasks, &Task::succeeded, [this, tasks]() {
-            QStringList warnings = tasks->warnings();
-            if (warnings.count()) {
-                CustomMessageBox::selectable(this, tr("Warnings"), warnings.join('\n'), QMessageBox::Warning)->show();
-            }
-            tasks->deleteLater();
-        });
-
-        for (auto task : update_dialog.getTasks()) {
-            tasks->addTask(task);
-        }
-
-        ProgressDialog loadDialog(this);
-        loadDialog.setSkipButton(true, tr("Abort"));
-        loadDialog.execWithTask(tasks);
-
-        m_model->update();
+        runTasks(update_dialog.getTasks());
     }
 }
 
@@ -268,20 +200,20 @@ void ModFolderPage::disableUpdates()
     auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection()).indexes();
     auto mods_list = m_model->selectedMods(selection);
 
-    for (auto mod : mods_list) {
+    for (const auto &mod : std::as_const(mods_list)) {
         if(mod->metadata() && mod->metadata()->hasDoUpdates()) {
             mod->metadata()->do_updates == "true" ? mod->metadata()->do_updates = "false" : mod->metadata()->do_updates = "true";
             QDir Dir = m_model->indexDir();
             Metadata::update(Dir, *(mod->metadata()));
         } else if(!mod->metadata()) {
-            ModUpdateDialog MetadataGenDialog(this, m_instance, m_model, mods_list, false);
+            ModUpdateDialog MetadataGenDialog(this, ModAPI::Mod, m_instance, m_model, mods_list, false);
             MetadataGenDialog.ensureMetadata();
             if(mods_list.length()>1){
                 mod->metadata()->do_updates = "false";
             }
         }
     }
-    
+
     onDisableUpdatesChange();
 }
 

@@ -1,8 +1,8 @@
+#include "Application.h"
 #include "ExternalResourcesPage.h"
 #include "ui_ExternalResourcesPage.h"
 
 #include "DesktopServices.h"
-#include "Version.h"
 #include "minecraft/mod/ResourceFolderModel.h"
 #include "ui/GuiUtil.h"
 
@@ -60,6 +60,16 @@ QMenu* ExternalResourcesPage::createPopupMenu()
     return filteredMenu;
 }
 
+void ExternalResourcesPage::setupDownloadAction(const QString& text, const QString& tooltip) {
+    ui->actionDownloadItem->setText(text);
+    ui->actionDownloadItem->setToolTip(tooltip);
+    ui->actionDownloadItem->setEnabled(true);
+    ui->actionAddItem->setText(tr("Add file"));
+    ui->actionAddItem->setToolTip(tr("Add a locally downloaded file"));
+
+    ui->actionsToolbar->insertActionBefore(ui->actionAddItem, ui->actionDownloadItem);
+}
+
 void ExternalResourcesPage::ShowContextMenu(const QPoint& pos)
 {
     auto menu = ui->actionsToolbar->createContextMenu(this, tr("Context menu"));
@@ -104,7 +114,7 @@ void ExternalResourcesPage::runningStateChanged(bool running)
 {
     if (m_controlsEnabled == !running)
         return;
-    
+
     m_controlsEnabled = !running;
     ui->actionAddItem->setEnabled(m_controlsEnabled);
     ui->actionDisableItem->setEnabled(m_controlsEnabled);
@@ -136,7 +146,7 @@ bool ExternalResourcesPage::eventFilter(QObject* obj, QEvent* ev)
 {
     if (ev->type() != QEvent::KeyPress)
         return QWidget::eventFilter(obj, ev);
-    
+
     QKeyEvent* keyEvent = static_cast<QKeyEvent*>(ev);
     if (obj == ui->treeView)
         return listFilter(keyEvent);
@@ -148,14 +158,14 @@ void ExternalResourcesPage::addItem()
 {
     if (!m_controlsEnabled)
         return;
-    
+
 
     auto list = GuiUtil::BrowseForFiles(
         helpPage(), tr("Select %1", "Select whatever type of files the page contains. Example: 'Loader Mods'").arg(displayName()),
         m_fileSelectionFilter.arg(displayName()), APPLICATION->settings()->get("CentralModsDir").toString(), this->parentWidget());
 
     if (!list.isEmpty()) {
-        for (auto filename : list) {
+        for (const auto &filename : std::as_const(list)) {
             m_model->installResource(filename);
         }
     }
@@ -165,7 +175,7 @@ void ExternalResourcesPage::removeItem()
 {
     if (!m_controlsEnabled)
         return;
-    
+
     auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection());
     m_model->deleteResources(selection.indexes());
 }

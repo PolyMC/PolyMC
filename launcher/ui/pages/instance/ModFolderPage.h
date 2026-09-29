@@ -36,9 +36,11 @@
 
 #pragma once
 
-#include "ExternalResourcesPage.h"
+#include "Application.h"
+#include "DownloadableResourcesPage.h"
+#include "ModDownloadTask.h"
 
-class ModFolderPage : public ExternalResourcesPage {
+class ModFolderPage : public DownloadableResourcesPage {
     Q_OBJECT
 
    public:

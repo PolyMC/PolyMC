@@ -1156,7 +1156,7 @@ std::shared_ptr<TexturePackFolderModel> MinecraftInstance::texturePackList() con
     {
         m_texture_pack_list.reset(new TexturePackFolderModel(texturePacksDir()));
         m_texture_pack_list->disableInteraction(isRunning());
-        connect(this, &BaseInstance::runningStatusChanged, m_texture_pack_list.get(), &ModFolderModel::disableInteraction);
+        connect(this, &BaseInstance::runningStatusChanged, m_texture_pack_list.get(), &TexturePackFolderModel::disableInteraction);
     }
     return m_texture_pack_list;
 }
@@ -1167,7 +1167,7 @@ std::shared_ptr<ShaderPackFolderModel> MinecraftInstance::shaderPackList() const
     {
         m_shader_pack_list.reset(new ShaderPackFolderModel(shaderPacksDir()));
         m_shader_pack_list->disableInteraction(isRunning());
-        connect(this, &BaseInstance::runningStatusChanged, m_shader_pack_list.get(), &ModFolderModel::disableInteraction);
+        connect(this, &BaseInstance::runningStatusChanged, m_shader_pack_list.get(), &ShaderPackFolderModel::disableInteraction);
     }
     return m_shader_pack_list;
 }

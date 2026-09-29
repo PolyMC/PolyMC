@@ -38,18 +38,16 @@
 #include "modplatform/ModAPI.h"
 #include "ui/pages/modplatform/ModPage.h"
 
-#include "modplatform/flame/FlameAPI.h"
-
 class FlameModPage : public ModPage {
     Q_OBJECT
 
    public:
-    static FlameModPage* create(ModDownloadDialog* dialog, BaseInstance* instance)
+    static FlameModPage* create(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance)
     {
-        return ModPage::create<FlameModPage>(dialog, instance);
+        return ModPage::create<FlameModPage>(dialog, type, instance);
     }
 
-    FlameModPage(ModDownloadDialog* dialog, BaseInstance* instance);
+    FlameModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance);
     ~FlameModPage() override = default;
 
     inline auto displayName() const -> QString override { return "CurseForge"; }

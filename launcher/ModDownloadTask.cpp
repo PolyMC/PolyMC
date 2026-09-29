@@ -22,11 +22,13 @@
 #include "Application.h"
 #include "minecraft/mod/ModFolderModel.h"
 
-ModDownloadTask::ModDownloadTask(ModPlatform::IndexedPack mod, ModPlatform::IndexedVersion version, const std::shared_ptr<ModFolderModel> mods, bool is_indexed)
-    : m_mod(mod), m_mod_version(version), mods(mods)
-{
-    if (is_indexed) {
-        m_update_task.reset(new LocalModUpdateTask(mods->indexDir(), m_mod, m_mod_version));
+ModDownloadTask::ModDownloadTask(const ModPlatform::IndexedPack& mod,
+                                 const ModPlatform::IndexedVersion& version,
+                                 const std::shared_ptr<ResourceFolderModel> mods, bool is_indexed)
+    : m_mod(mod), m_mod_version(version), mods(mods) {
+    auto modFolderModel = std::dynamic_pointer_cast<ModFolderModel>(mods);
+    if (is_indexed && modFolderModel) {
+        m_update_task.reset(new LocalModUpdateTask(modFolderModel->indexDir(), m_mod, m_mod_version));
         connect(m_update_task.get(), &LocalModUpdateTask::hasOldMod, this, &ModDownloadTask::hasOldMod);
 
         addTask(m_update_task);
@@ -34,7 +36,7 @@ ModDownloadTask::ModDownloadTask(ModPlatform::IndexedPack mod, ModPlatform::Inde
 
     m_filesNetJob.reset(new NetJob(tr("Mod download"), APPLICATION->network()));
     m_filesNetJob->setStatus(tr("Downloading mod:\n%1").arg(m_mod_version.downloadUrl));
-    
+
     m_filesNetJob->addNetAction(Net::Download::makeFile(m_mod_version.downloadUrl, mods->dir().absoluteFilePath(getFilename())));
     connect(m_filesNetJob.get(), &NetJob::succeeded, this, &ModDownloadTask::downloadSucceeded);
     connect(m_filesNetJob.get(), &NetJob::progress, this, &ModDownloadTask::downloadProgressChanged);
@@ -49,7 +51,9 @@ void ModDownloadTask::downloadSucceeded()
     auto name = std::get<0>(to_delete);
     auto filename = std::get<1>(to_delete);
     if (!name.isEmpty() && filename != m_mod_version.fileName) {
-        mods->uninstallMod(filename, true);
+        auto modModel = std::dynamic_pointer_cast<ModFolderModel>(mods);
+        if (modModel)
+            modModel->uninstallMod(filename, true);
     }
 }
 

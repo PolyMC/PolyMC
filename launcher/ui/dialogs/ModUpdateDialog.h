@@ -15,30 +15,35 @@ class ConcurrentTask;
 
 class ModUpdateDialog final : public ReviewMessageBox {
     Q_OBJECT
-   public:
-    explicit ModUpdateDialog(QWidget* parent,
-                             BaseInstance* instance,
+public:
+    explicit ModUpdateDialog(QWidget* parent, ModAPI::ResourceType type, BaseInstance* instance,
                              const std::shared_ptr<ModFolderModel> mod_model,
-                             QList<Mod*>& search_for,
-                             bool update_mods = true);
+                             QList<Mod*>& search_for, bool update_mods = true);
 
     void checkCandidates();
 
     void appendMod(const CheckUpdateTask::UpdatableMod& info);
 
     const QList<ModDownloadTask*> getTasks();
-    auto indexDir() const -> QDir { return m_mod_model->indexDir(); }
+    auto indexDir() const -> QDir {
+        return m_mod_model->indexDir();
+    }
 
-    auto noUpdates() const -> bool { return m_no_updates; };
-    auto aborted() const -> bool { return m_aborted; };
+    auto noUpdates() const -> bool {
+        return m_no_updates;
+    };
+    auto aborted() const -> bool {
+        return m_aborted;
+    };
 
     auto ensureMetadata() -> bool;
 
-   private slots:
+private slots:
     void onMetadataEnsured(Mod*);
-    void onMetadataFailed(Mod*, bool try_others = false, ModPlatform::Provider first_choice = ModPlatform::Provider::MODRINTH);
+    void onMetadataFailed(Mod*, bool try_others = false,
+                          ModPlatform::Provider first_choice = ModPlatform::Provider::MODRINTH);
 
-   private:
+private:
     QWidget* m_parent;
 
     ModrinthCheckUpdate* m_modrinth_check_task = nullptr;
@@ -55,6 +60,8 @@ class ModUpdateDialog final : public ReviewMessageBox {
     QList<std::tuple<Mod*, QString, QUrl>> m_failed_check_update;
 
     QHash<QString, ModDownloadTask*> m_tasks;
+    ModAPI::ResourceType m_type;
+    QString m_typeString;
     BaseInstance* m_instance;
 
     bool m_no_updates = false;

@@ -38,7 +38,6 @@
 #include <memory>
 #include <QDialog>
 
-#include "java/JavaChecker.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 #include "ui/ColorCache.h"

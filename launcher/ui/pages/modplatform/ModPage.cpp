@@ -47,15 +47,11 @@
 #include "ui/dialogs/ModDownloadDialog.h"
 #include "ui/widgets/ProjectItem.h"
 
-
-ModPage::ModPage(ModDownloadDialog* dialog, BaseInstance* instance, ModAPI* api)
-    : QWidget(dialog)
-    , m_instance(instance)
-    , ui(new Ui::ModPage)
-    , dialog(dialog)
-    , m_fetch_progress(this, false)
-    , api(api)
-{
+ModPage::ModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance,
+                 ModAPI* api)
+    : QWidget(dialog), m_instance(instance), ui(new Ui::ModPage), dialog(dialog),
+      m_fetch_progress(this, false), api(api), m_resourceType(type),
+      m_typeString(type == ModAPI::Mod ? tr("mod") : tr("pack")) {
     ui->setupUi(this);
 
     connect(ui->searchButton, &QPushButton::clicked, this, &ModPage::triggerSearch);
@@ -158,7 +154,7 @@ void ModPage::triggerSearch()
 {
     auto changed = m_filter_widget->changed();
     m_filter = m_filter_widget->getFilter();
-    
+
     if(changed){
         ui->packView->clearSelection();
         ui->packDescription->clear();
@@ -195,12 +191,7 @@ void ModPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
 
         listModel->requestModVersions(current, curr);
     } else {
-        for (int i = 0; i < current.versions.size(); i++) {
-            ui->versionSelectionBox->addItem(current.versions[i].version, QVariant(i));
-        }
-        if (ui->versionSelectionBox->count() == 0) { ui->versionSelectionBox->addItem(tr("No valid version found."), QVariant(-1)); }
-
-        updateSelectionButton();
+        updateModVersions();
     }
 
     if(!current.extraDataLoaded){
@@ -231,7 +222,7 @@ void ModPage::onModSelected()
     if (dialog->isModSelected(current.name, version.fileName)) {
         dialog->removeSelectedMod(current.name);
     } else {
-        bool is_indexed = !APPLICATION->settings()->get("ModMetadataDisabled").toBool();
+        bool is_indexed = !APPLICATION->settings()->get("ModMetadataDisabled").toBool() && m_resourceType == ModAPI::Mod;
         dialog->addSelectedMod(current.name, new ModDownloadTask(current, version, dialog->mods, is_indexed));
     }
 
@@ -270,8 +261,8 @@ void ModPage::updateModVersions(int prev_count)
         if ((valid || m_filter->versions.empty()) && !optedOut(version))
             ui->versionSelectionBox->addItem(version.version, QVariant(i));
     }
-    if (ui->versionSelectionBox->count() == 0 && prev_count != 0) { 
-        ui->versionSelectionBox->addItem(tr("No valid version found!"), QVariant(-1)); 
+    if (ui->versionSelectionBox->count() == 0 && prev_count != 0) {
+        ui->versionSelectionBox->addItem(tr("No valid version found!"), QVariant(-1));
         ui->modSelectionButton->setText(tr("Cannot select invalid version :("));
     }
 
@@ -283,15 +274,16 @@ void ModPage::updateSelectionButton()
 {
     if (!isOpened || selectedVersion < 0) {
         ui->modSelectionButton->setEnabled(false);
+        ui->modSelectionButton->setText(tr("Select %1 for download").arg(m_typeString));
         return;
     }
 
     ui->modSelectionButton->setEnabled(true);
     auto& version = current.versions[selectedVersion];
     if (!dialog->isModSelected(current.name, version.fileName)) {
-        ui->modSelectionButton->setText(tr("Select mod for download"));
+        ui->modSelectionButton->setText(tr("Select %1 for download").arg(m_typeString));
     } else {
-        ui->modSelectionButton->setText(tr("Deselect mod for download"));
+        ui->modSelectionButton->setText(tr("Deselect %1 for download").arg(m_typeString));
     }
 }
 
@@ -317,7 +309,7 @@ void ModPage::updateUi()
         text += "<br>" + tr(" by ") + authorStrs.join(", ");
     }
 
-    
+
     if(current.extraDataLoaded) {
         if (!current.extraData.donate.isEmpty()) {
             text += "<br><br>" + tr("Donate information: ");

@@ -35,9 +35,11 @@
 #include "ui/pages/modplatform/modrinth/ModrinthModPage.h"
 #include "ui/widgets/PageContainer.h"
 
-ModDownloadDialog::ModDownloadDialog(const std::shared_ptr<ModFolderModel>& mods, QWidget* parent, BaseInstance* instance)
-    : QDialog(parent), mods(mods), m_verticalLayout(new QVBoxLayout(this)), m_instance(instance)
-{
+ModDownloadDialog::ModDownloadDialog(const std::shared_ptr<ResourceFolderModel>& mods,
+                                     QWidget* parent, ModAPI::ResourceType type,
+                                     BaseInstance* instance)
+    : QDialog(parent), mods(mods), m_verticalLayout(new QVBoxLayout(this)), m_type(type),
+      m_typeString(m_type == ModAPI::Mod ? tr("mods") : tr("packs")), m_instance(instance) {
     setObjectName(QStringLiteral("ModDownloadDialog"));
     m_verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
 
@@ -65,7 +67,9 @@ ModDownloadDialog::ModDownloadDialog(const std::shared_ptr<ModFolderModel>& mods
     OkButton->setAutoDefault(true);
     OkButton->setText(tr("Review and confirm"));
     OkButton->setShortcut(tr("Ctrl+Return"));
-    OkButton->setToolTip(tr("Opens a new popup to review your selected mods and confirm your selection. Shortcut: Ctrl+Return"));
+    OkButton->setToolTip(tr("Opens a new popup to review your selected %1 and confirm your "
+                            "selection. Shortcut: Ctrl+Return")
+                             .arg(m_typeString));
     connect(OkButton, &QPushButton::clicked, this, &ModDownloadDialog::confirm);
 
     auto CancelButton = m_buttons->button(QDialogButtonBox::Cancel);
@@ -89,7 +93,7 @@ ModDownloadDialog::ModDownloadDialog(const std::shared_ptr<ModFolderModel>& mods
 
 QString ModDownloadDialog::dialogTitle()
 {
-    return tr("Download mods");
+    return tr("Download %1").arg(m_typeString);
 }
 
 void ModDownloadDialog::reject()
@@ -103,7 +107,10 @@ void ModDownloadDialog::confirm()
     auto keys = modTask.keys();
     keys.sort(Qt::CaseInsensitive);
 
-    auto confirm_dialog = ReviewMessageBox::create(this, tr("Confirm mods to download"));
+    auto confirm_dialog =
+        ReviewMessageBox::create(this, tr("Confirm %1 to download").arg(m_typeString));
+    confirm_dialog->setDescription(tr("You're about to download the following %1:").arg(m_typeString));
+    confirm_dialog->setCheckLabel(tr("Only %1 with a check will be downloaded!").arg(m_typeString));
 
     for (auto& task : keys) {
         confirm_dialog->appendMod({ task, modTask.find(task).value()->getFilename() });
@@ -111,7 +118,7 @@ void ModDownloadDialog::confirm()
 
     if (confirm_dialog->exec()) {
         auto deselected = confirm_dialog->deselectedMods();
-        for (auto name : deselected) {
+        for (const auto &name : std::as_const(deselected)) {
             modTask.remove(name);
         }
 
@@ -129,9 +136,9 @@ QList<BasePage*> ModDownloadDialog::getPages()
 {
     QList<BasePage*> pages;
 
-    pages.append(ModrinthModPage::create(this, m_instance));
+    pages.append(ModrinthModPage::create(this, m_type, m_instance));
     if (APPLICATION->capabilities() & Application::SupportsFlame)
-        pages.append(FlameModPage::create(this, m_instance));
+        pages.append(FlameModPage::create(this, m_type, m_instance));
 
     return pages;
 }
