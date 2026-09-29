@@ -25,6 +25,9 @@
 #include <quazip/quazipfile.h>
 
 #include <QCryptographicHash>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QJsonObject>
 
 namespace TexturePackUtils {
 
@@ -47,17 +50,31 @@ void processFolder(TexturePack& pack)
 {
     Q_ASSERT(pack.type() == ResourceType::FOLDER);
 
-    QFileInfo mcmeta_file_info(FS::PathCombine(pack.fileinfo().filePath(), "pack.txt"));
-    if (mcmeta_file_info.isFile()) {
+    // some old texture packs might use other schemas, so fallback to those
+    static const QStringList candidates = {
+        "pack.txt",
+        "pack.json",
+        "manifest.json",
+        "manifest.json.txt"
+    };
+
+    for (const QString& c : candidates) {
+        QFileInfo mcmeta_file_info(FS::PathCombine(pack.fileinfo().filePath(), c));
+        if (!mcmeta_file_info.isFile())
+            continue;
+
         QFile mcmeta_file(mcmeta_file_info.filePath());
+
         if (!mcmeta_file.open(QIODevice::ReadOnly))
             return;
 
         auto data = mcmeta_file.readAll();
+        mcmeta_file.close();
+        if (data.isEmpty())
+            continue;
 
         TexturePackUtils::processPackTXT(pack, std::move(data));
-
-        mcmeta_file.close();
+        break;
     }
 
     QFileInfo image_file_info(FS::PathCombine(pack.fileinfo().filePath(), "pack.png"));
@@ -84,7 +101,18 @@ void processZIP(TexturePack& pack)
 
     QuaZipFile file(&zip);
 
-    if (zip.setCurrentFile("pack.txt")) {
+    // some old texture packs might use other schemas, so fallback to those
+    static const QStringList candidates = {
+        "pack.txt",
+        "pack.json",
+        "manifest.json",
+        "manifest.json.txt"
+    };
+
+    for (const QString& c : candidates) {
+        if (!zip.setCurrentFile(c))
+            continue;
+
         if (!file.open(QIODevice::ReadOnly)) {
             qCritical() << "Failed to open file in zip.";
             zip.close();
@@ -92,10 +120,13 @@ void processZIP(TexturePack& pack)
         }
 
         auto data = file.readAll();
+        file.close();
+
+        if (data.isEmpty())
+            continue;
 
         TexturePackUtils::processPackTXT(pack, std::move(data));
-
-        file.close();
+        break;
     }
 
     if (zip.setCurrentFile("pack.png")) {
@@ -117,7 +148,27 @@ void processZIP(TexturePack& pack)
 
 void processPackTXT(TexturePack& pack, QByteArray&& raw_data)
 {
-    pack.setDescription(QString(raw_data));
+    // some packs may have a JSON pack.txt, or none at all
+    // in this case fall back to manifest.json parsing
+    QJsonParseError err;
+    auto doc = QJsonDocument::fromJson(raw_data, &err);
+    if (err.error == QJsonParseError::NoError && doc.isObject()) {
+        auto obj = doc.object().value("description").isObject()
+        ? doc.object().value("description").toObject()
+        : doc.object();
+        QStringList parts = {
+            obj.value("name").toString(),
+            obj.value("line1").toString(),
+            obj.value("line2").toString()
+        };
+        parts.removeAll({});
+        if (!parts.isEmpty()) {
+            pack.setDescription(parts.join('\n'));
+            return;
+        }
+    }
+
+    pack.setDescription(QString(raw_data).trimmed());
 }
 
 void processPackPNG(TexturePack& pack, QByteArray&& raw_data)
