@@ -32,7 +32,7 @@ class ModDownloadTask : public SequentialTask {
     Q_OBJECT
 public:
     explicit ModDownloadTask(const ModPlatform::IndexedPack& mod,
-                             ModPlatform::IndexedVersion version,
+                             const ModPlatform::IndexedVersion& version,
                              const std::shared_ptr<ResourceFolderModel> mods,
                              bool is_indexed = true);
     const QString& getFilename() const { return m_mod_version.fileName; }

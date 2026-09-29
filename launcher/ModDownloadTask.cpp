@@ -22,9 +22,10 @@
 #include "Application.h"
 #include "minecraft/mod/ModFolderModel.h"
 
-ModDownloadTask::ModDownloadTask(const ModPlatform::IndexedPack &mod, ModPlatform::IndexedVersion version, const std::shared_ptr<ResourceFolderModel> mods, bool is_indexed)
-    : m_mod(mod), m_mod_version(version), mods(mods)
-{
+ModDownloadTask::ModDownloadTask(const ModPlatform::IndexedPack& mod,
+                                 const ModPlatform::IndexedVersion& version,
+                                 const std::shared_ptr<ResourceFolderModel> mods, bool is_indexed)
+    : m_mod(mod), m_mod_version(version), mods(mods) {
     auto modFolderModel = std::dynamic_pointer_cast<ModFolderModel>(mods);
     if (is_indexed && modFolderModel) {
         m_update_task.reset(new LocalModUpdateTask(modFolderModel->indexDir(), m_mod, m_mod_version));
