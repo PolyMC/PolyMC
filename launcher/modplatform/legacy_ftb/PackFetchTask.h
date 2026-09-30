@@ -1,15 +1,14 @@
 #pragma once
 
-#include "net/NetJob.h"
-#include <QTemporaryDir>
 #include <QByteArray>
 #include <QObject>
+#include <QTemporaryDir>
 #include "PackHelpers.h"
+#include "net/NetJob.h"
 
 namespace LegacyFTB {
 
 class PackFetchTask : public QObject {
-
     Q_OBJECT
 
 public:
@@ -17,7 +16,7 @@ public:
     virtual ~PackFetchTask() = default;
 
     void fetch();
-    void fetchPrivate(const QStringList &toFetch);
+    void fetchPrivate(const QStringList& toFetch);
 
 private:
     shared_qobject_ptr<QNetworkAccessManager> m_network;
@@ -26,7 +25,7 @@ private:
     QByteArray publicModpacksXmlFileData;
     QByteArray thirdPartyModpacksXmlFileData;
 
-    bool parseAndAddPacks(QByteArray &data, PackType packType, ModpackList &list);
+    bool parseAndAddPacks(QByteArray& data, PackType packType, ModpackList& list);
     ModpackList publicPacks;
     ModpackList thirdPartyPacks;
 
@@ -44,4 +43,4 @@ signals:
     void privateFileDownloadFailed(QString reason, QString packCode);
 };
 
-}
+}  // namespace LegacyFTB

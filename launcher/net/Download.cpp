@@ -44,8 +44,8 @@
 #include "FileSystem.h"
 #include "MetaCacheSink.h"
 
-#include "BuildConfig.h"
 #include "Application.h"
+#include "BuildConfig.h"
 
 namespace Net {
 
@@ -117,11 +117,10 @@ void Download::executeTask()
             return;
     }
 
-    if (APPLICATION->capabilities() & Application::SupportsFlame
-            && (request.url().host().contains("api.curseforge.com") || request.url().host().contains("edge.forgecdn.net"))) {
+    if (APPLICATION->capabilities() & Application::SupportsFlame &&
+        (request.url().host().contains("api.curseforge.com") || request.url().host().contains("edge.forgecdn.net"))) {
         request.setRawHeader("x-api-key", APPLICATION->getFlameAPIKey().toUtf8());
-    }
-    else {
+    } else {
         request.setHeader(QNetworkRequest::UserAgentHeader, APPLICATION->getUserAgent().toUtf8());
     }
 

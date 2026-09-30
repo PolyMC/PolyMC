@@ -6,11 +6,10 @@
 
 typedef shared_qobject_ptr<class SkinDelete> SkinDeletePtr;
 
-class SkinDelete : public Task
-{
+class SkinDelete : public Task {
     Q_OBJECT
 public:
-    SkinDelete(QObject *parent, QString token);
+    SkinDelete(QObject* parent, QString token);
     virtual ~SkinDelete() = default;
 
 private:

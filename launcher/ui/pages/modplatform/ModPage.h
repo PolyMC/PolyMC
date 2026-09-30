@@ -20,13 +20,14 @@ class ModPage;
 class ModPage : public QWidget, public BasePage {
     Q_OBJECT
 
-   public:
-    template<typename T>
+public:
+    template <typename T>
     static T* create(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance)
     {
         auto page = new T(dialog, type, instance);
 
-        auto filter_widget = ModFilterWidget::create(static_cast<MinecraftInstance*>(instance)->getPackProfile()->getComponentVersion("net.minecraft"), page);
+        auto filter_widget = ModFilterWidget::create(
+            static_cast<MinecraftInstance*>(instance)->getPackProfile()->getComponentVersion("net.minecraft"), page);
         page->setFilterWidget(filter_widget);
 
         return page;
@@ -44,13 +45,14 @@ class ModPage : public QWidget, public BasePage {
     virtual auto metaEntryBase() const -> QString = 0;
     virtual auto debugName() const -> QString = 0;
 
-
     void retranslate() override;
 
     void updateUi();
 
     auto shouldDisplay() const -> bool override = 0;
-    virtual auto validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const -> bool = 0;
+    virtual auto validateVersion(ModPlatform::IndexedVersion& ver,
+                                 QString mineVer,
+                                 ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const -> bool = 0;
     virtual bool optedOut(ModPlatform::IndexedVersion& ver) const { return false; };
 
     auto apiProvider() -> ModAPI* { return api.get(); };
@@ -73,18 +75,18 @@ class ModPage : public QWidget, public BasePage {
 
     BaseInstance* m_instance;
 
-   protected:
+protected:
     ModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance, ModAPI* api);
     void updateSelectionButton();
 
-   protected slots:
+protected slots:
     virtual void filterMods();
     void triggerSearch();
     void onSelectionChanged(QModelIndex first, QModelIndex second);
     void onVersionSelectionChanged(QString data);
     void onModSelected();
 
-   protected:
+protected:
     Ui::ModPage* ui = nullptr;
     ModDownloadDialog* dialog = nullptr;
 

@@ -15,20 +15,9 @@ enum class ResourceType {
     LITEMOD,     //!< The resource is a litemod
 };
 
-enum class SortType {
-    NAME,
-    DATE,
-    VERSION,
-    ENABLED,
-    DO_UPDATES,
-    PACK_FORMAT
-};
+enum class SortType { NAME, DATE, VERSION, ENABLED, DO_UPDATES, PACK_FORMAT };
 
-enum class EnableAction {
-    ENABLE,
-    DISABLE,
-    TOGGLE
-};
+enum class EnableAction { ENABLE, DISABLE, TOGGLE };
 
 /** General class for managed resources. It mirrors a file in disk, with some more info
  *  for display and house-keeping purposes.
@@ -38,7 +27,7 @@ enum class EnableAction {
 class Resource : public QObject {
     Q_OBJECT
     Q_DISABLE_COPY(Resource)
-   public:
+public:
     using Ptr = shared_qobject_ptr<Resource>;
     using WeakPtr = QPointer<Resource>;
 
@@ -94,7 +83,7 @@ class Resource : public QObject {
     // Delete all files of this resource.
     bool destroy();
 
-   protected:
+protected:
     /* The file corresponding to this resource. */
     QFileInfo m_file_info;
     /* The cached date when this file was last changed. */

@@ -18,29 +18,22 @@
 #include <QDialog>
 #include "net/NetJob.h"
 
-namespace Ui
-{
+namespace Ui {
 class UpdateDialog;
 }
 
-enum UpdateAction
-{
+enum UpdateAction {
     UPDATE_LATER = QDialog::Rejected,
     UPDATE_NOW = QDialog::Accepted,
 };
 
-enum ChangelogType
-{
-    CHANGELOG_MARKDOWN,
-    CHANGELOG_COMMITS
-};
+enum ChangelogType { CHANGELOG_MARKDOWN, CHANGELOG_COMMITS };
 
-class UpdateDialog : public QDialog
-{
+class UpdateDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit UpdateDialog(bool hasUpdate = true, QWidget *parent = 0);
+    explicit UpdateDialog(bool hasUpdate = true, QWidget* parent = 0);
     ~UpdateDialog();
 
 public slots:
@@ -57,10 +50,10 @@ public slots:
     void changelogFailed(QString reason);
 
 protected:
-    void closeEvent(QCloseEvent * ) override;
+    void closeEvent(QCloseEvent*) override;
 
 private:
-    Ui::UpdateDialog *ui;
+    Ui::UpdateDialog* ui;
     QByteArray changelogData;
     NetJob::Ptr dljob;
     ChangelogType m_changelogType = CHANGELOG_MARKDOWN;

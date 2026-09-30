@@ -41,31 +41,20 @@
 #include "minecraft/PackProfile.h"
 #include "ui/pages/BasePage.h"
 
-namespace Ui
-{
+namespace Ui {
 class VersionPage;
 }
 
-class VersionPage : public QMainWindow, public BasePage
-{
+class VersionPage : public QMainWindow, public BasePage {
     Q_OBJECT
 
 public:
-    explicit VersionPage(MinecraftInstance *inst, QWidget *parent = 0);
+    explicit VersionPage(MinecraftInstance* inst, QWidget* parent = 0);
     virtual ~VersionPage();
-    virtual QString displayName() const override
-    {
-        return tr("Version");
-    }
+    virtual QString displayName() const override { return tr("Version"); }
     virtual QIcon icon() const override;
-    virtual QString id() const override
-    {
-        return "version";
-    }
-    virtual QString helpPage() const override
-    {
-        return "Instance-Version";
-    }
+    virtual QString id() const override { return "version"; }
+    virtual QString helpPage() const override { return "Instance-Version"; }
     virtual bool shouldDisplay() const override;
     void retranslate() override;
 
@@ -95,33 +84,33 @@ private slots:
     void updateVersionControls();
 
 private:
-    Component * current();
+    Component* current();
     int currentRow();
     void updateButtons(int row = -1);
     void preselect(int row = 0);
     int doUpdate();
 
 protected:
-    QMenu * createPopupMenu() override;
+    QMenu* createPopupMenu() override;
 
     /// FIXME: this shouldn't be necessary!
     bool reloadPackProfile();
 
 private:
-    Ui::VersionPage *ui;
-    QSortFilterProxyModel *m_filterModel;
+    Ui::VersionPage* ui;
+    QSortFilterProxyModel* m_filterModel;
     std::shared_ptr<PackProfile> m_profile;
-    MinecraftInstance *m_inst;
+    MinecraftInstance* m_inst;
     int currentIdx = 0;
     bool controlsEnabled = false;
 
 public slots:
-    void versionCurrent(const QModelIndex &current, const QModelIndex &previous);
+    void versionCurrent(const QModelIndex& current, const QModelIndex& previous);
 
 private slots:
     void updateRunningStatus(bool running);
     void onGameUpdateError(QString error);
-    void packageCurrent(const QModelIndex &current, const QModelIndex &previous);
-    void showContextMenu(const QPoint &pos);
-    void onFilterTextChanged(const QString & newContents);
+    void packageCurrent(const QModelIndex& current, const QModelIndex& previous);
+    void showContextMenu(const QPoint& pos);
+    void onFilterTextChanged(const QString& newContents);
 };

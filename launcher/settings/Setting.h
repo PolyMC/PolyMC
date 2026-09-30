@@ -16,8 +16,8 @@
 #pragma once
 
 #include <QObject>
-#include <QVariant>
 #include <QStringList>
+#include <QVariant>
 #include <memory>
 
 class SettingsObject;
@@ -25,8 +25,7 @@ class SettingsObject;
 /*!
  *
  */
-class Setting : public QObject
-{
+class Setting : public QObject {
     Q_OBJECT
 public:
     /**
@@ -47,10 +46,7 @@ public:
      * undefined behavior.
      * \return The ID of the setting.
      */
-    virtual QString id() const
-    {
-        return m_synonyms.first();
-    }
+    virtual QString id() const { return m_synonyms.first(); }
 
     /*!
      * \brief Gets this setting's config file key.
@@ -58,10 +54,7 @@ public:
      * the same as the setting's ID, but it can be different.
      * \return The setting's config file key.
      */
-    virtual QStringList configKeys() const
-    {
-        return m_synonyms;
-    }
+    virtual QStringList configKeys() const { return m_synonyms; }
 
     /*!
      * \brief Gets this setting's value as a QVariant.
@@ -84,16 +77,15 @@ signals:
      * \param setting A reference to the Setting that changed.
      * \param value This Setting object's new value.
      */
-    void SettingChanged(const Setting &setting, QVariant value);
+    void SettingChanged(const Setting& setting, QVariant value);
 
     /*!
      * \brief Signal emitted when this Setting object's value resets to default.
      * \param setting A reference to the Setting that changed.
      */
-    void settingReset(const Setting &setting);
+    void settingReset(const Setting& setting);
 
-public
-slots:
+public slots:
     /*!
      * \brief Changes the setting's value.
      * This is done by emitting the SettingChanged() signal which will then be
@@ -111,8 +103,7 @@ slots:
 
 protected:
     friend class SettingsObject;
-    SettingsObject * m_storage;
+    SettingsObject* m_storage;
     QStringList m_synonyms;
     QVariant m_defVal;
 };
-

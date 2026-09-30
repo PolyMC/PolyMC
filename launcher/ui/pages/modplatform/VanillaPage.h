@@ -37,40 +37,26 @@
 
 #include <QWidget>
 
-#include "ui/pages/BasePage.h"
 #include <Application.h>
 #include "tasks/Task.h"
+#include "ui/pages/BasePage.h"
 
-namespace Ui
-{
+namespace Ui {
 class VanillaPage;
 }
 
 class NewInstanceDialog;
 
-class VanillaPage : public QWidget, public BasePage
-{
+class VanillaPage : public QWidget, public BasePage {
     Q_OBJECT
 
 public:
-    explicit VanillaPage(NewInstanceDialog *dialog, QWidget *parent = 0);
+    explicit VanillaPage(NewInstanceDialog* dialog, QWidget* parent = 0);
     virtual ~VanillaPage();
-    virtual QString displayName() const override
-    {
-        return tr("Vanilla");
-    }
-    virtual QIcon icon() const override
-    {
-        return APPLICATION->getThemedIcon("minecraft");
-    }
-    virtual QString id() const override
-    {
-        return "vanilla";
-    }
-    virtual QString helpPage() const override
-    {
-        return "Vanilla-platform";
-    }
+    virtual QString displayName() const override { return tr("Vanilla"); }
+    virtual QIcon icon() const override { return APPLICATION->getThemedIcon("minecraft"); }
+    virtual QString id() const override { return "vanilla"; }
+    virtual QString helpPage() const override { return "Vanilla-platform"; }
     virtual bool shouldDisplay() const override;
     void retranslate() override;
 
@@ -95,8 +81,8 @@ private:
 
 private:
     bool initialized = false;
-    NewInstanceDialog *dialog = nullptr;
-    Ui::VanillaPage *ui = nullptr;
+    NewInstanceDialog* dialog = nullptr;
+    Ui::VanillaPage* ui = nullptr;
     bool m_versionSetByUser = false;
     BaseVersionPtr m_selectedVersion;
     BaseVersionPtr m_selectedLoaderVersion;

@@ -37,43 +37,29 @@
 
 #include <QWidget>
 
-#include "java/JavaChecker.h"
-#include "BaseInstance.h"
 #include <QObjectPtr.h>
-#include "ui/pages/BasePage.h"
-#include "JavaCommon.h"
 #include "Application.h"
+#include "BaseInstance.h"
+#include "JavaCommon.h"
+#include "java/JavaChecker.h"
+#include "ui/pages/BasePage.h"
 
 class JavaChecker;
-namespace Ui
-{
+namespace Ui {
 class InstanceSettingsPage;
 }
 
-class InstanceSettingsPage : public QWidget, public BasePage
-{
+class InstanceSettingsPage : public QWidget, public BasePage {
     Q_OBJECT
 
 public:
-    explicit InstanceSettingsPage(BaseInstance *inst, QWidget *parent = 0);
+    explicit InstanceSettingsPage(BaseInstance* inst, QWidget* parent = 0);
     virtual ~InstanceSettingsPage();
-    virtual QString displayName() const override
-    {
-        return tr("Settings");
-    }
-    virtual QIcon icon() const override
-    {
-        return APPLICATION->getThemedIcon("instance-settings");
-    }
-    virtual QString id() const override
-    {
-        return "settings";
-    }
+    virtual QString displayName() const override { return tr("Settings"); }
+    virtual QIcon icon() const override { return APPLICATION->getThemedIcon("instance-settings"); }
+    virtual QString id() const override { return "settings"; }
     virtual bool apply() override;
-    virtual QString helpPage() const override
-    {
-        return "Instance-settings";
-    }
+    virtual QString helpPage() const override { return "Instance-settings"; }
     virtual bool shouldDisplay() const override;
     void retranslate() override;
 
@@ -93,12 +79,11 @@ private slots:
     void updateMemoryWarning();
     void normalizeMemory();
 
-
 private:
-    void updateSecWarnVisibility(const QString &javaPath);
+    void updateSecWarnVisibility(const QString& javaPath);
 
-    Ui::InstanceSettingsPage *ui;
-    BaseInstance *m_instance;
+    Ui::InstanceSettingsPage* ui;
+    BaseInstance* m_instance;
     SettingsObjectPtr m_settings;
     shared_qobject_ptr<AccountList> m_accounts;
     unique_qobject_ptr<JavaCommon::TestCheck> checker;

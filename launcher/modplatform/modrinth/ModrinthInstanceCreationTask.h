@@ -13,7 +13,7 @@
 class ModrinthCreationTask final : public InstanceCreationTask {
     Q_OBJECT
 
-   public:
+public:
     ModrinthCreationTask(QString staging_path, SettingsObjectPtr global_settings, QWidget* parent, QString source_url = {})
         : InstanceCreationTask(), m_parent(parent), m_source_url(std::move(source_url))
     {
@@ -26,11 +26,11 @@ class ModrinthCreationTask final : public InstanceCreationTask {
     bool updateInstance() override;
     bool createInstance() override;
 
-   private:
+private:
     bool parseManifest(const QString&, std::vector<Modrinth::File>&, bool set_managed_info = true, bool show_optional_dialog = true);
     QString getManagedPackID() const;
 
-   private:
+private:
     QWidget* m_parent = nullptr;
 
     QString minecraftVersion, fabricVersion, quiltVersion, forgeVersion, neoforgeVersion;

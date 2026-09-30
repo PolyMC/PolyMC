@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-only
 /*
-*  PolyMC - Minecraft Launcher
-*  Copyright (c) 2022 flowln <flowlnlnln@gmail.com>
-*  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
-*
-*  This program is free software: you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation, version 3.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (c) 2022 flowln <flowlnlnln@gmail.com>
+ *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
 #include "ModDownloadTask.h"
 
@@ -24,8 +24,10 @@
 
 ModDownloadTask::ModDownloadTask(const ModPlatform::IndexedPack& mod,
                                  const ModPlatform::IndexedVersion& version,
-                                 const std::shared_ptr<ResourceFolderModel> mods, bool is_indexed)
-    : m_mod(mod), m_mod_version(version), mods(mods) {
+                                 const std::shared_ptr<ResourceFolderModel> mods,
+                                 bool is_indexed)
+    : m_mod(mod), m_mod_version(version), mods(mods)
+{
     auto modFolderModel = std::dynamic_pointer_cast<ModFolderModel>(mods);
     if (is_indexed && modFolderModel) {
         m_update_task.reset(new LocalModUpdateTask(modFolderModel->indexDir(), m_mod, m_mod_version));
@@ -72,5 +74,5 @@ void ModDownloadTask::downloadProgressChanged(qint64 current, qint64 total)
 // downloaded successfully!
 void ModDownloadTask::hasOldMod(QString name, QString filename)
 {
-    to_delete = {name, filename};
+    to_delete = { name, filename };
 }

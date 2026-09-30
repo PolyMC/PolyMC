@@ -33,15 +33,13 @@
  *      limitations under the License.
  */
 
-#include <QMessageBox>
 #include "AtlUserInteractionSupportImpl.h"
+#include <QMessageBox>
 
 #include "AtlOptionalModDialog.h"
 #include "ui/dialogs/VersionSelectDialog.h"
 
-AtlUserInteractionSupportImpl::AtlUserInteractionSupportImpl(QWidget *parent) : m_parent(parent)
-{
-}
+AtlUserInteractionSupportImpl::AtlUserInteractionSupportImpl(QWidget* parent) : m_parent(parent) {}
 
 QVector<QString> AtlUserInteractionSupportImpl::chooseOptionalMods(ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods)
 {
@@ -56,8 +54,7 @@ QString AtlUserInteractionSupportImpl::chooseVersion(Meta::VersionListPtr vlist,
     if (minecraftVersion != nullptr) {
         vselect.setExactFilter(BaseVersionList::ParentVersionRole, minecraftVersion);
         vselect.setEmptyString(tr("No versions are currently available for Minecraft %1").arg(minecraftVersion));
-    }
-    else {
+    } else {
         vselect.setEmptyString(tr("No versions are currently available"));
     }
     vselect.setEmptyErrorString(tr("Couldn't load or download the version lists!"));
@@ -69,9 +66,7 @@ QString AtlUserInteractionSupportImpl::chooseVersion(Meta::VersionListPtr vlist,
 
         // filter by minecraft version, if the loader depends on a certain version.
         if (minecraftVersion != nullptr) {
-            auto iter = std::find_if(reqs.begin(), reqs.end(), [](const Meta::Require& req) {
-                return req.uid == "net.minecraft";
-            });
+            auto iter = std::find_if(reqs.begin(), reqs.end(), [](const Meta::Require& req) { return req.uid == "net.minecraft"; });
             if (iter == reqs.end())
                 continue;
             if (iter->equalsVersion != minecraftVersion)

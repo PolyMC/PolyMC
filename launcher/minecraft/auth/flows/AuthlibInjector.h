@@ -1,25 +1,16 @@
 #pragma once
 #include "AuthFlow.h"
 
-class AuthlibInjectorRefresh : public AuthFlow
-{
+class AuthlibInjectorRefresh : public AuthFlow {
     Q_OBJECT
 public:
-    explicit AuthlibInjectorRefresh(
-        AccountData *data,
-        QObject *parent = 0
-    );
+    explicit AuthlibInjectorRefresh(AccountData* data, QObject* parent = 0);
 };
 
-class AuthlibInjectorLogin : public AuthFlow
-{
+class AuthlibInjectorLogin : public AuthFlow {
     Q_OBJECT
 public:
-    explicit AuthlibInjectorLogin(
-        AccountData *data,
-        QString password,
-        QObject *parent = 0
-    );
+    explicit AuthlibInjectorLogin(AccountData* data, QString password, QObject* parent = 0);
 
 private:
     QString m_password;

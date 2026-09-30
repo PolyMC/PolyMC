@@ -74,7 +74,7 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
         font.setPointSize(font.pointSize() + 2);
         painter->setFont(font);
 
-        QFontMetrics fontMetrics{font};
+        QFontMetrics fontMetrics{ font };
 
         QRect titleRect(rect.topLeft() + QPoint(0, fontMetrics.ascent() - fontMetrics.height()), QSize(rect.width(), fontMetrics.height()));
         // On the top, aligned to the left after the icon
@@ -121,7 +121,7 @@ QSize ProjectItemDelegate::sizeHint(const QStyleOptionViewItem& option, const QM
         height += QFontMetrics{ font }.height();
     }
 
-    { // Ensure enough space for 2 lines of description text
+    {  // Ensure enough space for 2 lines of description text
         height += QFontMetrics{ option.font }.lineSpacing() * 2;
     }
 

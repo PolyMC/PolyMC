@@ -12,17 +12,17 @@ class NewsDialog;
 class NewsDialog : public QDialog {
     Q_OBJECT
 
-   public:
+public:
     NewsDialog(QList<NewsEntryPtr> entries, QWidget* parent = nullptr);
     ~NewsDialog();
 
-   public slots:
+public slots:
     void toggleArticleList();
 
-   private slots:
+private slots:
     void selectedArticleChanged(const QString& new_title);
 
-   private:
+private:
     Ui::NewsDialog* ui;
 
     QHash<QString, NewsEntryPtr> m_entries;

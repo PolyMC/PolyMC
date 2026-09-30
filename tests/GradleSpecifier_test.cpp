@@ -2,19 +2,11 @@
 
 #include <minecraft/GradleSpecifier.h>
 
-class GradleSpecifierTest : public QObject
-{
+class GradleSpecifierTest : public QObject {
     Q_OBJECT
-private
-slots:
-    void initTestCase()
-    {
-
-    }
-    void cleanupTestCase()
-    {
-
-    }
+private slots:
+    void initTestCase() {}
+    void cleanupTestCase() {}
 
     void test_Positive_data()
     {

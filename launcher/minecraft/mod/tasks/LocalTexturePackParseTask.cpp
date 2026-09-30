@@ -26,8 +26,8 @@
 
 #include <QCryptographicHash>
 #include <QJsonDocument>
-#include <QJsonParseError>
 #include <QJsonObject>
+#include <QJsonParseError>
 
 namespace TexturePackUtils {
 
@@ -51,12 +51,7 @@ void processFolder(TexturePack& pack)
     Q_ASSERT(pack.type() == ResourceType::FOLDER);
 
     // some old texture packs might use other schemas, so fallback to those
-    static const QStringList candidates = {
-        "pack.txt",
-        "pack.json",
-        "manifest.json",
-        "manifest.json.txt"
-    };
+    static const QStringList candidates = { "pack.txt", "pack.json", "manifest.json", "manifest.json.txt" };
 
     for (const QString& c : candidates) {
         QFileInfo mcmeta_file_info(FS::PathCombine(pack.fileinfo().filePath(), c));
@@ -102,12 +97,7 @@ void processZIP(TexturePack& pack)
     QuaZipFile file(&zip);
 
     // some old texture packs might use other schemas, so fallback to those
-    static const QStringList candidates = {
-        "pack.txt",
-        "pack.json",
-        "manifest.json",
-        "manifest.json.txt"
-    };
+    static const QStringList candidates = { "pack.txt", "pack.json", "manifest.json", "manifest.json.txt" };
 
     for (const QString& c : candidates) {
         if (!zip.setCurrentFile(c))
@@ -153,14 +143,8 @@ void processPackTXT(TexturePack& pack, QByteArray&& raw_data)
     QJsonParseError err;
     auto doc = QJsonDocument::fromJson(raw_data, &err);
     if (err.error == QJsonParseError::NoError && doc.isObject()) {
-        auto obj = doc.object().value("description").isObject()
-        ? doc.object().value("description").toObject()
-        : doc.object();
-        QStringList parts = {
-            obj.value("name").toString(),
-            obj.value("line1").toString(),
-            obj.value("line2").toString()
-        };
+        auto obj = doc.object().value("description").isObject() ? doc.object().value("description").toObject() : doc.object();
+        QStringList parts = { obj.value("name").toString(), obj.value("line1").toString(), obj.value("line2").toString() };
         parts.removeAll({});
         if (!parts.isEmpty()) {
             pack.setDescription(parts.join('\n'));
@@ -182,8 +166,7 @@ void processPackPNG(TexturePack& pack, QByteArray&& raw_data)
 }
 }  // namespace TexturePackUtils
 
-LocalTexturePackParseTask::LocalTexturePackParseTask(int token, TexturePack& rp)
-    : Task(nullptr, false), m_token(token), m_texture_pack(rp)
+LocalTexturePackParseTask::LocalTexturePackParseTask(int token, TexturePack& rp) : Task(nullptr, false), m_token(token), m_texture_pack(rp)
 {}
 
 bool LocalTexturePackParseTask::abort()

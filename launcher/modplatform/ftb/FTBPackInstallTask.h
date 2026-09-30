@@ -48,8 +48,7 @@
 
 namespace FTB {
 
-class PackInstallTask final : public InstanceTask
-{
+class PackInstallTask final : public InstanceTask {
     Q_OBJECT
 
 public:
@@ -92,8 +91,8 @@ private:
 
     QMap<QString, QString> m_files_to_copy;
 
-    //FIXME: nuke
+    // FIXME: nuke
     QWidget* m_parent;
 };
 
-}
+}  // namespace FTB

@@ -4,15 +4,12 @@
 
 class JavaSettingsWidget;
 
-class JavaWizardPage : public BaseWizardPage
-{
+class JavaWizardPage : public BaseWizardPage {
     Q_OBJECT
 public:
-    explicit JavaWizardPage(QWidget *parent = Q_NULLPTR);
+    explicit JavaWizardPage(QWidget* parent = Q_NULLPTR);
 
-    virtual ~JavaWizardPage()
-    {
-    };
+    virtual ~JavaWizardPage() {};
 
     bool wantsRefreshButton() override;
     void refresh() override;
@@ -24,6 +21,5 @@ protected: /* methods */
     void retranslate() override;
 
 private: /* data */
-    JavaSettingsWidget *m_java_widget = nullptr;
+    JavaSettingsWidget* m_java_widget = nullptr;
 };
-

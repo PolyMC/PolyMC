@@ -12,12 +12,15 @@ class QNetworkAccessManager;
 namespace Katabasis {
 
 /// Poll an authorization server for token
-class PollServer : public QObject
-{
+class PollServer : public QObject {
     Q_OBJECT
 
 public:
-    explicit PollServer(QNetworkAccessManager * manager, const QNetworkRequest &request, const QByteArray & payload, int expiresIn, QObject *parent = 0);
+    explicit PollServer(QNetworkAccessManager* manager,
+                        const QNetworkRequest& request,
+                        const QByteArray& payload,
+                        int expiresIn,
+                        QObject* parent = 0);
 
     /// Seconds to wait between polling requests
     Q_PROPERTY(int interval READ interval WRITE setInterval)
@@ -26,7 +29,7 @@ public:
 
 signals:
     void verificationReceived(QMap<QString, QString>);
-    void serverClosed(bool); // whether it has found parameters
+    void serverClosed(bool);  // whether it has found parameters
 
 public slots:
     void startPolling();
@@ -37,7 +40,7 @@ protected slots:
     void onReplyFinished();
 
 protected:
-    QNetworkAccessManager *manager_;
+    QNetworkAccessManager* manager_;
     const QNetworkRequest request_;
     const QByteArray payload_;
     const int expiresIn_;
@@ -45,4 +48,4 @@ protected:
     QTimer pollTimer;
 };
 
-}
+}  // namespace Katabasis

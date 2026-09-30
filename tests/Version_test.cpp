@@ -18,8 +18,7 @@
 #include <TestUtil.h>
 #include <Version.h>
 
-class ModUtilsTest : public QObject
-{
+class ModUtilsTest : public QObject {
     Q_OBJECT
     void setupVersions()
     {
@@ -51,19 +50,10 @@ class ModUtilsTest : public QObject
     }
 
 private slots:
-    void initTestCase()
-    {
+    void initTestCase() {}
+    void cleanupTestCase() {}
 
-    }
-    void cleanupTestCase()
-    {
-
-    }
-
-    void test_versionCompare_data()
-    {
-        setupVersions();
-    }
+    void test_versionCompare_data() { setupVersions(); }
     void test_versionCompare()
     {
         QFETCH(QString, first);

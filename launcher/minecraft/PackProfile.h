@@ -37,44 +37,39 @@
 
 #include <QAbstractListModel>
 
-#include <QString>
 #include <QList>
+#include <QString>
 #include <memory>
 
-#include "Library.h"
-#include "LaunchProfile.h"
-#include "Component.h"
-#include "ProfileUtils.h"
 #include "BaseVersion.h"
+#include "Component.h"
+#include "LaunchProfile.h"
+#include "Library.h"
 #include "MojangDownloadInfo.h"
-#include "net/Mode.h"
+#include "ProfileUtils.h"
 #include "modplatform/ModAPI.h"
+#include "net/Mode.h"
 
 class MinecraftInstance;
 struct PackProfileData;
 class ComponentUpdateTask;
 
-class PackProfile : public QAbstractListModel
-{
+class PackProfile : public QAbstractListModel {
     Q_OBJECT
     friend ComponentUpdateTask;
-public:
-    enum Columns
-    {
-        NameColumn = 0,
-        VersionColumn,
-        NUM_COLUMNS
-    };
 
-    explicit PackProfile(MinecraftInstance * instance);
+public:
+    enum Columns { NameColumn = 0, VersionColumn, NUM_COLUMNS };
+
+    explicit PackProfile(MinecraftInstance* instance);
     virtual ~PackProfile();
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+    virtual bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    virtual int columnCount(const QModelIndex &parent) const override;
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
+    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+    virtual int columnCount(const QModelIndex& parent) const override;
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const override;
 
     /// call this to explicitly mark the component list as loaded - this is used to build a new component list from scratch.
     void buildingFromScratch();
@@ -111,15 +106,15 @@ public:
     std::shared_ptr<LaunchProfile> getProfile() const;
 
     // NOTE: used ONLY by MinecraftInstance to provide legacy version mappings from instance config
-    void setOldConfigVersion(const QString &uid, const QString &version);
+    void setOldConfigVersion(const QString& uid, const QString& version);
 
-    QString getComponentVersion(const QString &uid) const;
+    QString getComponentVersion(const QString& uid) const;
 
-    bool setComponentVersion(const QString &uid, const QString &version, bool important = false);
+    bool setComponentVersion(const QString& uid, const QString& version, bool important = false);
 
-    bool installEmpty(const QString &uid, const QString &name);
+    bool installEmpty(const QString& uid, const QString& name);
 
-    QString patchFilePathForUid(const QString &uid) const;
+    QString patchFilePathForUid(const QString& uid) const;
 
     /// if there is a save scheduled, do it now.
     void saveNow();
@@ -132,10 +127,10 @@ signals:
 
 public:
     /// get the profile component by id
-    Component * getComponent(const QString &id);
+    Component* getComponent(const QString& id);
 
     /// get the profile component by index
-    Component * getComponent(int index);
+    Component* getComponent(int index);
 
     /// Add the component to the internal list of patches
     // todo(merged): is this the best approach
@@ -159,7 +154,7 @@ private:
 private slots:
     void save_internal();
     void updateSucceeded();
-    void updateFailed(const QString & error);
+    void updateFailed(const QString& error);
     void componentDataChanged();
     void disableInteraction(bool disable);
 
@@ -170,6 +165,5 @@ private:
     bool removeComponent_internal(ComponentPtr patch);
 
 private: /* data */
-
     std::unique_ptr<PackProfileData> d;
 };

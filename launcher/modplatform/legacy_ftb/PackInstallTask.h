@@ -1,12 +1,12 @@
 #pragma once
-#include "InstanceTask.h"
-#include "net/NetJob.h"
 #include <quazip/quazip.h>
 #include <quazip/quazipdir.h>
+#include "InstanceTask.h"
+#include "PackHelpers.h"
 #include "meta/Index.h"
 #include "meta/Version.h"
 #include "meta/VersionList.h"
-#include "PackHelpers.h"
+#include "net/NetJob.h"
 
 #include "net/NetJob.h"
 
@@ -14,13 +14,12 @@
 
 namespace LegacyFTB {
 
-class PackInstallTask : public InstanceTask
-{
+class PackInstallTask : public InstanceTask {
     Q_OBJECT
 
 public:
     explicit PackInstallTask(shared_qobject_ptr<QNetworkAccessManager> network, Modpack pack, QString version);
-    virtual ~PackInstallTask(){}
+    virtual ~PackInstallTask() {}
 
     bool canAbort() const override { return true; }
     bool abort() override;
@@ -56,4 +55,4 @@ private: /* data */
     QString m_version;
 };
 
-}
+}  // namespace LegacyFTB

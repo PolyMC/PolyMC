@@ -12,27 +12,17 @@ class Usable;
  *
  * @see UseLock
  */
-class Usable
-{
+class Usable {
     friend class UseLock;
+
 public:
-    std::size_t useCount() const
-    {
-        return m_useCount;
-    }
-    bool isInUse() const
-    {
-        return m_useCount > 0;
-    }
+    std::size_t useCount() const { return m_useCount; }
+    bool isInUse() const { return m_useCount > 0; }
+
 protected:
-    virtual void decrementUses()
-    {
-        m_useCount--;
-    }
-    virtual void incrementUses()
-    {
-        m_useCount++;
-    }
+    virtual void decrementUses() { m_useCount--; }
+    virtual void incrementUses() { m_useCount++; }
+
 private:
     std::size_t m_useCount = 0;
 };
@@ -42,19 +32,15 @@ private:
  *
  * @see Usable
  */
-class UseLock
-{
+class UseLock {
 public:
-    UseLock(shared_qobject_ptr<Usable> usable)
-        : m_usable(usable)
+    UseLock(shared_qobject_ptr<Usable> usable) : m_usable(usable)
     {
         // this doesn't use shared pointer use count, because that wouldn't be correct. this count is separate.
         m_usable->incrementUses();
     }
-    ~UseLock()
-    {
-        m_usable->decrementUses();
-    }
+    ~UseLock() { m_usable->decrementUses(); }
+
 private:
     shared_qobject_ptr<Usable> m_usable;
 };

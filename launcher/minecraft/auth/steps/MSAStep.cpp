@@ -46,7 +46,8 @@
 using OAuth2 = Katabasis::DeviceFlow;
 using Activity = Katabasis::Activity;
 
-MSAStep::MSAStep(AccountData* data, Action action) : AuthStep(data), m_action(action) {
+MSAStep::MSAStep(AccountData* data, Action action) : AuthStep(data), m_action(action)
+{
     m_clientId = APPLICATION->getMSAClientID();
     OAuth2::Options opts;
     opts.scope = "XboxLive.signin offline_access";
@@ -63,13 +64,14 @@ MSAStep::MSAStep(AccountData* data, Action action) : AuthStep(data), m_action(ac
 
 MSAStep::~MSAStep() noexcept = default;
 
-QString MSAStep::describe() {
+QString MSAStep::describe()
+{
     return tr("Logging in with Microsoft account.");
 }
 
-
-void MSAStep::rehydrate() {
-    switch(m_action) {
+void MSAStep::rehydrate()
+{
+    switch (m_action) {
         case Refresh: {
             // TODO: check the tokens and see if they are old (older than a day)
             return;
@@ -81,12 +83,14 @@ void MSAStep::rehydrate() {
     }
 }
 
-void MSAStep::perform() {
-    switch(m_action) {
+void MSAStep::perform()
+{
+    switch (m_action) {
         case Refresh: {
             if (m_data->msaClientID != m_clientId) {
                 emit hideVerificationUriAndCode();
-                emit finished(AccountTaskState::STATE_DISABLED, tr("Microsoft user authentication failed - client identification has changed."));
+                emit finished(AccountTaskState::STATE_DISABLED,
+                              tr("Microsoft user authentication failed - client identification has changed."));
             }
             m_oauth2->refresh();
             return;
@@ -104,8 +108,9 @@ void MSAStep::perform() {
     }
 }
 
-void MSAStep::onOAuthActivityChanged(Katabasis::Activity activity) {
-    switch(activity) {
+void MSAStep::onOAuthActivityChanged(Katabasis::Activity activity)
+{
+    switch (activity) {
         case Katabasis::Activity::Idle:
         case Katabasis::Activity::LoggingIn:
         case Katabasis::Activity::Refreshing:

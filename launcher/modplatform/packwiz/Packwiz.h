@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-only
 /*
-*  PolyMC - Minecraft Launcher
-*  Copyright (c) 2022 flowln <flowlnlnln@gmail.com>
-*
-*  This program is free software: you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation, version 3.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (c) 2022 flowln <flowlnlnln@gmail.com>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
 #pragma once
 
@@ -38,27 +38,27 @@ auto stringEntry(toml_table_t* parent, const char* entry_name) -> QString;
 auto intEntry(toml_table_t* parent, const char* entry_name) -> int;
 
 class V1 {
-   public:
+public:
     struct Mod {
-        QString slug {};
-        QString name {};
-        QString filename {};
+        QString slug{};
+        QString name{};
+        QString filename{};
         // FIXME: make side an enum
-        QString side {"both"};
+        QString side{ "both" };
 
         // [download]
-        QString mode {};
-        QUrl url {};
-        QString hash_format {};
-        QString hash {};
+        QString mode{};
+        QUrl url{};
+        QString hash_format{};
+        QString hash{};
 
         // [update]
-        ModPlatform::Provider provider {};
-        QVariant file_id {};
-        QVariant project_id {};
-        QString do_updates {"true"};
+        ModPlatform::Provider provider{};
+        QVariant file_id{};
+        QVariant project_id{};
+        QString do_updates{ "true" };
 
-       public:
+    public:
         // This is a totally heuristic, but should work for now.
         auto isValid() const -> bool { return !slug.isEmpty() && !project_id.isNull(); }
         auto hasDoUpdates() const -> bool { return !do_updates.isNull(); }
@@ -101,4 +101,4 @@ class V1 {
     static auto getIndexForMod(QDir& index_dir, QVariant& mod_id) -> Mod;
 };
 
-} // namespace Packwiz
+}  // namespace Packwiz

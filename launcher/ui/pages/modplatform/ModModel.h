@@ -11,12 +11,12 @@ class Version;
 namespace ModPlatform {
 
 using LogoMap = QMap<QString, QIcon>;
-using LogoCallback = std::function<void (QString)>;
+using LogoCallback = std::function<void(QString)>;
 
 class ListModel : public QAbstractListModel {
     Q_OBJECT
 
-   public:
+public:
     ListModel(ModPage* parent);
     ~ListModel() override;
 
@@ -28,7 +28,7 @@ class ListModel : public QAbstractListModel {
 
     /* Retrieve information from the model at a given index with the given role */
     auto data(const QModelIndex& index, int role) const -> QVariant override;
-    bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+    bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
     inline void setActiveJob(NetJob::Ptr ptr) { jobPtr = ptr; }
     inline NetJob* activeJob() { return jobPtr.get(); }
@@ -48,7 +48,7 @@ class ListModel : public QAbstractListModel {
 
     inline auto canFetchMore(const QModelIndex& parent) const -> bool override { return searchState == CanPossiblyFetchMore; };
 
-   public slots:
+public slots:
     void searchRequestFinished(QJsonDocument& doc);
     void searchRequestFailed(QString reason);
 
@@ -56,14 +56,14 @@ class ListModel : public QAbstractListModel {
 
     void versionRequestSucceeded(QJsonDocument doc, QString addonId, const QModelIndex& index);
 
-   protected slots:
+protected slots:
 
     void logoFailed(QString logo);
     void logoLoaded(QString logo, QIcon out);
 
     void performPaginatedSearch();
 
-   protected:
+protected:
     virtual auto documentToArray(QJsonDocument& obj) const -> QJsonArray = 0;
     virtual auto getSorts() const -> const char** = 0;
 
@@ -71,7 +71,7 @@ class ListModel : public QAbstractListModel {
 
     inline auto getMineVersions() const -> std::list<Version>;
 
-   protected:
+protected:
     ModPage* m_parent;
 
     QList<ModPlatform::IndexedPack> modpacks;

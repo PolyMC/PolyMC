@@ -17,7 +17,10 @@ namespace ModPlatform {
 // This leaks a tiny bit of memory per time the user has opened the mod dialog. How to make this better?
 static QHash<ListModel*, bool> s_running;
 
-ListModel::ListModel(ModPage* parent) : QAbstractListModel(parent), m_parent(parent) { s_running.insert(this, true); }
+ListModel::ListModel(ModPage* parent) : QAbstractListModel(parent), m_parent(parent)
+{
+    s_running.insert(this, true);
+}
 
 ListModel::~ListModel()
 {
@@ -69,14 +72,14 @@ auto ListModel::data(const QModelIndex& index, int role) const -> QVariant
             ((ListModel*)this)->requestLogo(pack.logoName, pack.logoUrl);
             return icon;
         }
-        case Qt::SizeHintRole: 
+        case Qt::SizeHintRole:
             return QSize(0, 58);
         case Qt::UserRole: {
             QVariant v;
             v.setValue(pack);
             return v;
         }
-    // Custom data
+            // Custom data
         case UserDataTypes::TITLE:
             return pack.name;
         case UserDataTypes::DESCRIPTION:
@@ -90,7 +93,7 @@ auto ListModel::data(const QModelIndex& index, int role) const -> QVariant
     return {};
 }
 
-bool ListModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool ListModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
     int pos = index.row();
     if (pos >= modpacks.size() || pos < 0 || !index.isValid())
@@ -105,20 +108,21 @@ void ListModel::requestModVersions(ModPlatform::IndexedPack const& current, QMod
 {
     auto profile = (dynamic_cast<MinecraftInstance*>((dynamic_cast<ModPage*>(parent()))->m_instance))->getPackProfile();
 
-    m_parent->apiProvider()->getVersions({ current.addonId.toString(), getMineVersions(), profile->getModLoaders(), m_parent->resourceType() },
-                                         [this, current, index](QJsonDocument& doc, QString addonId) {
-                                             if (!s_running.constFind(this).value())
-                                                 return;
-                                             versionRequestSucceeded(doc, addonId, index);
-                                         });
+    m_parent->apiProvider()->getVersions(
+        { current.addonId.toString(), getMineVersions(), profile->getModLoaders(), m_parent->resourceType() },
+        [this, current, index](QJsonDocument& doc, QString addonId) {
+            if (!s_running.constFind(this).value())
+                return;
+            versionRequestSucceeded(doc, addonId, index);
+        });
 }
 
 void ListModel::performPaginatedSearch()
 {
     auto profile = (dynamic_cast<MinecraftInstance*>((dynamic_cast<ModPage*>(parent()))->m_instance))->getPackProfile();
 
-    m_parent->apiProvider()->searchMods(
-        this, { nextSearchOffset, currentSearchTerm, getSorts()[currentSort], profile->getModLoaders(), getMineVersions(), m_parent->resourceType() });
+    m_parent->apiProvider()->searchMods(this, { nextSearchOffset, currentSearchTerm, getSorts()[currentSort], profile->getModLoaders(),
+                                                getMineVersions(), m_parent->resourceType() });
 }
 
 void ListModel::requestModInfo(ModPlatform::IndexedPack& current, QModelIndex index)
@@ -328,7 +332,6 @@ void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId, cons
     if (!setData(index, new_pack, Qt::UserRole)) {
         qWarning() << "Failed to cache mod versions!";
     }
-
 
     m_parent->updateModVersions();
 }

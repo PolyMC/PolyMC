@@ -15,13 +15,12 @@
 
 #pragma once
 
+#include <QIODevice>
 #include <QString>
 #include <QVariant>
-#include <QIODevice>
 
 // Sectionless INI parser (for instance config files)
-class INIFile : public QMap<QString, QVariant>
-{
+class INIFile : public QMap<QString, QVariant> {
 public:
     explicit INIFile();
 

@@ -28,19 +28,17 @@
 
 namespace Technic {
 
-class SingleZipPackInstallTask : public InstanceTask
-{
+class SingleZipPackInstallTask : public InstanceTask {
     Q_OBJECT
 
 public:
-    SingleZipPackInstallTask(const QUrl &sourceUrl, const QString &minecraftVersion);
+    SingleZipPackInstallTask(const QUrl& sourceUrl, const QString& minecraftVersion);
 
     bool canAbort() const override { return true; }
     bool abort() override;
 
 protected:
     void executeTask() override;
-
 
 private slots:
     void downloadSucceeded();
@@ -61,4 +59,4 @@ private:
     QFutureWatcher<std::optional<QStringList>> m_extractFutureWatcher;
 };
 
-} // namespace Technic
+}  // namespace Technic

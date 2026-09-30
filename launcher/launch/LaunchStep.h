@@ -15,24 +15,20 @@
 
 #pragma once
 
-#include "tasks/Task.h"
 #include "MessageLevel.h"
+#include "tasks/Task.h"
 
 #include <QStringList>
 
 class LaunchTask;
-class LaunchStep: public Task
-{
+class LaunchStep : public Task {
     Q_OBJECT
 public: /* methods */
-    explicit LaunchStep(LaunchTask *parent):Task(nullptr), m_parent(parent)
-    {
-        bind(parent);
-    };
+    explicit LaunchStep(LaunchTask* parent) : Task(nullptr), m_parent(parent) { bind(parent); };
     virtual ~LaunchStep() {};
 
 private: /* methods */
-    void bind(LaunchTask *parent);
+    void bind(LaunchTask* parent);
 
 signals:
     void logLines(QStringList lines, MessageLevel::Enum level);
@@ -46,5 +42,5 @@ public slots:
     virtual void finalize() {};
 
 protected: /* data */
-    LaunchTask *m_parent;
+    LaunchTask* m_parent;
 };

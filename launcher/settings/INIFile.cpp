@@ -36,38 +36,31 @@
 #include "settings/INIFile.h"
 #include <FileSystem.h>
 
-#include <QFile>
-#include <QTextStream>
-#include <QStringList>
-#include <QSaveFile>
 #include <QDebug>
+#include <QFile>
+#include <QSaveFile>
+#include <QStringList>
+#include <QTextStream>
 
-INIFile::INIFile()
-{
-}
+INIFile::INIFile() {}
 
 QString INIFile::unescape(QString orig)
 {
     QString out;
     QChar prev = QChar::Null;
-    for(auto c: orig)
-    {
-        if(prev == '\\')
-        {
-            if(c == 'n')
+    for (auto c : orig) {
+        if (prev == '\\') {
+            if (c == 'n')
                 out += '\n';
-            else if(c == 't')
+            else if (c == 't')
                 out += '\t';
-            else if(c == '#')
+            else if (c == '#')
                 out += '#';
             else
                 out += c;
             prev = QChar::Null;
-        }
-        else
-        {
-            if(c == '\\')
-            {
+        } else {
+            if (c == '\\') {
                 prev = c;
                 continue;
             }
@@ -81,15 +74,14 @@ QString INIFile::unescape(QString orig)
 QString INIFile::escape(QString orig)
 {
     QString out;
-    for(auto c: orig)
-    {
-        if(c == '\n')
+    for (auto c : orig) {
+        if (c == '\n')
             out += "\\n";
         else if (c == '\t')
             out += "\\t";
-        else if(c == '\\')
+        else if (c == '\\')
             out += "\\\\";
-        else if(c == '#')
+        else if (c == '#')
             out += "\\#";
         else
             out += c;
@@ -100,8 +92,7 @@ QString INIFile::escape(QString orig)
 bool INIFile::saveFile(QString fileName)
 {
     QByteArray outArray;
-    for (Iterator iter = begin(); iter != end(); iter++)
-    {
+    for (Iterator iter = begin(); iter != end(); iter++) {
         QString value = iter.value().toString();
         value = escape(value);
         outArray.append(iter.key().toUtf8());
@@ -110,19 +101,15 @@ bool INIFile::saveFile(QString fileName)
         outArray.append('\n');
     }
 
-    try
-    {
+    try {
         FS::write(fileName, outArray);
-    }
-    catch (const Exception &e)
-    {
+    } catch (const Exception& e) {
         qCritical() << e.what();
         return false;
     }
 
     return true;
 }
-
 
 bool INIFile::loadFile(QString fileName)
 {
@@ -142,15 +129,14 @@ bool INIFile::loadFile(QByteArray file)
 #endif
 
     QStringList lines = in.readAll().split('\n');
-    for (int i = 0; i < lines.count(); i++)
-    {
-        QString &lineRaw = lines[i];
+    for (int i = 0; i < lines.count(); i++) {
+        QString& lineRaw = lines[i];
         // Ignore comments.
         int commentIndex = 0;
         QString line = lineRaw;
         // Search for comments until no more escaped # are available
-        while((commentIndex = line.indexOf('#', commentIndex + 1)) != -1) {
-            if(commentIndex > 0 && line.at(commentIndex - 1) == '\\') {
+        while ((commentIndex = line.indexOf('#', commentIndex + 1)) != -1) {
+            if (commentIndex > 0 && line.at(commentIndex - 1) == '\\') {
                 continue;
             }
             line = line.left(lineRaw.indexOf('#')).trimmed();

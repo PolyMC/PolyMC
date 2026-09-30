@@ -34,11 +34,10 @@
  */
 
 #include "AboutDialog.h"
-#include "BuildConfig.h"
-#include "ui_AboutDialog.h"
 #include <QIcon>
 #include "Application.h"
 #include "BuildConfig.h"
+#include "ui_AboutDialog.h"
 
 #include <net/NetJob.h>
 #include <qobject.h>
@@ -46,15 +45,18 @@
 #include "HoeDown.h"
 
 namespace {
-QString getLink(QString link, QString name) {
+QString getLink(QString link, QString name)
+{
     return QString("&lt;<a href='%1'>%2</a>&gt;").arg(link).arg(name);
 }
 
-QString getWebsite(QString link) {
+QString getWebsite(QString link)
+{
     return getLink(link, QObject::tr("Website"));
 }
 
-QString getGitHub(QString username) {
+QString getGitHub(QString username)
+{
     return getLink("https://github.com/" + username, "GitHub");
 }
 
@@ -71,20 +73,20 @@ QString getCreditsHtml()
 
     //: %1 is the name of the launcher, determined at build time, e.g. "PolyMC Developers"
     stream << "<h3>" << QObject::tr("%1 Developers", "About Credits").arg(BuildConfig.LAUNCHER_NAME) << "</h3>\n";
-    stream << QString("<p>LennyMcLennington %1</p>\n")          .arg(getGitHub("LennyMcLennington"));
-    stream << QString("<p>Sefa Eyeoglu (Scrumplex) %1</p>\n")   .arg(getWebsite("https://scrumplex.net"));
-    stream << QString("<p>dada513 %1</p>\n")                    .arg(getGitHub("dada513"));
-    stream << QString("<p>txtsd %1</p>\n")                      .arg(getGitHub("txtsd"));
-    stream << QString("<p>timoreo %1</p>\n")                    .arg(getGitHub("timoreo22"));
-    stream << QString("<p>Ezekiel Smith (ZekeSmith) %1</p>\n")  .arg(getGitHub("ZekeSmith"));
-    stream << QString("<p>cozyGalvinism %1</p>\n")              .arg(getGitHub("cozyGalvinism"));
+    stream << QString("<p>LennyMcLennington %1</p>\n").arg(getGitHub("LennyMcLennington"));
+    stream << QString("<p>Sefa Eyeoglu (Scrumplex) %1</p>\n").arg(getWebsite("https://scrumplex.net"));
+    stream << QString("<p>dada513 %1</p>\n").arg(getGitHub("dada513"));
+    stream << QString("<p>txtsd %1</p>\n").arg(getGitHub("txtsd"));
+    stream << QString("<p>timoreo %1</p>\n").arg(getGitHub("timoreo22"));
+    stream << QString("<p>Ezekiel Smith (ZekeSmith) %1</p>\n").arg(getGitHub("ZekeSmith"));
+    stream << QString("<p>cozyGalvinism %1</p>\n").arg(getGitHub("cozyGalvinism"));
     stream << "<br />\n";
 
     //: %1 is the name of the launcher, determined at build time, e.g. "PolyMC Contributors"
     stream << "<h3>" << QObject::tr("%1 Contributors", "About Credits").arg(BuildConfig.LAUNCHER_NAME) << "</h3>\n";
-    stream << QString("<p>DioEgizio %1</p>\n")                      .arg(getGitHub("DioEgizio"));
-    stream << QString("<p>flowln %1</p>\n")                      .arg(getGitHub("flowln"));
-    stream << QString("<p>swirl %1</p>\n")                      .arg(getWebsite("https://swurl.xyz/"));
+    stream << QString("<p>DioEgizio %1</p>\n").arg(getGitHub("DioEgizio"));
+    stream << QString("<p>flowln %1</p>\n").arg(getGitHub("flowln"));
+    stream << QString("<p>swirl %1</p>\n").arg(getWebsite("https://swurl.xyz/"));
     stream << "<br />\n";
 
     // TODO: possibly retrieve from git history at build time?
@@ -119,9 +121,9 @@ QString getLicenseHtml()
     return output;
 }
 
-}
+}  // namespace
 
-AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent), ui(new Ui::AboutDialog)
+AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AboutDialog)
 {
     ui->setupUi(this);
 
@@ -158,7 +160,7 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent), ui(new Ui::AboutDia
         ui->buildDateLabel->setVisible(false);
 
     if (!BuildConfig.VERSION_CHANNEL.isEmpty())
-        ui->channelLabel->setText(tr("Channel") +": " + BuildConfig.VERSION_CHANNEL);
+        ui->channelLabel->setText(tr("Channel") + ": " + BuildConfig.VERSION_CHANNEL);
     else
         ui->channelLabel->setVisible(false);
 

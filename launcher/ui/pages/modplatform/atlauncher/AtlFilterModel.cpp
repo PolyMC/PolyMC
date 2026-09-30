@@ -18,13 +18,13 @@
 
 #include <QDebug>
 
-#include <modplatform/atlauncher/ATLPackIndex.h>
-#include <Version.h>
 #include <MMCStrings.h>
+#include <Version.h>
+#include <modplatform/atlauncher/ATLPackIndex.h>
 
 namespace Atl {
 
-FilterModel::FilterModel(QObject *parent) : QSortFilterProxyModel(parent)
+FilterModel::FilterModel(QObject* parent) : QSortFilterProxyModel(parent)
 {
     currentSorting = Sorting::ByPopularity;
     sortings.insert(tr("Sort by Popularity"), Sorting::ByPopularity);
@@ -61,7 +61,7 @@ void FilterModel::setSearchTerm(const QString term)
     invalidate();
 }
 
-bool FilterModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+bool FilterModel::filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const
 {
     if (searchTerm.isEmpty()) {
         return true;
@@ -72,20 +72,18 @@ bool FilterModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParen
     return pack.name.contains(searchTerm, Qt::CaseInsensitive);
 }
 
-bool FilterModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
+bool FilterModel::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
     ATLauncher::IndexedPack leftPack = sourceModel()->data(left, Qt::UserRole).value<ATLauncher::IndexedPack>();
     ATLauncher::IndexedPack rightPack = sourceModel()->data(right, Qt::UserRole).value<ATLauncher::IndexedPack>();
 
     if (currentSorting == ByPopularity) {
         return leftPack.position > rightPack.position;
-    }
-    else if (currentSorting == ByGameVersion) {
+    } else if (currentSorting == ByGameVersion) {
         Version lv(leftPack.versions.at(0).minecraft);
         Version rv(rightPack.versions.at(0).minecraft);
         return lv < rv;
-    }
-    else if (currentSorting == ByName) {
+    } else if (currentSorting == ByName) {
         return Strings::naturalCompare(leftPack.name, rightPack.name, Qt::CaseSensitive) >= 0;
     }
 
@@ -94,4 +92,4 @@ bool FilterModel::lessThan(const QModelIndex &left, const QModelIndex &right) co
     return true;
 }
 
-}
+}  // namespace Atl

@@ -1,5 +1,5 @@
-#include "Application.h"
 #include "ExternalResourcesPage.h"
+#include "Application.h"
 #include "ui_ExternalResourcesPage.h"
 
 #include "DesktopServices.h"
@@ -60,7 +60,8 @@ QMenu* ExternalResourcesPage::createPopupMenu()
     return filteredMenu;
 }
 
-void ExternalResourcesPage::setupDownloadAction(const QString& text, const QString& tooltip) {
+void ExternalResourcesPage::setupDownloadAction(const QString& text, const QString& tooltip)
+{
     ui->actionDownloadItem->setText(text);
     ui->actionDownloadItem->setToolTip(tooltip);
     ui->actionDownloadItem->setEnabled(true);
@@ -73,7 +74,7 @@ void ExternalResourcesPage::setupDownloadAction(const QString& text, const QStri
 void ExternalResourcesPage::ShowContextMenu(const QPoint& pos)
 {
     auto menu = ui->actionsToolbar->createContextMenu(this, tr("Context menu"));
-    if(menu->actions().contains(ui->actionUpdateItem)) {
+    if (menu->actions().contains(ui->actionUpdateItem)) {
         menu->insertAction(ui->actionUpdateItem, ui->actionDisableUpdates);
     }
     menu->exec(ui->treeView->mapToGlobal(pos));
@@ -159,13 +160,12 @@ void ExternalResourcesPage::addItem()
     if (!m_controlsEnabled)
         return;
 
-
     auto list = GuiUtil::BrowseForFiles(
         helpPage(), tr("Select %1", "Select whatever type of files the page contains. Example: 'Loader Mods'").arg(displayName()),
         m_fileSelectionFilter.arg(displayName()), APPLICATION->settings()->get("CentralModsDir").toString(), this->parentWidget());
 
     if (!list.isEmpty()) {
-        for (const auto &filename : std::as_const(list)) {
+        for (const auto& filename : std::as_const(list)) {
             m_model->installResource(filename);
         }
     }
@@ -227,4 +227,3 @@ bool ExternalResourcesPage::onSelectionChanged(const QModelIndex& current, const
 
     return true;
 }
-

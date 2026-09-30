@@ -4,12 +4,11 @@
 #include "QObjectPtr.h"
 #include "minecraft/auth/AuthStep.h"
 
-
 class MinecraftProfileStep : public AuthStep {
     Q_OBJECT
 
 public:
-    explicit MinecraftProfileStep(AccountData *data);
+    explicit MinecraftProfileStep(AccountData* data);
     virtual ~MinecraftProfileStep() noexcept;
 
     void perform() override;

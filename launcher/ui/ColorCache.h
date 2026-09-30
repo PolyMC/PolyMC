@@ -1,11 +1,10 @@
 #pragma once
-#include <QtGui/QColor>
-#include <rainbow.h>
 #include <MessageLevel.h>
+#include <rainbow.h>
 #include <QMap>
+#include <QtGui/QColor>
 
-class ColorCache
-{
+class ColorCache {
 public:
     ColorCache(QColor front, QColor back, qreal bias)
     {
@@ -14,15 +13,11 @@ public:
         m_bias = bias;
     };
 
-    void addColor(int key, QColor color)
-    {
-        m_colors[key] = {color, blend(color), blendBackground(color)};
-    }
+    void addColor(int key, QColor color) { m_colors[key] = { color, blend(color), blendBackground(color) }; }
 
     void setForeground(QColor front)
     {
-        if(m_front != front)
-        {
+        if (m_front != front) {
             m_front = front;
             recolorAll();
         }
@@ -30,8 +25,7 @@ public:
 
     void setBackground(QColor back)
     {
-        if(m_back != back)
-        {
+        if (m_back != back) {
             m_back = back;
             recolorAll();
         }
@@ -40,8 +34,7 @@ public:
     QColor getFront(int key)
     {
         auto iter = m_colors.find(key);
-        if(iter == m_colors.end())
-        {
+        if (iter == m_colors.end()) {
             return QColor();
         }
         return (*iter).front;
@@ -50,8 +43,7 @@ public:
     QColor getBack(int key)
     {
         auto iter = m_colors.find(key);
-        if(iter == m_colors.end())
-        {
+        if (iter == m_colors.end()) {
             return QColor();
         }
         return (*iter).back;
@@ -71,8 +63,7 @@ protected:
     void recolorAll();
 
 protected:
-    struct ColorEntry
-    {
+    struct ColorEntry {
         QColor original;
         QColor front;
         QColor back;
@@ -85,11 +76,9 @@ protected:
     QMap<int, ColorEntry> m_colors;
 };
 
-class LogColorCache : public ColorCache
-{
+class LogColorCache : public ColorCache {
 public:
-    LogColorCache(QColor front, QColor back)
-        : ColorCache(front, back, 1.0)
+    LogColorCache(QColor front, QColor back) : ColorCache(front, back, 1.0)
     {
         addColor((int)MessageLevel::Launcher, QColor("purple"));
         addColor((int)MessageLevel::Debug, QColor("green"));
@@ -101,8 +90,7 @@ public:
 
     QColor getFront(MessageLevel::Enum level)
     {
-        if(!m_colors.contains((int) level))
-        {
+        if (!m_colors.contains((int)level)) {
             return ColorCache::getFront((int)MessageLevel::Message);
         }
         return ColorCache::getFront((int)level);
@@ -110,8 +98,7 @@ public:
 
     QColor getBack(MessageLevel::Enum level)
     {
-        if(level == MessageLevel::Fatal)
-        {
+        if (level == MessageLevel::Fatal) {
             return QColor(Qt::black);
         }
         return QColor(Qt::transparent);

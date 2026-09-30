@@ -16,7 +16,7 @@ class Version;
 
 class ResourcePack : public Resource {
     Q_OBJECT
-   public:
+public:
     using Ptr = shared_qobject_ptr<Resource>;
 
     ResourcePack(QObject* parent = nullptr) : Resource(parent) {}
@@ -45,7 +45,7 @@ class ResourcePack : public Resource {
     [[nodiscard]] auto compare(Resource const& other, SortType type) const -> std::pair<int, bool> override;
     [[nodiscard]] bool applyFilter(QRegularExpression filter) const override;
 
-   protected:
+protected:
     mutable QMutex m_data_lock;
 
     /* The 'version' of a resource pack, as defined in the pack.mcmeta file.

@@ -1,42 +1,40 @@
-#include "InstanceView.h"
 #include "AccessibleInstanceView.h"
 #include "AccessibleInstanceView_p.h"
+#include "InstanceView.h"
 
-#include <qvariant.h>
 #include <qaccessible.h>
 #include <qheaderview.h>
+#include <qvariant.h>
 
 #ifndef QT_NO_ACCESSIBILITY
 
-QAccessibleInterface *groupViewAccessibleFactory(const QString &classname, QObject *object)
+QAccessibleInterface* groupViewAccessibleFactory(const QString& classname, QObject* object)
 {
-    QAccessibleInterface *iface = 0;
+    QAccessibleInterface* iface = 0;
     if (!object || !object->isWidgetType())
         return iface;
 
-    QWidget *widget = static_cast<QWidget*>(object);
+    QWidget* widget = static_cast<QWidget*>(object);
 
     if (classname == QLatin1String("InstanceView")) {
-        iface = new AccessibleInstanceView((InstanceView *)widget);
+        iface = new AccessibleInstanceView((InstanceView*)widget);
     }
     return iface;
 }
 
-
-QAbstractItemView *AccessibleInstanceView::view() const
+QAbstractItemView* AccessibleInstanceView::view() const
 {
     return qobject_cast<QAbstractItemView*>(object());
 }
 
-int AccessibleInstanceView::logicalIndex(const QModelIndex &index) const
+int AccessibleInstanceView::logicalIndex(const QModelIndex& index) const
 {
     if (!view()->model() || !index.isValid())
         return -1;
     return index.row() * (index.model()->columnCount()) + index.column();
 }
 
-AccessibleInstanceView::AccessibleInstanceView(QWidget *w)
-    : QAccessibleObject(w)
+AccessibleInstanceView::AccessibleInstanceView(QWidget* w) : QAccessibleObject(w)
 {
     Q_ASSERT(view());
 }
@@ -53,7 +51,7 @@ AccessibleInstanceView::~AccessibleInstanceView()
     }
 }
 
-QAccessibleInterface *AccessibleInstanceView::cellAt(int row, int column) const
+QAccessibleInterface* AccessibleInstanceView::cellAt(int row, int column) const
 {
     if (!view()->model()) {
         return 0;
@@ -68,7 +66,7 @@ QAccessibleInterface *AccessibleInstanceView::cellAt(int row, int column) const
     return child(logicalIndex(index));
 }
 
-QAccessibleInterface *AccessibleInstanceView::caption() const
+QAccessibleInterface* AccessibleInstanceView::caption() const
 {
     return 0;
 }
@@ -123,14 +121,14 @@ QString AccessibleInstanceView::rowDescription(int row) const
     return view()->model()->headerData(row, Qt::Vertical).toString();
 }
 
-QList<QAccessibleInterface *> AccessibleInstanceView::selectedCells() const
+QList<QAccessibleInterface*> AccessibleInstanceView::selectedCells() const
 {
     QList<QAccessibleInterface*> cells;
     if (!view()->selectionModel())
         return cells;
     const QModelIndexList selectedIndexes = view()->selectionModel()->selectedIndexes();
     cells.reserve(selectedIndexes.size());
-    for (const QModelIndex &index : selectedIndexes)
+    for (const QModelIndex& index : selectedIndexes)
         cells.append(child(logicalIndex(index)));
     return cells;
 }
@@ -145,7 +143,7 @@ QList<int> AccessibleInstanceView::selectedColumns() const
 
     QList<int> columns;
     columns.reserve(selectedColumns.size());
-    for (const QModelIndex &index : selectedColumns) {
+    for (const QModelIndex& index : selectedColumns) {
         columns.append(index.column());
     }
 
@@ -163,14 +161,14 @@ QList<int> AccessibleInstanceView::selectedRows() const
     const QModelIndexList selectedRows = view()->selectionModel()->selectedRows();
 
     rows.reserve(selectedRows.size());
-    for (const QModelIndex &index : selectedRows) {
+    for (const QModelIndex& index : selectedRows) {
         rows.append(index.row());
     }
 
     return rows;
 }
 
-QAccessibleInterface *AccessibleInstanceView::summary() const
+QAccessibleInterface* AccessibleInstanceView::summary() const
 {
     return 0;
 }
@@ -209,13 +207,14 @@ bool AccessibleInstanceView::selectRow(int row)
             return false;
         }
         case QAbstractItemView::SingleSelection: {
-            if (view()->selectionBehavior() != QAbstractItemView::SelectRows && columnCount() > 1 )
+            if (view()->selectionBehavior() != QAbstractItemView::SelectRows && columnCount() > 1)
                 return false;
             view()->clearSelection();
             break;
         }
         case QAbstractItemView::ContiguousSelection: {
-            if ((!row || !view()->selectionModel()->isRowSelected(row - 1, view()->rootIndex())) && !view()->selectionModel()->isRowSelected(row + 1, view()->rootIndex())) {
+            if ((!row || !view()->selectionModel()->isRowSelected(row - 1, view()->rootIndex())) &&
+                !view()->selectionModel()->isRowSelected(row + 1, view()->rootIndex())) {
                 view()->clearSelection();
             }
             break;
@@ -251,7 +250,8 @@ bool AccessibleInstanceView::selectColumn(int column)
             [[fallthrough]];
         }
         case QAbstractItemView::ContiguousSelection: {
-            if ((!column || !view()->selectionModel()->isColumnSelected(column - 1, view()->rootIndex())) && !view()->selectionModel()->isColumnSelected(column + 1, view()->rootIndex())) {
+            if ((!column || !view()->selectionModel()->isColumnSelected(column - 1, view()->rootIndex())) &&
+                !view()->selectionModel()->isColumnSelected(column + 1, view()->rootIndex())) {
                 view()->clearSelection();
             }
             break;
@@ -292,10 +292,10 @@ bool AccessibleInstanceView::unselectRow(int row)
                 return false;
             }
 
-
-            if ((!row || selectionModel->isRowSelected(row - 1, view()->rootIndex())) && selectionModel->isRowSelected(row + 1, view()->rootIndex())) {
-                //If there are rows selected both up the current row and down the current rown,
-                //the ones which are down the current row will be deselected
+            if ((!row || selectionModel->isRowSelected(row - 1, view()->rootIndex())) &&
+                selectionModel->isRowSelected(row + 1, view()->rootIndex())) {
+                // If there are rows selected both up the current row and down the current rown,
+                // the ones which are down the current row will be deselected
                 selection = QItemSelection(index, view()->model()->index(rowCount() - 1, 0, view()->rootIndex()));
             }
             break;
@@ -329,8 +329,8 @@ bool AccessibleInstanceView::unselectColumn(int column)
 
     switch (view()->selectionMode()) {
         case QAbstractItemView::SingleSelection: {
-            //In SingleSelection and ContiguousSelection once an item
-            //is selected, there's no way for the user to unselect all items
+            // In SingleSelection and ContiguousSelection once an item
+            // is selected, there's no way for the user to unselect all items
             if (selectedColumnCount() == 1) {
                 return false;
             }
@@ -341,10 +341,10 @@ bool AccessibleInstanceView::unselectColumn(int column)
                 return false;
             }
 
-            if ((!column || view()->selectionModel()->isColumnSelected(column - 1, view()->rootIndex()))
-                && view()->selectionModel()->isColumnSelected(column + 1, view()->rootIndex())) {
-                //If there are columns selected both at the left of the current row and at the right
-                //of the current row, the ones which are at the right will be deselected
+            if ((!column || view()->selectionModel()->isColumnSelected(column - 1, view()->rootIndex())) &&
+                view()->selectionModel()->isColumnSelected(column + 1, view()->rootIndex())) {
+                // If there are columns selected both at the left of the current row and at the right
+                // of the current row, the ones which are at the right will be deselected
                 selection = QItemSelection(index, model->index(0, columnCount() - 1, view()->rootIndex()));
             }
             break;
@@ -366,9 +366,9 @@ QAccessible::State AccessibleInstanceView::state() const
     return QAccessible::State();
 }
 
-QAccessibleInterface *AccessibleInstanceView::childAt(int x, int y) const
+QAccessibleInterface* AccessibleInstanceView::childAt(int x, int y) const
 {
-    QPoint viewportOffset = view()->viewport()->mapTo(view(), QPoint(0,0));
+    QPoint viewportOffset = view()->viewport()->mapTo(view(), QPoint(0, 0));
     QPoint indexPosition = view()->mapFromGlobal(QPoint(x, y) - viewportOffset);
     // FIXME: if indexPosition < 0 in one coordinate, return header
 
@@ -387,22 +387,23 @@ int AccessibleInstanceView::childCount() const
     return (view()->model()->rowCount()) * (view()->model()->columnCount());
 }
 
-int AccessibleInstanceView::indexOfChild(const QAccessibleInterface *iface) const
+int AccessibleInstanceView::indexOfChild(const QAccessibleInterface* iface) const
 {
     if (!view()->model())
         return -1;
-    QAccessibleInterface *parent = iface->parent();
+    QAccessibleInterface* parent = iface->parent();
     if (parent->object() != view())
         return -1;
 
-    Q_ASSERT(iface->role() != QAccessible::TreeItem); // should be handled by tree class
+    Q_ASSERT(iface->role() != QAccessible::TreeItem);  // should be handled by tree class
     if (iface->role() == QAccessible::Cell || iface->role() == QAccessible::ListItem) {
         const AccessibleInstanceViewItem* cell = static_cast<const AccessibleInstanceViewItem*>(iface);
         return logicalIndex(cell->m_index);
     } else if (iface->role() == QAccessible::Pane) {
-        return 0; // corner button
+        return 0;  // corner button
     } else {
-        qWarning() << "AccessibleInstanceView::indexOfChild has a child with unknown role..." << iface->role() << iface->text(QAccessible::Name);
+        qWarning() << "AccessibleInstanceView::indexOfChild has a child with unknown role..." << iface->role()
+                   << iface->text(QAccessible::Name);
     }
     // FIXME: we are in denial of our children. this should stop.
     return -1;
@@ -423,7 +424,7 @@ QRect AccessibleInstanceView::rect() const
     return QRect(pos.x(), pos.y(), view()->width(), view()->height());
 }
 
-QAccessibleInterface *AccessibleInstanceView::parent() const
+QAccessibleInterface* AccessibleInstanceView::parent() const
 {
     if (view() && view()->parent()) {
         if (qstrcmp("QComboBoxPrivateContainer", view()->parent()->metaObject()->className()) == 0) {
@@ -434,7 +435,7 @@ QAccessibleInterface *AccessibleInstanceView::parent() const
     return 0;
 }
 
-QAccessibleInterface *AccessibleInstanceView::child(int logicalIndex) const
+QAccessibleInterface* AccessibleInstanceView::child(int logicalIndex) const
 {
     if (!view()->model())
         return 0;
@@ -448,7 +449,7 @@ QAccessibleInterface *AccessibleInstanceView::child(int logicalIndex) const
     int row = logicalIndex / columns;
     int column = logicalIndex % columns;
 
-    QAccessibleInterface *iface = 0;
+    QAccessibleInterface* iface = 0;
 
     QModelIndex index = view()->model()->index(row, column, view()->rootIndex());
     if (Q_UNLIKELY(!index.isValid())) {
@@ -462,14 +463,14 @@ QAccessibleInterface *AccessibleInstanceView::child(int logicalIndex) const
     return iface;
 }
 
-void *AccessibleInstanceView::interface_cast(QAccessible::InterfaceType t)
+void* AccessibleInstanceView::interface_cast(QAccessible::InterfaceType t)
 {
     if (t == QAccessible::TableInterface)
-       return static_cast<QAccessibleTableInterface*>(this);
-   return 0;
+        return static_cast<QAccessibleTableInterface*>(this);
+    return 0;
 }
 
-void AccessibleInstanceView::modelChange(QAccessibleTableModelChangeEvent *event)
+void AccessibleInstanceView::modelChange(QAccessibleTableModelChangeEvent* event)
 {
     // if there is no cache yet, we don't update anything
     if (childToId.isEmpty())
@@ -485,13 +486,12 @@ void AccessibleInstanceView::modelChange(QAccessibleTableModelChangeEvent *event
         // rows are inserted: move every row after that
         case QAccessibleTableModelChangeEvent::RowsInserted:
         case QAccessibleTableModelChangeEvent::ColumnsInserted: {
-
             ChildCache newCache;
             ChildCache::ConstIterator iter = childToId.constBegin();
 
             while (iter != childToId.constEnd()) {
                 QAccessible::Id id = iter.value();
-                QAccessibleInterface *iface = QAccessible::accessibleInterface(id);
+                QAccessibleInterface* iface = QAccessible::accessibleInterface(id);
                 Q_ASSERT(iface);
                 if (indexOfChild(iface) >= 0) {
                     newCache.insert(indexOfChild(iface), id);
@@ -513,11 +513,11 @@ void AccessibleInstanceView::modelChange(QAccessibleTableModelChangeEvent *event
             ChildCache::ConstIterator iter = childToId.constBegin();
             while (iter != childToId.constEnd()) {
                 QAccessible::Id id = iter.value();
-                QAccessibleInterface *iface = QAccessible::accessibleInterface(id);
+                QAccessibleInterface* iface = QAccessible::accessibleInterface(id);
                 Q_ASSERT(iface);
                 if (iface->role() == QAccessible::Cell || iface->role() == QAccessible::ListItem) {
                     Q_ASSERT(iface->tableCellInterface());
-                    AccessibleInstanceViewItem *cell = static_cast<AccessibleInstanceViewItem*>(iface->tableCellInterface());
+                    AccessibleInstanceViewItem* cell = static_cast<AccessibleInstanceViewItem*>(iface->tableCellInterface());
                     // Since it is a QPersistentModelIndex, we only need to check if it is valid
                     if (cell->m_index.isValid())
                         newCache.insert(indexOfChild(cell), id);
@@ -538,14 +538,13 @@ void AccessibleInstanceView::modelChange(QAccessibleTableModelChangeEvent *event
 
 // TABLE CELL
 
-AccessibleInstanceViewItem::AccessibleInstanceViewItem(QAbstractItemView *view_, const QModelIndex &index_)
-    : view(view_), m_index(index_)
+AccessibleInstanceViewItem::AccessibleInstanceViewItem(QAbstractItemView* view_, const QModelIndex& index_) : view(view_), m_index(index_)
 {
     if (Q_UNLIKELY(!index_.isValid()))
         qWarning() << "AccessibleInstanceViewItem::AccessibleInstanceViewItem with invalid index: " << index_;
 }
 
-void *AccessibleInstanceViewItem::interface_cast(QAccessible::InterfaceType t)
+void* AccessibleInstanceViewItem::interface_cast(QAccessible::InterfaceType t)
 {
     if (t == QAccessible::TableCellInterface)
         return static_cast<QAccessibleTableCellInterface*>(this);
@@ -554,8 +553,14 @@ void *AccessibleInstanceViewItem::interface_cast(QAccessible::InterfaceType t)
     return 0;
 }
 
-int AccessibleInstanceViewItem::columnExtent() const { return 1; }
-int AccessibleInstanceViewItem::rowExtent() const { return 1; }
+int AccessibleInstanceViewItem::columnExtent() const
+{
+    return 1;
+}
+int AccessibleInstanceViewItem::rowExtent() const
+{
+    return 1;
+}
 
 QList<QAccessibleInterface*> AccessibleInstanceViewItem::rowHeaderCells() const
 {
@@ -606,18 +611,16 @@ void AccessibleInstanceViewItem::doAction(const QString& actionName)
     if (actionName == toggleAction()) {
         if (isSelected()) {
             unselectCell();
-        }
-        else {
+        } else {
             selectCell();
         }
     }
 }
 
-QStringList AccessibleInstanceViewItem::keyBindingsForAction(const QString &) const
+QStringList AccessibleInstanceViewItem::keyBindingsForAction(const QString&) const
 {
     return QStringList();
 }
-
 
 void AccessibleInstanceViewItem::selectCell()
 {
@@ -630,7 +633,7 @@ void AccessibleInstanceViewItem::selectCell()
     }
 
     Q_ASSERT(table());
-    QAccessibleTableInterface *cellTable = table()->tableInterface();
+    QAccessibleTableInterface* cellTable = table()->tableInterface();
 
     switch (view->selectionBehavior()) {
         case QAbstractItemView::SelectItems:
@@ -660,7 +663,7 @@ void AccessibleInstanceViewItem::unselectCell()
     if (selectionMode == QAbstractItemView::NoSelection)
         return;
 
-    QAccessibleTableInterface *cellTable = table()->tableInterface();
+    QAccessibleTableInterface* cellTable = table()->tableInterface();
 
     switch (view->selectionBehavior()) {
         case QAbstractItemView::SelectItems:
@@ -675,15 +678,16 @@ void AccessibleInstanceViewItem::unselectCell()
             return;
     }
 
-    //If the mode is not MultiSelection or ExtendedSelection and only
-    //one cell is selected it cannot be unselected by the user
-    if ((selectionMode != QAbstractItemView::MultiSelection) && (selectionMode != QAbstractItemView::ExtendedSelection) && (view->selectionModel()->selectedIndexes().count() <= 1))
+    // If the mode is not MultiSelection or ExtendedSelection and only
+    // one cell is selected it cannot be unselected by the user
+    if ((selectionMode != QAbstractItemView::MultiSelection) && (selectionMode != QAbstractItemView::ExtendedSelection) &&
+        (view->selectionModel()->selectedIndexes().count() <= 1))
         return;
 
     view->selectionModel()->select(m_index, QItemSelectionModel::Deselect);
 }
 
-QAccessibleInterface *AccessibleInstanceViewItem::table() const
+QAccessibleInterface* AccessibleInstanceViewItem::table() const
 {
     return QAccessible::queryAccessibleInterface(view);
 }
@@ -700,7 +704,7 @@ QAccessible::State AccessibleInstanceViewItem::state() const
         return st;
 
     QRect globalRect = view->rect();
-    globalRect.translate(view->mapToGlobal(QPoint(0,0)));
+    globalRect.translate(view->mapToGlobal(QPoint(0, 0)));
     if (!globalRect.intersects(rect()))
         st.invisible = true;
 
@@ -723,7 +727,6 @@ QAccessible::State AccessibleInstanceViewItem::state() const
     return st;
 }
 
-
 QRect AccessibleInstanceViewItem::rect() const
 {
     QRect r;
@@ -732,7 +735,7 @@ QRect AccessibleInstanceViewItem::rect() const
     r = view->visualRect(m_index);
 
     if (!r.isNull()) {
-        r.translate(view->viewport()->mapTo(view, QPoint(0,0)));
+        r.translate(view->viewport()->mapTo(view, QPoint(0, 0)));
         r.translate(view->mapToGlobal(QPoint(0, 0)));
     }
     return r;
@@ -743,7 +746,7 @@ QString AccessibleInstanceViewItem::text(QAccessible::Text t) const
     QString value;
     if (!isValid())
         return value;
-    QAbstractItemModel *model = view->model();
+    QAbstractItemModel* model = view->model();
     switch (t) {
         case QAccessible::Name:
             value = model->data(m_index, Qt::AccessibleTextRole).toString();
@@ -759,7 +762,7 @@ QString AccessibleInstanceViewItem::text(QAccessible::Text t) const
     return value;
 }
 
-void AccessibleInstanceViewItem::setText(QAccessible::Text /*t*/, const QString &text)
+void AccessibleInstanceViewItem::setText(QAccessible::Text /*t*/, const QString& text)
 {
     if (!isValid() || !(m_index.flags() & Qt::ItemIsEditable))
         return;
@@ -771,12 +774,12 @@ bool AccessibleInstanceViewItem::isValid() const
     return view && view->model() && m_index.isValid();
 }
 
-QAccessibleInterface *AccessibleInstanceViewItem::parent() const
+QAccessibleInterface* AccessibleInstanceViewItem::parent() const
 {
     return QAccessible::queryAccessibleInterface(view);
 }
 
-QAccessibleInterface *AccessibleInstanceViewItem::child(int) const
+QAccessibleInterface* AccessibleInstanceViewItem::child(int) const
 {
     return 0;
 }

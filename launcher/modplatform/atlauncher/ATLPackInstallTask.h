@@ -40,11 +40,11 @@
 #include "ATLPackManifest.h"
 
 #include "InstanceTask.h"
-#include "net/NetJob.h"
-#include "settings/INISettingsObject.h"
+#include "meta/Version.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
-#include "meta/Version.h"
+#include "net/NetJob.h"
+#include "settings/INISettingsObject.h"
 
 #include <optional>
 
@@ -57,7 +57,6 @@ enum class InstallMode {
 };
 
 class UserInteractionSupport {
-
 public:
     /**
      * Requests a user interaction to select which optional mods should be installed.
@@ -76,13 +75,15 @@ public:
     virtual void displayMessage(QString message) = 0;
 };
 
-class PackInstallTask : public InstanceTask
-{
-Q_OBJECT
+class PackInstallTask : public InstanceTask {
+    Q_OBJECT
 
 public:
-    explicit PackInstallTask(UserInteractionSupport *support, QString packName, QString version, InstallMode installMode = InstallMode::Install);
-    virtual ~PackInstallTask(){}
+    explicit PackInstallTask(UserInteractionSupport* support,
+                             QString packName,
+                             QString version,
+                             InstallMode installMode = InstallMode::Install);
+    virtual ~PackInstallTask() {}
 
     bool canAbort() const override { return true; }
     bool abort() override;
@@ -110,15 +111,13 @@ private:
     void installConfigs();
     void extractConfigs();
     void downloadMods();
-    bool extractMods(
-        const QMap<QString, VersionMod> &toExtract,
-        const QMap<QString, VersionMod> &toDecomp,
-        const QMap<QString, QString> &toCopy
-    );
+    bool extractMods(const QMap<QString, VersionMod>& toExtract,
+                     const QMap<QString, VersionMod>& toDecomp,
+                     const QMap<QString, QString>& toCopy);
     void install();
 
 private:
-    UserInteractionSupport *m_support;
+    UserInteractionSupport* m_support;
 
     bool abortable = false;
 
@@ -145,7 +144,6 @@ private:
 
     QFuture<bool> m_modExtractFuture;
     QFutureWatcher<bool> m_modExtractFutureWatcher;
-
 };
 
-}
+}  // namespace ATLauncher

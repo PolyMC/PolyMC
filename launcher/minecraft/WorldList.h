@@ -15,63 +15,33 @@
 
 #pragma once
 
-#include <QList>
-#include <QString>
-#include <QDir>
 #include <QAbstractListModel>
+#include <QDir>
+#include <QList>
 #include <QMimeData>
+#include <QString>
 #include "minecraft/World.h"
 
 class QFileSystemWatcher;
 
-class WorldList : public QAbstractListModel
-{
+class WorldList : public QAbstractListModel {
     Q_OBJECT
 public:
-    enum Columns
-    {
-        NameColumn,
-        GameModeColumn,
-        LastPlayedColumn,
-        SizeColumn
-    };
+    enum Columns { NameColumn, GameModeColumn, LastPlayedColumn, SizeColumn };
 
-    enum Roles
-    {
-        ObjectRole = Qt::UserRole + 1,
-        FolderRole,
-        SeedRole,
-        NameRole,
-        GameModeRole,
-        LastPlayedRole,
-        SizeRole,
-        IconFileRole
-    };
+    enum Roles { ObjectRole = Qt::UserRole + 1, FolderRole, SeedRole, NameRole, GameModeRole, LastPlayedRole, SizeRole, IconFileRole };
 
-    WorldList(const QString &dir);
+    WorldList(const QString& dir);
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
 
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const
-    {
-        return size();
-    };
-    virtual QVariant headerData(int section, Qt::Orientation orientation,
-                                int role = Qt::DisplayRole) const;
-    virtual int columnCount(const QModelIndex &parent) const;
+    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const { return size(); };
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    virtual int columnCount(const QModelIndex& parent) const;
 
-    size_t size() const
-    {
-        return worlds.size();
-    };
-    bool empty() const
-    {
-        return size() == 0;
-    }
-    World &operator[](size_t index)
-    {
-        return worlds[index];
-    }
+    size_t size() const { return worlds.size(); };
+    bool empty() const { return size() == 0; }
+    World& operator[](size_t index) { return worlds[index]; }
 
     /// Reloads the mod list and returns true if the list changed.
     virtual bool update();
@@ -89,13 +59,13 @@ public:
     virtual bool deleteWorlds(int first, int last);
 
     /// flags, mostly to support drag&drop
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const;
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const;
     /// get data for drag action
-    virtual QMimeData *mimeData(const QModelIndexList &indexes) const;
+    virtual QMimeData* mimeData(const QModelIndexList& indexes) const;
     /// get the supported mime types
     virtual QStringList mimeTypes() const;
     /// process data from drop action
-    virtual bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
+    virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent);
     /// what drag actions do we support?
     virtual Qt::DropActions supportedDragActions() const;
 
@@ -107,15 +77,9 @@ public:
 
     virtual bool isValid();
 
-    QDir dir() const
-    {
-        return m_dir;
-    }
+    QDir dir() const { return m_dir; }
 
-    const QList<World> &allWorlds() const
-    {
-        return worlds;
-    }
+    const QList<World>& allWorlds() const { return worlds; }
 
 private slots:
     void directoryChanged(QString path);
@@ -124,7 +88,7 @@ signals:
     void changed();
 
 protected:
-    QFileSystemWatcher *m_watcher;
+    QFileSystemWatcher* m_watcher;
     bool is_watching;
     QDir m_dir;
     QList<World> worlds;

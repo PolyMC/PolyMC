@@ -22,7 +22,7 @@ class QSortFilterProxyModel;
  */
 class ResourceFolderModel : public QAbstractListModel {
     Q_OBJECT
-   public:
+public:
     ResourceFolderModel(QDir, QObject* parent = nullptr);
     ~ResourceFolderModel() override;
 
@@ -116,22 +116,22 @@ class ResourceFolderModel : public QAbstractListModel {
     [[nodiscard]] SortType columnToSortKey(size_t column) const;
 
     class ProxyModel : public QSortFilterProxyModel {
-       public:
+    public:
         explicit ProxyModel(QObject* parent = nullptr) : QSortFilterProxyModel(parent) {}
 
-       protected:
+    protected:
         [[nodiscard]] bool filterAcceptsRow(int source_row, const QModelIndex& source_parent) const override;
         [[nodiscard]] bool lessThan(const QModelIndex& source_left, const QModelIndex& source_right) const override;
     };
 
-   public slots:
+public slots:
     void enableInteraction(bool enabled);
     void disableInteraction(bool disabled) { enableInteraction(!disabled); }
 
-   signals:
+signals:
     void updateFinished();
 
-   protected:
+protected:
     /** This creates a new update task to be executed by update().
      *
      *  The task should load and parse all resources necessary, and provide a way of accessing such results.
@@ -158,7 +158,7 @@ class ResourceFolderModel : public QAbstractListModel {
     template <typename T>
     void applyUpdates(QSet<QString>& current_set, QSet<QString>& new_set, QMap<QString, T>& new_resources);
 
-   protected slots:
+protected slots:
     void directoryChanged(QString);
 
     /** Called when the update task is successful.
@@ -178,7 +178,7 @@ class ResourceFolderModel : public QAbstractListModel {
     virtual void onParseSucceeded(int ticket, QString resource_id);
     virtual void onParseFailed(int ticket, QString resource_id) {}
 
-   protected:
+protected:
     // Represents the relationship between a column's index (represented by the list index), and it's sorting key.
     // As such, the order in with they appear is very important!
     QList<SortType> m_column_sort_keys = { SortType::ENABLED, SortType::NAME, SortType::DATE };

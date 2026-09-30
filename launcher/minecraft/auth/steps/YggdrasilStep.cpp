@@ -5,7 +5,8 @@
 #include "minecraft/auth/Parsers.h"
 #include "minecraft/auth/Yggdrasil.h"
 
-YggdrasilStep::YggdrasilStep(AccountData* data, QString password) : AuthStep(data), m_password(password) {
+YggdrasilStep::YggdrasilStep(AccountData* data, QString password) : AuthStep(data), m_password(password)
+{
     m_yggdrasil = new Yggdrasil(m_data, this);
 
     connect(m_yggdrasil, &Task::failed, this, &YggdrasilStep::onAuthFailed);
@@ -15,33 +16,37 @@ YggdrasilStep::YggdrasilStep(AccountData* data, QString password) : AuthStep(dat
 
 YggdrasilStep::~YggdrasilStep() noexcept = default;
 
-QString YggdrasilStep::describe() {
-  switch(m_data->type) {
-    case AccountType::AuthlibInjector:
-      return tr("Logging in with %1 account.").arg(m_data->authlibInjectorBaseUrl);
-    default:
-      break;
-  }
+QString YggdrasilStep::describe()
+{
+    switch (m_data->type) {
+        case AccountType::AuthlibInjector:
+            return tr("Logging in with %1 account.").arg(m_data->authlibInjectorBaseUrl);
+        default:
+            break;
+    }
 }
 
-void YggdrasilStep::rehydrate() {
+void YggdrasilStep::rehydrate()
+{
     // NOOP, for now.
 }
 
-void YggdrasilStep::perform() {
-    if(m_password.size()) {
+void YggdrasilStep::perform()
+{
+    if (m_password.size()) {
         m_yggdrasil->login(m_password);
-    }
-    else {
+    } else {
         m_yggdrasil->refresh();
     }
 }
 
-void YggdrasilStep::onAuthSucceeded() {
+void YggdrasilStep::onAuthSucceeded()
+{
     emit finished(AccountTaskState::STATE_WORKING, tr("Logged in with %1").arg(m_data->authlibInjectorBaseUrl));
 }
 
-void YggdrasilStep::onAuthFailed() {
+void YggdrasilStep::onAuthFailed()
+{
     // TODO: hook these in again, expand to MSA
     // m_error = m_yggdrasil->m_error;
     // m_aborted = m_yggdrasil->m_aborted;
@@ -50,21 +55,19 @@ void YggdrasilStep::onAuthFailed() {
     QString errorMessage = tr("%1 user authentication failed").arg(m_data->authlibInjectorBaseUrl);
 
     // NOTE: soft error in the first step means 'offline'
-    if(state == AccountTaskState::STATE_FAILED_SOFT) {
+    if (state == AccountTaskState::STATE_FAILED_SOFT) {
         state = AccountTaskState::STATE_OFFLINE;
-        switch(m_data->type) {
-          case AccountType::AuthlibInjector:
-          {
-            if(m_data->authlibInjectorBaseUrl.isEmpty())
-            {
-              errorMessage = tr("User authentication ended with a network error, did specify a url?");
-            } else {
-              errorMessage = tr("%1 user authentication ended with a network error").arg(m_data->authlibInjectorBaseUrl);
+        switch (m_data->type) {
+            case AccountType::AuthlibInjector: {
+                if (m_data->authlibInjectorBaseUrl.isEmpty()) {
+                    errorMessage = tr("User authentication ended with a network error, did specify a url?");
+                } else {
+                    errorMessage = tr("%1 user authentication ended with a network error").arg(m_data->authlibInjectorBaseUrl);
+                }
+                break;
             }
-            break;
-          }
-          default:
-            break;
+            default:
+                break;
         }
     }
     emit finished(state, errorMessage);

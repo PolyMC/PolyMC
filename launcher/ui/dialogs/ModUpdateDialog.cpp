@@ -30,13 +30,22 @@ static ModAPI::ModLoaderTypes mcLoaders(BaseInstance* inst)
     return { static_cast<MinecraftInstance*>(inst)->getPackProfile()->getModLoaders() };
 }
 
-ModUpdateDialog::ModUpdateDialog(QWidget* parent, ModAPI::ResourceType type, BaseInstance* instance,
+ModUpdateDialog::ModUpdateDialog(QWidget* parent,
+                                 ModAPI::ResourceType type,
+                                 BaseInstance* instance,
                                  const std::shared_ptr<ModFolderModel> mods,
-                                 QList<Mod*>& search_for, bool update_mods)
-    : ReviewMessageBox(parent, "", ""), m_parent(parent), m_mod_model(mods),
-      m_candidates(search_for), m_second_try_metadata(new ConcurrentTask()), m_type(type),
-      m_typeString(m_type == ModAPI::Mod ? tr("mod") : tr("pack")), m_instance(instance),
-      m_update_mods(update_mods) {
+                                 QList<Mod*>& search_for,
+                                 bool update_mods)
+    : ReviewMessageBox(parent, "", "")
+    , m_parent(parent)
+    , m_mod_model(mods)
+    , m_candidates(search_for)
+    , m_second_try_metadata(new ConcurrentTask())
+    , m_type(type)
+    , m_typeString(m_type == ModAPI::Mod ? tr("mod") : tr("pack"))
+    , m_instance(instance)
+    , m_update_mods(update_mods)
+{
     ReviewMessageBox::setGeometry(0, 0, 800, 600);
 
     setWindowTitle(tr("Confirm %1s to update").arg(m_typeString));
@@ -65,7 +74,8 @@ void ModUpdateDialog::checkCandidates()
 
         ScrollMessageBox message_dialog(m_parent, tr("Metadata generation failed"),
                                         tr("Could not generate metadata for the following %1s:<br>"
-                                           "Do you wish to proceed without them?").arg(m_typeString),
+                                           "Do you wish to proceed without them?")
+                                            .arg(m_typeString),
                                         text);
         message_dialog.setModal(true);
         if (message_dialog.exec() == QDialog::Rejected) {
@@ -83,14 +93,14 @@ void ModUpdateDialog::checkCandidates()
     if (!m_modrinth_to_update.empty()) {
         m_modrinth_check_task = new ModrinthCheckUpdate(m_modrinth_to_update, versions, loaders, m_mod_model);
         connect(m_modrinth_check_task, &CheckUpdateTask::checkFailed, this,
-                [this](Mod* mod, QString reason, QUrl recover_url) { m_failed_check_update.append({mod, reason, recover_url}); });
+                [this](Mod* mod, QString reason, QUrl recover_url) { m_failed_check_update.append({ mod, reason, recover_url }); });
         check_task.addTask(m_modrinth_check_task);
     }
 
     if (!m_flame_to_update.empty()) {
         m_flame_check_task = new FlameCheckUpdate(m_flame_to_update, versions, loaders, m_mod_model);
         connect(m_flame_check_task, &CheckUpdateTask::checkFailed, this,
-                [this](Mod* mod, QString reason, QUrl recover_url) { m_failed_check_update.append({mod, reason, recover_url}); });
+                [this](Mod* mod, QString reason, QUrl recover_url) { m_failed_check_update.append({ mod, reason, recover_url }); });
         check_task.addTask(m_flame_check_task);
     }
 
@@ -155,13 +165,14 @@ void ModUpdateDialog::checkCandidates()
             if (!recover_url.isEmpty())
                 //: %1 is the link to download it manually
                 text += tr("Possible solution: Getting the latest version manually:<br>%1<br>")
-                    .arg(QString("<a href='%1'>%1</a>").arg(recover_url.toString()));
+                            .arg(QString("<a href='%1'>%1</a>").arg(recover_url.toString()));
             text += "<br>";
         }
 
         ScrollMessageBox message_dialog(m_parent, tr("Failed to check for updates"),
                                         tr("Could not check or get the following %1s for updates:<br>"
-                                           "Do you wish to proceed without them?").arg(m_typeString),
+                                           "Do you wish to proceed without them?")
+                                            .arg(m_typeString),
                                         text);
         message_dialog.setModal(true);
         if (message_dialog.exec() == QDialog::Rejected) {
@@ -336,7 +347,7 @@ void ModUpdateDialog::onMetadataFailed(Mod* mod, bool try_others, ModPlatform::P
     } else {
         QString reason{ tr("Couldn't find a valid version on the selected %1 provider(s)").arg(m_typeString) };
 
-        m_failed_metadata.append({mod, reason});
+        m_failed_metadata.append({ mod, reason });
     }
 }
 

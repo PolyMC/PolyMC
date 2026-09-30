@@ -51,7 +51,7 @@ void ModrinthCheckUpdate::executeTask()
         if (mod->metadata()->hash_format != best_hash_type) {
             auto hash_task = Hashing::createModrinthHasher(mod->fileinfo().absoluteFilePath());
             connect(hash_task.get(), &Task::succeeded, [&] {
-                QString hash (hash_task->getResult());
+                QString hash(hash_task->getResult());
                 hashes.append(hash);
                 mappings.insert(hash, mod);
             });
@@ -64,7 +64,7 @@ void ModrinthCheckUpdate::executeTask()
     }
 
     QEventLoop loop;
-    connect(&hashing_task, &Task::finished, [&loop]{ loop.quit(); });
+    connect(&hashing_task, &Task::finished, [&loop] { loop.quit(); });
     hashing_task.start();
     loop.exec();
 
@@ -108,7 +108,8 @@ void ModrinthCheckUpdate::executeTask()
                 // Sometimes a version may have multiple files, one with "forge" and one with "fabric",
                 // so we may want to filter it
                 QString loader_filter;
-                static auto flags = { ModAPI::ModLoaderType::Forge, ModAPI::ModLoaderType::NeoForge, ModAPI::ModLoaderType::Fabric, ModAPI::ModLoaderType::Quilt };
+                static auto flags = { ModAPI::ModLoaderType::Forge, ModAPI::ModLoaderType::NeoForge, ModAPI::ModLoaderType::Fabric,
+                                      ModAPI::ModLoaderType::Quilt };
                 for (auto flag : flags) {
                     if (m_loaders.testFlag(flag)) {
                         loader_filter = api.getModLoaderString(flag);
@@ -117,7 +118,8 @@ void ModrinthCheckUpdate::executeTask()
                 }
 
                 // Currently, we rely on a couple heuristics to determine whether an update is actually available or not:
-                // - The file needs to be preferred: It is either the primary file, or the one found via (explicit) usage of the loader_filter
+                // - The file needs to be preferred: It is either the primary file, or the one found via (explicit) usage of the
+                // loader_filter
                 // - The version reported by the JAR is different from the version reported by the indexed version (it's usually the case)
                 // Such is the pain of having arbitrary files for a given version .-.
 

@@ -56,10 +56,12 @@ QStringList ReviewMessageBox::deselectedMods()
     return list;
 }
 
-void ReviewMessageBox::setDescription(const QString& desc) {
+void ReviewMessageBox::setDescription(const QString& desc)
+{
     ui->explainLabel->setText(desc);
 }
 
-void ReviewMessageBox::setCheckLabel(const QString& desc) {
+void ReviewMessageBox::setCheckLabel(const QString& desc)
+{
     ui->onlyCheckedLabel->setText(desc);
 }

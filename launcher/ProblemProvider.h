@@ -1,44 +1,29 @@
 #pragma once
 
-enum class ProblemSeverity
-{
-    None,
-    Warning,
-    Error
-};
+enum class ProblemSeverity { None, Warning, Error };
 
-struct PatchProblem
-{
+struct PatchProblem {
     ProblemSeverity m_severity;
     QString m_description;
 };
 
-class ProblemProvider
-{
+class ProblemProvider {
 public:
     virtual ~ProblemProvider() {};
     virtual const QList<PatchProblem> getProblems() const = 0;
     virtual ProblemSeverity getProblemSeverity() const = 0;
 };
 
-class ProblemContainer : public ProblemProvider
-{
+class ProblemContainer : public ProblemProvider {
 public:
-    const QList<PatchProblem> getProblems() const override
+    const QList<PatchProblem> getProblems() const override { return m_problems; }
+    ProblemSeverity getProblemSeverity() const override { return m_problemSeverity; }
+    virtual void addProblem(ProblemSeverity severity, const QString& description)
     {
-        return m_problems;
-    }
-    ProblemSeverity getProblemSeverity() const override
-    {
-        return m_problemSeverity;
-    }
-    virtual void addProblem(ProblemSeverity severity, const QString &description)
-    {
-        if(severity > m_problemSeverity)
-        {
+        if (severity > m_problemSeverity) {
             m_problemSeverity = severity;
         }
-        m_problems.append({severity, description});
+        m_problems.append({ severity, description });
     }
 
 private:

@@ -35,65 +35,56 @@
 
 #pragma once
 
+#include <QList>
 #include <QString>
 #include <QStringView>
-#include <QList>
 
 class QUrl;
 
-class Version
-{
+class Version {
 public:
-    Version(const QString &str);
+    Version(const QString& str);
     Version() {}
 
-    bool operator<(const Version &other) const;
-    bool operator<=(const Version &other) const;
-    bool operator>(const Version &other) const;
-    bool operator>=(const Version &other) const;
-    bool operator==(const Version &other) const;
-    bool operator!=(const Version &other) const;
+    bool operator<(const Version& other) const;
+    bool operator<=(const Version& other) const;
+    bool operator>(const Version& other) const;
+    bool operator>=(const Version& other) const;
+    bool operator==(const Version& other) const;
+    bool operator!=(const Version& other) const;
 
-    QString toString() const
-    {
-        return m_string;
-    }
+    QString toString() const { return m_string; }
 
     bool isPreAuthlib() const;
 
-   private:
+private:
     QString m_string;
-    struct Section
-    {
-        explicit Section(const QString &fullString)
+    struct Section {
+        explicit Section(const QString& fullString)
         {
             m_fullString = fullString;
             int cutoff = m_fullString.size();
-            for(int i = 0; i < m_fullString.size(); i++)
-            {
-                if(!m_fullString[i].isDigit())
-                {
+            for (int i = 0; i < m_fullString.size(); i++) {
+                if (!m_fullString[i].isDigit()) {
                     cutoff = i;
                     break;
                 }
             }
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-            auto numPart = QStringView{m_fullString}.left(cutoff);
+            auto numPart = QStringView{ m_fullString }.left(cutoff);
 #else
             auto numPart = m_fullString.leftRef(cutoff);
 #endif
-            if(numPart.size())
-            {
+            if (numPart.size()) {
                 numValid = true;
                 m_numPart = numPart.toInt();
             }
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-            auto stringPart = QStringView{m_fullString}.mid(cutoff);
+            auto stringPart = QStringView{ m_fullString }.mid(cutoff);
 #else
             auto stringPart = m_fullString.midRef(cutoff);
 #endif
-            if(stringPart.size())
-            {
+            if (stringPart.size()) {
                 m_stringPart = stringPart.toString();
             }
         }
@@ -103,44 +94,35 @@ public:
         QString m_stringPart;
         QString m_fullString;
 
-        inline bool operator!=(const Section &other) const
+        inline bool operator!=(const Section& other) const
         {
-            if(numValid && other.numValid)
-            {
+            if (numValid && other.numValid) {
                 return m_numPart != other.m_numPart || m_stringPart != other.m_stringPart;
-            }
-            else
-            {
+            } else {
                 return m_fullString != other.m_fullString;
             }
         }
-        inline bool operator<(const Section &other) const
+        inline bool operator<(const Section& other) const
         {
-            if(numValid && other.numValid)
-            {
-                if(m_numPart < other.m_numPart)
+            if (numValid && other.numValid) {
+                if (m_numPart < other.m_numPart)
                     return true;
-                if(m_numPart == other.m_numPart && m_stringPart < other.m_stringPart)
+                if (m_numPart == other.m_numPart && m_stringPart < other.m_stringPart)
                     return true;
                 return false;
-            }
-            else
-            {
+            } else {
                 return m_fullString < other.m_fullString;
             }
         }
-        inline bool operator>(const Section &other) const
+        inline bool operator>(const Section& other) const
         {
-            if(numValid && other.numValid)
-            {
-                if(m_numPart > other.m_numPart)
+            if (numValid && other.numValid) {
+                if (m_numPart > other.m_numPart)
                     return true;
-                if(m_numPart == other.m_numPart && m_stringPart > other.m_stringPart)
+                if (m_numPart == other.m_numPart && m_stringPart > other.m_stringPart)
                     return true;
                 return false;
-            }
-            else
-            {
+            } else {
                 return m_fullString > other.m_fullString;
             }
         }

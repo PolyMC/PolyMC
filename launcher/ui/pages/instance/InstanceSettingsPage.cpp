@@ -37,8 +37,8 @@
 #include "InstanceSettingsPage.h"
 #include "ui_InstanceSettingsPage.h"
 
-#include <QFileDialog>
 #include <QDialog>
+#include <QFileDialog>
 #include <QMessageBox>
 
 #include <sys.h>
@@ -46,17 +46,16 @@
 #include "ui/dialogs/VersionSelectDialog.h"
 #include "ui/widgets/CustomCommands.h"
 
-#include "JavaCommon.h"
 #include "Application.h"
+#include "JavaCommon.h"
 
+#include "FileSystem.h"
 #include "java/JavaUtils.h"
 #include "java/JavaVersion.h"
-#include "FileSystem.h"
 
 #include "minecraft/auth/AccountList.h"
 
-
-InstanceSettingsPage::InstanceSettingsPage(BaseInstance *inst, QWidget *parent)
+InstanceSettingsPage::InstanceSettingsPage(BaseInstance* inst, QWidget* parent)
     : QWidget(parent), ui(new Ui::InstanceSettingsPage), m_instance(inst)
 {
     m_settings = inst->settings();
@@ -76,14 +75,11 @@ InstanceSettingsPage::InstanceSettingsPage(BaseInstance *inst, QWidget *parent)
     // TODO(crueter): add warning theme icons.
     ui->lowMemWarnIcon->setPixmap(QMessageBox::standardIcon(QMessageBox::Warning).scaled(24, 24));
 
-    connect(ui->minMemSpinBox, &QSpinBox::editingFinished,
-            this, &InstanceSettingsPage::normalizeMemory);
+    connect(ui->minMemSpinBox, &QSpinBox::editingFinished, this, &InstanceSettingsPage::normalizeMemory);
 
-    connect(ui->maxMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
-            this, &InstanceSettingsPage::updateMemoryWarning);
+    connect(ui->maxMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &InstanceSettingsPage::updateMemoryWarning);
 
-    connect(ui->maxMemSpinBox, &QSpinBox::editingFinished,
-            this, &InstanceSettingsPage::normalizeMemory);
+    connect(ui->maxMemSpinBox, &QSpinBox::editingFinished, this, &InstanceSettingsPage::normalizeMemory);
 
     updateMemoryWarning();
 
@@ -102,7 +98,7 @@ InstanceSettingsPage::~InstanceSettingsPage()
 
 void InstanceSettingsPage::globalSettingsButtonClicked(bool)
 {
-    switch(ui->settingsTabs->currentIndex()) {
+    switch (ui->settingsTabs->currentIndex()) {
         case 0:
             APPLICATION->ShowGlobalSettings(this, "java-settings");
             return;
@@ -115,19 +111,22 @@ void InstanceSettingsPage::globalSettingsButtonClicked(bool)
     }
 }
 
-void InstanceSettingsPage::updateMemoryWarning() {
+void InstanceSettingsPage::updateMemoryWarning()
+{
     int maxMem = ui->maxMemSpinBox->value();
 
     if (maxMem < 1024) {
-        ui->lowMemWarnLabel->setText(tr("Allocating less than 1024 MiB may cause performance "
-                                        "issues on newer versions! Use with caution."));
+        ui->lowMemWarnLabel->setText(
+            tr("Allocating less than 1024 MiB may cause performance "
+               "issues on newer versions! Use with caution."));
         ui->lowMemWarnWidget->show();
     } else {
         ui->lowMemWarnWidget->hide();
     }
 }
 
-void InstanceSettingsPage::normalizeMemory() {
+void InstanceSettingsPage::normalizeMemory()
+{
     int minMem = ui->minMemSpinBox->value();
     int maxMem = ui->maxMemSpinBox->value();
 
@@ -148,13 +147,10 @@ void InstanceSettingsPage::applySettings()
     // Miscellaneous
     bool miscellaneous = ui->miscellaneousSettingsBox->isChecked();
     m_settings->set("OverrideMiscellaneous", miscellaneous);
-    if (miscellaneous)
-    {
+    if (miscellaneous) {
         m_settings->set("CloseAfterLaunch", ui->closeAfterLaunchCheck->isChecked());
         m_settings->set("QuitAfterGameStop", ui->quitAfterGameStopCheck->isChecked());
-    }
-    else
-    {
+    } else {
         m_settings->reset("CloseAfterLaunch");
         m_settings->reset("QuitAfterGameStop");
     }
@@ -162,14 +158,11 @@ void InstanceSettingsPage::applySettings()
     // Console
     bool console = ui->consoleSettingsBox->isChecked();
     m_settings->set("OverrideConsole", console);
-    if (console)
-    {
+    if (console) {
         m_settings->set("ShowConsole", ui->showConsoleCheck->isChecked());
         m_settings->set("AutoCloseConsole", ui->autoCloseConsoleCheck->isChecked());
         m_settings->set("ShowConsoleOnError", ui->showConsoleErrorCheck->isChecked());
-    }
-    else
-    {
+    } else {
         m_settings->reset("ShowConsole");
         m_settings->reset("AutoCloseConsole");
         m_settings->reset("ShowConsoleOnError");
@@ -178,14 +171,11 @@ void InstanceSettingsPage::applySettings()
     // Window Size
     bool window = ui->windowSizeGroupBox->isChecked();
     m_settings->set("OverrideWindow", window);
-    if (window)
-    {
+    if (window) {
         m_settings->set("LaunchMaximized", ui->maximizedCheckBox->isChecked());
         m_settings->set("MinecraftWinWidth", ui->windowWidthSpinBox->value());
         m_settings->set("MinecraftWinHeight", ui->windowHeightSpinBox->value());
-    }
-    else
-    {
+    } else {
         m_settings->reset("LaunchMaximized");
         m_settings->reset("MinecraftWinWidth");
         m_settings->reset("MinecraftWinHeight");
@@ -194,24 +184,18 @@ void InstanceSettingsPage::applySettings()
     // Memory
     bool memory = ui->memoryGroupBox->isChecked();
     m_settings->set("OverrideMemory", memory);
-    if (memory)
-    {
+    if (memory) {
         int min = ui->minMemSpinBox->value();
         int max = ui->maxMemSpinBox->value();
-        if(min < max)
-        {
+        if (min < max) {
             m_settings->set("MinMemAlloc", min);
             m_settings->set("MaxMemAlloc", max);
-        }
-        else
-        {
+        } else {
             m_settings->set("MinMemAlloc", max);
             m_settings->set("MaxMemAlloc", min);
         }
         m_settings->set("PermGen", ui->permGenSpinBox->value());
-    }
-    else
-    {
+    } else {
         m_settings->reset("MinMemAlloc");
         m_settings->reset("MaxMemAlloc");
         m_settings->reset("PermGen");
@@ -220,14 +204,11 @@ void InstanceSettingsPage::applySettings()
     // Java Install Settings
     bool javaInstall = ui->javaSettingsGroupBox->isChecked();
     m_settings->set("OverrideJavaLocation", javaInstall);
-    if (javaInstall)
-    {
+    if (javaInstall) {
         m_settings->set("JavaPath", ui->javaPathTextBox->text());
         m_settings->set("IgnoreJavaCompatibility", ui->skipCompatibilityCheckbox->isChecked());
         m_settings->set("IgnoreJavaSecWarn", ui->secWarnCheckbox->isChecked());
-    }
-    else
-    {
+    } else {
         m_settings->reset("JavaPath");
         m_settings->reset("IgnoreJavaCompatibility");
         m_settings->reset("IgnoreJavaSecWarn");
@@ -236,12 +217,9 @@ void InstanceSettingsPage::applySettings()
     // Java arguments
     bool javaArgs = ui->javaArgumentsGroupBox->isChecked();
     m_settings->set("OverrideJavaArgs", javaArgs);
-    if(javaArgs)
-    {
+    if (javaArgs) {
         m_settings->set("JvmArgs", ui->jvmArgsTextBox->toPlainText().replace("\n", " "));
-    }
-    else
-    {
+    } else {
         m_settings->reset("JvmArgs");
     }
 
@@ -251,14 +229,11 @@ void InstanceSettingsPage::applySettings()
     // Custom Commands
     bool custcmd = ui->customCommands->checked();
     m_settings->set("OverrideCommands", custcmd);
-    if (custcmd)
-    {
+    if (custcmd) {
         m_settings->set("PreLaunchCommand", ui->customCommands->prelaunchCommand());
         m_settings->set("WrapperCommand", ui->customCommands->wrapperCommand());
         m_settings->set("PostExitCommand", ui->customCommands->postexitCommand());
-    }
-    else
-    {
+    } else {
         m_settings->reset("PreLaunchCommand");
         m_settings->reset("WrapperCommand");
         m_settings->reset("PostExitCommand");
@@ -267,13 +242,10 @@ void InstanceSettingsPage::applySettings()
     // Workarounds
     bool workarounds = ui->nativeWorkaroundsGroupBox->isChecked();
     m_settings->set("OverrideNativeWorkarounds", workarounds);
-    if(workarounds)
-    {
+    if (workarounds) {
         m_settings->set("UseNativeOpenAL", ui->useNativeOpenALCheck->isChecked());
         m_settings->set("UseNativeGLFW", ui->useNativeGLFWCheck->isChecked());
-    }
-    else
-    {
+    } else {
         m_settings->reset("UseNativeOpenAL");
         m_settings->reset("UseNativeGLFW");
     }
@@ -281,14 +253,11 @@ void InstanceSettingsPage::applySettings()
     // Performance
     bool performance = ui->perfomanceGroupBox->isChecked();
     m_settings->set("OverridePerformance", performance);
-    if(performance)
-    {
+    if (performance) {
         m_settings->set("EnableFeralGamemode", ui->enableFeralGamemodeCheck->isChecked());
         m_settings->set("EnableMangoHud", ui->enableMangoHud->isChecked());
         m_settings->set("UseDiscreteGpu", ui->useDiscreteGpuCheck->isChecked());
-    }
-    else
-    {
+    } else {
         m_settings->reset("EnableFeralGamemode");
         m_settings->reset("EnableMangoHud");
         m_settings->reset("UseDiscreteGpu");
@@ -297,13 +266,10 @@ void InstanceSettingsPage::applySettings()
     // Game time
     bool gameTime = ui->gameTimeGroupBox->isChecked();
     m_settings->set("OverrideGameTime", gameTime);
-    if (gameTime)
-    {
+    if (gameTime) {
         m_settings->set("ShowGameTime", ui->showGameTime->isChecked());
         m_settings->set("RecordGameTime", ui->recordGameTime->isChecked());
-    }
-    else
-    {
+    } else {
         m_settings->reset("ShowGameTime");
         m_settings->reset("RecordGameTime");
     }
@@ -311,24 +277,18 @@ void InstanceSettingsPage::applySettings()
     // Join server on launch
     bool joinServerOnLaunch = ui->serverJoinGroupBox->isChecked();
     m_settings->set("JoinServerOnLaunch", joinServerOnLaunch);
-    if (joinServerOnLaunch)
-    {
+    if (joinServerOnLaunch) {
         m_settings->set("JoinServerOnLaunchAddress", ui->serverJoinAddress->text());
-    }
-    else
-    {
+    } else {
         m_settings->reset("JoinServerOnLaunchAddress");
     }
 
     // Account override settings
     bool accountOverride = ui->accountGroupBox->isChecked();
     m_settings->set("OverrideAccount", accountOverride);
-    if (accountOverride && ui->accountComboBox->currentData().isValid())
-    {
+    if (accountOverride && ui->accountComboBox->currentData().isValid()) {
         m_settings->set("OverrideAccountProfileId", ui->accountComboBox->currentData().toString());
-    }
-    else
-    {
+    } else {
         m_settings->reset("OverrideAccountProfileId");
     }
 
@@ -367,13 +327,10 @@ void InstanceSettingsPage::loadSettings()
     ui->memoryGroupBox->setChecked(m_settings->get("OverrideMemory").toBool());
     int min = m_settings->get("MinMemAlloc").toInt();
     int max = m_settings->get("MaxMemAlloc").toInt();
-    if(min < max)
-    {
+    if (min < max) {
         ui->minMemSpinBox->setValue(min);
         ui->maxMemSpinBox->setValue(max);
-    }
-    else
-    {
+    } else {
         ui->minMemSpinBox->setValue(max);
         ui->maxMemSpinBox->setValue(min);
     }
@@ -401,13 +358,8 @@ void InstanceSettingsPage::loadSettings()
     updateSecWarnVisibility(FS::ResolveExecutable(m_settings->get("JavaPath").toString()));
 
     // Custom commands
-    ui->customCommands->initialize(
-        true,
-        m_settings->get("OverrideCommands").toBool(),
-        m_settings->get("PreLaunchCommand").toString(),
-        m_settings->get("WrapperCommand").toString(),
-        m_settings->get("PostExitCommand").toString()
-    );
+    ui->customCommands->initialize(true, m_settings->get("OverrideCommands").toBool(), m_settings->get("PreLaunchCommand").toString(),
+                                   m_settings->get("WrapperCommand").toString(), m_settings->get("PostExitCommand").toString());
 
     // Workarounds
     ui->nativeWorkaroundsGroupBox->setChecked(m_settings->get("OverrideNativeWorkarounds").toBool());
@@ -498,8 +450,7 @@ void InstanceSettingsPage::on_javaDetectBtn_clicked()
     vselect.setResizeOn(2);
     vselect.exec();
 
-    if (vselect.result() == QDialog::Accepted && vselect.selectedVersion())
-    {
+    if (vselect.result() == QDialog::Accepted && vselect.selectedVersion()) {
         java = std::dynamic_pointer_cast<JavaInstall>(vselect.selectedVersion());
         ui->javaPathTextBox->setText(java->path);
 
@@ -521,15 +472,13 @@ void InstanceSettingsPage::on_javaBrowseBtn_clicked()
     QString raw_path = QFileDialog::getOpenFileName(this, tr("Find Java executable"));
 
     // do not allow current dir - it's dirty. Do not allow dirs that don't exist
-    if(raw_path.isEmpty())
-    {
+    if (raw_path.isEmpty()) {
         return;
     }
     QString cooked_path = FS::NormalizePath(raw_path);
 
     QFileInfo javaInfo(cooked_path);
-    if(!javaInfo.exists() || !javaInfo.isExecutable())
-    {
+    if (!javaInfo.exists() || !javaInfo.isExecutable()) {
         return;
     }
     ui->javaPathTextBox->setText(cooked_path);
@@ -546,13 +495,11 @@ void InstanceSettingsPage::on_javaBrowseBtn_clicked()
 
 void InstanceSettingsPage::on_javaTestBtn_clicked()
 {
-    if(checker)
-    {
+    if (checker) {
         return;
     }
-    checker.reset(new JavaCommon::TestCheck(
-        this, ui->javaPathTextBox->text(), ui->jvmArgsTextBox->toPlainText().replace("\n", " "),
-        ui->minMemSpinBox->value(), ui->maxMemSpinBox->value(), ui->permGenSpinBox->value()));
+    checker.reset(new JavaCommon::TestCheck(this, ui->javaPathTextBox->text(), ui->jvmArgsTextBox->toPlainText().replace("\n", " "),
+                                            ui->minMemSpinBox->value(), ui->maxMemSpinBox->value(), ui->permGenSpinBox->value()));
     connect(checker.get(), SIGNAL(finished()), SLOT(checkerFinished()));
     checker->run();
 }
@@ -563,10 +510,9 @@ void InstanceSettingsPage::checkerFinished()
 }
 
 // only show the security errors checkbox if java <= 8
-void InstanceSettingsPage::updateSecWarnVisibility(const QString &javaPath)
+void InstanceSettingsPage::updateSecWarnVisibility(const QString& javaPath)
 {
-    if (javaPath.isEmpty() || JavaUtils::getJavaCheckPath().isEmpty())
-    {
+    if (javaPath.isEmpty() || JavaUtils::getJavaCheckPath().isEmpty()) {
         m_secWarnJavaPath.clear();
         m_secWarnJavaChecked = false;
         m_secWarnJavaVersion = JavaVersion();
@@ -574,8 +520,7 @@ void InstanceSettingsPage::updateSecWarnVisibility(const QString &javaPath)
         return;
     }
 
-    if (javaPath == m_secWarnJavaPath)
-    {
+    if (javaPath == m_secWarnJavaPath) {
         ui->secWarnCheckbox->setVisible(m_secWarnJavaChecked && m_secWarnJavaVersion.requiresSecBypass());
         return;
     }
@@ -585,35 +530,30 @@ void InstanceSettingsPage::updateSecWarnVisibility(const QString &javaPath)
     m_secWarnJavaVersion = JavaVersion();
     ui->secWarnCheckbox->setVisible(false);
 
-    if (!m_secWarnChecker)
-    {
+    if (!m_secWarnChecker) {
         m_secWarnChecker.reset(new JavaChecker());
-        connect(m_secWarnChecker.get(), SIGNAL(checkFinished(JavaCheckResult)), this,
-                SLOT(secWarnCheckFinished(JavaCheckResult)));
+        connect(m_secWarnChecker.get(), SIGNAL(checkFinished(JavaCheckResult)), this, SLOT(secWarnCheckFinished(JavaCheckResult)));
         m_secWarnChecker->m_path = javaPath;
         m_secWarnChecker->performCheck();
     }
 }
 
-void InstanceSettingsPage::secWarnCheckFinished(const JavaCheckResult &result)
+void InstanceSettingsPage::secWarnCheckFinished(const JavaCheckResult& result)
 {
     m_secWarnChecker.reset();
 
-    if (m_secWarnJavaChecked)
-    {
+    if (m_secWarnJavaChecked) {
         return;
     }
 
-    if (result.path != m_secWarnJavaPath)
-    {
+    if (result.path != m_secWarnJavaPath) {
         auto wantedPath = m_secWarnJavaPath;
         m_secWarnJavaPath.clear();
         updateSecWarnVisibility(wantedPath);
         return;
     }
 
-    if (result.validity == JavaCheckResult::Validity::Valid)
-    {
+    if (result.validity == JavaCheckResult::Validity::Valid) {
         m_secWarnJavaVersion = result.javaVersion;
         m_secWarnJavaChecked = true;
     }

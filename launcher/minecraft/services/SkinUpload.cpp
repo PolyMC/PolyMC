@@ -35,12 +35,13 @@
 
 #include "SkinUpload.h"
 
-#include <QNetworkRequest>
 #include <QHttpMultiPart>
+#include <QNetworkRequest>
 
 #include "Application.h"
 
-QByteArray getVariant(SkinUpload::Model model) {
+QByteArray getVariant(SkinUpload::Model model)
+{
     switch (model) {
         case SkinUpload::STEVE:
             return "CLASSIC";
@@ -52,16 +53,15 @@ QByteArray getVariant(SkinUpload::Model model) {
     }
 }
 
-SkinUpload::SkinUpload(QObject *parent, QString token, QByteArray skin, SkinUpload::Model model)
+SkinUpload::SkinUpload(QObject* parent, QString token, QByteArray skin, SkinUpload::Model model)
     : Task(parent), m_model(model), m_skin(skin), m_token(token)
-{
-}
+{}
 
 void SkinUpload::executeTask()
 {
     QNetworkRequest request(QUrl("https://api.minecraftservices.com/minecraft/profile/skins"));
     request.setRawHeader("Authorization", QString("Bearer %1").arg(m_token).toLocal8Bit());
-    QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+    QHttpMultiPart* multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
 
     QHttpPart skin;
     skin.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/png"));
@@ -75,7 +75,7 @@ void SkinUpload::executeTask()
     multiPart->append(skin);
     multiPart->append(model);
 
-    QNetworkReply *rep = APPLICATION->network()->post(request, multiPart);
+    QNetworkReply* rep = APPLICATION->network()->post(request, multiPart);
     m_reply = shared_qobject_ptr<QNetworkReply>(rep);
 
     setStatus(tr("Uploading skin"));
@@ -98,8 +98,7 @@ void SkinUpload::downloadError(QNetworkReply::NetworkError error)
 void SkinUpload::downloadFinished()
 {
     // if the download failed
-    if (m_reply->error() != QNetworkReply::NetworkError::NoError)
-    {
+    if (m_reply->error() != QNetworkReply::NetworkError::NoError) {
         emitFailed(QString("Network error: %1").arg(m_reply->errorString()));
         m_reply.reset();
         return;

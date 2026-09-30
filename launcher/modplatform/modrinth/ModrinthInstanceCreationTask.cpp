@@ -137,17 +137,16 @@ bool ModrinthCreationTask::updateInstance()
         }
     } else {
         // We don't have an old index file, so we may duplicate stuff!
-        auto dialog = CustomMessageBox::selectable(m_parent,
-                tr("No index file."),
-                tr("We couldn't find a suitable index file for the older version. This may cause some of the files to be duplicated. Do you want to continue?"),
-                QMessageBox::Warning, QMessageBox::Ok | QMessageBox::Cancel);
+        auto dialog = CustomMessageBox::selectable(m_parent, tr("No index file."),
+                                                   tr("We couldn't find a suitable index file for the older version. This may cause some "
+                                                      "of the files to be duplicated. Do you want to continue?"),
+                                                   QMessageBox::Warning, QMessageBox::Ok | QMessageBox::Cancel);
 
         if (dialog->exec() == QDialog::DialogCode::Rejected) {
             m_abort = true;
             return false;
         }
     }
-
 
     setOverride(true);
     qDebug() << "Will override instance!";
@@ -245,7 +244,8 @@ bool ModrinthCreationTask::createInstance()
                 auto ndl = Net::Download::makeFile(file.downloads.dequeue(), path);
                 ndl->addValidator(new Net::ChecksumValidator(file.hashAlgorithm, file.hash));
                 m_files_job->addNetAction(ndl);
-                if (auto shared = param.lock()) shared->succeeded();
+                if (auto shared = param.lock())
+                    shared->succeeded();
             });
         }
     }
@@ -284,7 +284,10 @@ bool ModrinthCreationTask::createInstance()
     return ended_well;
 }
 
-bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<Modrinth::File>& files, bool set_managed_info, bool show_optional_dialog)
+bool ModrinthCreationTask::parseManifest(const QString& index_path,
+                                         std::vector<Modrinth::File>& files,
+                                         bool set_managed_info,
+                                         bool show_optional_dialog)
 {
     try {
         auto doc = Json::requireDocument(index_path);

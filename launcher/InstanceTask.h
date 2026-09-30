@@ -8,7 +8,7 @@ enum class InstanceNameChange { ShouldChange, ShouldKeep };
 [[nodiscard]] InstanceNameChange askForChangingInstanceName(QWidget* parent, const QString& old_name, const QString& new_name);
 
 struct InstanceName {
-   public:
+public:
     InstanceName() = default;
     InstanceName(QString name, QString version) : m_original_name(std::move(name)), m_original_version(std::move(version)) {}
 
@@ -20,7 +20,7 @@ struct InstanceName {
     void setName(QString name) { m_modified_name = name; }
     void setName(InstanceName& other);
 
-   protected:
+protected:
     QString m_original_name;
     QString m_original_version;
 
@@ -29,7 +29,7 @@ struct InstanceName {
 
 class InstanceTask : public Task, public InstanceName {
     Q_OBJECT
-   public:
+public:
     InstanceTask();
     ~InstanceTask() override = default;
 
@@ -44,10 +44,10 @@ class InstanceTask : public Task, public InstanceName {
 
     bool shouldOverride() const { return m_override_existing; }
 
-   protected:
+protected:
     void setOverride(bool override) { m_override_existing = override; }
 
-   protected: /* data */
+protected: /* data */
     SettingsObjectPtr m_globalSettings;
     QString m_instIcon;
     QString m_instGroup;

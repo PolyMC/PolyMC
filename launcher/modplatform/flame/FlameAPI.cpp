@@ -74,9 +74,8 @@ auto FlameAPI::getModDescription(int modId) -> QString
 
     auto* netJob = new NetJob(QString("Flame::ModDescription"), APPLICATION->network());
     auto* response = new QByteArray();
-    netJob->addNetAction(Net::Download::makeByteArray(
-        QString("https://api.curseforge.com/v1/mods/%1/description")
-            .arg(QString::number(modId)), response));
+    netJob->addNetAction(
+        Net::Download::makeByteArray(QString("https://api.curseforge.com/v1/mods/%1/description").arg(QString::number(modId)), response));
 
     QObject::connect(netJob, &NetJob::succeeded, [netJob, response, &description] {
         QJsonParseError parse_error{};
@@ -134,7 +133,7 @@ auto FlameAPI::getLatestVersion(VersionSearchArgs&& args) -> ModPlatform::Indexe
             for (auto file : arr) {
                 auto file_obj = Json::requireObject(file);
                 auto file_tmp = FlameMod::loadIndexedPackVersion(file_obj);
-                if(file_tmp.date > ver_tmp.date) {
+                if (file_tmp.date > ver_tmp.date) {
                     ver_tmp = file_tmp;
                     latest_file_obj = file_obj;
                 }
@@ -178,7 +177,10 @@ auto FlameAPI::getProjects(QStringList addonIds, QByteArray* response) const -> 
 
     netJob->addNetAction(Net::Upload::makeByteArray(QString("https://api.curseforge.com/v1/mods"), response, body_raw));
 
-    QObject::connect(netJob, &NetJob::finished, [response, netJob] { delete response; netJob->deleteLater(); });
+    QObject::connect(netJob, &NetJob::finished, [response, netJob] {
+        delete response;
+        netJob->deleteLater();
+    });
     QObject::connect(netJob, &NetJob::failed, [body_raw] { qDebug() << body_raw; });
 
     return netJob;
@@ -201,7 +203,10 @@ auto FlameAPI::getFiles(const QStringList& fileIds, QByteArray* response) const 
 
     netJob->addNetAction(Net::Upload::makeByteArray(QString("https://api.curseforge.com/v1/mods/files"), response, body_raw));
 
-    QObject::connect(netJob, &NetJob::finished, [response, netJob] { delete response; netJob->deleteLater(); });
+    QObject::connect(netJob, &NetJob::finished, [response, netJob] {
+        delete response;
+        netJob->deleteLater();
+    });
     QObject::connect(netJob, &NetJob::failed, [body_raw] { qDebug() << body_raw; });
 
     return netJob;

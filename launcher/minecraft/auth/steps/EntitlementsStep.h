@@ -4,12 +4,11 @@
 #include "QObjectPtr.h"
 #include "minecraft/auth/AuthStep.h"
 
-
 class EntitlementsStep : public AuthStep {
     Q_OBJECT
 
 public:
-    explicit EntitlementsStep(AccountData *data);
+    explicit EntitlementsStep(AccountData* data);
     virtual ~EntitlementsStep() noexcept;
 
     void perform() override;

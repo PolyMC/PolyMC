@@ -195,7 +195,7 @@ void FlamePage::suggestCurrent()
         return;
     }
 
-    dialog->setSuggestedPack(current.name, new InstanceImportTask(selectedVersion,this));
+    dialog->setSuggestedPack(current.name, new InstanceImportTask(selectedVersion, this));
     QString editedLogoName;
     editedLogoName = "curseforge_" + current.logoName.section(".", 0, 0);
     listModel->getLogo(current.logoName, current.logoUrl,
@@ -235,10 +235,8 @@ void FlamePage::updateUi()
         text += "<br>" + tr(" by ") + authorStrs.join(", ");
     }
 
-    if(current.extraInfoLoaded) {
-        if (!current.extra.issuesUrl.isEmpty()
-         || !current.extra.sourceUrl.isEmpty()
-         || !current.extra.wikiUrl.isEmpty()) {
+    if (current.extraInfoLoaded) {
+        if (!current.extra.issuesUrl.isEmpty() || !current.extra.sourceUrl.isEmpty() || !current.extra.wikiUrl.isEmpty()) {
             text += "<br><br>" + tr("External links:") + "<br>";
         }
 

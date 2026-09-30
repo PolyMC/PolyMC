@@ -41,17 +41,17 @@
 
 namespace Net {
 class MetaCacheSink : public FileSink {
-   public:
+public:
     MetaCacheSink(MetaEntryPtr entry, ChecksumValidator* md5sum, bool is_eternal = false);
     virtual ~MetaCacheSink() = default;
 
     auto hasLocalData() -> bool override;
 
-   protected:
+protected:
     auto initCache(QNetworkRequest& request) -> Task::State override;
     auto finalizeCache(QNetworkReply& reply) -> Task::State override;
 
-   private:
+private:
     MetaEntryPtr m_entry;
     ChecksumValidator* m_md5Node;
     bool m_is_eternal;

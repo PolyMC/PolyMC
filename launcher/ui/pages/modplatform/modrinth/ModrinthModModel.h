@@ -25,15 +25,15 @@ namespace Modrinth {
 class ListModel : public ModPlatform::ListModel {
     Q_OBJECT
 
-   public:
-    ListModel(ModrinthModPage* parent) : ModPlatform::ListModel(parent){};
+public:
+    ListModel(ModrinthModPage* parent) : ModPlatform::ListModel(parent) {};
     ~ListModel() override = default;
 
-   private:
+private:
     void loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj) override;
     void loadExtraPackInfo(ModPlatform::IndexedPack& m, QJsonObject& obj) override;
     void loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray& arr) override;
-    
+
     auto documentToArray(QJsonDocument& obj) const -> QJsonArray override;
 
     // NOLINTNEXTLINE(modernize-avoid-c-arrays)

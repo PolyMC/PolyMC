@@ -4,12 +4,11 @@
 #include "QObjectPtr.h"
 #include "minecraft/auth/AuthStep.h"
 
-
 class MigrationEligibilityStep : public AuthStep {
     Q_OBJECT
 
 public:
-    explicit MigrationEligibilityStep(AccountData *data);
+    explicit MigrationEligibilityStep(AccountData* data);
     virtual ~MigrationEligibilityStep() noexcept;
 
     void perform() override;

@@ -41,44 +41,32 @@
 
 #include "ui/pages/BasePage.h"
 
-#include "minecraft/auth/AccountList.h"
 #include "Application.h"
+#include "minecraft/auth/AccountList.h"
 
-namespace Ui
-{
+namespace Ui {
 class AccountListPage;
 }
 
 class AuthenticateTask;
 
-class AccountListPage : public QMainWindow, public BasePage
-{
+class AccountListPage : public QMainWindow, public BasePage {
     Q_OBJECT
 public:
-    explicit AccountListPage(QWidget *parent = 0);
+    explicit AccountListPage(QWidget* parent = 0);
     ~AccountListPage();
 
-    QString displayName() const override
-    {
-        return tr("Accounts");
-    }
+    QString displayName() const override { return tr("Accounts"); }
     QIcon icon() const override
     {
         auto icon = APPLICATION->getThemedIcon("accounts");
-        if(icon.isNull())
-        {
+        if (icon.isNull()) {
             icon = APPLICATION->getThemedIcon("noaccount");
         }
         return icon;
     }
-    QString id() const override
-    {
-        return "accounts";
-    }
-    QString helpPage() const override
-    {
-        return "Getting-Started#adding-an-account";
-    }
+    QString id() const override { return "accounts"; }
+    QString helpPage() const override { return "Getting-Started#adding-an-account"; }
     void retranslate() override;
 
 public slots:
@@ -98,11 +86,11 @@ public slots:
     void updateButtonStates();
 
 protected slots:
-    void ShowContextMenu(const QPoint &pos);
+    void ShowContextMenu(const QPoint& pos);
 
 private:
-    void changeEvent(QEvent * event) override;
-    QMenu * createPopupMenu() override;
+    void changeEvent(QEvent* event) override;
+    QMenu* createPopupMenu() override;
     shared_qobject_ptr<AccountList> m_accounts;
-    Ui::AccountListPage *ui;
+    Ui::AccountListPage* ui;
 };

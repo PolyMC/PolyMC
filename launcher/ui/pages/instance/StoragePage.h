@@ -26,47 +26,36 @@
 #include <QtCharts/QPieSeries>
 #include <QtCharts/QPieSlice>
 
-#include "BaseInstance.h"
-#include "ui/pages/BasePage.h"
 #include <Application.h>
 #include <qmessagebox.h>
+#include "BaseInstance.h"
+#include "ui/pages/BasePage.h"
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 using namespace QtCharts;
 #endif
 
-namespace Ui
-{
+namespace Ui {
 class StoragePage;
 }
 
-class StoragePage : public QWidget, public BasePage
-{
+class StoragePage : public QWidget, public BasePage {
     Q_OBJECT
 
 public:
-    explicit StoragePage(BaseInstance *inst, QWidget *parent = 0);
+    explicit StoragePage(BaseInstance* inst, QWidget* parent = 0);
     virtual ~StoragePage();
-    virtual QString displayName() const override
-    {
-        return tr("Storage");
-    }
+    virtual QString displayName() const override { return tr("Storage"); }
     virtual QIcon icon() const override
     {
         auto icon = APPLICATION->getThemedIcon("storage");
-        if(icon.isNull())
+        if (icon.isNull())
             icon = APPLICATION->getThemedIcon("news");
         return icon;
     }
-    virtual QString id() const override
-    {
-        return "storage";
-    }
+    virtual QString id() const override { return "storage"; }
     virtual bool apply() override;
-    virtual QString helpPage() const override
-    {
-        return "Storage";
-    }
+    virtual QString helpPage() const override { return "Storage"; }
     void retranslate() override;
 
     void handleClearScreenshotsButton();
@@ -76,15 +65,15 @@ public:
     void updateCalculations();
 
 protected:
-    bool eventFilter(QObject *object, QEvent *event) override;
+    bool eventFilter(QObject* object, QEvent* event) override;
 
 private:
-    Ui::StoragePage *ui;
-    BaseInstance *m_inst;
+    Ui::StoragePage* ui;
+    BaseInstance* m_inst;
 
-    QPieSeries *m_series;
-    QChart *m_chart;
-    QChartView *m_chart_view;
+    QPieSeries* m_series;
+    QChart* m_chart;
+    QChartView* m_chart_view;
 
-    QMessageBox *m_confirmation_box;
+    QMessageBox* m_confirmation_box;
 };

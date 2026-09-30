@@ -44,7 +44,7 @@
 namespace FS {
 
 class FileSystemException : public ::Exception {
-   public:
+public:
     FileSystemException(const QString& message) : Exception(message) {}
 };
 
@@ -82,7 +82,7 @@ bool ensureFolderPathExists(const QFileInfo folderPath);
 bool ensureFolderPathExists(const QString folderPathName);
 
 class copy {
-   public:
+public:
     copy(const QString& src, const QString& dst)
     {
         m_src.setPath(src);
@@ -100,10 +100,10 @@ class copy {
     }
     bool operator()() { return operator()(QString()); }
 
-   private:
+private:
     bool operator()(const QString& offset);
 
-   private:
+private:
     bool m_followSymlinks = true;
     const IPathMatcher* m_blacklist = nullptr;
     QDir m_src;
@@ -118,7 +118,7 @@ bool deletePath(QString path);
 /**
  * Trash a folder / file
  */
-bool trash(QString path, QString *pathInTrash);
+bool trash(QString path, QString* pathInTrash);
 
 QString PathCombine(const QString& path1, const QString& path2);
 QString PathCombine(const QString& path1, const QString& path2, const QString& path3);
@@ -161,4 +161,4 @@ QString getDesktopDir();
 // Overrides one folder with the contents of another, preserving items exclusive to the first folder
 // Equivalent to doing QDir::rename, but allowing for overrides
 bool mergeFolders(QString dstpath, QString srcpath);
-}
+}  // namespace FS

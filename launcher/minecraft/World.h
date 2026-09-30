@@ -14,94 +14,55 @@
  */
 
 #pragma once
-#include <QFileInfo>
 #include <QDateTime>
+#include <QFileInfo>
 #include <optional>
 
 struct GameType {
     GameType() = default;
-    GameType (std::optional<int> original);
+    GameType(std::optional<int> original);
 
     QString toTranslatedString() const;
     QString toLogString() const;
 
-    enum
-    {
-        Unknown = -1,
-        Survival = 0,
-        Creative,
-        Adventure,
-        Spectator
-    } type = Unknown;
+    enum { Unknown = -1, Survival = 0, Creative, Adventure, Spectator } type = Unknown;
     std::optional<int> original;
 };
 
-class World
-{
+class World {
 public:
-    World(const QFileInfo &file);
-    QString folderName() const
-    {
-        return m_folderName;
-    }
-    QString name() const
-    {
-        return m_actualName;
-    }
-    QString iconFile() const
-    {
-        return m_iconFile;
-    }
-    int64_t bytes() const
-    {
-        return m_size;
-    }
-    QDateTime lastPlayed() const
-    {
-        return m_lastPlayed;
-    }
-    GameType gameType() const
-    {
-        return m_gameType;
-    }
-    int64_t seed() const
-    {
-        return m_randomSeed;
-    }
-    bool isValid() const
-    {
-        return is_valid;
-    }
-    bool isOnFS() const
-    {
-        return m_containerFile.isDir();
-    }
-    QFileInfo container() const
-    {
-        return m_containerFile;
-    }
+    World(const QFileInfo& file);
+    QString folderName() const { return m_folderName; }
+    QString name() const { return m_actualName; }
+    QString iconFile() const { return m_iconFile; }
+    int64_t bytes() const { return m_size; }
+    QDateTime lastPlayed() const { return m_lastPlayed; }
+    GameType gameType() const { return m_gameType; }
+    int64_t seed() const { return m_randomSeed; }
+    bool isValid() const { return is_valid; }
+    bool isOnFS() const { return m_containerFile.isDir(); }
+    QFileInfo container() const { return m_containerFile; }
     // delete all the files of this world
     bool destroy();
     // replace this world with a copy of the other
-    bool replace(World &with);
+    bool replace(World& with);
     // change the world's filesystem path (used by world lists for *MAGIC* purposes)
-    void repath(const QFileInfo &file);
+    void repath(const QFileInfo& file);
     // remove the icon file, if any
     bool resetIcon();
 
-    bool rename(const QString &to);
-    bool install(const QString &to, const QString &name= QString());
+    bool rename(const QString& to);
+    bool install(const QString& to, const QString& name = QString());
 
     // WEAK compare operator - used for replacing worlds
-    bool operator==(const World &other) const;
+    bool operator==(const World& other) const;
 
 private:
-    void readFromZip(const QFileInfo &file);
-    void readFromFS(const QFileInfo &file);
+    void readFromZip(const QFileInfo& file);
+    void readFromFS(const QFileInfo& file);
     void loadFromLevelDat(QByteArray data);
 
 protected:
-
     QFileInfo m_containerFile;
     QString m_containerOffsetPath;
     QString m_folderName;

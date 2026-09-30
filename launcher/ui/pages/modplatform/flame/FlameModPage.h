@@ -41,7 +41,7 @@
 class FlameModPage : public ModPage {
     Q_OBJECT
 
-   public:
+public:
     static FlameModPage* create(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance)
     {
         return ModPage::create<FlameModPage>(dialog, type, instance);
@@ -58,7 +58,8 @@ class FlameModPage : public ModPage {
     inline auto debugName() const -> QString override { return "Flame"; }
     inline auto metaEntryBase() const -> QString override { return "FlameMods"; };
 
-    auto validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const -> bool override;
+    auto validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const
+        -> bool override;
     bool optedOut(ModPlatform::IndexedVersion& ver) const override;
 
     auto shouldDisplay() const -> bool override;

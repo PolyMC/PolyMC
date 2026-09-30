@@ -41,7 +41,7 @@
 class ModrinthModPage : public ModPage {
     Q_OBJECT
 
-   public:
+public:
     static ModrinthModPage* create(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance)
     {
         return ModPage::create<ModrinthModPage>(dialog, type, instance);
@@ -58,7 +58,8 @@ class ModrinthModPage : public ModPage {
     inline auto debugName() const -> QString override { return "Modrinth"; }
     inline auto metaEntryBase() const -> QString override { return "ModrinthPacks"; };
 
-    auto validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const -> bool override;
+    auto validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const
+        -> bool override;
 
     auto shouldDisplay() const -> bool override;
 };

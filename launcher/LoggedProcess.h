@@ -43,20 +43,10 @@
  * This is a basic process.
  * It has line-based logging support and hides some of the nasty bits.
  */
-class LoggedProcess : public QProcess
-{
-Q_OBJECT
+class LoggedProcess : public QProcess {
+    Q_OBJECT
 public:
-    enum State
-    {
-        NotRunning,
-        Starting,
-        FailedToStart,
-        Running,
-        Finished,
-        Crashed,
-        Aborted
-    };
+    enum State { NotRunning, Starting, FailedToStart, Running, Finished, Crashed, Aborted };
 
 public:
     explicit LoggedProcess(QObject* parent = 0);
@@ -76,7 +66,6 @@ public slots:
      * @brief kill the process - equivalent to kill -9
      */
     void kill();
-
 
 private slots:
     void on_stdErr();

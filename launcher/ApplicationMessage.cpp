@@ -39,7 +39,8 @@
 #include <QJsonObject>
 #include "Json.h"
 
-void ApplicationMessage::parse(const QByteArray & input) {
+void ApplicationMessage::parse(const QByteArray& input)
+{
     auto doc = Json::requireDocument(input, "ApplicationMessage");
     auto root = Json::requireObject(doc, "ApplicationMessage");
 
@@ -47,12 +48,13 @@ void ApplicationMessage::parse(const QByteArray & input) {
     args.clear();
 
     auto parsedArgs = root.value("args").toObject();
-    for(auto iter = parsedArgs.begin(); iter != parsedArgs.end(); iter++) {
+    for (auto iter = parsedArgs.begin(); iter != parsedArgs.end(); iter++) {
         args[iter.key()] = iter.value().toString();
     }
 }
 
-QByteArray ApplicationMessage::serialize() {
+QByteArray ApplicationMessage::serialize()
+{
     QJsonObject root;
     root.insert("command", command);
     QJsonObject outArgs;

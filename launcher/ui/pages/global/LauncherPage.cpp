@@ -37,11 +37,11 @@
 #include "LauncherPage.h"
 #include "ui_LauncherPage.h"
 
-#include <QFileDialog>
-#include <QMessageBox>
 #include <QDir>
-#include <QTextCharFormat>
+#include <QFileDialog>
 #include <QMenuBar>
+#include <QMessageBox>
+#include <QTextCharFormat>
 
 #include "updater/UpdateChecker.h"
 
@@ -54,15 +54,14 @@
 #include <QProcess>
 
 // FIXME: possibly move elsewhere
-enum InstSortMode
-{
+enum InstSortMode {
     // Sort alphabetically by name.
     Sort_Name,
     // Sort by which instance was launched most recently.
     Sort_LastLaunch
 };
 
-LauncherPage::LauncherPage(QWidget *parent) : QWidget(parent), ui(new Ui::LauncherPage)
+LauncherPage::LauncherPage(QWidget* parent) : QWidget(parent), ui(new Ui::LauncherPage)
 {
     ui->setupUi(this);
     auto origForeground = ui->fontPreview->palette().color(ui->fontPreview->foregroundRole());
@@ -77,28 +76,22 @@ LauncherPage::LauncherPage(QWidget *parent) : QWidget(parent), ui(new Ui::Launch
     m_languageModel = APPLICATION->translations();
     loadSettings();
 
-    if(BuildConfig.UPDATER_ENABLED)
-    {
-        QObject::connect(APPLICATION->updateChecker().get(), &UpdateChecker::channelListLoaded, this, &LauncherPage::refreshUpdateChannelList);
+    if (BuildConfig.UPDATER_ENABLED) {
+        QObject::connect(APPLICATION->updateChecker().get(), &UpdateChecker::channelListLoaded, this,
+                         &LauncherPage::refreshUpdateChannelList);
 
-        if (APPLICATION->updateChecker()->hasChannels())
-        {
+        if (APPLICATION->updateChecker()->hasChannels()) {
             refreshUpdateChannelList();
-        }
-        else
-        {
+        } else {
             APPLICATION->updateChecker()->updateChanList(false);
         }
 
-        if (APPLICATION->updateChecker()->getExternalUpdater())
-        {
+        if (APPLICATION->updateChecker()->getExternalUpdater()) {
             ui->updateChannelComboBox->setVisible(false);
             ui->updateChannelDescLabel->setVisible(false);
             ui->updateChannelLabel->setVisible(false);
         }
-    }
-    else
-    {
+    } else {
         ui->updateSettingsBox->setHidden(true);
     }
     connect(ui->fontSizeBox, SIGNAL(valueChanged(int)), SLOT(refreshFontPreview()));
@@ -122,46 +115,39 @@ void LauncherPage::on_instDirBrowseBtn_clicked()
     QString raw_dir = QFileDialog::getExistingDirectory(this, tr("Instance Folder"), ui->instDirTextBox->text());
 
     // do not allow current dir - it's dirty. Do not allow dirs that don't exist
-    if (!raw_dir.isEmpty() && QDir(raw_dir).exists())
-    {
+    if (!raw_dir.isEmpty() && QDir(raw_dir).exists()) {
         QString cooked_dir = FS::NormalizePath(raw_dir);
-        if (FS::checkProblemticPathJava(QDir(cooked_dir)))
-        {
+        if (FS::checkProblemticPathJava(QDir(cooked_dir))) {
             QMessageBox warning;
-            warning.setText(tr("You're trying to specify an instance folder which\'s path "
-                               "contains at least one \'!\'. "
-                               "Java is known to cause problems if that is the case, your "
-                               "instances (probably) won't start!"));
+            warning.setText(
+                tr("You're trying to specify an instance folder which\'s path "
+                   "contains at least one \'!\'. "
+                   "Java is known to cause problems if that is the case, your "
+                   "instances (probably) won't start!"));
             warning.setInformativeText(
                 tr("Do you really want to use this path? "
                    "Selecting \"No\" will close this and not alter your instance path."));
             warning.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
             int result = warning.exec();
-            if (result == QMessageBox::Ok)
-            {
+            if (result == QMessageBox::Ok) {
                 ui->instDirTextBox->setText(cooked_dir);
             }
-        }
-        else if(APPLICATION->isFlatpak() && raw_dir.startsWith("/run/user"))
-        {
+        } else if (APPLICATION->isFlatpak() && raw_dir.startsWith("/run/user")) {
             QMessageBox warning;
-            warning.setText(tr("You're trying to specify an instance folder "
-                            "which was granted temporaily via Flatpak.\n"
-                            "This is known to cause problems. "
-                            "After a restart the launcher might break, "
-                            "because it will no longer have access to that directory.\n\n"
-                            "Granting PolyMC access to it via Flatseal is recommended."));
-            warning.setInformativeText(
-             tr("Do you want to proceed anyway?"));
+            warning.setText(
+                tr("You're trying to specify an instance folder "
+                   "which was granted temporaily via Flatpak.\n"
+                   "This is known to cause problems. "
+                   "After a restart the launcher might break, "
+                   "because it will no longer have access to that directory.\n\n"
+                   "Granting PolyMC access to it via Flatseal is recommended."));
+            warning.setInformativeText(tr("Do you want to proceed anyway?"));
             warning.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
             int result = warning.exec();
-            if (result == QMessageBox::Ok)
-            {
+            if (result == QMessageBox::Ok) {
                 ui->instDirTextBox->setText(cooked_dir);
             }
-        }
-        else
-        {
+        } else {
             ui->instDirTextBox->setText(cooked_dir);
         }
     }
@@ -172,8 +158,7 @@ void LauncherPage::on_iconsDirBrowseBtn_clicked()
     QString raw_dir = QFileDialog::getExistingDirectory(this, tr("Icons Folder"), ui->iconsDirTextBox->text());
 
     // do not allow current dir - it's dirty. Do not allow dirs that don't exist
-    if (!raw_dir.isEmpty() && QDir(raw_dir).exists())
-    {
+    if (!raw_dir.isEmpty() && QDir(raw_dir).exists()) {
         QString cooked_dir = FS::NormalizePath(raw_dir);
         ui->iconsDirTextBox->setText(cooked_dir);
     }
@@ -183,8 +168,7 @@ void LauncherPage::on_modsDirBrowseBtn_clicked()
     QString raw_dir = QFileDialog::getExistingDirectory(this, tr("Mods Folder"), ui->modsDirTextBox->text());
 
     // do not allow current dir - it's dirty. Do not allow dirs that don't exist
-    if (!raw_dir.isEmpty() && QDir(raw_dir).exists())
-    {
+    if (!raw_dir.isEmpty() && QDir(raw_dir).exists()) {
         QString cooked_dir = FS::NormalizePath(raw_dir);
         ui->modsDirTextBox->setText(cooked_dir);
     }
@@ -200,14 +184,12 @@ void LauncherPage::refreshUpdateChannelList()
     // Stop listening for selection changes. It's going to change a lot while we update it and
     // we don't need to update the
     // description label constantly.
-    QObject::disconnect(ui->updateChannelComboBox, SIGNAL(currentIndexChanged(int)), this,
-                        SLOT(updateChannelSelectionChanged(int)));
+    QObject::disconnect(ui->updateChannelComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateChannelSelectionChanged(int)));
 
     QList<UpdateChecker::ChannelListEntry> channelList = APPLICATION->updateChecker()->getChannelList();
     ui->updateChannelComboBox->clear();
     int selection = -1;
-    for (int i = 0; i < channelList.count(); i++)
-    {
+    for (int i = 0; i < channelList.count(); i++) {
         UpdateChecker::ChannelListEntry entry = channelList.at(i);
 
         // When it comes to selection, we'll rely on the indexes of a channel entry being the
@@ -220,8 +202,7 @@ void LauncherPage::refreshUpdateChannelList()
 
         // If the update channel we just added was the selected one, set the current index in
         // the combo box to it.
-        if (entry.id == m_currentUpdateChannel)
-        {
+        if (entry.id == m_currentUpdateChannel) {
             qDebug() << "Selected index" << i << "channel id" << m_currentUpdateChannel;
             selection = i;
         }
@@ -230,8 +211,7 @@ void LauncherPage::refreshUpdateChannelList()
     ui->updateChannelComboBox->setCurrentIndex(selection);
 
     // Start listening for selection changes again and update the description label.
-    QObject::connect(ui->updateChannelComboBox, SIGNAL(currentIndexChanged(int)), this,
-                     SLOT(updateChannelSelectionChanged(int)));
+    QObject::connect(ui->updateChannelComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateChannelSelectionChanged(int)));
     refreshUpdateChannelDesc();
 
     // Now that we've updated the channel list, we can enable the combo box.
@@ -250,12 +230,10 @@ void LauncherPage::refreshUpdateChannelDesc()
     // Get the channel list.
     QList<UpdateChecker::ChannelListEntry> channelList = APPLICATION->updateChecker()->getChannelList();
     int selectedIndex = ui->updateChannelComboBox->currentIndex();
-    if (selectedIndex < 0)
-    {
+    if (selectedIndex < 0) {
         return;
     }
-    if (selectedIndex < channelList.count())
-    {
+    if (selectedIndex < channelList.count()) {
         // Find the channel list entry with the given index.
         UpdateChecker::ChannelListEntry selected = channelList.at(selectedIndex);
 
@@ -272,71 +250,62 @@ void LauncherPage::applySettings()
     auto s = APPLICATION->settings();
 
     // Updates
-    if (BuildConfig.UPDATER_ENABLED && APPLICATION->updateChecker()->getExternalUpdater())
-    {
-        APPLICATION->updateChecker()->getExternalUpdater()->setAutomaticallyChecksForUpdates(
-                ui->autoUpdateCheckBox->isChecked());
-    }
-    else
-    {
+    if (BuildConfig.UPDATER_ENABLED && APPLICATION->updateChecker()->getExternalUpdater()) {
+        APPLICATION->updateChecker()->getExternalUpdater()->setAutomaticallyChecksForUpdates(ui->autoUpdateCheckBox->isChecked());
+    } else {
         s->set("AutoUpdate", ui->autoUpdateCheckBox->isChecked());
     }
 
     s->set("UpdateChannel", m_currentUpdateChannel);
     auto original = s->get("IconTheme").toString();
-    //FIXME: make generic
-    switch (ui->themeComboBox->currentIndex())
-    {
-    case 0:
-        s->set("IconTheme", "pe_colored");
-        break;
-    case 1:
-        s->set("IconTheme", "pe_light");
-        break;
-    case 2:
-        s->set("IconTheme", "pe_dark");
-        break;
-    case 3:
-        s->set("IconTheme", "pe_blue");
-        break;
-    case 4:
-        s->set("IconTheme", "OSX");
-        break;
-    case 5:
-        s->set("IconTheme", "iOS");
-        break;
-    case 6:
-        s->set("IconTheme", "flat");
-        break;
-    case 7:
-        s->set("IconTheme", "multimc");
-        break;
-    case 8:
-        s->set("IconTheme", "custom");
-        break;
+    // FIXME: make generic
+    switch (ui->themeComboBox->currentIndex()) {
+        case 0:
+            s->set("IconTheme", "pe_colored");
+            break;
+        case 1:
+            s->set("IconTheme", "pe_light");
+            break;
+        case 2:
+            s->set("IconTheme", "pe_dark");
+            break;
+        case 3:
+            s->set("IconTheme", "pe_blue");
+            break;
+        case 4:
+            s->set("IconTheme", "OSX");
+            break;
+        case 5:
+            s->set("IconTheme", "iOS");
+            break;
+        case 6:
+            s->set("IconTheme", "flat");
+            break;
+        case 7:
+            s->set("IconTheme", "multimc");
+            break;
+        case 8:
+            s->set("IconTheme", "custom");
+            break;
     }
 
-    if(s->get("CatStyle") != ui->themeComboBoxCat->currentText())
-    {
+    if (s->get("CatStyle") != ui->themeComboBoxCat->currentText()) {
         s->set("CatStyle", ui->themeComboBoxCat->currentText());
     }
 
-    if(s->get("CatPosition") != ui->themeComboBoxCatPosition->currentData())
-    {
-      s->set("CatPosition", ui->themeComboBoxCatPosition->currentData());
+    if (s->get("CatPosition") != ui->themeComboBoxCatPosition->currentData()) {
+        s->set("CatPosition", ui->themeComboBoxCatPosition->currentData());
     }
 
     s->set("ShowCatButton", ui->showCatButtonCheckBox->isChecked());
 
-    if(original != s->get("IconTheme"))
-    {
+    if (original != s->get("IconTheme")) {
         APPLICATION->setIconTheme(s->get("IconTheme").toString());
     }
 
     auto originalAppTheme = s->get("ApplicationTheme").toString();
     auto newAppTheme = ui->themeComboBoxColors->currentData().toString();
-    if(originalAppTheme != newAppTheme)
-    {
+    if (originalAppTheme != newAppTheme) {
         s->set("ApplicationTheme", newAppTheme);
         APPLICATION->setApplicationTheme(newAppTheme, false);
     }
@@ -360,15 +329,14 @@ void LauncherPage::applySettings()
     s->set("IconsDir", ui->iconsDirTextBox->text());
 
     auto sortMode = (InstSortMode)ui->sortingModeGroup->checkedId();
-    switch (sortMode)
-    {
-    case Sort_LastLaunch:
-        s->set("InstSortMode", "LastLaunch");
-        break;
-    case Sort_Name:
-    default:
-        s->set("InstSortMode", "Name");
-        break;
+    switch (sortMode) {
+        case Sort_LastLaunch:
+            s->set("InstSortMode", "LastLaunch");
+            break;
+        case Sort_Name:
+        default:
+            s->set("InstSortMode", "Name");
+            break;
     }
 
     // Mods
@@ -379,53 +347,32 @@ void LauncherPage::loadSettings()
 {
     auto s = APPLICATION->settings();
     // Updates
-    if (BuildConfig.UPDATER_ENABLED && APPLICATION->updateChecker()->getExternalUpdater())
-    {
-        ui->autoUpdateCheckBox->setChecked(
-                APPLICATION->updateChecker()->getExternalUpdater()->getAutomaticallyChecksForUpdates());
-    }
-    else
-    {
+    if (BuildConfig.UPDATER_ENABLED && APPLICATION->updateChecker()->getExternalUpdater()) {
+        ui->autoUpdateCheckBox->setChecked(APPLICATION->updateChecker()->getExternalUpdater()->getAutomaticallyChecksForUpdates());
+    } else {
         ui->autoUpdateCheckBox->setChecked(s->get("AutoUpdate").toBool());
     }
 
     m_currentUpdateChannel = s->get("UpdateChannel").toString();
-    //FIXME: make generic
+    // FIXME: make generic
     auto theme = s->get("IconTheme").toString();
-    if (theme == "pe_colored")
-    {
+    if (theme == "pe_colored") {
         ui->themeComboBox->setCurrentIndex(0);
-    }
-    else if (theme == "pe_light")
-    {
+    } else if (theme == "pe_light") {
         ui->themeComboBox->setCurrentIndex(1);
-    }
-    else if (theme == "pe_dark")
-    {
+    } else if (theme == "pe_dark") {
         ui->themeComboBox->setCurrentIndex(2);
-    }
-    else if (theme == "pe_blue")
-    {
+    } else if (theme == "pe_blue") {
         ui->themeComboBox->setCurrentIndex(3);
-    }
-    else if (theme == "OSX")
-    {
+    } else if (theme == "OSX") {
         ui->themeComboBox->setCurrentIndex(4);
-    }
-    else if (theme == "iOS")
-    {
+    } else if (theme == "iOS") {
         ui->themeComboBox->setCurrentIndex(5);
-    }
-    else if (theme == "flat")
-    {
+    } else if (theme == "flat") {
         ui->themeComboBox->setCurrentIndex(6);
-    }
-    else if (theme == "multimc")
-    {
+    } else if (theme == "multimc") {
         ui->themeComboBox->setCurrentIndex(7);
-    }
-    else if (theme == "custom")
-    {
+    } else if (theme == "custom") {
         ui->themeComboBox->setCurrentIndex(8);
     }
 
@@ -433,28 +380,26 @@ void LauncherPage::loadSettings()
         auto currentTheme = s->get("ApplicationTheme").toString();
         auto themes = APPLICATION->getValidApplicationThemes();
         int idx = 0;
-        for(auto &theme: themes)
-        {
+        for (auto& theme : themes) {
             ui->themeComboBoxColors->addItem(theme->name(), theme->id());
-            if(currentTheme == theme->id())
-            {
+            if (currentTheme == theme->id()) {
                 ui->themeComboBoxColors->setCurrentIndex(idx);
             }
             idx++;
         }
 
-        //TODO: Don't make it hardcoded via strings
+        // TODO: Don't make it hardcoded via strings
         auto currentCatStyle = s->get("CatStyle").toString();
         ui->themeComboBoxCat->addItem("BackgroundCat");
         ui->themeComboBoxCat->addItem("Jinx");
         ui->themeComboBoxCat->addItem("Floppa");
         ui->themeComboBoxCat->addItem("Manul");
 
-        if(currentCatStyle == "Manul")
+        if (currentCatStyle == "Manul")
             ui->themeComboBoxCat->setCurrentIndex(3);
-        else if(currentCatStyle == "Floppa")
+        else if (currentCatStyle == "Floppa")
             ui->themeComboBoxCat->setCurrentIndex(2);
-        else if(currentCatStyle == "Jinx")
+        else if (currentCatStyle == "Jinx")
             ui->themeComboBoxCat->setCurrentIndex(1);
         else
             ui->themeComboBoxCat->setCurrentIndex(0);
@@ -465,13 +410,13 @@ void LauncherPage::loadSettings()
         ui->themeComboBoxCatPosition->addItem(tr("Bottom Left"), "bottom left");
         ui->themeComboBoxCatPosition->addItem(tr("Bottom Right"), "bottom right");
         if (currentCatPosition == "top left")
-          ui->themeComboBoxCatPosition->setCurrentIndex(0);
+            ui->themeComboBoxCatPosition->setCurrentIndex(0);
         else if (currentCatPosition == "bottom left")
-          ui->themeComboBoxCatPosition->setCurrentIndex(2);
+            ui->themeComboBoxCatPosition->setCurrentIndex(2);
         else if (currentCatPosition == "bottom right")
-          ui->themeComboBoxCatPosition->setCurrentIndex(3);
+            ui->themeComboBoxCatPosition->setCurrentIndex(3);
         else
-          ui->themeComboBoxCatPosition->setCurrentIndex(1);
+            ui->themeComboBoxCatPosition->setCurrentIndex(1);
 
         ui->showCatButtonCheckBox->setChecked(s->get("ShowCatButton").toBool());
     }
@@ -493,8 +438,7 @@ void LauncherPage::loadSettings()
 
     bool conversionOk = true;
     int fontSize = APPLICATION->settings()->get("ConsoleFontSize").toInt(&conversionOk);
-    if(!conversionOk)
-    {
+    if (!conversionOk) {
         fontSize = 11;
     }
     ui->fontSizeBox->setValue(fontSize);
@@ -509,12 +453,9 @@ void LauncherPage::loadSettings()
 
     QString sortMode = s->get("InstSortMode").toString();
 
-    if (sortMode == "LastLaunch")
-    {
+    if (sortMode == "LastLaunch") {
         ui->sortLastLaunchedBtn->setChecked(true);
-    }
-    else
-    {
+    } else {
         ui->sortByNameBtn->setChecked(true);
     }
 

@@ -36,30 +36,26 @@
 
 #pragma once
 
-#include <QString>
-#include <QVector>
-#include <QUrl>
 #include <QJsonObject>
 #include <QMetaType>
+#include <QString>
+#include <QUrl>
+#include <QVector>
 
-namespace FTB
-{
+namespace FTB {
 
-struct Specs
-{
+struct Specs {
     int id;
     int minimum;
     int recommended;
 };
 
-struct Tag
-{
+struct Tag {
     int id;
     QString name;
 };
 
-struct Art
-{
+struct Art {
     int id;
     QString url;
     QString type;
@@ -70,8 +66,7 @@ struct Art
     int64_t updated;
 };
 
-struct Author
-{
+struct Author {
     int id;
     QString name;
     QString type;
@@ -79,8 +74,7 @@ struct Author
     int64_t updated;
 };
 
-struct VersionInfo
-{
+struct VersionInfo {
     int id;
     QString name;
     QString type;
@@ -88,8 +82,7 @@ struct VersionInfo
     Specs specs;
 };
 
-struct Modpack
-{
+struct Modpack {
     int id;
     QString name;
     QString synopsis;
@@ -105,8 +98,7 @@ struct Modpack
     QVector<Tag> tags;
 };
 
-struct VersionTarget
-{
+struct VersionTarget {
     int id;
     QString type;
     QString name;
@@ -114,14 +106,12 @@ struct VersionTarget
     int64_t updated;
 };
 
-struct VersionFileCurseForge
-{
+struct VersionFileCurseForge {
     int project_id;
     int file_id;
 };
 
-struct VersionFile
-{
+struct VersionFile {
     int id;
     QString type;
     QString path;
@@ -136,8 +126,7 @@ struct VersionFile
     VersionFileCurseForge curseforge;
 };
 
-struct Version
-{
+struct Version {
     int id;
     int parent;
     QString name;
@@ -150,15 +139,14 @@ struct Version
     QVector<VersionFile> files;
 };
 
-struct VersionChangelog
-{
+struct VersionChangelog {
     QString content;
     int64_t updated;
 };
 
-void loadModpack(Modpack & m, QJsonObject & obj);
+void loadModpack(Modpack& m, QJsonObject& obj);
 
-void loadVersion(Version & m, QJsonObject & obj);
-}
+void loadVersion(Version& m, QJsonObject& obj);
+}  // namespace FTB
 
 Q_DECLARE_METATYPE(FTB::Modpack)

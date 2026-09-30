@@ -35,8 +35,8 @@
 
 #pragma once
 
-#include <QDialog>
 #include <QAbstractListModel>
+#include <QDialog>
 
 #include "modplatform/atlauncher/ATLPackIndex.h"
 #include "net/NetJob.h"
@@ -49,25 +49,24 @@ class AtlOptionalModListModel : public QAbstractListModel {
     Q_OBJECT
 
 public:
-    enum Columns
-    {
+    enum Columns {
         EnabledColumn = 0,
         NameColumn,
         DescriptionColumn,
     };
 
-    AtlOptionalModListModel(QWidget *parent, ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods);
+    AtlOptionalModListModel(QWidget* parent, ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods);
 
     QVector<QString> getResult();
 
-    int rowCount(const QModelIndex &parent) const override;
-    int columnCount(const QModelIndex &parent) const override;
+    int rowCount(const QModelIndex& parent) const override;
+    int columnCount(const QModelIndex& parent) const override;
 
-    QVariant data(const QModelIndex &index, int role) const override;
-    bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+    QVariant data(const QModelIndex& index, int role) const override;
+    bool setData(const QModelIndex& index, const QVariant& value, int role) override;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    Qt::ItemFlags flags(const QModelIndex& index) const override;
 
     void useShareCode(const QString& code);
 
@@ -98,17 +97,15 @@ class AtlOptionalModDialog : public QDialog {
     Q_OBJECT
 
 public:
-    AtlOptionalModDialog(QWidget *parent, ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods);
+    AtlOptionalModDialog(QWidget* parent, ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods);
     ~AtlOptionalModDialog() override;
 
-    QVector<QString> getResult() {
-        return listModel->getResult();
-    }
+    QVector<QString> getResult() { return listModel->getResult(); }
 
     void useShareCode();
 
 private:
-    Ui::AtlOptionalModDialog *ui;
+    Ui::AtlOptionalModDialog* ui;
 
-    AtlOptionalModListModel *listModel;
+    AtlOptionalModListModel* listModel;
 };

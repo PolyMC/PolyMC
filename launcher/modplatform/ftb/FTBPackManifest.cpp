@@ -38,20 +38,20 @@
 
 #include "Json.h"
 
-static void loadSpecs(FTB::Specs & s, QJsonObject & obj)
+static void loadSpecs(FTB::Specs& s, QJsonObject& obj)
 {
     s.id = Json::requireInteger(obj, "id");
     s.minimum = Json::requireInteger(obj, "minimum");
     s.recommended = Json::requireInteger(obj, "recommended");
 }
 
-static void loadTag(FTB::Tag & t, QJsonObject & obj)
+static void loadTag(FTB::Tag& t, QJsonObject& obj)
 {
     t.id = Json::requireInteger(obj, "id");
     t.name = Json::requireString(obj, "name");
 }
 
-static void loadArt(FTB::Art & a, QJsonObject & obj)
+static void loadArt(FTB::Art& a, QJsonObject& obj)
 {
     a.id = Json::requireInteger(obj, "id");
     a.url = Json::requireString(obj, "url");
@@ -63,7 +63,7 @@ static void loadArt(FTB::Art & a, QJsonObject & obj)
     a.updated = Json::requireInteger(obj, "updated");
 }
 
-static void loadAuthor(FTB::Author & a, QJsonObject & obj)
+static void loadAuthor(FTB::Author& a, QJsonObject& obj)
 {
     a.id = Json::requireInteger(obj, "id");
     a.name = Json::requireString(obj, "name");
@@ -72,7 +72,7 @@ static void loadAuthor(FTB::Author & a, QJsonObject & obj)
     a.updated = Json::requireInteger(obj, "updated");
 }
 
-static void loadVersionInfo(FTB::VersionInfo & v, QJsonObject & obj)
+static void loadVersionInfo(FTB::VersionInfo& v, QJsonObject& obj)
 {
     v.id = Json::requireInteger(obj, "id");
     v.name = Json::requireString(obj, "name");
@@ -82,7 +82,7 @@ static void loadVersionInfo(FTB::VersionInfo & v, QJsonObject & obj)
     loadSpecs(v.specs, specs);
 }
 
-void FTB::loadModpack(FTB::Modpack & m, QJsonObject & obj)
+void FTB::loadModpack(FTB::Modpack& m, QJsonObject& obj)
 {
     m.id = Json::requireInteger(obj, "id");
     m.name = Json::requireString(obj, "name");
@@ -94,32 +94,28 @@ void FTB::loadModpack(FTB::Modpack & m, QJsonObject & obj)
     m.plays = Json::requireInteger(obj, "plays");
     m.updated = Json::requireInteger(obj, "updated");
     auto artArr = Json::requireArray(obj, "art");
-    for (QJsonValueRef artRaw : artArr)
-    {
+    for (QJsonValueRef artRaw : artArr) {
         auto artObj = Json::requireObject(artRaw);
         FTB::Art art;
         loadArt(art, artObj);
         m.art.append(art);
     }
     auto authorArr = Json::requireArray(obj, "authors");
-    for (QJsonValueRef authorRaw : authorArr)
-    {
+    for (QJsonValueRef authorRaw : authorArr) {
         auto authorObj = Json::requireObject(authorRaw);
         FTB::Author author;
         loadAuthor(author, authorObj);
         m.authors.append(author);
     }
     auto versionArr = Json::requireArray(obj, "versions");
-    for (QJsonValueRef versionRaw : versionArr)
-    {
+    for (QJsonValueRef versionRaw : versionArr) {
         auto versionObj = Json::requireObject(versionRaw);
         FTB::VersionInfo version;
         loadVersionInfo(version, versionObj);
         m.versions.append(version);
     }
     auto tagArr = Json::requireArray(obj, "tags");
-    for (QJsonValueRef tagRaw : tagArr)
-    {
+    for (QJsonValueRef tagRaw : tagArr) {
         auto tagObj = Json::requireObject(tagRaw);
         FTB::Tag tag;
         loadTag(tag, tagObj);
@@ -128,7 +124,7 @@ void FTB::loadModpack(FTB::Modpack & m, QJsonObject & obj)
     m.updated = Json::requireInteger(obj, "updated");
 }
 
-static void loadVersionTarget(FTB::VersionTarget & a, QJsonObject & obj)
+static void loadVersionTarget(FTB::VersionTarget& a, QJsonObject& obj)
 {
     a.id = Json::requireInteger(obj, "id");
     a.name = Json::requireString(obj, "name");
@@ -137,7 +133,7 @@ static void loadVersionTarget(FTB::VersionTarget & a, QJsonObject & obj)
     a.updated = Json::requireInteger(obj, "updated");
 }
 
-static void loadVersionFile(FTB::VersionFile & a, QJsonObject & obj)
+static void loadVersionFile(FTB::VersionFile& a, QJsonObject& obj)
 {
     a.id = Json::requireInteger(obj, "id");
     a.type = Json::requireString(obj, "type");
@@ -155,7 +151,7 @@ static void loadVersionFile(FTB::VersionFile & a, QJsonObject & obj)
     a.curseforge.file_id = Json::ensureString(curseforgeObj, "file").toInt();
 }
 
-void FTB::loadVersion(FTB::Version & m, QJsonObject & obj)
+void FTB::loadVersion(FTB::Version& m, QJsonObject& obj)
 {
     m.id = Json::requireInteger(obj, "id");
     m.parent = Json::requireInteger(obj, "parent");
@@ -167,16 +163,14 @@ void FTB::loadVersion(FTB::Version & m, QJsonObject & obj)
     auto specs = Json::requireObject(obj, "specs");
     loadSpecs(m.specs, specs);
     auto targetArr = Json::requireArray(obj, "targets");
-    for (QJsonValueRef targetRaw : targetArr)
-    {
+    for (QJsonValueRef targetRaw : targetArr) {
         auto versionObj = Json::requireObject(targetRaw);
         FTB::VersionTarget target;
         loadVersionTarget(target, versionObj);
         m.targets.append(target);
     }
     auto fileArr = Json::requireArray(obj, "files");
-    for (QJsonValueRef fileRaw : fileArr)
-    {
+    for (QJsonValueRef fileRaw : fileArr) {
         auto fileObj = Json::requireObject(fileRaw);
         FTB::VersionFile file;
         loadVersionFile(file, fileObj);
@@ -184,8 +178,8 @@ void FTB::loadVersion(FTB::Version & m, QJsonObject & obj)
     }
 }
 
-//static void loadVersionChangelog(FTB::VersionChangelog & m, QJsonObject & obj)
+// static void loadVersionChangelog(FTB::VersionChangelog & m, QJsonObject & obj)
 //{
-//    m.content = Json::requireString(obj, "content");
-//    m.updated = Json::requireInteger(obj, "updated");
-//}
+//     m.content = Json::requireString(obj, "content");
+//     m.updated = Json::requireInteger(obj, "updated");
+// }

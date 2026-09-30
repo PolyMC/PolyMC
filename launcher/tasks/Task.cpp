@@ -37,15 +37,14 @@
 
 #include <QDebug>
 
-Task::Task(QObject *parent, bool show_debug) : QObject(parent), m_show_debug(show_debug)
+Task::Task(QObject* parent, bool show_debug) : QObject(parent), m_show_debug(show_debug)
 {
     setAutoDelete(false);
 }
 
-void Task::setStatus(const QString &new_status)
+void Task::setStatus(const QString& new_status)
 {
-    if(m_status != new_status)
-    {
+    if (m_status != new_status) {
         m_status = new_status;
         emit status(m_status);
     }
@@ -60,34 +59,28 @@ void Task::setProgress(qint64 current, qint64 total)
 
 void Task::start()
 {
-    switch(m_state)
-    {
-        case State::Inactive:
-        {
+    switch (m_state) {
+        case State::Inactive: {
             if (m_show_debug)
                 qDebug() << "Task" << describe() << "starting for the first time";
             break;
         }
-        case State::AbortedByUser:
-        {
+        case State::AbortedByUser: {
             if (m_show_debug)
                 qDebug() << "Task" << describe() << "restarting for after being aborted by user";
             break;
         }
-        case State::Failed:
-        {
+        case State::Failed: {
             if (m_show_debug)
                 qDebug() << "Task" << describe() << "restarting for after failing at first";
             break;
         }
-        case State::Succeeded:
-        {
+        case State::Succeeded: {
             if (m_show_debug)
                 qDebug() << "Task" << describe() << "restarting for after succeeding at first";
             break;
         }
-        case State::Running:
-        {
+        case State::Running: {
             if (m_show_debug)
                 qWarning() << "The launcher tried to start task" << describe() << "while it was already running!";
             return;
@@ -102,8 +95,7 @@ void Task::start()
 void Task::emitFailed(QString reason)
 {
     // Don't fail twice.
-    if (!isRunning())
-    {
+    if (!isRunning()) {
         qCritical() << "Task" << describe() << "failed while not running!!!!: " << reason;
         return;
     }
@@ -117,8 +109,7 @@ void Task::emitFailed(QString reason)
 void Task::emitAborted()
 {
     // Don't abort twice.
-    if (!isRunning())
-    {
+    if (!isRunning()) {
         qCritical() << "Task" << describe() << "aborted while not running!!!!";
         return;
     }
@@ -133,8 +124,7 @@ void Task::emitAborted()
 void Task::emitSucceeded()
 {
     // Don't succeed twice.
-    if (!isRunning())
-    {
+    if (!isRunning()) {
         qCritical() << "Task" << describe() << "succeeded while not running!!!!";
         return;
     }
@@ -151,12 +141,9 @@ QString Task::describe()
     QTextStream out(&outStr);
     out << metaObject()->className() << QChar('(');
     auto name = objectName();
-    if(name.isEmpty())
-    {
+    if (name.isEmpty()) {
         out << QString("0x%1").arg((quintptr)this, 0, 16);
-    }
-    else
-    {
+    } else {
         out << name;
     }
     out << QChar(')');

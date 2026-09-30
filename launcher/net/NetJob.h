@@ -48,10 +48,12 @@
 class NetJob : public ConcurrentTask {
     Q_OBJECT
 
-   public:
+public:
     using Ptr = shared_qobject_ptr<NetJob>;
 
-    explicit NetJob(QString job_name, shared_qobject_ptr<QNetworkAccessManager> network) : ConcurrentTask(nullptr, job_name), m_network(network) {}
+    explicit NetJob(QString job_name, shared_qobject_ptr<QNetworkAccessManager> network)
+        : ConcurrentTask(nullptr, job_name), m_network(network)
+    {}
     ~NetJob() override = default;
 
     void startNext() override;
@@ -64,14 +66,14 @@ class NetJob : public ConcurrentTask {
     auto getFailedActions() -> QList<NetAction*>;
     auto getFailedFiles() -> QList<QString>;
 
-   public slots:
+public slots:
     // Qt can't handle auto at the start for some reason?
     bool abort() override;
 
-   protected:
+protected:
     void updateState() override;
 
-   private:
+private:
     shared_qobject_ptr<QNetworkAccessManager> m_network;
 
     int m_try = 1;

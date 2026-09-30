@@ -1,22 +1,18 @@
 #include "ITheme.h"
-#include "rainbow.h"
-#include <QStyleFactory>
 #include <QDir>
+#include <QStyleFactory>
 #include "Application.h"
+#include "rainbow.h"
 
 void ITheme::apply(bool)
 {
     QApplication::setStyle(QStyleFactory::create(qtTheme()));
-    if(hasColorScheme())
-    {
+    if (hasColorScheme()) {
         QApplication::setPalette(colorScheme());
     }
-    if(hasStyleSheet())
-    {
+    if (hasStyleSheet()) {
         APPLICATION->setStyleSheet(appStyleSheet());
-    }
-    else
-    {
+    } else {
         APPLICATION->setStyleSheet(QString());
     }
     QDir::setSearchPaths("theme", searchPaths());
@@ -24,8 +20,7 @@ void ITheme::apply(bool)
 
 QPalette ITheme::fadeInactive(QPalette in, qreal bias, QColor color)
 {
-    auto blend = [&in, bias, color](QPalette::ColorRole role)
-    {
+    auto blend = [&in, bias, color](QPalette::ColorRole role) {
         QColor from = in.color(QPalette::Active, role);
         QColor blended = Rainbow::mix(from, color, bias);
         in.setColor(QPalette::Disabled, role, blended);

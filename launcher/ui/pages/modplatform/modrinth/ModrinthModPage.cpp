@@ -70,8 +70,7 @@ auto ModrinthModPage::validateVersion(ModPlatform::IndexedVersion& ver, QString 
     auto loaderStrings = ModrinthAPI::getModLoaderStrings(loaders);
 
     auto loaderCompatible = false;
-    for (const auto &remoteLoader : std::as_const(ver.loaders))
-    {
+    for (const auto& remoteLoader : std::as_const(ver.loaders)) {
         if (loaderStrings.contains(remoteLoader)) {
             loaderCompatible = true;
             break;
@@ -83,4 +82,7 @@ auto ModrinthModPage::validateVersion(ModPlatform::IndexedVersion& ver, QString 
 // I don't know why, but doing this on the parent class makes it so that
 // other mod providers start loading before being selected, at least with
 // my Qt, so we need to implement this in every derived class...
-auto ModrinthModPage::shouldDisplay() const -> bool { return true; }
+auto ModrinthModPage::shouldDisplay() const -> bool
+{
+    return true;
+}

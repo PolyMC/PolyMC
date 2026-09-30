@@ -40,19 +40,18 @@
 // #define BREAK_RETURN
 
 #ifdef BREAK_INFINITE_LOOP
-#include <thread>
 #include <chrono>
+#include <thread>
 #endif
 
 #ifdef __APPLE__
 #include <QFontDatabase>
 #endif
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 #ifdef BREAK_INFINITE_LOOP
-    while(true)
-    {
+    while (true) {
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
 #endif
@@ -80,29 +79,27 @@ int main(int argc, char *argv[])
     app.setFont(f);
 #endif
 
-    switch (app.status())
-    {
-    case Application::StartingUp:
-    case Application::Initialized:
-    {
-        Q_INIT_RESOURCE(multimc);
-        Q_INIT_RESOURCE(backgrounds);
-        Q_INIT_RESOURCE(documents);
-        Q_INIT_RESOURCE(polymc);
+    switch (app.status()) {
+        case Application::StartingUp:
+        case Application::Initialized: {
+            Q_INIT_RESOURCE(multimc);
+            Q_INIT_RESOURCE(backgrounds);
+            Q_INIT_RESOURCE(documents);
+            Q_INIT_RESOURCE(polymc);
 
-        Q_INIT_RESOURCE(pe_dark);
-        Q_INIT_RESOURCE(pe_light);
-        Q_INIT_RESOURCE(pe_blue);
-        Q_INIT_RESOURCE(pe_colored);
-        Q_INIT_RESOURCE(OSX);
-        Q_INIT_RESOURCE(iOS);
-        Q_INIT_RESOURCE(flat);
-        return app.exec();
-    }
-    case Application::Failed:
-        return 1;
-    case Application::Succeeded:
-        return 0;
+            Q_INIT_RESOURCE(pe_dark);
+            Q_INIT_RESOURCE(pe_light);
+            Q_INIT_RESOURCE(pe_blue);
+            Q_INIT_RESOURCE(pe_colored);
+            Q_INIT_RESOURCE(OSX);
+            Q_INIT_RESOURCE(iOS);
+            Q_INIT_RESOURCE(flat);
+            return app.exec();
+        }
+        case Application::Failed:
+            return 1;
+        case Application::Succeeded:
+            return 0;
     }
     return 0;
 }

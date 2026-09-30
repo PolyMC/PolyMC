@@ -26,8 +26,7 @@
 /*!
  * An implementation for the updater on macOS that uses the Sparkle framework.
  */
-class MacSparkleUpdater : public ExternalUpdater
-{
+class MacSparkleUpdater : public ExternalUpdater {
     Q_OBJECT
 
 public:
@@ -118,9 +117,9 @@ public:
 private:
     class Private;
 
-    Private *priv;
+    Private* priv;
 
     void loadChannelsFromSettings();
 };
 
-#endif //LAUNCHER_MACSPARKLEUPDATER_H
+#endif  // LAUNCHER_MACSPARKLEUPDATER_H

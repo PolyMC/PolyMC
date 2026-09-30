@@ -45,12 +45,12 @@ namespace Net {
  * causing a segmentation fault.
  */
 class ByteArraySink : public Sink {
-   public:
-    ByteArraySink(QByteArray* output) : m_output(output){};
+public:
+    ByteArraySink(QByteArray* output) : m_output(output) {};
 
     virtual ~ByteArraySink() = default;
 
-   public:
+public:
     auto init(QNetworkRequest& request) -> Task::State override
     {
         m_output->clear();
@@ -83,7 +83,7 @@ class ByteArraySink : public Sink {
 
     auto hasLocalData() -> bool override { return false; }
 
-   private:
+private:
     QByteArray* m_output;
 };
 }  // namespace Net

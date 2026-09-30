@@ -15,16 +15,15 @@
 
 #pragma once
 
+#include <QList>
 #include <QObject>
 #include <QString>
-#include <QList>
 
 #include <net/NetJob.h>
 
 #include "NewsEntry.h"
 
-class NewsChecker : public QObject
-{
+class NewsChecker : public QObject {
     Q_OBJECT
 public:
     /*!
@@ -102,4 +101,3 @@ protected slots:
     /// Emits newsLoadingFailed() and sets m_lastLoadError to the given message.
     void fail(const QString& errorMsg);
 };
-

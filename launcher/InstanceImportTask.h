@@ -35,34 +35,29 @@
 
 #pragma once
 
-#include "InstanceTask.h"
-#include "net/NetJob.h"
-#include <QUrl>
 #include <QFuture>
 #include <QFutureWatcher>
-#include "settings/SettingsObject.h"
+#include <QUrl>
+#include "InstanceTask.h"
 #include "QObjectPtr.h"
 #include "modplatform/flame/PackManifest.h"
+#include "net/NetJob.h"
+#include "settings/SettingsObject.h"
 
 #include <optional>
 
 class QuaZip;
-namespace Flame
-{
-    class FileResolvingTask;
+namespace Flame {
+class FileResolvingTask;
 }
 
-class InstanceImportTask : public InstanceTask
-{
+class InstanceImportTask : public InstanceTask {
     Q_OBJECT
 public:
     explicit InstanceImportTask(const QUrl sourceUrl, QWidget* parent = nullptr);
 
     bool abort() override;
-    const QVector<Flame::File> &getBlockedFiles() const
-    {
-        return m_blockedMods;
-    }
+    const QVector<Flame::File>& getBlockedFiles() const { return m_blockedMods; }
 
 protected:
     //! Entry point for tasks.
@@ -92,7 +87,7 @@ private: /* data */
     QFuture<std::optional<QStringList>> m_extractFuture;
     QFutureWatcher<std::optional<QStringList>> m_extractFutureWatcher;
     QVector<Flame::File> m_blockedMods;
-    enum class ModpackType{
+    enum class ModpackType {
         Unknown,
         MultiMC,
         Technic,
@@ -100,6 +95,6 @@ private: /* data */
         Modrinth,
     } m_modpackType = ModpackType::Unknown;
 
-    //FIXME: nuke
+    // FIXME: nuke
     QWidget* m_parent;
 };

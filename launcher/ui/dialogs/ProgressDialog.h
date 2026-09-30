@@ -21,54 +21,49 @@
 class Task;
 class SequentialTask;
 
-namespace Ui
-{
+namespace Ui {
 class ProgressDialog;
 }
 
-class ProgressDialog : public QDialog
-{
+class ProgressDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ProgressDialog(QWidget *parent = 0);
+    explicit ProgressDialog(QWidget* parent = 0);
     ~ProgressDialog();
 
     void updateSize();
 
     int execWithTask(Task* task);
-    int execWithTask(std::unique_ptr<Task> &&task);
-    int execWithTask(std::unique_ptr<Task> &task);
+    int execWithTask(std::unique_ptr<Task>&& task);
+    int execWithTask(std::unique_ptr<Task>& task);
 
     void setSkipButton(bool present, QString label = QString());
 
-    Task *getTask();
+    Task* getTask();
 
-public
-slots:
+public slots:
     void onTaskStarted();
     void onTaskFailed(QString failure);
     void onTaskSucceeded();
 
-    void changeStatus(const QString &status);
+    void changeStatus(const QString& status);
     void changeProgress(qint64 current, qint64 total);
 
-
-private
-slots:
+private slots:
     void on_skipButton_clicked(bool checked);
 
 protected:
-    virtual void keyPressEvent(QKeyEvent *e);
-    virtual void closeEvent(QCloseEvent *e);
+    virtual void keyPressEvent(QKeyEvent* e);
+    virtual void closeEvent(QCloseEvent* e);
 
 private:
-    bool handleImmediateResult(QDialog::DialogCode &result);
+    bool handleImmediateResult(QDialog::DialogCode& result);
 
 private:
-    Ui::ProgressDialog *ui;
+    Ui::ProgressDialog* ui;
 
-    Task *task;
+    Task* task;
 
     bool m_is_multi_step = false;
 };

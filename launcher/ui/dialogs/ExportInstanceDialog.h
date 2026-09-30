@@ -23,17 +23,15 @@ class BaseInstance;
 class PackIgnoreProxy;
 typedef std::shared_ptr<BaseInstance> InstancePtr;
 
-namespace Ui
-{
+namespace Ui {
 class ExportInstanceDialog;
 }
 
-class ExportInstanceDialog : public QDialog
-{
+class ExportInstanceDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ExportInstanceDialog(InstancePtr instance, QWidget *parent = 0);
+    explicit ExportInstanceDialog(InstancePtr instance, QWidget* parent = 0);
     ~ExportInstanceDialog();
 
     virtual void done(int result);
@@ -45,9 +43,9 @@ private:
     QString ignoreFileName();
 
 private:
-    Ui::ExportInstanceDialog *ui;
+    Ui::ExportInstanceDialog* ui;
     InstancePtr m_instance;
-    PackIgnoreProxy * proxyModel;
+    PackIgnoreProxy* proxyModel;
 
 private slots:
     void rowsInserted(QModelIndex parent, int top, int bottom);

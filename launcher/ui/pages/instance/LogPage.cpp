@@ -46,56 +46,42 @@
 #include "launch/LaunchTask.h"
 #include "settings/Setting.h"
 
-#include "ui/GuiUtil.h"
 #include "ui/ColorCache.h"
+#include "ui/GuiUtil.h"
 
 #include <BuildConfig.h>
 
-class LogFormatProxyModel : public QIdentityProxyModel
-{
+class LogFormatProxyModel : public QIdentityProxyModel {
 public:
-    LogFormatProxyModel(QObject* parent = nullptr) : QIdentityProxyModel(parent)
+    LogFormatProxyModel(QObject* parent = nullptr) : QIdentityProxyModel(parent) {}
+    QVariant data(const QModelIndex& index, int role) const override
     {
-    }
-    QVariant data(const QModelIndex &index, int role) const override
-    {
-        switch(role)
-        {
+        switch (role) {
             case Qt::FontRole:
                 return m_font;
-            case Qt::ForegroundRole:
-            {
-                MessageLevel::Enum level = (MessageLevel::Enum) QIdentityProxyModel::data(index, LogModel::LevelRole).toInt();
+            case Qt::ForegroundRole: {
+                MessageLevel::Enum level = (MessageLevel::Enum)QIdentityProxyModel::data(index, LogModel::LevelRole).toInt();
                 return m_colors->getFront(level);
             }
-            case Qt::BackgroundRole:
-            {
-                MessageLevel::Enum level = (MessageLevel::Enum) QIdentityProxyModel::data(index, LogModel::LevelRole).toInt();
+            case Qt::BackgroundRole: {
+                MessageLevel::Enum level = (MessageLevel::Enum)QIdentityProxyModel::data(index, LogModel::LevelRole).toInt();
                 return m_colors->getBack(level);
             }
             default:
                 return QIdentityProxyModel::data(index, role);
-            }
+        }
     }
 
-    void setFont(QFont font)
-    {
-        m_font = font;
-    }
+    void setFont(QFont font) { m_font = font; }
 
-    void setColors(LogColorCache* colors)
-    {
-        m_colors.reset(colors);
-    }
+    void setColors(LogColorCache* colors) { m_colors.reset(colors); }
 
-    QModelIndex find(const QModelIndex &start, const QString &value, bool reverse) const
+    QModelIndex find(const QModelIndex& start, const QString& value, bool reverse) const
     {
         QModelIndex parentIndex = parent(start);
-        auto compare = [&](int r) -> QModelIndex
-        {
+        auto compare = [&](int r) -> QModelIndex {
             QModelIndex idx = index(r, start.column(), parentIndex);
-            if (!idx.isValid() || idx == start)
-            {
+            if (!idx.isValid() || idx == start) {
                 return QModelIndex();
             }
             QVariant v = data(idx, Qt::DisplayRole);
@@ -104,35 +90,28 @@ public:
                 return idx;
             return QModelIndex();
         };
-        if(reverse)
-        {
+        if (reverse) {
             int from = start.row();
             int to = 0;
 
-            for (int i = 0; i < 2; ++i)
-            {
-                for (int r = from; (r >= to); --r)
-                {
+            for (int i = 0; i < 2; ++i) {
+                for (int r = from; (r >= to); --r) {
                     auto idx = compare(r);
-                    if(idx.isValid())
+                    if (idx.isValid())
                         return idx;
                 }
                 // prepare for the next iteration
                 from = rowCount() - 1;
                 to = start.row();
             }
-        }
-        else
-        {
+        } else {
             int from = start.row();
             int to = rowCount(parentIndex);
 
-            for (int i = 0; i < 2; ++i)
-            {
-                for (int r = from; (r < to); ++r)
-                {
+            for (int i = 0; i < 2; ++i) {
+                for (int r = from; (r < to); ++r) {
                     auto idx = compare(r);
-                    if(idx.isValid())
+                    if (idx.isValid())
                         return idx;
                 }
                 // prepare for the next iteration
@@ -142,13 +121,13 @@ public:
         }
         return QModelIndex();
     }
+
 private:
     QFont m_font;
     std::unique_ptr<LogColorCache> m_colors;
 };
 
-LogPage::LogPage(InstancePtr instance, QWidget *parent)
-    : QWidget(parent), ui(new Ui::LogPage), m_instance(instance)
+LogPage::LogPage(InstancePtr instance, QWidget* parent) : QWidget(parent), ui(new Ui::LogPage), m_instance(instance)
 {
     ui->setupUi(this);
     ui->tabWidget->tabBar()->hide();
@@ -166,8 +145,7 @@ LogPage::LogPage(InstancePtr instance, QWidget *parent)
         QString fontFamily = APPLICATION->settings()->get("ConsoleFont").toString();
         bool conversionOk = false;
         int fontSize = APPLICATION->settings()->get("ConsoleFontSize").toInt(&conversionOk);
-        if(!conversionOk)
-        {
+        if (!conversionOk) {
             fontSize = 11;
         }
         m_proxy->setFont(QFont(fontFamily, fontSize));
@@ -178,22 +156,17 @@ LogPage::LogPage(InstancePtr instance, QWidget *parent)
     // set up instance and launch process recognition
     {
         auto launchTask = m_instance->getLaunchTask();
-        if(launchTask)
-        {
+        if (launchTask) {
             setInstanceLaunchTaskChanged(launchTask, true);
         }
         connect(m_instance.get(), &BaseInstance::launchTaskChanged, this, &LogPage::onInstanceLaunchTaskChanged);
     }
 
-    auto newShortcut = [this](QKeySequence::StandardKey key) {
-        return new QShortcut(QKeySequence(key), this);
-    };
+    auto newShortcut = [this](QKeySequence::StandardKey key) { return new QShortcut(QKeySequence(key), this); };
 
     connect(newShortcut(QKeySequence::Find), &QShortcut::activated, this, &LogPage::findActivated);
-    connect(newShortcut(QKeySequence::FindNext), &QShortcut::activated, this,
-            &LogPage::findNextActivated);
-    connect(newShortcut(QKeySequence::FindPrevious), &QShortcut::activated, this,
-            &LogPage::findPreviousActivated);
+    connect(newShortcut(QKeySequence::FindNext), &QShortcut::activated, this, &LogPage::findNextActivated);
+    connect(newShortcut(QKeySequence::FindPrevious), &QShortcut::activated, this, &LogPage::findPreviousActivated);
 
     connect(ui->searchBar, SIGNAL(returnPressed()), SLOT(on_findButton_clicked()));
 }
@@ -205,30 +178,23 @@ LogPage::~LogPage()
 
 void LogPage::modelStateToUI()
 {
-    if(m_model->wrapLines())
-    {
+    if (m_model->wrapLines()) {
         ui->text->setWordWrap(true);
         ui->wrapCheckbox->setCheckState(Qt::Checked);
-    }
-    else
-    {
+    } else {
         ui->text->setWordWrap(false);
         ui->wrapCheckbox->setCheckState(Qt::Unchecked);
     }
-    if(m_model->suspended())
-    {
+    if (m_model->suspended()) {
         ui->trackLogCheckbox->setCheckState(Qt::Unchecked);
-    }
-    else
-    {
+    } else {
         ui->trackLogCheckbox->setCheckState(Qt::Checked);
     }
 }
 
 void LogPage::UIToModelState()
 {
-    if(!m_model)
-    {
+    if (!m_model) {
         return;
     }
     m_model->setLineWrap(ui->wrapCheckbox->checkState() == Qt::Checked);
@@ -238,21 +204,15 @@ void LogPage::UIToModelState()
 void LogPage::setInstanceLaunchTaskChanged(shared_qobject_ptr<LaunchTask> proc, bool initial)
 {
     m_process = proc;
-    if(m_process)
-    {
+    if (m_process) {
         m_model = proc->getLogModel();
         m_proxy->setSourceModel(m_model.get());
-        if(initial)
-        {
+        if (initial) {
             modelStateToUI();
-        }
-        else
-        {
+        } else {
             UIToModelState();
         }
-    }
-    else
-    {
+    } else {
         m_proxy->setSourceModel(nullptr);
         m_model.reset();
     }
@@ -275,40 +235,24 @@ bool LogPage::shouldDisplay() const
 
 void LogPage::on_btnPaste_clicked()
 {
-    if(!m_model)
+    if (!m_model)
         return;
 
-    //FIXME: turn this into a proper task and move the upload logic out of GuiUtil!
+    // FIXME: turn this into a proper task and move the upload logic out of GuiUtil!
     m_model->append(
         MessageLevel::Launcher,
-        QString("%2: Log upload triggered at: %1").arg(
-            QDateTime::currentDateTime().toString(Qt::RFC2822Date),
-            BuildConfig.LAUNCHER_NAME
-        )
-    );
+        QString("%2: Log upload triggered at: %1").arg(QDateTime::currentDateTime().toString(Qt::RFC2822Date), BuildConfig.LAUNCHER_NAME));
     auto url = GuiUtil::uploadPaste(m_model->toPlainText(), this);
-    if(!url.isEmpty())
-    {
-        m_model->append(
-            MessageLevel::Launcher,
-            QString("%2: Log uploaded to: %1").arg(
-                url,
-                BuildConfig.LAUNCHER_NAME
-            )
-        );
-    }
-    else
-    {
-        m_model->append(
-            MessageLevel::Error,
-            QString("%1: Log upload failed!").arg(BuildConfig.LAUNCHER_NAME)
-        );
+    if (!url.isEmpty()) {
+        m_model->append(MessageLevel::Launcher, QString("%2: Log uploaded to: %1").arg(url, BuildConfig.LAUNCHER_NAME));
+    } else {
+        m_model->append(MessageLevel::Error, QString("%1: Log upload failed!").arg(BuildConfig.LAUNCHER_NAME));
     }
 }
 
 void LogPage::on_btnCopy_clicked()
 {
-    if(!m_model)
+    if (!m_model)
         return;
     m_model->append(MessageLevel::Launcher, QString("Clipboard copy at: %1").arg(QDateTime::currentDateTime().toString(Qt::RFC2822Date)));
     GuiUtil::setClipboardText(m_model->toPlainText());
@@ -316,7 +260,7 @@ void LogPage::on_btnCopy_clicked()
 
 void LogPage::on_btnClear_clicked()
 {
-    if(!m_model)
+    if (!m_model)
         return;
     m_model->clear();
     m_container->refreshContainer();
@@ -329,7 +273,7 @@ void LogPage::on_btnBottom_clicked()
 
 void LogPage::on_trackLogCheckbox_clicked(bool checked)
 {
-    if(!m_model)
+    if (!m_model)
         return;
     m_model->suspend(!checked);
 }
@@ -337,7 +281,7 @@ void LogPage::on_trackLogCheckbox_clicked(bool checked)
 void LogPage::on_wrapCheckbox_clicked(bool checked)
 {
     ui->text->setWordWrap(checked);
-    if(!m_model)
+    if (!m_model)
         return;
     m_model->setLineWrap(checked);
 }
@@ -362,8 +306,7 @@ void LogPage::findPreviousActivated()
 void LogPage::findActivated()
 {
     // focus the search bar if it doesn't have focus
-    if (!ui->searchBar->hasFocus())
-    {
+    if (!ui->searchBar->hasFocus()) {
         ui->searchBar->setFocus();
         ui->searchBar->selectAll();
     }

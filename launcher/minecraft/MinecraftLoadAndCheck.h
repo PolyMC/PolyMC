@@ -15,23 +15,22 @@
 
 #pragma once
 
-#include <QObject>
 #include <QList>
+#include <QObject>
 #include <QUrl>
 
-#include "tasks/Task.h"
 #include <quazip/quazip.h>
+#include "tasks/Task.h"
 
 #include "QObjectPtr.h"
 
 class MinecraftVersion;
 class MinecraftInstance;
 
-class MinecraftLoadAndCheck : public Task
-{
+class MinecraftLoadAndCheck : public Task {
     Q_OBJECT
 public:
-    explicit MinecraftLoadAndCheck(MinecraftInstance *inst, QObject *parent = 0);
+    explicit MinecraftLoadAndCheck(MinecraftInstance* inst, QObject* parent = 0);
     virtual ~MinecraftLoadAndCheck() {};
     void executeTask() override;
 
@@ -40,9 +39,8 @@ private slots:
     void subtaskFailed(QString error);
 
 private:
-    MinecraftInstance *m_inst = nullptr;
+    MinecraftInstance* m_inst = nullptr;
     Task::Ptr m_task;
     QString m_preFailure;
     QString m_fail_reason;
 };
-

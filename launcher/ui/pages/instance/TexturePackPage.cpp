@@ -20,17 +20,17 @@
 #include "TexturePackPage.h"
 #include "ui/dialogs/ModDownloadDialog.h"
 
-TexturePackPage::TexturePackPage(MinecraftInstance* instance,
-                                   std::shared_ptr<TexturePackFolderModel> model, QWidget* parent)
-    : DownloadableResourcesPage(instance, model, parent) {
+TexturePackPage::TexturePackPage(MinecraftInstance* instance, std::shared_ptr<TexturePackFolderModel> model, QWidget* parent)
+    : DownloadableResourcesPage(instance, model, parent)
+{
     ui->actionViewConfigs->setVisible(false);
 
-    setupDownloadAction(tr("Download Texture Packs"),
-                        tr("Download texture packs from online mod platforms"));
+    setupDownloadAction(tr("Download Texture Packs"), tr("Download texture packs from online mod platforms"));
     connect(ui->actionDownloadItem, &QAction::triggered, this, &TexturePackPage::installTexturePacks);
 }
 
-void TexturePackPage::installTexturePacks() {
+void TexturePackPage::installTexturePacks()
+{
     if (!m_controlsEnabled)
         return;
     if (m_instance->typeName() != "Minecraft")

@@ -24,19 +24,22 @@ public:
 public slots:
     bool abort() override;
 
-protected
-slots:
+protected slots:
     void executeTask() override;
 
     virtual void startNext();
 
     void subTaskSucceeded(Task::Ptr);
-    void subTaskFailed(Task::Ptr, const QString &msg);
-    void subTaskStatus(const QString &msg);
+    void subTaskFailed(Task::Ptr, const QString& msg);
+    void subTaskStatus(const QString& msg);
     void subTaskProgress(qint64 current, qint64 total);
 
 protected:
-    void setStepStatus(QString status) { m_step_status = status; emit stepStatus(status); };
+    void setStepStatus(QString status)
+    {
+        m_step_status = status;
+        emit stepStatus(status);
+    };
 
     virtual void updateState();
 

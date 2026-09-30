@@ -11,11 +11,8 @@ class BasicTask : public Task {
 
     friend class TaskTest;
 
-   private:
-    void executeTask() override
-    {
-        emitSucceeded();
-    };
+private:
+    void executeTask() override { emitSucceeded(); };
 };
 
 /* Does nothing. Only used for testing. */
@@ -24,19 +21,20 @@ class BasicTask_MultiStep : public Task {
 
     friend class TaskTest;
 
-   private:
+private:
     auto isMultiStep() const -> bool override { return true; }
 
-    void executeTask() override {};   
+    void executeTask() override {};
 };
 
 class TaskTest : public QObject {
     Q_OBJECT
 
-   private slots:
-    void test_SetStatus_NoMultiStep(){
+private slots:
+    void test_SetStatus_NoMultiStep()
+    {
         BasicTask t;
-        QString status {"test status"};
+        QString status{ "test status" };
 
         t.setStatus(status);
 
@@ -44,9 +42,10 @@ class TaskTest : public QObject {
         QCOMPARE(t.getStepStatus(), status);
     }
 
-    void test_SetStatus_MultiStep(){
+    void test_SetStatus_MultiStep()
+    {
         BasicTask_MultiStep t;
-        QString status {"test status"};
+        QString status{ "test status" };
 
         t.setStatus(status);
 
@@ -56,7 +55,8 @@ class TaskTest : public QObject {
         QCOMPARE(t.getStepStatus(), status);
     }
 
-    void test_SetProgress(){
+    void test_SetProgress()
+    {
         BasicTask t;
         int current = 42;
         int total = 207;
@@ -67,17 +67,18 @@ class TaskTest : public QObject {
         QCOMPARE(t.getTotalProgress(), total);
     }
 
-    void test_basicRun(){
+    void test_basicRun()
+    {
         BasicTask t;
-        QObject::connect(&t, &Task::finished, [&]{ QVERIFY2(t.wasSuccessful(), "Task finished but was not successful when it should have been."); });
+        QObject::connect(&t, &Task::finished,
+                         [&] { QVERIFY2(t.wasSuccessful(), "Task finished but was not successful when it should have been."); });
         t.start();
 
-        QVERIFY2(QTest::qWaitFor([&]() {
-            return t.isFinished();
-        }, 1000), "Task didn't finish as it should.");
+        QVERIFY2(QTest::qWaitFor([&]() { return t.isFinished(); }, 1000), "Task didn't finish as it should.");
     }
 
-    void test_basicConcurrentRun(){
+    void test_basicConcurrentRun()
+    {
         BasicTask t1;
         BasicTask t2;
         BasicTask t3;
@@ -88,21 +89,20 @@ class TaskTest : public QObject {
         t.addTask(&t2);
         t.addTask(&t3);
 
-        QObject::connect(&t, &Task::finished, [&]{
-                QVERIFY2(t.wasSuccessful(), "Task finished but was not successful when it should have been.");
-                QVERIFY(t1.wasSuccessful());
-                QVERIFY(t2.wasSuccessful());
-                QVERIFY(t3.wasSuccessful());
+        QObject::connect(&t, &Task::finished, [&] {
+            QVERIFY2(t.wasSuccessful(), "Task finished but was not successful when it should have been.");
+            QVERIFY(t1.wasSuccessful());
+            QVERIFY(t2.wasSuccessful());
+            QVERIFY(t3.wasSuccessful());
         });
 
         t.start();
-        QVERIFY2(QTest::qWaitFor([&]() {
-            return t.isFinished();
-        }, 1000), "Task didn't finish as it should.");
+        QVERIFY2(QTest::qWaitFor([&]() { return t.isFinished(); }, 1000), "Task didn't finish as it should.");
     }
 
     // Tests if starting new tasks after the 6 initial ones is working
-    void test_moreConcurrentRun(){
+    void test_moreConcurrentRun()
+    {
         BasicTask t1, t2, t3, t4, t5, t6, t7, t8, t9;
 
         ConcurrentTask t;
@@ -117,26 +117,25 @@ class TaskTest : public QObject {
         t.addTask(&t8);
         t.addTask(&t9);
 
-        QObject::connect(&t, &Task::finished, [&]{
-                QVERIFY2(t.wasSuccessful(), "Task finished but was not successful when it should have been.");
-                QVERIFY(t1.wasSuccessful());
-                QVERIFY(t2.wasSuccessful());
-                QVERIFY(t3.wasSuccessful());
-                QVERIFY(t4.wasSuccessful());
-                QVERIFY(t5.wasSuccessful());
-                QVERIFY(t6.wasSuccessful());
-                QVERIFY(t7.wasSuccessful());
-                QVERIFY(t8.wasSuccessful());
-                QVERIFY(t9.wasSuccessful());
+        QObject::connect(&t, &Task::finished, [&] {
+            QVERIFY2(t.wasSuccessful(), "Task finished but was not successful when it should have been.");
+            QVERIFY(t1.wasSuccessful());
+            QVERIFY(t2.wasSuccessful());
+            QVERIFY(t3.wasSuccessful());
+            QVERIFY(t4.wasSuccessful());
+            QVERIFY(t5.wasSuccessful());
+            QVERIFY(t6.wasSuccessful());
+            QVERIFY(t7.wasSuccessful());
+            QVERIFY(t8.wasSuccessful());
+            QVERIFY(t9.wasSuccessful());
         });
 
         t.start();
-        QVERIFY2(QTest::qWaitFor([&]() {
-            return t.isFinished();
-        }, 1000), "Task didn't finish as it should.");
+        QVERIFY2(QTest::qWaitFor([&]() { return t.isFinished(); }, 1000), "Task didn't finish as it should.");
     }
 
-    void test_basicSequentialRun(){
+    void test_basicSequentialRun()
+    {
         BasicTask t1;
         BasicTask t2;
         BasicTask t3;
@@ -147,20 +146,19 @@ class TaskTest : public QObject {
         t.addTask(&t2);
         t.addTask(&t3);
 
-        QObject::connect(&t, &Task::finished, [&]{
-                QVERIFY2(t.wasSuccessful(), "Task finished but was not successful when it should have been.");
-                QVERIFY(t1.wasSuccessful());
-                QVERIFY(t2.wasSuccessful());
-                QVERIFY(t3.wasSuccessful());
+        QObject::connect(&t, &Task::finished, [&] {
+            QVERIFY2(t.wasSuccessful(), "Task finished but was not successful when it should have been.");
+            QVERIFY(t1.wasSuccessful());
+            QVERIFY(t2.wasSuccessful());
+            QVERIFY(t3.wasSuccessful());
         });
 
         t.start();
-        QVERIFY2(QTest::qWaitFor([&]() {
-            return t.isFinished();
-        }, 1000), "Task didn't finish as it should.");
+        QVERIFY2(QTest::qWaitFor([&]() { return t.isFinished(); }, 1000), "Task didn't finish as it should.");
     }
 
-    void test_basicMultipleOptionsRun(){
+    void test_basicMultipleOptionsRun()
+    {
         BasicTask t1;
         BasicTask t2;
         BasicTask t3;
@@ -171,17 +169,15 @@ class TaskTest : public QObject {
         t.addTask(&t2);
         t.addTask(&t3);
 
-        QObject::connect(&t, &Task::finished, [&]{
-                QVERIFY2(t.wasSuccessful(), "Task finished but was not successful when it should have been.");
-                QVERIFY(t1.wasSuccessful());
-                QVERIFY(!t2.wasSuccessful());
-                QVERIFY(!t3.wasSuccessful());
+        QObject::connect(&t, &Task::finished, [&] {
+            QVERIFY2(t.wasSuccessful(), "Task finished but was not successful when it should have been.");
+            QVERIFY(t1.wasSuccessful());
+            QVERIFY(!t2.wasSuccessful());
+            QVERIFY(!t3.wasSuccessful());
         });
 
         t.start();
-        QVERIFY2(QTest::qWaitFor([&]() {
-            return t.isFinished();
-        }, 1000), "Task didn't finish as it should.");
+        QVERIFY2(QTest::qWaitFor([&]() { return t.isFinished(); }, 1000), "Task didn't finish as it should.");
     }
 };
 

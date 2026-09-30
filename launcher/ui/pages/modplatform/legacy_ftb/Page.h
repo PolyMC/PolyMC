@@ -35,23 +35,22 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QTreeView>
 #include <QTextBrowser>
+#include <QTreeView>
+#include <QWidget>
 
-#include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "tasks/Task.h"
-#include "modplatform/legacy_ftb/PackHelpers.h"
-#include "modplatform/legacy_ftb/PackFetchTask.h"
 #include "QObjectPtr.h"
+#include "modplatform/legacy_ftb/PackFetchTask.h"
+#include "modplatform/legacy_ftb/PackHelpers.h"
+#include "tasks/Task.h"
+#include "ui/pages/BasePage.h"
 
 class NewInstanceDialog;
 
 namespace LegacyFTB {
 
-namespace Ui
-{
+namespace Ui {
 class Page;
 }
 
@@ -61,36 +60,23 @@ class PrivatePackListModel;
 class PrivatePackFilterModel;
 class PrivatePackManager;
 
-class Page : public QWidget, public BasePage
-{
+class Page : public QWidget, public BasePage {
     Q_OBJECT
 
 public:
-    explicit Page(NewInstanceDialog * dialog, QWidget *parent = 0);
+    explicit Page(NewInstanceDialog* dialog, QWidget* parent = 0);
     virtual ~Page();
-    QString displayName() const override
-    {
-        return "FTB Legacy";
-    }
-    QIcon icon() const override
-    {
-        return APPLICATION->getThemedIcon("ftb_logo");
-    }
-    QString id() const override
-    {
-        return "legacy_ftb";
-    }
-    QString helpPage() const override
-    {
-        return "FTB-platform";
-    }
+    QString displayName() const override { return "FTB Legacy"; }
+    QIcon icon() const override { return APPLICATION->getThemedIcon("ftb_logo"); }
+    QString id() const override { return "legacy_ftb"; }
+    QString helpPage() const override { return "FTB-platform"; }
     bool shouldDisplay() const override;
     void openedImpl() override;
     void retranslate() override;
 
 private:
     void suggestCurrent();
-    void onPackSelectionChanged(Modpack *pack = nullptr);
+    void onPackSelectionChanged(Modpack* pack = nullptr);
 
 private slots:
     void ftbPackDataDownloadSuccessfully(ModpackList publicPacks, ModpackList thirdPartyPacks);
@@ -124,18 +110,18 @@ private:
     ListModel* publicListModel = nullptr;
     FilterModel* publicFilterModel = nullptr;
 
-    ListModel *thirdPartyModel = nullptr;
-    FilterModel *thirdPartyFilterModel = nullptr;
+    ListModel* thirdPartyModel = nullptr;
+    FilterModel* thirdPartyFilterModel = nullptr;
 
-    ListModel *privateListModel = nullptr;
-    FilterModel *privateFilterModel = nullptr;
+    ListModel* privateListModel = nullptr;
+    FilterModel* privateFilterModel = nullptr;
 
     unique_qobject_ptr<PackFetchTask> ftbFetchTask;
     std::unique_ptr<PrivatePackManager> ftbPrivatePacks;
 
     NewInstanceDialog* dialog = nullptr;
 
-    Ui::Page *ui = nullptr;
+    Ui::Page* ui = nullptr;
 };
 
-}
+}  // namespace LegacyFTB

@@ -38,7 +38,7 @@ void processPackPNG(TexturePack& pack, QByteArray&& raw_data);
 
 class LocalTexturePackParseTask : public Task {
     Q_OBJECT
-   public:
+public:
     LocalTexturePackParseTask(int token, TexturePack& rp);
 
     [[nodiscard]] bool canAbort() const override { return true; }
@@ -48,7 +48,7 @@ class LocalTexturePackParseTask : public Task {
 
     [[nodiscard]] int token() const { return m_token; }
 
-   private:
+private:
     int m_token;
 
     TexturePack& m_texture_pack;

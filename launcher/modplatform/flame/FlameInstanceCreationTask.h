@@ -13,7 +13,7 @@
 class FlameCreationTask final : public InstanceCreationTask {
     Q_OBJECT
 
-   public:
+public:
     FlameCreationTask(const QString& staging_path, SettingsObjectPtr global_settings, QWidget* parent)
         : InstanceCreationTask(), m_parent(parent)
     {
@@ -26,11 +26,11 @@ class FlameCreationTask final : public InstanceCreationTask {
     bool updateInstance() override;
     bool createInstance() override;
 
-   private slots:
+private slots:
     void idResolverSucceeded(QEventLoop&);
     void setupDownloadJob(QEventLoop&);
 
-   private:
+private:
     QWidget* m_parent = nullptr;
 
     shared_qobject_ptr<Flame::FileResolvingTask> m_mod_id_resolver;

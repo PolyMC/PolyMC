@@ -2,19 +2,11 @@
 
 #include <settings/INIFile.h>
 
-class IniFileTest : public QObject
-{
+class IniFileTest : public QObject {
     Q_OBJECT
-private
-slots:
-    void initTestCase()
-    {
-
-    }
-    void cleanupTestCase()
-    {
-
-    }
+private slots:
+    void initTestCase() {}
+    void cleanupTestCase() {}
 
     void test_Escape_data()
     {
@@ -52,8 +44,8 @@ slots:
         // load
         INIFile f2;
         f2.loadFile(filename);
-        QCOMPARE(a, f2.get("a","NOT SET").toString());
-        QCOMPARE(b, f2.get("b","NOT SET").toString());
+        QCOMPARE(a, f2.get("a", "NOT SET").toString());
+        QCOMPARE(b, f2.get("b", "NOT SET").toString());
     }
 };
 

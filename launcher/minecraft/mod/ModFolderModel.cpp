@@ -1,38 +1,38 @@
 // SPDX-License-Identifier: GPL-3.0-only
 /*
-*  PolyMC - Minecraft Launcher
-*  Copyright (c) 2022 flowln <flowlnlnln@gmail.com>
-*  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
-*
-*  This program is free software: you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation, version 3.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*
-* This file incorporates work covered by the following copyright and
-* permission notice:
-*
-*      Copyright 2013-2021 MultiMC Contributors
-*
-*      Licensed under the Apache License, Version 2.0 (the "License");
-*      you may not use this file except in compliance with the License.
-*      You may obtain a copy of the License at
-*
-*          http://www.apache.org/licenses/LICENSE-2.0
-*
-*      Unless required by applicable law or agreed to in writing, software
-*      distributed under the License is distributed on an "AS IS" BASIS,
-*      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*      See the License for the specific language governing permissions and
-*      limitations under the License.
-*/
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (c) 2022 flowln <flowlnlnln@gmail.com>
+ *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2013-2021 MultiMC Contributors
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
+ */
 
 #include "ModFolderModel.h"
 
@@ -49,12 +49,12 @@
 #include "minecraft/mod/tasks/LocalModParseTask.h"
 #include "minecraft/mod/tasks/ModFolderLoadTask.h"
 
-ModFolderModel::ModFolderModel(const QString &dir, bool is_indexed) : ResourceFolderModel(QDir(dir)), m_is_indexed(is_indexed)
+ModFolderModel::ModFolderModel(const QString& dir, bool is_indexed) : ResourceFolderModel(QDir(dir)), m_is_indexed(is_indexed)
 {
     m_column_sort_keys = { SortType::ENABLED, SortType::NAME, SortType::VERSION, SortType::DATE, SortType::DO_UPDATES };
 }
 
-QVariant ModFolderModel::data(const QModelIndex &index, int role) const
+QVariant ModFolderModel::data(const QModelIndex& index, int role) const
 {
     if (!validateIndex(index))
         return {};
@@ -62,97 +62,91 @@ QVariant ModFolderModel::data(const QModelIndex &index, int role) const
     int row = index.row();
     int column = index.column();
 
-    switch (role)
-    {
-    case Qt::DisplayRole:
-        switch (column)
-        {
-        case NameColumn:
-            return m_resources[row]->name();
-        case VersionColumn: {
-            switch(m_resources[row]->type()) {
-                case ResourceType::FOLDER:
-                    return tr("Folder");
-                case ResourceType::SINGLEFILE:
-                    return tr("File");
+    switch (role) {
+        case Qt::DisplayRole:
+            switch (column) {
+                case NameColumn:
+                    return m_resources[row]->name();
+                case VersionColumn: {
+                    switch (m_resources[row]->type()) {
+                        case ResourceType::FOLDER:
+                            return tr("Folder");
+                        case ResourceType::SINGLEFILE:
+                            return tr("File");
+                        default:
+                            break;
+                    }
+                    return at(row)->version();
+                }
+                case DateColumn:
+                    return m_resources[row]->dateTimeChanged();
+                case ModUpdateColumn:
+                    if (at(row)->metadata() && at(row)->metadata()->hasDoUpdates() && at(row)->metadata()->do_updates == "true") {
+                        return QChar(11123);
+                    } else if (!at(row)->metadata()) {
+                        return QChar(11198);
+                    }
+                    return QString();
                 default:
-                    break;
+                    return QVariant();
             }
-            return at(row)->version();
-        }
-        case DateColumn:
-            return m_resources[row]->dateTimeChanged();
-        case ModUpdateColumn:
-            if(at(row)->metadata() && at(row)->metadata()->hasDoUpdates() && at(row)->metadata()->do_updates == "true") {
-                return QChar(11123);
-            } else if(!at(row)->metadata()) {
-                return QChar(11198);
+
+        case Qt::ToolTipRole:
+            return m_resources[row]->internal_id();
+
+        case Qt::CheckStateRole:
+            switch (column) {
+                case ActiveColumn:
+                    return at(row)->enabled() ? Qt::Checked : Qt::Unchecked;
+                default:
+                    return QVariant();
             }
-            return QString();
         default:
             return QVariant();
-        }
-
-    case Qt::ToolTipRole:
-        return m_resources[row]->internal_id();
-
-    case Qt::CheckStateRole:
-        switch (column)
-        {
-        case ActiveColumn:
-            return at(row)->enabled() ? Qt::Checked : Qt::Unchecked;
-        default:
-            return QVariant();
-        }
-    default:
-        return QVariant();
     }
 }
 
 QVariant ModFolderModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    switch (role)
-    {
-    case Qt::DisplayRole:
-        switch (section)
-        {
-        case ActiveColumn:
-            return QString();
-        case ModUpdateColumn:
-            return QString();
-        case NameColumn:
-            return tr("Name");
-        case VersionColumn:
-            return tr("Version");
-        case DateColumn:
-            return tr("Last changed");
-        default:
-            return QVariant();
-        }
+    switch (role) {
+        case Qt::DisplayRole:
+            switch (section) {
+                case ActiveColumn:
+                    return QString();
+                case ModUpdateColumn:
+                    return QString();
+                case NameColumn:
+                    return tr("Name");
+                case VersionColumn:
+                    return tr("Version");
+                case DateColumn:
+                    return tr("Last changed");
+                default:
+                    return QVariant();
+            }
 
-    case Qt::ToolTipRole:
-        switch (section)
-        {
-        case ActiveColumn:
-            return tr("Is the mod enabled?");
-        case ModUpdateColumn:
-            return tr("Are update checks enabled?");
-        case NameColumn:
-            return tr("The name of the mod.");
-        case VersionColumn:
-            return tr("The version of the mod.");
-        case DateColumn:
-            return tr("The date and time this mod was last changed (or added).");
+        case Qt::ToolTipRole:
+            switch (section) {
+                case ActiveColumn:
+                    return tr("Is the mod enabled?");
+                case ModUpdateColumn:
+                    return tr("Are update checks enabled?");
+                case NameColumn:
+                    return tr("The name of the mod.");
+                case VersionColumn:
+                    return tr("The version of the mod.");
+                case DateColumn:
+                    return tr("The date and time this mod was last changed (or added).");
+                default:
+                    return QVariant();
+            }
         default:
             return QVariant();
-        }
-    default:
-        return QVariant();
     }
     return QVariant();
 }
 
-int ModFolderModel::columnCount(const QModelIndex &parent) const
+int ModFolderModel::columnCount(const QModelIndex& parent) const
 {
     return NUM_COLUMNS;
 }
@@ -172,8 +166,8 @@ Task* ModFolderModel::createParseTask(Resource& resource)
 
 bool ModFolderModel::uninstallMod(const QString& filename, bool preserve_metadata)
 {
-    for(auto mod : allMods()){
-        if(mod->fileinfo().fileName() == filename){
+    for (auto mod : allMods()) {
+        if (mod->fileinfo().fileName() == filename) {
             auto index_dir = indexDir();
             mod->destroy(index_dir, preserve_metadata);
 
@@ -188,16 +182,15 @@ bool ModFolderModel::uninstallMod(const QString& filename, bool preserve_metadat
 
 bool ModFolderModel::deleteMods(const QModelIndexList& indexes)
 {
-    if(!m_can_interact) {
+    if (!m_can_interact) {
         return false;
     }
 
-    if(indexes.isEmpty())
+    if (indexes.isEmpty())
         return true;
 
-    for (auto i: indexes)
-    {
-        if(i.column() != 0) {
+    for (auto i : indexes) {
+        if (i.column() != 0) {
             continue;
         }
         auto m = at(i.row());
@@ -231,7 +224,7 @@ auto ModFolderModel::selectedMods(QModelIndexList& indexes) -> QList<Mod*>
 {
     QList<Mod*> selected_resources;
     for (auto i : indexes) {
-        if(i.column() != 0)
+        if (i.column() != 0)
             continue;
 
         selected_resources.push_back(at(i.row()));

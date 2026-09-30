@@ -36,47 +36,33 @@
 
 #pragma once
 
-#include <memory>
 #include <QAbstractButton>
 #include <QDialog>
+#include <memory>
 
-#include "ui/pages/BasePage.h"
 #include <Application.h>
+#include "ui/pages/BasePage.h"
 
-namespace Ui
-{
+namespace Ui {
 class ProxyPage;
 }
 
-class ProxyPage : public QWidget, public BasePage
-{
+class ProxyPage : public QWidget, public BasePage {
     Q_OBJECT
 
 public:
-    explicit ProxyPage(QWidget *parent = 0);
+    explicit ProxyPage(QWidget* parent = 0);
     ~ProxyPage();
 
-    QString displayName() const override
-    {
-        return tr("Proxy");
-    }
-    QIcon icon() const override
-    {
-        return APPLICATION->getThemedIcon("proxy");
-    }
-    QString id() const override
-    {
-        return "proxy-settings";
-    }
-    QString helpPage() const override
-    {
-        return "Proxy-settings";
-    }
+    QString displayName() const override { return tr("Proxy"); }
+    QIcon icon() const override { return APPLICATION->getThemedIcon("proxy"); }
+    QString id() const override { return "proxy-settings"; }
+    QString helpPage() const override { return "Proxy-settings"; }
     bool apply() override;
     void retranslate() override;
 
 private slots:
-    void proxyGroupChanged(QAbstractButton *button);
+    void proxyGroupChanged(QAbstractButton* button);
 
 private:
     void updateCheckboxStuff();
@@ -84,5 +70,5 @@ private:
     void loadSettings();
 
 private:
-    Ui::ProxyPage *ui;
+    Ui::ProxyPage* ui;
 };

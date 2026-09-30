@@ -15,16 +15,15 @@
 
 #pragma once
 
-#include "net/NetJob.h"
-#include "GoUpdate.h"
 #include "ExternalUpdater.h"
+#include "GoUpdate.h"
+#include "net/NetJob.h"
 
 #ifdef Q_OS_MAC
 #include "MacSparkleUpdater.h"
 #endif
 
-class UpdateChecker : public QObject
-{
+class UpdateChecker : public QObject {
     Q_OBJECT
 
 public:
@@ -40,8 +39,7 @@ public:
     /*!
      * An entry in the channel list.
      */
-    struct ChannelListEntry
-    {
+    struct ChannelListEntry {
         QString id;
         QString name;
         QString description;
@@ -62,7 +60,7 @@ public:
     /*!
      * Returns a pointer to an object that controls the external updater, or nullptr if an external updater is not used.
      */
-    ExternalUpdater *getExternalUpdater();
+    ExternalUpdater* getExternalUpdater();
 
 signals:
     //! Signal emitted when an update is available. Passes the URL for the repo and the ID and name for the version.
@@ -135,6 +133,5 @@ private:
      * As a result, signals from this class won't be emitted, and most of the functions in this class other
      * than checkForUpdate are not useful. Call functions from this external updater object instead.
      */
-    ExternalUpdater *m_externalUpdater = nullptr;
+    ExternalUpdater* m_externalUpdater = nullptr;
 };
-

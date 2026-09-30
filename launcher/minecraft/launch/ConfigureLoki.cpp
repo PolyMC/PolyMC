@@ -49,7 +49,7 @@ void ConfigureLoki::executeTask()
                 return emitFailed("Failed to parse Loki index json: no versions found");
 
             QString selectedVersion;
-            for (const QJsonValue &version : versions) {
+            for (const QJsonValue& version : versions) {
                 if (!version.isObject())
                     continue;
 

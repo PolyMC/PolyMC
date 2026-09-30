@@ -1,21 +1,19 @@
-#include <QTest>
-#include <QTemporaryDir>
 #include <QStandardPaths>
+#include <QTemporaryDir>
+#include <QTest>
 
 #include <FileSystem.h>
 
 #include <pathmatcher/RegexpMatcher.h>
 
-class FileSystemTest : public QObject
-{
+class FileSystemTest : public QObject {
     Q_OBJECT
 
     const QString bothSlash = "/foo/";
     const QString trailingSlash = "foo/";
     const QString leadingSlash = "/foo";
 
-private
-slots:
+private slots:
     void test_pathCombine()
     {
         QCOMPARE(QString("/foo/foo"), FS::PathCombine(bothSlash, bothSlash));
@@ -83,8 +81,7 @@ slots:
     void test_copy()
     {
         QString folder = QFINDTESTDATA("testdata/FileSystem/test_folder");
-        auto f = [&folder]()
-        {
+        auto f = [&folder]() {
             QTemporaryDir tempDir;
             tempDir.setAutoRemove(true);
             qDebug() << "From:" << folder << "To:" << tempDir.path();
@@ -95,8 +92,7 @@ slots:
             FS::copy c(folder, target_dir.path());
             c();
 
-            for(auto entry: target_dir.entryList())
-            {
+            for (auto entry : target_dir.entryList()) {
                 qDebug() << entry;
             }
             QVERIFY(target_dir.entryList().contains("pack.mcmeta"));
@@ -116,8 +112,7 @@ slots:
     void test_copy_with_blacklist()
     {
         QString folder = QFINDTESTDATA("testdata/FileSystem/test_folder");
-        auto f = [&folder]()
-        {
+        auto f = [&folder]() {
             QTemporaryDir tempDir;
             tempDir.setAutoRemove(true);
             qDebug() << "From:" << folder << "To:" << tempDir.path();
@@ -129,8 +124,7 @@ slots:
             c.blacklist(new RegexpMatcher("[.]?mcmeta"));
             c();
 
-            for(auto entry: target_dir.entryList())
-            {
+            for (auto entry : target_dir.entryList()) {
                 qDebug() << entry;
             }
             QVERIFY(!target_dir.entryList().contains("pack.mcmeta"));
@@ -150,8 +144,7 @@ slots:
     void test_copy_with_dot_hidden()
     {
         QString folder = QFINDTESTDATA("testdata/FileSystem/test_folder");
-        auto f = [&folder]()
-        {
+        auto f = [&folder]() {
             QTemporaryDir tempDir;
             tempDir.setAutoRemove(true);
             qDebug() << "From:" << folder << "To:" << tempDir.path();
@@ -164,7 +157,7 @@ slots:
 
             auto filter = QDir::Filter::Files | QDir::Filter::Dirs | QDir::Filter::Hidden;
 
-            for (auto entry: target_dir.entryList(filter)) {
+            for (auto entry : target_dir.entryList(filter)) {
                 qDebug() << entry;
             }
 
@@ -183,10 +176,7 @@ slots:
         f();
     }
 
-    void test_getDesktop()
-    {
-        QCOMPARE(FS::getDesktopDir(), QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
-    }
+    void test_getDesktop() { QCOMPARE(FS::getDesktopDir(), QStandardPaths::writableLocation(QStandardPaths::DesktopLocation)); }
 };
 
 QTEST_GUILESS_MAIN(FileSystemTest)

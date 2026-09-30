@@ -75,21 +75,17 @@ ModFolderPage::ModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel>
         });
 
         auto check_allow_update = [this] {
-            return (!m_instance || !m_instance->isRunning()) &&
-                   (ui->treeView->selectionModel()->hasSelection() || !m_model->empty());
+            return (!m_instance || !m_instance->isRunning()) && (ui->treeView->selectionModel()->hasSelection() || !m_model->empty());
         };
 
-        connect(ui->treeView->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this, check_allow_update] {
-            ui->actionUpdateItem->setEnabled(check_allow_update());
-        });
+        connect(ui->treeView->selectionModel(), &QItemSelectionModel::selectionChanged, this,
+                [this, check_allow_update] { ui->actionUpdateItem->setEnabled(check_allow_update()); });
 
-        connect(mods.get(), &ModFolderModel::rowsInserted, this, [this, check_allow_update] {
-            ui->actionUpdateItem->setEnabled(check_allow_update());
-        });
+        connect(mods.get(), &ModFolderModel::rowsInserted, this,
+                [this, check_allow_update] { ui->actionUpdateItem->setEnabled(check_allow_update()); });
 
-        connect(mods.get(), &ModFolderModel::rowsRemoved, this, [this, check_allow_update] {
-            ui->actionUpdateItem->setEnabled(check_allow_update());
-        });
+        connect(mods.get(), &ModFolderModel::rowsRemoved, this,
+                [this, check_allow_update] { ui->actionUpdateItem->setEnabled(check_allow_update()); });
 
         connect(mods.get(), &ModFolderModel::updateFinished, this, [this, check_allow_update, mods] {
             ui->actionUpdateItem->setEnabled(check_allow_update());
@@ -134,7 +130,8 @@ void ModFolderPage::removeItem()
     m_model->deleteMods(selection.indexes());
 }
 
-void ModFolderPage::installMods() {
+void ModFolderPage::installMods()
+{
     if (!m_controlsEnabled)
         return;
     if (m_instance->typeName() != "Minecraft")
@@ -163,7 +160,7 @@ void ModFolderPage::updateMods()
     }
 
     auto tempModList = mods_list;
-    for(auto mod : tempModList) {
+    for (auto mod : tempModList) {
         if (mod->metadata() && mod->metadata()->hasDoUpdates() && mod->metadata()->do_updates == "false") {
             mods_list.removeAll(mod);
         }
@@ -185,8 +182,7 @@ void ModFolderPage::updateMods()
                 message = tr("All selected mods are up-to-date! :)");
             }
         }
-        CustomMessageBox::selectable(this, tr("Update checker"), message)
-            ->exec();
+        CustomMessageBox::selectable(this, tr("Update checker"), message)->exec();
         return;
     }
 
@@ -200,15 +196,15 @@ void ModFolderPage::disableUpdates()
     auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection()).indexes();
     auto mods_list = m_model->selectedMods(selection);
 
-    for (const auto &mod : std::as_const(mods_list)) {
-        if(mod->metadata() && mod->metadata()->hasDoUpdates()) {
+    for (const auto& mod : std::as_const(mods_list)) {
+        if (mod->metadata() && mod->metadata()->hasDoUpdates()) {
             mod->metadata()->do_updates == "true" ? mod->metadata()->do_updates = "false" : mod->metadata()->do_updates = "true";
             QDir Dir = m_model->indexDir();
             Metadata::update(Dir, *(mod->metadata()));
-        } else if(!mod->metadata()) {
+        } else if (!mod->metadata()) {
             ModUpdateDialog MetadataGenDialog(this, ModAPI::Mod, m_instance, m_model, mods_list, false);
             MetadataGenDialog.ensureMetadata();
-            if(mods_list.length()>1){
+            if (mods_list.length() > 1) {
                 mod->metadata()->do_updates = "false";
             }
         }
@@ -222,10 +218,11 @@ void ModFolderPage::onDisableUpdatesChange()
     auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection()).indexes();
     auto mods_list = m_model->selectedMods(selection);
 
-    if(ui->treeView->selectionModel()->hasSelection()){
-        if(mods_list.length() > 1) {
+    if (ui->treeView->selectionModel()->hasSelection()) {
+        if (mods_list.length() > 1) {
             ui->actionDisableUpdates->setText(tr("Invert Update Check"));
-        } else if (mods_list.first()->metadata() && mods_list.first()->metadata()->hasDoUpdates() && mods_list.first()->metadata()->do_updates == "true") {
+        } else if (mods_list.first()->metadata() && mods_list.first()->metadata()->hasDoUpdates() &&
+                   mods_list.first()->metadata()->do_updates == "true") {
             ui->actionDisableUpdates->setText(tr("Disable Update Check"));
         } else if (!mods_list.first()->metadata()) {
             ui->actionDisableUpdates->setText(tr("Generate Metadata"));

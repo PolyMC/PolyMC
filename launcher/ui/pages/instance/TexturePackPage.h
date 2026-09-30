@@ -39,13 +39,13 @@
 #include "ui/pages/instance/DownloadableResourcesPage.h"
 #include "ui_ExternalResourcesPage.h"
 
-#include "minecraft/mod/TexturePackFolderModel.h"
 #include "minecraft/mod/TexturePack.h"
+#include "minecraft/mod/TexturePackFolderModel.h"
 
-class TexturePackPage : public DownloadableResourcesPage
-{ Q_OBJECT
+class TexturePackPage : public DownloadableResourcesPage {
+    Q_OBJECT
 public:
-    explicit TexturePackPage(MinecraftInstance *instance, std::shared_ptr<TexturePackFolderModel> model, QWidget *parent = 0);
+    explicit TexturePackPage(MinecraftInstance* instance, std::shared_ptr<TexturePackFolderModel> model, QWidget* parent = 0);
     virtual ~TexturePackPage() {}
 
     QString displayName() const override { return tr("Texture packs"); }
@@ -53,12 +53,9 @@ public:
     QString id() const override { return "texturepacks"; }
     QString helpPage() const override { return "Texture-packs"; }
 
-    virtual bool shouldDisplay() const override
-    {
-        return m_instance->traits().contains("texturepacks");
-    }
+    virtual bool shouldDisplay() const override { return m_instance->traits().contains("texturepacks"); }
 
-   public slots:
+public slots:
     bool onSelectionChanged(const QModelIndex& current, const QModelIndex& previous) override
     {
         auto sourceCurrent = m_filterModel->mapToSource(current);

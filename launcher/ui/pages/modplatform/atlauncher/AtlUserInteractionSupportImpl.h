@@ -52,5 +52,4 @@ private:
 
 private:
     QWidget* m_parent;
-
 };

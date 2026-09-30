@@ -43,7 +43,7 @@
 class ModFolderPage : public DownloadableResourcesPage {
     Q_OBJECT
 
-   public:
+public:
     explicit ModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel> mods, QWidget* parent = nullptr);
     virtual ~ModFolderPage() = default;
 
@@ -57,10 +57,10 @@ class ModFolderPage : public DownloadableResourcesPage {
     virtual bool shouldDisplay() const override;
     void runningStateChanged(bool running) override;
 
-   public slots:
+public slots:
     bool onSelectionChanged(const QModelIndex& current, const QModelIndex& previous) override;
 
-   private slots:
+private slots:
     void removeItem() override;
 
     void installMods();
@@ -68,12 +68,12 @@ class ModFolderPage : public DownloadableResourcesPage {
     void disableUpdates();
     void onDisableUpdatesChange();
 
-   protected:
+protected:
     std::shared_ptr<ModFolderModel> m_model;
 };
 
 class CoreModFolderPage : public ModFolderPage {
-   public:
+public:
     explicit CoreModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel> mods, QWidget* parent = 0);
     virtual ~CoreModFolderPage() = default;
 

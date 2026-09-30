@@ -2,12 +2,11 @@
 
 #include <QKeyEvent>
 
-class KonamiCode : public QObject
-{
+class KonamiCode : public QObject {
     Q_OBJECT
 public:
-    KonamiCode(QObject *parent = 0);
-    void input(QEvent *event);
+    KonamiCode(QObject* parent = 0);
+    void input(QEvent* event);
 
 signals:
     void triggered();

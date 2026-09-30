@@ -72,7 +72,8 @@ bool FlameCreationTask::updateInstance()
         tr("One or more of your instances are from this same modpack%1. Do you want to create a "
            "separate instance, or update the existing one?\n\nNOTE: Make sure you made a backup of your important instance data before "
            "updating, as worlds can be corrupted and some configuration may be lost (due to pack overrides).")
-            .arg(version_str), QMessageBox::Information, QMessageBox::Ok | QMessageBox::Reset | QMessageBox::Abort);
+            .arg(version_str),
+        QMessageBox::Information, QMessageBox::Ok | QMessageBox::Reset | QMessageBox::Abort);
     info->setButtonText(QMessageBox::Ok, tr("Update existing instance"));
     info->setButtonText(QMessageBox::Abort, tr("Create new instance"));
     info->setButtonText(QMessageBox::Reset, tr("Cancel"));
@@ -197,10 +198,10 @@ bool FlameCreationTask::updateInstance()
         m_process_update_file_info_job = nullptr;
     } else {
         // We don't have an old index file, so we may duplicate stuff!
-        auto dialog = CustomMessageBox::selectable(m_parent,
-                tr("No index file."),
-                tr("We couldn't find a suitable index file for the older version. This may cause some of the files to be duplicated. Do you want to continue?"),
-                QMessageBox::Warning, QMessageBox::Ok | QMessageBox::Cancel);
+        auto dialog = CustomMessageBox::selectable(m_parent, tr("No index file."),
+                                                   tr("We couldn't find a suitable index file for the older version. This may cause some "
+                                                      "of the files to be duplicated. Do you want to continue?"),
+                                                   QMessageBox::Warning, QMessageBox::Ok | QMessageBox::Cancel);
 
         if (dialog->exec() == QDialog::DialogCode::Rejected) {
             m_abort = true;
@@ -244,15 +245,13 @@ bool FlameCreationTask::createInstance()
         // An override is trying to break the fourth wall, this is bad (usually)
         const auto overrideAbsolute = QFileInfo(overridePath).canonicalPath();
         const auto stagingAbsolute = QFileInfo(m_stagingPath).canonicalPath();
-        if (overrideAbsolute != stagingAbsolute &&
-            !overrideAbsolute.startsWith(stagingAbsolute + QDir::separator())) {
-            auto warn = CustomMessageBox::selectable(
-                m_parent, tr("Dangerous Path Override!"),
-                tr("This pack has an override path located outside of its dedicated directory "
-                   "(%1). This is DANGEROUS! You should only proceed if you are 100% POSITIVE this "
-                   "is safe.")
-                    .arg(overrideAbsolute),
-                QMessageBox::Critical, QMessageBox::Yes | QMessageBox::No);
+        if (overrideAbsolute != stagingAbsolute && !overrideAbsolute.startsWith(stagingAbsolute + QDir::separator())) {
+            auto warn = CustomMessageBox::selectable(m_parent, tr("Dangerous Path Override!"),
+                                                     tr("This pack has an override path located outside of its dedicated directory "
+                                                        "(%1). This is DANGEROUS! You should only proceed if you are 100% POSITIVE this "
+                                                        "is safe.")
+                                                         .arg(overrideAbsolute),
+                                                     QMessageBox::Critical, QMessageBox::Yes | QMessageBox::No);
             warn->setButtonText(QMessageBox::Yes, tr("I know what I'm doing"));
             warn->setButtonText(QMessageBox::No, tr("Cancel"));
 
@@ -261,12 +260,11 @@ bool FlameCreationTask::createInstance()
             if (warn->clickedButton() == warn->button(QMessageBox::No))
                 return false;
 
-            auto warn2 = CustomMessageBox::selectable(
-                m_parent, tr("Are you really sure?!"),
-                tr("The override path (%1) is outside of its dedicated directory (%2). "
-                   "This is a security risk! Are you sure you want to continue?")
-                    .arg(overrideAbsolute, stagingAbsolute),
-                QMessageBox::Critical, QMessageBox::Yes | QMessageBox::No);
+            auto warn2 = CustomMessageBox::selectable(m_parent, tr("Are you really sure?!"),
+                                                      tr("The override path (%1) is outside of its dedicated directory (%2). "
+                                                         "This is a security risk! Are you sure you want to continue?")
+                                                          .arg(overrideAbsolute, stagingAbsolute),
+                                                      QMessageBox::Critical, QMessageBox::Yes | QMessageBox::No);
             warn2->setButtonText(QMessageBox::Yes, tr("Yes, I'm sure"));
             warn2->setButtonText(QMessageBox::No, tr("Cancel"));
 
@@ -431,10 +429,9 @@ void FlameCreationTask::idResolverSucceeded(QEventLoop& loop)
         qWarning() << "Blocked mods found, displaying mod list";
 
         auto message_dialog = new BlockedModsDialog(m_parent, tr("Blocked mods found"),
-                                                   tr("The following mods were blocked on third party launchers.<br/>"
-                                                      "You will need to manually download them and add them to the modpack"),
-                                                   text,
-                                                   urls);
+                                                    tr("The following mods were blocked on third party launchers.<br/>"
+                                                       "You will need to manually download them and add them to the modpack"),
+                                                    text, urls);
         message_dialog->setModal(true);
 
         if (message_dialog->exec()) {
@@ -487,9 +484,7 @@ void FlameCreationTask::setupDownloadJob(QEventLoop& loop)
     }
 
     m_mod_id_resolver.reset();
-    connect(m_files_job.get(), &NetJob::succeeded, this, [&]() {
-        m_files_job.reset();
-    });
+    connect(m_files_job.get(), &NetJob::succeeded, this, [&]() { m_files_job.reset(); });
     connect(m_files_job.get(), &NetJob::failed, [&](QString reason) {
         m_files_job.reset();
         setError(reason);

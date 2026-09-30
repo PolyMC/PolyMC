@@ -42,12 +42,9 @@ class VerifyJavaInstall : public LaunchStep {
     Q_OBJECT
 
 public:
-    explicit VerifyJavaInstall(LaunchTask *parent) : LaunchStep(parent) {
-    };
+    explicit VerifyJavaInstall(LaunchTask* parent) : LaunchStep(parent) {};
     ~VerifyJavaInstall() override = default;
 
     void executeTask() override;
-    bool canAbort() const override {
-        return false;
-    }
+    bool canAbort() const override { return false; }
 };

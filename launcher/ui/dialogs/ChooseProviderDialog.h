@@ -27,7 +27,7 @@ class ChooseProviderDialog : public QDialog {
         ModPlatform::Provider chosen;
     };
 
-   public:
+public:
     explicit ChooseProviderDialog(QWidget* parent, bool single_choice = false, bool allow_skipping = true);
     ~ChooseProviderDialog();
 
@@ -35,19 +35,19 @@ class ChooseProviderDialog : public QDialog {
 
     void setDescription(QString desc);
 
-   private slots:
+private slots:
     void skipOne();
     void skipAll();
     void confirmOne();
     void confirmAll();
 
-   private:
+private:
     void addProviders();
     void disableInput();
 
     auto getSelectedProvider() const -> ModPlatform::Provider;
 
-   private:
+private:
     Ui::ChooseProviderDialog* ui;
 
     QButtonGroup m_providers;

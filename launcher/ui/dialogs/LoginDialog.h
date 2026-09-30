@@ -15,20 +15,18 @@
 
 #pragma once
 
-#include <QtWidgets/QDialog>
 #include <QtCore/QEventLoop>
+#include <QtWidgets/QDialog>
 
 #include "minecraft/auth/AccountData.h"
 #include "minecraft/auth/MinecraftAccount.h"
 #include "tasks/Task.h"
 
-namespace Ui
-{
+namespace Ui {
 class LoginDialog;
 }
 
-class LoginDialog : public QDialog
-{
+class LoginDialog : public QDialog {
     Q_OBJECT
 
 public:
@@ -37,27 +35,26 @@ public:
     /*
      * @param type: Mojang or Authlib
      */
-    static MinecraftAccountPtr newAccount(QWidget *parent, QString message, AccountType type = AccountType::AuthlibInjector);
+    static MinecraftAccountPtr newAccount(QWidget* parent, QString message, AccountType type = AccountType::AuthlibInjector);
 
 private:
-    explicit LoginDialog(QWidget *parent = 0, AccountType type = AccountType::AuthlibInjector);
+    explicit LoginDialog(QWidget* parent = 0, AccountType type = AccountType::AuthlibInjector);
 
     void setUserInputsEnabled(bool enable);
 
-protected
-slots:
+protected slots:
     void accept();
 
-    void onTaskFailed(const QString &reason);
+    void onTaskFailed(const QString& reason);
     void onTaskSucceeded();
-    void onTaskStatus(const QString &status);
+    void onTaskStatus(const QString& status);
     void onTaskProgress(qint64 current, qint64 total);
 
-    void on_userTextBox_textEdited(const QString &newText);
-    void on_passTextBox_textEdited(const QString &newText);
+    void on_userTextBox_textEdited(const QString& newText);
+    void on_passTextBox_textEdited(const QString& newText);
 
 private:
-    Ui::LoginDialog *ui;
+    Ui::LoginDialog* ui;
     MinecraftAccountPtr m_account;
     Task::Ptr m_loginTask;
     AccountType m_accountType;

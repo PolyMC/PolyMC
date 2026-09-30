@@ -47,11 +47,16 @@
 #include "ui/dialogs/ModDownloadDialog.h"
 #include "ui/widgets/ProjectItem.h"
 
-ModPage::ModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance,
-                 ModAPI* api)
-    : QWidget(dialog), m_instance(instance), ui(new Ui::ModPage), dialog(dialog),
-      m_fetch_progress(this, false), api(api), m_resourceType(type),
-      m_typeString(type == ModAPI::Mod ? tr("mod") : tr("pack")) {
+ModPage::ModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance, ModAPI* api)
+    : QWidget(dialog)
+    , m_instance(instance)
+    , ui(new Ui::ModPage)
+    , dialog(dialog)
+    , m_fetch_progress(this, false)
+    , api(api)
+    , m_resourceType(type)
+    , m_typeString(type == ModAPI::Mod ? tr("mod") : tr("pack"))
+{
     ui->setupUi(this);
 
     connect(ui->searchButton, &QPushButton::clicked, this, &ModPage::triggerSearch);
@@ -95,14 +100,11 @@ void ModPage::setFilterWidget(unique_qobject_ptr<ModFilterWidget>& widget)
     m_filter_widget->setInstance(static_cast<MinecraftInstance*>(m_instance));
     m_filter = m_filter_widget->getFilter();
 
-    connect(m_filter_widget.get(), &ModFilterWidget::filterChanged, this, [&]{
-        ui->searchButton->setStyleSheet("text-decoration: underline");
-    });
-    connect(m_filter_widget.get(), &ModFilterWidget::filterUnchanged, this, [&]{
-        ui->searchButton->setStyleSheet("text-decoration: none");
-    });
+    connect(m_filter_widget.get(), &ModFilterWidget::filterChanged, this,
+            [&] { ui->searchButton->setStyleSheet("text-decoration: underline"); });
+    connect(m_filter_widget.get(), &ModFilterWidget::filterUnchanged, this,
+            [&] { ui->searchButton->setStyleSheet("text-decoration: none"); });
 }
-
 
 /******** Qt things ********/
 
@@ -142,7 +144,6 @@ auto ModPage::eventFilter(QObject* watched, QEvent* event) -> bool
     return QWidget::eventFilter(watched, event);
 }
 
-
 /******** Callbacks to events in the UI (set up in the derived classes) ********/
 
 void ModPage::filterMods()
@@ -155,7 +156,7 @@ void ModPage::triggerSearch()
     auto changed = m_filter_widget->changed();
     m_filter = m_filter_widget->getFilter();
 
-    if(changed){
+    if (changed) {
         ui->packView->clearSelection();
         ui->packDescription->clear();
         ui->versionSelectionBox->clear();
@@ -179,7 +180,9 @@ void ModPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
 {
     ui->versionSelectionBox->clear();
 
-    if (!curr.isValid()) { return; }
+    if (!curr.isValid()) {
+        return;
+    }
 
     current = listModel->data(curr, Qt::UserRole).value<ModPlatform::IndexedPack>();
 
@@ -194,7 +197,7 @@ void ModPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
         updateModVersions();
     }
 
-    if(!current.extraDataLoaded){
+    if (!current.extraDataLoaded) {
         qDebug() << QString("Loading %1 mod info").arg(debugName());
 
         listModel->requestModInfo(current, curr);
@@ -232,12 +235,11 @@ void ModPage::onModSelected()
     ui->packView->adjustSize();
 }
 
-
 /******** Make changes to the UI ********/
 
 void ModPage::retranslate()
 {
-   ui->retranslateUi(this);
+    ui->retranslateUi(this);
 }
 
 void ModPage::updateModVersions(int prev_count)
@@ -249,8 +251,8 @@ void ModPage::updateModVersions(int prev_count)
     for (int i = 0; i < current.versions.size(); i++) {
         auto version = current.versions[i];
         bool valid = false;
-        for(auto& mcVer : m_filter->versions){
-            //NOTE: Flame doesn't care about loader, so passing it changes nothing.
+        for (auto& mcVer : m_filter->versions) {
+            // NOTE: Flame doesn't care about loader, so passing it changes nothing.
             if (validateVersion(version, mcVer.toString(), packProfile->getModLoaders())) {
                 valid = true;
                 break;
@@ -268,7 +270,6 @@ void ModPage::updateModVersions(int prev_count)
 
     updateSelectionButton();
 }
-
 
 void ModPage::updateSelectionButton()
 {
@@ -299,7 +300,9 @@ void ModPage::updateUi()
 
     if (!current.authors.empty()) {
         auto authorToStr = [](ModPlatform::ModpackAuthor& author) -> QString {
-            if (author.url.isEmpty()) { return author.name; }
+            if (author.url.isEmpty()) {
+                return author.name;
+            }
             return QString("<a href=\"%1\">%2</a>").arg(author.url, author.name);
         };
         QStringList authorStrs;
@@ -309,8 +312,7 @@ void ModPage::updateUi()
         text += "<br>" + tr(" by ") + authorStrs.join(", ");
     }
 
-
-    if(current.extraDataLoaded) {
+    if (current.extraDataLoaded) {
         if (!current.extraData.donate.isEmpty()) {
             text += "<br><br>" + tr("Donate information: ");
             auto donateToStr = [](ModPlatform::DonationData& donate) -> QString {
@@ -323,10 +325,8 @@ void ModPage::updateUi()
             text += donates.join(", ");
         }
 
-        if (!current.extraData.issuesUrl.isEmpty()
-         || !current.extraData.sourceUrl.isEmpty()
-         || !current.extraData.wikiUrl.isEmpty()
-         || !current.extraData.discordUrl.isEmpty()) {
+        if (!current.extraData.issuesUrl.isEmpty() || !current.extraData.sourceUrl.isEmpty() || !current.extraData.wikiUrl.isEmpty() ||
+            !current.extraData.discordUrl.isEmpty()) {
             text += "<br><br>" + tr("External links:") + "<br>";
         }
 
@@ -343,5 +343,6 @@ void ModPage::updateUi()
     text += "<hr>";
 
     HoeDown h;
-    ui->packDescription->setHtml(text + (current.extraData.body.isEmpty() ? current.description : h.process(current.extraData.body.toUtf8())));
+    ui->packDescription->setHtml(text +
+                                 (current.extraData.body.isEmpty() ? current.description : h.process(current.extraData.body.toUtf8())));
 }

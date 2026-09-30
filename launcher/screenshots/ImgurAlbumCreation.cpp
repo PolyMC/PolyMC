@@ -36,15 +36,15 @@
 
 #include "ImgurAlbumCreation.h"
 
-#include <QNetworkRequest>
+#include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QUrl>
+#include <QNetworkRequest>
 #include <QStringList>
-#include <QDebug>
+#include <QUrl>
 
-#include "BuildConfig.h"
 #include "Application.h"
+#include "BuildConfig.h"
 
 ImgurAlbumCreation::ImgurAlbumCreation(QList<ScreenShot::Ptr> screenshots) : NetAction(), m_screenshots(screenshots)
 {
@@ -62,14 +62,13 @@ void ImgurAlbumCreation::executeTask()
     request.setRawHeader("Accept", "application/json");
 
     QStringList hashes;
-    for (auto shot : m_screenshots)
-    {
+    for (auto shot : m_screenshots) {
         hashes.append(shot->m_imgurDeleteHash);
     }
 
     const QByteArray data = "deletehashes=" + hashes.join(',').toUtf8() + "&title=Minecraft%20Screenshots&privacy=hidden";
 
-    QNetworkReply *rep = APPLICATION->network()->post(request, data);
+    QNetworkReply* rep = APPLICATION->network()->post(request, data);
 
     m_reply.reset(rep);
     connect(rep, &QNetworkReply::uploadProgress, this, &ImgurAlbumCreation::downloadProgress);
@@ -87,21 +86,18 @@ void ImgurAlbumCreation::downloadError(QNetworkReply::NetworkError error)
 }
 void ImgurAlbumCreation::downloadFinished()
 {
-    if (m_state != State::Failed)
-    {
+    if (m_state != State::Failed) {
         QByteArray data = m_reply->readAll();
         m_reply.reset();
         QJsonParseError jsonError;
         QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
-        if (jsonError.error != QJsonParseError::NoError)
-        {
+        if (jsonError.error != QJsonParseError::NoError) {
             qDebug() << jsonError.errorString();
             emitFailed();
             return;
         }
         auto object = doc.object();
-        if (!object.value("success").toBool())
-        {
+        if (!object.value("success").toBool()) {
             qDebug() << doc.toJson();
             emitFailed();
             return;
@@ -111,9 +107,7 @@ void ImgurAlbumCreation::downloadFinished()
         m_state = State::Succeeded;
         emit succeeded();
         return;
-    }
-    else
-    {
+    } else {
         qDebug() << m_reply->readAll();
         m_reply.reset();
         emitFailed();

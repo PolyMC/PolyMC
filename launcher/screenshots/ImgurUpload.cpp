@@ -35,17 +35,17 @@
  */
 
 #include "ImgurUpload.h"
-#include "BuildConfig.h"
 #include "Application.h"
+#include "BuildConfig.h"
 
-#include <QNetworkRequest>
+#include <QDebug>
+#include <QFile>
 #include <QHttpMultiPart>
+#include <QHttpPart>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QHttpPart>
-#include <QFile>
+#include <QNetworkRequest>
 #include <QUrl>
-#include <QDebug>
 
 ImgurUpload::ImgurUpload(ScreenShot::Ptr shot) : NetAction(), m_shot(shot)
 {
@@ -63,13 +63,12 @@ void ImgurUpload::executeTask()
     request.setRawHeader("Accept", "application/json");
 
     QFile f(m_shot->m_file.absoluteFilePath());
-    if (!f.open(QFile::ReadOnly))
-    {
+    if (!f.open(QFile::ReadOnly)) {
         emitFailed();
         return;
     }
 
-    QHttpMultiPart *multipart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+    QHttpMultiPart* multipart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
     QHttpPart filePart;
     filePart.setBody(f.readAll().toBase64());
     filePart.setHeader(QNetworkRequest::ContentTypeHeader, "image/png");
@@ -84,7 +83,7 @@ void ImgurUpload::executeTask()
     namePart.setBody(m_shot->m_file.baseName().toUtf8());
     multipart->append(namePart);
 
-    QNetworkReply *rep = m_network->post(request, multipart);
+    QNetworkReply* rep = m_network->post(request, multipart);
 
     m_reply.reset(rep);
     connect(rep, &QNetworkReply::uploadProgress, this, &ImgurUpload::downloadProgress);
@@ -98,8 +97,7 @@ void ImgurUpload::executeTask()
 void ImgurUpload::downloadError(QNetworkReply::NetworkError error)
 {
     qCritical() << "ImgurUpload failed with error" << m_reply->errorString() << "Server reply:\n" << m_reply->readAll();
-    if(finished)
-    {
+    if (finished) {
         qCritical() << "Double finished ImgurUpload!";
         return;
     }
@@ -110,8 +108,7 @@ void ImgurUpload::downloadError(QNetworkReply::NetworkError error)
 }
 void ImgurUpload::downloadFinished()
 {
-    if(finished)
-    {
+    if (finished) {
         qCritical() << "Double finished ImgurUpload!";
         return;
     }
@@ -119,8 +116,7 @@ void ImgurUpload::downloadFinished()
     m_reply.reset();
     QJsonParseError jsonError;
     QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
-    if (jsonError.error != QJsonParseError::NoError)
-    {
+    if (jsonError.error != QJsonParseError::NoError) {
         qDebug() << "imgur server did not reply with JSON" << jsonError.errorString();
         finished = true;
         m_reply.reset();
@@ -128,8 +124,7 @@ void ImgurUpload::downloadFinished()
         return;
     }
     auto object = doc.object();
-    if (!object.value("success").toBool())
-    {
+    if (!object.value("success").toBool()) {
         qDebug() << "Screenshot upload not successful:" << doc.toJson();
         finished = true;
         m_reply.reset();

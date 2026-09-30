@@ -16,27 +16,25 @@
 #include "MinecraftUpdate.h"
 #include "MinecraftInstance.h"
 
+#include <QDataStream>
 #include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
-#include <QDataStream>
 
-#include "BaseInstance.h"
-#include "minecraft/PackProfile.h"
-#include "minecraft/Library.h"
 #include <FileSystem.h>
+#include "BaseInstance.h"
+#include "minecraft/Library.h"
+#include "minecraft/PackProfile.h"
 
+#include "update/AssetUpdateTask.h"
+#include "update/FMLLibrariesTask.h"
 #include "update/FoldersTask.h"
 #include "update/LibrariesTask.h"
-#include "update/FMLLibrariesTask.h"
-#include "update/AssetUpdateTask.h"
 
 #include <meta/Index.h>
 #include <meta/Version.h>
 
-MinecraftUpdate::MinecraftUpdate(MinecraftInstance *inst, QObject *parent) : Task(parent), m_inst(inst)
-{
-}
+MinecraftUpdate::MinecraftUpdate(MinecraftInstance* inst, QObject* parent) : Task(parent), m_inst(inst) {}
 
 void MinecraftUpdate::executeTask()
 {
@@ -51,8 +49,7 @@ void MinecraftUpdate::executeTask()
         auto components = m_inst->getPackProfile();
         components->reload(Net::Mode::Online);
         auto task = components->getCurrentTask();
-        if(task)
-        {
+        if (task) {
             m_tasks.append(task);
         }
     }
@@ -72,8 +69,7 @@ void MinecraftUpdate::executeTask()
         m_tasks.append(new AssetUpdateTask(m_inst));
     }
 
-    if(!m_preFailure.isEmpty())
-    {
+    if (!m_preFailure.isEmpty()) {
         emitFailed(m_preFailure);
         return;
     }
@@ -82,19 +78,16 @@ void MinecraftUpdate::executeTask()
 
 void MinecraftUpdate::next()
 {
-    if(m_abort)
-    {
+    if (m_abort) {
         emitFailed(tr("Aborted by user."));
         return;
     }
-    if(m_failed_out_of_order)
-    {
+    if (m_failed_out_of_order) {
         emitFailed(m_fail_reason);
         return;
     }
-    m_currentTask ++;
-    if(m_currentTask > 0)
-    {
+    m_currentTask++;
+    if (m_currentTask > 0) {
         auto task = m_tasks[m_currentTask - 1];
         disconnect(task.get(), &Task::succeeded, this, &MinecraftUpdate::subtaskSucceeded);
         disconnect(task.get(), &Task::failed, this, &MinecraftUpdate::subtaskFailed);
@@ -102,15 +95,13 @@ void MinecraftUpdate::next()
         disconnect(task.get(), &Task::progress, this, &MinecraftUpdate::progress);
         disconnect(task.get(), &Task::status, this, &MinecraftUpdate::setStatus);
     }
-    if(m_currentTask == m_tasks.size())
-    {
+    if (m_currentTask == m_tasks.size()) {
         emitSucceeded();
         return;
     }
     auto task = m_tasks[m_currentTask];
     // if the task is already finished by the time we look at it, skip it
-    if(task->isFinished())
-    {
+    if (task->isFinished()) {
         qCritical() << "MinecraftUpdate: Skipping finished subtask" << m_currentTask << ":" << task.get();
         next();
     }
@@ -120,23 +111,20 @@ void MinecraftUpdate::next()
     connect(task.get(), &Task::progress, this, &MinecraftUpdate::progress);
     connect(task.get(), &Task::status, this, &MinecraftUpdate::setStatus);
     // if the task is already running, do not start it again
-    if(!task->isRunning())
-    {
+    if (!task->isRunning()) {
         task->start();
     }
 }
 
 void MinecraftUpdate::subtaskSucceeded()
 {
-    if(isFinished())
-    {
+    if (isFinished()) {
         qCritical() << "MinecraftUpdate: Subtask" << sender() << "succeeded, but work was already done!";
         return;
     }
     auto senderTask = QObject::sender();
     auto currentTask = m_tasks[m_currentTask].get();
-    if(senderTask != currentTask)
-    {
+    if (senderTask != currentTask) {
         qDebug() << "MinecraftUpdate: Subtask" << sender() << "succeeded out of order.";
         return;
     }
@@ -145,15 +133,13 @@ void MinecraftUpdate::subtaskSucceeded()
 
 void MinecraftUpdate::subtaskFailed(QString error)
 {
-    if(isFinished())
-    {
+    if (isFinished()) {
         qCritical() << "MinecraftUpdate: Subtask" << sender() << "failed, but work was already done!";
         return;
     }
     auto senderTask = QObject::sender();
     auto currentTask = m_tasks[m_currentTask].get();
-    if(senderTask != currentTask)
-    {
+    if (senderTask != currentTask) {
         qDebug() << "MinecraftUpdate: Subtask" << sender() << "failed out of order.";
         m_failed_out_of_order = true;
         m_fail_reason = error;
@@ -162,15 +148,12 @@ void MinecraftUpdate::subtaskFailed(QString error)
     emitFailed(error);
 }
 
-
 bool MinecraftUpdate::abort()
 {
-    if(!m_abort)
-    {
+    if (!m_abort) {
         m_abort = true;
         auto task = m_tasks[m_currentTask];
-        if(task->canAbort())
-        {
+        if (task->canAbort()) {
             return task->abort();
         }
     }

@@ -1,22 +1,20 @@
 #include "SystemTheme.h"
 #include <QApplication>
+#include <QDebug>
 #include <QStyle>
 #include <QStyleFactory>
-#include <QDebug>
 
 SystemTheme::SystemTheme()
 {
     qDebug() << "Determining System Theme...";
-    const auto & style = QApplication::style();
+    const auto& style = QApplication::style();
     systemPalette = style->standardPalette();
     QString lowerThemeName = style->objectName();
     qDebug() << "System theme seems to be:" << lowerThemeName;
     QStringList styles = QStyleFactory::keys();
-    for(auto &st: styles)
-    {
+    for (auto& st : styles) {
         qDebug() << "Considering theme from theme factory:" << st.toLower();
-        if(st.toLower() == lowerThemeName)
-        {
+        if (st.toLower() == lowerThemeName) {
             systemTheme = st;
             qDebug() << "System theme has been determined to be:" << systemTheme;
             return;
@@ -30,8 +28,7 @@ SystemTheme::SystemTheme()
 void SystemTheme::apply(bool initial)
 {
     // if we are applying the system theme as the first theme, just don't touch anything. it's for the better...
-    if(initial)
-    {
+    if (initial) {
         return;
     }
     ITheme::apply(initial);
@@ -69,7 +66,7 @@ double SystemTheme::fadeAmount()
 
 QColor SystemTheme::fadeColor()
 {
-    return QColor(128,128,128);
+    return QColor(128, 128, 128);
 }
 
 bool SystemTheme::hasStyleSheet()

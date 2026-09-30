@@ -1,11 +1,13 @@
 #include "ConcurrentTask.h"
 
-#include <QDebug>
 #include <QCoreApplication>
+#include <QDebug>
 
 ConcurrentTask::ConcurrentTask(QObject* parent, QString task_name, int max_concurrent)
     : Task(parent), m_name(task_name), m_total_max_size(max_concurrent)
-{ setObjectName(task_name); }
+{
+    setObjectName(task_name);
+}
 
 ConcurrentTask::~ConcurrentTask()
 {
@@ -101,8 +103,7 @@ void ConcurrentTask::startNext()
     setStepStatus(next->isMultiStep() ? next->getStepStatus() : next->getStatus());
     updateState();
 
-    QMetaObject::invokeMethod(
-        this, [=] { next->start(); }, Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this, [=] { next->start(); }, Qt::QueuedConnection);
 }
 
 void ConcurrentTask::subTaskSucceeded(Task::Ptr task)

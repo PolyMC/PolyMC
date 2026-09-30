@@ -64,16 +64,16 @@
 // Snippet from https://github.com/gulrak/filesystem#using-it-as-single-file-header
 
 #ifdef __APPLE__
-#include <Availability.h> // for deployment target to support pre-catalina targets without std::fs
-#endif // __APPLE__
+#include <Availability.h>  // for deployment target to support pre-catalina targets without std::fs
+#endif                     // __APPLE__
 
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || (defined(__cplusplus) && __cplusplus >= 201703L)) && defined(__has_include)
 #if __has_include(<filesystem>) && (!defined(__MAC_OS_X_VERSION_MIN_REQUIRED) || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500)
 #define GHC_USE_STD_FS
 #include <filesystem>
 namespace fs = std::filesystem;
-#endif // MacOS min version check
-#endif // Other OSes version check
+#endif  // MacOS min version check
+#endif  // Other OSes version check
 
 #ifndef GHC_USE_STD_FS
 #include <ghc/filesystem.hpp>
@@ -224,8 +224,8 @@ bool copy::operator()(const QString& offset)
 
             testAndCopy(src_path, dst_path);
         }
-    } else { // src_dir could still be a file, try to copy it directly.
-        if (m_blacklist && m_blacklist->matches(src)){
+    } else {  // src_dir could still be a file, try to copy it directly.
+        if (m_blacklist && m_blacklist->matches(src)) {
             qDebug() << "Attempted to copy blacklisted file:";
             qDebug() << "Source file:" << src;
             qDebug() << "Destination file:" << dst;
@@ -250,7 +250,7 @@ bool deletePath(QString path)
     return err.value() == 0;
 }
 
-bool trash(QString path, QString *pathInTrash = nullptr)
+bool trash(QString path, QString* pathInTrash = nullptr)
 {
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     return false;
@@ -404,24 +404,23 @@ bool mergeFolders(QString dstpath, QString srcpath)
     std::error_code ec;
     fs::path fullSrcPath = srcpath.toStdString();
     fs::path fullDstPath = dstpath.toStdString();
-    for (auto& entry : fs::recursive_directory_iterator(fullSrcPath))
-    {
+    for (auto& entry : fs::recursive_directory_iterator(fullSrcPath)) {
         fs::path relativeChild = fs::relative(entry, fullSrcPath);
         if (entry.is_directory())
             if (!fs::exists(fullDstPath / relativeChild))
                 fs::create_directory(fullDstPath / relativeChild);
-        if (entry.is_regular_file())
-        {
+        if (entry.is_regular_file()) {
             fs::path childDst = fullDstPath / relativeChild;
             if (fs::exists(childDst))
                 fs::remove(childDst);
             fs::copy(entry, childDst, fs::copy_options::none, ec);
             if (ec.value() != 0)
-                qCritical() << QString("File copy failed with: %1. File was %2 -> %3").arg(QString::fromStdString(ec.message()), entry.path().c_str(), childDst.c_str());
+                qCritical() << QString("File copy failed with: %1. File was %2 -> %3")
+                                   .arg(QString::fromStdString(ec.message()), entry.path().c_str(), childDst.c_str());
         }
     }
 
     return ec.value() == 0;
 }
 
-}
+}  // namespace FS

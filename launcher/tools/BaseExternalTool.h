@@ -1,17 +1,16 @@
 #pragma once
 
-#include <QObject>
 #include <BaseInstance.h>
+#include <QObject>
 
 class BaseInstance;
 class SettingsObject;
 class QProcess;
 
-class BaseExternalTool : public QObject
-{
+class BaseExternalTool : public QObject {
     Q_OBJECT
 public:
-    explicit BaseExternalTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = 0);
+    explicit BaseExternalTool(SettingsObjectPtr settings, InstancePtr instance, QObject* parent = 0);
     virtual ~BaseExternalTool();
 
 protected:
@@ -19,22 +18,19 @@ protected:
     SettingsObjectPtr globalSettings;
 };
 
-class BaseDetachedTool : public BaseExternalTool
-{
+class BaseDetachedTool : public BaseExternalTool {
     Q_OBJECT
 public:
-    explicit BaseDetachedTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = 0);
+    explicit BaseDetachedTool(SettingsObjectPtr settings, InstancePtr instance, QObject* parent = 0);
 
-public
-slots:
+public slots:
     void run();
 
 protected:
     virtual void runImpl() = 0;
 };
 
-class BaseExternalToolFactory
-{
+class BaseExternalToolFactory {
 public:
     virtual ~BaseExternalToolFactory();
 
@@ -42,17 +38,16 @@ public:
 
     virtual void registerSettings(SettingsObjectPtr settings) = 0;
 
-    virtual BaseExternalTool *createTool(InstancePtr instance, QObject *parent = 0) = 0;
+    virtual BaseExternalTool* createTool(InstancePtr instance, QObject* parent = 0) = 0;
 
-    virtual bool check(QString *error) = 0;
-    virtual bool check(const QString &path, QString *error) = 0;
+    virtual bool check(QString* error) = 0;
+    virtual bool check(const QString& path, QString* error) = 0;
 
 protected:
     SettingsObjectPtr globalSettings;
 };
 
-class BaseDetachedToolFactory : public BaseExternalToolFactory
-{
+class BaseDetachedToolFactory : public BaseExternalToolFactory {
 public:
-    virtual BaseDetachedTool *createDetachedTool(InstancePtr instance, QObject *parent = 0);
+    virtual BaseDetachedTool* createDetachedTool(InstancePtr instance, QObject* parent = 0);
 };

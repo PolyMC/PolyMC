@@ -74,7 +74,6 @@ struct ModpackExtra {
     QString discordUrl;
 
     QList<DonationData> donate;
-
 };
 
 struct ModpackVersion {
@@ -96,10 +95,10 @@ struct Modpack {
     QString description;
     std::tuple<QString, QUrl> author;
     QString iconName;
-    QUrl    iconUrl;
+    QUrl iconUrl;
 
-    bool    versionsLoaded = false;
-    bool    extraInfoLoaded = false;
+    bool versionsLoaded = false;
+    bool extraInfoLoaded = false;
 
     ModpackExtra extra;
     QVector<ModpackVersion> versions;
@@ -112,7 +111,7 @@ auto loadIndexedVersion(QJsonObject&) -> ModpackVersion;
 
 auto validateDownloadUrl(QUrl) -> bool;
 
-}
+}  // namespace Modrinth
 
 Q_DECLARE_METATYPE(Modrinth::Modpack)
 Q_DECLARE_METATYPE(Modrinth::ModpackVersion)

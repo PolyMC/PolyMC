@@ -35,14 +35,13 @@
 
 #pragma once
 
-#include <QString>
 #include <QIcon>
+#include <QString>
 #include <memory>
 
 #include "BasePageContainer.h"
 
-class BasePage
-{
+class BasePage {
 public:
     virtual ~BasePage() {}
     virtual QString id() const = 0;
@@ -63,17 +62,15 @@ public:
     }
     virtual void openedImpl() {}
     virtual void closedImpl() {}
-    virtual void setParentContainer(BasePageContainer * container)
-    {
-        m_container = container;
-    };
-    virtual void retranslate() { }
+    virtual void setParentContainer(BasePageContainer* container) { m_container = container; };
+    virtual void retranslate() {}
 
 public:
     int stackIndex = -1;
     int listIndex = -1;
+
 protected:
-    BasePageContainer * m_container = nullptr;
+    BasePageContainer* m_container = nullptr;
     bool isOpened = false;
 };
 

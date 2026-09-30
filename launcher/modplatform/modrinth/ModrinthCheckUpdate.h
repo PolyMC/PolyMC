@@ -8,17 +8,20 @@
 class ModrinthCheckUpdate : public CheckUpdateTask {
     Q_OBJECT
 
-   public:
-    ModrinthCheckUpdate(QList<Mod*>& mods, std::list<Version>& mcVersions, ModAPI::ModLoaderTypes loaders, std::shared_ptr<ModFolderModel> mods_folder)
+public:
+    ModrinthCheckUpdate(QList<Mod*>& mods,
+                        std::list<Version>& mcVersions,
+                        ModAPI::ModLoaderTypes loaders,
+                        std::shared_ptr<ModFolderModel> mods_folder)
         : CheckUpdateTask(mods, mcVersions, loaders, mods_folder)
     {}
 
-   public slots:
+public slots:
     bool abort() override;
 
-   protected slots:
+protected slots:
     void executeTask() override;
 
-   private:
+private:
     NetJob* m_net_job = nullptr;
 };

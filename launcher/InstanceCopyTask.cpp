@@ -1,17 +1,16 @@
 #include "InstanceCopyTask.h"
-#include "settings/INISettingsObject.h"
+#include <QtConcurrentRun>
 #include "FileSystem.h"
 #include "NullInstance.h"
 #include "pathmatcher/RegexpMatcher.h"
-#include <QtConcurrentRun>
+#include "settings/INISettingsObject.h"
 
 InstanceCopyTask::InstanceCopyTask(InstancePtr origInstance, bool copySaves, bool keepPlaytime)
 {
     m_origInstance = origInstance;
     m_keepPlaytime = keepPlaytime;
 
-    if(!copySaves)
-    {
+    if (!copySaves) {
         // FIXME: get this from the original instance type...
         auto matcherReal = new RegexpMatcher("[.]?minecraft/saves");
         matcherReal->caseSensitive(false);
@@ -35,8 +34,7 @@ void InstanceCopyTask::executeTask()
 void InstanceCopyTask::copyFinished()
 {
     auto successful = m_copyFuture.result();
-    if(!successful)
-    {
+    if (!successful) {
         emitFailed(tr("Instance folder copy failed."));
         return;
     }
@@ -46,7 +44,7 @@ void InstanceCopyTask::copyFinished()
     InstancePtr inst(new NullInstance(m_globalSettings, instanceSettings, m_stagingPath));
     inst->setName(name());
     inst->setIconKey(m_instIcon);
-    if(!m_keepPlaytime) {
+    if (!m_keepPlaytime) {
         inst->resetTimePlayed();
     }
     emitSucceeded();

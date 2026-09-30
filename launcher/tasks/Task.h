@@ -41,12 +41,12 @@
 
 class Task : public QObject, public QRunnable {
     Q_OBJECT
-   public:
+public:
     using Ptr = shared_qobject_ptr<Task>;
 
     enum class State { Inactive, Running, Succeeded, Failed, AbortedByUser };
 
-   public:
+public:
     explicit Task(QObject* parent = 0, bool show_debug_log = true);
     virtual ~Task() = default;
 
@@ -54,8 +54,8 @@ class Task : public QObject, public QRunnable {
     bool isFinished() const;
     bool wasSuccessful() const;
 
-    /*! 
-     * MultiStep tasks are combinations of multiple tasks into a single logical task. 
+    /*!
+     * MultiStep tasks are combinations of multiple tasks into a single logical task.
      * The main usage of this is in SequencialTask.
      */
     virtual auto isMultiStep() const -> bool { return false; }
@@ -80,13 +80,13 @@ class Task : public QObject, public QRunnable {
     virtual auto getStepProgress() const -> qint64 { return 0; }
     virtual auto getStepTotalProgress() const -> qint64 { return 100; }
 
-   protected:
+protected:
     void logWarning(const QString& line);
 
-   private:
+private:
     QString describe();
 
-   signals:
+signals:
     void started();
     void progress(qint64 current, qint64 total);
     void finished();
@@ -100,28 +100,37 @@ class Task : public QObject, public QRunnable {
      */
     void abortStatusChanged(bool can_abort);
 
-   public slots:
+public slots:
     // QRunnable's interface
     void run() override { start(); }
 
     virtual void start();
-    virtual bool abort() { if(canAbort()) emitAborted(); return canAbort(); };
+    virtual bool abort()
+    {
+        if (canAbort())
+            emitAborted();
+        return canAbort();
+    };
 
-    void setAbortable(bool can_abort) { m_can_abort = can_abort; emit abortStatusChanged(can_abort); }
+    void setAbortable(bool can_abort)
+    {
+        m_can_abort = can_abort;
+        emit abortStatusChanged(can_abort);
+    }
 
-   protected:
+protected:
     virtual void executeTask() = 0;
 
-   protected slots:
+protected slots:
     virtual void emitSucceeded();
     virtual void emitAborted();
     virtual void emitFailed(QString reason = "");
 
-   public slots:
+public slots:
     void setStatus(const QString& status);
     void setProgress(qint64 current, qint64 total);
 
-   protected:
+protected:
     State m_state = State::Inactive;
     QStringList m_Warnings;
     QString m_failReason = "";
@@ -132,7 +141,7 @@ class Task : public QObject, public QRunnable {
     // TODO: Nuke in favor of QLoggingCategory
     bool m_show_debug = true;
 
-   private:
+private:
     // Change using setAbortStatus
     bool m_can_abort = false;
 };

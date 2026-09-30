@@ -36,14 +36,14 @@
  */
 
 #pragma once
-#include <QString>
 #include <QList>
+#include <QString>
 
 /**
  * \brief The Config class holds all the build-time information passed from the build system.
  */
 class Config {
-   public:
+public:
     Config();
     QString LAUNCHER_NAME;
     QString LAUNCHER_DISPLAYNAME;

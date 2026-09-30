@@ -36,10 +36,16 @@
 #include "ui/widgets/PageContainer.h"
 
 ModDownloadDialog::ModDownloadDialog(const std::shared_ptr<ResourceFolderModel>& mods,
-                                     QWidget* parent, ModAPI::ResourceType type,
+                                     QWidget* parent,
+                                     ModAPI::ResourceType type,
                                      BaseInstance* instance)
-    : QDialog(parent), mods(mods), m_verticalLayout(new QVBoxLayout(this)), m_type(type),
-      m_typeString(m_type == ModAPI::Mod ? tr("mods") : tr("packs")), m_instance(instance) {
+    : QDialog(parent)
+    , mods(mods)
+    , m_verticalLayout(new QVBoxLayout(this))
+    , m_type(type)
+    , m_typeString(m_type == ModAPI::Mod ? tr("mods") : tr("packs"))
+    , m_instance(instance)
+{
     setObjectName(QStringLiteral("ModDownloadDialog"));
     m_verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
 
@@ -107,8 +113,7 @@ void ModDownloadDialog::confirm()
     auto keys = modTask.keys();
     keys.sort(Qt::CaseInsensitive);
 
-    auto confirm_dialog =
-        ReviewMessageBox::create(this, tr("Confirm %1 to download").arg(m_typeString));
+    auto confirm_dialog = ReviewMessageBox::create(this, tr("Confirm %1 to download").arg(m_typeString));
     confirm_dialog->setDescription(tr("You're about to download the following %1:").arg(m_typeString));
     confirm_dialog->setCheckLabel(tr("Only %1 with a check will be downloaded!").arg(m_typeString));
 
@@ -118,7 +123,7 @@ void ModDownloadDialog::confirm()
 
     if (confirm_dialog->exec()) {
         auto deselected = confirm_dialog->deselectedMods();
-        for (const auto &name : std::as_const(deselected)) {
+        for (const auto& name : std::as_const(deselected)) {
             modTask.remove(name);
         }
 

@@ -37,44 +37,30 @@
 
 #include <QWidget>
 
-#include "ui/pages/BasePage.h"
 #include <Application.h>
 #include "tasks/Task.h"
+#include "ui/pages/BasePage.h"
 
-namespace Ui
-{
+namespace Ui {
 class ImportPage;
 }
 
 class NewInstanceDialog;
 
-class ImportPage : public QWidget, public BasePage
-{
+class ImportPage : public QWidget, public BasePage {
     Q_OBJECT
 
 public:
-    explicit ImportPage(NewInstanceDialog* dialog, QWidget *parent = 0);
+    explicit ImportPage(NewInstanceDialog* dialog, QWidget* parent = 0);
     virtual ~ImportPage();
-    virtual QString displayName() const override
-    {
-        return tr("Import from zip");
-    }
-    virtual QIcon icon() const override
-    {
-        return APPLICATION->getThemedIcon("viewfolder");
-    }
-    virtual QString id() const override
-    {
-        return "import";
-    }
-    virtual QString helpPage() const override
-    {
-        return "Zip-import";
-    }
+    virtual QString displayName() const override { return tr("Import from zip"); }
+    virtual QIcon icon() const override { return APPLICATION->getThemedIcon("viewfolder"); }
+    virtual QString id() const override { return "import"; }
+    virtual QString helpPage() const override { return "Zip-import"; }
     virtual bool shouldDisplay() const override;
     void retranslate() override;
 
-    void setUrl(const QString & url);
+    void setUrl(const QString& url);
     void openedImpl() override;
 
 private slots:
@@ -85,7 +71,6 @@ private:
     QUrl modpackUrl() const;
 
 private:
-    Ui::ImportPage *ui = nullptr;
+    Ui::ImportPage* ui = nullptr;
     NewInstanceDialog* dialog = nullptr;
 };
-

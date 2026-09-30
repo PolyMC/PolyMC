@@ -20,8 +20,8 @@ public:
     void appendMod(ModInformation&& info);
     QStringList deselectedMods();
 
-    void setDescription(const QString &desc);
-    void setCheckLabel(const QString &desc);
+    void setDescription(const QString& desc);
+    void setCheckLabel(const QString& desc);
 
     ~ReviewMessageBox();
 

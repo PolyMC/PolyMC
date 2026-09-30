@@ -38,13 +38,13 @@
 
 #include <QDebug>
 
-#include "java/JavaInstallList.h"
 #include "Application.h"
-#include "java/JavaCheckerJob.h"
-#include "java/JavaUtils.h"
 #include "FileSystem.h"
+#include "java/JavaCheckerJob.h"
+#include "java/JavaInstallList.h"
+#include "java/JavaUtils.h"
 
-JavaInstallList::JavaInstallList(QObject *parent) : BaseVersionList(parent)
+JavaInstallList::JavaInstallList(QObject* parent) : BaseVersionList(parent)
 {
     prevIgnoreSymlinks = APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool();
 }
@@ -57,8 +57,7 @@ Task::Ptr JavaInstallList::getLoadTask()
 
 Task::Ptr JavaInstallList::getCurrentTask()
 {
-    if(m_status == Status::InProgress)
-    {
+    if (m_status == Status::InProgress) {
         return m_loadTask;
     }
     return nullptr;
@@ -66,8 +65,7 @@ Task::Ptr JavaInstallList::getCurrentTask()
 
 void JavaInstallList::load()
 {
-    if(m_status != Status::InProgress)
-    {
+    if (m_status != Status::InProgress) {
         m_status = Status::InProgress;
         m_loadTask = new JavaListLoadTask(this);
         m_loadTask->start();
@@ -93,7 +91,7 @@ int JavaInstallList::count() const
     return m_vlist.count();
 }
 
-QVariant JavaInstallList::data(const QModelIndex &index, int role) const
+QVariant JavaInstallList::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid())
         return QVariant();
@@ -102,8 +100,7 @@ QVariant JavaInstallList::data(const QModelIndex &index, int role) const
         return QVariant();
 
     auto version = std::dynamic_pointer_cast<JavaInstall>(m_vlist[index.row()]);
-    switch (role)
-    {
+    switch (role) {
         case VersionPointerRole:
             return QVariant::fromValue(m_vlist[index.row()]);
         case VersionIdRole:
@@ -123,17 +120,15 @@ QVariant JavaInstallList::data(const QModelIndex &index, int role) const
 
 BaseVersionList::RoleList JavaInstallList::providesRoles() const
 {
-    return {VersionPointerRole, VersionIdRole, VersionRole, RecommendedRole, PathRole, ArchitectureRole};
+    return { VersionPointerRole, VersionIdRole, VersionRole, RecommendedRole, PathRole, ArchitectureRole };
 }
-
 
 void JavaInstallList::updateListData(QList<BaseVersionPtr> versions)
 {
     beginResetModel();
     m_vlist = versions;
     sortVersions();
-    if(m_vlist.size())
-    {
+    if (m_vlist.size()) {
         auto best = std::dynamic_pointer_cast<JavaInstall>(m_vlist[0]);
         best->recommended = true;
     }
@@ -156,15 +151,13 @@ void JavaInstallList::sortVersions()
     endResetModel();
 }
 
-JavaListLoadTask::JavaListLoadTask(JavaInstallList *vlist) : Task()
+JavaListLoadTask::JavaListLoadTask(JavaInstallList* vlist) : Task()
 {
     m_list = vlist;
     m_currentRecommended = NULL;
 }
 
-JavaListLoadTask::~JavaListLoadTask()
-{
-}
+JavaListLoadTask::~JavaListLoadTask() {}
 
 void JavaListLoadTask::executeTask()
 {
@@ -182,8 +175,7 @@ void JavaListLoadTask::executeTask()
     QSet<QString> found;
     const auto canonical = APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool();
 
-    for(const QString &candidate : std::as_const(candidate_paths))
-    {
+    for (const QString& candidate : std::as_const(candidate_paths)) {
         const auto clean = canonical ? QDir(candidate).canonicalPath() : QDir::cleanPath(candidate);
         if (FS::ResolveExecutable(candidate).isEmpty() || found.contains(clean))
             continue;
@@ -208,10 +200,8 @@ void JavaListLoadTask::javaCheckerFinished()
     auto results = m_job->getResults();
 
     qDebug() << "Found the following valid Java installations:";
-    for(const JavaCheckResult &result : std::as_const(results))
-    {
-        if(result.validity == JavaCheckResult::Validity::Valid)
-        {
+    for (const JavaCheckResult& result : std::as_const(results)) {
+        if (result.validity == JavaCheckResult::Validity::Valid) {
             JavaInstallPtr javaVersion(new JavaInstall());
 
             javaVersion->id = result.javaVersion;
@@ -224,13 +214,11 @@ void JavaListLoadTask::javaCheckerFinished()
     }
 
     QList<BaseVersionPtr> javas_bvp;
-    for (const auto &java : candidates)
-    {
-        //qDebug() << java->id << java->arch << " at " << java->path;
+    for (const auto& java : candidates) {
+        // qDebug() << java->id << java->arch << " at " << java->path;
         BaseVersionPtr bp_java = std::dynamic_pointer_cast<BaseVersion>(java);
 
-        if (bp_java)
-        {
+        if (bp_java) {
             javas_bvp.append(java);
         }
     }

@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <QObject>
 #include <QAbstractListModel>
+#include <QObject>
 
 #include "BaseVersionList.h"
 #include "tasks/Task.h"
@@ -28,17 +28,12 @@
 
 class JavaListLoadTask;
 
-class JavaInstallList : public BaseVersionList
-{
+class JavaInstallList : public BaseVersionList {
     Q_OBJECT
-    enum class Status
-    {
-        NotDone,
-        InProgress,
-        Done
-    };
+    enum class Status { NotDone, InProgress, Done };
+
 public:
-    explicit JavaInstallList(QObject *parent = 0);
+    explicit JavaInstallList(QObject* parent = 0);
 
     Task::Ptr getLoadTask() override;
     bool isLoaded() override;
@@ -46,7 +41,7 @@ public:
     int count() const override;
     void sortVersions() override;
 
-    QVariant data(const QModelIndex &index, int role) const override;
+    QVariant data(const QModelIndex& index, int role) const override;
     RoleList providesRoles() const override;
 
 public slots:
@@ -63,12 +58,11 @@ protected:
     bool prevIgnoreSymlinks;
 };
 
-class JavaListLoadTask : public Task
-{
+class JavaListLoadTask : public Task {
     Q_OBJECT
 
 public:
-    explicit JavaListLoadTask(JavaInstallList *vlist);
+    explicit JavaListLoadTask(JavaInstallList* vlist);
     virtual ~JavaListLoadTask();
 
     void executeTask() override;
@@ -77,6 +71,6 @@ public slots:
 
 protected:
     shared_qobject_ptr<JavaCheckerJob> m_job;
-    JavaInstallList *m_list;
-    JavaInstall *m_currentRecommended;
+    JavaInstallList* m_list;
+    JavaInstall* m_currentRecommended;
 };

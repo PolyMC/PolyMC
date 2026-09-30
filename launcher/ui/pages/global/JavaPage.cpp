@@ -38,9 +38,9 @@
 #include "JavaCommon.h"
 #include "ui_JavaPage.h"
 
+#include <QDir>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QDir>
 #include <QTabBar>
 
 #include "ui/dialogs/VersionSelectDialog.h"
@@ -48,10 +48,10 @@
 #include "java/JavaUtils.h"
 
 #include <FileSystem.h>
-#include "Application.h"
 #include <sys.h>
+#include "Application.h"
 
-JavaPage::JavaPage(QWidget *parent) : QWidget(parent), ui(new Ui::JavaPage)
+JavaPage::JavaPage(QWidget* parent) : QWidget(parent), ui(new Ui::JavaPage)
 {
     ui->setupUi(this);
     ui->tabWidget->tabBar()->hide();
@@ -63,14 +63,11 @@ JavaPage::JavaPage(QWidget *parent) : QWidget(parent), ui(new Ui::JavaPage)
     // TODO(crueter): add warning theme icons.
     ui->lowMemWarnIcon->setPixmap(QMessageBox::standardIcon(QMessageBox::Warning).scaled(24, 24));
 
-    connect(ui->minMemSpinBox, &QSpinBox::editingFinished,
-            this, &JavaPage::normalizeMemory);
+    connect(ui->minMemSpinBox, &QSpinBox::editingFinished, this, &JavaPage::normalizeMemory);
 
-    connect(ui->maxMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
-            this, &JavaPage::updateMemoryWarning);
+    connect(ui->maxMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &JavaPage::updateMemoryWarning);
 
-    connect(ui->maxMemSpinBox, &QSpinBox::editingFinished,
-            this, &JavaPage::normalizeMemory);
+    connect(ui->maxMemSpinBox, &QSpinBox::editingFinished, this, &JavaPage::normalizeMemory);
 
     updateMemoryWarning();
 
@@ -95,13 +92,10 @@ void JavaPage::applySettings()
     // Memory
     int min = ui->minMemSpinBox->value();
     int max = ui->maxMemSpinBox->value();
-    if(min < max)
-    {
+    if (min < max) {
         s->set("MinMemAlloc", min);
         s->set("MaxMemAlloc", max);
-    }
-    else
-    {
+    } else {
         s->set("MinMemAlloc", max);
         s->set("MaxMemAlloc", min);
     }
@@ -120,13 +114,10 @@ void JavaPage::loadSettings()
     // Memory
     int min = s->get("MinMemAlloc").toInt();
     int max = s->get("MaxMemAlloc").toInt();
-    if(min < max)
-    {
+    if (min < max) {
         ui->minMemSpinBox->setValue(min);
         ui->maxMemSpinBox->setValue(max);
-    }
-    else
-    {
+    } else {
         ui->minMemSpinBox->setValue(max);
         ui->maxMemSpinBox->setValue(min);
     }
@@ -139,19 +130,20 @@ void JavaPage::loadSettings()
     ui->skipJavaWizardCheckbox->setChecked(s->get("IgnoreJavaWizard").toBool());
 }
 
-void JavaPage::updateMemoryWarning() {
+void JavaPage::updateMemoryWarning()
+{
     int maxMem = ui->maxMemSpinBox->value();
 
     if (maxMem < 1024) {
-        ui->lowMemWarnLabel->setText(
-            tr("Allocating less than 1024 MiB may cause performance issues on newer versions! Use with caution."));
+        ui->lowMemWarnLabel->setText(tr("Allocating less than 1024 MiB may cause performance issues on newer versions! Use with caution."));
         ui->lowMemWarnWidget->show();
     } else {
         ui->lowMemWarnWidget->hide();
     }
 }
 
-void JavaPage::normalizeMemory() {
+void JavaPage::normalizeMemory()
+{
     int minMem = ui->minMemSpinBox->value();
     int maxMem = ui->maxMemSpinBox->value();
 
@@ -172,8 +164,7 @@ void JavaPage::on_javaDetectBtn_clicked()
     vselect.setResizeOn(2);
     vselect.exec();
 
-    if (vselect.result() == QDialog::Accepted && vselect.selectedVersion())
-    {
+    if (vselect.result() == QDialog::Accepted && vselect.selectedVersion()) {
         java = std::dynamic_pointer_cast<JavaInstall>(vselect.selectedVersion());
         ui->javaPathTextBox->setText(java->path);
     }
@@ -184,15 +175,14 @@ void JavaPage::on_javaBrowseBtn_clicked()
     QString raw_path = QFileDialog::getOpenFileName(this, tr("Find Java executable"));
 
     // do not allow current dir - it's dirty. Do not allow dirs that don't exist
-    if(raw_path.isEmpty())
-    {
+    if (raw_path.isEmpty()) {
         return;
     }
 
     QString cooked_path = FS::NormalizePath(raw_path);
-    QFileInfo javaInfo(cooked_path);;
-    if(!javaInfo.exists() || !javaInfo.isExecutable())
-    {
+    QFileInfo javaInfo(cooked_path);
+    ;
+    if (!javaInfo.exists() || !javaInfo.isExecutable()) {
         return;
     }
     ui->javaPathTextBox->setText(cooked_path);
@@ -200,13 +190,11 @@ void JavaPage::on_javaBrowseBtn_clicked()
 
 void JavaPage::on_javaTestBtn_clicked()
 {
-    if(checker)
-    {
+    if (checker) {
         return;
     }
-    checker.reset(new JavaCommon::TestCheck(
-        this, ui->javaPathTextBox->text(), ui->jvmArgsTextBox->toPlainText().replace("\n", " "),
-        ui->minMemSpinBox->value(), ui->maxMemSpinBox->value(), ui->permGenSpinBox->value()));
+    checker.reset(new JavaCommon::TestCheck(this, ui->javaPathTextBox->text(), ui->jvmArgsTextBox->toPlainText().replace("\n", " "),
+                                            ui->minMemSpinBox->value(), ui->maxMemSpinBox->value(), ui->permGenSpinBox->value()));
     connect(checker.get(), SIGNAL(finished()), SLOT(checkerFinished()));
     checker->run();
 }

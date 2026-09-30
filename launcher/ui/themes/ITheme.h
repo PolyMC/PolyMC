@@ -1,11 +1,10 @@
 #pragma once
-#include <QString>
 #include <QPalette>
+#include <QString>
 
 class QStyle;
 
-class ITheme
-{
+class ITheme {
 public:
     virtual ~ITheme() {}
     virtual void apply(bool initial);
@@ -18,10 +17,7 @@ public:
     virtual QPalette colorScheme() = 0;
     virtual QColor fadeColor() = 0;
     virtual double fadeAmount() = 0;
-    virtual QStringList searchPaths()
-    {
-        return {};
-    }
+    virtual QStringList searchPaths() { return {}; }
 
     static QPalette fadeInactive(QPalette in, qreal bias, QColor color);
 };

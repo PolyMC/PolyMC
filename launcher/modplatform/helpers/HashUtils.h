@@ -8,7 +8,7 @@
 namespace Hashing {
 
 class Hasher : public Task {
-   public:
+public:
     using Ptr = shared_qobject_ptr<Hasher>;
 
     Hasher(QString file_path) : m_path(std::move(file_path)) {}
@@ -21,20 +21,20 @@ class Hasher : public Task {
     QString getResult() const { return m_hash; };
     QString getPath() const { return m_path; };
 
-   protected:
+protected:
     QString m_hash;
     QString m_path;
 };
 
 class FlameHasher : public Hasher {
-   public:
+public:
     FlameHasher(QString file_path) : Hasher(file_path) { setObjectName(QString("FlameHasher: %1").arg(file_path)); }
 
     void executeTask() override;
 };
 
 class ModrinthHasher : public Hasher {
-   public:
+public:
     ModrinthHasher(QString file_path) : Hasher(file_path) { setObjectName(QString("ModrinthHasher: %1").arg(file_path)); }
 
     void executeTask() override;

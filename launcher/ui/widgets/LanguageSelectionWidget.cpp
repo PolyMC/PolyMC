@@ -1,16 +1,15 @@
 #include "LanguageSelectionWidget.h"
 
-#include <QVBoxLayout>
-#include <QTreeView>
 #include <QHeaderView>
 #include <QLabel>
+#include <QTreeView>
+#include <QVBoxLayout>
 #include "Application.h"
 #include "BuildConfig.h"
-#include "translations/TranslationsModel.h"
 #include "settings/Setting.h"
+#include "translations/TranslationsModel.h"
 
-LanguageSelectionWidget::LanguageSelectionWidget(QWidget *parent) :
-    QWidget(parent)
+LanguageSelectionWidget::LanguageSelectionWidget(QWidget* parent) : QWidget(parent)
 {
     verticalLayout = new QVBoxLayout(this);
     verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
@@ -38,7 +37,7 @@ LanguageSelectionWidget::LanguageSelectionWidget(QWidget *parent) :
     languageView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     languageView->header()->setSectionResizeMode(0, QHeaderView::Stretch);
     connect(languageView->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &LanguageSelectionWidget::languageRowChanged);
-    verticalLayout->setContentsMargins(0,0,0,0);
+    verticalLayout->setContentsMargins(0, 0, 0, 0);
 
     auto language_setting = APPLICATION->settings()->getSetting("Language");
     connect(language_setting.get(), &Setting::SettingChanged, this, &LanguageSelectionWidget::languageSettingChanged);
@@ -53,15 +52,13 @@ QString LanguageSelectionWidget::getSelectedLanguageKey() const
 void LanguageSelectionWidget::retranslate()
 {
     QString text = tr("Don't see your language or the quality is poor?<br/><a href=\"%1\">Help us with translations!</a>")
-        .arg(BuildConfig.TRANSLATIONS_URL);
+                       .arg(BuildConfig.TRANSLATIONS_URL);
     helpUsLabel->setText(text);
-
 }
 
 void LanguageSelectionWidget::languageRowChanged(const QModelIndex& current, const QModelIndex& previous)
 {
-    if (current == previous)
-    {
+    if (current == previous) {
         return;
     }
     auto translations = APPLICATION->translations();
@@ -70,7 +67,7 @@ void LanguageSelectionWidget::languageRowChanged(const QModelIndex& current, con
     translations->updateLanguage(key);
 }
 
-void LanguageSelectionWidget::languageSettingChanged(const Setting &, const QVariant)
+void LanguageSelectionWidget::languageSettingChanged(const Setting&, const QVariant)
 {
     auto translations = APPLICATION->translations();
     auto index = translations->selectedIndex();

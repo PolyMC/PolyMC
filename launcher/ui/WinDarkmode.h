@@ -1,20 +1,13 @@
 #pragma once
 
-#include <windows.h>
 #include <dwmapi.h>
-
+#include <windows.h>
 
 namespace WinDarkmode {
 
 void setWindowDarkModeEnabled(HWND hWnd, bool Enabled);
 
-enum PreferredAppMode {
-    AppMode_Default,
-    AppMode_AllowDark,
-    AppMode_ForceDark,
-    AppMode_ForceLight,
-    AppMode_Max
-};
+enum PreferredAppMode { AppMode_Default, AppMode_AllowDark, AppMode_ForceDark, AppMode_ForceLight, AppMode_Max };
 
 enum WINDOWCOMPOSITIONATTRIB {
     WCA_UNDEFINED = 0,
@@ -53,8 +46,8 @@ struct WINDOWCOMPOSITIONATTRIBDATA {
     SIZE_T cbData;
 };
 
-using fnAllowDarkModeForWindow =  BOOL (WINAPI *)(HWND hWnd, BOOL allow);
-using fnSetPreferredAppMode = PreferredAppMode (WINAPI *)(PreferredAppMode appMode);
-using fnSetWindowCompositionAttribute =  BOOL (WINAPI *)(HWND hwnd, WINDOWCOMPOSITIONATTRIBDATA *);
+using fnAllowDarkModeForWindow = BOOL(WINAPI*)(HWND hWnd, BOOL allow);
+using fnSetPreferredAppMode = PreferredAppMode(WINAPI*)(PreferredAppMode appMode);
+using fnSetWindowCompositionAttribute = BOOL(WINAPI*)(HWND hwnd, WINDOWCOMPOSITIONATTRIBDATA*);
 
-}
+}  // namespace WinDarkmode

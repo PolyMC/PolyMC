@@ -17,18 +17,14 @@
  */
 
 #include "FetchFlameAPIKey.h"
-#include "Application.h"
 #include <BuildConfig.h>
 #include <Json.h>
+#include "Application.h"
 
-#include <ui/dialogs/ProgressDialog.h>
 #include <ui/dialogs/CustomMessageBox.h>
+#include <ui/dialogs/ProgressDialog.h>
 
-FetchFlameAPIKey::FetchFlameAPIKey(QObject *parent)
-    : Task{parent}
-{
-
-}
+FetchFlameAPIKey::FetchFlameAPIKey(QObject* parent) : Task{ parent } {}
 
 void FetchFlameAPIKey::executeTask()
 {
@@ -42,8 +38,7 @@ void FetchFlameAPIKey::executeTask()
 #else
             qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
 #endif
-            this,
-            [this] (QNetworkReply::NetworkError error) {
+            this, [this](QNetworkReply::NetworkError error) {
                 qCritical() << "Network error: " << error;
                 emitFailed(m_reply->errorString());
             });
@@ -63,18 +58,13 @@ void FetchFlameAPIKey::downloadFinished()
 
         auto success = Json::requireBoolean(obj, "ok");
 
-        if (success)
-        {
+        if (success) {
             m_result = Json::requireString(obj, "token");
             emitSucceeded();
-        }
-        else
-        {
+        } else {
             emitFailed("The API returned an output indicating failure.");
         }
-    }
-    catch (Json::JsonException&)
-    {
+    } catch (Json::JsonException&) {
         qCritical() << "Output: " << res;
         emitFailed("The API returned an unexpected JSON output.");
     }

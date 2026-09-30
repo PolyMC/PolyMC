@@ -5,11 +5,11 @@
 
 class InstanceCreationTask : public InstanceTask {
     Q_OBJECT
-   public:
+public:
     InstanceCreationTask();
     virtual ~InstanceCreationTask() = default;
 
-   protected:
+protected:
     void executeTask() final override;
 
     /**
@@ -33,14 +33,14 @@ class InstanceCreationTask : public InstanceTask {
 
     QString getError() const { return m_error_message; }
 
-   protected:
+protected:
     void setError(QString message) { m_error_message = message; };
 
-   protected:
+protected:
     bool m_abort = false;
 
     QStringList m_files_to_remove;
 
-   private:
+private:
     QString m_error_message;
 };

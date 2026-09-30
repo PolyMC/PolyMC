@@ -5,6 +5,6 @@
 class ShaderPackFolderModel : public ResourceFolderModel {
     Q_OBJECT
 
-   public:
+public:
     explicit ShaderPackFolderModel(const QString& dir) : ResourceFolderModel(QDir(dir)) {}
 };

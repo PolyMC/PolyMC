@@ -35,8 +35,8 @@
 
 #pragma once
 
-#include <QString>
 #include <QList>
+#include <QString>
 #include <list>
 
 #include "Version.h"
@@ -45,13 +45,13 @@
 namespace ModPlatform {
 class ListModel;
 struct IndexedPack;
-}
+}  // namespace ModPlatform
 
 class ModAPI {
-   protected:
+protected:
     using CallerType = ModPlatform::ListModel;
 
-   public:
+public:
     virtual ~ModAPI() = default;
 
     enum ResourceType {
@@ -86,7 +86,6 @@ class ModAPI {
     virtual auto getProject(QString addonId, QByteArray* response) const -> NetJob* = 0;
     virtual auto getProjects(QStringList addonIds, QByteArray* response) const -> NetJob* = 0;
 
-
     struct VersionSearchArgs {
         QString addonId;
         std::list<Version> mcVersions;
@@ -96,7 +95,8 @@ class ModAPI {
 
     virtual void getVersions(VersionSearchArgs&& args, std::function<void(QJsonDocument&, QString)> callback) const = 0;
 
-    static auto getModLoaderString(ModLoaderType type) -> const QString {
+    static auto getModLoaderString(ModLoaderType type) -> const QString
+    {
         switch (type) {
             case Unspecified:
                 break;
@@ -116,14 +116,14 @@ class ModAPI {
         return "";
     }
 
-   protected:
+protected:
     inline auto getGameVersionsString(std::list<Version> mcVersions) const -> QString
     {
         QString s;
-        for(auto& ver : mcVersions){
+        for (auto& ver : mcVersions) {
             s += QString("\"%1\",").arg(ver.toString());
         }
-        s.remove(s.length() - 1, 1); //remove last comma
+        s.remove(s.length() - 1, 1);  // remove last comma
         return s;
     }
 };

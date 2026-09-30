@@ -37,45 +37,27 @@
 
 #include <QMainWindow>
 
-#include "minecraft/MinecraftInstance.h"
-#include "ui/pages/BasePage.h"
 #include <Application.h>
 #include <LoggedProcess.h>
+#include "minecraft/MinecraftInstance.h"
+#include "ui/pages/BasePage.h"
 
 class WorldList;
-namespace Ui
-{
+namespace Ui {
 class WorldListPage;
 }
 
-class WorldListPage : public QMainWindow, public BasePage
-{
+class WorldListPage : public QMainWindow, public BasePage {
     Q_OBJECT
 
 public:
-    explicit WorldListPage(
-        BaseInstance *inst,
-        std::shared_ptr<WorldList> worlds,
-        QWidget *parent = 0
-    );
+    explicit WorldListPage(BaseInstance* inst, std::shared_ptr<WorldList> worlds, QWidget* parent = 0);
     virtual ~WorldListPage();
 
-    virtual QString displayName() const override
-    {
-        return tr("Worlds");
-    }
-    virtual QIcon icon() const override
-    {
-        return APPLICATION->getThemedIcon("worlds");
-    }
-    virtual QString id() const override
-    {
-        return "worlds";
-    }
-    virtual QString helpPage() const override
-    {
-        return "Worlds";
-    }
+    virtual QString displayName() const override { return tr("Worlds"); }
+    virtual QIcon icon() const override { return APPLICATION->getThemedIcon("worlds"); }
+    virtual QString id() const override { return "worlds"; }
+    virtual QString helpPage() const override { return "Worlds"; }
     virtual bool shouldDisplay() const override;
     void retranslate() override;
 
@@ -83,21 +65,21 @@ public:
     virtual void closedImpl() override;
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *ev) override;
-    bool worldListFilter(QKeyEvent *ev);
-    QMenu * createPopupMenu() override;
+    bool eventFilter(QObject* obj, QEvent* ev) override;
+    bool worldListFilter(QKeyEvent* ev);
+    QMenu* createPopupMenu() override;
 
 protected:
-    BaseInstance *m_inst;
+    BaseInstance* m_inst;
 
 private:
     QModelIndex getSelectedWorld();
     bool isWorldSafe(QModelIndex index);
-    bool worldSafetyNagQuestion(const QString &actionType);
+    bool worldSafetyNagQuestion(const QString& actionType);
     void mceditError();
 
 private:
-    Ui::WorldListPage *ui;
+    Ui::WorldListPage* ui;
     std::shared_ptr<WorldList> m_worlds;
     unique_qobject_ptr<LoggedProcess> m_mceditProcess;
     bool m_mceditStarting = false;
@@ -113,8 +95,8 @@ private slots:
     void on_actionView_Folder_triggered();
     void on_actionDatapacks_triggered();
     void on_actionReset_Icon_triggered();
-    void worldChanged(const QModelIndex &current, const QModelIndex &previous);
+    void worldChanged(const QModelIndex& current, const QModelIndex& previous);
     void mceditState(LoggedProcess::State state);
 
-    void ShowContextMenu(const QPoint &pos);
+    void ShowContextMenu(const QPoint& pos);
 };

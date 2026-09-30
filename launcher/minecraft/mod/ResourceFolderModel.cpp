@@ -181,7 +181,7 @@ bool ResourceFolderModel::deleteResources(const QModelIndexList& indexes)
     return true;
 }
 
-bool ResourceFolderModel::setResourceEnabled(const QModelIndexList &indexes, EnableAction action)
+bool ResourceFolderModel::setResourceEnabled(const QModelIndexList& indexes, EnableAction action)
 {
     if (!m_can_interact)
         return false;
@@ -238,15 +238,18 @@ bool ResourceFolderModel::update()
     connect(m_current_update_task.get(), &Task::succeeded, this, &ResourceFolderModel::onUpdateSucceeded,
             Qt::ConnectionType::QueuedConnection);
     connect(m_current_update_task.get(), &Task::failed, this, &ResourceFolderModel::onUpdateFailed, Qt::ConnectionType::QueuedConnection);
-    connect(m_current_update_task.get(), &Task::finished, this, [=] {
-        m_current_update_task.reset();
-        if (m_scheduled_update) {
-            m_scheduled_update = false;
-            update();
-        } else {
-            emit updateFinished();
-        }
-    }, Qt::ConnectionType::QueuedConnection);
+    connect(
+        m_current_update_task.get(), &Task::finished, this,
+        [=] {
+            m_current_update_task.reset();
+            if (m_scheduled_update) {
+                m_scheduled_update = false;
+                update();
+            } else {
+                emit updateFinished();
+            }
+        },
+        Qt::ConnectionType::QueuedConnection);
 
     QThreadPool::globalInstance()->start(m_current_update_task.get());
 
@@ -268,12 +271,9 @@ void ResourceFolderModel::resolveResource(Resource* res)
     res->setResolving(true, ticket);
     m_active_parse_tasks.insert(ticket, task);
 
-    connect(
-        task, &Task::succeeded, this, [=] { onParseSucceeded(ticket, res->internal_id()); }, Qt::ConnectionType::QueuedConnection);
-    connect(
-        task, &Task::failed, this, [=] { onParseFailed(ticket, res->internal_id()); }, Qt::ConnectionType::QueuedConnection);
-    connect(
-        task, &Task::finished, this, [=] { m_active_parse_tasks.remove(ticket); }, Qt::ConnectionType::QueuedConnection);
+    connect(task, &Task::succeeded, this, [=] { onParseSucceeded(ticket, res->internal_id()); }, Qt::ConnectionType::QueuedConnection);
+    connect(task, &Task::failed, this, [=] { onParseFailed(ticket, res->internal_id()); }, Qt::ConnectionType::QueuedConnection);
+    connect(task, &Task::finished, this, [=] { m_active_parse_tasks.remove(ticket); }, Qt::ConnectionType::QueuedConnection);
 
     QThreadPool::globalInstance()->start(task);
 }

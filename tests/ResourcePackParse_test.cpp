@@ -27,18 +27,20 @@
 class ResourcePackParseTest : public QObject {
     Q_OBJECT
 
-    private slots:
+private slots:
     void test_parseZIP()
     {
         QString source = QFINDTESTDATA("testdata/ResourcePackParse");
 
         QString zip_rp = FS::PathCombine(source, "test_resource_pack_idk.zip");
-        ResourcePack pack { QFileInfo(zip_rp) };
+        ResourcePack pack{ QFileInfo(zip_rp) };
 
         ResourcePackUtils::processZIP(pack);
 
         QVERIFY(pack.packFormat() == 3);
-        QVERIFY(pack.description() == "um dois, feijão com arroz, três quatro, feijão no prato, cinco seis, café inglês, sete oito, comer biscoito, nove dez comer pastéis!!");
+        QVERIFY(pack.description() ==
+                "um dois, feijão com arroz, três quatro, feijão no prato, cinco seis, café inglês, sete oito, comer biscoito, nove dez "
+                "comer pastéis!!");
     }
 
     void test_parseFolder()
@@ -46,7 +48,7 @@ class ResourcePackParseTest : public QObject {
         QString source = QFINDTESTDATA("testdata/ResourcePackParse");
 
         QString folder_rp = FS::PathCombine(source, "test_folder");
-        ResourcePack pack { QFileInfo(folder_rp) };
+        ResourcePack pack{ QFileInfo(folder_rp) };
 
         ResourcePackUtils::processFolder(pack);
 
@@ -59,7 +61,7 @@ class ResourcePackParseTest : public QObject {
         QString source = QFINDTESTDATA("testdata/ResourcePackParse");
 
         QString folder_rp = FS::PathCombine(source, "another_test_folder");
-        ResourcePack pack { QFileInfo(folder_rp) };
+        ResourcePack pack{ QFileInfo(folder_rp) };
 
         ResourcePackUtils::process(pack);
 

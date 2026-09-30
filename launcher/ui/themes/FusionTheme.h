@@ -2,8 +2,7 @@
 
 #include "ITheme.h"
 
-class FusionTheme: public ITheme
-{
+class FusionTheme : public ITheme {
 public:
     virtual ~FusionTheme() {}
 

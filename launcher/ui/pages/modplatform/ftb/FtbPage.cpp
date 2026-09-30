@@ -40,13 +40,12 @@
 
 #include <QKeyEvent>
 
-#include "ui/dialogs/NewInstanceDialog.h"
 #include "modplatform/ftb/FTBPackInstallTask.h"
+#include "ui/dialogs/NewInstanceDialog.h"
 
 #include "HoeDown.h"
 
-FtbPage::FtbPage(NewInstanceDialog* dialog, QWidget *parent)
-        : QWidget(parent), ui(new Ui::FtbPage), dialog(dialog)
+FtbPage::FtbPage(NewInstanceDialog* dialog, QWidget* parent) : QWidget(parent), ui(new Ui::FtbPage), dialog(dialog)
 {
     ui->setupUi(this);
 
@@ -63,8 +62,7 @@ FtbPage::FtbPage(NewInstanceDialog* dialog, QWidget *parent)
     ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->versionSelectionBox->view()->parentWidget()->setMaximumHeight(300);
 
-    for(int i = 0; i < filterModel->getAvailableSortings().size(); i++)
-    {
+    for (int i = 0; i < filterModel->getAvailableSortings().size(); i++) {
         ui->sortByBox->addItem(filterModel->getAvailableSortings().keys().at(i));
     }
     ui->sortByBox->setCurrentText(filterModel->translateCurrentSorting());
@@ -105,8 +103,7 @@ void FtbPage::retranslate()
 
 void FtbPage::openedImpl()
 {
-    if(!initialised)
-    {
+    if (!initialised) {
         listModel->request();
         initialised = true;
     }
@@ -116,27 +113,23 @@ void FtbPage::openedImpl()
 
 void FtbPage::suggestCurrent()
 {
-    if(!isOpened)
-    {
+    if (!isOpened) {
         return;
     }
 
-    if (selectedVersion.isEmpty())
-    {
+    if (selectedVersion.isEmpty()) {
         dialog->setSuggestedPack();
         return;
     }
 
     dialog->setSuggestedPack(selected.name, selectedVersion, new FTB::PackInstallTask(selected, selectedVersion, this));
-    for(auto art : selected.art) {
-        if(art.type == "square") {
+    for (auto art : selected.art) {
+        if (art.type == "square") {
             QString editedLogoName;
             editedLogoName = selected.name;
 
-            listModel->getLogo(selected.name, art.url, [this, editedLogoName](QString logo)
-            {
-                dialog->setSuggestedIconFromFile(logo + ".small", editedLogoName);
-            });
+            listModel->getLogo(selected.name, art.url,
+                               [this, editedLogoName](QString logo) { dialog->setSuggestedIconFromFile(logo + ".small", editedLogoName); });
         }
     }
 }
@@ -156,10 +149,8 @@ void FtbPage::onSelectionChanged(QModelIndex first, QModelIndex second)
 {
     ui->versionSelectionBox->clear();
 
-    if(!first.isValid())
-    {
-        if(isOpened)
-        {
+    if (!first.isValid()) {
+        if (isOpened) {
             dialog->setSuggestedPack();
         }
         return;
@@ -181,8 +172,7 @@ void FtbPage::onSelectionChanged(QModelIndex first, QModelIndex second)
 
 void FtbPage::onVersionSelectionChanged(QString data)
 {
-    if(data.isNull() || data.isEmpty())
-    {
+    if (data.isNull() || data.isEmpty()) {
         selectedVersion = "";
         return;
     }

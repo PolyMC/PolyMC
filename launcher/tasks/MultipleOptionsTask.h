@@ -7,11 +7,11 @@
  * */
 class MultipleOptionsTask : public SequentialTask {
     Q_OBJECT
-   public:
+public:
     explicit MultipleOptionsTask(QObject* parent = nullptr, const QString& task_name = "");
     ~MultipleOptionsTask() override = default;
 
-   private slots:
+private slots:
     void startNext() override;
     void updateState() override;
 };

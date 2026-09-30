@@ -107,8 +107,7 @@ void PackInstallTask::onManifestDownloadSucceeded()
     QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(m_response, &parse_error);
     if (parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from FTB at " << parse_error.offset
-                   << " reason: " << parse_error.errorString();
+        qWarning() << "Error while parsing JSON response from FTB at " << parse_error.offset << " reason: " << parse_error.errorString();
         qWarning() << m_response;
         return;
     }
@@ -205,10 +204,9 @@ void PackInstallTask::onResolveModsSucceeded()
         qDebug() << "Blocked files found, displaying file list";
 
         auto message_dialog = new BlockedModsDialog(m_parent, tr("Blocked files found"),
-                                                   tr("The following files are not available for download in third party launchers.<br/>"
-                                                      "You will need to manually download them and add them to the instance."),
-                                                   text,
-                                                   urls);
+                                                    tr("The following files are not available for download in third party launchers.<br/>"
+                                                       "You will need to manually download them and add them to the instance."),
+                                                    text, urls);
 
         if (message_dialog->exec() == QDialog::Accepted)
             downloadPack();

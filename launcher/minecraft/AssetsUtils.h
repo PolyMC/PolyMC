@@ -15,13 +15,12 @@
 
 #pragma once
 
-#include <QString>
 #include <QMap>
+#include <QString>
 #include "net/NetAction.h"
 #include "net/NetJob.h"
 
-struct AssetObject
-{
+struct AssetObject {
     QString getRelPath();
     QUrl getUrl();
     QString getLocalPath();
@@ -31,8 +30,7 @@ struct AssetObject
     qint64 size;
 };
 
-struct AssetsIndex
-{
+struct AssetsIndex {
     NetJob::Ptr getDownloadJob();
 
     QString id;
@@ -42,15 +40,14 @@ struct AssetsIndex
 };
 
 /// FIXME: this is absolutely horrendous. REDO!!!!
-namespace AssetsUtils
-{
+namespace AssetsUtils {
 /// Returns whether a host name or address belongs to the local machine or a local network.
-bool isLocalMetadataHost(const QString &host);
+bool isLocalMetadataHost(const QString& host);
 
-bool loadAssetsIndexJson(const QString &id, const QString &file, AssetsIndex& index);
+bool loadAssetsIndexJson(const QString& id, const QString& file, AssetsIndex& index);
 
-QDir getAssetsDir(const QString &assetsId, const QString &resourcesFolder);
+QDir getAssetsDir(const QString& assetsId, const QString& resourcesFolder);
 
 /// Reconstruct a virtual assets folder for the given assets ID and return the folder
 bool reconstructAssets(QString assetsId, QString resourcesFolder);
-}
+}  // namespace AssetsUtils

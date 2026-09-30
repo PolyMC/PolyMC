@@ -15,15 +15,14 @@
 
 #pragma once
 
-#include <memory>
-#include <QString>
 #include <QMetaType>
+#include <QString>
+#include <memory>
 
 /*!
  * An abstract base class for versions.
  */
-class BaseVersion
-{
+class BaseVersion {
 public:
     virtual ~BaseVersion() {}
     /*!
@@ -44,14 +43,8 @@ public:
      */
     virtual QString typeString() const = 0;
 
-    virtual bool operator<(BaseVersion &a)
-    {
-        return name() < a.name();
-    };
-    virtual bool operator>(BaseVersion &a)
-    {
-        return name() > a.name();
-    };
+    virtual bool operator<(BaseVersion& a) { return name() < a.name(); };
+    virtual bool operator>(BaseVersion& a) { return name() > a.name(); };
 };
 
 typedef std::shared_ptr<BaseVersion> BaseVersionPtr;

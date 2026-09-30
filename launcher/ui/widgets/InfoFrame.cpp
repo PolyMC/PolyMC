@@ -1,37 +1,37 @@
 // SPDX-License-Identifier: GPL-3.0-only
 /*
-*  PolyMC - Minecraft Launcher
-*  Copyright (c) 2022 flowln <flowlnlnln@gmail.com>
-*
-*  This program is free software: you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation, version 3.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*
-* This file incorporates work covered by the following copyright and
-* permission notice:
-*
-*      Copyright 2013-2021 MultiMC Contributors
-*
-*      Licensed under the Apache License, Version 2.0 (the "License");
-*      you may not use this file except in compliance with the License.
-*      You may obtain a copy of the License at
-*
-*          http://www.apache.org/licenses/LICENSE-2.0
-*
-*      Unless required by applicable law or agreed to in writing, software
-*      distributed under the License is distributed on an "AS IS" BASIS,
-*      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*      See the License for the specific language governing permissions and
-*      limitations under the License.
-*/
+ *  PolyMC - Minecraft Launcher
+ *  Copyright (c) 2022 flowln <flowlnlnln@gmail.com>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ *
+ *      Copyright 2013-2021 MultiMC Contributors
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
+ */
 
 #include <QMessageBox>
 
@@ -40,9 +40,7 @@
 
 #include "ui/dialogs/CustomMessageBox.h"
 
-InfoFrame::InfoFrame(QWidget *parent) :
-    QFrame(parent),
-    ui(new Ui::InfoFrame)
+InfoFrame::InfoFrame(QWidget* parent) : QFrame(parent), ui(new Ui::InfoFrame)
 {
     ui->setupUi(this);
     ui->descriptionLabel->setHidden(true);
@@ -57,8 +55,7 @@ InfoFrame::~InfoFrame()
 
 void InfoFrame::updateWithMod(Mod const& m)
 {
-    if (m.type() == ResourceType::FOLDER)
-    {
+    if (m.type() == ResourceType::FOLDER) {
         clear();
         return;
     }
@@ -79,12 +76,9 @@ void InfoFrame::updateWithMod(Mod const& m)
 
     setName(text);
 
-    if (m.description().isEmpty())
-    {
+    if (m.description().isEmpty()) {
         setDescription(QString());
-    }
-    else
-    {
+    } else {
         setDescription(m.description());
     }
 
@@ -97,7 +91,8 @@ void InfoFrame::updateWithResource(const Resource& resource)
     setImage();
 }
 
-QString InfoFrame::renderColorCodes(QString input) {
+QString InfoFrame::renderColorCodes(QString input)
+{
     // We have to manually set the colors for use.
     //
     // A color is set using §x, with x = a hex number from 0 to f.
@@ -108,16 +103,12 @@ QString InfoFrame::renderColorCodes(QString input) {
     // TODO: Wrap links inside <a> tags
 
     // https://minecraft.wiki/w/Formatting_codes#Color_codes
-    const QMap<QChar, QString> color_codes_map = {
-        {'0', "#000000"}, {'1', "#0000AA"}, {'2', "#00AA00"}, {'3', "#00AAAA"}, {'4', "#AA0000"},
-        {'5', "#AA00AA"}, {'6', "#FFAA00"}, {'7', "#AAAAAA"}, {'8', "#555555"}, {'9', "#5555FF"},
-        {'a', "#55FF55"}, {'b', "#55FFFF"}, {'c', "#FF5555"}, {'d', "#FF55FF"}, {'e', "#FFFF55"},
-        {'f', "#FFFFFF"}
-    };
+    const QMap<QChar, QString> color_codes_map = { { '0', "#000000" }, { '1', "#0000AA" }, { '2', "#00AA00" }, { '3', "#00AAAA" },
+                                                   { '4', "#AA0000" }, { '5', "#AA00AA" }, { '6', "#FFAA00" }, { '7', "#AAAAAA" },
+                                                   { '8', "#555555" }, { '9', "#5555FF" }, { 'a', "#55FF55" }, { 'b', "#55FFFF" },
+                                                   { 'c', "#FF5555" }, { 'd', "#FF55FF" }, { 'e', "#FFFF55" }, { 'f', "#FFFFFF" } };
     // https://minecraft.wiki/w/Formatting_codes#Formatting_codes
-    const QMap<QChar, QString> formatting_codes_map = {
-        {'l', "b"}, {'m', "s"}, {'n', "u"}, {'o', "i"}
-    };
+    const QMap<QChar, QString> formatting_codes_map = { { 'l', "b" }, { 'm', "s" }, { 'n', "u" }, { 'o', "i" } };
 
     QString html("<html>");
     QList<QString> tags{};
@@ -162,14 +153,14 @@ void InfoFrame::updateWithResourcePack(ResourcePack& resource_pack)
 {
     setName(renderColorCodes(resource_pack.name()));
     setDescription(renderColorCodes(resource_pack.description()));
-    setImage(resource_pack.image({64, 64}));
+    setImage(resource_pack.image({ 64, 64 }));
 }
 
 void InfoFrame::updateWithTexturePack(TexturePack& texture_pack)
 {
     setName(renderColorCodes(texture_pack.name()));
     setDescription(renderColorCodes(texture_pack.description()));
-    setImage(texture_pack.image({64, 64}));
+    setImage(texture_pack.image({ 64, 64 }));
 }
 
 void InfoFrame::clear()
@@ -181,24 +172,18 @@ void InfoFrame::clear()
 
 void InfoFrame::updateHiddenState()
 {
-    if(ui->descriptionLabel->isHidden() && ui->nameLabel->isHidden())
-    {
+    if (ui->descriptionLabel->isHidden() && ui->nameLabel->isHidden()) {
         setHidden(true);
-    }
-    else
-    {
+    } else {
         setHidden(false);
     }
 }
 
 void InfoFrame::setName(QString text)
 {
-    if(text.isEmpty())
-    {
+    if (text.isEmpty()) {
         ui->nameLabel->setHidden(true);
-    }
-    else
-    {
+    } else {
         ui->nameLabel->setText(text);
         ui->nameLabel->setHidden(false);
     }
@@ -207,14 +192,11 @@ void InfoFrame::setName(QString text)
 
 void InfoFrame::setDescription(QString text)
 {
-    if(text.isEmpty())
-    {
+    if (text.isEmpty()) {
         ui->descriptionLabel->setHidden(true);
         updateHiddenState();
         return;
-    }
-    else
-    {
+    } else {
         ui->descriptionLabel->setHidden(false);
         updateHiddenState();
     }
@@ -224,9 +206,8 @@ void InfoFrame::setDescription(QString text)
     QChar rem('\n');
     QString finaltext;
     finaltext.reserve(intermediatetext.size());
-    foreach(const QChar& c, intermediatetext)
-    {
-        if(c == rem && prev){
+    foreach (const QChar& c, intermediatetext) {
+        if (c == rem && prev) {
             continue;
         }
         prev = c == rem;
@@ -234,17 +215,14 @@ void InfoFrame::setDescription(QString text)
     }
     QString labeltext;
     labeltext.reserve(300);
-    if(finaltext.length() > 290)
-    {
+    if (finaltext.length() > 290) {
         ui->descriptionLabel->setOpenExternalLinks(false);
         ui->descriptionLabel->setTextFormat(Qt::TextFormat::RichText);
         m_description = text;
         // This allows injecting HTML here.
         labeltext.append("<html><body>" + finaltext.left(287) + "<a href=\"#mod_desc\">...</a></body></html>");
         QObject::connect(ui->descriptionLabel, &QLabel::linkActivated, this, &InfoFrame::descriptionEllipsisHandler);
-    }
-    else
-    {
+    } else {
         ui->descriptionLabel->setTextFormat(Qt::TextFormat::AutoText);
         labeltext.append(finaltext);
     }
@@ -263,14 +241,11 @@ void InfoFrame::setImage(QPixmap img)
 
 void InfoFrame::descriptionEllipsisHandler(QString link)
 {
-    if(!m_current_box)
-    {
+    if (!m_current_box) {
         m_current_box = CustomMessageBox::selectable(this, "", m_description);
         connect(m_current_box, &QMessageBox::finished, this, &InfoFrame::boxClosed);
         m_current_box->show();
-    }
-    else
-    {
+    } else {
         m_current_box->setText(m_description);
     }
 }

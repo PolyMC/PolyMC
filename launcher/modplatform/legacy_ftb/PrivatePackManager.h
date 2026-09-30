@@ -1,34 +1,24 @@
 #pragma once
 
+#include <QFile>
 #include <QSet>
 #include <QString>
-#include <QFile>
 
 namespace LegacyFTB {
 
-class PrivatePackManager
-{
+class PrivatePackManager {
 public:
-    ~PrivatePackManager()
-    {
-        save();
-    }
+    ~PrivatePackManager() { save(); }
     void load();
     void save() const;
-    bool empty() const
-    {
-        return currentPacks.empty();
-    }
-    const QSet<QString> &getCurrentPackCodes() const
-    {
-        return currentPacks;
-    }
-    void add(const QString &code)
+    bool empty() const { return currentPacks.empty(); }
+    const QSet<QString>& getCurrentPackCodes() const { return currentPacks; }
+    void add(const QString& code)
     {
         currentPacks.insert(code);
         dirty = true;
     }
-    void remove(const QString &code)
+    void remove(const QString& code)
     {
         currentPacks.remove(code);
         dirty = true;
@@ -40,4 +30,4 @@ private:
     mutable bool dirty = false;
 };
 
-}
+}  // namespace LegacyFTB

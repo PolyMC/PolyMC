@@ -1,19 +1,20 @@
 #include "WideBar.h"
-#include <QToolButton>
 #include <QMenu>
+#include <QToolButton>
 
-class ActionButton : public QToolButton
-{
+class ActionButton : public QToolButton {
     Q_OBJECT
 public:
-    ActionButton(QAction * action, QWidget * parent = 0) : QToolButton(parent), m_action(action) {
+    ActionButton(QAction* action, QWidget* parent = 0) : QToolButton(parent), m_action(action)
+    {
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         connect(action, &QAction::changed, this, &ActionButton::actionChanged);
         connect(this, &ActionButton::clicked, action, &QAction::trigger);
         actionChanged();
     };
 private slots:
-    void actionChanged() {
+    void actionChanged()
+    {
         setEnabled(m_action->isEnabled());
         setChecked(m_action->isChecked());
         setCheckable(m_action->isCheckable());
@@ -23,10 +24,10 @@ private slots:
         setHidden(!m_action->isVisible());
         setFocusPolicy(Qt::NoFocus);
     }
-private:
-    QAction * m_action;
-};
 
+private:
+    QAction* m_action;
+};
 
 WideBar::WideBar(const QString& title, QWidget* parent) : QToolBar(title, parent)
 {
@@ -41,20 +42,14 @@ WideBar::WideBar(QWidget* parent) : QToolBar(parent)
 }
 
 struct WideBar::BarEntry {
-    enum Type {
-        None,
-        Action,
-        Separator,
-        Spacer
-    } type = None;
-    QAction *qAction = nullptr;
-    QAction *wideAction = nullptr;
+    enum Type { None, Action, Separator, Spacer } type = None;
+    QAction* qAction = nullptr;
+    QAction* wideAction = nullptr;
 };
-
 
 WideBar::~WideBar()
 {
-    for(auto *iter: m_entries) {
+    for (auto* iter : m_entries) {
         delete iter;
     }
 }
@@ -78,16 +73,15 @@ void WideBar::addSeparator()
 
 auto WideBar::getMatching(QAction* act) -> QList<BarEntry*>::iterator
 {
-    auto iter = std::find_if(m_entries.begin(), m_entries.end(), [act](BarEntry * entry) {
-        return entry->wideAction == act;
-    });
-    
+    auto iter = std::find_if(m_entries.begin(), m_entries.end(), [act](BarEntry* entry) { return entry->wideAction == act; });
+
     return iter;
 }
 
-void WideBar::insertActionBefore(QAction* before, QAction* action){
+void WideBar::insertActionBefore(QAction* before, QAction* action)
+{
     auto iter = getMatching(before);
-    if(iter == m_entries.end())
+    if (iter == m_entries.end())
         return;
 
     auto entry = new BarEntry();
@@ -97,13 +91,14 @@ void WideBar::insertActionBefore(QAction* before, QAction* action){
     m_entries.insert(iter, entry);
 }
 
-void WideBar::insertActionAfter(QAction* after, QAction* action){
+void WideBar::insertActionAfter(QAction* after, QAction* action)
+{
     auto iter = getMatching(after);
-    if(iter == m_entries.end())
+    if (iter == m_entries.end())
         return;
 
     auto entry = new BarEntry();
-    entry->qAction = insertWidget((*(iter+1))->qAction, new ActionButton(action, this));
+    entry->qAction = insertWidget((*(iter + 1))->qAction, new ActionButton(action, this));
     entry->wideAction = action;
     entry->type = BarEntry::Action;
     m_entries.insert(iter + 1, entry);
@@ -112,7 +107,7 @@ void WideBar::insertActionAfter(QAction* after, QAction* action){
 void WideBar::insertSpacer(QAction* action)
 {
     auto iter = getMatching(action);
-    if(iter == m_entries.end())
+    if (iter == m_entries.end())
         return;
 
     QWidget* spacer = new QWidget();
@@ -127,7 +122,7 @@ void WideBar::insertSpacer(QAction* action)
 void WideBar::insertSeparator(QAction* before)
 {
     auto iter = getMatching(before);
-    if(iter == m_entries.end())
+    if (iter == m_entries.end())
         return;
 
     auto entry = new BarEntry();
@@ -136,11 +131,11 @@ void WideBar::insertSeparator(QAction* before)
     m_entries.insert(iter, entry);
 }
 
-QMenu * WideBar::createContextMenu(QWidget *parent, const QString & title)
+QMenu* WideBar::createContextMenu(QWidget* parent, const QString& title)
 {
-    QMenu *contextMenu = new QMenu(title, parent);
-    for(auto & item: m_entries) {
-        switch(item->type) {
+    QMenu* contextMenu = new QMenu(title, parent);
+    for (auto& item : m_entries) {
+        switch (item->type) {
             default:
             case BarEntry::None:
                 break;

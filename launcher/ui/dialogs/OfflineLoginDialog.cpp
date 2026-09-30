@@ -3,14 +3,14 @@
 
 #include "minecraft/auth/AccountTask.h"
 
-#include <QtWidgets/QPushButton>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 #include <QString>
+#include <QtWidgets/QPushButton>
 
 bool regexDisabled;
 
-OfflineLoginDialog::OfflineLoginDialog(QWidget *parent) : QDialog(parent), ui(new Ui::OfflineLoginDialog)
+OfflineLoginDialog::OfflineLoginDialog(QWidget* parent) : QDialog(parent), ui(new Ui::OfflineLoginDialog)
 {
     ui->setupUi(this);
     ui->progressBar->setVisible(false);
@@ -52,7 +52,7 @@ void OfflineLoginDialog::setUserInputsEnabled(bool enable)
 
 void OfflineLoginDialog::on_ignoreUsernameGuidelines_stateChanged(int value)
 {
-    regexDisabled = (bool) value;
+    regexDisabled = (bool)value;
 
     if (value == Qt::Checked) {
         ui->userTextBox->setMaxLength(INT_MAX);
@@ -64,23 +64,22 @@ void OfflineLoginDialog::on_ignoreUsernameGuidelines_stateChanged(int value)
 }
 
 // Enable the OK button only when the textbox contains something.
-void OfflineLoginDialog::on_userTextBox_textEdited(const QString &newText)
+void OfflineLoginDialog::on_userTextBox_textEdited(const QString& newText)
 {
-    bool expr = !regexDisabled ? regex.match(newText).hasMatch(): true;
+    bool expr = !regexDisabled ? regex.match(newText).hasMatch() : true;
 
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!newText.isEmpty() && expr);
 }
 
-void OfflineLoginDialog::onTaskFailed(const QString &reason)
+void OfflineLoginDialog::onTaskFailed(const QString& reason)
 {
     // Set message
     auto lines = reason.split('\n');
     QString processed;
-    for(auto line: lines) {
-        if(line.size()) {
+    for (auto line : lines) {
+        if (line.size()) {
             processed += "<font color='red'>" + line + "</font><br />";
-        }
-        else {
+        } else {
             processed += "<br />";
         }
     }
@@ -96,7 +95,7 @@ void OfflineLoginDialog::onTaskSucceeded()
     QDialog::accept();
 }
 
-void OfflineLoginDialog::onTaskStatus(const QString &status)
+void OfflineLoginDialog::onTaskStatus(const QString& status)
 {
     ui->label->setText(status);
 }
@@ -108,12 +107,11 @@ void OfflineLoginDialog::onTaskProgress(qint64 current, qint64 total)
 }
 
 // Public interface
-MinecraftAccountPtr OfflineLoginDialog::newAccount(QWidget *parent, QString msg)
+MinecraftAccountPtr OfflineLoginDialog::newAccount(QWidget* parent, QString msg)
 {
     OfflineLoginDialog dlg(parent);
     dlg.ui->label->setText(msg);
-    if (dlg.exec() == QDialog::Accepted)
-    {
+    if (dlg.exec() == QDialog::Accepted) {
         return dlg.m_account;
     }
     return nullptr;

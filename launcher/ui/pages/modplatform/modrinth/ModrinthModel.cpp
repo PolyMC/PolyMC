@@ -114,7 +114,7 @@ auto ModpackListModel::data(const QModelIndex& index, int role) const -> QVarian
     return {};
 }
 
-bool ModpackListModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool ModpackListModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
     int pos = index.row();
     if (pos >= modpacks.size() || pos < 0 || !index.isValid())
@@ -130,12 +130,12 @@ void ModpackListModel::performPaginatedSearch()
     // TODO: Move to standalone API
     NetJob* netJob = new NetJob("Modrinth::SearchModpack", APPLICATION->network());
     auto searchAllUrl = QString(BuildConfig.MODRINTH_PROD_URL +
-                            "/search?"
-                            "offset=%1&"
-                            "limit=%2&"
-                            "query=%3&"
-                            "index=%4&"
-                            "facets=[[\"project_type:modpack\"]]")
+                                "/search?"
+                                "offset=%1&"
+                                "limit=%2&"
+                                "query=%3&"
+                                "index=%4&"
+                                "facets=[[\"project_type:modpack\"]]")
                             .arg(nextSearchOffset)
                             .arg(m_modpacks_per_page)
                             .arg(currentSearchTerm)
@@ -180,21 +180,21 @@ void ModpackListModel::refresh()
 
 static QString sortFromIndex(int index, bool& unhandled)
 {
-    switch(index){
-    case 0:
-        return "relevance";
-    case 1:
-        return "downloads";
-    case 2:
-        return "follows";
-    case 3:
-        return "newest";
-    case 4:
-        return "updated";
-    default:
-        unhandled = true;
-        qWarning() << QString("Unhandled case in sortFromIndex (%i)").arg(QString::number(index));
-        break;
+    switch (index) {
+        case 0:
+            return "relevance";
+        case 1:
+            return "downloads";
+        case 2:
+            return "follows";
+        case 3:
+            return "newest";
+        case 4:
+            return "updated";
+        default:
+            unhandled = true;
+            qWarning() << QString("Unhandled case in sortFromIndex (%i)").arg(QString::number(index));
+            break;
     }
 
     return {};
@@ -220,9 +220,7 @@ void ModpackListModel::searchWithTerm(const QString& term, const int sort)
 void ModpackListModel::getLogo(const QString& logo, const QString& logoUrl, LogoCallback callback)
 {
     if (m_logoMap.contains(logo)) {
-        callback(APPLICATION->metacache()
-                     ->resolveEntry("ModrinthPacks", QString("logos/%1").arg(logo.section(".", 0, 0)))
-                     ->getFullPath());
+        callback(APPLICATION->metacache()->resolveEntry("ModrinthPacks", QString("logos/%1").arg(logo.section(".", 0, 0)))->getFullPath());
     } else {
         requestLogo(logo, logoUrl);
     }
@@ -234,8 +232,7 @@ void ModpackListModel::requestLogo(QString logo, QString url)
         return;
     }
 
-    MetaEntryPtr entry =
-        APPLICATION->metacache()->resolveEntry("ModrinthPacks", QString("logos/%1").arg(logo.section(".", 0, 0)));
+    MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry("ModrinthPacks", QString("logos/%1").arg(logo.section(".", 0, 0)));
     auto job = new NetJob(QString("%1 Icon Download %2").arg(m_parent->debugName()).arg(logo), APPLICATION->network());
     job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
 

@@ -99,7 +99,6 @@ bool Resource::enable(EnableAction action)
     if (m_type == ResourceType::UNKNOWN || m_type == ResourceType::FOLDER)
         return false;
 
-
     QString path = m_file_info.absoluteFilePath();
     QFile file(path);
 

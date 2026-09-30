@@ -1,31 +1,26 @@
 #include "CustomTheme.h"
-#include <QDir>
-#include <Json.h>
 #include <FileSystem.h>
+#include <Json.h>
+#include <QDir>
 
-const char * themeFile = "theme.json";
-const char * styleFile = "themeStyle.css";
+const char* themeFile = "theme.json";
+const char* styleFile = "themeStyle.css";
 
-static bool readThemeJson(const QString &path, QPalette &palette, double &fadeAmount, QColor &fadeColor, QString &name, QString &widgets)
+static bool readThemeJson(const QString& path, QPalette& palette, double& fadeAmount, QColor& fadeColor, QString& name, QString& widgets)
 {
     QFileInfo pathInfo(path);
-    if(pathInfo.exists() && pathInfo.isFile())
-    {
-        try
-        {
+    if (pathInfo.exists() && pathInfo.isFile()) {
+        try {
             auto doc = Json::requireDocument(path, "Theme JSON file");
             const QJsonObject root = doc.object();
             name = Json::requireString(root, "name", "Theme name");
             widgets = Json::requireString(root, "widgets", "Qt widget theme");
             auto colorsRoot = Json::requireObject(root, "colors", "colors object");
-            auto readColor = [&](QString colorName) -> QColor
-            {
+            auto readColor = [&](QString colorName) -> QColor {
                 auto colorValue = Json::ensureString(colorsRoot, colorName, QString());
-                if(!colorValue.isEmpty())
-                {
+                if (!colorValue.isEmpty()) {
                     QColor color(colorValue);
-                    if(!color.isValid())
-                    {
+                    if (!color.isValid()) {
                         qWarning() << "Color value" << colorValue << "for" << colorName << "was not recognized.";
                         return QColor();
                     }
@@ -33,15 +28,11 @@ static bool readThemeJson(const QString &path, QPalette &palette, double &fadeAm
                 }
                 return QColor();
             };
-            auto readAndSetColor = [&](QPalette::ColorRole role, QString colorName)
-            {
+            auto readAndSetColor = [&](QPalette::ColorRole role, QString colorName) {
                 auto color = readColor(colorName);
-                if(color.isValid())
-                {
+                if (color.isValid()) {
                     palette.setColor(role, color);
-                }
-                else
-                {
+                } else {
                     qDebug() << "Color value for" << colorName << "was not present.";
                 }
             };
@@ -61,36 +52,29 @@ static bool readThemeJson(const QString &path, QPalette &palette, double &fadeAm
             readAndSetColor(QPalette::Highlight, "Highlight");
             readAndSetColor(QPalette::HighlightedText, "HighlightedText");
 
-            //fade
+            // fade
             fadeColor = readColor("fadeColor");
             fadeAmount = Json::ensureDouble(colorsRoot, "fadeAmount", 0.5, "fade amount");
 
-        }
-        catch (const Exception &e)
-        {
+        } catch (const Exception& e) {
             qWarning() << "Couldn't load theme json: " << e.cause();
             return false;
         }
-    }
-    else
-    {
+    } else {
         qDebug() << "No theme json present.";
         return false;
     }
     return true;
 }
 
-static bool writeThemeJson(const QString &path, const QPalette &palette, double fadeAmount, QColor fadeColor, QString name, QString widgets)
+static bool writeThemeJson(const QString& path, const QPalette& palette, double fadeAmount, QColor fadeColor, QString name, QString widgets)
 {
     QJsonObject rootObj;
     rootObj.insert("name", name);
     rootObj.insert("widgets", widgets);
 
     QJsonObject colorsObj;
-    auto insertColor = [&](QPalette::ColorRole role, QString colorName)
-    {
-        colorsObj.insert(colorName, palette.color(role).name());
-    };
+    auto insertColor = [&](QPalette::ColorRole role, QString colorName) { colorsObj.insert(colorName, palette.color(role).name()); };
 
     // palette
     insertColor(QPalette::Window, "Window");
@@ -112,13 +96,10 @@ static bool writeThemeJson(const QString &path, const QPalette &palette, double 
     colorsObj.insert("fadeAmount", fadeAmount);
 
     rootObj.insert("colors", colorsObj);
-    try
-    {
+    try {
         Json::write(rootObj, path);
         return true;
-    }
-    catch (const Exception &e)
-    {
+    } catch (const Exception& e) {
         qWarning() << "Failed to write theme json to" << path;
         return false;
     }
@@ -132,8 +113,7 @@ CustomTheme::CustomTheme(ITheme* baseTheme, QString folder)
 
     qDebug() << "Loading theme" << m_id;
 
-    if(!FS::ensureFolderPathExists(path) || !FS::ensureFolderPathExists(pathResources))
-    {
+    if (!FS::ensureFolderPathExists(path) || !FS::ensureFolderPathExists(pathResources)) {
         qWarning() << "couldn't create folder for theme!";
         m_palette = baseTheme->colorScheme();
         m_styleSheet = baseTheme->appStyleSheet();
@@ -143,8 +123,7 @@ CustomTheme::CustomTheme(ITheme* baseTheme, QString folder)
     auto themeFilePath = FS::PathCombine(path, themeFile);
 
     m_palette = baseTheme->colorScheme();
-    if (!readThemeJson(themeFilePath, m_palette, m_fadeAmount, m_fadeColor, m_name, m_widgets))
-    {
+    if (!readThemeJson(themeFilePath, m_palette, m_fadeAmount, m_fadeColor, m_name, m_widgets)) {
         m_name = "Custom";
         m_palette = baseTheme->colorScheme();
         m_fadeColor = baseTheme->fadeColor();
@@ -152,41 +131,29 @@ CustomTheme::CustomTheme(ITheme* baseTheme, QString folder)
         m_widgets = baseTheme->qtTheme();
 
         QFileInfo info(themeFilePath);
-        if(!info.exists())
-        {
+        if (!info.exists()) {
             writeThemeJson(themeFilePath, m_palette, m_fadeAmount, m_fadeColor, "Custom", m_widgets);
         }
-    }
-    else
-    {
+    } else {
         m_palette = fadeInactive(m_palette, m_fadeAmount, m_fadeColor);
     }
 
     auto cssFilePath = FS::PathCombine(path, styleFile);
-    QFileInfo info (cssFilePath);
-    if(info.isFile())
-    {
-        try
-        {
+    QFileInfo info(cssFilePath);
+    if (info.isFile()) {
+        try {
             // TODO: validate css?
             m_styleSheet = QString::fromUtf8(FS::read(cssFilePath));
-        }
-        catch (const Exception &e)
-        {
+        } catch (const Exception& e) {
             qWarning() << "Couldn't load css:" << e.cause() << "from" << cssFilePath;
             m_styleSheet = baseTheme->appStyleSheet();
         }
-    }
-    else
-    {
+    } else {
         qDebug() << "No theme css present.";
         m_styleSheet = baseTheme->appStyleSheet();
-        try
-        {
+        try {
             FS::write(cssFilePath, m_styleSheet.toUtf8());
-        }
-        catch (const Exception &e)
-        {
+        } catch (const Exception& e) {
             qWarning() << "Couldn't write css:" << e.cause() << "to" << cssFilePath;
         }
     }
@@ -196,7 +163,6 @@ QStringList CustomTheme::searchPaths()
 {
     return { FS::PathCombine("themes", m_id, "resources") };
 }
-
 
 QString CustomTheme::id()
 {

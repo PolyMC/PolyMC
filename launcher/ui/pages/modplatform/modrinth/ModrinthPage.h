@@ -55,7 +55,7 @@ class ModpackListModel;
 class ModrinthPage : public QWidget, public BasePage {
     Q_OBJECT
 
-   public:
+public:
     explicit ModrinthPage(NewInstanceDialog* dialog, QWidget* parent = nullptr);
     ~ModrinthPage() override;
 
@@ -76,12 +76,12 @@ class ModrinthPage : public QWidget, public BasePage {
     void openedImpl() override;
     bool eventFilter(QObject* watched, QEvent* event) override;
 
-   private slots:
+private slots:
     void onSelectionChanged(QModelIndex first, QModelIndex second);
     void onVersionSelectionChanged(QString data);
     void triggerSearch();
 
-   private:
+private:
     Ui::ModrinthPage* ui;
     NewInstanceDialog* dialog;
     Modrinth::ModpackListModel* m_model;

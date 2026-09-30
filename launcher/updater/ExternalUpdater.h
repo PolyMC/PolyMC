@@ -31,8 +31,7 @@
  * The initializer of the new class should have the side effect of starting the automatic updater. That is,
  * once the class is initialized, the program should automatically check for updates if necessary.
  */
-class ExternalUpdater : public QObject
-{
+class ExternalUpdater : public QObject {
     Q_OBJECT
 
 public:
@@ -84,4 +83,4 @@ signals:
     void canCheckForUpdatesChanged(bool canCheck);
 };
 
-#endif //LAUNCHER_EXTERNALUPDATER_H
+#endif  // LAUNCHER_EXTERNALUPDATER_H

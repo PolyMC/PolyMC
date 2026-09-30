@@ -8,12 +8,11 @@ namespace Ui {
 class PasteWizardPage;
 }
 
-class PasteWizardPage : public BaseWizardPage
-{
+class PasteWizardPage : public BaseWizardPage {
     Q_OBJECT
 
 public:
-    explicit PasteWizardPage(QWidget *parent = nullptr);
+    explicit PasteWizardPage(QWidget* parent = nullptr);
     ~PasteWizardPage();
 
     void initializePage() override;
@@ -21,7 +20,7 @@ public:
     void retranslate() override;
 
 private:
-    Ui::PasteWizardPage *ui;
+    Ui::PasteWizardPage* ui;
 };
 
-#endif // PASTEDEFAULTSCONFIRMATIONWIZARD_H
+#endif  // PASTEDEFAULTSCONFIRMATIONWIZARD_H

@@ -20,8 +20,7 @@
 
 namespace Ftb {
 
-class FilterModel : public QSortFilterProxyModel
-{
+class FilterModel : public QSortFilterProxyModel {
     Q_OBJECT
 
 public:
@@ -38,14 +37,13 @@ public:
     void setSearchTerm(const QString& term);
 
 protected:
-    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
-    bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
+    bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
+    bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
 
 private:
     QMap<QString, Sorting> sortings;
     Sorting currentSorting;
-    QString searchTerm { "" };
-
+    QString searchTerm{ "" };
 };
 
-}
+}  // namespace Ftb

@@ -30,7 +30,7 @@ class Version;
 
 class TexturePack : public Resource {
     Q_OBJECT
-   public:
+public:
     using Ptr = shared_qobject_ptr<Resource>;
 
     TexturePack(QObject* parent = nullptr) : Resource(parent) {}
@@ -48,7 +48,7 @@ class TexturePack : public Resource {
     /** Thread-safe. */
     void setImage(QImage new_image);
 
-   protected:
+protected:
     mutable QMutex m_data_lock;
 
     /** The texture pack's description, as defined in the pack.txt file.

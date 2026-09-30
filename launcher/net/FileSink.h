@@ -41,11 +41,11 @@
 
 namespace Net {
 class FileSink : public Sink {
-   public:
-    FileSink(QString filename) : m_filename(filename){};
+public:
+    FileSink(QString filename) : m_filename(filename) {};
     virtual ~FileSink() = default;
 
-   public:
+public:
     auto init(QNetworkRequest& request) -> Task::State override;
     auto write(QByteArray& data) -> Task::State override;
     auto abort() -> Task::State override;
@@ -53,11 +53,11 @@ class FileSink : public Sink {
 
     auto hasLocalData() -> bool override;
 
-   protected:
+protected:
     virtual auto initCache(QNetworkRequest&) -> Task::State;
     virtual auto finalizeCache(QNetworkReply& reply) -> Task::State;
 
-   protected:
+protected:
     QString m_filename;
     bool wroteAnyData = false;
     std::unique_ptr<QSaveFile> m_output_file;

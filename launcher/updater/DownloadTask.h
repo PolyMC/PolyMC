@@ -15,18 +15,16 @@
 
 #pragma once
 
-#include "tasks/Task.h"
-#include "net/NetJob.h"
 #include "GoUpdate.h"
+#include "net/NetJob.h"
+#include "tasks/Task.h"
 
-namespace GoUpdate
-{
+namespace GoUpdate {
 /*!
  * The DownloadTask is a task that takes a given version ID and repository URL,
  * downloads that version's files from the repository, and prepares to install them.
  */
-class DownloadTask : public Task
-{
+class DownloadTask : public Task {
     Q_OBJECT
 
 public:
@@ -96,5 +94,4 @@ private:
     shared_qobject_ptr<QNetworkAccessManager> m_network;
 };
 
-}
-
+}  // namespace GoUpdate

@@ -37,41 +37,27 @@
 
 #include <QWidget>
 
-#include "ui/pages/BasePage.h"
 #include <Application.h>
 #include <pathmatcher/IPathMatcher.h>
+#include "ui/pages/BasePage.h"
 
-namespace Ui
-{
+namespace Ui {
 class OtherLogsPage;
 }
 
 class RecursiveFileSystemWatcher;
 
-class OtherLogsPage : public QWidget, public BasePage
-{
+class OtherLogsPage : public QWidget, public BasePage {
     Q_OBJECT
 
 public:
-    explicit OtherLogsPage(QString path, IPathMatcher::Ptr fileFilter, QWidget *parent = 0);
+    explicit OtherLogsPage(QString path, IPathMatcher::Ptr fileFilter, QWidget* parent = 0);
     ~OtherLogsPage();
 
-    QString id() const override
-    {
-        return "logs";
-    }
-    QString displayName() const override
-    {
-        return tr("Other logs");
-    }
-    QIcon icon() const override
-    {
-        return APPLICATION->getThemedIcon("log");
-    }
-    QString helpPage() const override
-    {
-        return "Minecraft-Logs";
-    }
+    QString id() const override { return "logs"; }
+    QString displayName() const override { return tr("Other logs"); }
+    QIcon icon() const override { return APPLICATION->getThemedIcon("log"); }
+    QString helpPage() const override { return "Minecraft-Logs"; }
     void retranslate() override;
 
     void openedImpl() override;
@@ -95,9 +81,9 @@ private:
     void setControlsEnabled(const bool enabled);
 
 private:
-    Ui::OtherLogsPage *ui;
+    Ui::OtherLogsPage* ui;
     QString m_path;
     QString m_currentFile;
     IPathMatcher::Ptr m_fileFilter;
-    RecursiveFileSystemWatcher *m_watcher;
+    RecursiveFileSystemWatcher* m_watcher;
 };

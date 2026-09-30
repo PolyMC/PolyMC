@@ -35,46 +35,32 @@
 
 #pragma once
 
-#include <memory>
 #include <QDialog>
+#include <memory>
 
-#include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "ui/ColorCache.h"
 #include <translations/TranslationsModel.h>
+#include "ui/ColorCache.h"
+#include "ui/pages/BasePage.h"
 
 class QTextCharFormat;
 class SettingsObject;
 
-namespace Ui
-{
+namespace Ui {
 class LauncherPage;
 }
 
-class LauncherPage : public QWidget, public BasePage
-{
+class LauncherPage : public QWidget, public BasePage {
     Q_OBJECT
 
 public:
-    explicit LauncherPage(QWidget *parent = 0);
+    explicit LauncherPage(QWidget* parent = 0);
     ~LauncherPage();
 
-    QString displayName() const override
-    {
-        return "Launcher";
-    }
-    QIcon icon() const override
-    {
-        return APPLICATION->getThemedIcon("launcher");
-    }
-    QString id() const override
-    {
-        return "launcher-settings";
-    }
-    QString helpPage() const override
-    {
-        return "Launcher-settings";
-    }
+    QString displayName() const override { return "Launcher"; }
+    QIcon icon() const override { return APPLICATION->getThemedIcon("launcher"); }
+    QString id() const override { return "launcher-settings"; }
+    QString helpPage() const override { return "Launcher-settings"; }
     bool apply() override;
     void retranslate() override;
 
@@ -82,8 +68,7 @@ private:
     void applySettings();
     void loadSettings();
 
-private
-slots:
+private slots:
     void on_instDirBrowseBtn_clicked();
     void on_modsDirBrowseBtn_clicked();
     void on_iconsDirBrowseBtn_clicked();
@@ -107,7 +92,7 @@ slots:
     void updateChannelSelectionChanged(int index);
 
 private:
-    Ui::LauncherPage *ui;
+    Ui::LauncherPage* ui;
 
     /*!
      * Stores the currently selected update channel.
@@ -115,7 +100,7 @@ private:
     QString m_currentUpdateChannel;
 
     // default format for the font preview...
-    QTextCharFormat *defaultFormat;
+    QTextCharFormat* defaultFormat;
 
     std::unique_ptr<LogColorCache> m_colors;
 

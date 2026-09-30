@@ -6,7 +6,7 @@
 
 class ConfigureLoki : public LaunchStep {
     Q_OBJECT
-   public:
+public:
     explicit ConfigureLoki(LaunchTask* parent, QString yggdrasil_base_url, std::shared_ptr<QString> javaagent_arg);
     virtual ~ConfigureLoki() {};
 
@@ -14,7 +14,7 @@ class ConfigureLoki : public LaunchStep {
     void finalize() override;
     bool canAbort() const override { return false; }
 
-   private:
+private:
     std::unique_ptr<NetJob> m_job;
     std::shared_ptr<QString> m_javaagent_arg;
     QString m_yggdrasil_base_url;

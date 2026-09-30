@@ -46,12 +46,12 @@ class Version;
 namespace Modrinth {
 
 using LogoMap = QMap<QString, QIcon>;
-using LogoCallback = std::function<void (QString)>;
+using LogoCallback = std::function<void(QString)>;
 
 class ModpackListModel : public QAbstractListModel {
     Q_OBJECT
 
-   public:
+public:
     ModpackListModel(ModrinthPage* parent);
     ~ModpackListModel() override = default;
 
@@ -63,7 +63,7 @@ class ModpackListModel : public QAbstractListModel {
 
     /* Retrieve information from the model at a given index with the given role */
     auto data(const QModelIndex& index, int role) const -> QVariant override;
-    bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+    bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
     inline void setActiveJob(NetJob::Ptr ptr) { jobPtr = ptr; }
 
@@ -76,23 +76,23 @@ class ModpackListModel : public QAbstractListModel {
 
     inline auto canFetchMore(const QModelIndex& parent) const -> bool override { return searchState == CanPossiblyFetchMore; };
 
-   public slots:
+public slots:
     void searchRequestFinished(QJsonDocument& doc_all);
     void searchRequestFailed(QString reason);
 
-   protected slots:
+protected slots:
 
     void logoFailed(QString logo);
     void logoLoaded(QString logo, QIcon out);
 
     void performPaginatedSearch();
 
-   protected:
+protected:
     void requestLogo(QString file, QString url);
 
     inline auto getMineVersions() const -> std::list<Version>;
 
-   protected:
+protected:
     ModrinthPage* m_parent;
 
     QList<Modrinth::Modpack> modpacks;
@@ -114,4 +114,4 @@ class ModpackListModel : public QAbstractListModel {
 
     int m_modpacks_per_page = 20;
 };
-}  // namespace ModPlatform
+}  // namespace Modrinth

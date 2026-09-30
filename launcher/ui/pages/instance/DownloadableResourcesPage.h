@@ -24,9 +24,7 @@
 class DownloadableResourcesPage : public ExternalResourcesPage {
     Q_OBJECT
 public:
-    DownloadableResourcesPage(BaseInstance* instance,
-                              std::shared_ptr<ResourceFolderModel> model,
-                              QWidget* parent = nullptr);
+    DownloadableResourcesPage(BaseInstance* instance, std::shared_ptr<ResourceFolderModel> model, QWidget* parent = nullptr);
 
 protected:
     // run the given download tasks

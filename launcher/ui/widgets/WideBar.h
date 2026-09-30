@@ -9,7 +9,7 @@ class QMenu;
 class WideBar : public QToolBar {
     Q_OBJECT
 
-   public:
+public:
     explicit WideBar(const QString& title, QWidget* parent = nullptr);
     explicit WideBar(QWidget* parent = nullptr);
     virtual ~WideBar();
@@ -24,11 +24,11 @@ class WideBar : public QToolBar {
 
     QMenu* createContextMenu(QWidget* parent = nullptr, const QString& title = QString());
 
-   private:
+private:
     struct BarEntry;
 
     auto getMatching(QAction* act) -> QList<BarEntry*>::iterator;
 
-   private:
+private:
     QList<BarEntry*> m_entries;
 };

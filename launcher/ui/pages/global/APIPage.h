@@ -38,21 +38,19 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QValidator>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
+#include <QValidator>
+#include <QWidget>
 
-#include "ui/pages/BasePage.h"
 #include <Application.h>
+#include "ui/pages/BasePage.h"
 
-namespace Ui
-{
+namespace Ui {
 class APIPage;
 }
 
-class TrimmedRegExValidator : public QRegularExpressionValidator
-{
+class TrimmedRegExValidator : public QRegularExpressionValidator {
     using QRegularExpressionValidator::QRegularExpressionValidator;
 
     virtual QValidator::State validate(QString& input, int& npos) const override
@@ -62,30 +60,17 @@ class TrimmedRegExValidator : public QRegularExpressionValidator
     }
 };
 
-class APIPage : public QWidget, public BasePage
-{
+class APIPage : public QWidget, public BasePage {
     Q_OBJECT
 
 public:
-    explicit APIPage(QWidget *parent = 0);
+    explicit APIPage(QWidget* parent = 0);
     ~APIPage();
 
-    QString displayName() const override
-    {
-        return tr("APIs");
-    }
-    QIcon icon() const override
-    {
-        return APPLICATION->getThemedIcon("worlds");
-    }
-    QString id() const override
-    {
-        return "apis";
-    }
-    QString helpPage() const override
-    {
-        return "APIs";
-    }
+    QString displayName() const override { return tr("APIs"); }
+    QIcon icon() const override { return APPLICATION->getThemedIcon("worlds"); }
+    QString id() const override { return "apis"; }
+    QString helpPage() const override { return "APIs"; }
     virtual bool apply() override;
     void retranslate() override;
 
@@ -99,6 +84,5 @@ private:
     void fetchKeyButtonPressed();
 
 private:
-    Ui::APIPage *ui;
+    Ui::APIPage* ui;
 };
-

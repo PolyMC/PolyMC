@@ -36,13 +36,14 @@
 #include "VerifyJavaInstall.h"
 
 #include "java/JavaVersion.h"
-#include "minecraft/PackProfile.h"
 #include "minecraft/MinecraftInstance.h"
+#include "minecraft/PackProfile.h"
 
 #undef major
 #undef minor
 
-void VerifyJavaInstall::executeTask() {
+void VerifyJavaInstall::executeTask()
+{
     auto instance = std::dynamic_pointer_cast<MinecraftInstance>(m_parent->instance());
     auto packProfile = instance->getPackProfile();
     auto settings = instance->settings();
@@ -53,25 +54,22 @@ void VerifyJavaInstall::executeTask() {
 
     JavaVersion javaVersion(storedVersion);
 
-    if (compatibleMajors.isEmpty() || compatibleMajors.contains(javaVersion.major()))
-    {
+    if (compatibleMajors.isEmpty() || compatibleMajors.contains(javaVersion.major())) {
         emitSucceeded();
         return;
     }
 
-
-    if (ignoreCompatibility)
-    {
+    if (ignoreCompatibility) {
         emit logLine(tr("Java major version is incompatible. Things might break."), MessageLevel::Warning);
         emitSucceeded();
         return;
     }
 
     emit logLine(tr("This instance is not compatible with Java version %1.\n"
-                    "Please switch to one of the following Java versions for this instance:").arg(javaVersion.major()),
+                    "Please switch to one of the following Java versions for this instance:")
+                     .arg(javaVersion.major()),
                  MessageLevel::Error);
-    for (auto major : compatibleMajors)
-    {
+    for (auto major : compatibleMajors) {
         emit logLine(tr("Java version %1").arg(major), MessageLevel::Error);
     }
     emitFailed(QString("Incompatible Java major version"));

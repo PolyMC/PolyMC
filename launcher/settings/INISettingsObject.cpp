@@ -16,14 +16,13 @@
 #include "INISettingsObject.h"
 #include "Setting.h"
 
-INISettingsObject::INISettingsObject(const QString &path, QObject *parent)
-    : SettingsObject(parent)
+INISettingsObject::INISettingsObject(const QString& path, QObject* parent) : SettingsObject(parent)
 {
     m_filePath = path;
     m_ini.loadFile(path);
 }
 
-void INISettingsObject::setFilePath(const QString &filePath)
+void INISettingsObject::setFilePath(const QString& filePath)
 {
     m_filePath = filePath;
 }
@@ -41,28 +40,24 @@ void INISettingsObject::suspendSave()
 void INISettingsObject::resumeSave()
 {
     m_suspendSave = false;
-    if(m_doSave)
-    {
+    if (m_doSave) {
         m_ini.saveFile(m_filePath);
     }
 }
 
-void INISettingsObject::changeSetting(const Setting &setting, QVariant value)
+void INISettingsObject::changeSetting(const Setting& setting, QVariant value)
 {
-    if (contains(setting.id()))
-    {
+    if (contains(setting.id())) {
         // valid value -> set the main config, remove all the sysnonyms
-        if (value.isValid())
-        {
+        if (value.isValid()) {
             auto list = setting.configKeys();
             m_ini.set(list.takeFirst(), value);
-            for(auto iter: list)
+            for (auto iter : list)
                 m_ini.remove(iter);
         }
         // invalid -> remove all (just like resetSetting)
-        else
-        {
-            for(auto iter: setting.configKeys())
+        else {
+            for (auto iter : setting.configKeys())
                 m_ini.remove(iter);
         }
         doSave();
@@ -71,35 +66,29 @@ void INISettingsObject::changeSetting(const Setting &setting, QVariant value)
 
 void INISettingsObject::doSave()
 {
-    if(m_suspendSave)
-    {
+    if (m_suspendSave) {
         m_doSave = true;
-    }
-    else
-    {
+    } else {
         m_ini.saveFile(m_filePath);
     }
 }
 
-void INISettingsObject::resetSetting(const Setting &setting)
+void INISettingsObject::resetSetting(const Setting& setting)
 {
     // if we have the setting, remove all the synonyms. ALL OF THEM
-    if (contains(setting.id()))
-    {
-        for(auto iter: setting.configKeys())
+    if (contains(setting.id())) {
+        for (auto iter : setting.configKeys())
             m_ini.remove(iter);
         doSave();
     }
 }
 
-QVariant INISettingsObject::retrieveValue(const Setting &setting)
+QVariant INISettingsObject::retrieveValue(const Setting& setting)
 {
     // if we have the setting, return value of the first matching synonym
-    if (contains(setting.id()))
-    {
-        for(auto iter: setting.configKeys())
-        {
-            if(m_ini.contains(iter))
+    if (contains(setting.id())) {
+        for (auto iter : setting.configKeys()) {
+            if (m_ini.contains(iter))
                 return m_ini[iter];
         }
     }

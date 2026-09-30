@@ -45,10 +45,10 @@ class HttpMetaCache;
 class MetaEntry {
     friend class HttpMetaCache;
 
-   protected:
+protected:
     MetaEntry() = default;
 
-   public:
+public:
     auto isStale() -> bool { return stale; }
     void setStale(bool stale) { this->stale = stale; }
 
@@ -76,7 +76,7 @@ class MetaEntry {
 
     bool isExpired(qint64 offset) { return !is_eternal && (current_age >= max_age - offset); };
 
-   protected:
+protected:
     QString baseId;
     QString basePath;
     QString relativePath;
@@ -96,7 +96,7 @@ using MetaEntryPtr = std::shared_ptr<MetaEntry>;
 
 class HttpMetaCache : public QObject {
     Q_OBJECT
-   public:
+public:
     // supply path to the cache index file
     HttpMetaCache(QString path = QString());
     ~HttpMetaCache() override;
@@ -122,10 +122,10 @@ class HttpMetaCache : public QObject {
 
     auto getBasePath(QString base) -> QString;
 
-   public slots:
+public slots:
     void SaveNow();
 
-   private:
+private:
     // create a new stale entry, given the parameters
     auto staleEntry(QString base, QString resource_path) -> MetaEntryPtr;
 

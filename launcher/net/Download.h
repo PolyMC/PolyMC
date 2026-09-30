@@ -47,40 +47,40 @@ namespace Net {
 class Download : public NetAction {
     Q_OBJECT
 
-   public:
+public:
     using Ptr = shared_qobject_ptr<class Download>;
     enum class Option { NoOptions = 0, AcceptLocalFiles = 1, MakeEternal = 2 };
     Q_DECLARE_FLAGS(Options, Option)
 
-   protected:
+protected:
     explicit Download();
 
-   public:
+public:
     ~Download() override = default;
 
     static auto makeCached(QUrl url, MetaEntryPtr entry, Options options = Option::NoOptions) -> Download::Ptr;
     static auto makeByteArray(QUrl url, QByteArray* output, Options options = Option::NoOptions) -> Download::Ptr;
     static auto makeFile(QUrl url, QString path, Options options = Option::NoOptions) -> Download::Ptr;
 
-   public:
+public:
     void addValidator(Validator* v);
     auto abort() -> bool override;
     auto canAbort() const -> bool override { return true; };
 
-   private:
+private:
     auto handleRedirect() -> bool;
 
-   protected slots:
+protected slots:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal) override;
     void downloadError(QNetworkReply::NetworkError error) override;
     void sslErrors(const QList<QSslError>& errors);
     void downloadFinished() override;
     void downloadReadyRead() override;
 
-   public slots:
+public slots:
     void executeTask() override;
 
-   private:
+private:
     std::unique_ptr<Sink> m_sink;
     Options m_options;
 };

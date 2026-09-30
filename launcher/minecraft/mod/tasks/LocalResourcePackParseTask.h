@@ -37,7 +37,7 @@ void processPackPNG(ResourcePack& pack, QByteArray&& raw_data);
 
 class LocalResourcePackParseTask : public Task {
     Q_OBJECT
-   public:
+public:
     LocalResourcePackParseTask(int token, ResourcePack& rp);
 
     [[nodiscard]] bool canAbort() const override { return true; }
@@ -47,7 +47,7 @@ class LocalResourcePackParseTask : public Task {
 
     [[nodiscard]] int token() const { return m_token; }
 
-   private:
+private:
     int m_token;
 
     ResourcePack& m_resource_pack;

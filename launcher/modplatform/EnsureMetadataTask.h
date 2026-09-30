@@ -13,7 +13,7 @@ class QDir;
 class EnsureMetadataTask : public Task {
     Q_OBJECT
 
-   public:
+public:
     EnsureMetadataTask(Mod*, QDir, ModPlatform::Provider = ModPlatform::Provider::MODRINTH);
     EnsureMetadataTask(QList<Mod*>&, QDir, ModPlatform::Provider = ModPlatform::Provider::MODRINTH);
 
@@ -21,12 +21,12 @@ class EnsureMetadataTask : public Task {
 
     Task::Ptr getHashingTask() { return m_hashing_task; }
 
-   public slots:
+public slots:
     bool abort() override;
-   protected slots:
+protected slots:
     void executeTask() override;
 
-   private:
+private:
     // FIXME: Move to their own namespace
     auto modrinthVersionsTask() -> NetJob::Ptr;
     auto modrinthProjectsTask() -> NetJob::Ptr;
@@ -35,10 +35,7 @@ class EnsureMetadataTask : public Task {
     auto flameProjectsTask() -> NetJob::Ptr;
 
     // Helpers
-    enum class RemoveFromList {
-        Yes,
-        No
-    };
+    enum class RemoveFromList { Yes, No };
     void emitReady(Mod*, QString key = {}, RemoveFromList = RemoveFromList::Yes);
     void emitFail(Mod*, QString key = {}, RemoveFromList = RemoveFromList::Yes);
 
@@ -46,15 +43,15 @@ class EnsureMetadataTask : public Task {
     auto createNewHash(Mod*) -> Hashing::Hasher::Ptr;
     auto getExistingHash(Mod*) -> QString;
 
-   private slots:
+private slots:
     void modrinthCallback(ModPlatform::IndexedPack& pack, ModPlatform::IndexedVersion& ver, Mod*);
     void flameCallback(ModPlatform::IndexedPack& pack, ModPlatform::IndexedVersion& ver, Mod*);
 
-   signals:
+signals:
     void metadataReady(Mod*);
     void metadataFailed(Mod*);
 
-   private:
+private:
     QHash<QString, Mod*> m_mods;
     QDir m_index_dir;
     ModPlatform::Provider m_provider;

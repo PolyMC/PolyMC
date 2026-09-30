@@ -1,17 +1,16 @@
 #pragma once
 
-#include <QDialog>
 #include <minecraft/auth/MinecraftAccount.h>
+#include <QDialog>
 
-namespace Ui
-{
-    class SkinUploadDialog;
+namespace Ui {
+class SkinUploadDialog;
 }
 
 class SkinUploadDialog : public QDialog {
     Q_OBJECT
 public:
-    explicit SkinUploadDialog(MinecraftAccountPtr acct, QWidget *parent = 0);
+    explicit SkinUploadDialog(MinecraftAccountPtr acct, QWidget* parent = 0);
     virtual ~SkinUploadDialog() {};
 
 public slots:
@@ -25,5 +24,5 @@ protected:
     MinecraftAccountPtr m_acct;
 
 private:
-    Ui::SkinUploadDialog *ui;
+    Ui::SkinUploadDialog* ui;
 };

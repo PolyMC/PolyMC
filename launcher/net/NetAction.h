@@ -43,10 +43,10 @@
 
 class NetAction : public Task {
     Q_OBJECT
-   protected:
+protected:
     explicit NetAction() : Task() {};
 
-   public:
+public:
     using Ptr = shared_qobject_ptr<NetAction>;
 
     virtual ~NetAction() = default;
@@ -56,23 +56,23 @@ class NetAction : public Task {
 
     void setNetwork(shared_qobject_ptr<QNetworkAccessManager> network) { m_network = network; }
 
-   protected slots:
+protected slots:
     virtual void downloadProgress(qint64 bytesReceived, qint64 bytesTotal) = 0;
     virtual void downloadError(QNetworkReply::NetworkError error) = 0;
     virtual void downloadFinished() = 0;
     virtual void downloadReadyRead() = 0;
 
-   public slots:
+public slots:
     void startAction(shared_qobject_ptr<QNetworkAccessManager> network)
     {
         m_network = network;
         executeTask();
     }
 
-   protected:
+protected:
     void executeTask() override {};
 
-   public:
+public:
     shared_qobject_ptr<QNetworkAccessManager> m_network;
 
     /// index within the parent job, FIXME: nuke

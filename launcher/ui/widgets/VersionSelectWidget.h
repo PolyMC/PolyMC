@@ -27,15 +27,14 @@ class QVBoxLayout;
 class QProgressBar;
 class Filter;
 
-class VersionSelectWidget: public QWidget
-{
+class VersionSelectWidget : public QWidget {
     Q_OBJECT
 public:
-    explicit VersionSelectWidget(QWidget *parent = 0);
+    explicit VersionSelectWidget(QWidget* parent = 0);
     ~VersionSelectWidget();
 
     //! loads the list if needed.
-    void initialize(BaseVersionList *vlist, bool isJava = false);
+    void initialize(BaseVersionList* vlist, bool isJava = false);
 
     //! Starts a task that loads the list.
     void loadList();
@@ -45,10 +44,10 @@ public:
     void selectRecommended();
     void selectCurrent();
 
-    void setCurrentVersion(const QString & version);
+    void setCurrentVersion(const QString& version);
     void setFuzzyFilter(BaseVersionList::ModelRoles role, QString filter);
     void setExactFilter(BaseVersionList::ModelRoles role, QString filter);
-    void setFilter(BaseVersionList::ModelRoles role, Filter *filter);
+    void setFilter(BaseVersionList::ModelRoles role, Filter* filter);
     void setEmptyString(QString emptyString);
     void setEmptyErrorString(QString emptyErrorString);
     void setEmptyMode(VersionListView::EmptyMode mode);
@@ -60,13 +59,13 @@ signals:
     void selectedVersionChanged(BaseVersionPtr version);
 
 protected:
-    virtual void closeEvent ( QCloseEvent* );
+    virtual void closeEvent(QCloseEvent*);
 
 private slots:
     void onTaskSucceeded();
-    void onTaskFailed(const QString &reason);
+    void onTaskFailed(const QString& reason);
     void changeProgress(qint64 current, qint64 total);
-    void currentRowChanged(const QModelIndex &current, const QModelIndex &);
+    void currentRowChanged(const QModelIndex& current, const QModelIndex&);
     void updateSymlinkSetting();
 
 private:
@@ -75,15 +74,15 @@ private:
 private:
     QString m_currentVersion;
     bool m_isJava = false;
-    BaseVersionList *m_vlist = nullptr;
-    VersionProxyModel *m_proxyModel = nullptr;
+    BaseVersionList* m_vlist = nullptr;
+    VersionProxyModel* m_proxyModel = nullptr;
     int resizeOnColumn = 0;
-    Task * loadTask;
+    Task* loadTask;
     bool preselectedAlready = false;
 
 private:
-    QVBoxLayout *verticalLayout = nullptr;
-    VersionListView *listView = nullptr;
-    QCheckBox *ignoreDuplicates = nullptr;
-    QProgressBar *sneakyProgressBar = nullptr;
+    QVBoxLayout* verticalLayout = nullptr;
+    VersionListView* listView = nullptr;
+    QCheckBox* ignoreDuplicates = nullptr;
+    QProgressBar* sneakyProgressBar = nullptr;
 };

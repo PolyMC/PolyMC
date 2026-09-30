@@ -11,11 +11,11 @@
  */
 class SequentialTask : public ConcurrentTask {
     Q_OBJECT
-   public:
+public:
     explicit SequentialTask(QObject* parent = nullptr, QString task_name = "");
     ~SequentialTask() override = default;
 
-   protected:
+protected:
     void startNext() override;
     void updateState() override;
 };

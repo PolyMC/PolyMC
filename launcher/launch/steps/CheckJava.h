@@ -15,27 +15,23 @@
 
 #pragma once
 
-#include <launch/LaunchStep.h>
 #include <LoggedProcess.h>
 #include <java/JavaChecker.h>
+#include <launch/LaunchStep.h>
 
-class CheckJava: public LaunchStep
-{
+class CheckJava : public LaunchStep {
     Q_OBJECT
 public:
-    explicit CheckJava(LaunchTask *parent) :LaunchStep(parent){};
+    explicit CheckJava(LaunchTask* parent) : LaunchStep(parent) {};
     virtual ~CheckJava() {};
 
     virtual void executeTask();
-    virtual bool canAbort() const
-    {
-        return false;
-    }
+    virtual bool canAbort() const { return false; }
 private slots:
     void checkJavaFinished(JavaCheckResult result);
 
 private:
-    void printJavaInfo(const QString & version, const QString & architecture, const QString & realArchitecture, const QString & vendor);
+    void printJavaInfo(const QString& version, const QString& architecture, const QString& realArchitecture, const QString& vendor);
     void printSystemInfo(bool javaIsKnown, bool javaIs64bit);
 
 private:

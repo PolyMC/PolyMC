@@ -102,7 +102,10 @@ auto ModrinthAPI::getProjects(QStringList addonIds, QByteArray* response) const 
 
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchUrl), response));
 
-    QObject::connect(netJob, &NetJob::finished, [response, netJob] { delete response; netJob->deleteLater(); });
+    QObject::connect(netJob, &NetJob::finished, [response, netJob] {
+        delete response;
+        netJob->deleteLater();
+    });
 
     return netJob;
 }

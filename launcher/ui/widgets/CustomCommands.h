@@ -37,19 +37,17 @@
 
 #include <QWidget>
 
-namespace Ui
-{
+namespace Ui {
 class CustomCommands;
 }
 
-class CustomCommands : public QWidget
-{
+class CustomCommands : public QWidget {
     Q_OBJECT
 
 public:
-    explicit CustomCommands(QWidget *parent = 0);
+    explicit CustomCommands(QWidget* parent = 0);
     virtual ~CustomCommands();
-    void initialize(bool checkable, bool checked, const QString & prelaunch, const QString & wrapper, const QString & postexit);
+    void initialize(bool checkable, bool checked, const QString& prelaunch, const QString& wrapper, const QString& postexit);
 
     void retranslate();
     bool checked() const;
@@ -58,7 +56,5 @@ public:
     QString postexitCommand() const;
 
 private:
-    Ui::CustomCommands *ui;
+    Ui::CustomCommands* ui;
 };
-
-
