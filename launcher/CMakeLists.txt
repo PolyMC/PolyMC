@@ -14,6 +14,8 @@ set(CORE_SOURCES
     InstanceTask.cpp
     LoggedProcess.h
     LoggedProcess.cpp
+    PolyMCTextCodec.h
+    PolyMCTextCodec.cpp
     MessageLevel.cpp
     MessageLevel.h
     BaseVersion.h
@@ -979,8 +981,7 @@ endif()
 
 # Add executable
 add_library(Launcher_logic STATIC
-    ${LOGIC_SOURCES} ${LAUNCHER_SOURCES} ${LAUNCHER_UI} ${LAUNCHER_RESOURCES}
-    PolyMCTextCodec.h PolyMCTextCodec.cpp)
+    ${LOGIC_SOURCES} ${LAUNCHER_SOURCES} ${LAUNCHER_UI} ${LAUNCHER_RESOURCES})
 target_include_directories(Launcher_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(Launcher_logic
     systeminfo
