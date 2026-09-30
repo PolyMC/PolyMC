@@ -3,15 +3,13 @@ project(systeminfo)
 if(QT_VERSION_MAJOR EQUAL 5)
     find_package(Qt5 COMPONENTS Core REQUIRED)
 elseif(Launcher_QT_VERSION_MAJOR EQUAL 6)
-    find_package(Qt6 COMPONENTS Core Core5Compat REQUIRED)
-    list(APPEND systeminfo_LIBS Qt${QT_VERSION_MAJOR}::Core5Compat)
+    find_package(Qt6 COMPONENTS Core REQUIRED)
 endif()
 
 set(systeminfo_SOURCES
-include/sys.h
-include/distroutils.h
-src/distroutils.cpp
-)
+    include/sys.h
+    include/distroutils.h
+    src/distroutils.cpp)
 
 if (WIN32)
     list(APPEND systeminfo_SOURCES src/sys_win32.cpp)

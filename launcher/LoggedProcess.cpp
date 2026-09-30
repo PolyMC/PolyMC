@@ -35,7 +35,7 @@
 
 #include "LoggedProcess.h"
 #include <QDebug>
-#include <QTextDecoder>
+#include "PolyMCTextCodec.h"
 #include "MessageLevel.h"
 
 LoggedProcess::LoggedProcess(QObject *parent) : QProcess(parent)
@@ -60,7 +60,7 @@ LoggedProcess::~LoggedProcess()
     }
 }
 
-QStringList reprocess(const QByteArray& data, QTextDecoder& decoder)
+QStringList reprocess(const QByteArray& data, PolyMCTextDecoder& decoder)
 {
     auto str = decoder.toUnicode(data);
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
