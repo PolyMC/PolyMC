@@ -36,7 +36,7 @@
 #pragma once
 
 #include <QProcess>
-#include <QTextDecoder>
+#include "PolyMCTextCodec.h"
 #include "MessageLevel.h"
 
 /*
@@ -89,8 +89,8 @@ private:
     void changeState(LoggedProcess::State state);
 
 private:
-    QTextDecoder m_err_decoder = QTextDecoder(QTextCodec::codecForLocale());
-    QTextDecoder m_out_decoder = QTextDecoder(QTextCodec::codecForLocale());
+    PolyMCTextDecoder m_err_decoder = PolyMCTextDecoder(PolyMCTextCodec::codecForLocale());
+    PolyMCTextDecoder m_out_decoder = PolyMCTextDecoder(PolyMCTextCodec::codecForLocale());
     bool m_killed = false;
     State m_state = NotRunning;
     int m_exit_code = 0;

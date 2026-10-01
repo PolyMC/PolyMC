@@ -164,37 +164,32 @@ endif()
 
 # Find the required Qt parts
 include(QtVersionlessBackport)
-if(Launcher_QT_VERSION_MAJOR EQUAL 5)
-    set(QT_VERSION_MAJOR 5)
-    find_package(Qt5 REQUIRED COMPONENTS Core Widgets Concurrent Network Test
-      Xml Charts)
-
-    if(NOT Launcher_FORCE_BUNDLED_LIBS)
-        find_package(QuaZip-Qt5 1.3 QUIET)
-    endif()
-    if (NOT QuaZip-Qt5_FOUND)
-        set(QUAZIP_QT_MAJOR_VERSION ${QT_VERSION_MAJOR} CACHE STRING "Qt version to use (4, 5 or 6), defaults to ${QT_VERSION_MAJOR}" FORCE)
-        set(FORCE_BUNDLED_QUAZIP 1)
-    endif()
-
-    # Qt 6 sets these by default. Notably causes Windows APIs to use UNICODE strings.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUNICODE -D_UNICODE")
-elseif(Launcher_QT_VERSION_MAJOR EQUAL 6)
-    set(QT_VERSION_MAJOR 6)
-    find_package(Qt6 REQUIRED COMPONENTS Core Widgets Concurrent Network Test
-      Xml Charts Core5Compat)
-    list(APPEND Launcher_QT_LIBS Qt6::Core5Compat)
-
-    if(NOT Launcher_FORCE_BUNDLED_LIBS)
-        find_package(QuaZip-Qt6 1.3 QUIET)
-    endif()
-    if (NOT QuaZip-Qt6_FOUND)
-        set(QUAZIP_QT_MAJOR_VERSION ${QT_VERSION_MAJOR} CACHE STRING "Qt version to use (4, 5 or 6), defaults to ${QT_VERSION_MAJOR}" FORCE)
-        set(FORCE_BUNDLED_QUAZIP 1)
-    endif()
-else()
+set(valid_qt_versions 5 6)
+if (NOT Launcher_QT_VERSION_MAJOR IN_LIST valid_qt_versions)
     message(FATAL_ERROR "Qt version ${Launcher_QT_VERSION_MAJOR} is not supported")
 endif()
+
+# TODO: Migrate to QXmlStream
+set(QT_VERSION_MAJOR ${Launcher_QT_VERSION_MAJOR})
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets
+    Concurrent Network Test Xml Charts)
+
+if(NOT Launcher_FORCE_BUNDLED_LIBS)
+    find_package(QuaZip-Qt${QT_VERSION_MAJOR} 1.3 QUIET)
+endif()
+
+if (NOT QuaZip-Qt${QT_VERSION_MAJOR}_FOUND)
+    set(QUAZIP_QT_MAJOR_VERSION ${QT_VERSION_MAJOR})
+    set(FORCE_BUNDLED_QUAZIP 1)
+endif()
+
+# removes Core5Compat dep
+if (QT_VERSION_MAJOR EQUAL 6)
+    set(QUAZIP_ENABLE_QTEXTCODEC OFF)
+endif()
+
+# Qt 6 sets these by default. Notably causes Windows APIs to use UNICODE strings.
+add_compile_definitions(UNICODE _UNICODE)
 
 include(ECMQueryQt)
 ecm_query_qt(QT_PLUGINS_DIR  QT_INSTALL_PLUGINS)
