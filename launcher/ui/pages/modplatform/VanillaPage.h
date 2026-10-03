@@ -39,7 +39,6 @@
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "tasks/Task.h"
 
 namespace Ui
 {
@@ -85,6 +84,7 @@ public slots:
     void setSelectedLoaderVersion(BaseVersionPtr version);
 
 private slots:
+    void triggerSearch();
     void filterChanged();
     void loaderFilterChanged();
 
