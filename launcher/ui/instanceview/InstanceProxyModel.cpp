@@ -15,9 +15,9 @@
 
 #include "InstanceProxyModel.h"
 
+#include "InstanceList.h"
 #include "InstanceView.h"
 #include "Application.h"
-#include <BaseInstance.h>
 #include <icons/IconList.h>
 
 #include <QDebug>
@@ -27,6 +27,16 @@ InstanceProxyModel::InstanceProxyModel(QObject *parent) : QSortFilterProxyModel(
     m_naturalSort.setCaseSensitivity(Qt::CaseSensitivity::CaseInsensitive);
     // FIXME: use loaded translation as source of locale instead, hook this up to translation changes
     m_naturalSort.setLocale(QLocale::system());
+    setDynamicSortFilter(true);
+}
+
+void InstanceProxyModel::setSearchTerm(const QString &term) {
+    QString trimmed = term.trimmed();
+    if (trimmed == searchTerm) {
+        return;
+    }
+    searchTerm = trimmed;
+    invalidateFilter();
 }
 
 QVariant InstanceProxyModel::data(const QModelIndex & index, int role) const
@@ -68,4 +78,21 @@ bool InstanceProxyModel::subSortLessThan(const QModelIndex &left, const QModelIn
     {
         return m_naturalSort.compare(pdataLeft->name(), pdataRight->name()) < 0;
     }
+}
+
+bool InstanceProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const {
+    if (searchTerm.isEmpty()) {
+        return true;
+    }
+
+    QModelIndex index = sourceModel()->index(sourceRow, 0, sourceParent);
+
+    const auto name = index.data().toString();
+    const auto group = index.data(InstanceList::GroupRole).toString();
+    const auto id = index.data(InstanceList::InstanceIDRole).toString();
+
+    // average javascript code:
+    return name.contains(searchTerm, Qt::CaseInsensitive) ||
+           group.contains(searchTerm, Qt::CaseInsensitive) ||
+           id.contains(searchTerm, Qt::CaseInsensitive);
 }
