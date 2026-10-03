@@ -122,7 +122,7 @@ void UpdateController::installUpdates()
     QString exeBackup;
 
     // perform the update operations
-    for (const auto &op : std::as_const(m_operations))
+    for (auto &op : std::as_const(m_operations))
     {
         switch(op.type)
         {
