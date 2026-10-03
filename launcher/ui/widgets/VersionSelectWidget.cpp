@@ -32,6 +32,7 @@ VersionSelectWidget::VersionSelectWidget(QWidget* parent)
     verticalLayout->addWidget(listView);
 
     ignoreDuplicates = new QCheckBox(this);
+    ignoreDuplicates->setHidden(true);
     ignoreDuplicates->setChecked(APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool());
     connect(ignoreDuplicates,
 #if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
@@ -153,6 +154,7 @@ void VersionSelectWidget::onTaskSucceeded()
     {
         listView->setEmptyMode(VersionListView::String);
     }
+
     sneakyProgressBar->setHidden(true);
     ignoreDuplicates->setHidden(!m_isJava);
     preselect();
