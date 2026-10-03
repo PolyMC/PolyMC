@@ -8,7 +8,15 @@ import java.util.function.Predicate;
 public class BlockedServers implements Predicate<String> {
 
     public static final Charset HASH_CHARSET = StandardCharsets.ISO_8859_1;
+
+    public BlockedServers() {
+    }
+
     public BlockedServers(Collection<String> blockedServers) {
+    }
+
+    public static boolean isBlockedServer(String server) {
+        return false;
     }
 
     @Override
