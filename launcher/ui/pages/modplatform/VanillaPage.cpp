@@ -69,7 +69,7 @@ VanillaPage::VanillaPage(NewInstanceDialog *dialog, QWidget *parent)
     connect(ui->quiltFilter, &QRadioButton::toggled, this, &VanillaPage::loaderFilterChanged);
     connect(ui->liteLoaderFilter, &QRadioButton::toggled, this, &VanillaPage::loaderFilterChanged);
     connect(ui->loaderRefreshBtn, &QPushButton::clicked, this, &VanillaPage::loaderRefresh);
-
+    connect(ui->searchEdit, &QLineEdit::textChanged, this, &VanillaPage::triggerSearch);
 }
 
 void VanillaPage::openedImpl()
@@ -214,7 +214,7 @@ void VanillaPage::suggestCurrent()
     {
         return;
     }
-        
+
     if(!m_selectedVersion)
     {
         dialog->setSuggestedPack();
@@ -244,4 +244,8 @@ void VanillaPage::setSelectedLoaderVersion(BaseVersionPtr version)
 {
     m_selectedLoaderVersion = version;
     suggestCurrent();
+}
+
+void VanillaPage::triggerSearch() {
+    ui->versionList->setFuzzyFilter(BaseVersionList::VersionRole, ui->searchEdit->text());
 }
