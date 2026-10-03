@@ -354,7 +354,7 @@ void WorldListPage::on_actionAdd_triggered()
     if (!list.empty())
     {
         m_worlds->stopWatching();
-        for (auto filename : list)
+        for (const auto &filename : std::as_const(list))
         {
             m_worlds->installWorld(QFileInfo(filename));
         }

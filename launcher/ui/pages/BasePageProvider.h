@@ -39,7 +39,7 @@ public:
     QList<BasePage *> getPages() override
     {
         QList<BasePage *> pages;
-        for (PageCreator creator : m_creators)
+        for (const PageCreator &creator : std::as_const(m_creators))
         {
             pages.append(creator());
         }

@@ -87,7 +87,7 @@ void EnsureMetadataTask::executeTask()
 {
     setStatus(tr("Checking if mods have metadata..."));
 
-    for (auto* mod : m_mods) {
+    for (auto* mod : std::as_const(m_mods)) {
         if (!mod->valid()) {
             qDebug() << "Mod" << mod->name() << "is invalid!";
             emitFail(mod);
@@ -263,7 +263,7 @@ NetJob::Ptr EnsureMetadataTask::modrinthVersionsTask()
 NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
 {
     QHash<QString, QString> addonIds;
-    for (auto const& data : m_temp_versions)
+    for (auto const& data : std::as_const(m_temp_versions))
         addonIds.insert(data.addonId.toString(), data.hash);
 
     auto response = new QByteArray();
@@ -298,7 +298,7 @@ NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
             else
                 entries = Json::requireArray(doc);
 
-            for (auto entry : entries) {
+            for (auto entry : std::as_const(entries)) {
                 auto entry_obj = Json::requireObject(entry);
 
                 ModPlatform::IndexedPack pack;
@@ -369,7 +369,7 @@ NetJob::Ptr EnsureMetadataTask::flameVersionsTask()
                 return;
             }
 
-            for (auto match : data_arr) {
+            for (auto match : std::as_const(data_arr)) {
                 auto match_obj = Json::ensureObject(match, {});
                 auto file_obj = Json::ensureObject(match_obj, "file", {});
 
@@ -446,7 +446,7 @@ NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
             else
                 entries = Json::requireArray(Json::requireObject(doc), "data");
 
-            for (auto entry : entries) {
+            for (auto entry : std::as_const(entries)) {
                 auto entry_obj = Json::requireObject(entry);
 
                 auto id = QString::number(Json::requireInteger(entry_obj, "id"));

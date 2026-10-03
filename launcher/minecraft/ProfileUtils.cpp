@@ -87,7 +87,7 @@ bool readOverrideOrders(QString path, PatchOrder &order)
                                           .arg(currentOrderFileVersion));
         }
         auto orderArray = Json::requireArray(obj.value("order"));
-        for(auto item: orderArray)
+        for (auto item : std::as_const(orderArray))
         {
             order.append(Json::requireString(item));
         }
@@ -181,7 +181,7 @@ void removeLwjglFromPatch(VersionFilePtr patch)
     auto filter = [](QList<LibraryPtr>& libs)
     {
         QList<LibraryPtr> filteredLibs;
-        for (auto lib : libs)
+        for (const auto &lib : libs)
         {
             if (!g_VersionFilterData.lwjglWhitelist.contains(lib->artifactPrefix()))
             {

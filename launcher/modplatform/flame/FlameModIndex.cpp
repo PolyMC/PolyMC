@@ -22,7 +22,7 @@ void FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj)
     pack.logoUrl = Json::ensureString(logo, "thumbnailUrl");
 
     auto authors = Json::ensureArray(obj, "authors");
-    for (auto authorIter : authors) {
+    for (auto authorIter : std::as_const(authors)) {
         auto author = Json::requireObject(authorIter);
         ModPlatform::ModpackAuthor packAuthor;
         packAuthor.name = Json::requireString(author, "name");
@@ -110,7 +110,7 @@ ModPlatform::IndexedVersion FlameMod::loadIndexedPackVersion(QJsonObject& obj, b
     }
 
     ModPlatform::IndexedVersion file;
-    for (auto mcVer : versionArray) {
+    for (auto mcVer : std::as_const(versionArray)) {
         auto str = mcVer.toString();
 
         if (str.contains('.'))
@@ -125,7 +125,7 @@ ModPlatform::IndexedVersion FlameMod::loadIndexedPackVersion(QJsonObject& obj, b
     file.fileName = Json::requireString(obj, "fileName");
 
     auto hash_list = Json::ensureArray(obj, "hashes");
-    for (auto h : hash_list) {
+    for (auto h : std::as_const(hash_list)) {
         auto hash_entry = Json::ensureObject(h);
         auto hash_types = ProviderCaps.hashType(ModPlatform::Provider::FLAME);
         auto hash_algo = enumToString(Json::ensureInteger(hash_entry, "algo", 1, "algorithm"));

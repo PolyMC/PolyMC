@@ -54,7 +54,7 @@ struct WideBar::BarEntry {
 
 WideBar::~WideBar()
 {
-    for(auto *iter: m_entries) {
+    for (auto *iter : std::as_const(m_entries)) {
         delete iter;
     }
 }

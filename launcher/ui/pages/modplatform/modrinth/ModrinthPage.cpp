@@ -202,7 +202,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
                 qWarning() << "Error while reading modrinth modpack version: " << e.cause();
             }
 
-            for (auto version : current.versions) {
+            for (auto version : std::as_const(current.versions)) {
                 if (!version.name.contains(version.version))
                     ui->versionSelectionBox->addItem(QString("%1 — %2").arg(version.name, version.version), QVariant(version.id));
                 else
@@ -224,7 +224,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
         netJob->start();
 
     } else {
-        for (auto version : current.versions) {
+        for (auto version : std::as_const(current.versions)) {
             if (!version.name.contains(version.version))
                 ui->versionSelectionBox->addItem(QString("%1 - %2").arg(version.name, version.version), QVariant(version.id));
             else

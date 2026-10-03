@@ -286,7 +286,7 @@ void LaunchTask::substituteVariables(QStringList &args) const
 {
     auto env = m_instance->createEnvironment();
 
-    for (auto key : env.keys())
+    for (const auto &key : env.keys())
     {
         args.replaceInStrings("$" + key, env.value(key));
     }
@@ -296,7 +296,7 @@ void LaunchTask::substituteVariables(QString &cmd) const
 {
     auto env = m_instance->createEnvironment();
 
-    for (auto key : env.keys())
+    for (const auto &key : env.keys())
     {
         cmd.replace("$" + key, env.value(key));
     }

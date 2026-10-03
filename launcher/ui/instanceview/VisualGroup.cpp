@@ -64,7 +64,7 @@ void VisualGroup::update()
     int positionInRow = 0;
     int currentRow = 0;
     int offsetFromTop = 0;
-    for (auto item: temp_items)
+    for (auto item : std::as_const(temp_items))
     {
         if(positionInRow == itemsPerRow)
         {

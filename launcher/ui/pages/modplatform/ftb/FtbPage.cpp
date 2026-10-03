@@ -128,7 +128,7 @@ void FtbPage::suggestCurrent()
     }
 
     dialog->setSuggestedPack(selected.name, selectedVersion, new FTB::PackInstallTask(selected, selectedVersion, this));
-    for(auto art : selected.art) {
+    for (const auto &art : std::as_const(selected.art)) {
         if(art.type == "square") {
             QString editedLogoName;
             editedLogoName = selected.name;

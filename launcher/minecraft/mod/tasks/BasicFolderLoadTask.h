@@ -47,7 +47,7 @@ class BasicFolderLoadTask : public Task {
             connect(this, &Task::finished, this->thread(), &QThread::quit);
 
         m_dir.refresh();
-        for (auto entry : m_dir.entryInfoList()) {
+        for (const auto &entry : m_dir.entryInfoList()) {
             auto resource = m_create_func(entry);
             resource->moveToThread(m_thread_to_spawn_into);
             m_result->resources.insert(resource->internal_id(), resource);

@@ -62,7 +62,7 @@ void ModFolderLoadTask::executeTask()
 
     // Read JAR files that don't have metadata
     m_mods_dir.refresh();
-    for (auto entry : m_mods_dir.entryInfoList()) {
+    for (const auto &entry : m_mods_dir.entryInfoList()) {
         Mod* mod(new Mod(entry));
 
         if (mod->enabled()) {
@@ -109,7 +109,7 @@ void ModFolderLoadTask::executeTask()
         }
     }
 
-    for (auto mod : m_result->mods)
+    for (const auto &mod : std::as_const(m_result->mods))
         mod->moveToThread(m_thread_to_spawn_into);
 
     if (m_aborted)
@@ -121,7 +121,7 @@ void ModFolderLoadTask::executeTask()
 void ModFolderLoadTask::getFromMetadata()
 {
     m_index_dir.refresh();
-    for (auto entry : m_index_dir.entryList(QDir::Files)) {
+    for (const auto &entry : m_index_dir.entryList(QDir::Files)) {
         auto metadata = Metadata::get(m_index_dir, entry);
 
         if(!metadata.isValid()){

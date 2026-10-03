@@ -110,7 +110,7 @@ void Technic::SolderPackInstallTask::fileListSucceeded()
     m_filesNetJob = new NetJob(tr("Downloading modpack"), m_network);
 
     int i = 0;
-    for (const auto &mod : build.mods) {
+    for (const auto &mod : std::as_const(build.mods)) {
         auto path = FS::PathCombine(m_outputDir.path(), QString("%1").arg(i));
 
         auto dl = Net::Download::makeFile(mod.url, path);

@@ -147,7 +147,7 @@ void FlamePage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
                 qWarning() << "Error while reading flame modpack version: " << e.cause();
             }
 
-            for (auto version : current.versions) {
+            for (const auto &version : std::as_const(current.versions)) {
                 ui->versionSelectionBox->addItem(version.version, QVariant(version.downloadUrl));
             }
 
@@ -169,7 +169,7 @@ void FlamePage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
         });
         netJob->start();
     } else {
-        for (auto version : current.versions) {
+        for (const auto &version : std::as_const(current.versions)) {
             ui->versionSelectionBox->addItem(version.version, QVariant(version.downloadUrl));
         }
 

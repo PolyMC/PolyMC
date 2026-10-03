@@ -131,7 +131,7 @@ ModPlatform::IndexedVersion FlameAPI::getLatestVersion(VersionSearchArgs&& args)
             QJsonObject latest_file_obj;
             ModPlatform::IndexedVersion ver_tmp;
 
-            for (auto file : arr) {
+            for (auto file : std::as_const(arr)) {
                 auto file_obj = Json::requireObject(file);
                 auto file_tmp = FlameMod::loadIndexedPackVersion(file_obj);
                 if(file_tmp.date > ver_tmp.date) {

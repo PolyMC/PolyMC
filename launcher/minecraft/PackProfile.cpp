@@ -154,7 +154,7 @@ static bool savePackProfile(const QString & filename, const ComponentContainer &
     QJsonObject obj;
     obj.insert("formatVersion", currentComponentsFileVersion);
     QJsonArray orderArray;
-    for(auto component: container)
+    for (const auto &component : container)
     {
         orderArray.append(componentToJsonV1(component));
     }
@@ -220,7 +220,7 @@ static bool loadPackProfile(PackProfile * parent, const QString & filename, cons
                                           .arg(currentComponentsFileVersion));
         }
         auto orderArray = Json::requireArray(obj.value("components"));
-        for(auto item: orderArray)
+        for (auto item : std::as_const(orderArray))
         {
             auto obj = Json::requireObject(item, "Component must be an object.");
             container.append(componentFromJsonV1(parent, componentJsonPattern, obj));
@@ -318,13 +318,13 @@ bool PackProfile::load()
         // FIXME: actually use fine-grained updates, not this...
         beginResetModel();
         // disconnect all the old components
-        for(auto component: d->components)
+        for (const auto &component : std::as_const(d->components))
         {
             disconnect(component.get(), &Component::dataChanged, this, &PackProfile::componentDataChanged);
         }
         d->components.clear();
         d->componentIndex.clear();
-        for(auto component: newComponents)
+        for (const auto &component : std::as_const(newComponents))
         {
             if(d->componentIndex.contains(component->m_uid))
             {
@@ -432,7 +432,7 @@ void PackProfile::componentDataChanged()
     }
     // figure out which one is it... in a seriously dumb way.
     int index = 0;
-    for (auto component: d->components)
+    for (const auto &component : std::as_const(d->components))
     {
         if(component.get() == objPtr)
         {
@@ -472,7 +472,7 @@ bool PackProfile::remove(const int index)
 bool PackProfile::remove(const QString id)
 {
     int i = 0;
-    for (auto patch : d->components)
+    for (auto patch : std::as_const(d->components))
     {
         if (patch->getID() == id)
         {
@@ -830,7 +830,7 @@ bool PackProfile::installJarMods_internal(QStringList filepaths)
         return false;
     }
 
-    for(auto filepath:filepaths)
+    for (const auto &filepath : filepaths)
     {
         QFileInfo sourceInfo(filepath);
         auto uuid = QUuid::createUuid();
@@ -947,7 +947,7 @@ std::shared_ptr<LaunchProfile> PackProfile::getProfile() const
         try
         {
             auto profile = std::make_shared<LaunchProfile>();
-            for(auto file: d->components)
+            for (auto file : std::as_const(d->components))
             {
                 qDebug() << "Applying" << file->getID() << (file->getProblemSeverity() == ProblemSeverity::Error ? "ERROR" : "GOOD");
                 file->applyTo(profile.get());

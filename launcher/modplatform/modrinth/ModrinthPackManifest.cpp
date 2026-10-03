@@ -82,7 +82,7 @@ void loadIndexedInfo(Modpack& pack, QJsonObject& obj)
         pack.extra.discordUrl.chop(1);
 
     auto donate_arr = Json::ensureArray(obj, "donation_urls");
-    for(auto d : donate_arr){
+    for (auto d : std::as_const(donate_arr)){
         auto d_obj = Json::requireObject(d);
 
         DonationData donate;
@@ -103,7 +103,7 @@ void loadIndexedVersions(Modpack& pack, QJsonDocument& doc)
 
     auto arr = Json::requireArray(doc);
 
-    for (auto versionIter : arr) {
+    for (auto versionIter : std::as_const(arr)) {
         auto obj = Json::requireObject(versionIter);
         auto file = loadIndexedVersion(obj);
 
@@ -137,7 +137,7 @@ ModpackVersion loadIndexedVersion(QJsonObject &obj)
     auto files = Json::requireArray(obj, "files");
 
 
-    for (auto file_iter : files) {
+    for (auto file_iter : std::as_const(files)) {
         File indexed_file;
         auto parent = Json::requireObject(file_iter);
         auto is_primary = Json::ensureBoolean(parent, "primary", false);

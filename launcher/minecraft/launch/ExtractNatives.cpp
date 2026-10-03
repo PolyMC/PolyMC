@@ -97,7 +97,7 @@ void ExtractNatives::executeTask()
     auto outputPath  = minecraftInstance->getNativePath();
     auto javaVersion = minecraftInstance->getJavaVersion();
     bool jniHackEnabled = javaVersion.major() >= 8;
-    for(const auto &source: toExtract)
+    for (const auto &source : std::as_const(toExtract))
     {
         if(!unzipNatives(source, outputPath, jniHackEnabled, nativeOpenAL, nativeGLFW))
         {

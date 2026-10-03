@@ -79,7 +79,7 @@ void LoginDialog::onTaskFailed(const QString &reason)
     // Set message
     auto lines = reason.split('\n');
     QString processed;
-    for(auto line: lines) {
+    for (const auto &line : std::as_const(lines)) {
         if(line.size()) {
             processed += "<font color='red'>" + line + "</font><br />";
         }

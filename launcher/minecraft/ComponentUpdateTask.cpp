@@ -205,7 +205,7 @@ void ComponentUpdateTask::loadComponents()
         }
     }
     // load all the components OR their lists...
-    for (auto component: d->m_list->d->components)
+    for (auto component : std::as_const(d->m_list->d->components))
     {
         Task::Ptr loadTask;
         LoadResult singleResult;
@@ -341,7 +341,7 @@ static bool gatherRequirementsFromComponents(const ComponentContainer & input, R
 {
     bool succeeded = true;
     size_t componentNum = 0;
-    for(auto component: input)
+    for (const auto &component : input)
     {
         auto &componentRequires = component->m_cachedRequires;
         for(const auto & componentRequire: componentRequires)

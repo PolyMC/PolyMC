@@ -193,7 +193,7 @@ static void loadVersionMod(ATLauncher::VersionMod & p, QJsonObject & obj) {
     p.group = Json::ensureString(obj, QString("group"), "");
     if(obj.contains("depends")) {
         auto dependsArr = Json::requireArray(obj, "depends");
-        for (const auto depends : dependsArr) {
+        for (const auto depends : std::as_const(dependsArr)) {
             p.depends.append(Json::requireString(depends));
         }
     }
@@ -234,7 +234,7 @@ static void loadVersionKeeps(ATLauncher::VersionKeeps& k, QJsonObject& obj)
 {
     if (obj.contains("files")) {
         auto files = Json::requireArray(obj, "files");
-        for (const auto keepRaw : files) {
+        for (const auto keepRaw : std::as_const(files)) {
             auto keepObj = Json::requireObject(keepRaw);
             ATLauncher::VersionKeep keep;
             loadVersionKeep(keep, keepObj);
@@ -244,7 +244,7 @@ static void loadVersionKeeps(ATLauncher::VersionKeeps& k, QJsonObject& obj)
 
     if (obj.contains("folders")) {
         auto folders = Json::requireArray(obj, "folders");
-        for (const auto keepRaw : folders) {
+        for (const auto keepRaw : std::as_const(folders)) {
             auto keepObj = Json::requireObject(keepRaw);
             ATLauncher::VersionKeep keep;
             loadVersionKeep(keep, keepObj);
@@ -263,7 +263,7 @@ static void loadVersionDeletes(ATLauncher::VersionDeletes& d, QJsonObject& obj)
 {
     if (obj.contains("files")) {
         auto files = Json::requireArray(obj, "files");
-        for (const auto deleteRaw : files) {
+        for (const auto deleteRaw : std::as_const(files)) {
             auto deleteObj = Json::requireObject(deleteRaw);
             ATLauncher::VersionDelete versionDelete;
             loadVersionDelete(versionDelete, deleteObj);
@@ -273,7 +273,7 @@ static void loadVersionDeletes(ATLauncher::VersionDeletes& d, QJsonObject& obj)
 
     if (obj.contains("folders")) {
         auto folders = Json::requireArray(obj, "folders");
-        for (const auto deleteRaw : folders) {
+        for (const auto deleteRaw : std::as_const(folders)) {
             auto deleteObj = Json::requireObject(deleteRaw);
             ATLauncher::VersionDelete versionDelete;
             loadVersionDelete(versionDelete, deleteObj);
@@ -305,7 +305,7 @@ void ATLauncher::loadVersion(PackVersion & v, QJsonObject & obj)
 
     if(obj.contains("libraries")) {
         auto libraries = Json::requireArray(obj, "libraries");
-        for (const auto libraryRaw : libraries)
+        for (const auto libraryRaw : std::as_const(libraries))
         {
             auto libraryObj = Json::requireObject(libraryRaw);
             ATLauncher::VersionLibrary target;
@@ -316,7 +316,7 @@ void ATLauncher::loadVersion(PackVersion & v, QJsonObject & obj)
 
     if(obj.contains("mods")) {
         auto mods = Json::requireArray(obj, "mods");
-        for (const auto modRaw : mods)
+        for (const auto modRaw : std::as_const(mods))
         {
             auto modObj = Json::requireObject(modRaw);
             ATLauncher::VersionMod mod;

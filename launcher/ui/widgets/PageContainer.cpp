@@ -85,7 +85,7 @@ PageContainer::PageContainer(BasePageProvider *pageProvider, QString defaultId,
     m_proxyModel = new PageEntryFilterModel(this);
     int counter = 0;
     auto pages = pageProvider->getPages();
-    for (auto page : pages)
+    for (auto page : std::as_const(pages))
     {
         page->stackIndex = m_pageStack->addWidget(dynamic_cast<QWidget *>(page));
         page->listIndex = counter;

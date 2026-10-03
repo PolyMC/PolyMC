@@ -160,7 +160,7 @@ bool parseMinecraftProfile(QByteArray & data, MinecraftProfile &output) {
     }
 
     auto skinsArray = obj.value("skins").toArray();
-    for(auto skin: skinsArray) {
+    for (auto skin : std::as_const(skinsArray)) {
         auto skinObj = skin.toObject();
         Skin skinOut;
         if(!getString(skinObj.value("id"), skinOut.id)) {
@@ -186,7 +186,7 @@ bool parseMinecraftProfile(QByteArray & data, MinecraftProfile &output) {
     auto capesArray = obj.value("capes").toArray();
 
     QString currentCape;
-    for(auto cape: capesArray) {
+    for (auto cape : std::as_const(capesArray)) {
         auto capeObj = cape.toObject();
         Cape capeOut;
         if(!getString(capeObj.value("id"), capeOut.id)) {
@@ -299,7 +299,7 @@ bool parseMinecraftProfileMojang(QByteArray & data, MinecraftProfile &output) {
 
     auto propsArray = obj.value("properties").toArray();
     QByteArray texturePayload;
-    for( auto p : propsArray) {
+    for (auto p : std::as_const(propsArray)) {
         auto pObj = p.toObject();
         auto name = pObj.value("name");
         if (!name.isString() || name.toString() != "textures") {
@@ -405,7 +405,7 @@ bool parseMinecraftEntitlements(QByteArray & data, MinecraftEntitlement &output)
     output.ownsMinecraft = false;
 
     auto itemsArray = obj.value("items").toArray();
-    for(auto item: itemsArray) {
+    for (auto item : std::as_const(itemsArray)) {
         auto itemObj = item.toObject();
         QString name;
         if(!getString(itemObj.value("name"), name)) {

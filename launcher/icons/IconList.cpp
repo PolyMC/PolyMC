@@ -54,7 +54,7 @@ IconList::IconList(const QStringList &builtinPaths, QString path, QObject *paren
     {
         QDir instance_icons(builtinPath);
         auto file_info_list = instance_icons.entryInfoList(QDir::Files, QDir::Name);
-        for (auto file_info : file_info_list)
+        for (const auto &file_info : std::as_const(file_info_list))
         {
             builtinNames.insert(file_info.completeBaseName());
         }
@@ -130,7 +130,7 @@ void IconList::directoryChanged(const QString &path)
     QSet<QString> to_add = new_set;
     to_add -= current_set;
 
-    for (auto remove : to_remove)
+    for (const auto &remove : std::as_const(to_remove))
     {
         qDebug() << "Removing " << remove;
         QFileInfo rmfile(remove);
@@ -160,7 +160,7 @@ void IconList::directoryChanged(const QString &path)
         emit iconUpdated(key);
     }
 
-    for (auto add : to_add)
+    for (const auto &add : std::as_const(to_add))
     {
         qDebug() << "Adding " << add;
 
@@ -255,7 +255,7 @@ bool IconList::dropMimeData(const QMimeData *data, Qt::DropAction action, int ro
     {
         auto urls = data->urls();
         QStringList iconFiles;
-        for (auto url : urls)
+        for (const auto &url : std::as_const(urls))
         {
             // only local files may be dropped...
             if (!url.isLocalFile())
@@ -307,7 +307,7 @@ int IconList::rowCount(const QModelIndex &parent) const
 
 void IconList::installIcons(const QStringList &iconFiles)
 {
-    for (QString file : iconFiles)
+    for (const QString &file : iconFiles)
     {
         QFileInfo fileinfo(file);
         if (!fileinfo.isReadable() || !fileinfo.isFile())

@@ -36,7 +36,7 @@ void ATLauncher::loadIndexedPack(ATLauncher::IndexedPack & m, QJsonObject & obj)
             ATLauncher::PackType::Private :
             ATLauncher::PackType::Public;
     auto versionsArr = Json::requireArray(obj, "versions");
-    for (const auto versionRaw : versionsArr)
+    for (const auto versionRaw : std::as_const(versionsArr))
     {
         auto versionObj = Json::requireObject(versionRaw);
         ATLauncher::IndexedVersion version;

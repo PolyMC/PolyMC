@@ -72,7 +72,7 @@ QVariant ListModel::data(const QModelIndex &index, int role) const
             return placeholder;
         }
 
-        for(auto art : pack.art) {
+        for (const auto &art : std::as_const(pack.art)) {
             if(art.type == "square") {
                 ((ListModel *)this)->requestLogo(pack.name, art.url);
             }
@@ -131,7 +131,7 @@ void ListModel::requestFinished()
     }
 
     auto packs = doc.object().value("packs").toArray();
-    for(auto pack : packs) {
+    for (auto pack : std::as_const(packs)) {
         auto packId = pack.toInt();
         remainingPacks.append(packId);
     }

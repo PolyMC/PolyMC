@@ -52,7 +52,7 @@ void Flame::FileResolvingTask::netJobFinished()
     }
 
     auto array = Json::requireArray(doc.object()["data"]);
-    for (QJsonValueRef file : array) {
+    for (const auto &file : std::as_const(array)) {
         auto fileid = Json::requireInteger(Json::requireObject(file)["id"]);
         auto& out = m_toProcess.files[fileid];
         try {
@@ -92,7 +92,7 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
         QJsonDocument doc = QJsonDocument::fromJson(*bytes);
         auto obj = doc.object();
         auto array = Json::requireArray(obj,"files");
-        for (auto file: array) {
+        for (auto file : std::as_const(array)) {
             auto fileObj = Json::requireObject(file);
             auto primary = Json::requireBoolean(fileObj,"primary");
             if (primary) {
@@ -115,7 +115,7 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
         auto slugJob = new NetJob("Slug Job", m_network);
         auto slugs = QVector<QByteArray>(block->size());
         auto index = 0;
-        for (auto fileInfo: *block) {
+        for (auto fileInfo : std::as_const(*block)) {
             auto projectId = fileInfo->projectId;
             slugs[index] = QByteArray();
             auto url = QString("https://api.curseforge.com/v1/mods/%1").arg(projectId);

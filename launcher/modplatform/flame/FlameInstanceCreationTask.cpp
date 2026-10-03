@@ -126,7 +126,7 @@ bool FlameCreationTask::updateInstance()
         // TODO: Currently 'overrides' will always override the stuff on update. How do we preserve unchanged overrides?
         // FIXME: We may want to do something about disabled mods.
         auto old_overrides = Override::readOverrides("overrides", old_index_folder);
-        for (const auto& entry : old_overrides) {
+        for (const auto& entry : std::as_const(old_overrides)) {
             if (entry.isEmpty())
                 continue;
             qDebug() << "Scheduling" << entry << "for removal";
@@ -163,7 +163,7 @@ bool FlameCreationTask::updateInstance()
                 else
                     entries = Json::requireArray(Json::requireObject(doc), "data");
 
-                for (auto entry : entries) {
+                for (auto entry : std::as_const(entries)) {
                     auto entry_obj = Json::requireObject(entry);
 
                     Flame::File file;

@@ -27,7 +27,7 @@ void LibrariesTask::executeTask()
 
     auto processArtifactPool = [&](const QList<LibraryPtr> & pool, QStringList & errors, const QString & localPath)
     {
-        for (auto lib : pool)
+        for (const auto &lib : pool)
         {
             if(!lib)
             {
@@ -35,7 +35,7 @@ void LibrariesTask::executeTask()
                 return false;
             }
             auto dls = lib->getDownloads(inst->runtimeContext(), metacache.get(), errors, localPath);
-            for(auto dl : dls)
+            for (const auto &dl : std::as_const(dls))
             {
                 downloadJob->addNetAction(dl);
             }

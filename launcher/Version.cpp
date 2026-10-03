@@ -133,7 +133,7 @@ void Version::parse()
 
     QStringList parts = cleanStr.split('.');
 
-    for (const auto& part : parts)
+    for (const auto& part : std::as_const(parts))
     {
         m_sections.append(Section(part));
     }

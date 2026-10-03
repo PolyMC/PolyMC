@@ -65,7 +65,7 @@ AtlOptionalModListModel::AtlOptionalModListModel(QWidget* parent, ATLauncher::Pa
 QVector<QString> AtlOptionalModListModel::getResult() {
     QVector<QString> result;
 
-    for (const auto& mod : m_mods) {
+    for (const auto& mod : std::as_const(m_mods)) {
         if (m_selection[mod.name]) {
             result.push_back(mod.name);
         }
@@ -193,12 +193,12 @@ void AtlOptionalModListModel::shareCodeSuccess() {
     // FIXME: verify pack and version, error if not matching.
 
     // Clear the current selection
-    for (const auto& mod : m_mods) {
+    for (const auto& mod : std::as_const(m_mods)) {
         m_selection[mod.name] = false;
     }
 
     // Make the selections, as per the share code.
-    for (const auto& mod : response.data.mods) {
+    for (const auto& mod : std::as_const(response.data.mods)) {
         m_selection[mod.name] = mod.selected;
     }
 
@@ -213,7 +213,7 @@ void AtlOptionalModListModel::shareCodeFailure(const QString& reason) {
 }
 
 void AtlOptionalModListModel::selectRecommended() {
-    for (const auto& mod : m_mods) {
+    for (const auto& mod : std::as_const(m_mods)) {
         m_selection[mod.name] = mod.recommended;
     }
 
@@ -222,7 +222,7 @@ void AtlOptionalModListModel::selectRecommended() {
 }
 
 void AtlOptionalModListModel::clearAll() {
-    for (const auto& mod : m_mods) {
+    for (const auto& mod : std::as_const(m_mods)) {
         m_selection[mod.name] = false;
     }
 
@@ -265,7 +265,7 @@ void AtlOptionalModListModel::setMod(ATLauncher::VersionMod mod, int index, bool
         }
     }
 
-    for (const auto& dependencyName : mod.depends) {
+    for (const auto& dependencyName : std::as_const(mod.depends)) {
         auto dependencyIndex = m_index[dependencyName];
         auto dependencyMod = m_mods.at(dependencyIndex);
 

@@ -283,7 +283,7 @@ void ModpackListModel::searchRequestFinished(QJsonDocument& doc_all)
     QList<Modrinth::Modpack> newList;
 
     auto packs_all = doc_all.object().value("hits").toArray();
-    for (auto packRaw : packs_all) {
+    for (auto packRaw : std::as_const(packs_all)) {
         auto packObj = packRaw.toObject();
 
         Modrinth::Modpack pack;

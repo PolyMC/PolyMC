@@ -50,7 +50,7 @@ ModDetails ReadMCModInfo(QByteArray contents)
             authors = firstObj.value("authors").toArray();
         }
 
-        for (auto author : authors) {
+        for (auto author : std::as_const(authors)) {
             details.authors.append(author.toString());
         }
         return details;
@@ -184,7 +184,7 @@ ModDetails ReadFabricModInfo(QByteArray contents)
 
     if (schemaVersion >= 1) {
         QJsonArray authors = object.value("authors").toArray();
-        for (auto author : authors) {
+        for (auto author : std::as_const(authors)) {
             if (author.isObject()) {
                 details.authors.append(author.toObject().value("name").toString());
             } else {
