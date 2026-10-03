@@ -176,7 +176,7 @@ void UpdateController::installUpdates()
                     fail();
                     return;
                 }
-                QFile::setPermissions(destination.absoluteFilePath(), unixModeToPermissions(destMode));
+                QFile::setPermissions(destination.absoluteFilePath(), unixModeToPermissions(op.destinationMode));
             }
             break;
             // delete = move original to backup
