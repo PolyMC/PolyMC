@@ -61,14 +61,17 @@ void ModDependencyTask::executeTask() {
 
         m_resolved.append({pack, ver});
 
-        // get immediate deps
-        for (auto& d : ver.dependencies)
+        // get immediate deps and add them to the queue
+        for (const auto& d : std::as_const(ver.dependencies)) {
+            const auto k = key(job.prov, d.modId);
             if (d.type == ModPlatform::DependencyType::Required &&
-                !seen.contains(key(job.prov, d.modId))) {
-                seen.insert(key(job.prov, d.modId));
+                !seen.contains(k)) {
+                seen.insert(k);
                 queue.append({job.prov, d, job.depth + 1});
                 ++total;
             }
+        }
+
         ++done;
     }
     emitSucceeded();
