@@ -34,11 +34,11 @@ class ListModel : public ModPlatform::ListModel {
     void loadExtraPackInfo(ModPlatform::IndexedPack& m, QJsonObject& obj) override;
     void loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray& arr) override;
     
-    auto documentToArray(QJsonDocument& obj) const -> QJsonArray override;
+    QJsonArray documentToArray(QJsonDocument& obj) const override;
 
     // NOLINTNEXTLINE(modernize-avoid-c-arrays)
     static const char* sorts[5];
-    inline auto getSorts() const -> const char** override { return sorts; };
+    inline const char** getSorts() const override { return sorts; };
 };
 
 }  // namespace Modrinth

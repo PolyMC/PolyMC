@@ -108,9 +108,9 @@ struct Modpack {
 void loadIndexedPack(Modpack&, QJsonObject&);
 void loadIndexedInfo(Modpack&, QJsonObject&);
 void loadIndexedVersions(Modpack&, QJsonDocument&);
-auto loadIndexedVersion(QJsonObject&) -> ModpackVersion;
+ModpackVersion loadIndexedVersion(QJsonObject&);
 
-auto validateDownloadUrl(QUrl) -> bool;
+bool validateDownloadUrl(QUrl);
 
 }
 

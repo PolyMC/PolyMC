@@ -55,14 +55,14 @@ class ModpackListModel : public QAbstractListModel {
     ModpackListModel(ModrinthPage* parent);
     ~ModpackListModel() override = default;
 
-    inline auto rowCount(const QModelIndex& parent) const -> int override { return modpacks.size(); };
-    inline auto columnCount(const QModelIndex& parent) const -> int override { return 1; };
-    inline auto flags(const QModelIndex& index) const -> Qt::ItemFlags override { return QAbstractListModel::flags(index); };
+    inline int rowCount(const QModelIndex& parent) const override { return modpacks.size(); };
+    inline int columnCount(const QModelIndex& parent) const override { return 1; };
+    inline Qt::ItemFlags flags(const QModelIndex& index) const override { return QAbstractListModel::flags(index); };
 
-    auto debugName() const -> QString;
+    QString debugName() const;
 
     /* Retrieve information from the model at a given index with the given role */
-    auto data(const QModelIndex& index, int role) const -> QVariant override;
+    QVariant data(const QModelIndex& index, int role) const override;
     bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
     inline void setActiveJob(NetJob::Ptr ptr) { jobPtr = ptr; }
@@ -74,7 +74,7 @@ class ModpackListModel : public QAbstractListModel {
 
     void getLogo(const QString& logo, const QString& logoUrl, LogoCallback callback);
 
-    inline auto canFetchMore(const QModelIndex& parent) const -> bool override { return searchState == CanPossiblyFetchMore; };
+    inline bool canFetchMore(const QModelIndex& parent) const override { return searchState == CanPossiblyFetchMore; };
 
    public slots:
     void searchRequestFinished(QJsonDocument& doc_all);
@@ -90,7 +90,7 @@ class ModpackListModel : public QAbstractListModel {
    protected:
     void requestLogo(QString file, QString url);
 
-    inline auto getMineVersions() const -> std::list<Version>;
+    inline std::list<Version> getMineVersions() const;
 
    protected:
     ModrinthPage* m_parent;

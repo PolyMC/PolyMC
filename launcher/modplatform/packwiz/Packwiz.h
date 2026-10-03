@@ -32,10 +32,10 @@ class Mod;
 
 namespace Packwiz {
 
-auto getRealIndexName(QDir& index_dir, QString normalized_index_name, bool should_match = false) -> QString;
+QString getRealIndexName(QDir& index_dir, QString normalized_index_name, bool should_match = false);
 
-auto stringEntry(toml_table_t* parent, const char* entry_name) -> QString;
-auto intEntry(toml_table_t* parent, const char* entry_name) -> int;
+QString stringEntry(toml_table_t* parent, const char* entry_name);
+int intEntry(toml_table_t* parent, const char* entry_name);
 
 class V1 {
    public:
@@ -60,23 +60,23 @@ class V1 {
 
        public:
         // This is a totally heuristic, but should work for now.
-        auto isValid() const -> bool { return !slug.isEmpty() && !project_id.isNull(); }
-        auto hasDoUpdates() const -> bool { return !do_updates.isNull(); }
+        bool isValid() const { return !slug.isEmpty() && !project_id.isNull(); }
+        bool hasDoUpdates() const { return !do_updates.isNull(); }
 
         // Different providers can use different names for the same thing
         // Modrinth-specific
-        auto mod_id() -> QVariant& { return project_id; }
-        auto version() -> QVariant& { return file_id; }
+        QVariant& mod_id() { return project_id; }
+        QVariant& version() { return file_id; }
     };
 
     /* Generates the object representing the information in a mod.pw.toml file via
      * its common representation in the launcher, when downloading mods.
      * */
-    static auto createModFormat(QDir& index_dir, ModPlatform::IndexedPack& mod_pack, ModPlatform::IndexedVersion& mod_version) -> Mod;
+    static Mod createModFormat(QDir& index_dir, ModPlatform::IndexedPack& mod_pack, ModPlatform::IndexedVersion& mod_version);
     /* Generates the object representing the information in a mod.pw.toml file via
      * its common representation in the launcher, plus a necessary slug.
      * */
-    static auto createModFormat(QDir& index_dir, ::Mod& internal_mod, QString slug) -> Mod;
+    static Mod createModFormat(QDir& index_dir, ::Mod& internal_mod, QString slug);
 
     /* Updates the mod index for the provided mod.
      * This creates a new index if one does not exist already
@@ -93,12 +93,12 @@ class V1 {
     /* Gets the metadata for a mod with a particular file name.
      * If the mod doesn't have a metadata, it simply returns an empty Mod object.
      * */
-    static auto getIndexForMod(QDir& index_dir, QString slug) -> Mod;
+    static Mod getIndexForMod(QDir& index_dir, QString slug);
 
     /* Gets the metadata for a mod with a particular id.
      * If the mod doesn't have a metadata, it simply returns an empty Mod object.
      * */
-    static auto getIndexForMod(QDir& index_dir, QVariant& mod_id) -> Mod;
+    static Mod getIndexForMod(QDir& index_dir, QVariant& mod_id);
 };
 
 } // namespace Packwiz

@@ -61,7 +61,7 @@ ModrinthModPage::ModrinthModPage(ModDownloadDialog* dialog, ModAPI::ResourceType
     connect(ui->modSelectionButton, &QPushButton::clicked, this, &ModrinthModPage::onModSelected);
 }
 
-auto ModrinthModPage::validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders) const -> bool
+bool ModrinthModPage::validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders) const
 {
     if (m_resourceType != ModAPI::Mod) {
         return ver.mcVersion.contains(mineVer);
@@ -83,4 +83,4 @@ auto ModrinthModPage::validateVersion(ModPlatform::IndexedVersion& ver, QString 
 // I don't know why, but doing this on the parent class makes it so that
 // other mod providers start loading before being selected, at least with
 // my Qt, so we need to implement this in every derived class...
-auto ModrinthModPage::shouldDisplay() const -> bool { return true; }
+bool ModrinthModPage::shouldDisplay() const { return true; }

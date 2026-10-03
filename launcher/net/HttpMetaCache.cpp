@@ -44,7 +44,7 @@
 
 #include <QDebug>
 
-auto MetaEntry::getFullPath() -> QString
+QString MetaEntry::getFullPath()
 {
     // FIXME: make local?
     return FS::PathCombine(basePath, relativePath);
@@ -64,7 +64,7 @@ HttpMetaCache::~HttpMetaCache()
     SaveNow();
 }
 
-auto HttpMetaCache::getEntry(QString base, QString resource_path) -> MetaEntryPtr
+MetaEntryPtr HttpMetaCache::getEntry(QString base, QString resource_path)
 {
     // no base. no base path. can't store
     if (!m_entries.contains(base)) {
@@ -80,7 +80,7 @@ auto HttpMetaCache::getEntry(QString base, QString resource_path) -> MetaEntryPt
     return {};
 }
 
-auto HttpMetaCache::resolveEntry(QString base, QString resource_path, QString expected_etag) -> MetaEntryPtr
+MetaEntryPtr HttpMetaCache::resolveEntry(QString base, QString resource_path, QString expected_etag)
 {
     auto entry = getEntry(base, resource_path);
     // it's not present? generate a default stale entry
@@ -134,7 +134,7 @@ auto HttpMetaCache::resolveEntry(QString base, QString resource_path, QString ex
     return entry;
 }
 
-auto HttpMetaCache::updateEntry(MetaEntryPtr stale_entry) -> bool
+bool HttpMetaCache::updateEntry(MetaEntryPtr stale_entry)
 {
     if (!m_entries.contains(stale_entry->baseId)) {
         qCritical() << "Cannot add entry with unknown base: " << stale_entry->baseId.toLocal8Bit();
@@ -152,7 +152,7 @@ auto HttpMetaCache::updateEntry(MetaEntryPtr stale_entry) -> bool
     return true;
 }
 
-auto HttpMetaCache::evictEntry(MetaEntryPtr entry) -> bool
+bool HttpMetaCache::evictEntry(MetaEntryPtr entry)
 {
     if (!entry)
         return false;
@@ -162,7 +162,7 @@ auto HttpMetaCache::evictEntry(MetaEntryPtr entry) -> bool
     return true;
 }
 
-auto HttpMetaCache::staleEntry(QString base, QString resource_path) -> MetaEntryPtr
+MetaEntryPtr HttpMetaCache::staleEntry(QString base, QString resource_path)
 {
     auto foo = new MetaEntry();
     foo->baseId = base;
@@ -185,7 +185,7 @@ void HttpMetaCache::addBase(QString base, QString base_root)
     m_entries[base] = foo;
 }
 
-auto HttpMetaCache::getBasePath(QString base) -> QString
+QString HttpMetaCache::getBasePath(QString base)
 {
     if (m_entries.contains(base)) {
         return m_entries[base].base_path;

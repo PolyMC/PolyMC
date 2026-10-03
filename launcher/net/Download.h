@@ -58,17 +58,17 @@ class Download : public NetAction {
    public:
     ~Download() override = default;
 
-    static auto makeCached(QUrl url, MetaEntryPtr entry, Options options = Option::NoOptions) -> Download::Ptr;
-    static auto makeByteArray(QUrl url, QByteArray* output, Options options = Option::NoOptions) -> Download::Ptr;
-    static auto makeFile(QUrl url, QString path, Options options = Option::NoOptions) -> Download::Ptr;
+    static Download::Ptr makeCached(QUrl url, MetaEntryPtr entry, Options options = Option::NoOptions);
+    static Download::Ptr makeByteArray(QUrl url, QByteArray* output, Options options = Option::NoOptions);
+    static Download::Ptr makeFile(QUrl url, QString path, Options options = Option::NoOptions);
 
    public:
     void addValidator(Validator* v);
-    auto abort() -> bool override;
-    auto canAbort() const -> bool override { return true; };
+    bool abort() override;
+    bool canAbort() const override { return true; };
 
    private:
-    auto handleRedirect() -> bool;
+    bool handleRedirect();
 
    protected slots:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal) override;

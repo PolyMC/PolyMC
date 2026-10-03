@@ -80,7 +80,7 @@ void NetworkModAPI::getVersions(VersionSearchArgs&& args, std::function<void(QJs
     netJob->start();
 }
 
-auto NetworkModAPI::getProject(QString addonId, QByteArray* response) const -> NetJob*
+NetJob* NetworkModAPI::getProject(QString addonId, QByteArray* response) const
 {
     auto netJob = new NetJob(QString("%1::GetProject").arg(addonId), APPLICATION->network());
     auto searchUrl = getModInfoURL(addonId);

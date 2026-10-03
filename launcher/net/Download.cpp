@@ -54,7 +54,7 @@ Download::Download() : NetAction()
     m_state = State::Inactive;
 }
 
-auto Download::makeCached(QUrl url, MetaEntryPtr entry, Options options) -> Download::Ptr
+Download::Ptr Download::makeCached(QUrl url, MetaEntryPtr entry, Options options)
 {
     auto* dl = new Download();
     dl->m_url = url;
@@ -65,7 +65,7 @@ auto Download::makeCached(QUrl url, MetaEntryPtr entry, Options options) -> Down
     return dl;
 }
 
-auto Download::makeByteArray(QUrl url, QByteArray* output, Options options) -> Download::Ptr
+Download::Ptr Download::makeByteArray(QUrl url, QByteArray* output, Options options)
 {
     auto* dl = new Download();
     dl->m_url = url;
@@ -74,7 +74,7 @@ auto Download::makeByteArray(QUrl url, QByteArray* output, Options options) -> D
     return dl;
 }
 
-auto Download::makeFile(QUrl url, QString path, Options options) -> Download::Ptr
+Download::Ptr Download::makeFile(QUrl url, QString path, Options options)
 {
     auto* dl = new Download();
     dl->m_url = url;
@@ -173,7 +173,7 @@ void Download::sslErrors(const QList<QSslError>& errors)
     }
 }
 
-auto Download::handleRedirect() -> bool
+bool Download::handleRedirect()
 {
     QUrl redirect = m_reply->header(QNetworkRequest::LocationHeader).toUrl();
     if (!redirect.isValid()) {
@@ -295,7 +295,7 @@ void Download::downloadReadyRead()
 
 }  // namespace Net
 
-auto Net::Download::abort() -> bool
+bool Net::Download::abort()
 {
     if (m_reply) {
         m_reply->abort();

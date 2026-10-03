@@ -56,13 +56,13 @@ class NetJob : public ConcurrentTask {
 
     void startNext() override;
 
-    auto size() const -> int;
+    int size() const;
 
-    auto canAbort() const -> bool override;
-    auto addNetAction(NetAction::Ptr action) -> bool;
+    bool canAbort() const override;
+    bool addNetAction(NetAction::Ptr action);
 
-    auto getFailedActions() -> QList<NetAction*>;
-    auto getFailedFiles() -> QList<QString>;
+    QList<NetAction*> getFailedActions();
+    QList<QString> getFailedFiles();
 
    public slots:
     // Qt can't handle auto at the start for some reason?

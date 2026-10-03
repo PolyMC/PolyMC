@@ -51,7 +51,7 @@ class ByteArraySink : public Sink {
     virtual ~ByteArraySink() = default;
 
    public:
-    auto init(QNetworkRequest& request) -> Task::State override
+    Task::State init(QNetworkRequest& request) override
     {
         m_output->clear();
         if (initAllValidators(request))
@@ -59,7 +59,7 @@ class ByteArraySink : public Sink {
         return Task::State::Failed;
     };
 
-    auto write(QByteArray& data) -> Task::State override
+    Task::State write(QByteArray& data) override
     {
         m_output->append(data);
         if (writeAllValidators(data))
@@ -67,21 +67,21 @@ class ByteArraySink : public Sink {
         return Task::State::Failed;
     }
 
-    auto abort() -> Task::State override
+    Task::State abort() override
     {
         m_output->clear();
         failAllValidators();
         return Task::State::Failed;
     }
 
-    auto finalize(QNetworkReply& reply) -> Task::State override
+    Task::State finalize(QNetworkReply& reply) override
     {
         if (finalizeAllValidators(reply))
             return Task::State::Succeeded;
         return Task::State::Failed;
     }
 
-    auto hasLocalData() -> bool override { return false; }
+    bool hasLocalData() override { return false; }
 
    private:
     QByteArray* m_output;

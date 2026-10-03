@@ -52,7 +52,7 @@ class NetAction : public Task {
     virtual ~NetAction() = default;
 
     QUrl url() { return m_url; }
-    auto index() -> int { return m_index_within_job; }
+    int index() { return m_index_within_job; }
 
     void setNetwork(shared_qobject_ptr<QNetworkAccessManager> network) { m_network = network; }
 

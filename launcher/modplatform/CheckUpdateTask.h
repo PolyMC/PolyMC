@@ -31,7 +31,7 @@ class CheckUpdateTask : public Task {
         {}
     };
 
-    auto getUpdatable() -> std::vector<UpdatableMod>&& { return std::move(m_updatable); }
+    std::vector<UpdatableMod>&& getUpdatable() { return std::move(m_updatable); }
 
    public slots:
     bool abort() override = 0;

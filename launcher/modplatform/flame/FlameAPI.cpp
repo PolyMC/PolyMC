@@ -7,7 +7,7 @@
 
 #include "net/Upload.h"
 
-auto FlameAPI::matchFingerprints(const QList<uint>& fingerprints, QByteArray* response) -> NetJob::Ptr
+NetJob::Ptr FlameAPI::matchFingerprints(const QList<uint>& fingerprints, QByteArray* response)
 {
     auto* netJob = new NetJob(QString("Flame::MatchFingerprints"), APPLICATION->network());
 
@@ -29,7 +29,7 @@ auto FlameAPI::matchFingerprints(const QList<uint>& fingerprints, QByteArray* re
     return netJob;
 }
 
-auto FlameAPI::getModFileChangelog(int modId, int fileId) -> QString
+QString FlameAPI::getModFileChangelog(int modId, int fileId)
 {
     QEventLoop lock;
     QString changelog;
@@ -67,7 +67,7 @@ auto FlameAPI::getModFileChangelog(int modId, int fileId) -> QString
     return changelog;
 }
 
-auto FlameAPI::getModDescription(int modId) -> QString
+QString FlameAPI::getModDescription(int modId)
 {
     QEventLoop lock;
     QString description;
@@ -104,7 +104,7 @@ auto FlameAPI::getModDescription(int modId) -> QString
     return description;
 }
 
-auto FlameAPI::getLatestVersion(VersionSearchArgs&& args) -> ModPlatform::IndexedVersion
+ModPlatform::IndexedVersion FlameAPI::getLatestVersion(VersionSearchArgs&& args)
 {
     QEventLoop loop;
 
@@ -161,7 +161,7 @@ auto FlameAPI::getLatestVersion(VersionSearchArgs&& args) -> ModPlatform::Indexe
     return ver;
 }
 
-auto FlameAPI::getProjects(QStringList addonIds, QByteArray* response) const -> NetJob*
+NetJob* FlameAPI::getProjects(QStringList addonIds, QByteArray* response) const
 {
     auto* netJob = new NetJob(QString("Flame::GetProjects"), APPLICATION->network());
 
@@ -184,7 +184,7 @@ auto FlameAPI::getProjects(QStringList addonIds, QByteArray* response) const -> 
     return netJob;
 }
 
-auto FlameAPI::getFiles(const QStringList& fileIds, QByteArray* response) const -> NetJob*
+NetJob* FlameAPI::getFiles(const QStringList& fileIds, QByteArray* response) const
 {
     auto* netJob = new NetJob(QString("Flame::GetFiles"), APPLICATION->network());
 

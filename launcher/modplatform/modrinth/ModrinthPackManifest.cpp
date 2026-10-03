@@ -122,7 +122,7 @@ void loadIndexedVersions(Modpack& pack, QJsonDocument& doc)
     pack.versionsLoaded = true;
 }
 
-auto loadIndexedVersion(QJsonObject &obj) -> ModpackVersion
+ModpackVersion loadIndexedVersion(QJsonObject &obj)
 {
     ModpackVersion file;
 

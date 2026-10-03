@@ -20,14 +20,14 @@ class ListModel : public QAbstractListModel {
     ListModel(ModPage* parent);
     ~ListModel() override;
 
-    inline auto rowCount(const QModelIndex& parent) const -> int override { return modpacks.size(); };
-    inline auto columnCount(const QModelIndex& parent) const -> int override { return 1; };
-    inline auto flags(const QModelIndex& index) const -> Qt::ItemFlags override { return QAbstractListModel::flags(index); };
+    inline int rowCount(const QModelIndex& parent) const override { return modpacks.size(); };
+    inline int columnCount(const QModelIndex& parent) const override { return 1; };
+    inline Qt::ItemFlags flags(const QModelIndex& index) const override { return QAbstractListModel::flags(index); };
 
-    auto debugName() const -> QString;
+    QString debugName() const;
 
     /* Retrieve information from the model at a given index with the given role */
-    auto data(const QModelIndex& index, int role) const -> QVariant override;
+    QVariant data(const QModelIndex& index, int role) const override;
     bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
     inline void setActiveJob(NetJob::Ptr ptr) { jobPtr = ptr; }
@@ -46,7 +46,7 @@ class ListModel : public QAbstractListModel {
 
     void getLogo(const QString& logo, const QString& logoUrl, LogoCallback callback);
 
-    inline auto canFetchMore(const QModelIndex& parent) const -> bool override { return searchState == CanPossiblyFetchMore; };
+    inline bool canFetchMore(const QModelIndex& parent) const override { return searchState == CanPossiblyFetchMore; };
 
    public slots:
     void searchRequestFinished(QJsonDocument& doc);
@@ -64,12 +64,12 @@ class ListModel : public QAbstractListModel {
     void performPaginatedSearch();
 
    protected:
-    virtual auto documentToArray(QJsonDocument& obj) const -> QJsonArray = 0;
-    virtual auto getSorts() const -> const char** = 0;
+    virtual QJsonArray documentToArray(QJsonDocument& obj) const = 0;
+    virtual const char** getSorts() const = 0;
 
     void requestLogo(QString file, QString url);
 
-    inline auto getMineVersions() const -> std::list<Version>;
+    inline std::list<Version> getMineVersions() const;
 
    protected:
     ModPage* m_parent;

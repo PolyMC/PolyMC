@@ -45,11 +45,11 @@ class MetaCacheSink : public FileSink {
     MetaCacheSink(MetaEntryPtr entry, ChecksumValidator* md5sum, bool is_eternal = false);
     virtual ~MetaCacheSink() = default;
 
-    auto hasLocalData() -> bool override;
+    bool hasLocalData() override;
 
    protected:
-    auto initCache(QNetworkRequest& request) -> Task::State override;
-    auto finalizeCache(QNetworkReply& reply) -> Task::State override;
+    Task::State initCache(QNetworkRequest& request) override;
+    Task::State finalizeCache(QNetworkReply& reply) override;
 
    private:
     MetaEntryPtr m_entry;

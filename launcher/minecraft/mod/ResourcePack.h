@@ -42,7 +42,7 @@ class ResourcePack : public Resource {
     /** Thread-safe. */
     void setImage(QImage new_image);
 
-    [[nodiscard]] auto compare(Resource const& other, SortType type) const -> std::pair<int, bool> override;
+    [[nodiscard]] std::pair<int, bool> compare(Resource const& other, SortType type) const override;
     [[nodiscard]] bool applyFilter(QRegularExpression filter) const override;
 
    protected:

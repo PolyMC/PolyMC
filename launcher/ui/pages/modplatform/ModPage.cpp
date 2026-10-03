@@ -112,7 +112,7 @@ void ModPage::openedImpl()
     triggerSearch();
 }
 
-auto ModPage::eventFilter(QObject* watched, QEvent* event) -> bool
+bool ModPage::eventFilter(QObject* watched, QEvent* event)
 {
     if (watched == ui->searchEdit && event->type() == QEvent::KeyPress) {
         auto* keyEvent = dynamic_cast<QKeyEvent*>(event);

@@ -54,26 +54,26 @@ public:
     Mod(const QDir& mods_dir, const Metadata::ModStruct& metadata);
     Mod(QString file_path) : Mod(QFileInfo(file_path)) {}
 
-    auto details()     const -> const ModDetails&;
-    auto name()        const -> QString override;
-    auto version()     const -> QString;
-    auto homeurl()     const -> QString;
-    auto description() const -> QString;
-    auto authors()     const -> QStringList;
-    auto status()      const -> ModStatus;
+    const ModDetails& details() const;
+    QString name() const override;
+    QString version() const;
+    QString homeurl() const;
+    QString description() const;
+    QStringList authors() const;
+    ModStatus status() const;
 
-    auto metadata() -> std::shared_ptr<Metadata::ModStruct>;
-    auto metadata() const -> const std::shared_ptr<Metadata::ModStruct>;
+    std::shared_ptr<Metadata::ModStruct> metadata();
+    const std::shared_ptr<Metadata::ModStruct> metadata() const;
 
     void setStatus(ModStatus status);
     void setMetadata(std::shared_ptr<Metadata::ModStruct>&& metadata);
     void setMetadata(const Metadata::ModStruct& metadata) { setMetadata(std::make_shared<Metadata::ModStruct>(metadata)); }
 
-    [[nodiscard]] auto compare(Resource const& other, SortType type) const -> std::pair<int, bool> override;
+    [[nodiscard]] std::pair<int, bool> compare(Resource const& other, SortType type) const override;
     [[nodiscard]] bool applyFilter(QRegularExpression filter) const override;
 
     // Delete all the files of this mod
-    auto destroy(QDir& index_dir, bool preserve_metadata = false) -> bool;
+    bool destroy(QDir& index_dir, bool preserve_metadata = false);
 
     void finishResolvingWithDetails(ModDetails&& details);
 

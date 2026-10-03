@@ -24,7 +24,7 @@
 
 namespace ModPlatform {
 
-auto ProviderCapabilities::name(Provider p) -> const char*
+const char* ProviderCapabilities::name(Provider p)
 {
     switch (p) {
         case Provider::MODRINTH:
@@ -34,7 +34,7 @@ auto ProviderCapabilities::name(Provider p) -> const char*
     }
     return {};
 }
-auto ProviderCapabilities::readableName(Provider p) -> QString
+QString ProviderCapabilities::readableName(Provider p)
 {
     switch (p) {
         case Provider::MODRINTH:
@@ -44,7 +44,7 @@ auto ProviderCapabilities::readableName(Provider p) -> QString
     }
     return {};
 }
-auto ProviderCapabilities::hashType(Provider p) -> QStringList
+QStringList ProviderCapabilities::hashType(Provider p)
 {
     switch (p) {
         case Provider::MODRINTH:
@@ -56,7 +56,7 @@ auto ProviderCapabilities::hashType(Provider p) -> QStringList
     return {};
 }
 
-auto ProviderCapabilities::hash(Provider p, QIODevice* device, QString type) -> QString
+QString ProviderCapabilities::hash(Provider p, QIODevice* device, QString type)
 {
     QCryptographicHash::Algorithm algo = QCryptographicHash::Sha1;
     switch (p) {

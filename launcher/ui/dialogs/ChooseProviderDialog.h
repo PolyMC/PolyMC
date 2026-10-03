@@ -31,7 +31,7 @@ class ChooseProviderDialog : public QDialog {
     explicit ChooseProviderDialog(QWidget* parent, bool single_choice = false, bool allow_skipping = true);
     ~ChooseProviderDialog();
 
-    auto getResponse() const -> Response { return m_response; }
+    Response getResponse() const { return m_response; }
 
     void setDescription(QString desc);
 
@@ -45,7 +45,7 @@ class ChooseProviderDialog : public QDialog {
     void addProviders();
     void disableInput();
 
-    auto getSelectedProvider() const -> ModPlatform::Provider;
+    ModPlatform::Provider getSelectedProvider() const;
 
    private:
     Ui::ChooseProviderDialog* ui;

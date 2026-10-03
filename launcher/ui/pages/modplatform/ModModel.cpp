@@ -24,7 +24,7 @@ ListModel::~ListModel()
     s_running.find(this).value() = false;
 }
 
-auto ListModel::debugName() const -> QString
+QString ListModel::debugName() const
 {
     return m_parent->debugName();
 }
@@ -42,7 +42,7 @@ void ListModel::fetchMore(const QModelIndex& parent)
     performPaginatedSearch();
 }
 
-auto ListModel::data(const QModelIndex& index, int role) const -> QVariant
+QVariant ListModel::data(const QModelIndex& index, int role) const
 {
     int pos = index.row();
     if (pos >= modpacks.size() || pos < 0 || !index.isValid()) {
@@ -337,7 +337,7 @@ void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId, cons
 
 /******** Helpers ********/
 
-auto ModPlatform::ListModel::getMineVersions() const -> std::list<Version>
+std::list<Version> ModPlatform::ListModel::getMineVersions() const
 {
     return m_parent->getFilter()->versions;
 }
