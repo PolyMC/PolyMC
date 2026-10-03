@@ -36,6 +36,17 @@ public:
                              const std::shared_ptr<ResourceFolderModel> mods,
                              bool is_indexed = true);
     const QString& getFilename() const { return m_mod_version.fileName; }
+    const QList<ModPlatform::Dependency> getDependencies() const {
+        return m_mod_version.dependencies;
+    }
+
+    const ModPlatform::Provider getProvider() const {
+        return m_mod.provider;
+    }
+
+    const QVariant& getAddonId() const {
+        return m_mod.addonId;
+    }
 
 private:
     ModPlatform::IndexedPack m_mod;

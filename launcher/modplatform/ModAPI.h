@@ -40,6 +40,7 @@
 #include <list>
 
 #include "Version.h"
+#include "modplatform/ModIndex.h"
 #include "net/NetJob.h"
 
 namespace ModPlatform {
@@ -86,7 +87,6 @@ class ModAPI {
     virtual auto getProject(QString addonId, QByteArray* response) const -> NetJob* = 0;
     virtual auto getProjects(QStringList addonIds, QByteArray* response) const -> NetJob* = 0;
 
-
     struct VersionSearchArgs {
         QString addonId;
         std::list<Version> mcVersions;
@@ -95,6 +95,7 @@ class ModAPI {
     };
 
     virtual void getVersions(VersionSearchArgs&& args, std::function<void(QJsonDocument&, QString)> callback) const = 0;
+    virtual ModPlatform::IndexedVersion getLatestVersion(VersionSearchArgs&& args) const = 0;
 
     static auto getModLoaderString(ModLoaderType type) -> const QString {
         switch (type) {

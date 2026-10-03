@@ -104,7 +104,7 @@ auto FlameAPI::getModDescription(int modId) -> QString
     return description;
 }
 
-auto FlameAPI::getLatestVersion(VersionSearchArgs&& args) -> ModPlatform::IndexedVersion
+ModPlatform::IndexedVersion FlameAPI::getLatestVersion(VersionSearchArgs&& args) const
 {
     QEventLoop loop;
 
@@ -131,7 +131,7 @@ auto FlameAPI::getLatestVersion(VersionSearchArgs&& args) -> ModPlatform::Indexe
             QJsonObject latest_file_obj;
             ModPlatform::IndexedVersion ver_tmp;
 
-            for (auto file : arr) {
+            for (auto file : std::as_const(arr)) {
                 auto file_obj = Json::requireObject(file);
                 auto file_tmp = FlameMod::loadIndexedPackVersion(file_obj);
                 if(file_tmp.date > ver_tmp.date) {
@@ -155,7 +155,6 @@ auto FlameAPI::getLatestVersion(VersionSearchArgs&& args) -> ModPlatform::Indexe
     });
 
     netJob->start();
-
     loop.exec();
 
     return ver;

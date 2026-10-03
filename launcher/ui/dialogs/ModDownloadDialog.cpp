@@ -31,6 +31,9 @@
 #include <QValidator>
 
 #include "ModDownloadTask.h"
+#include "modplatform/ModDependencyTask.h"
+#include "modplatform/ModIndex.h"
+#include "ui/dialogs/ProgressDialog.h"
 #include "ui/pages/modplatform/flame/FlameModPage.h"
 #include "ui/pages/modplatform/modrinth/ModrinthModPage.h"
 #include "ui/widgets/PageContainer.h"
@@ -104,26 +107,41 @@ void ModDownloadDialog::reject()
 
 void ModDownloadDialog::confirm()
 {
-    auto keys = modTask.keys();
-    keys.sort(Qt::CaseInsensitive);
+    // FIXME(crueter): resolve existing mods, prompt update?
+    auto profile = dynamic_cast<MinecraftInstance*>(m_instance)->getPackProfile();
+    QString mcVersion = profile->getComponentVersion("net.minecraft");
+    std::list<Version> mcVersions = {Version(mcVersion)};
+    ModAPI::ModLoaderTypes loaders = profile->getModLoaders();
 
-    auto confirm_dialog =
-        ReviewMessageBox::create(this, tr("Confirm %1 to download").arg(m_typeString));
-    confirm_dialog->setDescription(tr("You're about to download the following %1:").arg(m_typeString));
-    confirm_dialog->setCheckLabel(tr("Only %1 with a check will be downloaded!").arg(m_typeString));
+    QList<ModDependencyTask::Root> roots;
+    for (auto* t : modTask.values())
+        roots.append({t->getProvider(), t->getAddonId(), t->getDependencies()});
 
-    for (auto& task : keys) {
-        confirm_dialog->appendMod({ task, modTask.find(task).value()->getFilename() });
-    }
+    bool anyDeps = false;
+    for (auto& r : roots)
+        for (auto& d : r.deps)
+            if (d.type == ModPlatform::DependencyType::Required) {
+                anyDeps = true;
+                break;
+            }
 
-    if (confirm_dialog->exec()) {
-        auto deselected = confirm_dialog->deselectedMods();
-        for (const auto &name : std::as_const(deselected)) {
-            modTask.remove(name);
-        }
+    if (!anyDeps)
+        return showReviewBox();
 
-        this->accept();
-    }
+    bool is_indexed =
+        !APPLICATION->settings()->get("ModMetadataDisabled").toBool() && m_type == ModAPI::Mod;
+
+    ModDependencyTask resolve(roots, mcVersions, loaders, m_type);
+    ProgressDialog progress(this);
+    progress.setWindowTitle(tr("Resolving dependencies..."));
+    progress.setSkipButton(true, tr("Abort"));
+    if (progress.execWithTask(&resolve) == QDialog::Rejected)
+        return;
+
+    for (auto& r : resolve.resolved())
+        addSelectedMod(r.pack.name, new ModDownloadTask(r.pack, r.ver, mods, is_indexed));
+
+    showReviewBox();
 }
 
 void ModDownloadDialog::accept()
@@ -195,4 +213,27 @@ void ModDownloadDialog::selectedPageChanged(BasePage* previous, BasePage* select
 
     // Same effect as having a global search bar
     selected_page->setSearchTerm(prev_page->getSearchTerm());
+}
+
+void ModDownloadDialog::showReviewBox() {
+    auto keys = modTask.keys();
+    keys.sort(Qt::CaseInsensitive);
+
+    auto confirm_dialog =
+        ReviewMessageBox::create(this, tr("Confirm %1 to download").arg(m_typeString));
+    confirm_dialog->setDescription(tr("You're about to download the following %1:").arg(m_typeString));
+    confirm_dialog->setCheckLabel(tr("Only %1 with a check will be downloaded!").arg(m_typeString));
+
+    for (auto& task : keys) {
+        confirm_dialog->appendMod({ task, modTask.find(task).value()->getFilename() });
+    }
+
+    if (confirm_dialog->exec()) {
+        auto deselected = confirm_dialog->deselectedMods();
+        for (const auto &name : std::as_const(deselected)) {
+            modTask.remove(name);
+        }
+
+        this->accept();
+    }
 }

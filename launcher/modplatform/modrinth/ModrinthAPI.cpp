@@ -2,6 +2,8 @@
 
 #include "Application.h"
 #include "Json.h"
+#include "modplatform/ModIndex.h"
+#include "modplatform/modrinth/ModrinthPackIndex.h"
 #include "net/Upload.h"
 
 auto ModrinthAPI::currentVersion(QString hash, QString hash_format, QByteArray* response) -> NetJob::Ptr
@@ -93,6 +95,63 @@ auto ModrinthAPI::latestVersions(const QStringList& hashes,
     QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 
     return netJob;
+}
+
+// TODO: dedup between?
+ModPlatform::IndexedVersion ModrinthAPI::getLatestVersion(VersionSearchArgs&& args) const
+{
+    QEventLoop loop;
+
+    auto netJob = new NetJob(QString("Modrinth::GetLatestVersion(%1)").arg(args.addonId), APPLICATION->network());
+    auto response = new QByteArray();
+    ModPlatform::IndexedVersion ver;
+
+    netJob->addNetAction(Net::Download::makeByteArray(getVersionsURL(args), response));
+
+    QObject::connect(netJob, &NetJob::succeeded, [response, args, &ver] {
+        QJsonParseError parse_error{};
+        QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+        if (parse_error.error != QJsonParseError::NoError) {
+            qWarning() << "Error while parsing JSON response from latest mod version at " << parse_error.offset
+                       << " reason: " << parse_error.errorString();
+            qWarning() << *response;
+            return;
+        }
+
+        try {
+            auto arr = Json::requireArray(doc);
+
+            QJsonObject latest_file_obj;
+            ModPlatform::IndexedVersion ver_tmp;
+
+            for (auto file : std::as_const(arr)) {
+                auto file_obj = Json::requireObject(file);
+                auto file_tmp = Modrinth::loadIndexedPackVersion(file_obj);
+                if(file_tmp.date > ver_tmp.date) {
+                    ver_tmp = file_tmp;
+                    latest_file_obj = file_obj;
+                }
+            }
+
+            ver = Modrinth::loadIndexedPackVersion(latest_file_obj);
+        } catch (Json::JsonException& e) {
+            qCritical() << "Failed to parse response from a version request.";
+            qCritical() << e.what();
+            qDebug() << doc;
+        }
+    });
+
+    QObject::connect(netJob, &NetJob::finished, [response, netJob, &loop] {
+        netJob->deleteLater();
+        delete response;
+        loop.quit();
+    });
+
+    netJob->start();
+
+    loop.exec();
+
+    return ver;
 }
 
 auto ModrinthAPI::getProjects(QStringList addonIds, QByteArray* response) const -> NetJob*

@@ -64,6 +64,7 @@ public slots:
 
 private slots:
     void selectedPageChanged(BasePage* previous, BasePage* selected);
+    void showReviewBox();
 
 private:
     Ui::ModDownloadDialog *ui = nullptr;

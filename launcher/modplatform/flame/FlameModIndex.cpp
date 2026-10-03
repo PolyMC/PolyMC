@@ -3,6 +3,7 @@
 #include "Json.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
+#include "modplatform/ModIndex.h"
 #include "modplatform/flame/FlameAPI.h"
 
 static FlameAPI api;
@@ -22,7 +23,7 @@ void FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj)
     pack.logoUrl = Json::ensureString(logo, "thumbnailUrl");
 
     auto authors = Json::ensureArray(obj, "authors");
-    for (auto authorIter : authors) {
+    for (auto authorIter : std::as_const(authors)) {
         auto author = Json::requireObject(authorIter);
         ModPlatform::ModpackAuthor packAuthor;
         packAuthor.name = Json::requireString(author, "name");
@@ -84,7 +85,7 @@ void FlameMod::loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
 
     for (auto versionIter : arr) {
         auto obj = versionIter.toObject();
-        
+
         auto file = loadIndexedPackVersion(obj);
         if(!file.addonId.isValid())
             file.addonId = pack.addonId;
@@ -105,12 +106,11 @@ void FlameMod::loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
 auto FlameMod::loadIndexedPackVersion(QJsonObject& obj, bool load_changelog) -> ModPlatform::IndexedVersion
 {
     auto versionArray = Json::requireArray(obj, "gameVersions");
-    if (versionArray.isEmpty()) {
+    if (versionArray.isEmpty())
         return {};
-    }
 
     ModPlatform::IndexedVersion file;
-    for (auto mcVer : versionArray) {
+    for (auto mcVer : std::as_const(versionArray)) {
         auto str = mcVer.toString();
 
         if (str.contains('.'))
@@ -124,8 +124,30 @@ auto FlameMod::loadIndexedPackVersion(QJsonObject& obj, bool load_changelog) -> 
     file.downloadUrl = Json::ensureString(obj, "downloadUrl");
     file.fileName = Json::requireString(obj, "fileName");
 
+    const auto deps = obj["dependencies"].toArray();
+    for (const auto &d : std::as_const(deps)) {
+        auto obj = d.toObject();
+        ModPlatform::Dependency dep;
+        dep.modId = Json::requireInteger(obj, "modId");
+        const auto type = Json::requireInteger(obj, "relationType");
+
+        // clang-format off
+        switch (type) {
+            case 1: dep.type = ModPlatform::DependencyType::Embedded; break;
+            case 2: dep.type = ModPlatform::DependencyType::Optional; break;
+            case 3: dep.type = ModPlatform::DependencyType::Required; break;
+            case 4: dep.type = ModPlatform::DependencyType::Tool; break;
+            case 5: dep.type = ModPlatform::DependencyType::Incompatible; break;
+            case 6: dep.type = ModPlatform::DependencyType::Include; break;
+            default: dep.type = ModPlatform::DependencyType::Unknown; break;
+        }
+        // clang-format on
+
+        file.dependencies.append(dep);
+    }
+
     auto hash_list = Json::ensureArray(obj, "hashes");
-    for (auto h : hash_list) {
+    for (auto h : std::as_const(hash_list)) {
         auto hash_entry = Json::ensureObject(h);
         auto hash_types = ProviderCaps.hashType(ModPlatform::Provider::FLAME);
         auto hash_algo = enumToString(Json::ensureInteger(hash_entry, "algo", 1, "algorithm"));

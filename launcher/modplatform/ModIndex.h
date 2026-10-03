@@ -52,6 +52,23 @@ struct DonationData {
     QString url;
 };
 
+enum class DependencyType {
+    Required,
+    Optional,
+    Embedded,
+    Tool,
+    Incompatible,
+    Include,
+    Unknown,
+};
+
+struct Dependency {
+    QVariant modId;
+    DependencyType type;
+    QString versionId;
+    QString fileName; // ????
+};
+
 struct IndexedVersion {
     QVariant addonId;
     QVariant fileId;
@@ -66,6 +83,7 @@ struct IndexedVersion {
     QString hash;
     bool is_preferred = true;
     QString changelog;
+    QList<Dependency> dependencies;
 };
 
 struct ExtraPackData {
