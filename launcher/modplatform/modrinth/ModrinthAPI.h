@@ -90,7 +90,7 @@ class ModrinthAPI : public NetworkModAPI {
    private:
     inline auto getModSearchURL(SearchArgs& args) const -> QString override
     {
-        if (!validateModLoaders(args.loaders)) {
+        if (args.type == Mod && !validateModLoaders(args.loaders)) {
             qWarning() << "Modrinth only have Forge, NeoForge and Fabric-compatible mods!";
             return "";
         }
