@@ -50,15 +50,15 @@ class ModrinthModPage : public ModPage {
     ModrinthModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance);
     ~ModrinthModPage() override = default;
 
-    inline auto displayName() const -> QString override { return "Modrinth"; }
-    inline auto icon() const -> QIcon override { return APPLICATION->getThemedIcon("modrinth"); }
-    inline auto id() const -> QString override { return "modrinth"; }
-    inline auto helpPage() const -> QString override { return "Mod-platform"; }
+    inline QString displayName() const override { return "Modrinth"; }
+    inline QIcon icon() const override { return APPLICATION->getThemedIcon("modrinth"); }
+    inline QString id() const override { return "modrinth"; }
+    inline QString helpPage() const override { return "Mod-platform"; }
 
-    inline auto debugName() const -> QString override { return "Modrinth"; }
-    inline auto metaEntryBase() const -> QString override { return "ModrinthPacks"; };
+    inline QString debugName() const override { return "Modrinth"; }
+    inline QString metaEntryBase() const override { return "ModrinthPacks"; };
 
-    auto validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const -> bool override;
+    bool validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const override;
 
-    auto shouldDisplay() const -> bool override;
+    bool shouldDisplay() const override;
 };

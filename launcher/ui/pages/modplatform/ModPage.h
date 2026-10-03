@@ -35,41 +35,41 @@ class ModPage : public QWidget, public BasePage {
     ~ModPage() override;
 
     /* Affects what the user sees */
-    auto displayName() const -> QString override = 0;
-    auto icon() const -> QIcon override = 0;
-    auto id() const -> QString override = 0;
-    auto helpPage() const -> QString override = 0;
+    QString displayName() const override = 0;
+    QIcon icon() const override = 0;
+    QString id() const override = 0;
+    QString helpPage() const override = 0;
 
     /* Used internally */
-    virtual auto metaEntryBase() const -> QString = 0;
-    virtual auto debugName() const -> QString = 0;
+    virtual QString metaEntryBase() const = 0;
+    virtual QString debugName() const = 0;
 
 
     void retranslate() override;
 
     void updateUi();
 
-    auto shouldDisplay() const -> bool override = 0;
-    virtual auto validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const -> bool = 0;
+    bool shouldDisplay() const override = 0;
+    virtual bool validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const = 0;
     virtual bool optedOut(ModPlatform::IndexedVersion& ver) const { return false; };
 
-    auto apiProvider() -> ModAPI* { return api.get(); };
-    auto getFilter() const -> const std::shared_ptr<ModFilterWidget::Filter> { return m_filter; }
-    auto getDialog() const -> const ModDownloadDialog* { return dialog; }
+    ModAPI* apiProvider() { return api.get(); };
+    const std::shared_ptr<ModFilterWidget::Filter> getFilter() const { return m_filter; }
+    const ModDownloadDialog* getDialog() const { return dialog; }
     ModAPI::ResourceType resourceType() const { return m_resourceType; }
 
     /** Get the current term in the search bar. */
-    auto getSearchTerm() const -> QString;
+    QString getSearchTerm() const;
     /** Programatically set the term in the search bar. */
     void setSearchTerm(QString);
 
     void setFilterWidget(unique_qobject_ptr<ModFilterWidget>&);
 
-    auto getCurrent() -> ModPlatform::IndexedPack& { return current; }
+    ModPlatform::IndexedPack& getCurrent() { return current; }
     void updateModVersions(int prev_count = -1);
 
     void openedImpl() override;
-    auto eventFilter(QObject* watched, QEvent* event) -> bool override;
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
     BaseInstance* m_instance;
 

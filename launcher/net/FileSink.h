@@ -46,16 +46,16 @@ class FileSink : public Sink {
     virtual ~FileSink() = default;
 
    public:
-    auto init(QNetworkRequest& request) -> Task::State override;
-    auto write(QByteArray& data) -> Task::State override;
-    auto abort() -> Task::State override;
-    auto finalize(QNetworkReply& reply) -> Task::State override;
+    Task::State init(QNetworkRequest& request) override;
+    Task::State write(QByteArray& data) override;
+    Task::State abort() override;
+    Task::State finalize(QNetworkReply& reply) override;
 
-    auto hasLocalData() -> bool override;
+    bool hasLocalData() override;
 
    protected:
-    virtual auto initCache(QNetworkRequest&) -> Task::State;
-    virtual auto finalizeCache(QNetworkReply& reply) -> Task::State;
+    virtual Task::State initCache(QNetworkRequest&);
+    virtual Task::State finalizeCache(QNetworkReply& reply);
 
    protected:
     QString m_filename;

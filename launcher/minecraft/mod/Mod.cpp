@@ -112,7 +112,7 @@ bool Mod::applyFilter(QRegularExpression filter) const
     return Resource::applyFilter(filter);
 }
 
-auto Mod::destroy(QDir& index_dir, bool preserve_metadata) -> bool
+bool Mod::destroy(QDir& index_dir, bool preserve_metadata)
 {
     if (!preserve_metadata) {
         qDebug() << QString("Destroying metadata for '%1' on purpose").arg(name());
@@ -128,12 +128,12 @@ auto Mod::destroy(QDir& index_dir, bool preserve_metadata) -> bool
     return Resource::destroy();
 }
 
-auto Mod::details() const -> const ModDetails&
+const ModDetails& Mod::details() const
 {
     return m_local_details;
 }
 
-auto Mod::name() const -> QString
+QString Mod::name() const
 {
     auto d_name = details().name;
     if (!d_name.isEmpty())
@@ -145,37 +145,37 @@ auto Mod::name() const -> QString
     return m_name;
 }
 
-auto Mod::version() const -> QString
+QString Mod::version() const
 {
     return details().version;
 }
 
-auto Mod::homeurl() const -> QString
+QString Mod::homeurl() const
 {
     return details().homeurl;
 }
 
-auto Mod::description() const -> QString
+QString Mod::description() const
 {
     return details().description;
 }
 
-auto Mod::authors() const -> QStringList
+QStringList Mod::authors() const
 {
     return details().authors;
 }
 
-auto Mod::status() const -> ModStatus
+ModStatus Mod::status() const
 {
     return details().status;
 }
 
-auto Mod::metadata() -> std::shared_ptr<Metadata::ModStruct>
+std::shared_ptr<Metadata::ModStruct> Mod::metadata()
 {
     return m_local_details.metadata;
 }
 
-auto Mod::metadata() const -> const std::shared_ptr<Metadata::ModStruct>
+const std::shared_ptr<Metadata::ModStruct> Mod::metadata() const
 {
     return m_local_details.metadata;
 }

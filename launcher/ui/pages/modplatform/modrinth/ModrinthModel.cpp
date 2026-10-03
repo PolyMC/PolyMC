@@ -49,7 +49,7 @@ namespace Modrinth {
 
 ModpackListModel::ModpackListModel(ModrinthPage* parent) : QAbstractListModel(parent), m_parent(parent) {}
 
-auto ModpackListModel::debugName() const -> QString
+QString ModpackListModel::debugName() const
 {
     return m_parent->debugName();
 }
@@ -67,7 +67,7 @@ void ModpackListModel::fetchMore(const QModelIndex& parent)
     performPaginatedSearch();
 }
 
-auto ModpackListModel::data(const QModelIndex& index, int role) const -> QVariant
+QVariant ModpackListModel::data(const QModelIndex& index, int role) const
 {
     int pos = index.row();
     if (pos >= modpacks.size() || pos < 0 || !index.isValid()) {

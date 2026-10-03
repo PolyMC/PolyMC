@@ -58,7 +58,7 @@ class Task : public QObject, public QRunnable {
      * MultiStep tasks are combinations of multiple tasks into a single logical task. 
      * The main usage of this is in SequencialTask.
      */
-    virtual auto isMultiStep() const -> bool { return false; }
+    virtual bool isMultiStep() const { return false; }
 
     /*!
      * Returns the string that was passed to emitFailed as the error message when the task failed.
@@ -70,15 +70,15 @@ class Task : public QObject, public QRunnable {
 
     virtual bool canAbort() const { return m_can_abort; }
 
-    auto getState() const -> State { return m_state; }
+    State getState() const { return m_state; }
 
     QString getStatus() { return m_status; }
-    virtual auto getStepStatus() const -> QString { return m_status; }
+    virtual QString getStepStatus() const { return m_status; }
 
     qint64 getProgress() { return m_progress; }
     qint64 getTotalProgress() { return m_progressTotal; }
-    virtual auto getStepProgress() const -> qint64 { return 0; }
-    virtual auto getStepTotalProgress() const -> qint64 { return 100; }
+    virtual qint64 getStepProgress() const { return 0; }
+    virtual qint64 getStepTotalProgress() const { return 100; }
 
    protected:
     void logWarning(const QString& line);

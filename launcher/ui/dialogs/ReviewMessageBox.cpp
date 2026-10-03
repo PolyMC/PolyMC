@@ -20,7 +20,7 @@ ReviewMessageBox::~ReviewMessageBox()
     delete ui;
 }
 
-auto ReviewMessageBox::create(QWidget* parent, QString&& title, QString&& icon) -> ReviewMessageBox*
+ReviewMessageBox* ReviewMessageBox::create(QWidget* parent, QString&& title, QString&& icon)
 {
     return new ReviewMessageBox(parent, title, icon);
 }

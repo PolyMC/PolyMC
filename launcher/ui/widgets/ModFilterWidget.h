@@ -46,16 +46,16 @@ public:
     /// By default all buttons are enabled
     void disableVersionButton(VersionButtonID, QString reason = {});
 
-    auto getFilter() -> std::shared_ptr<Filter>;
-    auto changed() const -> bool { return m_last_version_id != m_version_id; }
+    std::shared_ptr<Filter> getFilter();
+    bool changed() const { return m_last_version_id != m_version_id; }
 
     Meta::VersionListPtr versionList() { return m_version_list; }
 
 private:
     ModFilterWidget(Version def, QWidget* parent = nullptr);
 
-    inline auto mcVersionStr() const -> QString { return m_instance ? m_instance->getPackProfile()->getComponentVersion("net.minecraft") : ""; }
-    inline auto mcVersion() const -> Version { return { mcVersionStr() }; }
+    inline QString mcVersionStr() const { return m_instance ? m_instance->getPackProfile()->getComponentVersion("net.minecraft") : ""; }
+    inline Version mcVersion() const { return { mcVersionStr() }; }
 
 private slots:
     void onVersionFilterChanged(int id);

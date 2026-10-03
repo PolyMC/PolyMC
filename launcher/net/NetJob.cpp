@@ -36,7 +36,7 @@
 
 #include "NetJob.h"
 
-auto NetJob::addNetAction(NetAction::Ptr action) -> bool
+bool NetJob::addNetAction(NetAction::Ptr action)
 {
     action->m_index_within_job = m_queue.size();
     m_queue.append(action);
@@ -60,12 +60,12 @@ void NetJob::startNext()
     ConcurrentTask::startNext();
 }
 
-auto NetJob::size() const -> int
+int NetJob::size() const
 {
     return m_queue.size() + m_doing.size() + m_done.size();
 }
 
-auto NetJob::canAbort() const -> bool
+bool NetJob::canAbort() const
 {
     bool canFullyAbort = true;
 
@@ -80,7 +80,7 @@ auto NetJob::canAbort() const -> bool
     return canFullyAbort;
 }
 
-auto NetJob::abort() -> bool
+bool NetJob::abort()
 {
     bool fullyAborted = true;
 
@@ -103,7 +103,7 @@ auto NetJob::abort() -> bool
     return fullyAborted;
 }
 
-auto NetJob::getFailedActions() -> QList<NetAction*>
+QList<NetAction*> NetJob::getFailedActions()
 {
     QList<NetAction*> failed;
     for (auto index : m_failed) {
@@ -112,7 +112,7 @@ auto NetJob::getFailedActions() -> QList<NetAction*>
     return failed;
 }
 
-auto NetJob::getFailedFiles() -> QList<QString>
+QList<QString> NetJob::getFailedFiles()
 {
     QList<QString> failed;
     for (auto index : m_failed) {

@@ -25,18 +25,18 @@ public:
     void appendMod(const CheckUpdateTask::UpdatableMod& info);
 
     const QList<ModDownloadTask*> getTasks();
-    auto indexDir() const -> QDir {
+    QDir indexDir() const {
         return m_mod_model->indexDir();
     }
 
-    auto noUpdates() const -> bool {
+    bool noUpdates() const {
         return m_no_updates;
     };
-    auto aborted() const -> bool {
+    bool aborted() const {
         return m_aborted;
     };
 
-    auto ensureMetadata() -> bool;
+    bool ensureMetadata();
 
 private slots:
     void onMetadataEnsured(Mod*);

@@ -67,7 +67,7 @@ void ChooseProviderDialog::confirmAll()
     accept();
 }
 
-auto ChooseProviderDialog::getSelectedProvider() const -> ModPlatform::Provider
+ModPlatform::Provider ChooseProviderDialog::getSelectedProvider() const
 {
     return ModPlatform::Provider(m_providers.checkedId());
 }

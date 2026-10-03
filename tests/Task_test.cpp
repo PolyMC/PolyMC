@@ -25,7 +25,7 @@ class BasicTask_MultiStep : public Task {
     friend class TaskTest;
 
    private:
-    auto isMultiStep() const -> bool override { return true; }
+    bool isMultiStep() const override { return true; }
 
     void executeTask() override {};   
 };

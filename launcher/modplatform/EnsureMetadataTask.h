@@ -28,11 +28,11 @@ class EnsureMetadataTask : public Task {
 
    private:
     // FIXME: Move to their own namespace
-    auto modrinthVersionsTask() -> NetJob::Ptr;
-    auto modrinthProjectsTask() -> NetJob::Ptr;
+    NetJob::Ptr modrinthVersionsTask();
+    NetJob::Ptr modrinthProjectsTask();
 
-    auto flameVersionsTask() -> NetJob::Ptr;
-    auto flameProjectsTask() -> NetJob::Ptr;
+    NetJob::Ptr flameVersionsTask();
+    NetJob::Ptr flameProjectsTask();
 
     // Helpers
     enum class RemoveFromList {
@@ -43,8 +43,8 @@ class EnsureMetadataTask : public Task {
     void emitFail(Mod*, QString key = {}, RemoveFromList = RemoveFromList::Yes);
 
     // Hashes and stuff
-    auto createNewHash(Mod*) -> Hashing::Hasher::Ptr;
-    auto getExistingHash(Mod*) -> QString;
+    Hashing::Hasher::Ptr createNewHash(Mod*);
+    QString getExistingHash(Mod*);
 
    private slots:
     void modrinthCallback(ModPlatform::IndexedPack& pack, ModPlatform::IndexedVersion& ver, Mod*);

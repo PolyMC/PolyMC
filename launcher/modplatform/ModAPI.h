@@ -83,8 +83,8 @@ class ModAPI {
     virtual void searchMods(CallerType* caller, SearchArgs&& args) const = 0;
     virtual void getModInfo(ModPlatform::IndexedPack& pack, std::function<void(QJsonDocument&, ModPlatform::IndexedPack&)> callback) = 0;
 
-    virtual auto getProject(QString addonId, QByteArray* response) const -> NetJob* = 0;
-    virtual auto getProjects(QStringList addonIds, QByteArray* response) const -> NetJob* = 0;
+    virtual NetJob* getProject(QString addonId, QByteArray* response) const = 0;
+    virtual NetJob* getProjects(QStringList addonIds, QByteArray* response) const = 0;
 
 
     struct VersionSearchArgs {
@@ -96,7 +96,7 @@ class ModAPI {
 
     virtual void getVersions(VersionSearchArgs&& args, std::function<void(QJsonDocument&, QString)> callback) const = 0;
 
-    static auto getModLoaderString(ModLoaderType type) -> const QString {
+    static const QString getModLoaderString(ModLoaderType type) {
         switch (type) {
             case Unspecified:
                 break;
@@ -117,7 +117,7 @@ class ModAPI {
     }
 
    protected:
-    inline auto getGameVersionsString(std::list<Version> mcVersions) const -> QString
+    inline QString getGameVersionsString(std::list<Version> mcVersions) const
     {
         QString s;
         for(auto& ver : mcVersions){

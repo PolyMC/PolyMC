@@ -64,10 +64,10 @@ class ModrinthPage : public QWidget, public BasePage {
     QString id() const override { return "modrinth"; }
     QString helpPage() const override { return "Modrinth-platform"; }
 
-    inline auto debugName() const -> QString { return "Modrinth"; }
-    inline auto metaEntryBase() const -> QString { return "ModrinthModpacks"; };
+    inline QString debugName() const { return "Modrinth"; }
+    inline QString metaEntryBase() const { return "ModrinthModpacks"; };
 
-    auto getCurrent() -> Modrinth::Modpack& { return current; }
+    Modrinth::Modpack& getCurrent() { return current; }
     void suggestCurrent();
 
     void updateUI();

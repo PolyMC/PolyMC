@@ -78,7 +78,7 @@ void ModFilterWidget::setInstance(MinecraftInstance* instance)
     //    tr("Between two versions"));
 }
 
-auto ModFilterWidget::getFilter() -> std::shared_ptr<Filter>
+std::shared_ptr<ModFilterWidget::Filter> ModFilterWidget::getFilter()
 {
     m_last_version_id = m_version_id;
     emit filterUnchanged();

@@ -28,7 +28,7 @@
 
 namespace Packwiz {
 
-auto getRealIndexName(QDir& index_dir, QString normalized_fname, bool should_find_match) -> QString
+QString getRealIndexName(QDir& index_dir, QString normalized_fname, bool should_find_match)
 {
     QFile index_file(index_dir.absoluteFilePath(normalized_fname));
 
@@ -53,7 +53,7 @@ auto getRealIndexName(QDir& index_dir, QString normalized_fname, bool should_fin
 }
 
 // Helpers
-static inline auto indexFileName(QString const& mod_slug) -> QString
+static inline QString indexFileName(QString const& mod_slug)
 {
     if (mod_slug.endsWith(".pw.toml"))
         return mod_slug;
@@ -63,7 +63,7 @@ static inline auto indexFileName(QString const& mod_slug) -> QString
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
 // Helper functions for extracting data from the TOML file
-auto stringEntry(toml::table table, const std::string entry_name) -> QString
+QString stringEntry(toml::table table, const std::string entry_name)
 {
     auto node = table[entry_name];
     if (!node) {
@@ -74,7 +74,7 @@ auto stringEntry(toml::table table, const std::string entry_name) -> QString
     return QString::fromStdString(node.value_or(""));
 }
 
-auto intEntry(toml::table table, const std::string entry_name) -> int
+int intEntry(toml::table table, const std::string entry_name)
 {
     auto node = table[entry_name];
     if (!node) {
@@ -85,7 +85,7 @@ auto intEntry(toml::table table, const std::string entry_name) -> int
     return node.value_or(0);
 }
 
-auto V1::createModFormat(QDir& index_dir, ModPlatform::IndexedPack& mod_pack, ModPlatform::IndexedVersion& mod_version) -> Mod
+V1::Mod V1::createModFormat(QDir& index_dir, ModPlatform::IndexedPack& mod_pack, ModPlatform::IndexedVersion& mod_version)
 {
     Mod mod;
 
@@ -112,7 +112,7 @@ auto V1::createModFormat(QDir& index_dir, ModPlatform::IndexedPack& mod_pack, Mo
     return mod;
 }
 
-auto V1::createModFormat(QDir& index_dir, ::Mod& internal_mod, QString slug) -> Mod
+V1::Mod V1::createModFormat(QDir& index_dir, ::Mod& internal_mod, QString slug)
 {
     // Try getting metadata if it exists
     Mod mod{ getIndexForMod(index_dir, slug) };
@@ -220,7 +220,7 @@ void V1::deleteModIndex(QDir& index_dir, QVariant& mod_id)
     }
 }
 
-auto V1::getIndexForMod(QDir& index_dir, QString slug) -> Mod
+V1::Mod V1::getIndexForMod(QDir& index_dir, QString slug)
 {
     Mod mod;
 
@@ -304,7 +304,7 @@ auto V1::getIndexForMod(QDir& index_dir, QString slug) -> Mod
     return mod;
 }
 
-auto V1::getIndexForMod(QDir& index_dir, QVariant& mod_id) -> Mod
+V1::Mod V1::getIndexForMod(QDir& index_dir, QVariant& mod_id)
 {
     for (auto& file_name : index_dir.entryList(QDir::Filter::Files)) {
         auto mod = getIndexForMod(index_dir, file_name);

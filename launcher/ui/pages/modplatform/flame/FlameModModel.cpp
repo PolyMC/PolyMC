@@ -23,7 +23,7 @@ void ListModel::loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray&
     FlameMod::loadIndexedPackVersions(m, arr, APPLICATION->network(), m_parent->m_instance);
 }
 
-auto ListModel::documentToArray(QJsonDocument& obj) const -> QJsonArray
+QJsonArray ListModel::documentToArray(QJsonDocument& obj) const
 {
     return Json::ensureArray(obj.object(), "data");
 }

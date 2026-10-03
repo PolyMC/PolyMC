@@ -61,7 +61,7 @@ void LocalModUpdateTask::executeTask()
     }
 }
 
-auto LocalModUpdateTask::abort() -> bool
+bool LocalModUpdateTask::abort()
 {
     emitAborted();
     return true;

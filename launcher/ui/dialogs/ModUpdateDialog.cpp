@@ -193,7 +193,7 @@ void ModUpdateDialog::checkCandidates()
 }
 
 // Part 1: Ensure we have a valid metadata
-auto ModUpdateDialog::ensureMetadata() -> bool
+bool ModUpdateDialog::ensureMetadata()
 {
     auto index_dir = indexDir();
 
@@ -394,7 +394,7 @@ void ModUpdateDialog::appendMod(CheckUpdateTask::UpdatableMod const& info)
     ui->modTreeWidget->addTopLevelItem(item_top);
 }
 
-auto ModUpdateDialog::getTasks() -> const QList<ModDownloadTask*>
+const QList<ModDownloadTask*> ModUpdateDialog::getTasks()
 {
     QList<ModDownloadTask*> list;
 

@@ -27,7 +27,7 @@ class WideBar : public QToolBar {
    private:
     struct BarEntry;
 
-    auto getMatching(QAction* act) -> QList<BarEntry*>::iterator;
+    QList<BarEntry*>::iterator getMatching(QAction* act);
 
    private:
     QList<BarEntry*> m_entries;

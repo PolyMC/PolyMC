@@ -13,11 +13,11 @@ public:
 
     bool canAbort() const override { return true; }
 
-    inline auto isMultiStep() const -> bool override { return m_queue.size() > 1; };
-    auto getStepProgress() const -> qint64 override;
-    auto getStepTotalProgress() const -> qint64 override;
+    inline bool isMultiStep() const override { return m_queue.size() > 1; };
+    qint64 getStepProgress() const override;
+    qint64 getStepTotalProgress() const override;
 
-    inline auto getStepStatus() const -> QString override { return m_step_status; }
+    inline QString getStepStatus() const override { return m_step_status; }
 
     void addTask(Task::Ptr task);
 

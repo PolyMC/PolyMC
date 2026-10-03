@@ -51,13 +51,13 @@ class Resource : public QObject {
     void setFile(QFileInfo file_info);
     void parseFile();
 
-    [[nodiscard]] auto fileinfo() const -> QFileInfo { return m_file_info; }
-    [[nodiscard]] auto dateTimeChanged() const -> QDateTime { return m_changed_date_time; }
-    [[nodiscard]] auto internal_id() const -> QString { return m_internal_id; }
-    [[nodiscard]] auto type() const -> ResourceType { return m_type; }
+    [[nodiscard]] QFileInfo fileinfo() const { return m_file_info; }
+    [[nodiscard]] QDateTime dateTimeChanged() const { return m_changed_date_time; }
+    [[nodiscard]] QString internal_id() const { return m_internal_id; }
+    [[nodiscard]] ResourceType type() const { return m_type; }
     [[nodiscard]] bool enabled() const { return m_enabled; }
 
-    [[nodiscard]] virtual auto name() const -> QString { return m_name; }
+    [[nodiscard]] virtual QString name() const { return m_name; }
     [[nodiscard]] virtual bool valid() const { return m_type != ResourceType::UNKNOWN; }
 
     /** Compares two Resources, for sorting purposes, considering a ascending order, returning:
@@ -67,7 +67,7 @@ class Resource : public QObject {
      *
      *  The second argument in the pair is true if the sorting type that decided which one is greater was 'type'.
      */
-    [[nodiscard]] virtual auto compare(Resource const& other, SortType type = SortType::NAME) const -> std::pair<int, bool>;
+    [[nodiscard]] virtual std::pair<int, bool> compare(Resource const& other, SortType type = SortType::NAME) const;
 
     /** Returns whether the given filter should filter out 'this' (false),
      *  or if such filter includes the Resource (true).
@@ -80,10 +80,10 @@ class Resource : public QObject {
      */
     bool enable(EnableAction action);
 
-    [[nodiscard]] auto shouldResolve() const -> bool { return !m_is_resolving && !m_is_resolved; }
-    [[nodiscard]] auto isResolving() const -> bool { return m_is_resolving; }
-    [[nodiscard]] auto isResolved() const -> bool { return m_is_resolved; }
-    [[nodiscard]] auto resolutionTicket() const -> int { return m_resolution_ticket; }
+    [[nodiscard]] bool shouldResolve() const { return !m_is_resolving && !m_is_resolved; }
+    [[nodiscard]] bool isResolving() const { return m_is_resolving; }
+    [[nodiscard]] bool isResolved() const { return m_is_resolved; }
+    [[nodiscard]] int resolutionTicket() const { return m_resolution_ticket; }
 
     void setResolving(bool resolving, int resolutionTicket)
     {

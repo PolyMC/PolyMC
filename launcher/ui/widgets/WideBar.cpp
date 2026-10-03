@@ -76,7 +76,7 @@ void WideBar::addSeparator()
     m_entries.push_back(entry);
 }
 
-auto WideBar::getMatching(QAction* act) -> QList<BarEntry*>::iterator
+QList<WideBar::BarEntry*>::iterator WideBar::getMatching(QAction* act)
 {
     auto iter = std::find_if(m_entries.begin(), m_entries.end(), [act](BarEntry * entry) {
         return entry->wideAction == act;

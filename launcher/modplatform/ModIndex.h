@@ -35,10 +35,10 @@ enum class Provider {
 
 class ProviderCapabilities {
    public:
-    auto name(Provider) -> const char*;
-    auto readableName(Provider) -> QString;
-    auto hashType(Provider) -> QStringList;
-    auto hash(Provider, QIODevice*, QString type = "") -> QString;
+    const char* name(Provider);
+    QString readableName(Provider);
+    QStringList hashType(Provider);
+    QString hash(Provider, QIODevice*, QString type = "");
 };
 
 struct ModpackAuthor {

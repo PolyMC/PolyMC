@@ -48,21 +48,21 @@ class ChecksumValidator : public Validator {
     virtual ~ChecksumValidator() = default;
 
    public:
-    auto init(QNetworkRequest&) -> bool override
+    bool init(QNetworkRequest&) override
     {
         m_checksum.reset();
         return true;
     }
 
-    auto write(QByteArray& data) -> bool override
+    bool write(QByteArray& data) override
     {
         m_checksum.addData(data);
         return true;
     }
 
-    auto abort() -> bool override { return true; }
+    bool abort() override { return true; }
 
-    auto validate(QNetworkReply&) -> bool override
+    bool validate(QNetworkReply&) override
     {
         if (m_expected.size() && m_expected != hash()) {
             qWarning() << "Checksum mismatch, download is bad.";
@@ -71,7 +71,7 @@ class ChecksumValidator : public Validator {
         return true;
     }
 
-    auto hash() -> QByteArray { return m_checksum.result(); }
+    QByteArray hash() { return m_checksum.result(); }
 
     void setExpected(QByteArray expected) { m_expected = expected; }
 
