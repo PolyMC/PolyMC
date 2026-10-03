@@ -21,7 +21,7 @@ static void loadMinecraftV1(Flame::Minecraft& m, QJsonObject& minecraft)
     // intended use is likely hardcoded in the 'Flame' client, the manifest says nothing
     m.libraries = Json::ensureString(minecraft, QString("libraries"), QString());
     auto arr = Json::ensureArray(minecraft, "modLoaders", QJsonArray());
-    for (QJsonValueRef item : arr) {
+    for (const auto &item : std::as_const(arr)) {
         auto obj = Json::requireObject(item);
         Flame::Modloader loader;
         loadModloaderV1(loader, obj);
@@ -40,7 +40,7 @@ static void loadManifestV1(Flame::Manifest& pack, QJsonObject& manifest)
     pack.author = Json::ensureString(manifest, QString("author"), "Anonymous");
 
     auto arr = Json::ensureArray(manifest, "files", QJsonArray());
-    for (auto item : arr) {
+    for (auto item : std::as_const(arr)) {
         auto obj = Json::requireObject(item);
 
         Flame::File file;
@@ -86,7 +86,7 @@ bool Flame::File::parseFromObject(const QJsonObject& obj,  bool throw_on_blocked
     // get the hash
     hash = QString();
     auto hashes = Json::ensureArray(obj, "hashes");
-    for(QJsonValueRef item : hashes) {
+    for (const auto &item : std::as_const(hashes)) {
         auto hobj = Json::requireObject(item);
         auto algo = Json::requireInteger(hobj, "algo");
         auto value = Json::requireString(hobj, "value");

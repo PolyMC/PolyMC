@@ -903,15 +903,15 @@ class MainWindow::Ui
     void retranslateUi(MainWindow *MainWindow)
     {
         // all the actions
-        for(auto * item: all_actions)
+        for (auto * item : std::as_const(all_actions))
         {
             item->retranslate();
         }
-        for(auto * item: all_toolbars)
+        for (auto * item : std::as_const(all_toolbars))
         {
             item->retranslate();
         }
-        for(auto * item: all_toolbuttons)
+        for (auto * item : std::as_const(all_toolbuttons))
         {
             item->retranslate();
         }
@@ -1317,7 +1317,7 @@ void MainWindow::updateToolsMenu()
 
     QString profilersTitle = tr("Profilers");
     launchMenu->addSeparator()->setText(profilersTitle);
-    for (auto profiler : APPLICATION->profilers().values())
+    for (const auto &profiler : APPLICATION->profilers().values())
     {
         QAction *profilerAction = launchMenu->addAction(profiler->name());
         QAction *profilerOfflineAction = launchMenu->addAction(tr("%1 Offline").arg(profiler->name()));

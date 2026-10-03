@@ -214,7 +214,7 @@ void HttpMetaCache::Load()
 
     // read the entry array
     auto array = Json::ensureArray(root, "entries");
-    for (auto element : array) {
+    for (auto element : std::as_const(array)) {
         auto element_obj = Json::ensureObject(element);
         auto base = Json::ensureString(element_obj, "base");
         if (!m_entries.contains(base))
@@ -261,8 +261,8 @@ void HttpMetaCache::SaveNow()
     Json::writeString(toplevel, "version", "1");
 
     QJsonArray entriesArr;
-    for (auto group : m_entries) {
-        for (auto entry : group.entry_list) {
+    for (const auto &group : std::as_const(m_entries)) {
+        for (const auto &entry : std::as_const(group.entry_list)) {
             // do not save stale entries. they are dead.
             if (entry->stale) {
                 continue;

@@ -155,7 +155,7 @@ void AtlPage::onSelectionChanged(QModelIndex first, QModelIndex second)
 
     ui->packDescription->setHtml(selected.description.replace("\n", "<br>"));
 
-    for(const auto& version : selected.versions) {
+    for (const auto& version : std::as_const(selected.versions)) {
         ui->versionSelectionBox->addItem(version.version);
     }
 

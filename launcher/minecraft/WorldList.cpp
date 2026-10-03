@@ -101,7 +101,7 @@ bool WorldList::update()
     m_dir.refresh();
     auto folderContents = m_dir.entryInfoList();
     // if there are any untracked files...
-    for (QFileInfo entry : folderContents)
+    for (const QFileInfo &entry : std::as_const(folderContents))
     {
         if(!entry.isDir())
             continue;
@@ -413,7 +413,7 @@ bool WorldList::dropMimeData(const QMimeData *data, Qt::DropAction action, int r
         if (was_watching)
             stopWatching();
         auto urls = data->urls();
-        for (auto url : urls)
+        for (const auto &url : std::as_const(urls))
         {
             // only local files may be dropped...
             if (!url.isLocalFile())

@@ -94,7 +94,7 @@ void FTB::loadModpack(FTB::Modpack & m, QJsonObject & obj)
     m.plays = Json::requireInteger(obj, "plays");
     m.updated = Json::requireInteger(obj, "updated");
     auto artArr = Json::requireArray(obj, "art");
-    for (QJsonValueRef artRaw : artArr)
+    for (const auto &artRaw : std::as_const(artArr))
     {
         auto artObj = Json::requireObject(artRaw);
         FTB::Art art;
@@ -102,7 +102,7 @@ void FTB::loadModpack(FTB::Modpack & m, QJsonObject & obj)
         m.art.append(art);
     }
     auto authorArr = Json::requireArray(obj, "authors");
-    for (QJsonValueRef authorRaw : authorArr)
+    for (const auto &authorRaw : std::as_const(authorArr))
     {
         auto authorObj = Json::requireObject(authorRaw);
         FTB::Author author;
@@ -110,7 +110,7 @@ void FTB::loadModpack(FTB::Modpack & m, QJsonObject & obj)
         m.authors.append(author);
     }
     auto versionArr = Json::requireArray(obj, "versions");
-    for (QJsonValueRef versionRaw : versionArr)
+    for (const auto &versionRaw : std::as_const(versionArr))
     {
         auto versionObj = Json::requireObject(versionRaw);
         FTB::VersionInfo version;
@@ -118,7 +118,7 @@ void FTB::loadModpack(FTB::Modpack & m, QJsonObject & obj)
         m.versions.append(version);
     }
     auto tagArr = Json::requireArray(obj, "tags");
-    for (QJsonValueRef tagRaw : tagArr)
+    for (const auto &tagRaw : std::as_const(tagArr))
     {
         auto tagObj = Json::requireObject(tagRaw);
         FTB::Tag tag;
@@ -167,7 +167,7 @@ void FTB::loadVersion(FTB::Version & m, QJsonObject & obj)
     auto specs = Json::requireObject(obj, "specs");
     loadSpecs(m.specs, specs);
     auto targetArr = Json::requireArray(obj, "targets");
-    for (QJsonValueRef targetRaw : targetArr)
+    for (const auto &targetRaw : std::as_const(targetArr))
     {
         auto versionObj = Json::requireObject(targetRaw);
         FTB::VersionTarget target;
@@ -175,7 +175,7 @@ void FTB::loadVersion(FTB::Version & m, QJsonObject & obj)
         m.targets.append(target);
     }
     auto fileArr = Json::requireArray(obj, "files");
-    for (QJsonValueRef fileRaw : fileArr)
+    for (const auto &fileRaw : std::as_const(fileArr))
     {
         auto fileObj = Json::requireObject(fileRaw);
         FTB::VersionFile file;

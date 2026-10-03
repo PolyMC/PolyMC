@@ -39,7 +39,7 @@ void InstanceCreationTask::executeTask()
         setStatus(tr("Removing old conflicting files..."));
         qDebug() << "Removing old files";
 
-        for (auto path : m_files_to_remove) {
+        for (const auto &path : std::as_const(m_files_to_remove)) {
             if (!QFile::exists(path))
                 continue;
             qDebug() << "Removing" << path;

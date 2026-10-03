@@ -62,7 +62,7 @@ void ImgurAlbumCreation::executeTask()
     request.setRawHeader("Accept", "application/json");
 
     QStringList hashes;
-    for (auto shot : m_screenshots)
+    for (const auto &shot : std::as_const(m_screenshots))
     {
         hashes.append(shot->m_imgurDeleteHash);
     }

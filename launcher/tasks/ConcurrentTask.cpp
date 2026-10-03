@@ -9,7 +9,7 @@ ConcurrentTask::ConcurrentTask(QObject* parent, QString task_name, int max_concu
 
 ConcurrentTask::~ConcurrentTask()
 {
-    for (auto task : m_queue) {
+    for (const auto &task : std::as_const(m_queue)) {
         if (task)
             task->deleteLater();
     }

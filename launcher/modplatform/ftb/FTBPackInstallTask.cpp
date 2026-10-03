@@ -135,7 +135,7 @@ void PackInstallTask::resolveMods()
     m_file_id_map.clear();
 
     Flame::Manifest manifest;
-    for (auto const& file : m_version.files) {
+    for (auto const& file : std::as_const(m_version.files)) {
         if (!file.serverOnly && file.url.isEmpty()) {
             if (file.curseforge.file_id <= 0) {
                 emitFailed(tr("Invalid manifest: There's no information available to download the file '%1'!").arg(file.name));
@@ -224,7 +224,7 @@ void PackInstallTask::downloadPack()
     setStatus(tr("Downloading mods..."));
 
     auto* jobPtr = new NetJob(tr("Mod download"), APPLICATION->network());
-    for (auto const& file : m_version.files) {
+    for (auto const& file : std::as_const(m_version.files)) {
         if (file.serverOnly || file.url.isEmpty())
             continue;
 
@@ -304,14 +304,14 @@ void PackInstallTask::install()
     auto components = instance.getPackProfile();
     components->buildingFromScratch();
 
-    for (auto target : m_version.targets) {
+    for (const auto &target : std::as_const(m_version.targets)) {
         if (target.type == "game" && target.name == "minecraft") {
             components->setComponentVersion("net.minecraft", target.version, true);
             break;
         }
     }
 
-    for (auto target : m_version.targets) {
+    for (const auto &target : std::as_const(m_version.targets)) {
         if (target.type != "modloader")
             continue;
 

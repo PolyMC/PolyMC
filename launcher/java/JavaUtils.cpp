@@ -62,7 +62,7 @@ QString stripVariableEntries(QString name, QString target, QString remove)
     auto targetItems = target.split(delimiter);
     auto toRemove = remove.split(delimiter);
 
-    for (QString item : toRemove) {
+    for (const QString &item : std::as_const(toRemove)) {
         bool removed = targetItems.removeOne(item);
         if (!removed)
             qWarning() << "Entry" << item
@@ -98,7 +98,7 @@ QProcessEnvironment CleanEnviroment()
         "QT_PLUGIN_PATH",
         "QT_FONTPATH"
     };
-    for(auto key: rawenv.keys())
+    for (const auto &key : rawenv.keys())
     {
         auto value = rawenv.value(key);
         // filter out dangerous java crap
@@ -186,7 +186,7 @@ QStringList addJavasFromEnv(QList<QString> javas)
 #else
     QList<QString> javaPaths = env.split(QLatin1String(":"));
 #endif
-    for(QString i : javaPaths)
+    for (const QString &i : std::as_const(javaPaths))
     {
         if (i != "")
             javas.append(i);

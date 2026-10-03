@@ -364,7 +364,7 @@ void LaunchProfile::getLibraryFiles(
     QStringList native32, native64;
     jars.clear();
     nativeJars.clear();
-    for (auto lib : getLibraries())
+    for (const auto &lib : getLibraries())
     {
         lib->getApplicableFiles(runtimeContext, jars, nativeJars, native32, native64, overridePath);
     }
@@ -382,7 +382,7 @@ void LaunchProfile::getLibraryFiles(
             m_mainJar->getApplicableFiles(runtimeContext, jars, nativeJars, native32, native64, overridePath);
         }
     }
-    for (auto lib : getNativeLibraries())
+    for (const auto &lib : getNativeLibraries())
     {
         lib->getApplicableFiles(runtimeContext, jars, nativeJars, native32, native64, overridePath);
     }

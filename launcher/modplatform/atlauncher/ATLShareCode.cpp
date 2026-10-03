@@ -35,7 +35,7 @@ static void loadShareCode(ShareCode& c, QJsonObject& obj)
 
     auto mods = Json::requireObject(obj, "mods");
     auto optional = Json::requireArray(mods, "optional");
-    for (const auto modRaw : optional) {
+    for (const auto modRaw : std::as_const(optional)) {
         auto modObj = Json::requireObject(modRaw);
         ShareCodeMod mod;
         loadShareCodeMod(mod, modObj);

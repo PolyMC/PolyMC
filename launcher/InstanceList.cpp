@@ -476,7 +476,7 @@ InstanceList::InstListError InstanceList::loadList()
 void InstanceList::updateTotalPlayTime()
 {
     totalPlayTime = 0;
-    for (auto const& itr : m_instances) {
+    for (auto const& itr : std::as_const(m_instances)) {
         totalPlayTime += itr.get()->totalTimePlayed();
     }
 }
@@ -638,7 +638,7 @@ void InstanceList::saveGroupList()
         QJsonObject groupObj;
         QJsonArray instanceArr;
         groupObj.insert("hidden", QJsonValue(m_collapsedGroups.contains(name)));
-        for (auto item : list) {
+        for (const auto &item : list) {
             instanceArr.append(QJsonValue(item));
         }
         groupObj.insert("instances", instanceArr);

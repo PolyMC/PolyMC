@@ -224,7 +224,7 @@ void ListModel::searchRequestFinished(QJsonDocument& doc)
     QList<ModPlatform::IndexedPack> newList;
     auto packs = documentToArray(doc);
 
-    for (auto packRaw : packs) {
+    for (auto packRaw : std::as_const(packs)) {
         auto packObj = packRaw.toObject();
 
         ModPlatform::IndexedPack pack;

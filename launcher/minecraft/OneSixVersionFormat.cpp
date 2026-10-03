@@ -335,7 +335,7 @@ QJsonDocument OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patch
     if (!patch->libraries.isEmpty())
     {
         QJsonArray array;
-        for (auto value: patch->libraries)
+        for (const auto &value : std::as_const(patch->libraries))
         {
             array.append(OneSixVersionFormat::libraryToJson(value.get()));
         }
@@ -344,7 +344,7 @@ QJsonDocument OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patch
     if (!patch->mavenFiles.isEmpty())
     {
         QJsonArray array;
-        for (auto value: patch->mavenFiles)
+        for (const auto &value : std::as_const(patch->mavenFiles))
         {
             array.append(OneSixVersionFormat::libraryToJson(value.get()));
         }
@@ -353,7 +353,7 @@ QJsonDocument OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patch
     if (!patch->jarMods.isEmpty())
     {
         QJsonArray array;
-        for (auto value: patch->jarMods)
+        for (const auto &value : std::as_const(patch->jarMods))
         {
             array.append(OneSixVersionFormat::jarModtoJson(value.get()));
         }
@@ -362,7 +362,7 @@ QJsonDocument OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patch
     if (!patch->mods.isEmpty())
     {
         QJsonArray array;
-        for (auto value: patch->jarMods)
+        for (const auto &value : std::as_const(patch->jarMods))
         {
             array.append(OneSixVersionFormat::modtoJson(value.get()));
         }

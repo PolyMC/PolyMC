@@ -75,7 +75,7 @@ void Modrinth::loadExtraPackData(ModPlatform::IndexedPack& pack, QJsonObject& ob
         pack.extraData.discordUrl.chop(1);
 
     auto donate_arr = Json::ensureArray(obj, "donation_urls");
-    for(auto d : donate_arr){
+    for (auto d : std::as_const(donate_arr)){
         auto d_obj = Json::requireObject(d);
 
         ModPlatform::DonationData donate;
@@ -127,11 +127,11 @@ auto Modrinth::loadIndexedPackVersion(QJsonObject &obj, QString preferred_hash_t
     if (versionArray.empty()) {
         return {};
     }
-    for (auto mcVer : versionArray) {
+    for (auto mcVer : std::as_const(versionArray)) {
         file.mcVersion.append(mcVer.toString());
     }
     auto loaders = Json::requireArray(obj, "loaders");
-    for (auto loader : loaders) {
+    for (auto loader : std::as_const(loaders)) {
         file.loaders.append(loader.toString());
     }
     file.version = Json::requireString(obj, "name");

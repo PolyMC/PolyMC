@@ -207,7 +207,7 @@ void AccountList::setDefaultAccount(MinecraftAccountPtr newAccount)
         int idx = 0;
         auto previousDefaultAccount = m_defaultAccount;
         m_defaultAccount = nullptr;
-        for (MinecraftAccountPtr account : m_accounts)
+        for (const MinecraftAccountPtr &account : std::as_const(m_accounts))
         {
             if (account == previousDefaultAccount)
             {
@@ -224,7 +224,7 @@ void AccountList::setDefaultAccount(MinecraftAccountPtr newAccount)
         auto newDefaultAccount = m_defaultAccount;
         int newDefaultAccountIdx = -1;
         int idx = 0;
-        for (MinecraftAccountPtr account : m_accounts)
+        for (const MinecraftAccountPtr &account : std::as_const(m_accounts))
         {
             if (account == newAccount)
             {
@@ -543,7 +543,7 @@ bool AccountList::loadList()
 bool AccountList::loadV3(QJsonObject& root) {
     beginResetModel();
     QJsonArray accounts = root.value("accounts").toArray();
-    for (QJsonValue accountVal : accounts)
+    for (const QJsonValue &accountVal : std::as_const(accounts))
     {
         QJsonObject accountObj = accountVal.toObject();
         MinecraftAccountPtr account = MinecraftAccount::loadFromJsonV3(accountObj);
@@ -603,7 +603,7 @@ bool AccountList::saveList()
     // Build a list of accounts.
     qDebug() << "Building account array.";
     QJsonArray accounts;
-    for (MinecraftAccountPtr account : m_accounts)
+    for (const MinecraftAccountPtr &account : std::as_const(m_accounts))
     {
         QJsonObject accountObj = account->saveToJson();
         if(m_defaultAccount == account) {
@@ -651,7 +651,7 @@ void AccountList::setListFilePath(QString path, bool autosave)
 
 bool AccountList::anyAccountIsValid()
 {
-    for(auto account: m_accounts)
+    for (const auto &account : std::as_const(m_accounts))
     {
         if(account->ownsMinecraft()) {
             return true;

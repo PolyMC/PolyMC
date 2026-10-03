@@ -150,7 +150,7 @@ void JavaChecker::finished(int exitcode, QProcess::ExitStatus status)
 #else
     QStringList lines = m_stdout.split("\n", QString::SkipEmptyParts);
 #endif
-    for(QString line : lines)
+    for (QString line : std::as_const(lines))
     {
         line = line.trimmed();
         // NOTE: workaround for GH-4125, where garbage is getting printed into stdout on bedrock linux

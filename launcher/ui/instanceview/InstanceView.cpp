@@ -155,7 +155,7 @@ void InstanceView::updateScrollbar()
         // top margin
         totalHeight += m_categoryMargin;
         int itemScroll = 0;
-        for (auto category : m_groups)
+        for (auto category : std::as_const(m_groups))
         {
             category->m_verticalPosition = totalHeight;
             totalHeight += category->totalHeight() + m_categoryMargin;

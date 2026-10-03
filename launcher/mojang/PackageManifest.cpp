@@ -378,7 +378,7 @@ UpdateOperations UpdateOperations::resolve(const Package& from, const Package& t
     // Folders
     std::set<Path, deep_first_sort> remove_folders;
     std::set<Path, shallow_first_sort> make_folders;
-    for(auto from_path: from.folders) {
+    for (const auto &from_path : from.folders) {
         auto iter = to.folders.find(from_path);
         if(iter == to.folders.end()) {
             remove_folders.insert(from_path);
@@ -387,7 +387,7 @@ UpdateOperations UpdateOperations::resolve(const Package& from, const Package& t
     for(auto & rmdir: remove_folders) {
         out.rmdirs.push_back(rmdir);
     }
-    for(auto to_path: to.folders) {
+    for (const auto &to_path : to.folders) {
         auto iter = from.folders.find(to_path);
         if(iter == from.folders.end()) {
             make_folders.insert(to_path);

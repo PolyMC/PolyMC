@@ -203,7 +203,7 @@ void Flame::ListModel::searchRequestFinished()
 
     QList<Flame::IndexedPack> newList;
     auto packs = Json::ensureArray(doc.object(), "data");
-    for (auto packRaw : packs) {
+    for (auto packRaw : std::as_const(packs)) {
         auto packObj = packRaw.toObject();
 
         Flame::IndexedPack pack;

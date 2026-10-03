@@ -122,7 +122,7 @@ void UpdateController::installUpdates()
     QString exeBackup;
 
     // perform the update operations
-    for(auto op: m_operations)
+    for (const auto &op : std::as_const(m_operations))
     {
         switch(op.type)
         {
@@ -414,7 +414,7 @@ bool UpdateController::rollback()
 {
     bool revertOK = true;
     // if the above failed, roll back changes
-    for(auto backup:m_replace_backups)
+    for (const auto &backup : std::as_const(m_replace_backups))
     {
         qWarning() << "restoring" << backup.original << "from" << backup.backup;
         if(!QFile::rename(backup.original, backup.update))
@@ -430,7 +430,7 @@ bool UpdateController::rollback()
             qWarning() << "restoring" << backup.original << "failed!";
         }
     }
-    for(auto backup:m_delete_backups)
+    for (const auto &backup : std::as_const(m_delete_backups))
     {
         qWarning() << "restoring" << backup.original << "from" << backup.backup;
         if(!QFile::rename(backup.backup, backup.original))

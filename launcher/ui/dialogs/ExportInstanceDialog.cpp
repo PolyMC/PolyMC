@@ -385,7 +385,7 @@ void SaveIcon(InstancePtr m_instance)
     };
     QSize largest = sizes[0];
     // find variant with largest area
-    for(auto size: sizes)
+    for (auto size : std::as_const(sizes))
     {
         if(areaOf(largest) < areaOf(size))
         {

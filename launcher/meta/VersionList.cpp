@@ -216,7 +216,7 @@ void VersionList::merge(const VersionListPtr &other)
     {
         qWarning() << "Empty list loaded ...";
     }
-    for (const VersionPtr &version : other->m_versions)
+    for (const VersionPtr &version : std::as_const(other->m_versions))
     {
         // we already have the version. merge the contents
         if (m_lookup.contains(version->version()))
