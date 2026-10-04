@@ -37,7 +37,7 @@ void ModrinthCheckUpdate::executeTask()
     auto best_hash_type = ProviderCaps.hashType(ModPlatform::Provider::MODRINTH).first();
 
     ConcurrentTask hashing_task(this, "MakeModrinthHashesTask", 10);
-    for (auto* mod : m_mods) {
+    for (auto* mod : std::as_const(m_mods)) {
         if (!mod->enabled()) {
             emit checkFailed(mod, tr("Disabled mods won't be updated, to prevent mod duplication issues!"));
             continue;

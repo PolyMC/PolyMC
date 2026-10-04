@@ -122,32 +122,33 @@ void UpdateController::installUpdates()
     QString exeBackup;
 
     // perform the update operations
-    for(auto op: m_operations)
+    for (const auto &op : std::as_const(m_operations))
     {
+        auto dest = op.destination;
         switch(op.type)
         {
             // replace = move original out to backup, if it exists, move the new file in its place
             case GoUpdate::Operation::OP_REPLACE:
             {
 #ifdef Q_OS_WIN32
-                QString windowsExeName = BuildConfig.LAUNCHER_NAME + ".exe";
+                QString windowsExeName = QStringLiteral("%1.exe").arg(BuildConfig.LAUNCHER_NAME);
                 // hack for people renaming the .exe because ... reasons :)
-                if(op.destination == windowsExeName)
+                if(dest == windowsExeName)
                 {
-                    op.destination = QFileInfo(QApplication::applicationFilePath()).fileName();
+                    dest = QFileInfo(QApplication::applicationFilePath()).fileName();
                 }
 #endif
-                QFileInfo destination (FS::PathCombine(m_root, op.destination));
+                QFileInfo destination (FS::PathCombine(m_root, dest));
                 if(destination.exists())
                 {
-                    QString backupName = op.destination;
+                    QString backupName = dest;
                     backupName.replace('/', '_');
                     QString backupFilePath = FS::PathCombine(backupPath, backupName);
                     if(!QFile::rename(destination.absoluteFilePath(), backupFilePath))
                     {
                         qWarning() << "Couldn't move:" << destination.absoluteFilePath() << "to" << backupFilePath;
                         m_failedOperationType = Replace;
-                        m_failedFile = op.destination;
+                        m_failedFile = dest;
                         fail();
                         return;
                     }
@@ -162,7 +163,7 @@ void UpdateController::installUpdates()
                 {
                     qWarning() << "REPLACE: Couldn't create folder:" << destination.absoluteFilePath();
                     m_failedOperationType = Replace;
-                    m_failedFile = op.destination;
+                    m_failedFile = dest;
                     fail();
                     return;
                 }
@@ -171,7 +172,7 @@ void UpdateController::installUpdates()
                 {
                     qWarning() << "REPLACE: Couldn't move:" << op.source << "to" << destination.absoluteFilePath();
                     m_failedOperationType = Replace;
-                    m_failedFile = op.destination;
+                    m_failedFile = dest;
                     fail();
                     return;
                 }
@@ -181,17 +182,17 @@ void UpdateController::installUpdates()
             // delete = move original to backup
             case GoUpdate::Operation::OP_DELETE:
             {
-                QString destFilePath = FS::PathCombine(m_root, op.destination);
+                QString destFilePath = FS::PathCombine(m_root, dest);
                 if(QFile::exists(destFilePath))
                 {
-                    QString backupName = op.destination;
+                    QString backupName = dest;
                     backupName.replace('/', '_');
                     QString trashFilePath = FS::PathCombine(backupPath, backupName);
 
                     if(!QFile::rename(destFilePath, trashFilePath))
                     {
-                        qWarning() << "DELETE: Couldn't move:" << op.destination << "to" << trashFilePath;
-                        m_failedFile = op.destination;
+                        qWarning() << "DELETE: Couldn't move:" << dest << "to" << trashFilePath;
+                        m_failedFile = dest;
                         m_failedOperationType = Delete;
                         fail();
                         return;
@@ -414,7 +415,7 @@ bool UpdateController::rollback()
 {
     bool revertOK = true;
     // if the above failed, roll back changes
-    for(auto backup:m_replace_backups)
+    for (const auto &backup : std::as_const(m_replace_backups))
     {
         qWarning() << "restoring" << backup.original << "from" << backup.backup;
         if(!QFile::rename(backup.original, backup.update))
@@ -430,7 +431,7 @@ bool UpdateController::rollback()
             qWarning() << "restoring" << backup.original << "failed!";
         }
     }
-    for(auto backup:m_delete_backups)
+    for (const auto &backup : std::as_const(m_delete_backups))
     {
         qWarning() << "restoring" << backup.original << "from" << backup.backup;
         if(!QFile::rename(backup.backup, backup.original))

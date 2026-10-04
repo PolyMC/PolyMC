@@ -328,7 +328,7 @@ bool reconstructAssets(QString assetsId, QString resourcesFolder)
     if (!targetPath.isNull())
     {
         auto presentFiles = collectPathsFromDir(targetPath);
-        for (QString map : index.objects.keys())
+        for (const QString &map : index.objects.keys())
         {
             AssetObject asset_object = index.objects.value(map);
             QString target_path = FS::PathCombine(targetPath, map);
@@ -359,7 +359,7 @@ bool reconstructAssets(QString assetsId, QString resourcesFolder)
         // TODO: Write last used time to virtualRoot/.lastused
         if(removeLeftovers)
         {
-            for(auto & file: presentFiles)
+            for (auto & file : std::as_const(presentFiles))
             {
                 qDebug() << "Would remove" << file;
             }

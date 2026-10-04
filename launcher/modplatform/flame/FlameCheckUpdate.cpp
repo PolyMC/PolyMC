@@ -117,7 +117,7 @@ void FlameCheckUpdate::executeTask()
     setStatus(tr("Preparing mods for CurseForge..."));
 
     int i = 0;
-    for (auto* mod : m_mods) {
+    for (auto* mod : std::as_const(m_mods)) {
         if (!mod->enabled()) {
             emit checkFailed(mod, tr("Disabled mods won't be updated, to prevent mod duplication issues!"));
             continue;

@@ -196,13 +196,13 @@ void PackInstallTask::deleteExistingFiles()
     keeps.files.append(VersionKeep{ "root", "servers.dat" });
 
     // Merge with version deletes and keeps
-    for (const auto& item : m_version.deletes.files)
+    for (const auto& item : std::as_const(m_version.deletes.files))
         deletes.files.append(item);
-    for (const auto& item : m_version.deletes.folders)
+    for (const auto& item : std::as_const(m_version.deletes.folders))
         deletes.folders.append(item);
-    for (const auto& item : m_version.keeps.files)
+    for (const auto& item : std::as_const(m_version.keeps.files))
         keeps.files.append(item);
-    for (const auto& item : m_version.keeps.folders)
+    for (const auto& item : std::as_const(m_version.keeps.folders))
         keeps.folders.append(item);
 
     auto getPathForBase = [this](const QString& base) {
@@ -253,7 +253,7 @@ void PackInstallTask::deleteExistingFiles()
     // Keep track of files to delete
     QSet<QString> filesToDelete;
 
-    for (const auto& item : deletes.files) {
+    for (const auto& item : std::as_const(deletes.files)) {
         auto basePath = getPathForBase(item.base);
         auto targetPath = convertToSystemPath(item.target);
         auto fullPath = FS::PathCombine(basePath, targetPath);
@@ -264,7 +264,7 @@ void PackInstallTask::deleteExistingFiles()
         filesToDelete.insert(fullPath);
     }
 
-    for (const auto& item : deletes.folders) {
+    for (const auto& item : std::as_const(deletes.folders)) {
         auto basePath = getPathForBase(item.base);
         auto targetPath = convertToSystemPath(item.target);
         auto fullPath = FS::PathCombine(basePath, targetPath);
@@ -733,7 +733,7 @@ void PackInstallTask::downloadMods()
     qDebug() << "PackInstallTask::installMods: " << QThread::currentThreadId();
 
     QVector<ATLauncher::VersionMod> optionalMods;
-    for (const auto& mod : m_version.mods) {
+    for (const auto& mod : std::as_const(m_version.mods)) {
         if (mod.optional) {
             optionalMods.push_back(mod);
         }
@@ -750,7 +750,7 @@ void PackInstallTask::downloadMods()
 
     jarmods.clear();
     jobPtr = new NetJob(tr("Mod download"), APPLICATION->network());
-    for(const auto& mod : m_version.mods) {
+    for (const auto& mod : std::as_const(m_version.mods)) {
         // skip non-client mods
         if(!mod.client) continue;
 

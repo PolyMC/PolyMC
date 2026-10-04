@@ -161,7 +161,7 @@ void Technic::ListModel::searchRequestFinished()
         switch (searchMode) {
             case List: {
                 auto objs = Json::requireArray(root, "modpacks");
-                for (auto technicPack: objs) {
+                for (auto technicPack : std::as_const(objs)) {
                     Modpack pack;
                     auto technicPackObject = Json::requireObject(technicPack);
                     pack.name = Json::requireString(technicPackObject, "name");

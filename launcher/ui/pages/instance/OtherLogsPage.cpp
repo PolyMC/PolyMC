@@ -264,7 +264,7 @@ void OtherLogsPage::on_btnClean_clicked()
         return;
     }
     QStringList failed;
-    for(auto item: toDelete)
+    for (const auto &item : std::as_const(toDelete))
     {
         QFile file(FS::PathCombine(m_path, item));
         if (!file.remove())

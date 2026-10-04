@@ -70,7 +70,7 @@ void VerifyJavaInstall::executeTask() {
     emit logLine(tr("This instance is not compatible with Java version %1.\n"
                     "Please switch to one of the following Java versions for this instance:").arg(javaVersion.major()),
                  MessageLevel::Error);
-    for (auto major : compatibleMajors)
+    for (auto major : std::as_const(compatibleMajors))
     {
         emit logLine(tr("Java version %1").arg(major), MessageLevel::Error);
     }

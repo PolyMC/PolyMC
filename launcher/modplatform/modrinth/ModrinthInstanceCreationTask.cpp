@@ -121,7 +121,7 @@ bool ModrinthCreationTask::updateInstance()
         // TODO: Currently 'overrides' will always override the stuff on update. How do we preserve unchanged overrides?
         // FIXME: We may want to do something about disabled mods.
         auto old_overrides = Override::readOverrides("overrides", old_index_folder);
-        for (const auto& entry : old_overrides) {
+        for (const auto& entry : std::as_const(old_overrides)) {
             if (entry.isEmpty())
                 continue;
             qDebug() << "Scheduling" << entry << "for removal";
@@ -129,7 +129,7 @@ bool ModrinthCreationTask::updateInstance()
         }
 
         auto old_client_overrides = Override::readOverrides("client-overrides", old_index_folder);
-        for (const auto& entry : old_overrides) {
+        for (const auto& entry : std::as_const(old_overrides)) {
             if (entry.isEmpty())
                 continue;
             qDebug() << "Scheduling" << entry << "for removal";
@@ -230,7 +230,7 @@ bool ModrinthCreationTask::createInstance()
 
     m_files_job = new NetJob(tr("Mod download"), APPLICATION->network());
 
-    for (auto file : m_files) {
+    for (auto &file : m_files) {
         auto path = FS::PathCombine(m_stagingPath, ".minecraft", file.path);
         qDebug() << "Will try to download" << file.downloads.front() << "to" << path;
         auto dl = Net::Download::makeFile(file.downloads.dequeue(), path);
@@ -303,7 +303,7 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
 
             auto jsonFiles = Json::requireIsArrayOf<QJsonObject>(obj, "files", "modrinth.index.json");
             bool had_optional = false;
-            for (const auto& modInfo : jsonFiles) {
+            for (const auto& modInfo : std::as_const(jsonFiles)) {
                 Modrinth::File file;
                 file.path = Json::requireString(modInfo, "path");
 
@@ -357,7 +357,7 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
                 // (as Modrinth seems to incorrectly handle spaces)
 
                 auto download_arr = Json::ensureArray(modInfo, "downloads");
-                for (auto download : download_arr) {
+                for (auto download : std::as_const(download_arr)) {
                     qWarning() << download.toString();
                     bool is_last = download.toString() == download_arr.last().toString();
 

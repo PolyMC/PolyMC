@@ -315,7 +315,7 @@ QJsonDocument MojangVersionFormat::versionFileToJson(const VersionFilePtr &patch
     if (!patch->libraries.isEmpty())
     {
         QJsonArray array;
-        for (auto value: patch->libraries)
+        for (const auto &value : std::as_const(patch->libraries))
         {
             array.append(MojangVersionFormat::libraryToJson(value.get()));
         }
@@ -400,7 +400,7 @@ QJsonObject MojangVersionFormat::libraryToJson(Library *library)
         {
             QJsonArray excludes;
             QJsonObject extract;
-            for (auto exclude : library->m_extractExcludes)
+            for (const auto &exclude : std::as_const(library->m_extractExcludes))
             {
                 excludes.append(exclude);
             }

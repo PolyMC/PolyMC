@@ -83,7 +83,7 @@ public:
 
     BasePage * findPageEntryById(QString id)
     {
-        for(auto page: m_pages)
+        for (auto page : std::as_const(m_pages))
         {
             if (page->id() == id)
                 return page;

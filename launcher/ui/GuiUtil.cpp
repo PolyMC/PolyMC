@@ -130,7 +130,7 @@ static QStringList BrowseForFileInternal(QString context, QString caption, QStri
     f(QStandardPaths::DownloadLocation);
     f(QStandardPaths::HomeLocation);
     QList<QUrl> urls;
-    for (auto location : locations)
+    for (const auto &location : locations)
     {
         urls.append(QUrl::fromLocalFile(location));
     }

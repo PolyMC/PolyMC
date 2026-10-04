@@ -371,11 +371,11 @@ void LaunchController::launchInstance()
         QString resolved_servers = "";
         QHostInfo host_info;
 
-        for(QString server : servers) {
+        for (const QString &server : servers) {
             host_info = QHostInfo::fromName(server);
             resolved_servers = resolved_servers + server + " resolves to:\n    [";
             if(!host_info.addresses().isEmpty()) {
-                for(QHostAddress address : host_info.addresses()) {
+                for (const QHostAddress &address : host_info.addresses()) {
                     resolved_servers = resolved_servers + address.toString();
                     if(!host_info.addresses().endsWith(address)) {
                         resolved_servers = resolved_servers + ", ";

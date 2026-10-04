@@ -858,7 +858,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
     //FIXME: what to do with these?
     m_profilers.insert("jprofiler", std::shared_ptr<BaseProfilerFactory>(new JProfilerFactory()));
     m_profilers.insert("jvisualvm", std::shared_ptr<BaseProfilerFactory>(new JVisualVMFactory()));
-    for (auto profiler : m_profilers.values())
+    for (const auto &profiler : m_profilers.values())
     {
         profiler->registerSettings(m_settings);
     }
@@ -1619,7 +1619,7 @@ void Application::updateCapabilities()
             "libMangoHud_dlsym.so"
         };
 
-        for (auto DLL: MangoHudDLLs)
+        for (const auto &DLL : MangoHudDLLs)
         {
             void *dummy = dlopen(DLL.toStdString().c_str(), RTLD_LAZY);
 
@@ -1644,7 +1644,7 @@ QString Application::getJarPath(QString jarFile)
         FS::PathCombine(m_rootPath, "jars"),
         FS::PathCombine(applicationDirPath(), "jars")
     };
-    for(QString p : potentialPaths)
+    for (const QString &p : potentialPaths)
     {
         QString jarPath = FS::PathCombine(p, jarFile);
         if (QFileInfo(jarPath).isFile())

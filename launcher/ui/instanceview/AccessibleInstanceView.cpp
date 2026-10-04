@@ -48,7 +48,7 @@ bool AccessibleInstanceView::isValid() const
 
 AccessibleInstanceView::~AccessibleInstanceView()
 {
-    for (QAccessible::Id id : childToId) {
+    for (QAccessible::Id id : std::as_const(childToId)) {
         QAccessible::deleteAccessibleInterface(id);
     }
 }
@@ -477,7 +477,7 @@ void AccessibleInstanceView::modelChange(QAccessibleTableModelChangeEvent *event
 
     switch (event->modelChangeType()) {
         case QAccessibleTableModelChangeEvent::ModelReset:
-            for (QAccessible::Id id : childToId)
+            for (QAccessible::Id id : std::as_const(childToId))
                 QAccessible::deleteAccessibleInterface(id);
             childToId.clear();
             break;

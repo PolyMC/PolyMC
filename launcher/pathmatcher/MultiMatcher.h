@@ -17,7 +17,7 @@ public:
 
     virtual bool matches(const QString &string) const override
     {
-        for(auto iter: m_matchers)
+        for (const auto &iter : m_matchers)
         {
             if(iter->matches(string))
             {

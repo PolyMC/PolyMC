@@ -75,15 +75,15 @@ void VersionFile::applyTo(LaunchProfile *profile, const RuntimeContext & runtime
     profile->applyTraits(traits);
     profile->applyCompatibleJavaMajors(compatibleJavaMajors);
 
-    for (auto library : libraries)
+    for (const auto &library : std::as_const(libraries))
     {
         profile->applyLibrary(library, runtimeContext);
     }
-    for (auto mavenFile : mavenFiles)
+    for (const auto &mavenFile : std::as_const(mavenFiles))
     {
         profile->applyMavenFile(mavenFile, runtimeContext);
     }
-    for (auto agent : agents)
+    for (const auto &agent : std::as_const(agents))
     {
         profile->applyAgent(agent, runtimeContext);
     }

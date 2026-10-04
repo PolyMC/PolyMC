@@ -90,7 +90,7 @@ void UpdateChecker::checkForUpdate(const QString& updateChannel, bool notifyNoUp
         // found, error.
         QString stableUrl;
         m_newRepoUrl = "";
-        for (ChannelListEntry entry: m_channels)
+        for (const ChannelListEntry &entry : std::as_const(m_channels))
         {
             qDebug() << "channelEntry = " << entry.id;
             if (entry.id == "stable")
@@ -169,7 +169,7 @@ void UpdateChecker::updateCheckFinished(bool notifyNoUpdate)
     qDebug() << "Processing repository version list.";
     QJsonObject newestVersion;
     QJsonArray versions = object.value("Versions").toArray();
-    for (QJsonValue versionVal : versions)
+    for (const QJsonValue &versionVal : std::as_const(versions))
     {
         QJsonObject version = versionVal.toObject();
         if (newestVersion.value("Id").toVariant().toInt() <
@@ -255,7 +255,7 @@ void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
     // Load channels into a temporary array.
     QList<ChannelListEntry> loadedChannels;
     QJsonArray channelArray = object.value("channels").toArray();
-    for (QJsonValue chanVal : channelArray)
+    for (const QJsonValue &chanVal : std::as_const(channelArray))
     {
         QJsonObject channelObj = chanVal.toObject();
         ChannelListEntry entry {

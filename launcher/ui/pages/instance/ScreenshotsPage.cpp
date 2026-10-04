@@ -414,7 +414,7 @@ void ScreenshotsPage::on_actionUpload_triggered()
         return;
     }
 
-    for (auto item : selection)
+    for (auto item : std::as_const(selection))
     {
         auto info = m_model->fileInfo(item);
         auto screenshot = std::make_shared<ScreenShot>(info);
@@ -479,7 +479,7 @@ void ScreenshotsPage::on_actionCopy_File_s_triggered()
     }
 
     QString buf = "";
-    for (auto item : selection)
+    for (auto item : std::as_const(selection))
     {
         auto info = m_model->fileInfo(item);
         buf += "file:///" + info.absoluteFilePath() + "\r\n";
@@ -500,7 +500,7 @@ void ScreenshotsPage::on_actionDelete_triggered()
         return;
 
     auto selected = ui->listView->selectionModel()->selectedIndexes();
-    for (auto item : selected)
+    for (auto item : std::as_const(selected))
     {
         m_model->remove(item);
     }

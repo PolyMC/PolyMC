@@ -188,7 +188,7 @@ QVector<T> requireIsArrayOf(const QJsonDocument &doc)
 {
     const QJsonArray array = requireArray(doc);
     QVector<T> out;
-    for (const QJsonValue val : array)
+    for (const QJsonValue &val : array)
     {
         out.append(requireIsType<T>(val, "Document"));
     }
@@ -200,7 +200,7 @@ QVector<T> ensureIsArrayOf(const QJsonValue &value, const QString &what = "Value
 {
     const QJsonArray array = ensureIsType<QJsonArray>(value, QJsonArray(), what);
     QVector<T> out;
-    for (const QJsonValue val : array)
+    for (const QJsonValue &val : array)
     {
         out.append(requireIsType<T>(val, what));
     }

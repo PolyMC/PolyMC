@@ -13,7 +13,7 @@ void Flame::loadIndexedPack(Flame::IndexedPack& pack, QJsonObject& obj)
     pack.logoUrl = Json::requireString(logo, "thumbnailUrl");
 
     auto authors = Json::requireArray(obj, "authors");
-    for (auto authorIter : authors) {
+    for (auto authorIter : std::as_const(authors)) {
         auto author = Json::requireObject(authorIter);
         Flame::ModpackAuthor packAuthor;
         packAuthor.name = Json::requireString(author, "name");
@@ -25,7 +25,7 @@ void Flame::loadIndexedPack(Flame::IndexedPack& pack, QJsonObject& obj)
     bool found = false;
     // check if there are some files before adding the pack
     auto files = Json::requireArray(obj, "latestFiles");
-    for (auto fileIter : files) {
+    for (auto fileIter : std::as_const(files)) {
         auto file = Json::requireObject(fileIter);
         int id = Json::requireInteger(file, "id");
 

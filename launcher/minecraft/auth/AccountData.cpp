@@ -198,7 +198,7 @@ MinecraftProfile profileFromJSONV3(const QJsonObject &parent, const char * token
             return MinecraftProfile();
         }
         auto capesArray = capesV.toArray();
-        for(auto capeV: capesArray) {
+        for (auto capeV : std::as_const(capesArray)) {
             if(!capeV.isObject()) {
                 qWarning() << "cape is not an object!";
                 return MinecraftProfile();

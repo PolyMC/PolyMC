@@ -55,7 +55,7 @@ QList<std::shared_ptr<Rule>> rulesFromJsonV4(const QJsonObject &objectWithRules)
         return rules;
 
     QJsonArray ruleList = rulesVal.toArray();
-    for (auto ruleVal : ruleList)
+    for (auto ruleVal : std::as_const(ruleList))
     {
         std::shared_ptr<Rule> rule;
         if (!ruleVal.isObject())

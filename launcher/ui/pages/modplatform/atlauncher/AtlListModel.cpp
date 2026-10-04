@@ -111,7 +111,7 @@ void ListModel::requestFinished()
     QList<ATLauncher::IndexedPack> newList;
 
     auto packs = doc.array();
-    for(auto packRaw : packs) {
+    for (auto packRaw : std::as_const(packs)) {
         auto packObj = packRaw.toObject();
 
         ATLauncher::IndexedPack pack;

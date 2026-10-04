@@ -34,7 +34,7 @@ bool ResourceFolderModel::startWatching(const QStringList paths)
         return false;
 
     auto couldnt_be_watched = m_watcher.addPaths(paths);
-    for (auto path : paths) {
+    for (const auto &path : paths) {
         if (couldnt_be_watched.contains(path))
             qDebug() << "Failed to start watching " << path;
         else
@@ -53,7 +53,7 @@ bool ResourceFolderModel::stopWatching(const QStringList paths)
         return false;
 
     auto couldnt_be_stopped = m_watcher.removePaths(paths);
-    for (auto path : paths) {
+    for (const auto &path : paths) {
         if (couldnt_be_stopped.contains(path))
             qDebug() << "Failed to stop watching " << path;
         else
@@ -365,7 +365,7 @@ bool ResourceFolderModel::dropMimeData(const QMimeData* data, Qt::DropAction act
     // files dropped from outside?
     if (data->hasUrls()) {
         auto urls = data->urls();
-        for (auto url : urls) {
+        for (const auto &url : std::as_const(urls)) {
             // only local files may be dropped...
             if (!url.isLocalFile()) {
                 continue;

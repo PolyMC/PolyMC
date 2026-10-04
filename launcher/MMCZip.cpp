@@ -99,7 +99,7 @@ bool MMCZip::compressDirFiles(QuaZip *zip, QString dir, QFileInfoList files)
     QDir directory(dir);
     if (!directory.exists()) return false;
 
-    for (auto e : files) {
+    for (const auto &e : files) {
         auto filePath = directory.relativeFilePath(e.absoluteFilePath());
         if( !JlCompress::compressFile(zip, e.absoluteFilePath(), filePath)) return false;
     }
@@ -184,7 +184,7 @@ bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath, const
             auto files = QFileInfoList();
             MMCZip::collectFileListRecursively(what_to_zip, nullptr, &files, nullptr);
 
-            for (auto e : files) {
+            for (const auto &e : std::as_const(files)) {
                 if (addedFiles.contains(e.filePath()))
                     files.removeAll(e);
             }
@@ -244,7 +244,7 @@ std::pair<QString, QString> MMCZip::findFolderOfFileInZip(QuaZip * zip, QSet<con
             if (what.contains(fileName))
                 return {currentPath, fileName};
         }
-        for(auto fileName: rootDir.entryList(QDir::Dirs))
+        for (const auto &fileName : rootDir.entryList(QDir::Dirs))
         {
             pathsToTraverse.push_back(rootDir.path() + fileName);
         }
@@ -256,7 +256,7 @@ std::pair<QString, QString> MMCZip::findFolderOfFileInZip(QuaZip * zip, QSet<con
 bool MMCZip::findFilesInZip(QuaZip * zip, const QString & what, QStringList & result, const QString &root)
 {
     QuaZipDir rootDir(zip, root);
-    for(auto fileName: rootDir.entryList(QDir::Files))
+    for (const auto &fileName : rootDir.entryList(QDir::Files))
     {
         if(fileName == what)
         {
@@ -264,7 +264,7 @@ bool MMCZip::findFilesInZip(QuaZip * zip, const QString & what, QStringList & re
             return true;
         }
     }
-    for(auto fileName: rootDir.entryList(QDir::Dirs))
+    for (const auto &fileName : rootDir.entryList(QDir::Dirs))
     {
         findFilesInZip(zip, what, result, root + fileName);
     }
@@ -416,14 +416,14 @@ bool MMCZip::collectFileListRecursively(const QString& rootDir, const QString& s
 
     // recurse directories
     QFileInfoList entries = directory.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Hidden);
-    for (const auto& e: entries) {
+    for (const auto& e : std::as_const(entries)) {
         if (!collectFileListRecursively(rootDir, e.filePath(), files, excludeFilter))
             return false;
     }
 
     // collect files
     entries = directory.entryInfoList(QDir::Files);
-    for (const auto& e: entries) {
+    for (const auto& e : std::as_const(entries)) {
         QString relativeFilePath = rootDirectory.relativeFilePath(e.absoluteFilePath());
         if (excludeFilter && excludeFilter(relativeFilePath)) {
             qDebug() << "Skipping file " << relativeFilePath;
