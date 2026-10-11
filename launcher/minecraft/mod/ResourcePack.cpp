@@ -198,7 +198,7 @@ QString ResourcePack::toString() const {
     if (compat.first != compat.second)
         ver += QStringLiteral(" - %1").arg(compat.second.toString());
 
-    return fmt % QStringLiteral(" (%1)").arg(ver);
+    return QStringLiteral("%1 (%2)").arg(fmt, ver);
 }
 
 std::pair<Version, Version> ResourcePack::compatibleVersions() const {
