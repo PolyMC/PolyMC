@@ -115,6 +115,33 @@ void processZIP(ResourcePack& pack)
     zip.close();
 }
 
+// this is either a single major version, or [major, minor]
+static std::pair<int, int> parsePackFormatVersion(const QJsonValue& value)
+{
+    if (value.isDouble())
+        return { value.toInt(), 0 };
+
+    std::pair<int, int> version;
+    if (value.isArray()) {
+        const auto array = value.toArray();
+        if (array.size() >= 1)
+            version.first = array.at(0).toInt();
+        if (array.size() >= 2)
+            version.second = array.at(1).toInt();
+    }
+    return version;
+}
+
+static QString parsePackDescription(const QJsonValue &value) {
+    if (value.isString())
+        return value.toString();
+
+    if (value.isObject())
+        return Json::ensureString(value.toObject().value("fallback"), "");
+
+    return "";
+}
+
 // https://minecraft.wiki/w/Tutorials/Creating_a_resource_pack#Formatting_pack.mcmeta
 void processMCMeta(ResourcePack& pack, QByteArray&& raw_data)
 {
@@ -122,8 +149,19 @@ void processMCMeta(ResourcePack& pack, QByteArray&& raw_data)
         auto json_doc = QJsonDocument::fromJson(raw_data);
         auto pack_obj = Json::requireObject(json_doc.object(), "pack", {});
 
-        pack.setPackFormat(Json::ensureInteger(pack_obj, "pack_format", 0));
-        pack.setDescription(Json::ensureString(pack_obj, "description", ""));
+        pack.setDescription(parsePackDescription(pack_obj.value("description")));
+
+        int packFormat = 0;
+        std::pair<int, int> minFormat;
+        std::pair<int, int> maxFormat;
+        if (pack_obj.contains("pack_format"))
+            packFormat = Json::ensureInteger(pack_obj, "pack_format", 0);
+        if (pack_obj.contains("min_format"))
+            minFormat = parsePackFormatVersion(pack_obj.value("min_format"));
+        if (pack_obj.contains("max_format"))
+            maxFormat = parsePackFormatVersion(pack_obj.value("max_format"));
+
+        pack.setPackFormat(packFormat, minFormat, maxFormat);
     } catch (Json::JsonException& e) {
         qWarning() << "JsonException: " << e.what() << e.cause();
     }
