@@ -183,7 +183,7 @@ QString ResourcePack::toString() const {
     auto fmtToStr = [](std::pair<int, int> pair) {
         auto str = QString::number(pair.first);
         if (pair.second != 0)
-            str = str % QStringLiteral(".%1").arg(QString::number(pair.second));
+            str += QStringLiteral(".%1").arg(QString::number(pair.second));
         return str;
     };
 
