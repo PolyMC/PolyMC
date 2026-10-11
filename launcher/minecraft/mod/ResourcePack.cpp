@@ -192,14 +192,13 @@ QString ResourcePack::toString() const {
 
     auto fmt = minStr;
     if (m_minFormat != m_maxFormat)
-        fmt = fmt % QStringLiteral(" - %1").arg(maxStr);
+        fmt += QStringLiteral(" - %1").arg(maxStr);
 
     auto ver = compat.first.toString();
     if (compat.first != compat.second)
-        ver = ver % QStringLiteral(" - %1").arg(compat.second.toString());
+        ver += QStringLiteral(" - %1").arg(compat.second.toString());
 
-    return fmt % QStringLiteral(" (%1)")
-        .arg(ver);
+    return fmt % QStringLiteral(" (%1)").arg(ver);
 }
 
 std::pair<Version, Version> ResourcePack::compatibleVersions() const {
