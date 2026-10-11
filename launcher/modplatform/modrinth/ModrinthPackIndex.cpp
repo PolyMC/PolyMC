@@ -22,25 +22,26 @@
 #include "Json.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
-#include "net/NetJob.h"
 
 static ModrinthAPI api;
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
-void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj)
-{
+void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj,
+                               ModAPI::ResourceType type) {
     pack.addonId = Json::ensureString(obj, "project_id");
     if (pack.addonId.toString().isEmpty())
         pack.addonId = Json::requireString(obj, "id");
 
     pack.provider = ModPlatform::Provider::MODRINTH;
     pack.name = Json::requireString(obj, "title");
-    
+
     pack.slug = Json::ensureString(obj, "slug", "");
-    if (!pack.slug.isEmpty())
+    if (!pack.slug.isEmpty()) {
+        // FIXME(crueter): conditional
         pack.websiteUrl = "https://modrinth.com/mod/" + pack.slug;
-    else
+    } else {
         pack.websiteUrl = "";
+    }
 
     pack.description = Json::ensureString(obj, "description", "");
 
@@ -167,7 +168,7 @@ ModPlatform::IndexedVersion Modrinth::loadIndexedPackVersion(QJsonObject &obj, Q
         file.fileName = Json::requireString(parent, "filename");
         file.is_preferred = Json::requireBoolean(parent, "primary") || (files.count() == 1);
         auto hash_list = Json::requireObject(parent, "hashes");
-        
+
         if (hash_list.contains(preferred_hash_type)) {
             file.hash = Json::requireString(hash_list, preferred_hash_type);
             file.hash_type = preferred_hash_type;

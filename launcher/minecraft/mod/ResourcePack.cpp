@@ -8,7 +8,7 @@
 
 #include "minecraft/mod/tasks/LocalResourcePackParseTask.h"
 
-// https://minecraft.wiki/w/Pack_format#List_of_resource_pack_formats
+// https://minecraft.wiki/w/Pack_format#List_of_pack_formats
 static const QMap<std::pair<int, int>, std::pair<Version, Version>> s_pack_format_versions = {
     { { 1, 0 }, { Version("1.6.1"), Version("1.8.9") } },
     { { 2, 0 }, { Version("1.9"), Version("1.10.2") } },

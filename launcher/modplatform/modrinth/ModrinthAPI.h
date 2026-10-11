@@ -51,12 +51,14 @@ class ModrinthAPI : public NetworkModAPI {
    public:
     inline QString getAuthorURL(const QString& name) const { return "https://modrinth.com/user/" + name; };
 
-    inline QString getProjectType(ResourceType type) const {
+    static inline QString getProjectType(ResourceType type) {
         switch (type) {
         case ResourcePack:
             return "resourcepack";
         case ShaderPack:
             return "shader";
+        case DataPack:
+            return "datapack";
         default:
             return "mod";
         }
@@ -87,6 +89,16 @@ class ModrinthAPI : public NetworkModAPI {
         return l.join(',');
     }
 
+    static QString getProjectTypeFacets(ResourceType type) {
+        const auto typeStr = getProjectType(type);
+        switch (type) {
+        case DataPack:
+            return QStringLiteral("[\"all_project_types:%1\"]").arg(typeStr);
+        default:
+            return QStringLiteral("[\"project_type:%1\"]").arg(typeStr);
+        }
+    }
+
    private:
     inline QString getModSearchURL(SearchArgs& args) const override
     {
@@ -97,14 +109,14 @@ class ModrinthAPI : public NetworkModAPI {
 
         const auto off = QString::number(args.offset);
         const auto filter = args.type == Mod ? QStringLiteral("[%1],").arg(getModLoaderFilters(args.loaders)) : "";
-        const auto projType = getProjectType(args.type);
+        const auto projType = getProjectTypeFacets(args.type);
 
         return QString(BuildConfig.MODRINTH_PROD_URL + "/search?"
                                                        "offset=%1&"
                                                        "limit=25&"
                                                        "query=%2&"
                                                        "index=%3&"
-                                                       "facets=[%4%5[\"project_type:%6\"]]")
+                                                       "facets=[%4%5%6]")
             .arg(off, args.search, args.sorting, filter,
                  getGameVersionsArray(args.versions), projType);
     };

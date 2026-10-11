@@ -222,7 +222,8 @@ void ModPage::onModSelected()
     if (dialog->isModSelected(current.name, version.fileName)) {
         dialog->removeSelectedMod(current.name);
     } else {
-        bool is_indexed = !APPLICATION->settings()->get("ModMetadataDisabled").toBool() && m_resourceType == ModAPI::Mod;
+        bool is_indexed = !APPLICATION->settings()->get("ModMetadataDisabled").toBool() &&
+                          (m_resourceType == ModAPI::Mod || m_resourceType == ModAPI::DataPack);
         dialog->addSelectedMod(current.name, new ModDownloadTask(current, version, dialog->mods, is_indexed));
     }
 
