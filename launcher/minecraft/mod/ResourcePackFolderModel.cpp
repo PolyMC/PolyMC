@@ -61,16 +61,7 @@ QVariant ResourcePackFolderModel::data(const QModelIndex& index, int role) const
                     return m_resources[row]->name();
                 case PackFormatColumn: {
                     auto resource = at(row);
-                    auto pack_format = resource->packFormat();
-                    if (pack_format == 0)
-                        return tr("Unrecognized");
-
-                    auto version_bounds = resource->compatibleVersions();
-                    if (version_bounds.first.toString().isEmpty())
-                        return QString::number(pack_format);
-
-                    return QString("%1 (%2 - %3)")
-                        .arg(QString::number(pack_format), version_bounds.first.toString(), version_bounds.second.toString());
+                    return resource->toString();
                 }
                 case DateColumn:
                     return m_resources[row]->dateTimeChanged();
