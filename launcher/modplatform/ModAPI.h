@@ -58,6 +58,7 @@ class ModAPI {
         Mod,
         ResourcePack,
         ShaderPack,
+        DataPack,
     };
 
     enum ModLoaderType {

@@ -35,6 +35,7 @@
  */
 
 #include "WorldListPage.h"
+#include "ui/dialogs/WorldDataPacksDialog.h"
 #include "ui_WorldListPage.h"
 #include "minecraft/WorldList.h"
 
@@ -211,14 +212,16 @@ void WorldListPage::on_actionDatapacks_triggered()
         return;
     }
 
-    if(!worldSafetyNagQuestion(tr("Open World Datapacks Folder")))
-        return;
+    // datapacks are fine to edit while the world is open
 
     auto fullPath = m_worlds->data(index, WorldList::FolderRole).toString();
+    auto worldName = m_worlds->data(index, WorldList::NameRole).toString();
 
-    DesktopServices::openPath(FS::PathCombine(fullPath, "datapacks"), true);
+    WorldDataPacksDialog dialog(static_cast<MinecraftInstance*>(m_inst), worldName,
+                                FS::PathCombine(fullPath, "datapacks"), this);
+
+    dialog.exec();
 }
-
 
 void WorldListPage::on_actionReset_Icon_triggered()
 {

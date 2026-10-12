@@ -28,12 +28,15 @@ private:
     }
 
 private:
-    inline auto getClassId(ResourceType type) const {
+    static inline auto getClassId(ResourceType type) {
+        // https://api.curseforge.com/v1/categories?gameId=432&classesOnly=true
         switch (type) {
         case ResourcePack:
             return 12;
         case ShaderPack:
             return 6552;
+        case DataPack:
+            return 6945;
         default:
             return 6;
         }

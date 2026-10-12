@@ -14,9 +14,10 @@
  */
 
 #pragma once
-#include <QFileInfo>
-#include <QDateTime>
 #include <optional>
+#include <QDateTime>
+#include <QFileInfo>
+#include "FileSystem.h"
 
 struct GameType {
     GameType() = default;
@@ -80,6 +81,7 @@ public:
     {
         return m_containerFile;
     }
+
     // delete all the files of this world
     bool destroy();
     // replace this world with a copy of the other

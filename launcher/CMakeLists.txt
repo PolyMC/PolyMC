@@ -316,23 +316,33 @@ set(MINECRAFT_SOURCES
     minecraft/WorldList.cpp
 
     minecraft/mod/MetadataHandler.h
+    minecraft/mod/ModDetails.h
+
     minecraft/mod/Mod.h
     minecraft/mod/Mod.cpp
-    minecraft/mod/ModDetails.h
     minecraft/mod/ModFolderModel.h
     minecraft/mod/ModFolderModel.cpp
+
     minecraft/mod/Resource.h
     minecraft/mod/Resource.cpp
     minecraft/mod/ResourceFolderModel.h
     minecraft/mod/ResourceFolderModel.cpp
+
     minecraft/mod/ResourcePack.h
     minecraft/mod/ResourcePack.cpp
     minecraft/mod/ResourcePackFolderModel.h
     minecraft/mod/ResourcePackFolderModel.cpp
+
+    minecraft/mod/DataPack.h
+    minecraft/mod/DataPack.cpp
+    minecraft/mod/DataPackFolderModel.h
+    minecraft/mod/DataPackFolderModel.cpp
+
     minecraft/mod/TexturePack.h
     minecraft/mod/TexturePack.cpp
     minecraft/mod/TexturePackFolderModel.h
     minecraft/mod/TexturePackFolderModel.cpp
+
     minecraft/mod/ShaderPackFolderModel.h
     minecraft/mod/tasks/BasicFolderLoadTask.h
     minecraft/mod/tasks/ModFolderLoadTask.h
@@ -687,6 +697,8 @@ SET(LAUNCHER_SOURCES
     ui/pages/instance/DownloadableResourcesPage.cpp
     ui/pages/instance/ResourcePackPage.h
     ui/pages/instance/ResourcePackPage.cpp
+    ui/pages/instance/DataPackPage.h
+    ui/pages/instance/DataPackPage.cpp
     ui/pages/instance/ShaderPackPage.h
     ui/pages/instance/ShaderPackPage.cpp
     ui/pages/instance/ModFolderPage.cpp
@@ -838,6 +850,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/ChooseProviderDialog.cpp
     ui/dialogs/ModUpdateDialog.cpp
     ui/dialogs/ModUpdateDialog.h
+    ui/dialogs/WorldDataPacksDialog.h
+    ui/dialogs/WorldDataPacksDialog.cpp
 
     # GUI - widgets
     ui/widgets/Common.cpp
