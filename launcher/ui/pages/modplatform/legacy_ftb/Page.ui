@@ -35,7 +35,7 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QTextBrowser" name="publicPackDescription">
+        <widget class="RemoteTextBrowser" name="publicPackDescription">
            <property name="openExternalLinks">
             <bool>true</bool>
            </property>
@@ -49,7 +49,7 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="1">
-        <widget class="QTextBrowser" name="thirdPartyPackDescription">
+        <widget class="RemoteTextBrowser" name="thirdPartyPackDescription">
                <property name="openExternalLinks">
             <bool>true</bool>
            </property>
@@ -103,7 +103,7 @@
         </widget>
        </item>
        <item row="0" column="1" rowspan="3">
-        <widget class="QTextBrowser" name="privatePackDescription">
+        <widget class="RemoteTextBrowser" name="privatePackDescription">
            <property name="openExternalLinks">
             <bool>true</bool>
            </property>
@@ -141,7 +141,14 @@
     </layout>
    </item>
   </layout>
- </widget>
- <resources/>
+  </widget>
+  <customwidgets>
+   <customwidget>
+    <class>RemoteTextBrowser</class>
+    <extends>QTextBrowser</extends>
+    <header>ui/widgets/RemoteTextBrowser.h</header>
+   </customwidget>
+  </customwidgets>
+  <resources/>
  <connections/>
 </ui>

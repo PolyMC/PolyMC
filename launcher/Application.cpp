@@ -848,6 +848,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         m_metacache->addBase("meta", QDir("meta").absolutePath());
         m_metacache->addBase("authlibinjector", QDir("cache/authlibinjector").absolutePath());
         m_metacache->addBase("loki", QDir("cache/loki").absolutePath());
+        m_metacache->addBase("images", QDir("cache/images").absolutePath());
         m_metacache->Load();
         qDebug() << "<> Cache initialized.";
     }

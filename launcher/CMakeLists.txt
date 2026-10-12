@@ -893,6 +893,8 @@ SET(LAUNCHER_SOURCES
     ui/widgets/ProgressWidget.cpp
     ui/widgets/WideBar.h
     ui/widgets/WideBar.cpp
+    ui/widgets/RemoteTextBrowser.h
+    ui/widgets/RemoteTextBrowser.cpp
 
     # GUI - instance group view
     ui/instanceview/InstanceProxyModel.cpp
