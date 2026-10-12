@@ -41,7 +41,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QTextBrowser" name="changelogBrowser">
+     <widget class="RemoteTextBrowser" name="changelogBrowser">
      <property name="openExternalLinks">
       <bool>true</bool>
      </property>
@@ -79,7 +79,14 @@
    </item>
   </layout>
  </widget>
- <tabstops>
+  <customwidgets>
+   <customwidget>
+    <class>RemoteTextBrowser</class>
+    <extends>QTextBrowser</extends>
+    <header>ui/widgets/RemoteTextBrowser.h</header>
+   </customwidget>
+  </customwidgets>
+  <tabstops>
   <tabstop>changelogBrowser</tabstop>
   <tabstop>btnUpdateNow</tabstop>
   <tabstop>btnUpdateLater</tabstop>
