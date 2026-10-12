@@ -91,12 +91,9 @@ class ModrinthAPI : public NetworkModAPI {
 
     static QString getProjectTypeFacets(ResourceType type) {
         const auto typeStr = getProjectType(type);
-        switch (type) {
-        case DataPack:
+        if (type == DataPack)
             return QStringLiteral("[\"all_project_types:%1\"]").arg(typeStr);
-        default:
-            return QStringLiteral("[\"project_type:%1\"]").arg(typeStr);
-        }
+        return QStringLiteral("[\"project_type:%1\"]").arg(typeStr);
     }
 
    private:

@@ -20,8 +20,10 @@
 #include "DataPack.h"
 #include "Version.h"
 
+#include <QMap>
+
 // Values taken from:
-// https://minecraft.wiki/w/Pack_format#List_of_data_pack_formats
+// https://minecraft.wiki/w/Pack_format#List_of_pack_formats
 static const QMap<std::pair<int, int>, std::pair<Version, Version>> s_pack_format_versions = {
     { { 4, 0 }, { Version("1.13"), Version("1.14.4") } },
     { { 5, 0 }, { Version("1.15"), Version("1.16.1") } },

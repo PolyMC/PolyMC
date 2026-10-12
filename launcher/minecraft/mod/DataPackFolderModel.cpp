@@ -72,12 +72,9 @@ QVariant DataPackFolderModel::data(const QModelIndex& index, int role) const
         return m_resources[row]->internal_id();
     }
     case Qt::CheckStateRole:
-        switch (column) {
-        case ActiveColumn:
+        if (column == ActiveColumn)
             return at(row)->enabled() ? Qt::Checked : Qt::Unchecked;
-        default:
-            return {};
-        }
+        return {};
     default:
         return {};
     }
