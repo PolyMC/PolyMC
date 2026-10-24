@@ -73,10 +73,8 @@ endif()
 
 option(BUILD_TESTING "Build the testing tree." ON)
 
-find_package(ECM REQUIRED NO_MODULE)
-set(CMAKE_MODULE_PATH "${ECM_MODULE_PATH};${CMAKE_MODULE_PATH}")
 include(CTest)
-include(ECMAddTests)
+
 if(BUILD_TESTING)
     enable_testing()
 endif()
@@ -191,12 +189,6 @@ endif()
 # Qt 6 sets these by default. Notably causes Windows APIs to use UNICODE strings.
 add_compile_definitions(UNICODE _UNICODE)
 
-include(ECMQueryQt)
-ecm_query_qt(QT_PLUGINS_DIR  QT_INSTALL_PLUGINS)
-ecm_query_qt(QT_LIBS_DIR     QT_INSTALL_LIBS)
-ecm_query_qt(QT_LIBEXECS_DIR QT_INSTALL_LIBEXECS)
-ecm_query_qt(QT_DATA_DIR     QT_HOST_DATA)
-ecm_query_qt(QT_BINS_DIR     QT_INSTALL_BINS)
 set(QT_MKSPECS_DIR ${QT_DATA_DIR}/mkspecs)
 
 # NOTE: Qt 6 already sets this by default
