@@ -4,7 +4,6 @@
 , ninja
 , jdk8
 , gamemode
-, ghc_filesystem
 , zlib
 , file
 , qtbase
@@ -28,7 +27,7 @@ stdenv.mkDerivation {
 
   src = lib.cleanSource self;
 
-  nativeBuildInputs = [ cmake kdePackages.extra-cmake-modules ninja jdk8 ghc_filesystem file ];
+  nativeBuildInputs = [ cmake kdePackages.extra-cmake-modules ninja jdk8 file ];
   buildInputs = [ qtbase quazip zlib qtcharts ]
     ++ lib.optional (lib.versionAtLeast qtbase.version "6") qtwayland
     ++ lib.optional gamemodeSupport gamemode;
