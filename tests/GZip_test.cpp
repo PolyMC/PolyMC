@@ -29,7 +29,7 @@ slots:
         // initialize random buffer
         for(int i = 0; i < size; i++)
         {
-            random.append(static_cast<char>(idis(eng) & 0xff));
+            random.append(char(idis(eng)));
         }
 
         // initialize fibonacci
