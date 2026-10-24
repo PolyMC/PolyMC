@@ -1,46 +1,23 @@
 project(tests)
 
-ecm_add_test(FileSystem_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME FileSystem)
+function(add_test_wrapper name)
+    add_executable(${name}_test ${name}_test.cpp)
+    target_link_libraries(${name}_test PRIVATE Launcher_logic Qt${QT_VERSION_MAJOR}::Test)
+    add_test(NAME ${name} COMMAND ${name}_test)
+endfunction()
 
-ecm_add_test(GZip_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME GZip)
-
-ecm_add_test(GradleSpecifier_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME GradleSpecifier)
-
-ecm_add_test(PackageManifest_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME PackageManifest)
-
-ecm_add_test(MojangVersionFormat_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME MojangVersionFormat)
-
-ecm_add_test(Library_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME Library)
-
-ecm_add_test(ResourceFolderModel_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME ResourceFolderModel)
-
-ecm_add_test(ResourcePackParse_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME ResourcePackParse)
-
-ecm_add_test(TexturePackParse_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME TexturePackParse)
-
-ecm_add_test(ParseUtils_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME ParseUtils)
-
-ecm_add_test(Task_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME Task)
-
-ecm_add_test(INIFile_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME INIFile)
-
-ecm_add_test(JavaVersion_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME JavaVersion)
-
-ecm_add_test(Packwiz_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME Packwiz)
-
-ecm_add_test(Index_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
-    TEST_NAME Index)
+add_test_wrapper(FileSystem)
+add_test_wrapper(GZip)
+add_test_wrapper(GradleSpecifier)
+add_test_wrapper(PackageManifest)
+add_test_wrapper(MojangVersionFormat)
+add_test_wrapper(Library)
+add_test_wrapper(ResourceFolderModel)
+add_test_wrapper(ResourcePackParse)
+add_test_wrapper(TexturePackParse)
+add_test_wrapper(ParseUtils)
+add_test_wrapper(Task)
+add_test_wrapper(INIFile)
+add_test_wrapper(JavaVersion)
+add_test_wrapper(Packwiz)
+add_test_wrapper(Index)

@@ -239,12 +239,14 @@ V1::Mod V1::getIndexForMod(QDir& index_dir, QString slug)
         return {};
     }
 #else
-    table = toml::parse_file(index_dir.absoluteFilePath(real_fname).toStdString());
-    if (!table) {
+    toml::parse_result table_parse_result = toml::parse_file(index_dir.absoluteFilePath(real_fname).toStdString());
+    if (!table_parse_result) {
         qWarning() << QString("Could not open file %1!").arg(normalized_fname);
-        qWarning() << "Reason: " << QString(table.error().what());
+        std::string errorDescription(table_parse_result.error().description());
+        qWarning() << "Reason: " << QString(errorDescription.c_str());
         return {};
     }
+    table = std::move(table_parse_result).table();
 #endif
 
     // index_file.close();

@@ -24,12 +24,12 @@ slots:
         QByteArray compressed;
         QByteArray decompressed;
         std::default_random_engine eng((std::random_device())());
-        std::uniform_int_distribution<uint8_t> idis(0, std::numeric_limits<uint8_t>::max());
+        std::uniform_int_distribution<uint32_t> idis(0);
 
         // initialize random buffer
         for(int i = 0; i < size; i++)
         {
-            random.append((char)idis(eng));
+            random.append(char(idis(eng)));
         }
 
         // initialize fibonacci

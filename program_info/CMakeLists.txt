@@ -27,6 +27,7 @@ set(Launcher_Branding_ICNS "program_info/polymc.icns" PARENT_SCOPE)
 set(Launcher_Branding_ICO "program_info/polymc.ico")
 set(Launcher_Branding_ICO "${Launcher_Branding_ICO}" PARENT_SCOPE)
 set(Launcher_Branding_WindowsRC "program_info/polymc.rc" PARENT_SCOPE)
+set(Launcher_Branding_WindowsManifest "program_info/polymc.manifest" PARENT_SCOPE)
 set(Launcher_Branding_LogoQRC "program_info/polymc.qrc" PARENT_SCOPE)
 
 set(Launcher_Portable_File "program_info/portable.txt" PARENT_SCOPE)

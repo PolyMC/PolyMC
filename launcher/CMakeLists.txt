@@ -992,7 +992,12 @@ qt_add_resources(LAUNCHER_RESOURCES
 
 ######## Windows resource files ########
 if(WIN32)
-    set(LAUNCHER_RCS ${CMAKE_CURRENT_BINARY_DIR}/../${Launcher_Branding_WindowsRC})
+    set(LAUNCHER_RCS)
+
+    list(APPEND LAUNCHER_RCS
+        ${CMAKE_CURRENT_BINARY_DIR}/../${Launcher_Branding_WindowsRC}
+        ${CMAKE_CURRENT_BINARY_DIR}/../${Launcher_Branding_WindowsManifest}
+    )
 endif()
 
 # Add executable
@@ -1008,7 +1013,6 @@ target_link_libraries(Launcher_logic
     BuildConfig
     Katabasis
     Qt${QT_VERSION_MAJOR}::Widgets
-    ghcFilesystem::ghc_filesystem
 )
 
 if (UNIX AND NOT CYGWIN AND NOT APPLE)

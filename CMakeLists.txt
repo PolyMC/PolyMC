@@ -17,6 +17,34 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+option(BUILD_TESTING "Build the testing tree." ON)
+option(ENABLE_LTO "Enable Link Time Optimization" off)
+
+######## Set compiler flags ########
+set(CMAKE_CXX_STANDARD_REQUIRED true)
+set(CMAKE_C_STANDARD_REQUIRED true)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 11)
+
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DQT_NO_DEPRECATED_WARNINGS=Y")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DQT_DISABLE_DEPRECATED_BEFORE=0x050C00")
+else()
+    # Fix build with Qt 5.13
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DQT_NO_DEPRECATED_WARNINGS=Y")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DQT_DISABLE_DEPRECATED_BEFORE=0x050C00")
+endif()
+
+# set CXXFLAGS for build targets
+
+if (MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2 ${CMAKE_CXX_FLAGS_RELEASE}")
+else()
+    set(CMAKE_CXX_FLAGS_RELEASE "-O2 ${CMAKE_CXX_FLAGS_RELEASE}")
+endif()
+
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/")
 
 # arch detection
@@ -32,30 +60,24 @@ if(UNIX)
 endif()
 set(CMAKE_JAVA_TARGET_OUTPUT_DIR ${PROJECT_BINARY_DIR}/jars)
 
-######## Set compiler flags ########
-set(CMAKE_CXX_STANDARD_REQUIRED true)
-set(CMAKE_C_STANDARD_REQUIRED true)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_STANDARD 11)
 include(GenerateExportHeader)
-set(CMAKE_CXX_FLAGS "-Wall -pedantic -fstack-protector-strong --param=ssp-buffer-size=4 ${CMAKE_CXX_FLAGS}")
+
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "/W4")
+else()
+    set(CMAKE_CXX_FLAGS "-Wall -pedantic -fstack-protector-strong --param=ssp-buffer-size=4 ${CMAKE_CXX_FLAGS}")
+endif()
 
 # Increases the stack size to 8MB for Windows, only when not building in Debug mode
 # because we don't want random users being affected by stack overflows in release builds,
 # but it's fine in debug builds for finding and fixing them
 if((NOT CMAKE_BUILD_TYPE STREQUAL "Debug") AND WIN32)
-    set(CMAKE_EXE_LINKER_FLAGS "-Wl,--stack,8388608 ${CMAKE_EXE_LINKER_FLAGS}")
+    if (MSVC)
+        set(CMAKE_EXE_LINKER_FLAGS "/STACK:8388608")
+    else()
+        set(CMAKE_EXE_LINKER_FLAGS "-Wl,--stack,8388608 ${CMAKE_EXE_LINKER_FLAGS}")
+    endif()
 endif()
-
-# Fix build with Qt 5.13
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DQT_NO_DEPRECATED_WARNINGS=Y")
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DQT_DISABLE_DEPRECATED_BEFORE=0x050C00")
-
-# set CXXFLAGS for build targets
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -D_FORTIFY_SOURCE=2 ${CMAKE_CXX_FLAGS_RELEASE}")
-
-option(ENABLE_LTO "Enable Link Time Optimization" off)
 
 if(ENABLE_LTO)
     include(CheckIPOSupported)
@@ -71,12 +93,8 @@ if(ENABLE_LTO)
     endif()
 endif()
 
-option(BUILD_TESTING "Build the testing tree." ON)
-
-find_package(ECM REQUIRED NO_MODULE)
-set(CMAKE_MODULE_PATH "${ECM_MODULE_PATH};${CMAKE_MODULE_PATH}")
 include(CTest)
-include(ECMAddTests)
+
 if(BUILD_TESTING)
     enable_testing()
 endif()
@@ -174,6 +192,27 @@ set(QT_VERSION_MAJOR ${Launcher_QT_VERSION_MAJOR})
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets
     Concurrent Network Test Xml Charts)
 
+
+if(QT_VERSION_MAJOR EQUAL 5)
+    get_target_property(qmake_executable Qt5::qmake IMPORTED_LOCATION)
+    foreach(qt_var IN ITEMS PLUGINS:QT_INSTALL_PLUGINS LIBS:QT_INSTALL_LIBS
+                             LIBEXECS:QT_INSTALL_LIBEXECS DATA:QT_HOST_DATA BINS:QT_INSTALL_BINS)
+        string(REPLACE ":" ";" qt_var "${qt_var}")
+        list(GET qt_var 0 qt_name)
+        list(GET qt_var 1 qt_query)
+        execute_process(COMMAND "${qmake_executable}" -query ${qt_query}
+            OUTPUT_VARIABLE qmake_output OUTPUT_STRIP_TRAILING_WHITESPACE
+            COMMAND_ERROR_IS_FATAL ANY)
+        file(TO_CMAKE_PATH "${qmake_output}" QT_${qt_name}_DIR)
+    endforeach()
+else()
+    set(QT_PLUGINS_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_PLUGINS})
+    set(QT_LIBS_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_LIBS})
+    set(QT_LIBEXECS_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_LIBEXECS})
+    set(QT_DATA_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_DATA})
+    set(QT_BINS_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_BINS})
+endif()
+
 if(NOT Launcher_FORCE_BUNDLED_LIBS)
     find_package(QuaZip-Qt${QT_VERSION_MAJOR} 1.3 QUIET)
 endif()
@@ -191,12 +230,6 @@ endif()
 # Qt 6 sets these by default. Notably causes Windows APIs to use UNICODE strings.
 add_compile_definitions(UNICODE _UNICODE)
 
-include(ECMQueryQt)
-ecm_query_qt(QT_PLUGINS_DIR  QT_INSTALL_PLUGINS)
-ecm_query_qt(QT_LIBS_DIR     QT_INSTALL_LIBS)
-ecm_query_qt(QT_LIBEXECS_DIR QT_INSTALL_LIBEXECS)
-ecm_query_qt(QT_DATA_DIR     QT_HOST_DATA)
-ecm_query_qt(QT_BINS_DIR     QT_INSTALL_BINS)
 set(QT_MKSPECS_DIR ${QT_DATA_DIR}/mkspecs)
 
 # NOTE: Qt 6 already sets this by default
@@ -207,9 +240,6 @@ endif()
 if(NOT Launcher_FORCE_BUNDLED_LIBS)
     # Find toml++
     find_package(tomlplusplus 3.2.0 QUIET)
-
-    # Find ghc_filesystem
-    find_package(ghc_filesystem QUIET)
 endif()
 
 ####################################### Program Info #######################################
@@ -342,14 +372,6 @@ endif()
 add_subdirectory(libraries/katabasis) # An OAuth2 library that tried to do too much
 add_subdirectory(libraries/gamemode)
 add_subdirectory(libraries/murmur2) # Hash for usage with the CurseForge API
-if (NOT ghc_filesystem_FOUND)
-    message(STATUS "Using bundled ghc_filesystem")
-    set(GHC_FILESYSTEM_WITH_INSTALL OFF) # Workaround ghc::filesystem bug
-    add_subdirectory(libraries/filesystem) # Implementation of std::filesystem for old C++, for usage in old macOS
-    add_library(ghcFilesystem::ghc_filesystem ALIAS ghc_filesystem)
-else()
-    message(STATUS "Using system ghc_filesystem")
-endif()
 
 ############################### Built Artifacts ###############################
 

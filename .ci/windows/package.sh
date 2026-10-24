@@ -31,7 +31,7 @@ mkzip() {
 }
 
 cmake --install "$BUILD" --prefix "$INSTALL"
-[ "$QT_VERSION" = 6 ] || cp /mingw64/bin/lib*-3-x64.dll "$INSTALL"
+[ "$QT_VERSION" = 6 ] || cp "$MINGW_PREFIX"/bin/lib*-3-x64.dll "$INSTALL"
 
 mkzip "$INSTALL"
 

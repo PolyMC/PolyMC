@@ -21,11 +21,11 @@ jobs:
         include:
           - os: windows-2022
             arch: amd64
-            msystem: mingw64
+            msystem: ucrt64
             qt_ver: 5
           - os: windows-2022
             arch: amd64
-            msystem: mingw64
+            msystem: ucrt64
             qt_ver: 6
           - os: windows-11-arm
             arch: aarch64
