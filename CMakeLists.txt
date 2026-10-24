@@ -56,7 +56,11 @@ set(CMAKE_CXX_FLAGS "-Wall -pedantic -fstack-protector-strong --param=ssp-buffer
 # because we don't want random users being affected by stack overflows in release builds,
 # but it's fine in debug builds for finding and fixing them
 if((NOT CMAKE_BUILD_TYPE STREQUAL "Debug") AND WIN32)
-    set(CMAKE_EXE_LINKER_FLAGS "-Wl,--stack,8388608 ${CMAKE_EXE_LINKER_FLAGS}")
+    if (MSVC)
+        set(CMAKE_EXE_LINKER_FLAGS "/STACK:8388608")
+    else()
+        set(CMAKE_EXE_LINKER_FLAGS "-Wl,--stack,8388608 ${CMAKE_EXE_LINKER_FLAGS}")
+    endif()
 endif()
 
 if(ENABLE_LTO)
