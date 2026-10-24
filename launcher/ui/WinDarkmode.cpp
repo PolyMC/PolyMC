@@ -4,16 +4,6 @@
 
 namespace WinDarkmode {
 
-template<int syscall_id, typename... arglist> __attribute((naked)) uint32_t __fastcall WinSyscall([[maybe_unused]] arglist... args)
-{
-#ifdef ARCHITECTURE_x86_64
-    asm volatile("mov %%rcx, %%r10; movl %0, %%eax; syscall; ret"
-            :: "i"(syscall_id));
-#elif ARCHITECTURE_arm64
-    asm volatile("svc %0" :: "i"(syscall_id) : "x0", "memory");
-#endif
-}
-
 VOID ApplyStringProp(HWND hWnd, LPCWSTR lpString, WORD Property)
 {
     WORD Prop = (uint16_t)(uint64_t)GetPropW(hWnd, (LPCWSTR)(uint64_t)Property);
@@ -78,14 +68,7 @@ void setWindowDarkModeEnabled(HWND hWnd, bool Enabled)
     };
 
 #ifdef _WIN64
-    constexpr int NtUserSetWindowCompositionAttribute_NT6_2 = 0x13b4;
-    constexpr int NtUserSetWindowCompositionAttribute_NT6_3 = 0x13e5;
-
-    if (IsWindows8_0_Only())
-        WinSyscall<NtUserSetWindowCompositionAttribute_NT6_2>(hWnd, &data);
-    else if (IsWindows8_1_Only())
-        WinSyscall<NtUserSetWindowCompositionAttribute_NT6_3>(hWnd, &data);
-    else if (IsWindows10_Only() || IsWindows11())
+    if (IsWindows10_Only() || IsWindows11())
     {
         ((fnSetWindowCompositionAttribute)(PVOID)GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetWindowCompositionAttribute"))
             (hWnd, &data);
