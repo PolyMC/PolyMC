@@ -992,7 +992,12 @@ qt_add_resources(LAUNCHER_RESOURCES
 
 ######## Windows resource files ########
 if(WIN32)
-    set(LAUNCHER_RCS ${CMAKE_CURRENT_BINARY_DIR}/../${Launcher_Branding_WindowsRC})
+    set(LAUNCHER_RCS)
+
+    list(APPEND LAUNCHER_RCS
+        ${CMAKE_CURRENT_BINARY_DIR}/../${Launcher_Branding_WindowsRC}
+        ${CMAKE_CURRENT_BINARY_DIR}/../${Launcher_Branding_WindowsManifest}
+    )
 endif()
 
 # Add executable
