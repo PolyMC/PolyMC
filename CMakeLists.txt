@@ -63,6 +63,7 @@ set(CMAKE_JAVA_TARGET_OUTPUT_DIR ${PROJECT_BINARY_DIR}/jars)
 include(GenerateExportHeader)
 
 if (MSVC)
+    set(CMAKE_CXX_FLAGS "/W4")
 else()
     set(CMAKE_CXX_FLAGS "-Wall -pedantic -fstack-protector-strong --param=ssp-buffer-size=4 ${CMAKE_CXX_FLAGS}")
 endif()
