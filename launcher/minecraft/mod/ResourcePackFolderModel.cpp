@@ -81,7 +81,7 @@ QVariant ResourcePackFolderModel::data(const QModelIndex& index, int role) const
     }
 }
 
-QVariant ResourcePackFolderModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant ResourcePackFolderModel::headerData(int section, Qt::Orientation /*orientation*/, int role) const
 {
     switch (role) {
     case Qt::DisplayRole:
@@ -118,7 +118,7 @@ QVariant ResourcePackFolderModel::headerData(int section, Qt::Orientation orient
     return {};
 }
 
-int ResourcePackFolderModel::columnCount(const QModelIndex& parent) const
+int ResourcePackFolderModel::columnCount(const QModelIndex& /*parent*/) const
 {
     return NUM_COLUMNS;
 }

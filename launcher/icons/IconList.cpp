@@ -242,7 +242,7 @@ Qt::DropActions IconList::supportedDropActions() const
     return Qt::CopyAction;
 }
 
-bool IconList::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+bool IconList::dropMimeData(const QMimeData *data, Qt::DropAction action, int /*row*/, int /*column*/, const QModelIndex &/*parent*/)
 {
     if (action == Qt::IgnoreAction)
         return true;
@@ -300,7 +300,7 @@ QVariant IconList::data(const QModelIndex &index, int role) const
     }
 }
 
-int IconList::rowCount(const QModelIndex &parent) const
+int IconList::rowCount(const QModelIndex &/*parent*/) const
 {
     return icons.size();
 }

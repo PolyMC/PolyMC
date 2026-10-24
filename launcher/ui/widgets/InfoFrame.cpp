@@ -261,7 +261,7 @@ void InfoFrame::setImage(QPixmap img)
     }
 }
 
-void InfoFrame::descriptionEllipsisHandler(QString link)
+void InfoFrame::descriptionEllipsisHandler(QString /*link*/)
 {
     if(!m_current_box)
     {
@@ -275,7 +275,7 @@ void InfoFrame::descriptionEllipsisHandler(QString link)
     }
 }
 
-void InfoFrame::boxClosed(int result)
+void InfoFrame::boxClosed(int /*result*/)
 {
     m_current_box = nullptr;
 }

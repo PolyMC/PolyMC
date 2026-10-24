@@ -48,8 +48,8 @@ void XboxProfileStep::perform() {
 
 void XboxProfileStep::onRequestDone(
     QNetworkReply::NetworkError error,
-    QByteArray data,
-    QList<QNetworkReply::RawHeaderPair> headers
+    [[maybe_unused]] QByteArray data,
+    QList<QNetworkReply::RawHeaderPair> /*headers*/
 ) {
     auto requestor = qobject_cast<AuthRequest *>(QObject::sender());
     requestor->deleteLater();

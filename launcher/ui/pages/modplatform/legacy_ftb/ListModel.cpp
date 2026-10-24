@@ -74,7 +74,7 @@ bool FilterModel::lessThan(const QModelIndex &left, const QModelIndex &right) co
     return true;
 }
 
-bool FilterModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+bool FilterModel::filterAcceptsRow(int /*sourceRow*/, const QModelIndex &/*sourceParent*/) const
 {
     return true;
 }
@@ -123,12 +123,12 @@ QString ListModel::translatePackType(PackType type) const
     return QString();
 }
 
-int ListModel::rowCount(const QModelIndex &parent) const
+int ListModel::rowCount(const QModelIndex &/*parent*/) const
 {
     return modpacks.size();
 }
 
-int ListModel::columnCount(const QModelIndex &parent) const
+int ListModel::columnCount(const QModelIndex &/*parent*/) const
 {
     return 1;
 }
@@ -192,10 +192,10 @@ QVariant ListModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void ListModel::fill(ModpackList modpacks)
+void ListModel::fill(ModpackList newModpacks)
 {
     beginResetModel();
-    this->modpacks = modpacks;
+    this->modpacks = newModpacks;
     endResetModel();
 }
 

@@ -70,7 +70,7 @@ public:
     {
         return nullptr;
     }
-    shared_qobject_ptr< Task > createUpdateTask(Net::Mode mode) override
+    shared_qobject_ptr< Task > createUpdateTask(Net::Mode /*mode*/) override
     {
         return nullptr;
     }
@@ -110,7 +110,7 @@ public:
     {
         return false;
     }
-    QStringList verboseDescription(AuthSessionPtr session, MinecraftServerTargetPtr serverToJoin) override
+    QStringList verboseDescription(MinecraftServerTargetPtr /*serverToJoin*/) override
     {
         QStringList out;
         out << "Null instance - placeholder.";

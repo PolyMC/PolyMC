@@ -118,7 +118,7 @@ bool WorldList::update()
     return true;
 }
 
-void WorldList::directoryChanged(QString path)
+void WorldList::directoryChanged(QString /*path*/)
 {
     update();
 }
@@ -171,7 +171,7 @@ bool WorldList::resetIcon(int row)
 }
 
 
-int WorldList::columnCount(const QModelIndex &parent) const
+int WorldList::columnCount(const QModelIndex &/*parent*/) const
 {
     return 4;
 }
@@ -258,7 +258,7 @@ QVariant WorldList::data(const QModelIndex &index, int role) const
     }
 }
 
-QVariant WorldList::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant WorldList::headerData(int section, Qt::Orientation /*orientation*/, int role) const
 {
     switch (role)
     {
@@ -348,7 +348,7 @@ QMimeData *WorldList::mimeData(const QModelIndexList &indexes) const
     if (indexes.size() == 0)
         return new QMimeData();
 
-    QList<World> worlds;
+    QList<World> selectedWorlds;
     for(auto idx : indexes)
     {
         if(idx.column() != 0)
@@ -356,13 +356,13 @@ QMimeData *WorldList::mimeData(const QModelIndexList &indexes) const
         int row = idx.row();
         if (row < 0 || row >= this->worlds.size())
             continue;
-        worlds.append(this->worlds[row]);
+        selectedWorlds.append(this->worlds[row]);
     }
-    if(!worlds.size())
+    if(!selectedWorlds.size())
     {
         return new QMimeData();
     }
-    return new WorldMimeData(worlds);
+    return new WorldMimeData(selectedWorlds);
 }
 
 Qt::ItemFlags WorldList::flags(const QModelIndex &index) const
@@ -398,8 +398,8 @@ void WorldList::installWorld(QFileInfo filename)
     w.install(m_dir.absolutePath());
 }
 
-bool WorldList::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column,
-                             const QModelIndex &parent)
+bool WorldList::dropMimeData(const QMimeData *data, Qt::DropAction action, int /*row*/, int /*column*/,
+                             const QModelIndex &/*parent*/)
 {
     if (action == Qt::IgnoreAction)
         return true;

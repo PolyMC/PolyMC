@@ -109,7 +109,7 @@ public:
         return a || b;
     }
     virtual void reset() {}
-    virtual void set(QVariant value) {}
+    virtual void set(QVariant /*value*/) {}
 private:
     std::shared_ptr<Setting> m_a;
     std::shared_ptr<Setting> m_b;
@@ -675,7 +675,7 @@ QString MinecraftInstance::createLaunchScript(AuthSessionPtr session, MinecraftS
     return launchScript;
 }
 
-QStringList MinecraftInstance::verboseDescription(AuthSessionPtr session, MinecraftServerTargetPtr serverToJoin)
+QStringList MinecraftInstance::verboseDescription(MinecraftServerTargetPtr serverToJoin)
 {
     QStringList out;
     out << "Main Class:" << "  " + getMainClass() << "";
@@ -1065,7 +1065,7 @@ shared_qobject_ptr<LaunchTask> MinecraftInstance::createLaunchTask(AuthSessionPt
 
     {
         // actually launch the game
-        auto method = launchMethod();
+        method = launchMethod();
         if(method == "LauncherPart")
         {
             auto step = new LauncherPartLaunch(pptr);

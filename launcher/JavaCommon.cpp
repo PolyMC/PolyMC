@@ -93,7 +93,7 @@ void JavaCommon::javaArgsWereBad(QWidget *parent, JavaCheckResult result)
     CustomMessageBox::selectable(parent, QObject::tr("Java test failure"), text, QMessageBox::Warning)->show();
 }
 
-void JavaCommon::javaBinaryWasBad(QWidget *parent, JavaCheckResult result)
+void JavaCommon::javaBinaryWasBad(QWidget *parent, JavaCheckResult /*result*/)
 {
     QString text;
     text += QObject::tr(

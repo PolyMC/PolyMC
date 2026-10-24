@@ -95,7 +95,7 @@ void ImgurUpload::executeTask()
     connect(rep, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(downloadError(QNetworkReply::NetworkError)));
 #endif
 }
-void ImgurUpload::downloadError(QNetworkReply::NetworkError error)
+void ImgurUpload::downloadError(QNetworkReply::NetworkError /*error*/)
 {
     qCritical() << "ImgurUpload failed with error" << m_reply->errorString() << "Server reply:\n" << m_reply->readAll();
     if(finished)

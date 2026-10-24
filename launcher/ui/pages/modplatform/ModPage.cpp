@@ -175,7 +175,7 @@ void ModPage::setSearchTerm(QString term)
     ui->searchEdit->setText(term);
 }
 
-void ModPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
+void ModPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
 {
     ui->versionSelectionBox->clear();
 
@@ -203,9 +203,9 @@ void ModPage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
     updateUi();
 }
 
-void ModPage::onVersionSelectionChanged(QString data)
+void ModPage::onVersionSelectionChanged(QString newData)
 {
-    if (data.isNull() || data.isEmpty()) {
+    if (newData.isNull() || newData.isEmpty()) {
         selectedVersion = -1;
         return;
     }

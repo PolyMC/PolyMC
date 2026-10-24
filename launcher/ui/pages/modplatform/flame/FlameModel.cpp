@@ -13,12 +13,12 @@ ListModel::ListModel(QObject* parent) : QAbstractListModel(parent) {}
 
 ListModel::~ListModel() {}
 
-int ListModel::rowCount(const QModelIndex& parent) const
+int ListModel::rowCount(const QModelIndex& /*parent*/) const
 {
     return modpacks.size();
 }
 
-int ListModel::columnCount(const QModelIndex& parent) const
+int ListModel::columnCount(const QModelIndex& /*parent*/) const
 {
     return 1;
 }
@@ -57,7 +57,7 @@ QVariant ListModel::data(const QModelIndex& index, int role) const
     return QVariant();
 }
 
-bool ListModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool ListModel::setData(const QModelIndex &index, const QVariant &value, int /*role*/)
 {
     int pos = index.row();
     if (pos >= modpacks.size() || pos < 0 || !index.isValid())
@@ -128,7 +128,7 @@ Qt::ItemFlags ListModel::flags(const QModelIndex& index) const
     return QAbstractListModel::flags(index);
 }
 
-bool ListModel::canFetchMore(const QModelIndex& parent) const
+bool ListModel::canFetchMore(const QModelIndex& /*parent*/) const
 {
     return searchState == CanPossiblyFetchMore;
 }
@@ -231,7 +231,7 @@ void Flame::ListModel::searchRequestFinished()
     endInsertRows();
 }
 
-void Flame::ListModel::searchRequestFailed(QString reason)
+void Flame::ListModel::searchRequestFailed(QString /*reason*/)
 {
     jobPtr.reset();
 

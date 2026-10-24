@@ -396,7 +396,7 @@ QVariant AccountList::data(const QModelIndex &index, int role) const
     }
 }
 
-QVariant AccountList::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant AccountList::headerData(int section, Qt::Orientation /*orientation*/, int role) const
 {
     switch (role)
     {

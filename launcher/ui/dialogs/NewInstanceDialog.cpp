@@ -290,7 +290,7 @@ void NewInstanceDialog::on_iconButton_clicked()
     }
 }
 
-void NewInstanceDialog::on_instNameTextBox_textChanged(const QString &arg1)
+void NewInstanceDialog::on_instNameTextBox_textChanged(const QString &/*arg1*/)
 {
     updateDialogState();
 }

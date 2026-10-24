@@ -96,7 +96,7 @@ Qt::DropActions InstanceList::supportedDropActions() const
     return Qt::MoveAction;
 }
 
-bool InstanceList::canDropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) const
+bool InstanceList::canDropMimeData(const QMimeData* data, Qt::DropAction /*action*/, int /*row*/, int /*column*/, const QModelIndex& /*parent*/) const
 {
     if (data && data->hasFormat("application/x-instanceid")) {
         return true;
@@ -104,7 +104,7 @@ bool InstanceList::canDropMimeData(const QMimeData* data, Qt::DropAction action,
     return false;
 }
 
-bool InstanceList::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
+bool InstanceList::dropMimeData(const QMimeData* data, Qt::DropAction /*action*/, int /*row*/, int /*column*/, const QModelIndex& /*parent*/)
 {
     if (data && data->hasFormat("application/x-instanceid")) {
         return true;
@@ -749,7 +749,7 @@ void InstanceList::instanceDirContentsChanged(const QString& path)
     emit instancesChanged();
 }
 
-void InstanceList::on_InstFolderChanged(const Setting& setting, QVariant value)
+void InstanceList::on_InstFolderChanged(const Setting& /*setting*/, QVariant value)
 {
     QString newInstDir = QDir(value.toString()).canonicalPath();
     if (newInstDir != m_instDir) {

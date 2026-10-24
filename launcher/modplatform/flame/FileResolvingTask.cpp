@@ -57,7 +57,7 @@ void Flame::FileResolvingTask::netJobFinished()
         auto& out = m_toProcess.files[fileid];
         try {
            out.parseFromObject(Json::requireObject(file));
-        } catch (const JSONValidationError& e) {
+        } catch (const JSONValidationError&) {
             qDebug() << "Blocked mod on curseforge" << out.fileName;
             auto hash = out.hash;
             if(!hash.isEmpty()) {

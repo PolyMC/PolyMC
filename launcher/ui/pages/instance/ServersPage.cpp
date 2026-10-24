@@ -717,11 +717,11 @@ public:
         }
     }
 
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override
+    virtual int rowCount(const QModelIndex &/*parent*/ = QModelIndex()) const override
     {
         return m_servers.size();
     }
-    int columnCount(const QModelIndex & parent) const override
+    int columnCount(const QModelIndex &/*parent*/) const override
     {
         return COLUMN_COUNT;
     }
@@ -1076,7 +1076,7 @@ void ServersPage::runningStateChanged(bool running)
     updateState();
 }
 
-void ServersPage::currentChanged(const QModelIndex &current, const QModelIndex &previous)
+void ServersPage::currentChanged(const QModelIndex &current, const QModelIndex &/*previous*/)
 {
     int nextServer = -1;
     if (!current.isValid())
@@ -1092,7 +1092,7 @@ void ServersPage::currentChanged(const QModelIndex &current, const QModelIndex &
 }
 
 // WARNING: this is here because currentChanged is not accurate when removing rows. the current item needs to be fixed up after removal.
-void ServersPage::rowsRemoved(const QModelIndex& parent, int first, int last)
+void ServersPage::rowsRemoved(const QModelIndex& /*parent*/, int first, int last)
 {
     if(currentServer < first)
     {

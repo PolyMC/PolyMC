@@ -208,7 +208,7 @@ private:
         ((QThreadPool &)m_thumbnailingPool).start(runnable);
     }
 private slots:
-    void thumbnailReady(QString path) { emit layoutChanged(); }
+    void thumbnailReady(QString /*path*/) { emit layoutChanged(); }
     void thumbnailFailed(QString path) { m_failed.insert(path); }
     void fileChanged(QString filepath)
     {

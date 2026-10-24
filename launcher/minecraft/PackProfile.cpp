@@ -222,11 +222,11 @@ static bool loadPackProfile(PackProfile * parent, const QString & filename, cons
         auto orderArray = Json::requireArray(obj.value("components"));
         for (auto item : std::as_const(orderArray))
         {
-            auto obj = Json::requireObject(item, "Component must be an object.");
-            container.append(componentFromJsonV1(parent, componentJsonPattern, obj));
+            auto componentObj = Json::requireObject(item, "Component must be an object.");
+            container.append(componentFromJsonV1(parent, componentJsonPattern, componentObj));
         }
     }
-    catch (const JSONValidationError &err)
+    catch (const JSONValidationError &)
     {
         qCritical() << "Couldn't parse" << componentsFile.fileName() << ": bad file format";
         container.clear();
@@ -411,7 +411,7 @@ void PackProfile::insertComponent(size_t index, ComponentPtr component)
         qWarning() << "Attempt to add a component that is already present!";
         return;
     }
-    beginInsertRows(QModelIndex(), index, index);
+    beginInsertRows(QModelIndex(), static_cast<int>(index), static_cast<int>(index));
     d->components.insert(index, component);
     d->componentIndex[id] = component;
     endInsertRows();
@@ -612,7 +612,7 @@ QVariant PackProfile::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-bool PackProfile::setData(const QModelIndex& index, const QVariant& value, int role)
+bool PackProfile::setData(const QModelIndex& index, const QVariant& /*value*/, int role)
 {
     if (!index.isValid() || index.row() < 0 || index.row() >= rowCount(index))
     {
@@ -674,12 +674,12 @@ Qt::ItemFlags PackProfile::flags(const QModelIndex &index) const
     return outFlags;
 }
 
-int PackProfile::rowCount(const QModelIndex &parent) const
+int PackProfile::rowCount(const QModelIndex &/*parent*/) const
 {
     return d->components.size();
 }
 
-int PackProfile::columnCount(const QModelIndex &parent) const
+int PackProfile::columnCount(const QModelIndex &/*parent*/) const
 {
     return NUM_COLUMNS;
 }

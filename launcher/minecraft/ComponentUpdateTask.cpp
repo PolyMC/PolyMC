@@ -657,7 +657,7 @@ void ComponentUpdateTask::remoteLoadSucceeded(size_t taskIndex)
     // update the cached data of the component from the downloaded version file.
     if (taskSlot.type == RemoteLoadStatus::Type::Version)
     {
-        auto component = d->m_list->getComponent(taskSlot.PackProfileIndex);
+        auto component = d->m_list->getComponent(static_cast<int>(taskSlot.PackProfileIndex));
         component->m_loaded = true;
         component->updateCachedData();
     }

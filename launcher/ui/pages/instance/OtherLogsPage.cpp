@@ -274,7 +274,7 @@ void OtherLogsPage::on_btnClean_clicked()
     }
     if(!failed.empty())
     {
-        QMessageBox *messageBox = new QMessageBox(this);
+        messageBox = new QMessageBox(this);
         messageBox->setWindowTitle(tr("Error"));
         if(failed.size() > 5)
         {

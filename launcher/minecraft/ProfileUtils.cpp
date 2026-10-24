@@ -92,7 +92,7 @@ bool readOverrideOrders(QString path, PatchOrder &order)
             order.append(Json::requireString(item));
         }
     }
-    catch (const JSONValidationError &err)
+    catch (const JSONValidationError &)
     {
         qCritical() << "Couldn't parse" << orderFile.fileName() << ": bad file format";
         qWarning() << "Ignoring overriden order";
@@ -102,7 +102,7 @@ bool readOverrideOrders(QString path, PatchOrder &order)
     return true;
 }
 
-static VersionFilePtr createErrorVersionFile(QString fileId, QString filepath, QString error)
+static VersionFilePtr createErrorVersionFile(QString fileId, QString /*filepath*/, QString error)
 {
     auto outError = std::make_shared<VersionFile>();
     outError->uid = outError->name = fileId;

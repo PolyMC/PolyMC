@@ -112,7 +112,7 @@ void XboxAuthorizationStep::onRequestDone(
 bool XboxAuthorizationStep::processSTSError(
     QNetworkReply::NetworkError error,
     QByteArray data,
-    QList<QNetworkReply::RawHeaderPair> headers
+    QList<QNetworkReply::RawHeaderPair> /*headers*/
 ) {
     if(error == QNetworkReply::AuthenticationRequiredError) {
         QJsonParseError jsonError;

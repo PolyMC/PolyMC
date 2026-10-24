@@ -87,9 +87,9 @@ private:
 private slots:
     void triggerSearch();
 
-    void onSortingSelectionChanged(QString data);
+    void onSortingSelectionChanged(QString newData);
     void onSelectionChanged(QModelIndex first, QModelIndex second);
-    void onVersionSelectionChanged(QString data);
+    void onVersionSelectionChanged(QString newData);
 
 private:
     Ui::FtbPage *ui = nullptr;

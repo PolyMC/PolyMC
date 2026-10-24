@@ -60,7 +60,7 @@ struct Require
     QString suggests;
 };
 
-inline Q_DECL_PURE_FUNCTION uint qHash(const Require &key, uint seed = 0) Q_DECL_NOTHROW
+inline Q_DECL_PURE_FUNCTION size_t qHash(const Require &key, uint seed = 0) Q_DECL_NOTHROW
 {
     return qHash(key.uid, seed);
 }
@@ -81,7 +81,7 @@ MetadataVersion currentFormatVersion();
 }
 
 // HACK: Qt needs the items of container metatypes to be QDebug-able so just implement it to do nothing since we dont actually use it
-inline QDebug operator<<(QDebug debug, const Meta::Require &set)
+inline QDebug operator<<(QDebug debug, const Meta::Require & /* set */)
 {
     return debug;
 }

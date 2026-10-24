@@ -160,7 +160,7 @@ void StoragePage::updateCalculations()
         slice->setLabel(slice->label() + " " + QString("%1%").arg(100 * slice->percentage(), 0, 'f', 1));
 }
 
-bool StoragePage::eventFilter(QObject *object, QEvent *event)
+bool StoragePage::eventFilter(QObject */*object*/, QEvent *event)
 {
     if(event->type() == QEvent::PaletteChange)
     {

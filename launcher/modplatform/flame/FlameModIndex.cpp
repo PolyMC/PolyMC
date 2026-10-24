@@ -54,7 +54,7 @@ void FlameMod::loadURLs(ModPlatform::IndexedPack& pack, QJsonObject& obj)
         pack.extraDataLoaded = true;
 }
 
-void FlameMod::loadBody(ModPlatform::IndexedPack& pack, QJsonObject& obj)
+void FlameMod::loadBody(ModPlatform::IndexedPack& pack, QJsonObject& /*obj*/)
 {
     pack.extraData.body  = api.getModDescription(pack.addonId.toInt());
 
@@ -75,7 +75,7 @@ static QString enumToString(int hash_algorithm)
 
 void FlameMod::loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
                                        QJsonArray& arr,
-                                       const shared_qobject_ptr<QNetworkAccessManager>& network,
+                                       const shared_qobject_ptr<QNetworkAccessManager>& /*network*/,
                                        BaseInstance* inst)
 {
     QVector<ModPlatform::IndexedVersion> unsortedVersions;

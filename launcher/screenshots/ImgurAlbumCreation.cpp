@@ -80,7 +80,7 @@ void ImgurAlbumCreation::executeTask()
     connect(rep, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(downloadError(QNetworkReply::NetworkError)));
 #endif
 }
-void ImgurAlbumCreation::downloadError(QNetworkReply::NetworkError error)
+void ImgurAlbumCreation::downloadError(QNetworkReply::NetworkError /*error*/)
 {
     qDebug() << m_reply->errorString();
     m_state = State::Failed;

@@ -46,7 +46,7 @@ void LauncherLoginStep::rehydrate() {
 void LauncherLoginStep::onRequestDone(
     QNetworkReply::NetworkError error,
     QByteArray data,
-    QList<QNetworkReply::RawHeaderPair> headers
+    QList<QNetworkReply::RawHeaderPair> /*headers*/
 ) {
     auto requestor = qobject_cast<AuthRequest *>(QObject::sender());
     requestor->deleteLater();

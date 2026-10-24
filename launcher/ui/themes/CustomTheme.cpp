@@ -117,7 +117,7 @@ static bool writeThemeJson(const QString &path, const QPalette &palette, double 
         Json::write(rootObj, path);
         return true;
     }
-    catch (const Exception &e)
+    catch (const Exception &)
     {
         qWarning() << "Failed to write theme json to" << path;
         return false;

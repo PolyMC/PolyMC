@@ -154,7 +154,7 @@ class QNetworkAccessManagerPatched: public QNetworkAccessManager
 static const QLatin1String liveCheckFile("live.check");
 
 namespace {
-void appDebugOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+void appDebugOutput(QtMsgType type, const QMessageLogContext &/*context*/, const QString &msg)
 {
     const char *levels = "DWCFIS";
     const QString format("%1 %2 %3\n");
@@ -237,7 +237,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         auto out = GetStdHandle (STD_OUTPUT_HANDLE);
         DWORD written;
         const char * endline = "\n";
-        WriteConsole(out, endline, strlen(endline), &written, NULL);
+        WriteConsole(out, endline, static_cast<DWORD>(strlen(endline)), &written, NULL);
         consoleAttached = true;
     }
 #endif

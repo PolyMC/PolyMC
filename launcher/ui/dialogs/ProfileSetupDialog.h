@@ -52,14 +52,14 @@ private slots:
     void nameEdited(const QString &name);
     void checkFinished(
         QNetworkReply::NetworkError error,
-        QByteArray data,
+        QByteArray replyData,
         QList<QNetworkReply::RawHeaderPair> headers
     );
     void startCheck();
 
     void setupProfileFinished(
         QNetworkReply::NetworkError error,
-        QByteArray data,
+        QByteArray replyData,
         QList<QNetworkReply::RawHeaderPair> headers
     );
 protected:

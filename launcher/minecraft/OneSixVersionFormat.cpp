@@ -389,7 +389,7 @@ QJsonDocument OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patch
 }
 
 LibraryPtr OneSixVersionFormat::plusJarModFromJson(
-    ProblemContainer & problems,
+    ProblemContainer & /*problems*/,
     const QJsonObject &libObj,
     const QString &filename,
     const QString &originalName
