@@ -194,16 +194,16 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets
 
 
 if(QT_VERSION_MAJOR EQUAL 5)
-    get_target_property(_tmp_qmake_executable Qt5::qmake IMPORTED_LOCATION)
-    foreach(_tmp_qt_var IN ITEMS PLUGINS:QT_INSTALL_PLUGINS LIBS:QT_INSTALL_LIBS
+    get_target_property(qmake_executable Qt5::qmake IMPORTED_LOCATION)
+    foreach(qt_var IN ITEMS PLUGINS:QT_INSTALL_PLUGINS LIBS:QT_INSTALL_LIBS
                              LIBEXECS:QT_INSTALL_LIBEXECS DATA:QT_HOST_DATA BINS:QT_INSTALL_BINS)
-        string(REPLACE ":" ";" _tmp_qt_var "${_tmp_qt_var}")
-        list(GET _tmp_qt_var 0 _tmp_name)
-        list(GET _tmp_qt_var 1 _tmp_query)
-        execute_process(COMMAND "${_tmp_qmake_executable}" -query ${_tmp_query}
-            OUTPUT_VARIABLE _tmp_out OUTPUT_STRIP_TRAILING_WHITESPACE
+        string(REPLACE ":" ";" qt_var "${qt_var}")
+        list(GET qt_var 0 qt_name)
+        list(GET qt_var 1 qt_query)
+        execute_process(COMMAND "${qmake_executable}" -query ${qt_query}
+            OUTPUT_VARIABLE qmake_output OUTPUT_STRIP_TRAILING_WHITESPACE
             COMMAND_ERROR_IS_FATAL ANY)
-        file(TO_CMAKE_PATH "${_tmp_out}" QT_${_tmp_name}_DIR)
+        file(TO_CMAKE_PATH "${qmake_output}" QT_${qt_name}_DIR)
     endforeach()
 else()
     set(QT_PLUGINS_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_PLUGINS})
