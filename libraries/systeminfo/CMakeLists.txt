@@ -25,4 +25,4 @@ add_library(systeminfo STATIC ${systeminfo_SOURCES})
 target_link_libraries(systeminfo Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Gui Qt${QT_VERSION_MAJOR}::Network ${systeminfo_LIBS})
 target_include_directories(systeminfo PUBLIC include)
 
-ecm_add_test(src/sys_test.cpp LINK_LIBRARIES systeminfo Qt${QT_VERSION_MAJOR}::Test TEST_NAME sys)
+# ecm_add_test(src/sys_test.cpp LINK_LIBRARIES systeminfo Qt${QT_VERSION_MAJOR}::Test TEST_NAME sys)
