@@ -233,7 +233,8 @@ void PackInstallTask::downloadPack()
         auto cacheName = file_info.completeBaseName() + "-" + file.sha1 + "." + file_info.suffix();
 
         auto entry = APPLICATION->metacache()->resolveEntry("FTBPacks", cacheName);
-        entry->setStale(true);
+        if (file.sha1.isEmpty())
+            entry->setStale(true);
 
         auto relpath = FS::PathCombine("minecraft", file.path, file.name);
         auto path = FS::PathCombine(m_stagingPath, relpath);
