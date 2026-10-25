@@ -20,6 +20,24 @@ static ModPlatform::ProviderCapabilities ProviderCaps;
 static ModrinthAPI modrinth_api;
 static FlameAPI flame_api;
 
+namespace {
+// Hashing failures are already reported for each mod, so they shouldn't make the whole hashing step fail
+class HashingTask : public ConcurrentTask {
+   public:
+    using ConcurrentTask::ConcurrentTask;
+
+   protected:
+    void startNext() override
+    {
+        if (!m_aborted && m_queue.isEmpty() && m_doing.isEmpty() && isRunning()) {
+            emitSucceeded();
+            return;
+        }
+        ConcurrentTask::startNext();
+    }
+};
+}  // namespace
+
 EnsureMetadataTask::EnsureMetadataTask(Mod* mod, QDir dir, ModPlatform::Provider prov)
     : Task(nullptr), m_index_dir(dir), m_provider(prov), m_hashing_task(nullptr), m_current_task(nullptr)
 {
@@ -34,7 +52,7 @@ EnsureMetadataTask::EnsureMetadataTask(Mod* mod, QDir dir, ModPlatform::Provider
 EnsureMetadataTask::EnsureMetadataTask(QList<Mod*>& mods, QDir dir, ModPlatform::Provider prov)
     : Task(nullptr), m_index_dir(dir), m_provider(prov), m_current_task(nullptr)
 {
-    m_hashing_task = new ConcurrentTask(this, "MakeHashesTask", 10);
+    m_hashing_task = new HashingTask(this, "MakeHashesTask", 10);
     for (auto* mod : mods) {
         auto hash_task = createNewHash(mod);
         if (!hash_task)
