@@ -103,7 +103,7 @@ void ImgurUpload::downloadError(QNetworkReply::NetworkError /*error*/)
         qCritical() << "Double finished ImgurUpload!";
         return;
     }
-    m_state = Task::State::Failed;
+    // Don't set the state here, emitFailed() does nothing if the task isn't running anymore
     finished = true;
     m_reply.reset();
     emitFailed();
