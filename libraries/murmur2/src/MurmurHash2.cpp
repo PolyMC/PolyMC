@@ -32,7 +32,7 @@ uint32_t MurmurHash2(std::ifstream&& file_stream, std::size_t buffer_size, std::
             if (!filter_out(buffer[i]))
                 size += 1;
         }
-    } while (!file_stream.eof());
+    } while (file_stream); // stops at the end of the file, but also when reading failed
 
     file_stream.clear();
     file_stream.seekg(0, file_stream.beg);
@@ -57,7 +57,7 @@ uint32_t MurmurHash2(std::ifstream&& file_stream, std::size_t buffer_size, std::
             if (index == 0)
                 FourBytes_MurmurHash2((unsigned char*)&data, info);
         }
-    } while (!file_stream.eof());
+    } while (file_stream); // stops at the end of the file, but also when reading failed
 
     // Do one last bit shuffle in the hash
     FourBytes_MurmurHash2((unsigned char*)&data, info);
