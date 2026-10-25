@@ -120,7 +120,19 @@ void SkinUploadDialog::on_buttonBox_accepted()
         {
             model = SkinUpload::ALEX;
         }
-        skinUpload.addTask(shared_qobject_ptr<SkinUpload>(new SkinUpload(this, m_acct->accessToken(), FS::read(fileName), model)));
+        // FS::read() throws when the file can't be read, for example when it's a folder or locked
+        QByteArray skinData;
+        try
+        {
+            skinData = FS::read(fileName);
+        }
+        catch (const FS::FileSystemException&)
+        {
+            CustomMessageBox::selectable(this, tr("Skin Upload"), tr("Skin file could not be read!"), QMessageBox::Warning)->exec();
+            close();
+            return;
+        }
+        skinUpload.addTask(shared_qobject_ptr<SkinUpload>(new SkinUpload(this, m_acct->accessToken(), skinData, model)));
     }
 
     auto selectedCape = ui->capeCombo->currentData().toString();
