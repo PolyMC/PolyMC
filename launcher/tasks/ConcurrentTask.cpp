@@ -164,6 +164,14 @@ void ConcurrentTask::subTaskProgress(qint64 current, qint64 total)
 {
     m_stepProgress = current;
     m_stepTotalProgress = total;
+
+    if (m_total_max_size != 1)
+        return;
+
+    if (m_total_size == 1)
+        setProgress(current, total);
+    else
+        emit progress(m_progress, m_progressTotal);
 }
 
 void ConcurrentTask::subTaskDetails(Task* task, const QString& details)
