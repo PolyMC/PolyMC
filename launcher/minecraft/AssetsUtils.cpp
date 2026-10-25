@@ -384,7 +384,7 @@ NetAction::Ptr AssetObject::getDownloadAction()
     QFileInfo objectFile(getLocalPath());
     if ((!objectFile.isFile()) || (objectFile.size() != size))
     {
-        auto objectDL = Net::Download::makeFile(getUrl(), objectFile.filePath());
+        auto objectDL = Net::Download::makeFile(getUrl(), objectFile.filePath(), Net::Download::Option::AllowHttp2);
         if(hash.size())
         {
             auto rawHash = QByteArray::fromHex(hash.toLatin1());
@@ -413,7 +413,7 @@ QString AssetObject::getRelPath()
 
 NetJob::Ptr AssetsIndex::getDownloadJob()
 {
-    auto job = new NetJob(QObject::tr("Assets for %1").arg(id), APPLICATION->network());
+    auto job = new NetJob(QObject::tr("Assets for %1").arg(id), APPLICATION->network(), nullptr, 32);
     for (auto &object : objects.values())
     {
         auto dl = object.getDownloadAction();

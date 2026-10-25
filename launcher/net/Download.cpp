@@ -128,7 +128,12 @@ void Download::executeTask()
     }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-    request.setTransferTimeout(60000);
+    if (!(m_options & Option::AllowHttp2))
+        request.setTransferTimeout(60000);
+#endif
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    if (m_options & Option::AllowHttp2)
+        request.setAttribute(QNetworkRequest::Http2AllowedAttribute, true);
 #endif
 
     QNetworkReply* rep = m_network->get(request);
