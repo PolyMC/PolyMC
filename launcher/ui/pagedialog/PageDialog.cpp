@@ -59,4 +59,9 @@ void PageDialog::closeEvent(QCloseEvent *event)
         qDebug() << "Paged dialog geometry saved";
         QDialog::closeEvent(event);
     }
+    else
+    {
+        // Close events are accepted by default, so this has to be explicit to keep the dialog open
+        event->ignore();
+    }
 }
