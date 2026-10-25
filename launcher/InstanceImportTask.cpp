@@ -186,6 +186,8 @@ void InstanceImportTask::processZipPack()
         return;
     }
 
+    setAbortable(false);
+
     // make sure we extract just the pack
     m_extractFuture = QtConcurrent::run(QThreadPool::globalInstance(), MMCZip::extractSubDir, m_packZip.get(), root, extractDir.absolutePath());
     connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::finished, this, &InstanceImportTask::extractFinished);
@@ -195,6 +197,7 @@ void InstanceImportTask::processZipPack()
 
 void InstanceImportTask::extractFinished()
 {
+    setAbortable(true);
     m_packZip.reset();
     if (!m_extractFuture.result())
     {

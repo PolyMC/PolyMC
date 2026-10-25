@@ -86,7 +86,7 @@ PolyMCTextCodec *PolyMCTextCodec::codecForName(const QByteArray &name)
 PolyMCTextCodec *PolyMCTextCodec::codecForLocale()
 {
     PolyMCTextCodec::setup();
-    return PolyMCTextCodec::codecForName("System");
+    return PolyMCTextCodec::codecForName(QStringConverter::nameForEncoding(QStringConverter::System));
 }
 
 QByteArray PolyMCTextCodec::fromUnicode(const QString &str) const

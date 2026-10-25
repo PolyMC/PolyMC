@@ -60,9 +60,19 @@ LoggedProcess::~LoggedProcess()
     }
 }
 
-QStringList reprocess(const QByteArray& data, PolyMCTextDecoder& decoder)
+QStringList reprocess(const QByteArray& data, PolyMCTextDecoder& decoder, QString& leftover)
 {
-    auto str = decoder.toUnicode(data);
+    auto str = leftover + decoder.toUnicode(data);
+    const auto lastLineFeed = str.lastIndexOf(QChar::LineFeed);
+    if (str.size() - (lastLineFeed + 1) < 65536)
+    {
+        leftover = str.mid(lastLineFeed + 1);
+        str.truncate(lastLineFeed + 1);
+    }
+    else
+    {
+        leftover.clear();
+    }
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
     auto lines = str.remove(QChar::CarriageReturn).split(QChar::LineFeed, QString::SkipEmptyParts);
 #else
@@ -73,13 +83,13 @@ QStringList reprocess(const QByteArray& data, PolyMCTextDecoder& decoder)
 
 void LoggedProcess::on_stdErr()
 {
-    auto lines = reprocess(readAllStandardError(), m_err_decoder);
+    auto lines = reprocess(readAllStandardError(), m_err_decoder, m_err_leftover);
     emit log(lines, MessageLevel::StdErr);
 }
 
 void LoggedProcess::on_stdOut()
 {
-    auto lines = reprocess(readAllStandardOutput(), m_out_decoder);
+    auto lines = reprocess(readAllStandardOutput(), m_out_decoder, m_out_leftover);
     emit log(lines, MessageLevel::StdOut);
 }
 
@@ -87,6 +97,13 @@ void LoggedProcess::on_exit(int exit_code, QProcess::ExitStatus status)
 {
     // save the exit code
     m_exit_code = exit_code;
+
+    if (!m_out_leftover.trimmed().isEmpty())
+        emit log({ m_out_leftover.remove(QChar::CarriageReturn) }, MessageLevel::StdOut);
+    if (!m_err_leftover.trimmed().isEmpty())
+        emit log({ m_err_leftover.remove(QChar::CarriageReturn) }, MessageLevel::StdErr);
+    m_out_leftover.clear();
+    m_err_leftover.clear();
 
     // based on state, send signals
     if (!m_is_aborting)

@@ -418,7 +418,7 @@ bool UpdateController::rollback()
     for (const auto &backup : std::as_const(m_replace_backups))
     {
         qWarning() << "restoring" << backup.original << "from" << backup.backup;
-        if(!QFile::rename(backup.original, backup.update))
+        if(QFile::exists(backup.original) && !QFile::rename(backup.original, backup.update))
         {
             revertOK = false;
             qWarning() << "moving new" << backup.original << "back to" << backup.update << "failed!";

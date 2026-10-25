@@ -45,6 +45,7 @@
 #include <QTextStream>
 #include <QUrl>
 
+#include <limits>
 #include <system_error>
 
 #if defined Q_OS_WIN32
@@ -117,6 +118,9 @@ QByteArray read(const QString& filename)
         throw FileSystemException("Unable to open " + filename + " for reading: " + file.errorString());
     }
     const qint64 size = file.size();
+    if (size > (std::numeric_limits<int>::max)()) {
+        throw FileSystemException("Unable to read " + filename + ": the file is too large");
+    }
     QByteArray data(int(size), 0);
     const qint64 ret = file.read(data.data(), size);
     if (ret == -1 || ret != size) {
@@ -227,8 +231,42 @@ bool copy::operator()(const QString& offset)
     return err.value() == 0;
 }
 
+#if defined Q_OS_WIN32
+namespace {
+bool deletePathNoFollow(const QString& path)
+{
+    const auto nativePath = QDir::toNativeSeparators(path).toStdWString();
+    const DWORD attrs = GetFileAttributesW(nativePath.c_str());
+    if (attrs == INVALID_FILE_ATTRIBUTES) {
+        const DWORD error = GetLastError();
+        if (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND)
+            return true;
+        qWarning() << "Failed to remove" << path << "- error" << error;
+        return false;
+    }
+
+    bool ok = true;
+    if ((attrs & FILE_ATTRIBUTE_DIRECTORY) && !(attrs & FILE_ATTRIBUTE_REPARSE_POINT)) {
+        const auto entries = QDir(path).entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden | QDir::AllDirs | QDir::Files);
+        for (const auto& entry : entries)
+            ok &= deletePathNoFollow(entry.absoluteFilePath());
+    }
+
+    const BOOL removed = (attrs & FILE_ATTRIBUTE_DIRECTORY) ? RemoveDirectoryW(nativePath.c_str()) : DeleteFileW(nativePath.c_str());
+    if (!removed) {
+        qWarning() << "Failed to remove" << path << "- error" << GetLastError();
+        ok = false;
+    }
+    return ok;
+}
+}
+#endif
+
 bool deletePath(QString path)
 {
+#if defined Q_OS_WIN32
+    return deletePathNoFollow(path);
+#else
     std::error_code err;
 
     fs::remove_all(toStdString(path), err);
@@ -238,6 +276,7 @@ bool deletePath(QString path)
     }
 
     return err.value() == 0;
+#endif
 }
 
 bool trash(QString path, QString *pathInTrash = nullptr)
@@ -403,27 +442,42 @@ bool createShortCut(QString location, QString dest, QStringList args, QString na
 
 bool mergeFolders(QString dstpath, QString srcpath)
 {
+    const auto toQString = [](const fs::path& p) { return QString::fromStdU16String(p.u16string()); };
+
+    bool ok = true;
     std::error_code ec;
-    fs::path fullSrcPath = srcpath.toStdString();
-    fs::path fullDstPath = dstpath.toStdString();
-    for (auto& entry : fs::recursive_directory_iterator(fullSrcPath))
+    fs::path fullSrcPath = toStdString(srcpath);
+    fs::path fullDstPath = toStdString(dstpath);
+    for (fs::recursive_directory_iterator it(fullSrcPath, ec), end; !ec && it != end; it.increment(ec))
     {
-        fs::path relativeChild = fs::relative(entry, fullSrcPath);
-        if (entry.is_directory())
-            if (!fs::exists(fullDstPath / relativeChild))
-                fs::create_directory(fullDstPath / relativeChild);
-        if (entry.is_regular_file())
+        const auto& entry = *it;
+        std::error_code entry_ec;
+        fs::path childDst = fullDstPath / entry.path().lexically_relative(fullSrcPath);
+        if (entry.is_directory(entry_ec))
         {
-            fs::path childDst = fullDstPath / relativeChild;
-            if (fs::exists(childDst))
-                fs::remove(childDst);
-            fs::copy(entry, childDst, fs::copy_options::none, ec);
-            if (ec.value() != 0)
-                qCritical() << QString("File copy failed with: %1. File was %2 -> %3").arg(QString::fromStdString(ec.message()), entry.path().c_str(), childDst.c_str());
+            if (!fs::exists(childDst, entry_ec) && !entry_ec)
+                fs::create_directory(childDst, entry_ec);
+        }
+        else if (entry.is_regular_file(entry_ec))
+        {
+            if (fs::exists(childDst, entry_ec) && !entry_ec)
+                fs::remove(childDst, entry_ec);
+            if (!entry_ec)
+                fs::copy(entry.path(), childDst, fs::copy_options::none, entry_ec);
+        }
+        if (entry_ec)
+        {
+            qCritical() << QString("File copy failed with: %1. File was %2 -> %3").arg(QString::fromStdString(entry_ec.message()), toQString(entry.path()), toQString(childDst));
+            ok = false;
         }
     }
+    if (ec)
+    {
+        qCritical() << "Failed to go through" << srcpath << ":" << QString::fromStdString(ec.message());
+        ok = false;
+    }
 
-    return ec.value() == 0;
+    return ok;
 }
 
 }

@@ -191,6 +191,7 @@ bool processFileLists
             download->addValidator(new Net::ChecksumValidator(QCryptographicHash::Md5, rawMd5));
             job->addNetAction(download);
             ops.append(Operation::CopyOp(dlPath, entry.path, entry.mode));
+            break;
         }
     }
     return true;

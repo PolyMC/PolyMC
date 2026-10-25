@@ -13,7 +13,7 @@ public:
 
     RegexpMatcher &caseSensitive(bool cs = true)
     {
-        if(cs)
+        if(!cs)
         {
             m_regexp.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
         }

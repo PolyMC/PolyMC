@@ -9,18 +9,18 @@
 class Exception : public std::exception
 {
 public:
-    Exception(const QString &message) : std::exception(), m_message(message)
+    Exception(const QString &message) : std::exception(), m_message(message), m_what(message.toUtf8())
     {
         qCritical() << "Exception:" << message;
     }
     Exception(const Exception &other)
-        : std::exception(), m_message(other.cause())
+        : std::exception(), m_message(other.cause()), m_what(other.m_what)
     {
     }
     virtual ~Exception() noexcept {}
     const char *what() const noexcept
     {
-        return m_message.toLatin1().constData();
+        return m_what.constData();
     }
     QString cause() const
     {
@@ -29,4 +29,5 @@ public:
 
 private:
     QString m_message;
+    QByteArray m_what;
 };

@@ -142,7 +142,7 @@ bool ModrinthCreationTask::updateInstance()
                 tr("We couldn't find a suitable index file for the older version. This may cause some of the files to be duplicated. Do you want to continue?"),
                 QMessageBox::Warning, QMessageBox::Ok | QMessageBox::Cancel);
 
-        if (dialog->exec() == QDialog::DialogCode::Rejected) {
+        if (dialog->exec() != QMessageBox::Ok) {
             m_abort = true;
             return false;
         }

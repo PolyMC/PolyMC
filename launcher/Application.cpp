@@ -36,6 +36,7 @@
 
 #include "Application.h"
 #include "BuildConfig.h"
+#include "Exception.h"
 
 #include "net/PasteUpload.h"
 #include "ui/MainWindow.h"
@@ -87,6 +88,7 @@
 #include <QList>
 #include <QStringList>
 #include <QDebug>
+#include <QMutex>
 #include <QStyleFactory>
 #include <QWindow>
 #include <QIcon>
@@ -168,10 +170,17 @@ void appDebugOutput(QtMsgType type, const QMessageLogContext &/*context*/, const
 
     QString out = format.arg(buf).arg(levels[type]).arg(msg);
 
+    static QMutex logMutex;
+    thread_local bool logging = false;
+    if (logging)
+        return;
+    QMutexLocker locker(&logMutex);
+    logging = true;
     APPLICATION->logFile->write(out.toUtf8());
     APPLICATION->logFile->flush();
-    QTextStream(stderr) << out.toLocal8Bit();
+    QTextStream(stderr) << out;
     fflush(stderr);
+    logging = false;
 }
 
 QString getIdealPlatform(QString currentPlatform) {
@@ -273,7 +282,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
     m_serverToJoin = parser.value("server");
     m_profileToUse = parser.value("profile");
     m_liveCheck = parser.isSet("alive");
-    m_zipToImport = parser.value("import");
+    m_zipToImport = QUrl::fromUserInput(parser.value("import"), QDir::currentPath(), QUrl::AssumeLocalFile);
 
     // error if --launch is missing with --server or --profile
     if((!m_serverToJoin.isEmpty() || !m_profileToUse.isEmpty()) && m_instanceIdToLaunch.isEmpty())
@@ -881,6 +890,10 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
             // save any remaining instance state
             m_instances->saveNow();
         }
+        if(m_metacache)
+        {
+            m_metacache->SaveNow();
+        }
         if(logFile)
         {
             logFile->flush();
@@ -1006,13 +1019,19 @@ void Application::performMainStartupAction()
             {
                 accountToUse = accounts()->getAccountByProfileName(m_profileToUse);
                 if(!accountToUse) {
-                    return;
+                    qWarning() << "   No account found for profile" << m_profileToUse << ", not launching";
                 }
-                qDebug() << "   Launching with account" << m_profileToUse;
+                else
+                {
+                    qDebug() << "   Launching with account" << m_profileToUse;
+                }
             }
 
-            launch(inst, true, false, nullptr, serverToJoin, accountToUse);
-            return;
+            if(m_profileToUse.isEmpty() || accountToUse)
+            {
+                launch(inst, true, false, nullptr, serverToJoin, accountToUse);
+                return;
+            }
         }
     }
 
@@ -1087,7 +1106,15 @@ void Application::messageReceived(const QByteArray& message)
     }
 
     ApplicationMessage received;
-    received.parse(message);
+    try
+    {
+        received.parse(message);
+    }
+    catch (const Exception& e)
+    {
+        qWarning() << "Received an invalid message:" << e.cause();
+        return;
+    }
 
     auto & command = received.command;
 
@@ -1103,7 +1130,7 @@ void Application::messageReceived(const QByteArray& message)
             qWarning() << "Received" << command << "message without a zip path/URL.";
             return;
         }
-        m_mainWindow->droppedURLs({ QUrl(path) });
+        showMainWindow()->droppedURLs({ QUrl(path) });
     }
     else if(command == "launch")
     {

@@ -272,11 +272,12 @@ void InstanceList::deleteGroup(const QString& name)
             qDebug() << "Remove" << instID << "from group" << name;
             removed = true;
             auto idx = getInstIndex(instance.get());
-            if (idx > 0) {
+            if (idx >= 0) {
                 emit dataChanged(index(idx), index(idx), { GroupRole });
             }
         }
     }
+    m_groupNameCache.remove(name);
     if (removed) {
         saveGroupList();
     }
@@ -295,18 +296,18 @@ bool InstanceList::trashInstance(const InstanceId& id)
         return false;
     }
 
-    auto cachedGroupId = m_instanceGroupIndex[id];
+    auto cachedGroupId = m_instanceGroupIndex.value(id);
 
     qDebug() << "Will trash instance" << id;
     QString trashedLoc;
 
-    if (m_instanceGroupIndex.remove(id)) {
-        saveGroupList();
-    }
-
     if (!FS::trash(inst->instanceRoot(), &trashedLoc)) {
         qDebug() << "Trash of instance" << id << "has not been completely successfully...";
         return false;
+    }
+
+    if (m_instanceGroupIndex.remove(id)) {
+        saveGroupList();
     }
 
     qDebug() << "Instance" << id << "has been trashed by the launcher.";
@@ -333,10 +334,16 @@ void InstanceList::undoTrashInstance() {
     }
 
     qDebug() << "Moving" << top.trashPath << "back to" << top.polyPath;
-    QFile(top.trashPath).rename(top.polyPath);
+    if (!QFile(top.trashPath).rename(top.polyPath)) {
+        qWarning() << "Failed to move" << top.trashPath << "back to" << top.polyPath;
+        return;
+    }
 
-    m_instanceGroupIndex[top.id] = top.groupName;
-    m_groupNameCache.insert(top.groupName);
+    instanceSet.insert(top.id);
+    if (!top.groupName.isEmpty()) {
+        m_instanceGroupIndex[top.id] = top.groupName;
+        m_groupNameCache.insert(top.groupName);
+    }
 
     saveGroupList();
     emit instancesChanged();
@@ -350,14 +357,14 @@ void InstanceList::deleteInstance(const InstanceId& id)
         return;
     }
 
-    if (m_instanceGroupIndex.remove(id)) {
-        saveGroupList();
-    }
-
     qDebug() << "Will delete instance" << id;
     if (!FS::deletePath(inst->instanceRoot())) {
         qWarning() << "Deletion of instance" << id << "has not been completely successful ...";
         return;
+    }
+
+    if (m_instanceGroupIndex.remove(id)) {
+        saveGroupList();
     }
 
     qDebug() << "Instance" << id << "has been deleted by the launcher.";
@@ -788,6 +795,7 @@ class InstanceStaging : public Task {
         connect(child, &Task::abortStatusChanged, this, &InstanceStaging::setAbortable);
         connect(child, &Task::status, this, &InstanceStaging::setStatus);
         connect(child, &Task::progress, this, &InstanceStaging::setProgress);
+        m_backoffTimer.setSingleShot(true);
         connect(&m_backoffTimer, &QTimer::timeout, this, &InstanceStaging::childSucceded);
     }
 
@@ -809,7 +817,14 @@ class InstanceStaging : public Task {
     }
 
    protected:
-    virtual void executeTask() override { m_child->start(); }
+    virtual void executeTask() override
+    {
+        if (m_stagingPath.isEmpty()) {
+            emitFailed(tr("Failed to create a temporary folder for the instance in the instances folder."));
+            return;
+        }
+        m_child->start();
+    }
     QStringList warnings() const override { return m_child->warnings(); }
 
    private slots:
@@ -875,7 +890,7 @@ QString InstanceList::getStagedInstancePath()
     }
 #ifdef Q_OS_WIN32
     auto tempPath = FS::PathCombine(m_instDir, tempDir);
-    SetFileAttributesA(tempPath.toStdString().c_str(), FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_NOT_CONTENT_INDEXED);
+    SetFileAttributesW(tempPath.toStdWString().c_str(), FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_NOT_CONTENT_INDEXED);
 #endif
     return path;
 }
@@ -908,6 +923,7 @@ bool InstanceList::commitStagedInstance(const QString& path, InstanceName const&
                 qWarning() << "Failed to override" << path << "to" << destination;
                 return false;
             }
+            destroyStagingPath(path);
         } else {
             if (!dir.rename(path, destination)) {
                 qWarning() << "Failed to move" << path << "to" << destination;

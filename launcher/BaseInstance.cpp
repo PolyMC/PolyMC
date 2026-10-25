@@ -230,6 +230,8 @@ void BaseInstance::setRunning(bool running)
 
     if(!m_settings->get("RecordGameTime").toBool())
     {
+        if(running)
+            m_timeStarted = QDateTime();
         emit runningStatusChanged(running);
         return;
     }
