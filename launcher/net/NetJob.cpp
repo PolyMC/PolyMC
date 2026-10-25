@@ -54,6 +54,10 @@ void NetJob::startNext()
             m_try += 1;
             while (!m_failed.isEmpty())
                 m_queue.enqueue(m_failed.take(*m_failed.keyBegin()));
+        } else if (!m_failed.isEmpty() && isRunning() && !m_aborted) {
+            // Out of retries, tell everyone which files couldn't be downloaded
+            emitFailed(tr("Job '%1' failed to process:\n%2").arg(objectName(), getFailedFiles().join("\n")));
+            return;
         }
     }
 

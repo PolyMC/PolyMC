@@ -78,8 +78,17 @@ void ConcurrentTask::startNext()
     if (m_aborted || m_doing.count() > m_total_max_size)
         return;
 
-    if (m_queue.isEmpty() && m_doing.isEmpty() && !wasSuccessful()) {
-        emitSucceeded();
+    if (m_queue.isEmpty() && m_doing.isEmpty() && isRunning()) {
+        if (m_failed.isEmpty()) {
+            emitSucceeded();
+        } else {
+            QStringList reasons;
+            for (const auto& task : std::as_const(m_failed)) {
+                if (!task->failReason().isEmpty())
+                    reasons.append(task->failReason());
+            }
+            emitFailed(tr("One or more subtasks failed:\n%1").arg(reasons.join("\n")));
+        }
         return;
     }
 
