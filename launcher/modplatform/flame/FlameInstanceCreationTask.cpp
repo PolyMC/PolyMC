@@ -113,7 +113,9 @@ bool FlameCreationTask::updateInstance()
                     qDebug() << "Removed file at" << file->targetFolder << "with id" << file->fileId << "from list of downloads";
 
                     old_files.remove(file.key());
+                    // erase() already moves on to the next file
                     files_iterator = files.erase(files_iterator);
+                    continue;
                 }
             }
 
