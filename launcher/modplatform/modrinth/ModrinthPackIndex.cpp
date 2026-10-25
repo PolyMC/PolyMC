@@ -45,7 +45,8 @@ void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj,
 
     pack.description = Json::ensureString(obj, "description", "");
 
-    pack.logoUrl = Json::requireString(obj, "icon_url");
+    // Modrinth sends null for projects without an icon
+    pack.logoUrl = Json::ensureString(obj, "icon_url", "");
     pack.logoName = pack.addonId.toString();
 
     ModPlatform::ModpackAuthor modAuthor;
@@ -137,7 +138,8 @@ ModPlatform::IndexedVersion Modrinth::loadIndexedPackVersion(QJsonObject &obj, Q
     }
     file.version = Json::requireString(obj, "name");
     file.version_number = Json::requireString(obj, "version_number");
-    file.changelog = Json::requireString(obj, "changelog");
+    // Modrinth sends null for versions without a changelog
+    file.changelog = Json::ensureString(obj, "changelog", "");
 
     auto files = Json::requireArray(obj, "files");
     int i = 0;
