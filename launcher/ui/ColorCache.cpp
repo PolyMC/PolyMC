@@ -31,5 +31,6 @@ void ColorCache::recolorAll()
     {
         iter->front = blend(iter->original);
         iter->back = blendBackground(iter->original);
+        iter++;
     }
 }
