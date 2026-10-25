@@ -50,8 +50,11 @@ void ModrinthCheckUpdate::executeTask()
         // (though it will rarely happen, if at all)
         if (mod->metadata()->hash_format != best_hash_type) {
             auto hash_task = Hashing::createModrinthHasher(mod->fileinfo().absoluteFilePath());
-            connect(hash_task.get(), &Task::succeeded, [&] {
-                QString hash (hash_task->getResult());
+            // This runs after the loop is over, so don't capture the loop's variables by reference.
+            // The hashing task below keeps the hasher alive until we're done.
+            auto* hasher = hash_task.get();
+            connect(hash_task.get(), &Task::succeeded, [&hashes, &mappings, hasher, mod] {
+                QString hash (hasher->getResult());
                 hashes.append(hash);
                 mappings.insert(hash, mod);
             });
