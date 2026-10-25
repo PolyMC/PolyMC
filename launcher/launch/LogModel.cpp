@@ -130,7 +130,8 @@ void LogModel::setMaxLines(int maxLines)
         {
             newContent[i] = m_content[(m_firstLine + lead + i) % m_maxLines];
         }
-        m_numLines = m_maxLines;
+        // the new size, m_maxLines is still the old one here
+        m_numLines = maxLines;
         m_content.swap(newContent);
         endRemoveRows();
     }
