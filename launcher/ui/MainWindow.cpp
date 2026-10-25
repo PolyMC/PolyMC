@@ -1355,8 +1355,10 @@ void MainWindow::updateToolsMenu()
 
 void MainWindow::repopulateAccountsMenu()
 {
-    accountMenu->clear();
+    // The account actions are owned by accountMenu, and clear() only deletes them when no other widget shows
+    // them anymore, so take them out of the profile menu first
     ui->profileMenu->clear();
+    accountMenu->clear();
 
     auto accounts = APPLICATION->accounts();
     MinecraftAccountPtr defaultAccount = accounts->defaultAccount();
@@ -1390,7 +1392,8 @@ void MainWindow::repopulateAccountsMenu()
         {
             MinecraftAccountPtr account = accounts->at(i);
             auto profileLabel = profileInUseFilter(account->profileName(), account->isInUse());
-            QAction *action = new QAction(profileLabel, this);
+            // Owned by the menu, so they get deleted when the menu is rebuilt instead of piling up
+            QAction *action = new QAction(profileLabel, accountMenu);
             action->setData(i);
             action->setCheckable(true);
             if (defaultAccount == account)
