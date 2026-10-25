@@ -58,7 +58,8 @@ void ModrinthCheckUpdate::executeTask()
                 hashes.append(hash);
                 mappings.insert(hash, mod);
             });
-            connect(hash_task.get(), &Task::failed, [this, hash_task] { failed("Failed to generate hash"); });
+            // Only this mod can't be checked, the others are fine
+            connect(hash_task.get(), &Task::failed, [this, mod] { emit checkFailed(mod, tr("Failed to generate hash")); });
             hashing_task.addTask(hash_task);
         } else {
             hashes.append(hash);
@@ -71,12 +72,15 @@ void ModrinthCheckUpdate::executeTask()
     hashing_task.start();
     loop.exec();
 
+    // Collect errors here and report them once at the end, emitting failed() directly would be followed by emitSucceeded()
+    QString error;
+
     auto* response = new QByteArray();
     auto job = api.latestVersions(hashes, best_hash_type, m_game_versions, m_loaders, response);
 
     QEventLoop lock;
 
-    connect(job.get(), &Task::succeeded, this, [this, response, &mappings, best_hash_type, job] {
+    connect(job.get(), &Task::succeeded, this, [this, response, &mappings, &error, best_hash_type, job] {
         QJsonParseError parse_error{};
         QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
         if (parse_error.error != QJsonParseError::NoError) {
@@ -84,7 +88,7 @@ void ModrinthCheckUpdate::executeTask()
                        << " reason: " << parse_error.errorString();
             qWarning() << *response;
 
-            failed(parse_error.errorString());
+            error = parse_error.errorString();
             return;
         }
 
@@ -164,10 +168,11 @@ void ModrinthCheckUpdate::executeTask()
                 }
             }
         } catch (Json::JsonException& e) {
-            failed(e.cause() + " : " + e.what());
+            error = e.cause() + " : " + e.what();
         }
     });
 
+    connect(job.get(), &Task::failed, this, [&error](QString reason) { error = reason; });
     connect(job.get(), &Task::finished, &lock, &QEventLoop::quit);
 
     setStatus(tr("Waiting for the API response from Modrinth..."));
@@ -178,5 +183,9 @@ void ModrinthCheckUpdate::executeTask()
 
     lock.exec();
 
+    if (!error.isEmpty()) {
+        emitFailed(error);
+        return;
+    }
     emitSucceeded();
 }
