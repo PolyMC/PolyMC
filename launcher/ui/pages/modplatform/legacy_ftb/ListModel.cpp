@@ -257,7 +257,8 @@ void ListModel::requestLogo(QString file)
     job->addNetAction(Net::Download::makeCached(QUrl(QString(BuildConfig.LEGACY_FTB_CDN_BASE_URL + "static/%1").arg(file)), entry));
 
     auto fullPath = entry->getFullPath();
-    QObject::connect(job, &NetJob::finished, this, [this, file, fullPath]
+    // succeeded, not finished: finished also comes after a failure, which would store an empty logo
+    QObject::connect(job, &NetJob::succeeded, this, [this, file, fullPath]
     {
         emit logoLoaded(file, QIcon(fullPath));
         if(waitingCallbacks.contains(file))
