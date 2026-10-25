@@ -240,7 +240,7 @@ bool Download::handleRedirect()
 void Download::downloadFinished()
 {
     // handle HTTP redirection first
-    if (handleRedirect()) {
+    if (m_state == State::Running && handleRedirect()) {
         qDebug() << "Download redirected:" << m_url.toString();
         return;
     }
