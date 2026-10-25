@@ -1118,7 +1118,7 @@ void Application::messageReceived(const QByteArray& message)
             qWarning() << "Received" << command << "message without a zip path/URL.";
             return;
         }
-        m_mainWindow->droppedURLs({ QUrl(path) });
+        showMainWindow()->droppedURLs({ QUrl(path) });
     }
     else if(command == "launch")
     {
