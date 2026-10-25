@@ -742,5 +742,6 @@ void TranslationsModel::dlGood()
 void TranslationsModel::indexFailed(QString reason)
 {
     qCritical() << "Translations Index Download Failed:" << reason;
-    d->m_index_job.reset();
+    // Still set up the language from whatever we have locally
+    indexReceived();
 }
