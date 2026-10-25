@@ -37,6 +37,7 @@ void ConcurrentTask::executeTask()
 {
     // Tasks can be started again after an abort, don't keep acting like we're still aborted then
     m_aborted = false;
+    m_details_owner = nullptr;
     m_total_size = m_queue.size();
 
     // Start the least amount of tasks needed, but at least one
@@ -112,6 +113,7 @@ void ConcurrentTask::startNext()
     connect(next.get(), &Task::stepStatus, this, &ConcurrentTask::subTaskStatus);
 
     connect(next.get(), &Task::progress, this, &ConcurrentTask::subTaskProgress);
+    connect(next.get(), &Task::details, this, [this, task = next.get()](QString details) { subTaskDetails(task, details); });
 
     m_doing.insert(next.get(), next);
 
@@ -129,6 +131,8 @@ void ConcurrentTask::subTaskSucceeded(Task::Ptr task)
     m_doing.remove(task.get());
 
     disconnect(task.get(), 0, this, 0);
+    if (m_details_owner == task.get())
+        subTaskDetails(task.get(), QString());
 
     updateState();
 
@@ -143,6 +147,8 @@ void ConcurrentTask::subTaskFailed(Task::Ptr task, const QString& /*msg*/)
     m_doing.remove(task.get());
 
     disconnect(task.get(), 0, this, 0);
+    if (m_details_owner == task.get())
+        subTaskDetails(task.get(), QString());
 
     updateState();
 
@@ -158,6 +164,15 @@ void ConcurrentTask::subTaskProgress(qint64 current, qint64 total)
 {
     m_stepProgress = current;
     m_stepTotalProgress = total;
+}
+
+void ConcurrentTask::subTaskDetails(Task* task, const QString& details)
+{
+    if (m_details_owner && m_details_owner != task)
+        return;
+
+    m_details_owner = details.isEmpty() ? nullptr : task;
+    emit this->details(details);
 }
 
 void ConcurrentTask::updateState()

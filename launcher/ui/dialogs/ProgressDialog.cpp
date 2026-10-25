@@ -28,6 +28,8 @@ ProgressDialog::ProgressDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Pr
 {
     ui->setupUi(this);
     this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    ui->detailsLabel->setHidden(true);
+    ui->detailsLabel->setMinimumHeight(ui->detailsLabel->fontMetrics().height());
     setSkipButton(false);
     changeProgress(0, 100);
 }
@@ -82,6 +84,7 @@ int ProgressDialog::execWithTask(Task* newTask)
     connect(task, &Task::status, this, &ProgressDialog::changeStatus);
     connect(task, &Task::stepStatus, this, &ProgressDialog::changeStatus);
     connect(task, &Task::progress, this, &ProgressDialog::changeProgress);
+    connect(task, &Task::details, this, &ProgressDialog::changeDetails);
 
     connect(task, &Task::aborted, [this] { QDialog::reject(); });
     connect(task, &Task::abortStatusChanged, ui->skipButton, &QPushButton::setEnabled);
@@ -151,6 +154,16 @@ void ProgressDialog::changeStatus(const QString& /*status*/)
     ui->statusLabel->setText(task->getStepStatus());
 
     updateSize();
+}
+
+void ProgressDialog::changeDetails(const QString& details)
+{
+    if (!details.isEmpty() && ui->detailsLabel->isHidden()) {
+        ui->detailsLabel->setHidden(false);
+        updateSize();
+    }
+
+    ui->detailsLabel->setText(ui->detailsLabel->fontMetrics().elidedText(details, Qt::ElideRight, ui->taskProgressBar->width()));
 }
 
 // Progress bars only take ints, so scale byte counts of large downloads down instead of letting them overflow

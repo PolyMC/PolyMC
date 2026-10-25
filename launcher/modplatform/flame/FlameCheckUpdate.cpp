@@ -102,6 +102,7 @@ bool FlameCheckUpdate::runJob(NetJob::Ptr job)
     QEventLoop loop;
     connect(job.get(), &Task::finished, &loop, &QEventLoop::quit);
     connect(job.get(), &Task::progress, this, &FlameCheckUpdate::setProgress);
+    connect(job.get(), &Task::details, this, &Task::details);
 
     m_net_job = job.get();
     job->start();

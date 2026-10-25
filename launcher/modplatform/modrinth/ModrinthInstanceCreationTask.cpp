@@ -260,6 +260,7 @@ bool ModrinthCreationTask::createInstance()
     });
     connect(m_files_job.get(), &NetJob::finished, &loop, &QEventLoop::quit);
     connect(m_files_job.get(), &NetJob::progress, [&](qint64 current, qint64 total) { setProgress(current, total); });
+    connect(m_files_job.get(), &NetJob::details, this, &Task::details);
 
     setStatus(tr("Downloading mods..."));
     m_files_job->start();

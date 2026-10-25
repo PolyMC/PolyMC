@@ -136,6 +136,7 @@ void Download::executeTask()
         request.setAttribute(QNetworkRequest::Http2AllowedAttribute, true);
 #endif
 
+    emit details(m_url.toString());
     QNetworkReply* rep = m_network->get(request);
 
     m_reply.reset(rep);

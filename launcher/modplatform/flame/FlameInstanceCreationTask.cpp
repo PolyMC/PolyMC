@@ -508,6 +508,7 @@ void FlameCreationTask::setupDownloadJob(QEventLoop& loop)
         setError(reason);
     });
     connect(m_files_job.get(), &NetJob::progress, [&](qint64 current, qint64 total) { setProgress(current, total); });
+    connect(m_files_job.get(), &NetJob::details, this, &Task::details);
     connect(m_files_job.get(), &NetJob::finished, &loop, &QEventLoop::quit);
 
     setStatus(tr("Downloading mods..."));
