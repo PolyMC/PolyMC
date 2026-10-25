@@ -92,6 +92,10 @@ InstanceWindow::InstanceWindow(InstancePtr instance, QWidget *parent)
         horizontalLayout->addWidget(m_killButton);
         connect(m_killButton, SIGNAL(clicked(bool)), SLOT(on_btnKillMinecraft_clicked()));
 
+        m_pauseButton = new QPushButton();
+        horizontalLayout->addWidget(m_pauseButton);
+        connect(m_pauseButton, SIGNAL(clicked(bool)), SLOT(on_btnPauseMinecraft_clicked()));
+
         m_launchOfflineButton = new QPushButton();
         horizontalLayout->addWidget(m_launchOfflineButton);
         m_launchOfflineButton->setText(tr("Launch Offline"));
@@ -126,6 +130,7 @@ InstanceWindow::InstanceWindow(InstancePtr instance, QWidget *parent)
         instanceLaunchTaskChanged(launchTask);
         connect(m_instance.get(), &BaseInstance::launchTaskChanged, this, &InstanceWindow::instanceLaunchTaskChanged);
         connect(m_instance.get(), &BaseInstance::runningStatusChanged, this, &InstanceWindow::runningStateChanged);
+        connect(m_instance.get(), &BaseInstance::suspendStatusChanged, this, &InstanceWindow::updateLaunchButtons);
     }
 
     // set up instance destruction detection
@@ -176,6 +181,17 @@ void InstanceWindow::updateLaunchButtons()
         m_killButton->setText(tr("Launch"));
         m_killButton->setObjectName("launchButton");
         m_killButton->setToolTip(tr("Launch the instance"));
+    }
+    m_pauseButton->setVisible(m_instance->canSuspend());
+    if(m_instance->isSuspended())
+    {
+        m_pauseButton->setText(tr("Resume"));
+        m_pauseButton->setToolTip(tr("Resume the paused instance"));
+    }
+    else
+    {
+        m_pauseButton->setText(tr("Pause"));
+        m_pauseButton->setToolTip(tr("Pause the running instance"));
     }
     // NOTE: this is a hack to force the button to recalculate its style
     m_killButton->setStyleSheet("/* */");
@@ -235,6 +251,23 @@ void InstanceWindow::closeEvent(QCloseEvent *event)
 bool InstanceWindow::saveAll()
 {
     return m_container->saveAll();
+}
+
+void InstanceWindow::on_btnPauseMinecraft_clicked()
+{
+    auto launchTask = m_instance->getLaunchTask();
+    if(!launchTask || !m_instance->canSuspend())
+    {
+        return;
+    }
+    if(m_instance->isSuspended())
+    {
+        launchTask->resume();
+    }
+    else
+    {
+        launchTask->suspend();
+    }
 }
 
 void InstanceWindow::on_btnKillMinecraft_clicked()

@@ -73,6 +73,7 @@ private
 slots:
     void on_closeButton_clicked();
     void on_btnKillMinecraft_clicked();
+    void on_btnPauseMinecraft_clicked();
     void on_btnLaunchMinecraftOffline_clicked();
     void on_btnLaunchMinecraftDemo_clicked();
 
@@ -93,6 +94,7 @@ private:
     PageContainer *m_container = nullptr;
     QPushButton *m_closeButton = nullptr;
     QPushButton *m_killButton = nullptr;
+    QPushButton *m_pauseButton = nullptr;
     QPushButton *m_launchOfflineButton = nullptr;
     QPushButton *m_launchDemoButton = nullptr;
 };

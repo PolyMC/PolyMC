@@ -258,6 +258,8 @@ class MainWindow::Ui
     TranslatedAction actionManageAccounts;
     TranslatedAction actionLaunchInstance;
     TranslatedAction actionKillInstance;
+    TranslatedAction actionPauseInstance;
+    TranslatedAction actionResumeInstance;
     TranslatedAction actionRenameInstance;
     TranslatedAction actionChangeInstGroup;
     TranslatedAction actionChangeInstIcon;
@@ -523,6 +525,8 @@ class MainWindow::Ui
         fileMenu->addAction(actionLaunchInstanceOffline);
         fileMenu->addAction(actionLaunchInstanceDemo);
         fileMenu->addAction(actionKillInstance);
+        fileMenu->addAction(actionPauseInstance);
+        fileMenu->addAction(actionResumeInstance);
         fileMenu->addAction(actionCloseWindow);
         fileMenu->addSeparator();
         fileMenu->addAction(actionEditInstance);
@@ -704,6 +708,21 @@ class MainWindow::Ui
         actionKillInstance->setShortcut(QKeySequence(tr("Ctrl+K")));
         all_actions.append(&actionKillInstance);
 
+        actionPauseInstance = TranslatedAction(MainWindow);
+        actionPauseInstance->setObjectName(QStringLiteral("actionPauseInstance"));
+        actionPauseInstance->setDisabled(true);
+        actionPauseInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "&Pause"));
+        actionPauseInstance.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Pause the running instance"));
+        all_actions.append(&actionPauseInstance);
+
+        actionResumeInstance = TranslatedAction(MainWindow);
+        actionResumeInstance->setObjectName(QStringLiteral("actionResumeInstance"));
+        actionResumeInstance->setDisabled(true);
+        actionResumeInstance->setVisible(false);
+        actionResumeInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "&Resume"));
+        actionResumeInstance.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Resume the paused instance"));
+        all_actions.append(&actionResumeInstance);
+
         actionEditInstance = TranslatedAction(MainWindow);
         actionEditInstance->setObjectName(QStringLiteral("actionEditInstance"));
         actionEditInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Edit Inst&ance..."));
@@ -821,6 +840,8 @@ class MainWindow::Ui
 
         instanceToolBar->addAction(actionLaunchInstance);
         instanceToolBar->addAction(actionKillInstance);
+        instanceToolBar->addAction(actionPauseInstance);
+        instanceToolBar->addAction(actionResumeInstance);
 
         instanceToolBar->addSeparator();
 
@@ -2261,6 +2282,26 @@ void MainWindow::on_actionKillInstance_triggered()
     }
 }
 
+void MainWindow::on_actionPauseInstance_triggered()
+{
+    if(m_selectedInstance && m_selectedInstance->canSuspend() && !m_selectedInstance->isSuspended())
+    {
+        auto launchTask = m_selectedInstance->getLaunchTask();
+        if(launchTask)
+            launchTask->suspend();
+    }
+}
+
+void MainWindow::on_actionResumeInstance_triggered()
+{
+    if(m_selectedInstance && m_selectedInstance->isSuspended())
+    {
+        auto launchTask = m_selectedInstance->getLaunchTask();
+        if(launchTask)
+            launchTask->resume();
+    }
+}
+
 void MainWindow::taskEnd()
 {
     QObject *sender = QObject::sender();
@@ -2287,6 +2328,7 @@ void MainWindow::instanceChanged(const QModelIndex &current, const QModelIndex &
     }
     if (m_selectedInstance) {
         disconnect(m_selectedInstance.get(), &BaseInstance::runningStatusChanged, this, &MainWindow::refreshCurrentInstance);
+        disconnect(m_selectedInstance.get(), &BaseInstance::suspendStatusChanged, this, nullptr);
     }
     QString id = current.data(InstanceList::InstanceIDRole).toString();
     m_selectedInstance = APPLICATION->instances()->getInstanceById(id);
@@ -2305,6 +2347,10 @@ void MainWindow::instanceChanged(const QModelIndex &current, const QModelIndex &
         }
 
         ui->actionKillInstance->setEnabled(m_selectedInstance->isRunning());
+        ui->actionPauseInstance->setEnabled(m_selectedInstance->canSuspend() && !m_selectedInstance->isSuspended());
+        ui->actionPauseInstance->setVisible(!m_selectedInstance->isSuspended());
+        ui->actionResumeInstance->setEnabled(m_selectedInstance->isSuspended());
+        ui->actionResumeInstance->setVisible(m_selectedInstance->isSuspended());
         ui->actionExportInstance->setEnabled(m_selectedInstance->canExport());
         ui->renameButton->setText(m_selectedInstance->name());
         m_statusLeft->setText(m_selectedInstance->getStatusbarDescription());
@@ -2316,6 +2362,7 @@ void MainWindow::instanceChanged(const QModelIndex &current, const QModelIndex &
         APPLICATION->settings()->set("SelectedInstance", m_selectedInstance->id());
 
         connect(m_selectedInstance.get(), &BaseInstance::runningStatusChanged, this, &MainWindow::refreshCurrentInstance);
+        connect(m_selectedInstance.get(), &BaseInstance::suspendStatusChanged, this, [this] { refreshCurrentInstance(true); });
     }
     else
     {
@@ -2325,6 +2372,10 @@ void MainWindow::instanceChanged(const QModelIndex &current, const QModelIndex &
         ui->actionLaunchInstanceOffline->setEnabled(false);
         ui->actionLaunchInstanceDemo->setEnabled(false);
         ui->actionKillInstance->setEnabled(false);
+        ui->actionPauseInstance->setEnabled(false);
+        ui->actionPauseInstance->setVisible(true);
+        ui->actionResumeInstance->setEnabled(false);
+        ui->actionResumeInstance->setVisible(false);
         APPLICATION->settings()->set("SelectedInstance", QString());
         selectionBad();
         return;
