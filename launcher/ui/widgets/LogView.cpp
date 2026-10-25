@@ -131,6 +131,9 @@ void LogView::rowsInserted(const QModelIndex& parent, int first, int last)
     {
         auto idx = m_model->index(i, 0, parent);
         auto text = m_model->data(idx, Qt::DisplayRole).toString();
+        // Keep every row in a single block: inserting a '\n' starts a new block, which would make
+        // rowsRemoved() remove only part of a row. A line separator still shows as a line break.
+        text.replace('\n', QChar::LineSeparator);
         QTextCharFormat format(*m_defaultFormat);
         auto font = m_model->data(idx, Qt::FontRole);
         if(font.isValid())
