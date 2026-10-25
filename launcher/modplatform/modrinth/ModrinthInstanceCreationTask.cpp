@@ -373,6 +373,10 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
                     }
                 }
 
+                // Downloading takes the first URL without checking, there has to be one
+                if (file.downloads.isEmpty())
+                    throw JSONValidationError(tr("No downloads found for %1").arg(file.path));
+
                 files.push_back(file);
             }
 
