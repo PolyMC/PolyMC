@@ -20,6 +20,7 @@
 #include "ModDownloadTask.h"
 
 #include "Application.h"
+#include "FileSystem.h"
 #include "minecraft/mod/ModFolderModel.h"
 
 ModDownloadTask::ModDownloadTask(const ModPlatform::IndexedPack& mod,
@@ -43,6 +44,20 @@ ModDownloadTask::ModDownloadTask(const ModPlatform::IndexedPack& mod,
     connect(m_filesNetJob.get(), &NetJob::failed, this, &ModDownloadTask::downloadFailed);
 
     addTask(m_filesNetJob);
+}
+
+void ModDownloadTask::executeTask()
+{
+    const auto& file_name = getFilename();
+    bool unsafe = file_name.isEmpty() || file_name.contains('/') || file_name.contains('\\') || !FS::isSafeRelativePath(file_name);
+#ifdef Q_OS_WIN
+    unsafe |= file_name.contains(':');
+#endif
+    if (unsafe) {
+        emitFailed(tr("Invalid file name: %1").arg(file_name));
+        return;
+    }
+    SequentialTask::executeTask();
 }
 
 void ModDownloadTask::downloadSucceeded()

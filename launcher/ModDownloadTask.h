@@ -37,6 +37,9 @@ public:
                              bool is_indexed = true);
     const QString& getFilename() const { return m_mod_version.fileName; }
 
+protected:
+    void executeTask() override;
+
 private:
     ModPlatform::IndexedPack m_mod;
     ModPlatform::IndexedVersion m_mod_version;
