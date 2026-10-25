@@ -190,15 +190,15 @@ void ComponentUpdateTask::loadComponents()
             RemoteLoadStatus status;
             status.type = RemoteLoadStatus::Type::Index;
             d->remoteLoadStatusList.append(status);
-            connect(indexLoadTask.get(), &Task::succeeded, [=]()
+            connect(indexLoadTask.get(), &Task::succeeded, this, [=]()
             {
                 remoteLoadSucceeded(taskIndex);
             });
-            connect(indexLoadTask.get(), &Task::failed, [=](const QString & error)
+            connect(indexLoadTask.get(), &Task::failed, this, [=](const QString & error)
             {
                 remoteLoadFailed(taskIndex, error, true);
             });
-            connect(indexLoadTask.get(), &Task::aborted, [=]()
+            connect(indexLoadTask.get(), &Task::aborted, this, [=]()
             {
                 remoteLoadFailed(taskIndex, tr("Aborted"));
             });
@@ -240,15 +240,15 @@ void ComponentUpdateTask::loadComponents()
         if (loadTask)
         {
             qDebug() << "Remote loading is being run for" << component->getName();
-            connect(loadTask.get(), &Task::succeeded, [=]()
+            connect(loadTask.get(), &Task::succeeded, this, [=]()
             {
                 remoteLoadSucceeded(taskIndex);
             });
-            connect(loadTask.get(), &Task::failed, [=](const QString & error)
+            connect(loadTask.get(), &Task::failed, this, [=](const QString & error)
             {
                 remoteLoadFailed(taskIndex, error, true);
             });
-            connect(loadTask.get(), &Task::aborted, [=]()
+            connect(loadTask.get(), &Task::aborted, this, [=]()
             {
                 remoteLoadFailed(taskIndex, tr("Aborted"));
             });
