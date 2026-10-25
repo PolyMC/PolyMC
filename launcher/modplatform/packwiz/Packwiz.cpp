@@ -138,8 +138,9 @@ void V1::updateModIndex(QDir& index_dir, Mod& mod)
 
     QFile index_file(index_dir.absoluteFilePath(real_fname));
 
+    // A bare file name would be relative to the working directory, not the index folder
     if (real_fname != normalized_fname)
-        index_file.rename(normalized_fname);
+        index_file.rename(index_dir.absoluteFilePath(normalized_fname));
 
     // There's already data on there!
     // TODO: We should do more stuff here, as the user is likely trying to
