@@ -452,7 +452,12 @@ void PackProfile::componentDataChanged()
 
 bool PackProfile::remove(const int index)
 {
-    auto patch = getComponent(index);
+    if (index < 0 || index >= d->components.size())
+    {
+        return false;
+    }
+    // Use the list's own shared pointer, wrapping the raw pointer would create a second owner that deletes the component
+    ComponentPtr patch = d->components[index];
     if (!patch->isRemovable())
     {
         qWarning() << "Patch" << patch->getID() << "is non-removable";
