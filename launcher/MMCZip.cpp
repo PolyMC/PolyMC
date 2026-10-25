@@ -67,15 +67,19 @@ bool MMCZip::mergeZipFiles(QuaZip *into, QFileInfo from, QSet<QString> &containe
         }
         contained.insert(filename);
 
-        if (!fileInsideMod.open(QIODevice::ReadOnly))
+        QuaZipFileInfo64 info_in;
+        int method = 0;
+        int level = 0;
+        if (!modZip.getCurrentFileInfo(&info_in) || !fileInsideMod.open(QIODevice::ReadOnly, &method, &level, true))
         {
             qCritical() << "Failed to open " << filename << " from " << from.fileName();
             return false;
         }
 
         QuaZipNewInfo info_out(fileInsideMod.getActualFileName());
+        info_out.uncompressedSize = static_cast<ulong>(info_in.uncompressedSize);
 
-        if (!zipOutFile.open(QIODevice::WriteOnly, info_out))
+        if (!zipOutFile.open(QIODevice::WriteOnly, info_out, nullptr, info_in.crc, method, method == Z_DEFLATED ? level : 0, true))
         {
             qCritical() << "Failed to open " << filename << " in the jar";
             fileInsideMod.close();
