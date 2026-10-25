@@ -224,6 +224,13 @@ void LocalPeer::receiveConnection()
     QByteArray uMsg;
     quint32 remaining;
     ds >> remaining;
+    // Messages are small commands, don't let anyone connecting make us allocate gigabytes
+    if (remaining > 16 * 1024 * 1024)
+    {
+        qWarning("QtLocalPeer: Refusing message of %u bytes", remaining);
+        delete socket;
+        return;
+    }
     uMsg.resize(remaining);
     int got = 0;
     char* uMsgBuf = uMsg.data();
