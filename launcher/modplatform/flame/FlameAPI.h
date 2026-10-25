@@ -13,6 +13,11 @@ public:
 
     ModPlatform::IndexedVersion getLatestVersion(VersionSearchArgs&& args);
 
+    QString getLatestVersionURL(VersionSearchArgs& args) const { return getVersionsURL(args); }
+    QString getModFileChangelogURL(int modId, int fileId) const;
+    static ModPlatform::IndexedVersion parseLatestVersion(const QByteArray& response);
+    static QString parseModFileChangelog(const QByteArray& response);
+
     NetJob* getProjects(QStringList addonIds, QByteArray* response) const override;
     NetJob* getFiles(const QStringList& fileIds, QByteArray* response) const;
 
