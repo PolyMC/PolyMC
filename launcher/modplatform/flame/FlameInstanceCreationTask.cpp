@@ -242,10 +242,11 @@ bool FlameCreationTask::createInstance()
         QString overridePath = FS::PathCombine(m_stagingPath, m_pack.overrides);
 
         // An override is trying to break the fourth wall, this is bad (usually)
-        const auto overrideAbsolute = QFileInfo(overridePath).canonicalPath();
-        const auto stagingAbsolute = QFileInfo(m_stagingPath).canonicalPath();
+        // Compare the full paths (canonicalPath() would give us the parent folders), and cleanPath() always uses '/'
+        const auto overrideAbsolute = QDir::cleanPath(QFileInfo(overridePath).absoluteFilePath());
+        const auto stagingAbsolute = QDir::cleanPath(QFileInfo(m_stagingPath).absoluteFilePath());
         if (overrideAbsolute != stagingAbsolute &&
-            !overrideAbsolute.startsWith(stagingAbsolute + QDir::separator())) {
+            !overrideAbsolute.startsWith(stagingAbsolute + '/')) {
             auto warn = CustomMessageBox::selectable(
                 m_parent, tr("Dangerous Path Override!"),
                 tr("This pack has an override path located outside of its dedicated directory "
