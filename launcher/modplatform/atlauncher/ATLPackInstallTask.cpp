@@ -393,11 +393,19 @@ QString PackInstallTask::getVersionForLoader(QString uid)
         }
         else if(m_version.loader.choose) {
             // Fabric Loader doesn't depend on a given Minecraft version.
+            QString version;
             if (m_version.loader.type == "fabric") {
-                return m_support->chooseVersion(vlist, Q_NULLPTR);
+                version = m_support->chooseVersion(vlist, Q_NULLPTR);
+            } else {
+                version = m_support->chooseVersion(vlist, m_version.minecraft);
             }
 
-            return m_support->chooseVersion(vlist, m_version.minecraft);
+            // Nothing chosen, the callers expect us to have reported the failure then
+            if (version.isEmpty()) {
+                emitFailed(tr("No version was chosen for the %1 loader").arg(m_version.loader.type));
+                return Q_NULLPTR;
+            }
+            return version;
         }
     }
 
