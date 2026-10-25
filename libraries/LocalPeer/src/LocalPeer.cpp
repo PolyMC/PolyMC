@@ -233,7 +233,8 @@ void LocalPeer::receiveConnection()
         remaining -= got;
         uMsgBuf += got;
     } while (remaining && got >= 0 && socket->waitForReadyRead(2000));
-    if (got < 0)
+    // remaining is left over when the other side stopped sending or went away, don't use a half received message
+    if (got < 0 || remaining)
     {
         qWarning("QtLocalPeer: Message reception failed %s", socket->errorString().toLatin1().constData());
         delete socket;
