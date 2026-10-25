@@ -123,17 +123,22 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
             slugJob->addNetAction(dl);
             index++;
         }
-        connect(slugJob, &NetJob::succeeded, this, [slugs, this, slugJob, block]() {
+        // Use finished: the links are only used for display, one failed lookup shouldn't stop everything
+        connect(slugJob, &NetJob::finished, this, [slugs, this, slugJob, block]() {
             slugJob->deleteLater();
             auto index = 0;
             for (const auto &slugResult: slugs) {
-                auto json = QJsonDocument::fromJson(slugResult);
-                auto base = Json::requireString(Json::requireObject(Json::requireObject(Json::requireObject(json),"data"),"links"),
-                        "websiteUrl");
                 auto mod = block->at(index);
-                auto link = QString("%1/download/%2").arg(base, QString::number(mod->fileId));
-                mod->websiteUrl = link;
                 index++;
+                try {
+                    auto json = QJsonDocument::fromJson(slugResult);
+                    auto base = Json::requireString(Json::requireObject(Json::requireObject(Json::requireObject(json),"data"),"links"),
+                            "websiteUrl");
+                    auto link = QString("%1/download/%2").arg(base, QString::number(mod->fileId));
+                    mod->websiteUrl = link;
+                } catch (const JSONValidationError& e) {
+                    qWarning() << "Couldn't get the website of blocked mod" << mod->fileName << ":" << e.cause();
+                }
             }
             emitSucceeded();
         });
