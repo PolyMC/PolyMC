@@ -68,6 +68,11 @@ bool GZip::unzip(const QByteArray &compressedBytes, QByteArray &uncompressedByte
         // If our output buffer is too small
         if (strm.total_out >= uncompLength)
         {
+            if (uncompLength > (1u << 29))
+            {
+                inflateEnd(&strm);
+                return false;
+            }
             uncompressedBytes.resize(uncompLength * 2);
             uncompLength *= 2;
         }
