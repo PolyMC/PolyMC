@@ -103,6 +103,7 @@ void PackInstallTask::onDownloadSucceeded()
     if(parse_error.error != QJsonParseError::NoError) {
         qWarning() << "Error while parsing JSON response from ATLauncher at " << parse_error.offset << " reason: " << parse_error.errorString();
         qWarning() << response;
+        emitFailed(parse_error.errorString());
         return;
     }
     auto obj = doc.object();
