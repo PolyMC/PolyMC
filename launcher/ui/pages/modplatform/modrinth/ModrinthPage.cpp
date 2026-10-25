@@ -143,9 +143,9 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
                 return;
             }
 
-            auto obj = Json::requireObject(doc);
-
             try {
+                // Inside the try block, this throws when the response isn't an object
+                auto obj = Json::requireObject(doc);
                 Modrinth::loadIndexedInfo(current, obj);
             } catch (const JSONValidationError& e) {
                 qDebug() << *response;
