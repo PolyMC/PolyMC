@@ -417,6 +417,18 @@ void Page::onRemovePackClicked()
     {
         privateListModel->remove(sourceIndex.row());
     }
+    else
+    {
+        // The list got reset meanwhile (a private pack finished loading), so look the pack up again
+        for(int row = 0; row < privateListModel->rowCount(QModelIndex()); row++)
+        {
+            if(privateListModel->at(row).packCode == pack.packCode)
+            {
+                privateListModel->remove(row);
+                break;
+            }
+        }
+    }
     onPackSelectionChanged();
 }
 
