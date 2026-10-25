@@ -132,9 +132,11 @@ void ListModel::requestModInfo(ModPlatform::IndexedPack& current, QModelIndex in
 
 void ListModel::refresh()
 {
-    if (jobPtr) {
-        jobPtr->abort();
+    // Only abort a search that is still going, a finished one never reports back.
+    // Set the state first, aborting can report back right away.
+    if (jobPtr && jobPtr->isRunning()) {
         searchState = ResetRequested;
+        jobPtr->abort();
         return;
     } else {
         beginResetModel();
@@ -269,6 +271,23 @@ void ListModel::searchRequestFailed(QString /*reason*/)
     }
     jobPtr.reset();
 
+    if (searchState == ResetRequested) {
+        beginResetModel();
+        modpacks.clear();
+        endResetModel();
+
+        nextSearchOffset = 0;
+        performPaginatedSearch();
+    } else {
+        searchState = Finished;
+    }
+}
+
+void ListModel::searchRequestAborted()
+{
+    jobPtr.reset();
+
+    // refresh() aborts the running search to start a new one
     if (searchState == ResetRequested) {
         beginResetModel();
         modpacks.clear();
