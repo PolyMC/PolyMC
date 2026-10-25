@@ -137,7 +137,8 @@ void PasteUpload::executeTask()
 #endif
 
 
-    m_reply = std::shared_ptr<QNetworkReply>(rep);
+    // The reply gets released from inside its own signals, so it must not be deleted right away
+    m_reply = std::shared_ptr<QNetworkReply>(rep, [](QNetworkReply* reply) { reply->deleteLater(); });
 
     setStatus(tr("Uploading to %1").arg(m_uploadUrl));
 }
