@@ -923,6 +923,7 @@ bool InstanceList::commitStagedInstance(const QString& path, InstanceName const&
                 qWarning() << "Failed to override" << path << "to" << destination;
                 return false;
             }
+            destroyStagingPath(path);
         } else {
             if (!dir.rename(path, destination)) {
                 qWarning() << "Failed to move" << path << "to" << destination;
