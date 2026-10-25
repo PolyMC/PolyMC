@@ -209,7 +209,8 @@ void ModFolderPage::disableUpdates()
         } else if(!mod->metadata()) {
             ModUpdateDialog MetadataGenDialog(this, ModAPI::Mod, m_instance, m_model, mods_list, false);
             MetadataGenDialog.ensureMetadata();
-            if(mods_list.length()>1){
+            // There is still no metadata when the user skipped it, or the mod wasn't found anywhere
+            if(mods_list.length()>1 && mod->metadata()){
                 mod->metadata()->do_updates = "false";
             }
         }
