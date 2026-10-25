@@ -890,7 +890,7 @@ QString InstanceList::getStagedInstancePath()
     }
 #ifdef Q_OS_WIN32
     auto tempPath = FS::PathCombine(m_instDir, tempDir);
-    SetFileAttributesA(tempPath.toStdString().c_str(), FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_NOT_CONTENT_INDEXED);
+    SetFileAttributesW(tempPath.toStdWString().c_str(), FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_NOT_CONTENT_INDEXED);
 #endif
     return path;
 }
