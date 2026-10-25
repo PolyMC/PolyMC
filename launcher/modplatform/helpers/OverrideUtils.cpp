@@ -17,13 +17,16 @@ void createOverrides(const QString& name, const QString& parent_folder, const QS
     QFile file(file_path);
     file.open(QFile::WriteOnly);
 
+    QDir override_dir(override_path);
     QDirIterator override_iterator(override_path, QDirIterator::Subdirectories);
     while (override_iterator.hasNext()) {
         auto override_file_path = override_iterator.next();
         QFileInfo info(override_file_path);
         if (info.isFile()) {
             // Absolute path with temp directory -> relative path
-            override_file_path = override_file_path.split(name).last().remove(0, 1);
+            // (relative to the overrides folder itself: splitting at its name breaks when the name appears
+            // anywhere else in the path, or when the folder is called something else)
+            override_file_path = override_dir.relativeFilePath(override_file_path);
 
             file.write(override_file_path.toUtf8());
             file.write("\n");
