@@ -42,11 +42,10 @@ void ModrinthHasher::executeTask()
 {
     QFile file(m_path);
 
-    try {
-        file.open(QFile::ReadOnly);
-    } catch (FS::FileSystemException& e) {
+    // QFile::open() doesn't throw, it reports failure through its return value
+    if (!file.open(QFile::ReadOnly)) {
         qCritical() << QString("Failed to open JAR file in %1").arg(m_path);
-        qCritical() << QString("Reason: ") << e.cause();
+        qCritical() << QString("Reason: ") << file.errorString();
 
         emitFailed("Failed to open file for hashing.");
         return;
