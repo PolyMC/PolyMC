@@ -113,6 +113,7 @@ void MinecraftUpdate::next()
     {
         qCritical() << "MinecraftUpdate: Skipping finished subtask" << m_currentTask << ":" << task.get();
         next();
+        return;
     }
     connect(task.get(), &Task::succeeded, this, &MinecraftUpdate::subtaskSucceeded);
     connect(task.get(), &Task::failed, this, &MinecraftUpdate::subtaskFailed);
