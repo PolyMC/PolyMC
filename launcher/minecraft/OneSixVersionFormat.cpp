@@ -38,8 +38,7 @@
 #include "minecraft/Agent.h"
 #include "minecraft/ParseUtils.h"
 #include <minecraft/MojangVersionFormat.h>
-
-#include <QDir>
+#include "FileSystem.h"
 
 using namespace Json;
 
@@ -51,21 +50,6 @@ static void readString(const QJsonObject &root, const QString &key, QString &var
     }
 }
 
-// Library storage paths are built from the name, classifiers and filename, all of which come from JSON.
-// Make sure none of them can make the path climb out of the libraries folder.
-static bool isSafeLibraryPath(const QString& path)
-{
-    const auto segments = QDir::fromNativeSeparators(path).split('/');
-    for (auto segment : segments) {
-        // Windows ignores trailing spaces and dots in path segments, so treat anything made only of dots as '..'
-        while (segment.endsWith(' '))
-            segment.chop(1);
-        if (segment.size() >= 2 && segment.count('.') == segment.size())
-            return false;
-    }
-    return true;
-}
-
 LibraryPtr OneSixVersionFormat::libraryFromJson(ProblemContainer & problems, const QJsonObject &libObj, const QString &filename)
 {
     LibraryPtr out = MojangVersionFormat::libraryFromJson(problems, libObj, filename);
@@ -75,11 +59,13 @@ LibraryPtr OneSixVersionFormat::libraryFromJson(ProblemContainer & problems, con
     readString(libObj, "MMC-filename", out->m_filename);
     readString(libObj, "MMC-displayname", out->m_displayname);
 
-    bool safe = isSafeLibraryPath(out->m_name.toPath(out->m_filename));
+    // Library storage paths are built from the name, classifiers and filename, all of which come from JSON.
+    // Make sure none of them can make the path climb out of the libraries folder.
+    bool safe = FS::isSafeRelativePath(out->m_name.toPath(out->m_filename));
     for (const auto& classifier : std::as_const(out->m_nativeClassifiers)) {
         GradleSpecifier nativeSpec = out->m_name;
         nativeSpec.setClassifier(classifier);
-        safe = safe && isSafeLibraryPath(nativeSpec.toPath(out->m_filename));
+        safe = safe && FS::isSafeRelativePath(nativeSpec.toPath(out->m_filename));
     }
     if (!safe) {
         // Problems don't stop the library from being used, so reject the whole file

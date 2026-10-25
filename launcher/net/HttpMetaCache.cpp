@@ -39,7 +39,6 @@
 
 #include <QCryptographicHash>
 #include <QDateTime>
-#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 
@@ -81,23 +80,10 @@ MetaEntryPtr HttpMetaCache::getEntry(QString base, QString resource_path)
     return {};
 }
 
-// Resource paths are often built from data downloaded from elsewhere, so make sure they can't leave the base folder
-static bool isSafeResourcePath(const QString& resource_path)
-{
-    const auto segments = QDir::fromNativeSeparators(resource_path).split('/');
-    for (auto segment : segments) {
-        // Windows ignores trailing spaces and dots in path segments, so treat anything made only of dots as '..'
-        while (segment.endsWith(' '))
-            segment.chop(1);
-        if (segment.size() >= 2 && segment.count('.') == segment.size())
-            return false;
-    }
-    return true;
-}
-
 MetaEntryPtr HttpMetaCache::resolveEntry(QString base, QString resource_path, QString expected_etag)
 {
-    if (!isSafeResourcePath(resource_path)) {
+    // Resource paths are often built from data downloaded from elsewhere, so make sure they can't leave the base folder
+    if (!FS::isSafeRelativePath(resource_path)) {
         qWarning() << "Cache resource path" << resource_path << "tries to leave its base folder, using a hashed name instead";
         resource_path = "invalid/" + QCryptographicHash::hash(resource_path.toUtf8(), QCryptographicHash::Sha1).toHex();
     }
