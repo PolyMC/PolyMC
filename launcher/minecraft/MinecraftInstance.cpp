@@ -151,6 +151,7 @@ void MinecraftInstance::loadSpecificSettings()
         m_settings->registerPassthrough(global_settings->getSetting("JavaVersion"), javaOrLocation);
         m_settings->registerPassthrough(global_settings->getSetting("JavaArchitecture"), javaOrLocation);
         m_settings->registerPassthrough(global_settings->getSetting("JavaRealArchitecture"), javaOrLocation);
+        m_settings->registerPassthrough(global_settings->getSetting("JavaVendor"), javaOrLocation);
 
         // Window Size
         auto windowSetting = m_settings->registerSetting("OverrideWindow", false);
