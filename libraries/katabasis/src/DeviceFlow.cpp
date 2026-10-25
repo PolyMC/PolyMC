@@ -458,7 +458,8 @@ void DeviceFlow::onRefreshError(QNetworkReply::NetworkError error, QNetworkReply
     case QNetworkReply::SslHandshakeFailedError:
     default:
         updateActivity(Activity::FailedSoft);
-        return;
+        // break instead of returning, the reply still needs to be cleaned up below
+        break;
     }
     if(refreshReply) {
         refreshReply->deleteLater();
