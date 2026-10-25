@@ -215,7 +215,8 @@ void V1::deleteModIndex(QDir& index_dir, QVariant& mod_id)
         auto mod = getIndexForMod(index_dir, file_name);
 
         if (mod.mod_id() == mod_id) {
-            deleteModIndex(index_dir, mod.name);
+            // Index files are named after the slug, not the display name, so use the file we found
+            deleteModIndex(index_dir, file_name);
             break;
         }
     }
