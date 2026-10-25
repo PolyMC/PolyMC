@@ -204,6 +204,10 @@ void UpdateChecker::updateCheckFinished(bool notifyNoUpdate)
 void UpdateChecker::updateCheckFailed()
 {
     qCritical() << "Update check failed for reasons unknown.";
+    // Allow checking again later
+    m_updateChecking = false;
+    indexJob.reset();
+    indexData.clear();
 }
 
 void UpdateChecker::updateChanList(bool notifyNoUpdate)
