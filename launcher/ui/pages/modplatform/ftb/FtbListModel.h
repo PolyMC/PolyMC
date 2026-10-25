@@ -63,6 +63,7 @@ private slots:
 
 private:
     void requestLogo(QString file, QString url);
+    void requestNextPack();
 
 private:
     QList<FTB::Modpack> modpacks;
