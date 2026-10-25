@@ -107,6 +107,8 @@ public:
                             }
                         }
                         msg += mid(octal_start, i - octal_start).toUInt(0, 8);
+                        // i is on the first character after the escape now, step back so the loop doesn't skip it
+                        i--;
                         break;
                     }
                     case 'x':
@@ -124,6 +126,8 @@ public:
                             }
                         }
                         msg += mid(hex_start, i - hex_start).toUInt(0, 16);
+                        // i is on the first character after the escape now, step back so the loop doesn't skip it
+                        i--;
                         break;
                     }
                     default:
