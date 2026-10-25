@@ -1186,9 +1186,11 @@ void MainWindow::konamiTriggered()
 
 void MainWindow::showInstanceContextMenu(const QPoint &pos)
 {
+    // The actions made here belong to the menu, so they are gone with it instead of piling up on every right click
+    QMenu myMenu;
     QList<QAction *> actions;
 
-    QAction *actionSep = new QAction("", this);
+    QAction *actionSep = new QAction("", &myMenu);
     actionSep->setSeparator(true);
 
     bool onInstance = view->indexAt(pos).isValid();
@@ -1204,7 +1206,7 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
 
                 // add header
         actions.prepend(actionSep);
-        QAction *actionVoid = new QAction(m_selectedInstance->name(), this);
+        QAction *actionVoid = new QAction(m_selectedInstance->name(), &myMenu);
         actionVoid->setEnabled(false);
         actions.prepend(actionVoid);
     }
@@ -1212,10 +1214,10 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
     {
         auto group = view->groupNameAt(pos);
 
-        QAction *actionVoid = new QAction(BuildConfig.LAUNCHER_NAME, this);
+        QAction *actionVoid = new QAction(BuildConfig.LAUNCHER_NAME, &myMenu);
         actionVoid->setEnabled(false);
 
-        QAction *actionCreateInstance = new QAction(tr("Create instance"), this);
+        QAction *actionCreateInstance = new QAction(tr("Create instance"), &myMenu);
         actionCreateInstance->setToolTip(ui->actionAddInstance->toolTip());
         if(!group.isNull())
         {
@@ -1231,7 +1233,7 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
         actions.append(actionCreateInstance);
         if(!group.isNull())
         {
-            QAction *actionDeleteGroup = new QAction(tr("Delete group '%1'").arg(group), this);
+            QAction *actionDeleteGroup = new QAction(tr("Delete group '%1'").arg(group), &myMenu);
             QVariantMap groupData;
             groupData["group"] = group;
             actionDeleteGroup->setData(groupData);
@@ -1239,12 +1241,11 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
             actions.append(actionDeleteGroup);
         }
 
-        QAction *actionUndoTrashInstance = new QAction("Undo last trash instance", this);
+        QAction *actionUndoTrashInstance = new QAction("Undo last trash instance", &myMenu);
         connect(actionUndoTrashInstance, SIGNAL(triggered(bool)), SLOT(undoTrashInstance()));
         actionUndoTrashInstance->setEnabled(APPLICATION->instances()->trashedSomething());
         actions.append(actionUndoTrashInstance);
     }
-    QMenu myMenu;
     myMenu.addActions(actions);
     /*
     if (onInstance)
