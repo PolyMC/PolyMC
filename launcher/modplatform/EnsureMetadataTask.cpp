@@ -331,7 +331,12 @@ NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
                 ModPlatform::IndexedPack pack;
                 Modrinth::loadIndexedPack(pack, entry_obj);
 
-                auto hash = addonIds.find(pack.addonId.toString()).value();
+                auto hash_iter = addonIds.find(pack.addonId.toString());
+                if (hash_iter == addonIds.end()) {
+                    qWarning() << "Invalid project id from the API response.";
+                    continue;
+                }
+                auto hash = hash_iter.value();
 
                 auto mod_iter = m_mods.find(hash);
                 if (mod_iter == m_mods.end()) {
@@ -478,8 +483,19 @@ NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
                 auto entry_obj = Json::requireObject(entry);
 
                 auto id = QString::number(Json::requireInteger(entry_obj, "id"));
-                auto hash = addonIds.find(id).value();
-                auto mod = m_mods.find(hash).value();
+                auto hash_iter = addonIds.find(id);
+                if (hash_iter == addonIds.end()) {
+                    qWarning() << "Invalid project id from the API response.";
+                    continue;
+                }
+                auto hash = hash_iter.value();
+
+                auto mod_iter = m_mods.find(hash);
+                if (mod_iter == m_mods.end()) {
+                    qWarning() << "Invalid project id from the API response.";
+                    continue;
+                }
+                auto mod = mod_iter.value();
 
                 try {
                     setStatus(tr("Parsing API response from CurseForge for '%1'...").arg(mod->name()));
