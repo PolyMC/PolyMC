@@ -272,11 +272,12 @@ void InstanceList::deleteGroup(const QString& name)
             qDebug() << "Remove" << instID << "from group" << name;
             removed = true;
             auto idx = getInstIndex(instance.get());
-            if (idx > 0) {
+            if (idx >= 0) {
                 emit dataChanged(index(idx), index(idx), { GroupRole });
             }
         }
     }
+    m_groupNameCache.remove(name);
     if (removed) {
         saveGroupList();
     }
