@@ -5,6 +5,7 @@
 #include <sys/utsname.h>
 #include <fstream>
 #include <limits>
+#include <cstdlib>
 
 #include <QString>
 #include <QStringList>
