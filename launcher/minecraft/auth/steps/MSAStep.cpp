@@ -87,6 +87,7 @@ void MSAStep::perform() {
             if (m_data->msaClientID != m_clientId) {
                 emit hideVerificationUriAndCode();
                 emit finished(AccountTaskState::STATE_DISABLED, tr("Microsoft user authentication failed - client identification has changed."));
+                return;
             }
             m_oauth2->refresh();
             return;
