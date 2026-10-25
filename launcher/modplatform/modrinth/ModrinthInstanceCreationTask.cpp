@@ -199,6 +199,7 @@ bool ModrinthCreationTask::createInstance()
             setError(tr("Could not overwrite / create new files:\n") + "client overrides");
             return false;
         }
+        FS::deletePath(client_override_path);
     }
 
     QString configPath = FS::PathCombine(m_stagingPath, "instance.cfg");
