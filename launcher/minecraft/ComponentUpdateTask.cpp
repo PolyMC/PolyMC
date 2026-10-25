@@ -48,6 +48,7 @@ ComponentUpdateTask::~ComponentUpdateTask()
 void ComponentUpdateTask::executeTask()
 {
     qDebug() << "Loading components";
+    d->resolutionRounds = 0;
     loadComponents();
 }
 
@@ -639,6 +640,13 @@ void ComponentUpdateTask::resolveDependencies(bool checkOnly)
 
     if(recursionNeeded)
     {
+        // Each round should settle at least one dependency, so this only keeps going with broken metadata.
+        // When everything is loaded locally this is a direct recursion, so it would run out of stack.
+        if(++d->resolutionRounds > 100)
+        {
+            emitFailed(tr("Couldn't resolve the dependencies of the components, they keep changing."));
+            return;
+        }
         loadComponents();
     }
     else
