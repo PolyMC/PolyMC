@@ -1105,20 +1105,27 @@ static Meta::VersionPtr getComponentVersion(const QString& uid, const QString& v
         QEventLoop loop;
         auto task = vlist->getLoadTask();
 
-        QObject::connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
-        loop.exec();
+        // Without a running task there is nothing that would ever stop the loop
+        if (task) {
+            QObject::connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
+            loop.exec();
+        }
     }
 
     auto ver = vlist->getVersion(version);
     if (!ver)
         return {};
 
+    // Load the version itself, loading the list again doesn't load the version's data
     if (!ver->isLoaded()) {
         QEventLoop loop;
-        auto task = vlist->getLoadTask();
+        ver->load(Net::Mode::Online);
+        auto task = ver->getCurrentTask();
 
-        QObject::connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
-        loop.exec();
+        if (task) {
+            QObject::connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
+            loop.exec();
+        }
     }
 
     return ver;
