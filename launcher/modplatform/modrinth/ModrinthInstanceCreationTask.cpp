@@ -400,7 +400,7 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
                 }
             }
         } else {
-            throw JSONValidationError(QStringLiteral("Unknown format version: %s").arg(formatVersion));
+            throw JSONValidationError(QStringLiteral("Unknown format version: %1").arg(formatVersion));
         }
 
     } catch (const JSONValidationError& e) {
