@@ -221,6 +221,8 @@ void InstanceWindow::closeEvent(QCloseEvent *event)
 
     if(!proceed)
     {
+        // Close events are accepted by default, so this has to be explicit to keep the window open
+        event->ignore();
         return;
     }
 
