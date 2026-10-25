@@ -291,7 +291,8 @@ QString PackProfile::patchesPattern() const
 
 QString PackProfile::patchFilePathForUid(const QString& uid) const
 {
-    return patchesPattern().arg(uid);
+    // Don't use QString::arg() on the pattern here, the instance path may contain things like %1 itself
+    return FS::PathCombine(d->m_instance->instanceRoot(), "patches", uid + ".json");
 }
 
 void PackProfile::save_internal()
