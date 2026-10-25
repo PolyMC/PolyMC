@@ -342,10 +342,13 @@ void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId, cons
     }
 
     // Cache info :^)
-    QVariant new_pack;
-    new_pack.setValue(current);
-    if (!setData(index, new_pack, Qt::UserRole)) {
-        qWarning() << "Failed to cache mod versions!";
+    // Only if the row still holds this mod, a new search may have put another mod there meanwhile
+    if (data(index, Qt::UserRole).value<ModPlatform::IndexedPack>().addonId == current.addonId) {
+        QVariant new_pack;
+        new_pack.setValue(current);
+        if (!setData(index, new_pack, Qt::UserRole)) {
+            qWarning() << "Failed to cache mod versions!";
+        }
     }
 
 
