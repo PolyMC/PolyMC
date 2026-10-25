@@ -15,7 +15,10 @@ NewsDialog::NewsDialog(QList<NewsEntryPtr> entries, QWidget* parent) : QDialog(p
 
     m_article_list_hidden = ui->articleListWidget->isHidden();
 
+    // The news may not have loaded (yet), for example when offline
     auto first_item = ui->articleListWidget->item(0);
+    if (!first_item)
+        return;
     first_item->setSelected(true);
 
     auto article_entry = m_entries.constFind(first_item->text()).value();
@@ -31,6 +34,8 @@ NewsDialog::~NewsDialog()
 void NewsDialog::selectedArticleChanged(const QString& new_title)
 {
     auto const& article_entry_ptr = m_entries.constFind(new_title);
+    if (article_entry_ptr == m_entries.constEnd())
+        return;
     auto const& article_entry = article_entry_ptr.value();
 
     ui->articleTitleLabel->setText(QString("<a href='%1'>%2</a>").arg(article_entry->link, new_title));
