@@ -157,7 +157,16 @@ void V1::updateModIndex(QDir& index_dir, Mod& mod)
 
     // Put TOML data into the file
     QTextStream in_stream(&index_file);
-    auto addToStream = [&in_stream](QString&& key, QString value) { in_stream << QString("%1 = \"%2\"\n").arg(key, value); };
+    // Values are written as TOML basic strings, so escape what would end them early or break the line
+    auto escape = [](QString value) {
+        value.replace('\\', "\\\\");
+        value.replace('"', "\\\"");
+        value.replace('\n', "\\n");
+        value.replace('\r', "\\r");
+        value.replace('\t', "\\t");
+        return value;
+    };
+    auto addToStream = [&in_stream, &escape](QString&& key, QString value) { in_stream << QString("%1 = \"%2\"\n").arg(key, escape(value)); };
 
     {
         addToStream("name", mod.name);
