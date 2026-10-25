@@ -830,6 +830,10 @@ void PackInstallTask::downloadMods()
             jobPtr->addNetAction(dl);
 
             auto path = FS::PathCombine(m_stagingPath, "minecraft", relpath, mod.file);
+            if (!path.startsWith(FS::PathCombine(m_stagingPath, "minecraft") + '/')) {
+                emitFailed(tr("Mod %1 tries to place itself outside of the instance").arg(mod.file));
+                return;
+            }
 
             if(mod.type == ModType::Forge) {
                 auto ver = getComponentVersion("net.minecraftforge", mod.version);
@@ -955,6 +959,10 @@ bool PackInstallTask::extractMods(
 
         QDir extractDir(m_stagingPath);
         auto extractToPath = FS::PathCombine(extractDir.absolutePath(), "minecraft", extractToDir, mod.decompFile);
+        if (!extractToPath.startsWith(FS::PathCombine(extractDir.absolutePath(), "minecraft") + '/')) {
+            qWarning() << "Not extracting" << mod.decompFile << "as it tries to place itself outside of the instance";
+            return false;
+        }
 
         qDebug() << "Extracting " + mod.decompFile + " to " + extractToDir;
         if(!MMCZip::extractFile(modPath, mod.decompFile, extractToPath)) {
