@@ -38,6 +38,7 @@
 #include <QDirIterator>
 #include <QCryptographicHash>
 #include <QJsonParseError>
+#include <QRegularExpression>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QVariant>
@@ -239,6 +240,14 @@ bool loadAssetsIndexJson(const QString &assetsId, const QString &path, AssetsInd
             {
                 object.size = value.toDouble();
             }
+        }
+
+        // The hash and the name are both used to build file paths, so skip anything that could point outside of the assets folders
+        static const QRegularExpression hashRegex(QRegularExpression::anchoredPattern("[0-9a-fA-F]{40}"));
+        if (!hashRegex.match(object.hash).hasMatch() || !FS::isSafeRelativePath(iter.key()))
+        {
+            qWarning() << "Skipping invalid asset" << iter.key() << "with hash" << object.hash;
+            continue;
         }
 
         index.objects.insert(iter.key(), object);

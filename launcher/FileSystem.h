@@ -124,6 +124,13 @@ QString PathCombine(const QString& path1, const QString& path2);
 QString PathCombine(const QString& path1, const QString& path2, const QString& path3);
 QString PathCombine(const QString& path1, const QString& path2, const QString& path3, const QString& path4);
 
+/**
+ * Check that a relative path has no parent directory references, so it can't climb out of
+ * whatever folder it gets combined with. Segments made only of dots count as such a reference,
+ * since Windows ignores their trailing dots and spaces.
+ */
+bool isSafeRelativePath(const QString& path);
+
 QString AbsolutePath(QString path);
 
 /**
