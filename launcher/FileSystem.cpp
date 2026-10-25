@@ -231,8 +231,42 @@ bool copy::operator()(const QString& offset)
     return err.value() == 0;
 }
 
+#if defined Q_OS_WIN32
+namespace {
+bool deletePathNoFollow(const QString& path)
+{
+    const auto nativePath = QDir::toNativeSeparators(path).toStdWString();
+    const DWORD attrs = GetFileAttributesW(nativePath.c_str());
+    if (attrs == INVALID_FILE_ATTRIBUTES) {
+        const DWORD error = GetLastError();
+        if (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND)
+            return true;
+        qWarning() << "Failed to remove" << path << "- error" << error;
+        return false;
+    }
+
+    bool ok = true;
+    if ((attrs & FILE_ATTRIBUTE_DIRECTORY) && !(attrs & FILE_ATTRIBUTE_REPARSE_POINT)) {
+        const auto entries = QDir(path).entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden | QDir::AllDirs | QDir::Files);
+        for (const auto& entry : entries)
+            ok &= deletePathNoFollow(entry.absoluteFilePath());
+    }
+
+    const BOOL removed = (attrs & FILE_ATTRIBUTE_DIRECTORY) ? RemoveDirectoryW(nativePath.c_str()) : DeleteFileW(nativePath.c_str());
+    if (!removed) {
+        qWarning() << "Failed to remove" << path << "- error" << GetLastError();
+        ok = false;
+    }
+    return ok;
+}
+}
+#endif
+
 bool deletePath(QString path)
 {
+#if defined Q_OS_WIN32
+    return deletePathNoFollow(path);
+#else
     std::error_code err;
 
     fs::remove_all(toStdString(path), err);
@@ -242,6 +276,7 @@ bool deletePath(QString path)
     }
 
     return err.value() == 0;
+#endif
 }
 
 bool trash(QString path, QString *pathInTrash = nullptr)
