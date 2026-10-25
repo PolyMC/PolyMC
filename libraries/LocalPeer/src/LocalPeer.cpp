@@ -212,7 +212,13 @@ void LocalPeer::receiveConnection()
 
     while (socket->bytesAvailable() < (int)sizeof(quint32))
     {
-        socket->waitForReadyRead();
+        // This returns false right away once the other side is gone, so don't keep spinning on it
+        if (!socket->waitForReadyRead())
+        {
+            qWarning("QtLocalPeer: Connection closed before receiving a message: %s", socket->errorString().toLatin1().constData());
+            delete socket;
+            return;
+        }
     }
     QDataStream ds(socket);
     QByteArray uMsg;
