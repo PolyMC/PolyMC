@@ -86,7 +86,11 @@ void Flame::FileResolvingTask::netJobFinished()
             }
         }
     }
-    connect(job, &NetJob::finished, this, &Flame::FileResolvingTask::modrinthCheckFinished);
+    connect(job, &NetJob::finished, this, [this, job] {
+        // Nothing else owns the job
+        job->deleteLater();
+        modrinthCheckFinished();
+    });
 
     job->start();
 }
@@ -159,10 +163,12 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
                     qWarning() << "Couldn't get the website of blocked mod" << mod->fileName << ":" << e.cause();
                 }
             }
+            delete block;
             emitSucceeded();
         });
         slugJob->start();
     } else {
+        delete block;
         emitSucceeded();
     }
 }
