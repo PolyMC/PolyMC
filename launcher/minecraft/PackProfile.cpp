@@ -126,11 +126,15 @@ static QJsonObject componentToJsonV1(ComponentPtr component)
     return obj;
 }
 
-static ComponentPtr componentFromJsonV1(PackProfile * parent, const QString & componentJsonPattern, const QJsonObject &obj)
+static ComponentPtr componentFromJsonV1(PackProfile * parent, const QString & /*componentJsonPattern*/, const QJsonObject &obj)
 {
     // critical
     auto uid = Json::requireString(obj.value("uid"));
-    auto filePath = componentJsonPattern.arg(uid);
+    // The uid is used as a file name in the patches folder, so it must not be able to point anywhere else
+    if (uid.isEmpty() || uid.contains('/') || uid.contains('\\') || uid.contains(':'))
+    {
+        throw JSONValidationError(QObject::tr("Invalid component uid: %1").arg(uid));
+    }
     auto component = new Component(parent, uid);
     component->m_version = Json::ensureString(obj.value("version"));
     component->m_dependencyOnly = Json::ensureBoolean(obj.value("dependencyOnly"), false);
