@@ -529,7 +529,8 @@ static QString replaceTokensIn(QString text, QMap<QString, QString> with)
     while (i.hasNext())
     {
         QRegularExpressionMatch match = i.next();
-        result.append(text.mid(lastCapturedEnd, match.capturedStart()));
+        // mid() takes a length, not an end position
+        result.append(text.mid(lastCapturedEnd, match.capturedStart() - lastCapturedEnd));
         QString key = match.captured(1);
         auto iter = with.find(key);
         if (iter != with.end())
