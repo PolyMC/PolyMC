@@ -255,7 +255,8 @@ NetJob::Ptr EnsureMetadataTask::modrinthVersionsTask()
                        << " reason: " << parse_error.errorString();
             qWarning() << *response;
 
-            failed(parse_error.errorString());
+            // The mods we couldn't get information about are marked as failed when the task finishes,
+            // emitting failed() here would be followed by emitSucceeded() then
             return;
         }
 
@@ -380,7 +381,8 @@ NetJob::Ptr EnsureMetadataTask::flameVersionsTask()
                        << " reason: " << parse_error.errorString();
             qWarning() << *response;
 
-            failed(parse_error.errorString());
+            // The mods we couldn't get information about are marked as failed when the task finishes,
+            // emitting failed() here would be followed by emitSucceeded() then
             return;
         }
 
