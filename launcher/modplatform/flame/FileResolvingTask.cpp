@@ -47,6 +47,7 @@ void Flame::FileResolvingTask::netJobFinished()
     }
     catch (const JSONValidationError &e) {
         qDebug() << "Flame::FileResolvingTask: Json Validation error: " << e.what();
+        delete job;
         emitFailed(e.what());
         return;
     }
