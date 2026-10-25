@@ -40,6 +40,8 @@ void ReplyList::remove(QNetworkReply *reply) {
     if (o2Reply) {
         o2Reply->stop();
         (void)replies_.removeOne(o2Reply);
+        // We own it (add() allocated it), and this can run from inside its own timeout, so delete it later
+        o2Reply->deleteLater();
     }
 }
 
