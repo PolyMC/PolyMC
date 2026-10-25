@@ -303,7 +303,7 @@ QVariant AccountList::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    if (index.row() > count())
+    if (index.row() >= count())
         return QVariant();
 
     MinecraftAccountPtr account = at(index.row());
