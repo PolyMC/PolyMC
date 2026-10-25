@@ -123,8 +123,12 @@ void ListModel::performPaginatedSearch()
 
 void ListModel::requestModInfo(ModPlatform::IndexedPack& current, QModelIndex index)
 {
-    m_parent->apiProvider()->getModInfo(current, [this, index](QJsonDocument& doc, ModPlatform::IndexedPack& pack) {
+    // pack is a reference to whatever the page has selected when the reply comes in, which may be another mod by then
+    auto requested_id = current.addonId;
+    m_parent->apiProvider()->getModInfo(current, [this, index, requested_id](QJsonDocument& doc, ModPlatform::IndexedPack& pack) {
         if (!s_running.constFind(this).value())
+            return;
+        if (pack.addonId != requested_id)
             return;
         infoRequestFinished(doc, pack, index);
     });
