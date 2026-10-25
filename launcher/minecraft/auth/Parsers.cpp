@@ -286,7 +286,12 @@ bool parseMinecraftProfileMojang(QByteArray & data, MinecraftProfile &output) {
         return false;
     }
 
-    auto obj = Json::requireObject(doc, "mojang minecraft profile");
+    // Report failure like everything else here, an exception would escape from the network reply's slot
+    if(!doc.isObject()) {
+        qWarning() << "Minecraft profile is not an object";
+        return false;
+    }
+    auto obj = doc.object();
     if(!getString(obj.value("id"), output.id)) {
         qWarning() << "Minecraft profile id is not a string";
         return false;
@@ -331,7 +336,11 @@ bool parseMinecraftProfileMojang(QByteArray & data, MinecraftProfile &output) {
         return false;
     }
 
-    obj = Json::requireObject(doc, "session texture payload");
+    if(!doc.isObject()) {
+        qWarning() << "Session texture payload is not an object";
+        return false;
+    }
+    obj = doc.object();
     auto textures = obj.value("textures");
     if (!textures.isObject()) {
         qWarning() << "No textures array in response";
