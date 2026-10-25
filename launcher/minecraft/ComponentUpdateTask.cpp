@@ -541,7 +541,12 @@ void ComponentUpdateTask::resolveDependencies(bool checkOnly)
             for(auto & remove : toRemove)
             {
                 qDebug() << "Removing" << remove;
-                d->m_list->remove(remove);
+                // If this fails, the component would be found again on every iteration of this loop
+                if(!d->m_list->remove(remove))
+                {
+                    emitFailed(tr("Couldn't remove obsolete component %1").arg(remove));
+                    return;
+                }
             }
         }
     } while (!toRemove.isEmpty());
