@@ -50,9 +50,15 @@ bool ConcurrentTask::abort()
     m_aborted = true;
 
     if (m_doing.isEmpty()) {
-        // Don't call emitAborted() here, we want to bypass the 'is the task running' check
-        emit aborted();
-        emit finished();
+        if (isRunning()) {
+            // Nothing got started yet (that happens later, in a queued call), so we're done right away.
+            // This also takes care of leaving the running state, which the signals below don't do.
+            emitAborted();
+        } else {
+            // Don't call emitAborted() here, we want to bypass the 'is the task running' check
+            emit aborted();
+            emit finished();
+        }
 
         return true;
     }
