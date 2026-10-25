@@ -177,13 +177,14 @@ void ModFolderPage::updateMods()
         return;
     }
     if (update_dialog.noUpdates()) {
-        QString message{ tr("'%1' is up-to-date! :)").arg(mods_list.front()->name()) };
-        if (mods_list.size() > 1) {
-            if (use_all) {
-                message = tr("All mods are up-to-date! :)");
-            } else {
-                message = tr("All selected mods are up-to-date! :)");
-            }
+        // The list can be empty here, when updates are disabled for all the mods
+        QString message;
+        if (mods_list.size() == 1) {
+            message = tr("'%1' is up-to-date! :)").arg(mods_list.front()->name());
+        } else if (use_all) {
+            message = tr("All mods are up-to-date! :)");
+        } else {
+            message = tr("All selected mods are up-to-date! :)");
         }
         CustomMessageBox::selectable(this, tr("Update checker"), message)
             ->exec();
