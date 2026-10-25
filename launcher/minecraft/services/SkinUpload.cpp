@@ -76,6 +76,8 @@ void SkinUpload::executeTask()
     multiPart->append(model);
 
     QNetworkReply *rep = APPLICATION->network()->post(request, multiPart);
+    // The reply needs the data until it's done, so let it own (and later delete) it
+    multiPart->setParent(rep);
     m_reply = shared_qobject_ptr<QNetworkReply>(rep);
 
     setStatus(tr("Uploading skin"));
