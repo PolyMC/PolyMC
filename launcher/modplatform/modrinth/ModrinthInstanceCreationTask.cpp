@@ -129,7 +129,7 @@ bool ModrinthCreationTask::updateInstance()
         }
 
         auto old_client_overrides = Override::readOverrides("client-overrides", old_index_folder);
-        for (const auto& entry : std::as_const(old_overrides)) {
+        for (const auto& entry : std::as_const(old_client_overrides)) {
             if (entry.isEmpty())
                 continue;
             qDebug() << "Scheduling" << entry << "for removal";
