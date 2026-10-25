@@ -307,7 +307,12 @@ void ResourceFolderModel::onParseSucceeded(int ticket, QString resource_id)
     if (iter == m_active_parse_tasks.constEnd())
         return;
 
-    int row = m_resources_index[resource_id];
+    // Don't use operator[], it would add an entry pointing at row 0 for a resource that was removed meanwhile
+    auto row_iter = m_resources_index.constFind(resource_id);
+    if (row_iter == m_resources_index.constEnd())
+        return;
+
+    int row = row_iter.value();
     emit dataChanged(index(row), index(row, columnCount(QModelIndex()) - 1));
 }
 

@@ -276,7 +276,11 @@ void ModFolderModel::onParseSucceeded(int ticket, QString mod_id)
     if (iter == m_active_parse_tasks.constEnd())
         return;
 
-    int row = m_resources_index[mod_id];
+    // Don't use operator[], it would add an entry pointing at row 0 for a mod that was removed meanwhile
+    auto row_iter = m_resources_index.constFind(mod_id);
+    if (row_iter == m_resources_index.constEnd())
+        return;
+    int row = row_iter.value();
 
     auto parse_task = *iter;
     auto cast_task = static_cast<LocalModParseTask*>(parse_task.get());
