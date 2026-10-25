@@ -333,10 +333,16 @@ void InstanceList::undoTrashInstance() {
     }
 
     qDebug() << "Moving" << top.trashPath << "back to" << top.polyPath;
-    QFile(top.trashPath).rename(top.polyPath);
+    if (!QFile(top.trashPath).rename(top.polyPath)) {
+        qWarning() << "Failed to move" << top.trashPath << "back to" << top.polyPath;
+        return;
+    }
 
-    m_instanceGroupIndex[top.id] = top.groupName;
-    m_groupNameCache.insert(top.groupName);
+    instanceSet.insert(top.id);
+    if (!top.groupName.isEmpty()) {
+        m_instanceGroupIndex[top.id] = top.groupName;
+        m_groupNameCache.insert(top.groupName);
+    }
 
     saveGroupList();
     emit instancesChanged();
