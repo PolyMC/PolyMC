@@ -356,9 +356,14 @@ private:
         while (!m_buffer.isEmpty() && !m_finished) {
             int pos = 0;
             int packetLen;
-            if (!tryReadVarInt(pos, packetLen) || packetLen <= 0)
+            if (!tryReadVarInt(pos, packetLen)) {
+                // A length takes at most 5 bytes. Without one in that much data the server is sending garbage,
+                // stop instead of buffering everything it sends until the timeout.
+                if (m_buffer.size() >= 5)
+                    finish(false);
                 return;
-            if (packetLen > MAX_STATUS_PACKET_SIZE) {
+            }
+            if (packetLen <= 0 || packetLen > MAX_STATUS_PACKET_SIZE) {
                 finish(false);
                 return;
             }
