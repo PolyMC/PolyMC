@@ -52,7 +52,7 @@ void Resource::parseFile()
 
 static void removeThePrefix(QString& string)
 {
-    QRegularExpression regex(QStringLiteral("^(?:the|teh) +"), QRegularExpression::CaseInsensitiveOption);
+    static const QRegularExpression regex(QStringLiteral("^(?:the|teh) +"), QRegularExpression::CaseInsensitiveOption);
     string.remove(regex);
     string = string.trimmed();
 }
