@@ -24,4 +24,5 @@ void LaunchStep::bind(LaunchTask *parent)
     connect(this, &LaunchStep::logLines, parent, &LaunchTask::onLogLines);
     connect(this, &LaunchStep::finished, parent, &LaunchTask::onStepFinished);
     connect(this, &LaunchStep::progressReportingRequest, parent, &LaunchTask::onProgressReportingRequested);
+    connect(this, &LaunchStep::suspendStateChanged, parent, &LaunchTask::onSuspendStateChanged);
 }

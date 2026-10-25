@@ -254,6 +254,26 @@ void BaseInstance::setRunning(bool running)
     emit runningStatusChanged(running);
 }
 
+void BaseInstance::setSuspendState(bool can_suspend, bool suspended)
+{
+    if(can_suspend == m_canSuspend && suspended == m_isSuspended)
+        return;
+
+    m_canSuspend = can_suspend;
+    m_isSuspended = suspended;
+    emit suspendStatusChanged();
+}
+
+bool BaseInstance::canSuspend() const
+{
+    return m_canSuspend;
+}
+
+bool BaseInstance::isSuspended() const
+{
+    return m_isSuspended;
+}
+
 int64_t BaseInstance::totalTimePlayed() const
 {
     qint64 current = m_settings->get("totalTimePlayed").toLongLong();

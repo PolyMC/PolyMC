@@ -102,6 +102,14 @@ public: /* methods */
 
     bool canAbort() const override;
 
+    /**
+     * @brief pause or resume the running game
+     */
+    bool canSuspend() const;
+    bool isSuspended() const;
+    bool suspend();
+    bool resume();
+
     shared_qobject_ptr<LogModel> getLogModel();
 
 public:
@@ -129,6 +137,7 @@ public slots:
     void onReadyForLaunch();
     void onStepFinished();
     void onProgressReportingRequested();
+    void onSuspendStateChanged();
 
 private: /*methods */
     void finalizeSteps(bool successful, const QString & error);

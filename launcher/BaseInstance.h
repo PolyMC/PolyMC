@@ -106,6 +106,9 @@ public:
 
     void setRunning(bool running);
     bool isRunning() const;
+    void setSuspendState(bool can_suspend, bool suspended);
+    bool canSuspend() const;
+    bool isSuspended() const;
     int64_t totalTimePlayed() const;
     int64_t lastTimePlayed() const;
     void resetTimePlayed();
@@ -300,6 +303,8 @@ signals:
 
     void runningStatusChanged(bool running);
 
+    void suspendStatusChanged();
+
     void statusChanged(Status from, Status to);
 
 protected slots:
@@ -310,6 +315,8 @@ protected: /* data */
     SettingsObjectPtr m_settings;
     // InstanceFlags m_flags;
     bool m_isRunning = false;
+    bool m_canSuspend = false;
+    bool m_isSuspended = false;
     shared_qobject_ptr<LaunchTask> m_launchProcess;
     QDateTime m_timeStarted;
     RuntimeContext m_runtimeContext;
