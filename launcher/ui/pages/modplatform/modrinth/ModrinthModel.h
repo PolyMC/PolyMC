@@ -79,6 +79,7 @@ class ModpackListModel : public QAbstractListModel {
    public slots:
     void searchRequestFinished(QJsonDocument& doc_all);
     void searchRequestFailed(QString reason);
+    void searchRequestAborted();
 
    protected slots:
 

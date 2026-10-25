@@ -165,6 +165,7 @@ void ListModel::performPaginatedSearch()
     jobPtr->start();
     QObject::connect(netJob, &NetJob::succeeded, this, &ListModel::searchRequestFinished);
     QObject::connect(netJob, &NetJob::failed, this, &ListModel::searchRequestFailed);
+    QObject::connect(netJob, &NetJob::aborted, this, [this] { searchRequestFailed({}); });
 }
 
 void ListModel::searchWithTerm(const QString& term, int sort)
@@ -174,9 +175,11 @@ void ListModel::searchWithTerm(const QString& term, int sort)
     }
     currentSearchTerm = term;
     currentSort = sort;
-    if (jobPtr) {
-        jobPtr->abort();
+    // Only abort a search that is still going, a finished one never reports back.
+    // Set the state first, aborting can report back right away.
+    if (jobPtr && jobPtr->isRunning()) {
         searchState = ResetRequested;
+        jobPtr->abort();
         return;
     } else {
         beginResetModel();
