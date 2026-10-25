@@ -7,6 +7,18 @@
 
 #include "Application.h"
 
+#include <QCryptographicHash>
+#include <QFile>
+
+static bool localFileMatches(const QString& path, const QByteArray& rawSha1)
+{
+    QFile file(path);
+    if (rawSha1.isEmpty() || !file.open(QIODevice::ReadOnly))
+        return false;
+    QCryptographicHash hash(QCryptographicHash::Sha1);
+    return hash.addData(&file) && hash.result() == rawSha1;
+}
+
 AssetUpdateTask::AssetUpdateTask(MinecraftInstance * inst)
 {
     m_inst = inst;
@@ -31,11 +43,11 @@ void AssetUpdateTask::executeTask()
 
     auto metacache = APPLICATION->metacache();
     auto entry = metacache->resolveEntry("asset_indexes", localPath);
-    entry->setStale(true);
     auto hexSha1 = assets->sha1.toLatin1();
     qDebug() << "Asset index SHA1:" << hexSha1;
-    auto dl = Net::Download::makeCached(indexUrl, entry);
     auto rawSha1 = QByteArray::fromHex(assets->sha1.toLatin1());
+    entry->setStale(!localFileMatches(entry->getFullPath(), rawSha1));
+    auto dl = Net::Download::makeCached(indexUrl, entry);
     dl->addValidator(new Net::ChecksumValidator(QCryptographicHash::Sha1, rawSha1));
     job->addNetAction(dl);
 
