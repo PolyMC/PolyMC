@@ -274,7 +274,8 @@ QString InstanceView::groupNameAt(const QPoint &point)
 
 int InstanceView::calculateItemsPerRow() const
 {
-    return qFloor((qreal)(contentWidth()) / (qreal)(itemWidth() + m_spacing));
+    // Always at least one, a view narrower than a single item would otherwise get zero items per row
+    return qMax(1, qFloor((qreal)(contentWidth()) / (qreal)(itemWidth() + m_spacing)));
 }
 
 int InstanceView::contentWidth() const
