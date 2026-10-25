@@ -457,8 +457,8 @@ void ExportInstanceDialog::done(int result)
 
 void ExportInstanceDialog::rowsInserted(QModelIndex parent, int top, int bottom)
 {
-    //WARNING: possible off-by-one?
-    for(int i = top; i < bottom; i++)
+    // bottom is inclusive
+    for(int i = top; i <= bottom; i++)
     {
         auto node = proxyModel->index(i, 0, parent);
         if(proxyModel->shouldExpand(node))
