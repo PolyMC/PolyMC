@@ -743,6 +743,11 @@ void PackInstallTask::extractConfigs()
 #endif
     connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::finished, this, [&]()
     {
+        // Don't go on with a pack that's missing its configs
+        if (!m_extractFuture.result()) {
+            emitFailed(tr("Failed to extract the pack configs!"));
+            return;
+        }
         downloadMods();
     });
     connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::canceled, this, [&]()
