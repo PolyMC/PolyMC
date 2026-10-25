@@ -6,6 +6,7 @@
 #include <QMutex>
 #include <QSet>
 #include <QSortFilterProxyModel>
+#include <QTimer>
 
 #include "Resource.h"
 
@@ -187,6 +188,7 @@ class ResourceFolderModel : public QAbstractListModel {
 
     QDir m_dir;
     QFileSystemWatcher m_watcher;
+    QTimer m_watcher_update_timer;
     bool m_is_watching = false;
 
     Task::Ptr m_current_update_task = nullptr;
