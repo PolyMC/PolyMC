@@ -154,11 +154,14 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
 
             updateUI();
 
-            QVariant current_updated;
-            current_updated.setValue(current);
+            // Only cache it if the row still holds this pack, a new search may have put another one there meanwhile
+            if (m_model->data(curr, Qt::UserRole).value<Modrinth::Modpack>().id == id) {
+                QVariant current_updated;
+                current_updated.setValue(current);
 
-            if (!m_model->setData(curr, current_updated, Qt::UserRole))
-                qWarning() << "Failed to cache extra info for the current pack!";
+                if (!m_model->setData(curr, current_updated, Qt::UserRole))
+                    qWarning() << "Failed to cache extra info for the current pack!";
+            }
 
             suggestCurrent();
         });
@@ -209,11 +212,14 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
                     ui->versionSelectionBox->addItem(version.name, QVariant(version.id));
             }
 
-            QVariant current_updated;
-            current_updated.setValue(current);
+            // Only cache it if the row still holds this pack, a new search may have put another one there meanwhile
+            if (m_model->data(curr, Qt::UserRole).value<Modrinth::Modpack>().id == id) {
+                QVariant current_updated;
+                current_updated.setValue(current);
 
-            if (!m_model->setData(curr, current_updated, Qt::UserRole))
-                qWarning() << "Failed to cache versions for the current pack!";
+                if (!m_model->setData(curr, current_updated, Qt::UserRole))
+                    qWarning() << "Failed to cache versions for the current pack!";
+            }
 
             suggestCurrent();
         });
