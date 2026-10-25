@@ -1356,10 +1356,15 @@ void MainWindow::updateToolsMenu()
 
 void MainWindow::repopulateAccountsMenu()
 {
-    // The account actions are owned by accountMenu, and clear() only deletes them when no other widget shows
-    // them anymore, so take them out of the profile menu first
+    // The account actions are owned by accountMenu. Delete them later instead of letting clear() delete them right
+    // away: this runs when one of them gets triggered, while that action is still emitting its signals.
     ui->profileMenu->clear();
-    accountMenu->clear();
+    for (auto* action : accountMenu->actions())
+    {
+        accountMenu->removeAction(action);
+        if (action->parent() == accountMenu)
+            action->deleteLater();
+    }
 
     auto accounts = APPLICATION->accounts();
     MinecraftAccountPtr defaultAccount = accounts->defaultAccount();
