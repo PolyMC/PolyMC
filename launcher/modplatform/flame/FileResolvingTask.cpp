@@ -51,7 +51,20 @@ void Flame::FileResolvingTask::netJobFinished()
         return;
     }
 
-    auto array = Json::requireArray(doc.object()["data"]);
+    // This is a slot, an exception escaping from here would take the whole launcher down
+    QJsonArray array;
+    try {
+        array = Json::requireArray(doc.object()["data"]);
+        for (const auto &file : std::as_const(array))
+            Json::requireInteger(Json::requireObject(file)["id"]);
+    }
+    catch (const JSONValidationError &e) {
+        qDebug() << "Flame::FileResolvingTask: Json Validation error: " << e.what();
+        delete job;
+        emitFailed(e.what());
+        return;
+    }
+
     for (const auto &file : std::as_const(array)) {
         auto fileid = Json::requireInteger(Json::requireObject(file)["id"]);
         auto& out = m_toProcess.files[fileid];
@@ -91,15 +104,21 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
         }
         QJsonDocument doc = QJsonDocument::fromJson(*bytes);
         auto obj = doc.object();
-        auto array = Json::requireArray(obj,"files");
-        for (auto file : std::as_const(array)) {
-            auto fileObj = Json::requireObject(file);
-            auto primary = Json::requireBoolean(fileObj,"primary");
-            if (primary) {
-                out->url = Json::requireUrl(fileObj,"url");
-                qDebug() << "Found alternative on modrinth " << out->fileName;
-                break;
+        try {
+            auto array = Json::requireArray(obj,"files");
+            for (auto file : std::as_const(array)) {
+                auto fileObj = Json::requireObject(file);
+                auto primary = Json::requireBoolean(fileObj,"primary");
+                if (primary) {
+                    out->url = Json::requireUrl(fileObj,"url");
+                    qDebug() << "Found alternative on modrinth " << out->fileName;
+                    break;
+                }
             }
+        } catch (const JSONValidationError& e) {
+            // Treat it like it wasn't found on Modrinth, so the user gets asked to download it
+            qWarning() << "Couldn't read the Modrinth alternative of" << out->fileName << ":" << e.cause();
+            out->resolved = false;
         }
         delete bytes;
     }
