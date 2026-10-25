@@ -133,7 +133,8 @@ bool PageContainer::selectPage(QString pageId)
 void PageContainer::refreshContainer()
 {
     m_proxyModel->invalidate();
-    if(!m_currentPage->shouldDisplay())
+    // There may not be a current page yet, pick the first one then too
+    if(!m_currentPage || !m_currentPage->shouldDisplay())
     {
         auto index = m_proxyModel->index(0, 0);
         if(index.isValid())
