@@ -35,6 +35,8 @@ void ConcurrentTask::addTask(Task::Ptr task)
 
 void ConcurrentTask::executeTask()
 {
+    // Tasks can be started again after an abort, don't keep acting like we're still aborted then
+    m_aborted = false;
     m_total_size = m_queue.size();
 
     // Start the least amount of tasks needed, but at least one
