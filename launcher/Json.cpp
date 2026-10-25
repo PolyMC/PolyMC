@@ -67,6 +67,8 @@ QByteArray toText(const QJsonArray &array)
 static bool isBinaryJson(const QByteArray &data)
 {
     decltype(QJsonDocument::BinaryFormatTag) tag = QJsonDocument::BinaryFormatTag;
+    if (data.size() < int(sizeof(tag)))
+        return false;
     return memcmp(data.constData(), &tag, sizeof(QJsonDocument::BinaryFormatTag)) == 0;
 }
 QJsonDocument requireDocument(const QByteArray &data, const QString &what)
