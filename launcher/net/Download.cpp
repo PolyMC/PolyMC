@@ -127,6 +127,10 @@ void Download::executeTask()
         request.setHeader(QNetworkRequest::UserAgentHeader, APPLICATION->getUserAgent().toUtf8());
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    request.setTransferTimeout(60000);
+#endif
+
     QNetworkReply* rep = m_network->get(request);
 
     m_reply.reset(rep);
@@ -148,9 +152,8 @@ void Download::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 
 void Download::downloadError(QNetworkReply::NetworkError error)
 {
-    if (error == QNetworkReply::OperationCanceledError) {
+    if (error == QNetworkReply::OperationCanceledError && m_state == State::AbortedByUser) {
         qCritical() << "Aborted " << m_url.toString();
-        m_state = State::AbortedByUser;
     } else {
         if (m_options & Option::AcceptLocalFiles) {
             if (m_sink->hasLocalData()) {
@@ -299,10 +302,9 @@ void Download::downloadReadyRead()
 
 bool Net::Download::abort()
 {
+    m_state = State::AbortedByUser;
     if (m_reply) {
         m_reply->abort();
-    } else {
-        m_state = State::AbortedByUser;
     }
     return true;
 }
