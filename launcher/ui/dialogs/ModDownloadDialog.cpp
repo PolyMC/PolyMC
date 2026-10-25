@@ -181,6 +181,10 @@ const QList<ModDownloadTask*> ModDownloadDialog::getTasks()
 
 void ModDownloadDialog::selectedPageChanged(BasePage* previous, BasePage* selected)
 {
+    // There is no previous page when the first page gets selected
+    if (!previous || !selected)
+        return;
+
     auto* prev_page = dynamic_cast<ModPage*>(previous);
     if (!prev_page) {
         qCritical() << "Page '" << previous->displayName() << "' in ModDownloadDialog is not a ModPage!";
