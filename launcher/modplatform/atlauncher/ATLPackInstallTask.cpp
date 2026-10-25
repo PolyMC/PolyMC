@@ -250,6 +250,11 @@ void PackInstallTask::deleteExistingFiles()
         return false;
     };
 
+    // The targets come from the pack, so never delete anything outside of the instance's minecraft folder
+    auto isInsideInstance = [this](const QString& path) {
+        return path.startsWith(FS::PathCombine(m_stagingPath, "minecraft") + '/');
+    };
+
     // Keep track of files to delete
     QSet<QString> filesToDelete;
 
@@ -257,6 +262,11 @@ void PackInstallTask::deleteExistingFiles()
         auto basePath = getPathForBase(item.base);
         auto targetPath = convertToSystemPath(item.target);
         auto fullPath = FS::PathCombine(basePath, targetPath);
+
+        if (!isInsideInstance(fullPath)) {
+            qWarning() << "Not deleting" << fullPath << "as it is outside of the instance";
+            continue;
+        }
 
         if (shouldKeep(fullPath))
             continue;
@@ -268,6 +278,11 @@ void PackInstallTask::deleteExistingFiles()
         auto basePath = getPathForBase(item.base);
         auto targetPath = convertToSystemPath(item.target);
         auto fullPath = FS::PathCombine(basePath, targetPath);
+
+        if (!isInsideInstance(fullPath)) {
+            qWarning() << "Not deleting" << fullPath << "as it is outside of the instance";
+            continue;
+        }
 
         QDirIterator it(fullPath, QDirIterator::Subdirectories);
         while (it.hasNext()) {
