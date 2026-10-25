@@ -380,7 +380,9 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
                 files.push_back(file);
             }
 
-            auto dependencies = Json::requireObject(obj, "dependencies", "modrinth.index.json");
+            // Only take the versions from the pack we're installing. When updating, the old pack's index is read too,
+            // and its (outdated) versions would otherwise replace the new ones.
+            auto dependencies = set_managed_info ? Json::requireObject(obj, "dependencies", "modrinth.index.json") : QJsonObject();
             for (auto it = dependencies.begin(), end = dependencies.end(); it != end; ++it) {
                 QString name = it.key();
                 if (name == "minecraft") {
