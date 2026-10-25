@@ -45,6 +45,7 @@
 #include <QTextStream>
 #include <QUrl>
 
+#include <limits>
 #include <system_error>
 
 #if defined Q_OS_WIN32
@@ -117,6 +118,9 @@ QByteArray read(const QString& filename)
         throw FileSystemException("Unable to open " + filename + " for reading: " + file.errorString());
     }
     const qint64 size = file.size();
+    if (size > (std::numeric_limits<int>::max)()) {
+        throw FileSystemException("Unable to read " + filename + ": the file is too large");
+    }
     QByteArray data(int(size), 0);
     const qint64 ret = file.read(data.data(), size);
     if (ret == -1 || ret != size) {
