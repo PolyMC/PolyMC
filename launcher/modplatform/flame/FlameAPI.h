@@ -3,6 +3,8 @@
 #include "modplatform/ModIndex.h"
 #include "modplatform/helpers/NetworkModAPI.h"
 
+#include <QUrl>
+
 class FlameAPI : public NetworkModAPI {
 public:
     NetJob::Ptr matchFingerprints(const QList<uint>& fingerprints, QByteArray* response);
@@ -51,6 +53,8 @@ private:
         const auto off = QString::number(args.offset);
         const auto sort = QString::number(getSortFieldInt(args.sorting));
         const auto classId = QString::number(getClassId(args.type));
+        // Characters like & or # in the search would otherwise end the parameter early
+        const auto search = QString::fromUtf8(QUrl::toPercentEncoding(args.search));
 
         return QString("https://api.curseforge.com/v1/mods/search?"
                        "gameId=432&"
@@ -62,7 +66,7 @@ private:
                        "sortOrder=desc&"
                        "%4"
                        "%5")
-            .arg(off, args.search, sort, loader, gameVersionStr, classId);
+            .arg(off, search, sort, loader, gameVersionStr, classId);
     };
 
     inline QString getModInfoURL(QString& id) const override {

@@ -23,6 +23,7 @@
 #include "modplatform/helpers/NetworkModAPI.h"
 
 #include <QDebug>
+#include <QUrl>
 
 class ModrinthAPI : public NetworkModAPI {
    public:
@@ -107,6 +108,8 @@ class ModrinthAPI : public NetworkModAPI {
         const auto off = QString::number(args.offset);
         const auto filter = args.type == Mod ? QStringLiteral("[%1],").arg(getModLoaderFilters(args.loaders)) : "";
         const auto projType = getProjectTypeFacets(args.type);
+        // Characters like & or # in the search would otherwise end the parameter early
+        const auto search = QString::fromUtf8(QUrl::toPercentEncoding(args.search));
 
         return QString(BuildConfig.MODRINTH_PROD_URL + "/search?"
                                                        "offset=%1&"
@@ -114,7 +117,7 @@ class ModrinthAPI : public NetworkModAPI {
                                                        "query=%2&"
                                                        "index=%3&"
                                                        "facets=[%4%5%6]")
-            .arg(off, args.search, args.sorting, filter,
+            .arg(off, search, args.sorting, filter,
                  getGameVersionsArray(args.versions), projType);
     };
 
