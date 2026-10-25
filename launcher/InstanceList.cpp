@@ -817,7 +817,14 @@ class InstanceStaging : public Task {
     }
 
    protected:
-    virtual void executeTask() override { m_child->start(); }
+    virtual void executeTask() override
+    {
+        if (m_stagingPath.isEmpty()) {
+            emitFailed(tr("Failed to create a temporary folder for the instance in the instances folder."));
+            return;
+        }
+        m_child->start();
+    }
     QStringList warnings() const override { return m_child->warnings(); }
 
    private slots:
