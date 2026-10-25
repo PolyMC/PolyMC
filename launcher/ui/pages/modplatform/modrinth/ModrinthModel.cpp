@@ -136,10 +136,12 @@ void ModpackListModel::performPaginatedSearch()
                             "query=%3&"
                             "index=%4&"
                             "facets=[[\"project_type:modpack\"]]")
-                            .arg(nextSearchOffset)
-                            .arg(m_modpacks_per_page)
-                            .arg(currentSearchTerm)
-                            .arg(currentSort);
+                            // Encode the search, and fill everything in at once: with chained arg() calls,
+                            // something like %4 in the search would get replaced by the next one
+                            .arg(QString::number(nextSearchOffset),
+                                 QString::number(m_modpacks_per_page),
+                                 QString::fromUtf8(QUrl::toPercentEncoding(currentSearchTerm)),
+                                 currentSort);
 
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchAllUrl), &m_all_response));
 

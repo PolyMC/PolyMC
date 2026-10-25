@@ -156,9 +156,11 @@ void ListModel::performPaginatedSearch()
                          "searchFilter=%2&"
                          "sortField=%3&"
                          "sortOrder=desc")
-                         .arg(nextSearchOffset)
-                         .arg(currentSearchTerm)
-                         .arg(currentSort + 1);
+                         // Encode the search, and fill everything in at once: with chained arg() calls,
+                         // something like %3 in the search would get replaced by the next one
+                         .arg(QString::number(nextSearchOffset),
+                              QString::fromUtf8(QUrl::toPercentEncoding(currentSearchTerm)),
+                              QString::number(currentSort + 1));
 
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchUrl), &response));
     jobPtr = netJob;

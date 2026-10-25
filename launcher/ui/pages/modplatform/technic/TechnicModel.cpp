@@ -133,7 +133,8 @@ void Technic::ListModel::performSearch()
     else {
         searchUrl = QString(
             "%1search?build=%2&q=%3"
-        ).arg(BuildConfig.TECHNIC_API_BASE_URL, BuildConfig.TECHNIC_API_BUILD, currentSearchTerm);
+        // Encode the search, characters like & or # would otherwise end the parameter early
+        ).arg(BuildConfig.TECHNIC_API_BASE_URL, BuildConfig.TECHNIC_API_BUILD, QString::fromUtf8(QUrl::toPercentEncoding(currentSearchTerm)));
         searchMode = List;
     }
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchUrl), &response));
