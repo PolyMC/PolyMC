@@ -157,9 +157,10 @@ void OtherLogsPage::on_btnReload_clicked()
     {
         setControlsEnabled(false);
         ui->btnReload->setEnabled(true); // allow reload
-        m_currentFile = QString();
+        // Show the name before forgetting it
         QMessageBox::critical(this, tr("Error"), tr("Unable to open %1 for reading: %2")
                                                      .arg(m_currentFile, file.errorString()));
+        m_currentFile = QString();
     }
     else
     {
