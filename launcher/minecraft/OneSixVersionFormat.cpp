@@ -376,7 +376,7 @@ QJsonDocument OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patch
     if (!patch->mods.isEmpty())
     {
         QJsonArray array;
-        for (const auto &value : std::as_const(patch->jarMods))
+        for (const auto &value : std::as_const(patch->mods))
         {
             array.append(OneSixVersionFormat::modtoJson(value.get()));
         }
