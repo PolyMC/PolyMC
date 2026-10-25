@@ -234,7 +234,9 @@ void ListModel::logoLoaded(QString logo, QIcon out)
 {
     m_loadingLogos.removeAll(logo);
     m_logoMap.insert(logo, out);
-    emit dataChanged(createIndex(0, 0), createIndex(1, 0));
+    // Any of the packs may use this logo, not just the first two
+    if (!modpacks.isEmpty())
+        emit dataChanged(createIndex(0, 0), createIndex(modpacks.size() - 1, 0));
 }
 
 void ListModel::logoFailed(QString logo)
