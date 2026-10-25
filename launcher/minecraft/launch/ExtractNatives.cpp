@@ -22,6 +22,7 @@
 #include "MMCZip.h"
 #include "FileSystem.h"
 #include <QDir>
+#include <QDebug>
 
 #ifdef major
     #undef major
@@ -67,6 +68,19 @@ static bool unzipNatives(QString source, QString targetFolder, bool applyJnilibH
             name = replaceSuffix(name, ".jnilib", ".dylib");
         }
         QString absFilePath = directory.absoluteFilePath(name);
+        // Don't let entries place themselves outside of the natives folder
+        const QString targetRoot = QDir::cleanPath(directory.absolutePath());
+        if (!QDir::cleanPath(absFilePath).startsWith(targetRoot + '/'))
+        {
+            qWarning() << "Skipping native" << name << "as it tries to place itself outside of" << targetRoot;
+            continue;
+        }
+        QuaZipFileInfo64 info;
+        if (zip.getCurrentFileInfo(&info) && info.isSymbolicLink())
+        {
+            qWarning() << "Skipping native" << name << "as it is a symbolic link";
+            continue;
+        }
         if (!JlCompress::extractFile(&zip, "", absFilePath))
         {
             return false;
