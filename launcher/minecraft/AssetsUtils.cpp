@@ -424,5 +424,7 @@ NetJob::Ptr AssetsIndex::getDownloadJob()
     }
     if(job->size())
         return job;
+    // Nothing to download, nobody takes ownership of the job then
+    delete job;
     return nullptr;
 }
