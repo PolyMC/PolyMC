@@ -375,11 +375,12 @@ bool World::rename(const QString &newName)
     {
         return false;
     }
-    auto &val = worldData->at("Data");
-    if(val.get_type() != nbt::tag_type::Compound)
+    // at() throws when there is no such key
+    if(!worldData->has_key("Data", nbt::tag_type::Compound))
     {
         return false;
     }
+    auto &val = worldData->at("Data");
     auto &dataCompound = val.as<nbt::tag_compound>();
     dataCompound.put("LevelName", nbt::value_initializer(newName.toUtf8().data()));
     data = serializeLevelDat(worldData.get());
