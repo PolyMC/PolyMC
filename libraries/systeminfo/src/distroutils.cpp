@@ -270,7 +270,11 @@ Sys::DistributionInfo Sys::read_legacy_release()
             QDir etcDir("/etc");
             etcDir.setNameFilters({"*-release"});
             etcDir.setFilter(QDir::Files | QDir::NoDot | QDir::NoDotDot | QDir::Readable | QDir::Hidden);
-            files = etcDir.entryList();
+            // Full paths: the bare names entryList() gives would be opened relative to the working directory
+            for (const auto &info : etcDir.entryInfoList())
+            {
+                files.append(info.absoluteFilePath());
+            }
         }
         else
         {
