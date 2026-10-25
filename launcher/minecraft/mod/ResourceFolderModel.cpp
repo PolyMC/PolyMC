@@ -3,6 +3,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QMimeData>
+#include <QPointer>
 #include <QThreadPool>
 #include <QUrl>
 
@@ -268,10 +269,12 @@ void ResourceFolderModel::resolveResource(Resource* res)
     res->setResolving(true, ticket);
     m_active_parse_tasks.insert(ticket, task);
 
+    // These are queued, so the resource may have been removed from the list (and deleted) by the time they run
+    QPointer<Resource> resource = res;
     connect(
-        task, &Task::succeeded, this, [=] { onParseSucceeded(ticket, res->internal_id()); }, Qt::ConnectionType::QueuedConnection);
+        task, &Task::succeeded, this, [=] { if (resource) onParseSucceeded(ticket, resource->internal_id()); }, Qt::ConnectionType::QueuedConnection);
     connect(
-        task, &Task::failed, this, [=] { onParseFailed(ticket, res->internal_id()); }, Qt::ConnectionType::QueuedConnection);
+        task, &Task::failed, this, [=] { if (resource) onParseFailed(ticket, resource->internal_id()); }, Qt::ConnectionType::QueuedConnection);
     connect(
         task, &Task::finished, this, [=] { m_active_parse_tasks.remove(ticket); }, Qt::ConnectionType::QueuedConnection);
 
