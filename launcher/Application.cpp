@@ -88,6 +88,7 @@
 #include <QList>
 #include <QStringList>
 #include <QDebug>
+#include <QMutex>
 #include <QStyleFactory>
 #include <QWindow>
 #include <QIcon>
@@ -169,10 +170,17 @@ void appDebugOutput(QtMsgType type, const QMessageLogContext &/*context*/, const
 
     QString out = format.arg(buf).arg(levels[type]).arg(msg);
 
+    static QMutex logMutex;
+    thread_local bool logging = false;
+    if (logging)
+        return;
+    QMutexLocker locker(&logMutex);
+    logging = true;
     APPLICATION->logFile->write(out.toUtf8());
     APPLICATION->logFile->flush();
     QTextStream(stderr) << out.toLocal8Bit();
     fflush(stderr);
+    logging = false;
 }
 
 QString getIdealPlatform(QString currentPlatform) {
