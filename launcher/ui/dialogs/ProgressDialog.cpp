@@ -159,8 +159,8 @@ void ProgressDialog::changeProgress(qint64 current, qint64 total)
         ui->taskProgressBar->setMaximum(total);
         ui->taskProgressBar->setValue(current);
     } else {
-        ui->taskProgressBar->setMaximum(task->getStepProgress());
-        ui->taskProgressBar->setValue(task->getStepTotalProgress());
+        ui->taskProgressBar->setMaximum(task->getStepTotalProgress());
+        ui->taskProgressBar->setValue(task->getStepProgress());
     }
 }
 
