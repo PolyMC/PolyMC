@@ -403,14 +403,15 @@ void WorldListPage::on_actionCopy_triggered()
     if(!worldSafetyNagQuestion(tr("Copy World")))
         return;
 
+    // Take a copy, the world list can be reloaded while the dialog below is shown, which frees the original
     auto worldVariant = m_worlds->data(index, WorldList::ObjectRole);
-    auto world = (World *) worldVariant.value<void *>();
+    World world = *(World *) worldVariant.value<void *>();
     bool ok = false;
-    QString name = QInputDialog::getText(this, tr("World name"), tr("Enter a new name for the copy."), QLineEdit::Normal, world->name(), &ok);
+    QString name = QInputDialog::getText(this, tr("World name"), tr("Enter a new name for the copy."), QLineEdit::Normal, world.name(), &ok);
 
     if (ok && name.length() > 0)
     {
-        world->install(m_worlds->dir().absolutePath(), name);
+        world.install(m_worlds->dir().absolutePath(), name);
     }
 }
 
@@ -425,15 +426,16 @@ void WorldListPage::on_actionRename_triggered()
     if(!worldSafetyNagQuestion(tr("Rename World")))
         return;
 
+    // Take a copy, the world list can be reloaded while the dialog below is shown, which frees the original
     auto worldVariant = m_worlds->data(index, WorldList::ObjectRole);
-    auto world = (World *) worldVariant.value<void *>();
+    World world = *(World *) worldVariant.value<void *>();
 
     bool ok = false;
-    QString name = QInputDialog::getText(this, tr("World name"), tr("Enter a new world name."), QLineEdit::Normal, world->name(), &ok);
+    QString name = QInputDialog::getText(this, tr("World name"), tr("Enter a new world name."), QLineEdit::Normal, world.name(), &ok);
 
     if (ok && name.length() > 0)
     {
-        world->rename(name);
+        world.rename(name);
     }
 }
 
