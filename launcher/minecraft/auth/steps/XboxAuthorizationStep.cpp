@@ -64,16 +64,11 @@ void XboxAuthorizationStep::onRequestDone(
     if (error != QNetworkReply::NoError) {
         qWarning() << "Reply error:" << error;
         if (Net::isApplicationError(error)) {
+            // processSTSError() already reports the error when it knows about it
             if(!processSTSError(error, data, headers)) {
                 emit finished(
                     AccountTaskState::STATE_FAILED_SOFT,
                     tr("Failed to get authorization for %1 services. Error %2.").arg(m_authorizationKind, error)
-                );
-            }
-            else {
-                emit finished(
-                    AccountTaskState::STATE_FAILED_SOFT,
-                    tr("Unknown STS error for %1 services: %2").arg(m_authorizationKind, requestor->errorString_)
                 );
             }
         }
