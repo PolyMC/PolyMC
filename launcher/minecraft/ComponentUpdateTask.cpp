@@ -195,7 +195,7 @@ void ComponentUpdateTask::loadComponents()
             });
             connect(indexLoadTask.get(), &Task::failed, [=](const QString & error)
             {
-                remoteLoadFailed(taskIndex, error);
+                remoteLoadFailed(taskIndex, error, true);
             });
             connect(indexLoadTask.get(), &Task::aborted, [=]()
             {
@@ -245,7 +245,7 @@ void ComponentUpdateTask::loadComponents()
             });
             connect(loadTask.get(), &Task::failed, [=](const QString & error)
             {
-                remoteLoadFailed(taskIndex, error);
+                remoteLoadFailed(taskIndex, error, true);
             });
             connect(loadTask.get(), &Task::aborted, [=]()
             {
@@ -670,13 +670,33 @@ void ComponentUpdateTask::remoteLoadSucceeded(size_t taskIndex)
 }
 
 
-void ComponentUpdateTask::remoteLoadFailed(size_t taskIndex, const QString& msg)
+void ComponentUpdateTask::remoteLoadFailed(size_t taskIndex, const QString& msg, bool canUseLocal)
 {
     auto &taskSlot = d->remoteLoadStatusList[taskIndex];
     if(taskSlot.finished)
     {
         qWarning() << "Got multiple results from remote load task" << taskIndex;
         return;
+    }
+    if(canUseLocal)
+    {
+        // The remote update failed, but if we already loaded a copy from the local cache we can keep going with that
+        bool hasLocalData = false;
+        if(taskSlot.type == RemoteLoadStatus::Type::Index)
+        {
+            hasLocalData = APPLICATION->metadataIndex()->isLoaded();
+        }
+        else if(taskSlot.type == RemoteLoadStatus::Type::Version)
+        {
+            auto component = d->m_list->getComponent(static_cast<int>(taskSlot.PackProfileIndex));
+            hasLocalData = component && component->m_metaVersion && component->m_metaVersion->isLoaded();
+        }
+        if(hasLocalData)
+        {
+            qWarning() << "Remote task" << taskIndex << "failed, using the locally cached data instead:" << msg;
+            remoteLoadSucceeded(taskIndex);
+            return;
+        }
     }
     qDebug() << "Remote task" << taskIndex << "failed: " << msg;
     d->remoteLoadSuccessful = false;
