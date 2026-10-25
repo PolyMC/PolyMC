@@ -50,6 +50,11 @@ void PreLaunchCommand::executeTask()
     //FIXME: where to put this?
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
     auto args = QProcess::splitCommand(m_command);
+    // A command made only of whitespace has nothing to run
+    if (args.isEmpty()) {
+        emitSucceeded();
+        return;
+    }
     m_parent->substituteVariables(args);
 
     emit logLine(tr("Running Pre-Launch command: %1").arg(args.join(' ')), MessageLevel::Launcher);
