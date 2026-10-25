@@ -33,7 +33,10 @@ void KonamiCode::input(QEvent* event)
         }
         else
         {
-            m_progress = 0;
+            if (key == konamiCode[0])
+                m_progress = (m_progress == 2) ? 2 : 1;
+            else
+                m_progress = 0;
         }
         if(m_progress == static_cast<int>(konamiCode.size()))
         {
