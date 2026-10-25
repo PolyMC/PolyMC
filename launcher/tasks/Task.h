@@ -126,8 +126,9 @@ class Task : public QObject, public QRunnable {
     QStringList m_Warnings;
     QString m_failReason = "";
     QString m_status;
-    int m_progress = 0;
-    int m_progressTotal = 100;
+    // 64 bit like setProgress(), so byte counts of large downloads aren't cut off
+    qint64 m_progress = 0;
+    qint64 m_progressTotal = 100;
 
     // TODO: Nuke in favor of QLoggingCategory
     bool m_show_debug = true;
