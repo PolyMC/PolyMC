@@ -141,6 +141,12 @@ void PackInstallTask::unzip()
 
 void PackInstallTask::onUnzipFinished()
 {
+    // Don't go on installing a pack that didn't extract
+    if (!m_extractFuture.result())
+    {
+        emitFailed(tr("Failed to extract modpack"));
+        return;
+    }
     install();
 }
 
