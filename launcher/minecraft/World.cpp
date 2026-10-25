@@ -148,6 +148,12 @@ std::unique_ptr <nbt::tag_compound> parseLevelDat(QByteArray data)
         qWarning() << "Unable to parse level.dat:" << e.what();
         return nullptr;
     }
+    // Anything else, like running out of memory on a broken file, would otherwise take the launcher down with it
+    catch (const std::exception &e)
+    {
+        qWarning() << "Unable to parse level.dat:" << e.what();
+        return nullptr;
+    }
 }
 
 QByteArray serializeLevelDat(nbt::tag_compound * levelInfo)
