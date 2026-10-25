@@ -1006,13 +1006,19 @@ void Application::performMainStartupAction()
             {
                 accountToUse = accounts()->getAccountByProfileName(m_profileToUse);
                 if(!accountToUse) {
-                    return;
+                    qWarning() << "   No account found for profile" << m_profileToUse << ", not launching";
                 }
-                qDebug() << "   Launching with account" << m_profileToUse;
+                else
+                {
+                    qDebug() << "   Launching with account" << m_profileToUse;
+                }
             }
 
-            launch(inst, true, false, nullptr, serverToJoin, accountToUse);
-            return;
+            if(m_profileToUse.isEmpty() || accountToUse)
+            {
+                launch(inst, true, false, nullptr, serverToJoin, accountToUse);
+                return;
+            }
         }
     }
 
