@@ -226,8 +226,9 @@ int64_t calculateWorldSize(const QFileInfo &file)
         int64_t total = 0;
         while (it.hasNext())
         {
-            total += it.fileInfo().size();
+            // next() moves to the next file, fileInfo() describes the current one, so move first
             it.next();
+            total += it.fileInfo().size();
         }
         return total;
     }
