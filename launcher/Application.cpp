@@ -882,6 +882,10 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
             // save any remaining instance state
             m_instances->saveNow();
         }
+        if(m_metacache)
+        {
+            m_metacache->SaveNow();
+        }
         if(logFile)
         {
             logFile->flush();
