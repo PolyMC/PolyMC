@@ -806,6 +806,12 @@ void PackInstallTask::downloadMods()
         auto cacheName = fileName.completeBaseName() + "-" + mod.md5 + "." + fileName.suffix();
 
         if (mod.type == ModType::Extract || mod.type == ModType::TexturePackExtract || mod.type == ModType::ResourcePackExtract) {
+            // Check the target type here, extractMods() runs on another thread where failing the task isn't safe
+            if (mod.type == ModType::Extract) {
+                getDirForModType(mod.extractTo, mod.extractTo_raw);
+                if (!isRunning()) return;
+            }
+
             auto entry = APPLICATION->metacache()->resolveEntry("ATLauncherPacks", cacheName);
             entry->setStale(true);
             modsToExtract.insert(entry->getFullPath(), mod);
@@ -818,6 +824,10 @@ void PackInstallTask::downloadMods()
             jobPtr->addNetAction(dl);
         }
         else if(mod.type == ModType::Decomp) {
+            // Check the target type here, extractMods() runs on another thread where failing the task isn't safe
+            getDirForModType(mod.decompType, mod.decompType_raw);
+            if (!isRunning()) return;
+
             auto entry = APPLICATION->metacache()->resolveEntry("ATLauncherPacks", cacheName);
             entry->setStale(true);
             modsToDecomp.insert(entry->getFullPath(), mod);
@@ -831,6 +841,8 @@ void PackInstallTask::downloadMods()
         }
         else {
             auto relpath = getDirForModType(mod.type, mod.type_raw);
+            // An unknown type makes getDirForModType() fail the task, don't keep going then
+            if(!isRunning()) return;
             if(relpath == Q_NULLPTR) continue;
 
             auto entry = APPLICATION->metacache()->resolveEntry("ATLauncherPacks", cacheName);
