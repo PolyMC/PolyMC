@@ -146,7 +146,7 @@ static ComponentPtr componentFromJsonV1(PackProfile * parent, const QString & /*
     component->m_cachedName = Json::ensureString(obj.value("cachedName"));
     Meta::parseRequires(obj, &component->m_cachedRequires, "cachedRequires");
     Meta::parseRequires(obj, &component->m_cachedConflicts, "cachedConflicts");
-    component->m_cachedVolatile = Json::ensureBoolean(obj.value("volatile"), false);
+    component->m_cachedVolatile = Json::ensureBoolean(obj.value("cachedVolatile"), false);
     bool disabled = Json::ensureBoolean(obj.value("disabled"), false);
     component->setEnabled(!disabled);
     return component;
