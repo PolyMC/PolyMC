@@ -48,6 +48,10 @@ bool NetJob::addNetAction(NetAction::Ptr action)
 
 void NetJob::startNext()
 {
+    // Don't retry the downloads abort() moved into m_failed
+    if (m_aborted)
+        return;
+
     if (m_queue.isEmpty() && m_doing.isEmpty()) {
         // We're finished, check for failures and retry if we can (up to 3 times)
         if (!m_failed.isEmpty() && m_try < 3) {
@@ -87,6 +91,9 @@ bool NetJob::canAbort() const
 bool NetJob::abort()
 {
     bool fullyAborted = true;
+
+    // Stop any startNext() calls that are still queued from starting more downloads
+    m_aborted = true;
 
     // fail all downloads on the queue
     for (const auto &task : std::as_const(m_queue))
