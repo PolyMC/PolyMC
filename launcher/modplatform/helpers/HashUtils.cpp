@@ -3,6 +3,9 @@
 #include <QDebug>
 #include <QFile>
 
+#include <filesystem>
+#include <fstream>
+
 #include "FileSystem.h"
 
 #include <MurmurHash2.h>
@@ -39,11 +42,10 @@ void ModrinthHasher::executeTask()
 {
     QFile file(m_path);
 
-    try {
-        file.open(QFile::ReadOnly);
-    } catch (FS::FileSystemException& e) {
+    // QFile::open() doesn't throw, it reports failure through its return value
+    if (!file.open(QFile::ReadOnly)) {
         qCritical() << QString("Failed to open JAR file in %1").arg(m_path);
-        qCritical() << QString("Reason: ") << e.cause();
+        qCritical() << QString("Reason: ") << file.errorString();
 
         emitFailed("Failed to open file for hashing.");
         return;
@@ -66,7 +68,17 @@ void FlameHasher::executeTask()
     // CF-specific
     auto should_filter_out = [](char c) { return (c == 9 || c == 10 || c == 13 || c == 32); };
 
-    std::ifstream file_stream(m_path.toStdString(), std::ifstream::binary);
+    // Go through std::filesystem::path, a plain narrow string can't represent every path on Windows
+#ifdef Q_OS_WIN
+    std::ifstream file_stream(std::filesystem::path(m_path.toStdWString()), std::ifstream::binary);
+#else
+    std::ifstream file_stream(std::filesystem::path(m_path.toStdString()), std::ifstream::binary);
+#endif
+    if (!file_stream.is_open()) {
+        qCritical() << QString("Failed to open JAR file in %1").arg(m_path);
+        emitFailed("Failed to open file for hashing.");
+        return;
+    }
     // TODO: This is very heavy work, but apparently QtConcurrent can't use move semantics, so we can't boop this to another thread.
     // How do we make this non-blocking then?
     m_hash = QString::number(MurmurHash2(std::move(file_stream), 4 * MiB, should_filter_out));

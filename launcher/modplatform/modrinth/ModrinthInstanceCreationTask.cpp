@@ -129,7 +129,7 @@ bool ModrinthCreationTask::updateInstance()
         }
 
         auto old_client_overrides = Override::readOverrides("client-overrides", old_index_folder);
-        for (const auto& entry : std::as_const(old_overrides)) {
+        for (const auto& entry : std::as_const(old_client_overrides)) {
             if (entry.isEmpty())
                 continue;
             qDebug() << "Scheduling" << entry << "for removal";
@@ -373,10 +373,16 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
                     }
                 }
 
+                // Downloading takes the first URL without checking, there has to be one
+                if (file.downloads.isEmpty())
+                    throw JSONValidationError(tr("No downloads found for %1").arg(file.path));
+
                 files.push_back(file);
             }
 
-            auto dependencies = Json::requireObject(obj, "dependencies", "modrinth.index.json");
+            // Only take the versions from the pack we're installing. When updating, the old pack's index is read too,
+            // and its (outdated) versions would otherwise replace the new ones.
+            auto dependencies = set_managed_info ? Json::requireObject(obj, "dependencies", "modrinth.index.json") : QJsonObject();
             for (auto it = dependencies.begin(), end = dependencies.end(); it != end; ++it) {
                 QString name = it.key();
                 if (name == "minecraft") {
@@ -394,7 +400,7 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
                 }
             }
         } else {
-            throw JSONValidationError(QStringLiteral("Unknown format version: %s").arg(formatVersion));
+            throw JSONValidationError(QStringLiteral("Unknown format version: %1").arg(formatVersion));
         }
 
     } catch (const JSONValidationError& e) {

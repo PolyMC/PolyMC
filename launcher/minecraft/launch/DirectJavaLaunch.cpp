@@ -69,7 +69,8 @@ void DirectJavaLaunch::executeTask()
     if(!wrapperCommandStr.isEmpty())
     {
         auto wrapperArgs = Commandline::splitArgs(wrapperCommandStr);
-        auto wrapperCommand = wrapperArgs.takeFirst();
+        // Something like "" splits into nothing, which then fails to be found below
+        auto wrapperCommand = wrapperArgs.isEmpty() ? QString() : wrapperArgs.takeFirst();
         auto realWrapperCommand = QStandardPaths::findExecutable(wrapperCommand);
         if (realWrapperCommand.isEmpty())
         {

@@ -52,8 +52,9 @@ ModPlatform::IndexedPack getProjectInfo(ModPlatform::IndexedVersion& ver_info)
         }
     });
 
-    QObject::connect(get_project_job, &NetJob::finished, [&loop, get_project_job] {
+    QObject::connect(get_project_job, &NetJob::finished, [&loop, get_project_job, response] {
         get_project_job->deleteLater();
+        delete response;
         loop.quit();
     });
 
@@ -96,8 +97,9 @@ ModPlatform::IndexedVersion getFileInfo(int addonId, int fileId)
         }
     });
 
-    QObject::connect(get_file_info_job, &NetJob::finished, [&loop, get_file_info_job] {
+    QObject::connect(get_file_info_job, &NetJob::finished, [&loop, get_file_info_job, response] {
         get_file_info_job->deleteLater();
+        delete response;
         loop.quit();
     });
 

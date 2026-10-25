@@ -110,7 +110,9 @@ Task::State MetaCacheSink::finalizeCache(QNetworkReply & reply)
             auto expires_header = reply.rawHeader("Expires");
             // qDebug() << "[MetaCache] Parsing 'Expires' header with" << expires_header;
 
-            qint64 max_age = QDateTime::fromString(expires_header).toSecsSinceEpoch() - QDateTime::currentSecsSinceEpoch();
+            // HTTP dates are in the RFC 2822 style, the default text format never parses them
+            auto expires = QDateTime::fromString(QString::fromLatin1(expires_header), Qt::RFC2822Date);
+            qint64 max_age = expires.isValid() ? expires.toSecsSinceEpoch() - QDateTime::currentSecsSinceEpoch() : 0;
             m_entry->setMaximumAge(max_age);
         } else {
             m_entry->setMaximumAge(MAX_TIME_TO_EXPIRE);

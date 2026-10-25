@@ -216,16 +216,19 @@ void VersionList::merge(const VersionListPtr &other)
     {
         qWarning() << "Empty list loaded ...";
     }
-    for (const VersionPtr &version : std::as_const(other->m_versions))
+    for (VersionPtr version : std::as_const(other->m_versions))
     {
-        // we already have the version. merge the contents
+        // we already have the version. merge the contents, and keep using the object everyone already has
         if (m_lookup.contains(version->version()))
         {
-            m_lookup.value(version->version())->mergeFromList(version);
+            auto existing = m_lookup.value(version->version());
+            existing->mergeFromList(version);
+            version = existing;
         }
         else
         {
-            m_lookup.insert(version->uid(), version);
+            // keyed by version, like everywhere else (getVersion() looks it up like that)
+            m_lookup.insert(version->version(), version);
         }
         // connect it.
         setupAddedVersion(m_versions.size(), version);

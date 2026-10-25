@@ -29,7 +29,7 @@ private:
     void resolveDependencies(bool checkOnly);
 
     void remoteLoadSucceeded(size_t index);
-    void remoteLoadFailed(size_t index, const QString &msg);
+    void remoteLoadFailed(size_t index, const QString &msg, bool canUseLocal = false);
     void checkIfAllFinished();
 
 private:

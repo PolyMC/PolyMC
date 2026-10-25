@@ -75,13 +75,21 @@ QString shortPathName(const QString & file)
     auto input = file.toStdWString();
     std::wstring output;
     long length = GetShortPathNameW(input.c_str(), NULL, 0);
-    // NOTE: this resizing might seem weird...
-    // when GetShortPathNameW fails, it returns length including null character
-    // when it succeeds, it returns length excluding null character
+    // 0 means it failed, for example because the path doesn't exist (yet). Keep the long path then.
+    if (length == 0)
+    {
+        return file;
+    }
+    // NOTE: when the buffer is too small, GetShortPathNameW returns the length including the null character
+    // when it succeeds, it returns the length excluding the null character
     // See: https://msdn.microsoft.com/en-us/library/windows/desktop/aa364989(v=vs.85).aspx
     output.resize(length);
-    GetShortPathNameW(input.c_str(),(LPWSTR)output.c_str(),length);
-    output.resize(length-1);
+    long written = GetShortPathNameW(input.c_str(), &output[0], length);
+    if (written == 0 || written >= length)
+    {
+        return file;
+    }
+    output.resize(written);
     QString ret = QString::fromStdWString(output);
     return ret;
 }
@@ -162,7 +170,8 @@ void LauncherPartLaunch::executeTask()
     if(!wrapperCommandStr.isEmpty())
     {
         auto wrapperArgs = Commandline::splitArgs(wrapperCommandStr);
-        auto wrapperCommand = wrapperArgs.takeFirst();
+        // Something like "" splits into nothing, which then fails to be found below
+        auto wrapperCommand = wrapperArgs.isEmpty() ? QString() : wrapperArgs.takeFirst();
         auto realWrapperCommand = QStandardPaths::findExecutable(wrapperCommand);
         if (realWrapperCommand.isEmpty())
         {

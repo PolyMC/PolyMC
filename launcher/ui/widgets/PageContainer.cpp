@@ -133,7 +133,8 @@ bool PageContainer::selectPage(QString pageId)
 void PageContainer::refreshContainer()
 {
     m_proxyModel->invalidate();
-    if(!m_currentPage->shouldDisplay())
+    // There may not be a current page yet, pick the first one then too
+    if(!m_currentPage || !m_currentPage->shouldDisplay())
     {
         auto index = m_proxyModel->index(0, 0);
         if(index.isValid())
@@ -246,10 +247,12 @@ void PageContainer::currentChanged(const QModelIndex &current)
 {
     int selected_index = current.isValid() ? m_proxyModel->mapToSource(current).row() : -1;
 
-    auto* selected = m_model->pages().at(selected_index);
+    // Nothing is selected when the proxy model got invalidated without a current row
+    auto* selected = selected_index >= 0 ? m_model->pages().at(selected_index) : nullptr;
     auto* previous = m_currentPage;
 
-    emit selectedPageChanged(previous, selected);
+    if (selected)
+        emit selectedPageChanged(previous, selected);
 
     showPage(selected_index);
 }

@@ -27,6 +27,8 @@ struct ComponentUpdateTaskData
     QList<RemoteLoadStatus> remoteLoadStatusList;
     bool remoteLoadSuccessful = true;
     size_t remoteTasksInProgress = 0;
+    // How many times dependency resolution had to start over, to stop it from going on forever
+    int resolutionRounds = 0;
     ComponentUpdateTask::Mode mode;
     Net::Mode netmode;
 };

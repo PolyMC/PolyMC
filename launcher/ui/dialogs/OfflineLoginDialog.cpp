@@ -8,11 +8,13 @@
 #include <QRegularExpressionMatch>
 #include <QString>
 
-bool regexDisabled;
+static bool regexDisabled = false;
 
 OfflineLoginDialog::OfflineLoginDialog(QWidget *parent) : QDialog(parent), ui(new Ui::OfflineLoginDialog)
 {
     ui->setupUi(this);
+    // The checkbox starts unchecked for every new dialog, so the check has to be enabled again too
+    regexDisabled = false;
     ui->progressBar->setVisible(false);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->userTextBox->setFocus();

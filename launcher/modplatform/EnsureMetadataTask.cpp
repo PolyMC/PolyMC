@@ -20,27 +20,46 @@ static ModPlatform::ProviderCapabilities ProviderCaps;
 static ModrinthAPI modrinth_api;
 static FlameAPI flame_api;
 
+namespace {
+// Hashing failures are already reported for each mod, so they shouldn't make the whole hashing step fail
+class HashingTask : public ConcurrentTask {
+   public:
+    using ConcurrentTask::ConcurrentTask;
+
+   protected:
+    void startNext() override
+    {
+        if (!m_aborted && m_queue.isEmpty() && m_doing.isEmpty() && isRunning()) {
+            emitSucceeded();
+            return;
+        }
+        ConcurrentTask::startNext();
+    }
+};
+}  // namespace
+
 EnsureMetadataTask::EnsureMetadataTask(Mod* mod, QDir dir, ModPlatform::Provider prov)
     : Task(nullptr), m_index_dir(dir), m_provider(prov), m_hashing_task(nullptr), m_current_task(nullptr)
 {
     auto hash_task = createNewHash(mod);
     if (!hash_task)
         return;
-    connect(hash_task.get(), &Task::succeeded, [this, hash_task, mod] { m_mods.insert(hash_task->getResult(), mod); });
-    connect(hash_task.get(), &Task::failed, [this, hash_task, mod] { emitFail(mod, "", RemoveFromList::No); });
+    // Don't capture the shared pointer in the hasher's own connections, it would keep itself alive forever
+    connect(hash_task.get(), &Task::succeeded, [this, hasher = hash_task.get(), mod] { m_mods.insert(hasher->getResult(), mod); });
+    connect(hash_task.get(), &Task::failed, [this, mod] { emitFail(mod, "", RemoveFromList::No); });
     hash_task->start();
 }
 
 EnsureMetadataTask::EnsureMetadataTask(QList<Mod*>& mods, QDir dir, ModPlatform::Provider prov)
     : Task(nullptr), m_index_dir(dir), m_provider(prov), m_current_task(nullptr)
 {
-    m_hashing_task = new ConcurrentTask(this, "MakeHashesTask", 10);
+    m_hashing_task = new HashingTask(this, "MakeHashesTask", 10);
     for (auto* mod : mods) {
         auto hash_task = createNewHash(mod);
         if (!hash_task)
             continue;
-        connect(hash_task.get(), &Task::succeeded, [this, hash_task, mod] { m_mods.insert(hash_task->getResult(), mod); });
-        connect(hash_task.get(), &Task::failed, [this, hash_task, mod] { emitFail(mod, "", RemoveFromList::No); });
+        connect(hash_task.get(), &Task::succeeded, [this, hasher = hash_task.get(), mod] { m_mods.insert(hasher->getResult(), mod); });
+        connect(hash_task.get(), &Task::failed, [this, mod] { emitFail(mod, "", RemoveFromList::No); });
         m_hashing_task->addTask(hash_task);
     }
 }
@@ -87,24 +106,32 @@ void EnsureMetadataTask::executeTask()
 {
     setStatus(tr("Checking if mods have metadata..."));
 
-    for (auto* mod : std::as_const(m_mods)) {
+    // Remove the handled mods through the iterator, removing them from the list while looping over it isn't safe
+    for (auto it = m_mods.begin(); it != m_mods.end();) {
+        auto* mod = it.value();
         if (!mod->valid()) {
             qDebug() << "Mod" << mod->name() << "is invalid!";
-            emitFail(mod);
+            emitFail(mod, it.key(), RemoveFromList::No);
+            it = m_mods.erase(it);
             continue;
         }
 
         // They already have the right metadata :o
         if (mod->status() != ModStatus::NoMetadata && mod->metadata() && mod->metadata()->provider == m_provider) {
             qDebug() << "Mod" << mod->name() << "already has metadata!";
-            emitReady(mod);
+            emitReady(mod, it.key(), RemoveFromList::No);
+            it = m_mods.erase(it);
             continue;
         }
 
         // Folders don't have metadata
         if (mod->type() == ResourceType::FOLDER) {
-            emitReady(mod);
+            emitReady(mod, it.key(), RemoveFromList::No);
+            it = m_mods.erase(it);
+            continue;
         }
+
+        ++it;
     }
 
     NetJob::Ptr version_task;
@@ -229,7 +256,8 @@ NetJob::Ptr EnsureMetadataTask::modrinthVersionsTask()
                        << " reason: " << parse_error.errorString();
             qWarning() << *response;
 
-            failed(parse_error.errorString());
+            // The mods we couldn't get information about are marked as failed when the task finishes,
+            // emitting failed() here would be followed by emitSucceeded() then
             return;
         }
 
@@ -304,7 +332,12 @@ NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
                 ModPlatform::IndexedPack pack;
                 Modrinth::loadIndexedPack(pack, entry_obj);
 
-                auto hash = addonIds.find(pack.addonId.toString()).value();
+                auto hash_iter = addonIds.find(pack.addonId.toString());
+                if (hash_iter == addonIds.end()) {
+                    qWarning() << "Invalid project id from the API response.";
+                    continue;
+                }
+                auto hash = hash_iter.value();
 
                 auto mod_iter = m_mods.find(hash);
                 if (mod_iter == m_mods.end()) {
@@ -354,7 +387,8 @@ NetJob::Ptr EnsureMetadataTask::flameVersionsTask()
                        << " reason: " << parse_error.errorString();
             qWarning() << *response;
 
-            failed(parse_error.errorString());
+            // The mods we couldn't get information about are marked as failed when the task finishes,
+            // emitting failed() here would be followed by emitSucceeded() then
             return;
         }
 
@@ -450,8 +484,19 @@ NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
                 auto entry_obj = Json::requireObject(entry);
 
                 auto id = QString::number(Json::requireInteger(entry_obj, "id"));
-                auto hash = addonIds.find(id).value();
-                auto mod = m_mods.find(hash).value();
+                auto hash_iter = addonIds.find(id);
+                if (hash_iter == addonIds.end()) {
+                    qWarning() << "Invalid project id from the API response.";
+                    continue;
+                }
+                auto hash = hash_iter.value();
+
+                auto mod_iter = m_mods.find(hash);
+                if (mod_iter == m_mods.end()) {
+                    qWarning() << "Invalid project id from the API response.";
+                    continue;
+                }
+                auto mod = mod_iter.value();
 
                 try {
                     setStatus(tr("Parsing API response from CurseForge for '%1'...").arg(mod->name()));

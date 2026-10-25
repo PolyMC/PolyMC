@@ -173,6 +173,16 @@ void ProfileSetupDialog::checkFinished(
     auto requestor = qobject_cast<AuthRequest *>(QObject::sender());
     requestor->deleteLater();
 
+    // The name was changed while it was being checked, so this result is outdated.
+    // Don't show it (OK would create the old name), check the current name instead.
+    if(currentCheck != ui->nameEdit->text()) {
+        isChecking = false;
+        if(ui->nameEdit->hasAcceptableInput()) {
+            startCheck();
+        }
+        return;
+    }
+
     if(error == QNetworkReply::NoError) {
         auto doc = QJsonDocument::fromJson(replyData);
         auto root = doc.object();

@@ -190,8 +190,14 @@ void VersionPage::packageCurrent(const QModelIndex &current, const QModelIndex &
         ui->frame->clear();
         return;
     }
-    int row = current.row();
+    // The view shows the filtered model, its rows don't match the rows of the profile
+    int row = m_filterModel->mapToSource(current).row();
     auto patch = m_profile->getComponent(row);
+    if (!patch)
+    {
+        ui->frame->clear();
+        return;
+    }
     auto severity = patch->getProblemSeverity();
     switch(severity)
     {
@@ -307,7 +313,7 @@ void VersionPage::on_actionRemove_triggered()
     if (ui->packageView->currentIndex().isValid())
     {
         // FIXME: use actual model, not reloading.
-        if (!m_profile->remove(ui->packageView->currentIndex().row()))
+        if (!m_profile->remove(m_filterModel->mapToSource(ui->packageView->currentIndex()).row()))
         {
             QMessageBox::critical(this, tr("Error"), tr("Couldn't remove file"));
         }
@@ -618,7 +624,7 @@ void VersionPage::on_actionMinecraftFolder_triggered()
 
 void VersionPage::versionCurrent(const QModelIndex &current, const QModelIndex &/*previous*/)
 {
-    currentIdx = current.row();
+    currentIdx = m_filterModel->mapToSource(current).row();
     updateButtons(currentIdx);
 }
 
@@ -636,7 +642,9 @@ void VersionPage::preselect(int row)
     {
         return;
     }
-    auto model_index = m_profile->index(row);
+    // The selection model belongs to the filtered model, so map the profile's row to it
+    auto icon_proxy = static_cast<QAbstractProxyModel*>(m_filterModel->sourceModel());
+    auto model_index = m_filterModel->mapFromSource(icon_proxy->mapFromSource(m_profile->index(row)));
     ui->packageView->selectionModel()->select(model_index, QItemSelectionModel::SelectCurrent | QItemSelectionModel::Rows);
     updateButtons(row);
 }
@@ -662,7 +670,8 @@ int VersionPage::currentRow()
     {
         return -1;
     }
-    return ui->packageView->selectionModel()->selectedRows().first().row();
+    // The view shows the filtered model, its rows don't match the rows of the profile
+    return m_filterModel->mapToSource(ui->packageView->selectionModel()->selectedRows().first()).row();
 }
 
 void VersionPage::on_actionCustomize_triggered()

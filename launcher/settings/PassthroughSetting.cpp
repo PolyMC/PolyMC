@@ -56,7 +56,10 @@ void PassthroughSetting::reset()
     {
         Setting::reset();
     }
-    m_other->reset();
+    else
+    {
+        m_other->reset();
+    }
 }
 
 void PassthroughSetting::set(QVariant value)
@@ -65,5 +68,8 @@ void PassthroughSetting::set(QVariant value)
     {
         Setting::set(value);
     }
-    m_other->set(value);
+    else
+    {
+        m_other->set(value);
+    }
 }

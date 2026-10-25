@@ -104,10 +104,13 @@ void ErrorFrame::setDescription(QString text)
         desc = text;
         // This allows injecting HTML here.
         labeltext.append("<html><body>" + finaltext.left(287) + "<a href=\"#mod_desc\">...</a></body></html>");
-        QObject::connect(ui->label_Description, &QLabel::linkActivated, this, &ErrorFrame::ellipsisHandler);
+        QObject::connect(ui->label_Description, &QLabel::linkActivated, this, &ErrorFrame::ellipsisHandler, Qt::UniqueConnection);
     }
     else
     {
+        // Undo what a previous long description set up
+        QObject::disconnect(ui->label_Description, &QLabel::linkActivated, this, &ErrorFrame::ellipsisHandler);
+        ui->label_Description->setOpenExternalLinks(true);
         ui->label_Description->setTextFormat(Qt::TextFormat::PlainText);
         labeltext.append(finaltext);
     }

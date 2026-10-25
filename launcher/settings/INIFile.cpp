@@ -146,14 +146,17 @@ bool INIFile::loadFile(QByteArray file)
     {
         QString &lineRaw = lines[i];
         // Ignore comments.
-        int commentIndex = 0;
+        // Start before the first character, so a # at the start of the line is found too
+        int commentIndex = -1;
         QString line = lineRaw;
         // Search for comments until no more escaped # are available
         while((commentIndex = line.indexOf('#', commentIndex + 1)) != -1) {
             if(commentIndex > 0 && line.at(commentIndex - 1) == '\\') {
                 continue;
             }
-            line = line.left(lineRaw.indexOf('#')).trimmed();
+            // Cut at this (unescaped) #, not at the first one, which may be an escaped one
+            line = line.left(commentIndex).trimmed();
+            break;
         }
 
         int eqPos = line.indexOf('=');

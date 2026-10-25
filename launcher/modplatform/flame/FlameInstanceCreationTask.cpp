@@ -93,10 +93,19 @@ bool FlameCreationTask::updateInstance()
     QString old_index_path(FS::PathCombine(old_index_folder, "manifest.json"));
 
     QFileInfo old_index_file(old_index_path);
+    Flame::Manifest old_pack;
+    bool has_old_pack = false;
     if (old_index_file.exists()) {
-        Flame::Manifest old_pack;
-        Flame::loadManifest(old_pack, old_index_path);
+        // Treat an unreadable old manifest like a missing one, instead of letting the exception take down the launcher
+        try {
+            Flame::loadManifest(old_pack, old_index_path);
+            has_old_pack = true;
+        } catch (const Exception& e) {
+            qWarning() << "Couldn't read the manifest of the existing instance:" << e.cause();
+        }
+    }
 
+    if (has_old_pack) {
         auto& old_files = old_pack.files;
 
         auto& files = m_pack.files;
@@ -113,7 +122,9 @@ bool FlameCreationTask::updateInstance()
                     qDebug() << "Removed file at" << file->targetFolder << "with id" << file->fileId << "from list of downloads";
 
                     old_files.remove(file.key());
+                    // erase() already moves on to the next file
                     files_iterator = files.erase(files_iterator);
+                    continue;
                 }
             }
 
@@ -242,10 +253,11 @@ bool FlameCreationTask::createInstance()
         QString overridePath = FS::PathCombine(m_stagingPath, m_pack.overrides);
 
         // An override is trying to break the fourth wall, this is bad (usually)
-        const auto overrideAbsolute = QFileInfo(overridePath).canonicalPath();
-        const auto stagingAbsolute = QFileInfo(m_stagingPath).canonicalPath();
+        // Compare the full paths (canonicalPath() would give us the parent folders), and cleanPath() always uses '/'
+        const auto overrideAbsolute = QDir::cleanPath(QFileInfo(overridePath).absoluteFilePath());
+        const auto stagingAbsolute = QDir::cleanPath(QFileInfo(m_stagingPath).absoluteFilePath());
         if (overrideAbsolute != stagingAbsolute &&
-            !overrideAbsolute.startsWith(stagingAbsolute + QDir::separator())) {
+            !overrideAbsolute.startsWith(stagingAbsolute + '/')) {
             auto warn = CustomMessageBox::selectable(
                 m_parent, tr("Dangerous Path Override!"),
                 tr("This pack has an override path located outside of its dedicated directory "
@@ -391,7 +403,8 @@ bool FlameCreationTask::createInstance()
 
     loop.exec();
 
-    bool did_succeed = getError().isEmpty();
+    // Aborting doesn't set an error, but we must not touch the existing instance then either
+    bool did_succeed = getError().isEmpty() && !m_abort;
 
     // Update information of the already installed instance, if any.
     if (m_instance && did_succeed) {

@@ -3,6 +3,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QMimeData>
+#include <QPointer>
 #include <QThreadPool>
 #include <QUrl>
 
@@ -96,12 +97,15 @@ bool ResourceFolderModel::installResource(QString original_path)
         case ResourceType::SINGLEFILE:
         case ResourceType::ZIPFILE:
         case ResourceType::LITEMOD: {
-            if (QFile::exists(new_path) || QFile::exists(new_path + QString(".disabled"))) {
-                if (!QFile::remove(new_path)) {
-                    qCritical() << "Cleaning up new location (" << new_path << ") was unsuccessful!";
+            // Remove whichever of the two exists. Removing only new_path would fail when just the disabled one is there.
+            for (const auto& old_path : { new_path, new_path + QString(".disabled") }) {
+                if (!QFile::exists(old_path))
+                    continue;
+                if (!QFile::remove(old_path)) {
+                    qCritical() << "Cleaning up new location (" << old_path << ") was unsuccessful!";
                     return false;
                 }
-                qDebug() << new_path << "has been deleted.";
+                qDebug() << old_path << "has been deleted.";
             }
 
             if (!QFile::copy(original_path, new_path)) {
@@ -268,10 +272,12 @@ void ResourceFolderModel::resolveResource(Resource* res)
     res->setResolving(true, ticket);
     m_active_parse_tasks.insert(ticket, task);
 
+    // These are queued, so the resource may have been removed from the list (and deleted) by the time they run
+    QPointer<Resource> resource = res;
     connect(
-        task, &Task::succeeded, this, [=] { onParseSucceeded(ticket, res->internal_id()); }, Qt::ConnectionType::QueuedConnection);
+        task, &Task::succeeded, this, [=] { if (resource) onParseSucceeded(ticket, resource->internal_id()); }, Qt::ConnectionType::QueuedConnection);
     connect(
-        task, &Task::failed, this, [=] { onParseFailed(ticket, res->internal_id()); }, Qt::ConnectionType::QueuedConnection);
+        task, &Task::failed, this, [=] { if (resource) onParseFailed(ticket, resource->internal_id()); }, Qt::ConnectionType::QueuedConnection);
     connect(
         task, &Task::finished, this, [=] { m_active_parse_tasks.remove(ticket); }, Qt::ConnectionType::QueuedConnection);
 
@@ -304,7 +310,12 @@ void ResourceFolderModel::onParseSucceeded(int ticket, QString resource_id)
     if (iter == m_active_parse_tasks.constEnd())
         return;
 
-    int row = m_resources_index[resource_id];
+    // Don't use operator[], it would add an entry pointing at row 0 for a resource that was removed meanwhile
+    auto row_iter = m_resources_index.constFind(resource_id);
+    if (row_iter == m_resources_index.constEnd())
+        return;
+
+    int row = row_iter.value();
     emit dataChanged(index(row), index(row, columnCount(QModelIndex()) - 1));
 }
 

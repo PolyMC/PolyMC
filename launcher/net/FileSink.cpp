@@ -80,13 +80,19 @@ Task::State FileSink::write(QByteArray& data)
 
 Task::State FileSink::abort()
 {
-    m_output_file->cancelWriting();
+    // A failed write() already cancelled and got rid of the output file
+    if (m_output_file)
+        m_output_file->cancelWriting();
     failAllValidators();
     return Task::State::Failed;
 }
 
 Task::State FileSink::finalize(QNetworkReply& reply)
 {
+    // A failed write() already cancelled and got rid of the output file
+    if (!m_output_file)
+        return Task::State::Failed;
+
     bool gotFile = false;
     QVariant statusCodeV = reply.attribute(QNetworkRequest::HttpStatusCodeAttribute);
     bool validStatus = false;

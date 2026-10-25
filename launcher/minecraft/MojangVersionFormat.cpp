@@ -293,6 +293,16 @@ void MojangVersionFormat::writeVersionProperties(const VersionFile* in, QJsonObj
         out.insert("minimumLauncherVersion", in->minimumLauncherVersion);
     }
     writeString(out, "assets", in->assets);
+    // Read in readVersionProperties(), so write it too
+    if(!in->compatibleJavaMajors.isEmpty())
+    {
+        QJsonArray compatibleJavaMajors;
+        for (auto major : in->compatibleJavaMajors)
+        {
+            compatibleJavaMajors.append(major);
+        }
+        out.insert("compatibleJavaMajors", compatibleJavaMajors);
+    }
     if(in->mojangAssetIndex && in->mojangAssetIndex->known)
     {
         out.insert("assetIndex", assetIndexToJson(in->mojangAssetIndex));

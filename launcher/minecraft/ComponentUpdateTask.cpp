@@ -48,6 +48,7 @@ ComponentUpdateTask::~ComponentUpdateTask()
 void ComponentUpdateTask::executeTask()
 {
     qDebug() << "Loading components";
+    d->resolutionRounds = 0;
     loadComponents();
 }
 
@@ -189,15 +190,15 @@ void ComponentUpdateTask::loadComponents()
             RemoteLoadStatus status;
             status.type = RemoteLoadStatus::Type::Index;
             d->remoteLoadStatusList.append(status);
-            connect(indexLoadTask.get(), &Task::succeeded, [=]()
+            connect(indexLoadTask.get(), &Task::succeeded, this, [=]()
             {
                 remoteLoadSucceeded(taskIndex);
             });
-            connect(indexLoadTask.get(), &Task::failed, [=](const QString & error)
+            connect(indexLoadTask.get(), &Task::failed, this, [=](const QString & error)
             {
-                remoteLoadFailed(taskIndex, error);
+                remoteLoadFailed(taskIndex, error, true);
             });
-            connect(indexLoadTask.get(), &Task::aborted, [=]()
+            connect(indexLoadTask.get(), &Task::aborted, this, [=]()
             {
                 remoteLoadFailed(taskIndex, tr("Aborted"));
             });
@@ -239,15 +240,15 @@ void ComponentUpdateTask::loadComponents()
         if (loadTask)
         {
             qDebug() << "Remote loading is being run for" << component->getName();
-            connect(loadTask.get(), &Task::succeeded, [=]()
+            connect(loadTask.get(), &Task::succeeded, this, [=]()
             {
                 remoteLoadSucceeded(taskIndex);
             });
-            connect(loadTask.get(), &Task::failed, [=](const QString & error)
+            connect(loadTask.get(), &Task::failed, this, [=](const QString & error)
             {
-                remoteLoadFailed(taskIndex, error);
+                remoteLoadFailed(taskIndex, error, true);
             });
-            connect(loadTask.get(), &Task::aborted, [=]()
+            connect(loadTask.get(), &Task::aborted, this, [=]()
             {
                 remoteLoadFailed(taskIndex, tr("Aborted"));
             });
@@ -541,7 +542,12 @@ void ComponentUpdateTask::resolveDependencies(bool checkOnly)
             for(auto & remove : toRemove)
             {
                 qDebug() << "Removing" << remove;
-                d->m_list->remove(remove);
+                // If this fails, the component would be found again on every iteration of this loop
+                if(!d->m_list->remove(remove))
+                {
+                    emitFailed(tr("Couldn't remove obsolete component %1").arg(remove));
+                    return;
+                }
             }
         }
     } while (!toRemove.isEmpty());
@@ -634,6 +640,13 @@ void ComponentUpdateTask::resolveDependencies(bool checkOnly)
 
     if(recursionNeeded)
     {
+        // Each round should settle at least one dependency, so this only keeps going with broken metadata.
+        // When everything is loaded locally this is a direct recursion, so it would run out of stack.
+        if(++d->resolutionRounds > 100)
+        {
+            emitFailed(tr("Couldn't resolve the dependencies of the components, they keep changing."));
+            return;
+        }
         loadComponents();
     }
     else
@@ -651,7 +664,7 @@ void ComponentUpdateTask::remoteLoadSucceeded(size_t taskIndex)
         return;
     }
     qDebug() << "Remote task" << taskIndex << "succeeded";
-    taskSlot.succeeded = false;
+    taskSlot.succeeded = true;
     taskSlot.finished = true;
     d->remoteTasksInProgress --;
     // update the cached data of the component from the downloaded version file.
@@ -665,13 +678,33 @@ void ComponentUpdateTask::remoteLoadSucceeded(size_t taskIndex)
 }
 
 
-void ComponentUpdateTask::remoteLoadFailed(size_t taskIndex, const QString& msg)
+void ComponentUpdateTask::remoteLoadFailed(size_t taskIndex, const QString& msg, bool canUseLocal)
 {
     auto &taskSlot = d->remoteLoadStatusList[taskIndex];
     if(taskSlot.finished)
     {
         qWarning() << "Got multiple results from remote load task" << taskIndex;
         return;
+    }
+    if(canUseLocal)
+    {
+        // The remote update failed, but if we already loaded a copy from the local cache we can keep going with that
+        bool hasLocalData = false;
+        if(taskSlot.type == RemoteLoadStatus::Type::Index)
+        {
+            hasLocalData = APPLICATION->metadataIndex()->isLoaded();
+        }
+        else if(taskSlot.type == RemoteLoadStatus::Type::Version)
+        {
+            auto component = d->m_list->getComponent(static_cast<int>(taskSlot.PackProfileIndex));
+            hasLocalData = component && component->m_metaVersion && component->m_metaVersion->isLoaded();
+        }
+        if(hasLocalData)
+        {
+            qWarning() << "Remote task" << taskIndex << "failed, using the locally cached data instead:" << msg;
+            remoteLoadSucceeded(taskIndex);
+            return;
+        }
     }
     qDebug() << "Remote task" << taskIndex << "failed: " << msg;
     d->remoteLoadSuccessful = false;

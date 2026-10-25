@@ -103,6 +103,7 @@ void PackInstallTask::onDownloadSucceeded()
     if(parse_error.error != QJsonParseError::NoError) {
         qWarning() << "Error while parsing JSON response from ATLauncher at " << parse_error.offset << " reason: " << parse_error.errorString();
         qWarning() << response;
+        emitFailed(parse_error.errorString());
         return;
     }
     auto obj = doc.object();
@@ -250,6 +251,11 @@ void PackInstallTask::deleteExistingFiles()
         return false;
     };
 
+    // The targets come from the pack, so never delete anything outside of the instance's minecraft folder
+    auto isInsideInstance = [this](const QString& path) {
+        return path.startsWith(FS::PathCombine(m_stagingPath, "minecraft") + '/');
+    };
+
     // Keep track of files to delete
     QSet<QString> filesToDelete;
 
@@ -257,6 +263,11 @@ void PackInstallTask::deleteExistingFiles()
         auto basePath = getPathForBase(item.base);
         auto targetPath = convertToSystemPath(item.target);
         auto fullPath = FS::PathCombine(basePath, targetPath);
+
+        if (!isInsideInstance(fullPath)) {
+            qWarning() << "Not deleting" << fullPath << "as it is outside of the instance";
+            continue;
+        }
 
         if (shouldKeep(fullPath))
             continue;
@@ -268,6 +279,11 @@ void PackInstallTask::deleteExistingFiles()
         auto basePath = getPathForBase(item.base);
         auto targetPath = convertToSystemPath(item.target);
         auto fullPath = FS::PathCombine(basePath, targetPath);
+
+        if (!isInsideInstance(fullPath)) {
+            qWarning() << "Not deleting" << fullPath << "as it is outside of the instance";
+            continue;
+        }
 
         QDirIterator it(fullPath, QDirIterator::Subdirectories);
         while (it.hasNext()) {
@@ -377,11 +393,19 @@ QString PackInstallTask::getVersionForLoader(QString uid)
         }
         else if(m_version.loader.choose) {
             // Fabric Loader doesn't depend on a given Minecraft version.
+            QString version;
             if (m_version.loader.type == "fabric") {
-                return m_support->chooseVersion(vlist, Q_NULLPTR);
+                version = m_support->chooseVersion(vlist, Q_NULLPTR);
+            } else {
+                version = m_support->chooseVersion(vlist, m_version.minecraft);
             }
 
-            return m_support->chooseVersion(vlist, m_version.minecraft);
+            // Nothing chosen, the callers expect us to have reported the failure then
+            if (version.isEmpty()) {
+                emitFailed(tr("No version was chosen for the %1 loader").arg(m_version.loader.type));
+                return Q_NULLPTR;
+            }
+            return version;
         }
     }
 
@@ -719,6 +743,11 @@ void PackInstallTask::extractConfigs()
 #endif
     connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::finished, this, [&]()
     {
+        // Don't go on with a pack that's missing its configs
+        if (!m_extractFuture.result()) {
+            emitFailed(tr("Failed to extract the pack configs!"));
+            return;
+        }
         downloadMods();
     });
     connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::canceled, this, [&]()
@@ -777,6 +806,12 @@ void PackInstallTask::downloadMods()
         auto cacheName = fileName.completeBaseName() + "-" + mod.md5 + "." + fileName.suffix();
 
         if (mod.type == ModType::Extract || mod.type == ModType::TexturePackExtract || mod.type == ModType::ResourcePackExtract) {
+            // Check the target type here, extractMods() runs on another thread where failing the task isn't safe
+            if (mod.type == ModType::Extract) {
+                getDirForModType(mod.extractTo, mod.extractTo_raw);
+                if (!isRunning()) return;
+            }
+
             auto entry = APPLICATION->metacache()->resolveEntry("ATLauncherPacks", cacheName);
             entry->setStale(true);
             modsToExtract.insert(entry->getFullPath(), mod);
@@ -789,6 +824,10 @@ void PackInstallTask::downloadMods()
             jobPtr->addNetAction(dl);
         }
         else if(mod.type == ModType::Decomp) {
+            // Check the target type here, extractMods() runs on another thread where failing the task isn't safe
+            getDirForModType(mod.decompType, mod.decompType_raw);
+            if (!isRunning()) return;
+
             auto entry = APPLICATION->metacache()->resolveEntry("ATLauncherPacks", cacheName);
             entry->setStale(true);
             modsToDecomp.insert(entry->getFullPath(), mod);
@@ -802,6 +841,8 @@ void PackInstallTask::downloadMods()
         }
         else {
             auto relpath = getDirForModType(mod.type, mod.type_raw);
+            // An unknown type makes getDirForModType() fail the task, don't keep going then
+            if(!isRunning()) return;
             if(relpath == Q_NULLPTR) continue;
 
             auto entry = APPLICATION->metacache()->resolveEntry("ATLauncherPacks", cacheName);
@@ -815,6 +856,10 @@ void PackInstallTask::downloadMods()
             jobPtr->addNetAction(dl);
 
             auto path = FS::PathCombine(m_stagingPath, "minecraft", relpath, mod.file);
+            if (!path.startsWith(FS::PathCombine(m_stagingPath, "minecraft") + '/')) {
+                emitFailed(tr("Mod %1 tries to place itself outside of the instance").arg(mod.file));
+                return;
+            }
 
             if(mod.type == ModType::Forge) {
                 auto ver = getComponentVersion("net.minecraftforge", mod.version);
@@ -940,6 +985,10 @@ bool PackInstallTask::extractMods(
 
         QDir extractDir(m_stagingPath);
         auto extractToPath = FS::PathCombine(extractDir.absolutePath(), "minecraft", extractToDir, mod.decompFile);
+        if (!extractToPath.startsWith(FS::PathCombine(extractDir.absolutePath(), "minecraft") + '/')) {
+            qWarning() << "Not extracting" << mod.decompFile << "as it tries to place itself outside of the instance";
+            return false;
+        }
 
         qDebug() << "Extracting " + mod.decompFile + " to " + extractToDir;
         if(!MMCZip::extractFile(modPath, mod.decompFile, extractToPath)) {
@@ -1056,20 +1105,27 @@ static Meta::VersionPtr getComponentVersion(const QString& uid, const QString& v
         QEventLoop loop;
         auto task = vlist->getLoadTask();
 
-        QObject::connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
-        loop.exec();
+        // Without a running task there is nothing that would ever stop the loop
+        if (task) {
+            QObject::connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
+            loop.exec();
+        }
     }
 
     auto ver = vlist->getVersion(version);
     if (!ver)
         return {};
 
+    // Load the version itself, loading the list again doesn't load the version's data
     if (!ver->isLoaded()) {
         QEventLoop loop;
-        auto task = vlist->getLoadTask();
+        ver->load(Net::Mode::Online);
+        auto task = ver->getCurrentTask();
 
-        QObject::connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
-        loop.exec();
+        if (task) {
+            QObject::connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
+            loop.exec();
+        }
     }
 
     return ver;

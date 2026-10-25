@@ -18,7 +18,8 @@ unique_qobject_ptr<ModFilterWidget> ModFilterWidget::create(Version default_vers
 
         auto task = filter_widget->versionList()->getLoadTask();
 
-        connect(task.get(), &Task::failed, [filter_widget]{
+        // Use the widget as context, the task can outlive it when the time limit runs out
+        connect(task.get(), &Task::failed, filter_widget, [filter_widget]{
             filter_widget->disableVersionButton(VersionButtonID::Major, tr("failed to get version index"));
         });
         connect(task.get(), &Task::finished, &load_version_list_loop, &QEventLoop::quit);

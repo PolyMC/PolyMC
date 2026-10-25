@@ -310,6 +310,23 @@ std::optional<QStringList> MMCZip::extractSubDir(QuaZip *zip, const QString & su
         name.remove(0, subdir.size());
         auto original_name = name;
 
+        // The checks above run on the full entry name, so make sure the path we actually write to stays inside the target
+        const QString targetRoot = QDir::cleanPath(directory.absolutePath());
+        const QString finalPath = QDir::cleanPath(directory.absoluteFilePath(name));
+        if (finalPath != targetRoot && !finalPath.startsWith(targetRoot + '/'))
+        {
+            qDebug() << "extractSubDir: Skipping file that tries to place itself outside of the target directory:" << original_name;
+            continue;
+        }
+
+        // Symbolic links could point anywhere, and later entries would be written through them
+        QuaZipFileInfo64 info;
+        if (zip->getCurrentFileInfo(&info) && info.isSymbolicLink())
+        {
+            qDebug() << "extractSubDir: Skipping symbolic link" << original_name;
+            continue;
+        }
+
         // Fix weird "folders with a single file get squashed" thing
         QString path;
         if(name.contains('/') && !name.endsWith('/')){

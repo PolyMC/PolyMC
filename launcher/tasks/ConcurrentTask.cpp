@@ -35,6 +35,8 @@ void ConcurrentTask::addTask(Task::Ptr task)
 
 void ConcurrentTask::executeTask()
 {
+    // Tasks can be started again after an abort, don't keep acting like we're still aborted then
+    m_aborted = false;
     m_total_size = m_queue.size();
 
     // Start the least amount of tasks needed, but at least one
@@ -50,9 +52,15 @@ bool ConcurrentTask::abort()
     m_aborted = true;
 
     if (m_doing.isEmpty()) {
-        // Don't call emitAborted() here, we want to bypass the 'is the task running' check
-        emit aborted();
-        emit finished();
+        if (isRunning()) {
+            // Nothing got started yet (that happens later, in a queued call), so we're done right away.
+            // This also takes care of leaving the running state, which the signals below don't do.
+            emitAborted();
+        } else {
+            // Don't call emitAborted() here, we want to bypass the 'is the task running' check
+            emit aborted();
+            emit finished();
+        }
 
         return true;
     }
@@ -78,8 +86,17 @@ void ConcurrentTask::startNext()
     if (m_aborted || m_doing.count() > m_total_max_size)
         return;
 
-    if (m_queue.isEmpty() && m_doing.isEmpty() && !wasSuccessful()) {
-        emitSucceeded();
+    if (m_queue.isEmpty() && m_doing.isEmpty() && isRunning()) {
+        if (m_failed.isEmpty()) {
+            emitSucceeded();
+        } else {
+            QStringList reasons;
+            for (const auto& task : std::as_const(m_failed)) {
+                if (!task->failReason().isEmpty())
+                    reasons.append(task->failReason());
+            }
+            emitFailed(tr("One or more subtasks failed:\n%1").arg(reasons.join("\n")));
+        }
         return;
     }
 
@@ -101,8 +118,9 @@ void ConcurrentTask::startNext()
     setStepStatus(next->isMultiStep() ? next->getStepStatus() : next->getStatus());
     updateState();
 
+    // We may have been aborted before this gets to run, don't start anything then
     QMetaObject::invokeMethod(
-        this, [=] { next->start(); }, Qt::QueuedConnection);
+        this, [=] { if (!m_aborted) next->start(); }, Qt::QueuedConnection);
 }
 
 void ConcurrentTask::subTaskSucceeded(Task::Ptr task)

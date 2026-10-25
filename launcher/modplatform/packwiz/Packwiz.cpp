@@ -138,8 +138,9 @@ void V1::updateModIndex(QDir& index_dir, Mod& mod)
 
     QFile index_file(index_dir.absoluteFilePath(real_fname));
 
+    // A bare file name would be relative to the working directory, not the index folder
     if (real_fname != normalized_fname)
-        index_file.rename(normalized_fname);
+        index_file.rename(index_dir.absoluteFilePath(normalized_fname));
 
     // There's already data on there!
     // TODO: We should do more stuff here, as the user is likely trying to
@@ -156,7 +157,16 @@ void V1::updateModIndex(QDir& index_dir, Mod& mod)
 
     // Put TOML data into the file
     QTextStream in_stream(&index_file);
-    auto addToStream = [&in_stream](QString&& key, QString value) { in_stream << QString("%1 = \"%2\"\n").arg(key, value); };
+    // Values are written as TOML basic strings, so escape what would end them early or break the line
+    auto escape = [](QString value) {
+        value.replace('\\', "\\\\");
+        value.replace('"', "\\\"");
+        value.replace('\n', "\\n");
+        value.replace('\r', "\\r");
+        value.replace('\t', "\\t");
+        return value;
+    };
+    auto addToStream = [&in_stream, &escape](QString&& key, QString value) { in_stream << QString("%1 = \"%2\"\n").arg(key, escape(value)); };
 
     {
         addToStream("name", mod.name);
@@ -214,7 +224,8 @@ void V1::deleteModIndex(QDir& index_dir, QVariant& mod_id)
         auto mod = getIndexForMod(index_dir, file_name);
 
         if (mod.mod_id() == mod_id) {
-            deleteModIndex(index_dir, mod.name);
+            // Index files are named after the slug, not the display name, so use the file we found
+            deleteModIndex(index_dir, file_name);
             break;
         }
     }

@@ -136,10 +136,12 @@ void ModpackListModel::performPaginatedSearch()
                             "query=%3&"
                             "index=%4&"
                             "facets=[[\"project_type:modpack\"]]")
-                            .arg(nextSearchOffset)
-                            .arg(m_modpacks_per_page)
-                            .arg(currentSearchTerm)
-                            .arg(currentSort);
+                            // Encode the search, and fill everything in at once: with chained arg() calls,
+                            // something like %4 in the search would get replaced by the next one
+                            .arg(QString::number(nextSearchOffset),
+                                 QString::number(m_modpacks_per_page),
+                                 QString::fromUtf8(QUrl::toPercentEncoding(currentSearchTerm)),
+                                 currentSort);
 
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchAllUrl), &m_all_response));
 
@@ -157,6 +159,7 @@ void ModpackListModel::performPaginatedSearch()
         searchRequestFinished(doc_all);
     });
     QObject::connect(netJob, &NetJob::failed, this, &ModpackListModel::searchRequestFailed);
+    QObject::connect(netJob, &NetJob::aborted, this, &ModpackListModel::searchRequestAborted);
 
     jobPtr = netJob;
     jobPtr->start();
@@ -164,9 +167,11 @@ void ModpackListModel::performPaginatedSearch()
 
 void ModpackListModel::refresh()
 {
-    if (jobPtr) {
-        jobPtr->abort();
+    // Only abort a search that is still going, a finished one never reports back.
+    // Set the state first, aborting can report back right away.
+    if (jobPtr && jobPtr->isRunning()) {
         searchState = ResetRequested;
+        jobPtr->abort();
         return;
     } else {
         beginResetModel();
@@ -330,6 +335,23 @@ void ModpackListModel::searchRequestFailed(QString reason)
     }
     jobPtr.reset();
 
+    if (searchState == ResetRequested) {
+        beginResetModel();
+        modpacks.clear();
+        endResetModel();
+
+        nextSearchOffset = 0;
+        performPaginatedSearch();
+    } else {
+        searchState = Finished;
+    }
+}
+
+void ModpackListModel::searchRequestAborted()
+{
+    jobPtr.reset();
+
+    // refresh() aborts the running search to start a new one
     if (searchState == ResetRequested) {
         beginResetModel();
         modpacks.clear();

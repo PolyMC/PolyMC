@@ -241,10 +241,13 @@ void InfoFrame::setDescription(QString text)
         m_description = text;
         // This allows injecting HTML here.
         labeltext.append("<html><body>" + finaltext.left(287) + "<a href=\"#mod_desc\">...</a></body></html>");
-        QObject::connect(ui->descriptionLabel, &QLabel::linkActivated, this, &InfoFrame::descriptionEllipsisHandler);
+        QObject::connect(ui->descriptionLabel, &QLabel::linkActivated, this, &InfoFrame::descriptionEllipsisHandler, Qt::UniqueConnection);
     }
     else
     {
+        // Undo what a previous long description set up, links in this one should just open
+        QObject::disconnect(ui->descriptionLabel, &QLabel::linkActivated, this, &InfoFrame::descriptionEllipsisHandler);
+        ui->descriptionLabel->setOpenExternalLinks(true);
         ui->descriptionLabel->setTextFormat(Qt::TextFormat::AutoText);
         labeltext.append(finaltext);
     }

@@ -36,6 +36,8 @@ public: /* con/des */
 public: /* methods */
     bool init(QNetworkRequest &) override
     {
+        // Downloads can be retried with the same validator, don't keep the data of an earlier attempt
+        data.clear();
         return true;
     }
     bool write(QByteArray & newData) override

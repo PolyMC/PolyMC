@@ -212,12 +212,25 @@ void LocalPeer::receiveConnection()
 
     while (socket->bytesAvailable() < (int)sizeof(quint32))
     {
-        socket->waitForReadyRead();
+        // This returns false right away once the other side is gone, so don't keep spinning on it
+        if (!socket->waitForReadyRead())
+        {
+            qWarning("QtLocalPeer: Connection closed before receiving a message: %s", socket->errorString().toLatin1().constData());
+            delete socket;
+            return;
+        }
     }
     QDataStream ds(socket);
     QByteArray uMsg;
     quint32 remaining;
     ds >> remaining;
+    // Messages are small commands, don't let anyone connecting make us allocate gigabytes
+    if (remaining > 16 * 1024 * 1024)
+    {
+        qWarning("QtLocalPeer: Refusing message of %u bytes", remaining);
+        delete socket;
+        return;
+    }
     uMsg.resize(remaining);
     int got = 0;
     char* uMsgBuf = uMsg.data();
@@ -227,7 +240,8 @@ void LocalPeer::receiveConnection()
         remaining -= got;
         uMsgBuf += got;
     } while (remaining && got >= 0 && socket->waitForReadyRead(2000));
-    if (got < 0)
+    // remaining is left over when the other side stopped sending or went away, don't use a half received message
+    if (got < 0 || remaining)
     {
         qWarning("QtLocalPeer: Message reception failed %s", socket->errorString().toLatin1().constData());
         delete socket;

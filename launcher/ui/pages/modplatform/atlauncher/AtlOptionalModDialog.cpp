@@ -266,6 +266,10 @@ void AtlOptionalModListModel::setMod(ATLauncher::VersionMod mod, int index, bool
     }
 
     for (const auto& dependencyName : std::as_const(mod.depends)) {
+        // Only optional mods are in this list, a dependency on a required mod isn't ours to change.
+        // operator[] would make that row 0 instead.
+        if (!m_index.contains(dependencyName))
+            continue;
         auto dependencyIndex = m_index[dependencyName];
         auto dependencyMod = m_mods.at(dependencyIndex);
 
@@ -276,8 +280,8 @@ void AtlOptionalModListModel::setMod(ATLauncher::VersionMod mod, int index, bool
 
         // if the dependency is 'effectively hidden', then track which mods
         // depend on it - so we can efficiently disable it when no more dependents
-        // depend on it.
-        auto dependants = m_dependants[dependencyName];
+        // depend on it. (a reference, so the changes below are actually kept)
+        auto& dependants = m_dependants[dependencyName];
 
         if (enable) {
             dependants.append(mod.name);
@@ -294,8 +298,11 @@ void AtlOptionalModListModel::setMod(ATLauncher::VersionMod mod, int index, bool
 
     // disable mods that depend on this one, if disabling
     if (!enable) {
-        auto dependants = m_dependants[mod.name];
+        // A copy on purpose: disabling the dependants removes them from this list while we loop over it
+        const auto dependants = m_dependants.value(mod.name);
         for (const auto& dependencyName : dependants) {
+            if (!m_index.contains(dependencyName))
+                continue;
             auto dependencyIndex = m_index[dependencyName];
             auto dependencyMod = m_mods.at(dependencyIndex);
 

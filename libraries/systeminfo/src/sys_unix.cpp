@@ -5,6 +5,7 @@
 #include <sys/utsname.h>
 #include <fstream>
 #include <limits>
+#include <cstdlib>
 
 #include <QString>
 #include <QStringList>
@@ -71,12 +72,16 @@ uint64_t Sys::getSystemRam()
     FILE *fp = popen("sysctl -n hw.physmem", "r");
     if (fp != NULL)
     {
-	while(fgets(buff, 512, fp) != NULL)
+	uint64_t mem = 0;
+	if(fgets(buff, 512, fp) != NULL)
 	{
-	    std::string str(buff);
-	    uint64_t mem = std::stoull(str);
-	    return mem;
+	    // strtoull instead of stoull, which throws when the output isn't a number
+	    mem = std::strtoull(buff, nullptr, 10);
 	}
+	// Always close it, or the file descriptor and the child process are leaked
+	pclose(fp);
+	if (mem != 0)
+	    return mem;
     }
 #endif
     return 0; // nothing found

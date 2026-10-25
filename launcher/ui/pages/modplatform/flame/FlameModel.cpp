@@ -156,15 +156,18 @@ void ListModel::performPaginatedSearch()
                          "searchFilter=%2&"
                          "sortField=%3&"
                          "sortOrder=desc")
-                         .arg(nextSearchOffset)
-                         .arg(currentSearchTerm)
-                         .arg(currentSort + 1);
+                         // Encode the search, and fill everything in at once: with chained arg() calls,
+                         // something like %3 in the search would get replaced by the next one
+                         .arg(QString::number(nextSearchOffset),
+                              QString::fromUtf8(QUrl::toPercentEncoding(currentSearchTerm)),
+                              QString::number(currentSort + 1));
 
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchUrl), &response));
     jobPtr = netJob;
     jobPtr->start();
     QObject::connect(netJob, &NetJob::succeeded, this, &ListModel::searchRequestFinished);
     QObject::connect(netJob, &NetJob::failed, this, &ListModel::searchRequestFailed);
+    QObject::connect(netJob, &NetJob::aborted, this, [this] { searchRequestFailed({}); });
 }
 
 void ListModel::searchWithTerm(const QString& term, int sort)
@@ -174,9 +177,11 @@ void ListModel::searchWithTerm(const QString& term, int sort)
     }
     currentSearchTerm = term;
     currentSort = sort;
-    if (jobPtr) {
-        jobPtr->abort();
+    // Only abort a search that is still going, a finished one never reports back.
+    // Set the state first, aborting can report back right away.
+    if (jobPtr && jobPtr->isRunning()) {
         searchState = ResetRequested;
+        jobPtr->abort();
         return;
     } else {
         beginResetModel();

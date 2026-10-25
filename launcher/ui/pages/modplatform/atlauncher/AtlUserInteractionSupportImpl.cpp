@@ -85,7 +85,9 @@ QString AtlUserInteractionSupportImpl::chooseVersion(Meta::VersionListPtr vlist,
         }
     }
 
-    vselect.exec();
+    // Cancelling, or a list that failed to load, leaves us without a version
+    if (vselect.exec() != QDialog::Accepted || !vselect.selectedVersion())
+        return {};
     return vselect.selectedVersion()->descriptor();
 }
 

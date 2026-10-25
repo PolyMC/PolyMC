@@ -60,5 +60,12 @@ QPixmap TexturePack::image(QSize size)
 
     // Imaged got evicted from the cache. Re-process it and retry.
     TexturePackUtils::process(*this);
-    return image(size);
+    // Only retry once: if processing didn't put it back (the file is gone, or the image doesn't fit
+    // in the cache), calling ourselves again would recurse until the stack runs out.
+    if (QPixmapCache::find(m_pack_image_cache_key.key, &cached_image)) {
+        if (size.isNull())
+            return cached_image;
+        return cached_image.scaled(size);
+    }
+    return {};
 }

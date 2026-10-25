@@ -397,8 +397,10 @@ void Page::onRemovePackClicked()
     {
         return;
     }
-    auto row = index.row();
-    Modpack pack = privateListModel->at(row);
+    // The view shows the sorted filter model, its rows don't match the rows of the pack list.
+    // The list can also change while the question is shown, so keep track of the row.
+    QPersistentModelIndex sourceIndex(privateFilterModel->mapToSource(index));
+    Modpack pack = privateListModel->at(sourceIndex.row());
     auto answer = QMessageBox::question(
         this,
         tr("Remove pack"),
@@ -411,7 +413,22 @@ void Page::onRemovePackClicked()
     }
 
     ftbPrivatePacks->remove(pack.packCode);
-    privateListModel->remove(row);
+    if(sourceIndex.isValid())
+    {
+        privateListModel->remove(sourceIndex.row());
+    }
+    else
+    {
+        // The list got reset meanwhile (a private pack finished loading), so look the pack up again
+        for(int row = 0; row < privateListModel->rowCount(QModelIndex()); row++)
+        {
+            if(privateListModel->at(row).packCode == pack.packCode)
+            {
+                privateListModel->remove(row);
+                break;
+            }
+        }
+    }
     onPackSelectionChanged();
 }
 

@@ -72,6 +72,7 @@ void AssetUpdateTask::assetIndexFinished()
         auto entry = metacache->resolveEntry("asset_indexes", assets->id + ".json");
         metacache->evictEntry(entry);
         emitFailed(tr("Failed to read the assets index!"));
+        return;
     }
 
     auto job = index.getDownloadJob();
@@ -92,12 +93,16 @@ void AssetUpdateTask::assetIndexFinished()
 void AssetUpdateTask::assetIndexFailed(QString reason)
 {
     qDebug() << m_inst->name() << ": Failed asset index download";
-    emitFailed(tr("Failed to download the assets index:\n%1").arg(reason));
+    // Keep going with the index we already have, if any. This fails properly if there is none.
+    logWarning(tr("Failed to download the assets index:\n%1").arg(reason));
+    assetIndexFinished();
 }
 
 void AssetUpdateTask::assetsFailed(QString reason)
 {
-    emitFailed(tr("Failed to download assets:\n%1").arg(reason));
+    // Missing assets only mean missing sounds or translations, so don't stop the game from launching
+    logWarning(tr("Failed to download assets:\n%1").arg(reason));
+    emitSucceeded();
 }
 
 bool AssetUpdateTask::abort()

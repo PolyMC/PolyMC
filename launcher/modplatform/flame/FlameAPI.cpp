@@ -56,7 +56,9 @@ QString FlameAPI::getModFileChangelog(int modId, int fileId)
         changelog = Json::ensureString(doc.object(), "data");
     });
 
-    QObject::connect(netJob, &NetJob::finished, [response, &lock] {
+    QObject::connect(netJob, &NetJob::finished, [netJob, response, &lock] {
+        // Nothing else owns the job
+        netJob->deleteLater();
         delete response;
         lock.quit();
     });
@@ -93,7 +95,9 @@ QString FlameAPI::getModDescription(int modId)
         description = Json::ensureString(doc.object(), "data");
     });
 
-    QObject::connect(netJob, &NetJob::finished, [response, &lock] {
+    QObject::connect(netJob, &NetJob::finished, [netJob, response, &lock] {
+        // Nothing else owns the job
+        netJob->deleteLater();
         delete response;
         lock.quit();
     });

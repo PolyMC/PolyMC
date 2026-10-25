@@ -135,6 +135,10 @@ void ListModel::requestFinished()
         newList.append(pack);
     }
 
+    // Inserting zero rows is invalid, and asserts in debug builds of Qt
+    if (newList.isEmpty())
+        return;
+
     beginInsertRows(QModelIndex(), modpacks.size(), modpacks.size() + newList.size() - 1);
     modpacks.append(newList);
     endInsertRows();

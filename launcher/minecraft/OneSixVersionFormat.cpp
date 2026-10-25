@@ -38,6 +38,7 @@
 #include "minecraft/Agent.h"
 #include "minecraft/ParseUtils.h"
 #include <minecraft/MojangVersionFormat.h>
+#include "FileSystem.h"
 
 using namespace Json;
 
@@ -57,6 +58,19 @@ LibraryPtr OneSixVersionFormat::libraryFromJson(ProblemContainer & problems, con
     readString(libObj, "MMC-absoluteUrl", out->m_absoluteURL);
     readString(libObj, "MMC-filename", out->m_filename);
     readString(libObj, "MMC-displayname", out->m_displayname);
+
+    // Library storage paths are built from the name, classifiers and filename, all of which come from JSON.
+    // Make sure none of them can make the path climb out of the libraries folder.
+    bool safe = FS::isSafeRelativePath(out->m_name.toPath(out->m_filename));
+    for (const auto& classifier : std::as_const(out->m_nativeClassifiers)) {
+        GradleSpecifier nativeSpec = out->m_name;
+        nativeSpec.setClassifier(classifier);
+        safe = safe && FS::isSafeRelativePath(nativeSpec.toPath(out->m_filename));
+    }
+    if (!safe) {
+        // Problems don't stop the library from being used, so reject the whole file
+        throw JSONValidationError(filename + " contains a library with an invalid storage path: " + out->m_name.serialize());
+    }
     return out;
 }
 
@@ -332,6 +346,22 @@ QJsonDocument OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patch
     writeString(root, "appletClass", patch->appletClass);
     writeStringList(root, "+tweakers", patch->addTweakers);
     writeStringList(root, "+traits", patch->traits.values());
+    // Written like they are read in versionFileFromJson(), customizing a component would drop them otherwise
+    writeStringList(root, "+jvmArgs", patch->addnJvmArguments);
+    if (!patch->agents.isEmpty())
+    {
+        QJsonArray array;
+        for (const auto &agent : std::as_const(patch->agents))
+        {
+            auto agentObj = OneSixVersionFormat::libraryToJson(agent->library().get());
+            if (!agent->argument().isEmpty())
+            {
+                agentObj.insert("argument", agent->argument());
+            }
+            array.append(agentObj);
+        }
+        root.insert("+agents", array);
+    }
     if (!patch->libraries.isEmpty())
     {
         QJsonArray array;
@@ -362,7 +392,7 @@ QJsonDocument OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patch
     if (!patch->mods.isEmpty())
     {
         QJsonArray array;
-        for (const auto &value : std::as_const(patch->jarMods))
+        for (const auto &value : std::as_const(patch->mods))
         {
             array.append(OneSixVersionFormat::modtoJson(value.get()));
         }

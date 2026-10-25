@@ -148,6 +148,12 @@ std::unique_ptr <nbt::tag_compound> parseLevelDat(QByteArray data)
         qWarning() << "Unable to parse level.dat:" << e.what();
         return nullptr;
     }
+    // Anything else, like running out of memory on a broken file, would otherwise take the launcher down with it
+    catch (const std::exception &e)
+    {
+        qWarning() << "Unable to parse level.dat:" << e.what();
+        return nullptr;
+    }
 }
 
 QByteArray serializeLevelDat(nbt::tag_compound * levelInfo)
@@ -220,8 +226,9 @@ int64_t calculateWorldSize(const QFileInfo &file)
         int64_t total = 0;
         while (it.hasNext())
         {
-            total += it.fileInfo().size();
+            // next() moves to the next file, fileInfo() describes the current one, so move first
             it.next();
+            total += it.fileInfo().size();
         }
         return total;
     }
@@ -369,11 +376,12 @@ bool World::rename(const QString &newName)
     {
         return false;
     }
-    auto &val = worldData->at("Data");
-    if(val.get_type() != nbt::tag_type::Compound)
+    // at() throws when there is no such key
+    if(!worldData->has_key("Data", nbt::tag_type::Compound))
     {
         return false;
     }
+    auto &val = worldData->at("Data");
     auto &dataCompound = val.as<nbt::tag_compound>();
     dataCompound.put("LevelName", nbt::value_initializer(newName.toUtf8().data()));
     data = serializeLevelDat(worldData.get());

@@ -405,6 +405,15 @@ void DeviceFlow::onRefreshFinished() {
     if (networkError == QNetworkReply::NoError) {
         QByteArray reply = refreshReply->readAll();
         QVariantMap tokens = parseJsonResponse(reply);
+        // Something like a captive portal can answer with something that isn't a token response at all.
+        // Don't replace the token we have with nothing and call that a success.
+        if (tokens.value(OAUTH2_ACCESS_TOKEN).toString().isEmpty()) {
+            qWarning() << "DeviceFlow::onRefreshFinished: The response didn't contain an access token";
+            timedReplies_.remove(refreshReply);
+            refreshReply->deleteLater();
+            updateActivity(Activity::FailedSoft);
+            return;
+        }
         setToken(tokens.value(OAUTH2_ACCESS_TOKEN).toString());
         setExpires(QDateTime::currentDateTimeUtc().addSecs(tokens.value(OAUTH2_EXPIRES_IN).toInt()));
         QString refreshToken = tokens.value(OAUTH2_REFRESH_TOKEN).toString();
@@ -449,7 +458,8 @@ void DeviceFlow::onRefreshError(QNetworkReply::NetworkError error, QNetworkReply
     case QNetworkReply::SslHandshakeFailedError:
     default:
         updateActivity(Activity::FailedSoft);
-        return;
+        // break instead of returning, the reply still needs to be cleaned up below
+        break;
     }
     if(refreshReply) {
         refreshReply->deleteLater();

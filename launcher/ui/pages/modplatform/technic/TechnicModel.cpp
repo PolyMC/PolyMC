@@ -96,9 +96,11 @@ void Technic::ListModel::searchWithTerm(const QString& term)
         return;
     }
     currentSearchTerm = term;
-    if(jobPtr) {
-        jobPtr->abort();
+    // Only abort a search that is still going, a finished one never reports back.
+    // Set the state first, aborting can report back right away.
+    if (jobPtr && jobPtr->isRunning()) {
         searchState = ResetRequested;
+        jobPtr->abort();
         return;
     }
     else {
@@ -131,7 +133,8 @@ void Technic::ListModel::performSearch()
     else {
         searchUrl = QString(
             "%1search?build=%2&q=%3"
-        ).arg(BuildConfig.TECHNIC_API_BASE_URL, BuildConfig.TECHNIC_API_BUILD, currentSearchTerm);
+        // Encode the search, characters like & or # would otherwise end the parameter early
+        ).arg(BuildConfig.TECHNIC_API_BASE_URL, BuildConfig.TECHNIC_API_BUILD, QString::fromUtf8(QUrl::toPercentEncoding(currentSearchTerm)));
         searchMode = List;
     }
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchUrl), &response));
@@ -139,6 +142,7 @@ void Technic::ListModel::performSearch()
     jobPtr->start();
     QObject::connect(netJob, &NetJob::succeeded, this, &ListModel::searchRequestFinished);
     QObject::connect(netJob, &NetJob::failed, this, &ListModel::searchRequestFailed);
+    QObject::connect(netJob, &NetJob::aborted, this, &ListModel::searchRequestFailed);
 }
 
 void Technic::ListModel::searchRequestFinished()

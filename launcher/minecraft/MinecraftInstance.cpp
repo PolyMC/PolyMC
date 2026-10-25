@@ -151,6 +151,7 @@ void MinecraftInstance::loadSpecificSettings()
         m_settings->registerPassthrough(global_settings->getSetting("JavaVersion"), javaOrLocation);
         m_settings->registerPassthrough(global_settings->getSetting("JavaArchitecture"), javaOrLocation);
         m_settings->registerPassthrough(global_settings->getSetting("JavaRealArchitecture"), javaOrLocation);
+        m_settings->registerPassthrough(global_settings->getSetting("JavaVendor"), javaOrLocation);
 
         // Window Size
         auto windowSetting = m_settings->registerSetting("OverrideWindow", false);
@@ -377,6 +378,8 @@ QStringList MinecraftInstance::extraArguments()
         list.append({"-Dfml.ignoreInvalidMinecraftCertificates=true",
                      "-Dfml.ignorePatchDiscrepancies=true"});
     }
+    // getJarMods() gives us new objects that nobody else owns
+    qDeleteAll(jarMods);
     auto addn = m_components->getProfile()->getAddnJvmArguments();
     if (!addn.isEmpty()) {
         list.append(addn);
@@ -386,6 +389,9 @@ QStringList MinecraftInstance::extraArguments()
     {
         QStringList jar, temp1, temp2, temp3;
         agent->library()->getApplicableFiles(runtimeContext(), jar, temp1, temp2, temp3, getLocalLibraryPath());
+        // Native libraries only end up in the native lists, leaving this one empty
+        if (jar.isEmpty())
+            continue;
         list.append("-javaagent:"+jar[0]+(agent->argument().isEmpty() ? "" : "="+agent->argument()));
     }
     return list;
@@ -525,7 +531,8 @@ static QString replaceTokensIn(QString text, QMap<QString, QString> with)
     while (i.hasNext())
     {
         QRegularExpressionMatch match = i.next();
-        result.append(text.mid(lastCapturedEnd, match.capturedStart()));
+        // mid() takes a length, not an end position
+        result.append(text.mid(lastCapturedEnd, match.capturedStart() - lastCapturedEnd));
         QString key = match.captured(1);
         auto iter = with.find(key);
         if (iter != with.end())
@@ -1199,6 +1206,9 @@ QList<Mod*> MinecraftInstance::getJarMods() const
         QStringList jar, temp1, temp2, temp3;
         jarmod->getApplicableFiles(runtimeContext(), jar, temp1, temp2, temp3, jarmodsPath().absolutePath());
         // QString filePath = jarmodsPath().absoluteFilePath(jarmod->filename(currentSystem));
+        // Native libraries only end up in the native lists, leaving this one empty
+        if (jar.isEmpty())
+            continue;
         mods.push_back(new Mod(QFileInfo(jar[0])));
     }
     return mods;

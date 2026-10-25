@@ -47,11 +47,25 @@ void Flame::FileResolvingTask::netJobFinished()
     }
     catch (const JSONValidationError &e) {
         qDebug() << "Flame::FileResolvingTask: Json Validation error: " << e.what();
+        delete job;
         emitFailed(e.what());
         return;
     }
 
-    auto array = Json::requireArray(doc.object()["data"]);
+    // This is a slot, an exception escaping from here would take the whole launcher down
+    QJsonArray array;
+    try {
+        array = Json::requireArray(doc.object()["data"]);
+        for (const auto &file : std::as_const(array))
+            Json::requireInteger(Json::requireObject(file)["id"]);
+    }
+    catch (const JSONValidationError &e) {
+        qDebug() << "Flame::FileResolvingTask: Json Validation error: " << e.what();
+        delete job;
+        emitFailed(e.what());
+        return;
+    }
+
     for (const auto &file : std::as_const(array)) {
         auto fileid = Json::requireInteger(Json::requireObject(file)["id"]);
         auto& out = m_toProcess.files[fileid];
@@ -73,7 +87,11 @@ void Flame::FileResolvingTask::netJobFinished()
             }
         }
     }
-    connect(job, &NetJob::finished, this, &Flame::FileResolvingTask::modrinthCheckFinished);
+    connect(job, &NetJob::finished, this, [this, job] {
+        // Nothing else owns the job
+        job->deleteLater();
+        modrinthCheckFinished();
+    });
 
     job->start();
 }
@@ -91,15 +109,21 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
         }
         QJsonDocument doc = QJsonDocument::fromJson(*bytes);
         auto obj = doc.object();
-        auto array = Json::requireArray(obj,"files");
-        for (auto file : std::as_const(array)) {
-            auto fileObj = Json::requireObject(file);
-            auto primary = Json::requireBoolean(fileObj,"primary");
-            if (primary) {
-                out->url = Json::requireUrl(fileObj,"url");
-                qDebug() << "Found alternative on modrinth " << out->fileName;
-                break;
+        try {
+            auto array = Json::requireArray(obj,"files");
+            for (auto file : std::as_const(array)) {
+                auto fileObj = Json::requireObject(file);
+                auto primary = Json::requireBoolean(fileObj,"primary");
+                if (primary) {
+                    out->url = Json::requireUrl(fileObj,"url");
+                    qDebug() << "Found alternative on modrinth " << out->fileName;
+                    break;
+                }
             }
+        } catch (const JSONValidationError& e) {
+            // Treat it like it wasn't found on Modrinth, so the user gets asked to download it
+            qWarning() << "Couldn't read the Modrinth alternative of" << out->fileName << ":" << e.cause();
+            out->resolved = false;
         }
         delete bytes;
     }
@@ -123,22 +147,29 @@ void Flame::FileResolvingTask::modrinthCheckFinished() {
             slugJob->addNetAction(dl);
             index++;
         }
-        connect(slugJob, &NetJob::succeeded, this, [slugs, this, slugJob, block]() {
+        // Use finished: the links are only used for display, one failed lookup shouldn't stop everything
+        connect(slugJob, &NetJob::finished, this, [slugs, this, slugJob, block]() {
             slugJob->deleteLater();
             auto index = 0;
             for (const auto &slugResult: slugs) {
-                auto json = QJsonDocument::fromJson(slugResult);
-                auto base = Json::requireString(Json::requireObject(Json::requireObject(Json::requireObject(json),"data"),"links"),
-                        "websiteUrl");
                 auto mod = block->at(index);
-                auto link = QString("%1/download/%2").arg(base, QString::number(mod->fileId));
-                mod->websiteUrl = link;
                 index++;
+                try {
+                    auto json = QJsonDocument::fromJson(slugResult);
+                    auto base = Json::requireString(Json::requireObject(Json::requireObject(Json::requireObject(json),"data"),"links"),
+                            "websiteUrl");
+                    auto link = QString("%1/download/%2").arg(base, QString::number(mod->fileId));
+                    mod->websiteUrl = link;
+                } catch (const JSONValidationError& e) {
+                    qWarning() << "Couldn't get the website of blocked mod" << mod->fileName << ":" << e.cause();
+                }
             }
+            delete block;
             emitSucceeded();
         });
         slugJob->start();
     } else {
+        delete block;
         emitSucceeded();
     }
 }

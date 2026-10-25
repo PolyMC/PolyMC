@@ -18,6 +18,9 @@
 
 #include <QDebug>
 #include <QKeyEvent>
+#include <QProgressBar>
+
+#include <limits>
 
 #include "tasks/Task.h"
 
@@ -150,17 +153,25 @@ void ProgressDialog::changeStatus(const QString& /*status*/)
     updateSize();
 }
 
+// Progress bars only take ints, so scale byte counts of large downloads down instead of letting them overflow
+static void setBarProgress(QProgressBar* bar, qint64 current, qint64 total)
+{
+    while (total > std::numeric_limits<int>::max()) {
+        total /= 2;
+        current /= 2;
+    }
+    bar->setMaximum(static_cast<int>(total));
+    bar->setValue(static_cast<int>(current));
+}
+
 void ProgressDialog::changeProgress(qint64 current, qint64 total)
 {
-    ui->globalProgressBar->setMaximum(total);
-    ui->globalProgressBar->setValue(current);
+    setBarProgress(ui->globalProgressBar, current, total);
 
     if (!m_is_multi_step) {
-        ui->taskProgressBar->setMaximum(total);
-        ui->taskProgressBar->setValue(current);
+        setBarProgress(ui->taskProgressBar, current, total);
     } else {
-        ui->taskProgressBar->setMaximum(task->getStepProgress());
-        ui->taskProgressBar->setValue(task->getStepTotalProgress());
+        setBarProgress(ui->taskProgressBar, task->getStepProgress(), task->getStepTotalProgress());
     }
 }
 

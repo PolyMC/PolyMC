@@ -156,7 +156,8 @@ void LaunchProfile::applyMods(const QList<LibraryPtr>& mods)
         if (index < 0)
         {
             list->append(modCopy);
-            return;
+            // continue, not return: this loops over all the mods
+            continue;
         }
 
         auto existingLibrary = list->at(index);

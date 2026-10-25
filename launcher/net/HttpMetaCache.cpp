@@ -82,6 +82,12 @@ MetaEntryPtr HttpMetaCache::getEntry(QString base, QString resource_path)
 
 MetaEntryPtr HttpMetaCache::resolveEntry(QString base, QString resource_path, QString expected_etag)
 {
+    // Resource paths are often built from data downloaded from elsewhere, so make sure they can't leave the base folder
+    if (!FS::isSafeRelativePath(resource_path)) {
+        qWarning() << "Cache resource path" << resource_path << "tries to leave its base folder, using a hashed name instead";
+        resource_path = "invalid/" + QCryptographicHash::hash(resource_path.toUtf8(), QCryptographicHash::Sha1).toHex();
+    }
+
     auto entry = getEntry(base, resource_path);
     // it's not present? generate a default stale entry
     if (!entry) {
@@ -205,7 +211,13 @@ void HttpMetaCache::Load()
 
     QJsonDocument json = QJsonDocument::fromJson(index.readAll());
 
-    auto root = Json::requireObject(json, "HttpMetaCache root");
+    // A damaged index (for example after a crash while saving it) just means starting with an empty cache.
+    // Nothing catches exceptions at startup, so don't use Json::requireObject() here.
+    if (!json.isObject()) {
+        qWarning() << "The cache index" << m_index_file << "is damaged, ignoring it";
+        return;
+    }
+    auto root = json.object();
 
     // check file version first
     auto version_val = Json::ensureString(root, "version");

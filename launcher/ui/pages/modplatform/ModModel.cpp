@@ -123,8 +123,12 @@ void ListModel::performPaginatedSearch()
 
 void ListModel::requestModInfo(ModPlatform::IndexedPack& current, QModelIndex index)
 {
-    m_parent->apiProvider()->getModInfo(current, [this, index](QJsonDocument& doc, ModPlatform::IndexedPack& pack) {
+    // pack is a reference to whatever the page has selected when the reply comes in, which may be another mod by then
+    auto requested_id = current.addonId;
+    m_parent->apiProvider()->getModInfo(current, [this, index, requested_id](QJsonDocument& doc, ModPlatform::IndexedPack& pack) {
         if (!s_running.constFind(this).value())
+            return;
+        if (pack.addonId != requested_id)
             return;
         infoRequestFinished(doc, pack, index);
     });
@@ -132,9 +136,11 @@ void ListModel::requestModInfo(ModPlatform::IndexedPack& current, QModelIndex in
 
 void ListModel::refresh()
 {
-    if (jobPtr) {
-        jobPtr->abort();
+    // Only abort a search that is still going, a finished one never reports back.
+    // Set the state first, aborting can report back right away.
+    if (jobPtr && jobPtr->isRunning()) {
         searchState = ResetRequested;
+        jobPtr->abort();
         return;
     } else {
         beginResetModel();
@@ -281,6 +287,23 @@ void ListModel::searchRequestFailed(QString /*reason*/)
     }
 }
 
+void ListModel::searchRequestAborted()
+{
+    jobPtr.reset();
+
+    // refresh() aborts the running search to start a new one
+    if (searchState == ResetRequested) {
+        beginResetModel();
+        modpacks.clear();
+        endResetModel();
+
+        nextSearchOffset = 0;
+        performPaginatedSearch();
+    } else {
+        searchState = Finished;
+    }
+}
+
 void ListModel::infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack& pack, const QModelIndex& index)
 {
     qDebug() << "Loading mod info";
@@ -323,10 +346,13 @@ void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId, cons
     }
 
     // Cache info :^)
-    QVariant new_pack;
-    new_pack.setValue(current);
-    if (!setData(index, new_pack, Qt::UserRole)) {
-        qWarning() << "Failed to cache mod versions!";
+    // Only if the row still holds this mod, a new search may have put another mod there meanwhile
+    if (data(index, Qt::UserRole).value<ModPlatform::IndexedPack>().addonId == current.addonId) {
+        QVariant new_pack;
+        new_pack.setValue(current);
+        if (!setData(index, new_pack, Qt::UserRole)) {
+            qWarning() << "Failed to cache mod versions!";
+        }
     }
 
 

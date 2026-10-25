@@ -29,7 +29,9 @@ void probeProcCpuinfo(QStringList &log)
     {
         if (strncmp(line.c_str(), "model name", 10) == 0)
         {
-            log << QString::fromStdString(line.substr(13, std::string::npos));
+            // substr() throws when starting past the end
+            if (line.size() > 13)
+                log << QString::fromStdString(line.substr(13, std::string::npos));
             break;
         }
     }
@@ -54,7 +56,8 @@ void runLspci(QStringList &log)
         if (str.substr(8, 3) == "VGA")
         {
             gpuline = cline;
-            log << QString::fromStdString(str.substr(35, std::string::npos));
+            // substr() throws when starting past the end
+            log << QString::fromStdString(str.size() > 35 ? str.substr(35, std::string::npos) : str);
         }
         if (gpuline > -1 && gpuline != cline)
         {
@@ -72,6 +75,8 @@ void runSysctlHwModel(QStringList &log)
 {
     char buff[512];
     FILE *hwmodel = popen("sysctl hw.model", "r");
+    if (!hwmodel)
+        return;
     while (fgets(buff, 512, hwmodel) != NULL)
     {
 	log << QString::fromUtf8(buff);
@@ -85,6 +90,8 @@ void runPciconf(QStringList &log)
     char buff[512];
     std::string strcard;
     FILE *pciconf = popen("pciconf -lv -a vgapci0", "r");
+    if (!pciconf)
+        return;
     while (fgets(buff, 512, pciconf) != NULL)
     {
 	if (strncmp(buff, "    vendor", 10) == 0)

@@ -251,7 +251,8 @@ void TechnicPage::metadataLoaded()
         auto url = QString("%1/modpack/%2").arg(current.url, current.slug);
         netJob->addNetAction(Net::Download::makeByteArray(QUrl(url), &response));
 
-        QObject::connect(netJob, &NetJob::succeeded, this, &TechnicPage::onSolderLoaded);
+        // Use finished, so a failed request also ends up using the fallback version list
+        QObject::connect(netJob, &NetJob::finished, this, &TechnicPage::onSolderLoaded);
 
         jobPtr = netJob;
         jobPtr->start();

@@ -126,11 +126,15 @@ static QJsonObject componentToJsonV1(ComponentPtr component)
     return obj;
 }
 
-static ComponentPtr componentFromJsonV1(PackProfile * parent, const QString & componentJsonPattern, const QJsonObject &obj)
+static ComponentPtr componentFromJsonV1(PackProfile * parent, const QString & /*componentJsonPattern*/, const QJsonObject &obj)
 {
     // critical
     auto uid = Json::requireString(obj.value("uid"));
-    auto filePath = componentJsonPattern.arg(uid);
+    // The uid is used as a file name in the patches folder, so it must not be able to point anywhere else
+    if (uid.isEmpty() || uid.contains('/') || uid.contains('\\') || uid.contains(':'))
+    {
+        throw JSONValidationError(QObject::tr("Invalid component uid: %1").arg(uid));
+    }
     auto component = new Component(parent, uid);
     component->m_version = Json::ensureString(obj.value("version"));
     component->m_dependencyOnly = Json::ensureBoolean(obj.value("dependencyOnly"), false);
@@ -142,7 +146,7 @@ static ComponentPtr componentFromJsonV1(PackProfile * parent, const QString & co
     component->m_cachedName = Json::ensureString(obj.value("cachedName"));
     Meta::parseRequires(obj, &component->m_cachedRequires, "cachedRequires");
     Meta::parseRequires(obj, &component->m_cachedConflicts, "cachedConflicts");
-    component->m_cachedVolatile = Json::ensureBoolean(obj.value("volatile"), false);
+    component->m_cachedVolatile = Json::ensureBoolean(obj.value("cachedVolatile"), false);
     bool disabled = Json::ensureBoolean(obj.value("disabled"), false);
     component->setEnabled(!disabled);
     return component;
@@ -291,7 +295,8 @@ QString PackProfile::patchesPattern() const
 
 QString PackProfile::patchFilePathForUid(const QString& uid) const
 {
-    return patchesPattern().arg(uid);
+    // Don't use QString::arg() on the pattern here, the instance path may contain things like %1 itself
+    return FS::PathCombine(d->m_instance->instanceRoot(), "patches", uid + ".json");
 }
 
 void PackProfile::save_internal()
@@ -368,6 +373,12 @@ Task::Ptr PackProfile::getCurrentTask()
 
 void PackProfile::resolve(Net::Mode netmode)
 {
+    // A previous resolve may still be running. Its results are outdated now, and they would reset
+    // the new task when they come in, so stop listening to it.
+    if (d->m_updateTask)
+    {
+        disconnect(d->m_updateTask.get(), nullptr, this, nullptr);
+    }
     auto updateTask = new ComponentUpdateTask(ComponentUpdateTask::Mode::Resolution, netmode, this);
     d->m_updateTask.reset(updateTask);
     connect(updateTask, &ComponentUpdateTask::succeeded, this, &PackProfile::updateSucceeded);
@@ -447,7 +458,12 @@ void PackProfile::componentDataChanged()
 
 bool PackProfile::remove(const int index)
 {
-    auto patch = getComponent(index);
+    if (index < 0 || index >= d->components.size())
+    {
+        return false;
+    }
+    // Use the list's own shared pointer, wrapping the raw pointer would create a second owner that deletes the component
+    ComponentPtr patch = d->components[index];
     if (!patch->isRemovable())
     {
         qWarning() << "Patch" << patch->getID() << "is non-removable";
@@ -791,6 +807,11 @@ bool PackProfile::removeComponent_internal(ComponentPtr patch)
         }
         QStringList jar, temp1, temp2, temp3;
         jarMod->getApplicableFiles(d->m_instance->runtimeContext(), jar, temp1, temp2, temp3, d->m_instance->jarmodsPath().absolutePath());
+        // Native libraries only end up in the native lists, leaving this one empty
+        if (jar.isEmpty())
+        {
+            return true;
+        }
         QFileInfo finfo (jar[0]);
         if(finfo.exists())
         {

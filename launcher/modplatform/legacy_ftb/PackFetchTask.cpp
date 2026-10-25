@@ -169,15 +169,11 @@ bool PackFetchTask::parseAndAddPacks(QByteArray &data, PackType packType, Modpac
         modpack.broken = false;
         modpack.bugged = false;
 
-        //remove empty if the xml is bugged
-        for (const QString &curr : std::as_const(modpack.oldVersions))
+        //remove empty if the xml is bugged (not while looping over the list, that isn't safe)
+        if(modpack.oldVersions.removeAll(QString()) > 0)
         {
-            if(curr.isNull() || curr.isEmpty())
-            {
-                modpack.oldVersions.removeAll(curr);
-                modpack.bugged = true;
-                qWarning() << "Removed some empty versions from" << modpack.name;
-            }
+            modpack.bugged = true;
+            qWarning() << "Removed some empty versions from" << modpack.name;
         }
 
         if(modpack.oldVersions.size() < 1)

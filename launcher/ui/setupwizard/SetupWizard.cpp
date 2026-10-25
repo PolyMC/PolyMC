@@ -58,7 +58,9 @@ void SetupWizard::pageChanged(int id)
     {
         setButtonLayout({QWizard::CustomButton1, QWizard::Stretch, QWizard::BackButton, QWizard::NextButton, QWizard::FinishButton});
         auto customButton = button(QWizard::CustomButton1);
-        connect(customButton, &QAbstractButton::pressed, [&](){
+        // This runs every time such a page is shown, don't stack up another handler each time
+        disconnect(customButton, &QAbstractButton::pressed, this, nullptr);
+        connect(customButton, &QAbstractButton::pressed, this, [&](){
             auto basePagePtr = getCurrentBasePage();
             if(basePagePtr)
             {

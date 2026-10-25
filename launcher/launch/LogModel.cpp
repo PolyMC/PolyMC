@@ -102,8 +102,8 @@ void LogModel::setMaxLines(int maxLines)
     {
         return;
     }
-    // if it all still fits in the buffer, just resize it
-    if(m_firstLine + m_numLines < m_maxLines)
+    // if it all still fits in the buffer, and in the new size, just resize it
+    if(m_firstLine + m_numLines < m_maxLines && m_firstLine + m_numLines <= maxLines)
     {
         m_maxLines = maxLines;
         m_content.resize(maxLines);
@@ -130,7 +130,8 @@ void LogModel::setMaxLines(int maxLines)
         {
             newContent[i] = m_content[(m_firstLine + lead + i) % m_maxLines];
         }
-        m_numLines = m_maxLines;
+        // the new size, m_maxLines is still the old one here
+        m_numLines = maxLines;
         m_content.swap(newContent);
         endRemoveRows();
     }

@@ -85,6 +85,8 @@ void ImgurUpload::executeTask()
     multipart->append(namePart);
 
     QNetworkReply *rep = m_network->post(request, multipart);
+    // The reply needs the data until it's done, so let it own (and later delete) it
+    multipart->setParent(rep);
 
     m_reply.reset(rep);
     connect(rep, &QNetworkReply::uploadProgress, this, &ImgurUpload::downloadProgress);
@@ -103,7 +105,7 @@ void ImgurUpload::downloadError(QNetworkReply::NetworkError /*error*/)
         qCritical() << "Double finished ImgurUpload!";
         return;
     }
-    m_state = Task::State::Failed;
+    // Don't set the state here, emitFailed() does nothing if the task isn't running anymore
     finished = true;
     m_reply.reset();
     emitFailed();

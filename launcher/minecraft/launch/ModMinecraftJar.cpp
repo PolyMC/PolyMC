@@ -44,7 +44,11 @@ void ModMinecraftJar::executeTask()
 {
     auto m_inst = std::dynamic_pointer_cast<MinecraftInstance>(m_parent->instance());
 
-    if(!m_inst->getJarMods().size())
+    // getJarMods() gives us new objects that nobody else owns
+    auto jarModsCheck = m_inst->getJarMods();
+    bool hasJarMods = !jarModsCheck.isEmpty();
+    qDeleteAll(jarModsCheck);
+    if(!hasJarMods)
     {
         emitSucceeded();
         return;
@@ -53,12 +57,14 @@ void ModMinecraftJar::executeTask()
     if(!FS::ensureFolderPathExists(m_inst->binRoot()))
     {
         emitFailed(tr("Couldn't create the bin folder for Minecraft.jar"));
+        return;
     }
 
     auto finalJarPath = QDir(m_inst->binRoot()).absoluteFilePath("minecraft.jar");
     if(!removeJar())
     {
         emitFailed(tr("Couldn't remove stale jar file: %1").arg(finalJarPath));
+        return;
     }
 
     // create temporary modded jar, if needed
@@ -70,8 +76,17 @@ void ModMinecraftJar::executeTask()
         auto mainJar = profile->getMainJar();
         QStringList jars, temp1, temp2, temp3, temp4;
         mainJar->getApplicableFiles(m_inst->runtimeContext(), jars, temp1, temp2, temp3, m_inst->getLocalLibraryPath());
+        // Native libraries only end up in the native lists, leaving this one empty
+        if(jars.isEmpty())
+        {
+            qDeleteAll(jarMods);
+            emitFailed(tr("Couldn't find the Minecraft jar file to add the jar mods to."));
+            return;
+        }
         auto sourceJarPath = jars[0];
-        if(!MMCZip::createModdedJar(sourceJarPath, finalJarPath, jarMods))
+        bool created = MMCZip::createModdedJar(sourceJarPath, finalJarPath, jarMods);
+        qDeleteAll(jarMods);
+        if(!created)
         {
             emitFailed(tr("Failed to create the custom Minecraft jar file."));
             return;

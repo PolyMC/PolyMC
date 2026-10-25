@@ -151,11 +151,14 @@ void FlamePage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
                 ui->versionSelectionBox->addItem(version.version, QVariant(version.downloadUrl));
             }
 
-            QVariant current_updated;
-            current_updated.setValue(current);
+            // Only cache it if the row still holds this pack, a new search may have put another one there meanwhile
+            if (listModel->data(curr, Qt::UserRole).value<Flame::IndexedPack>().addonId == addonId) {
+                QVariant current_updated;
+                current_updated.setValue(current);
 
-            if (!listModel->setData(curr, current_updated, Qt::UserRole))
-                qWarning() << "Failed to cache versions for the current pack!";
+                if (!listModel->setData(curr, current_updated, Qt::UserRole))
+                    qWarning() << "Failed to cache versions for the current pack!";
+            }
 
             // TODO: Check whether it's a connection issue or the project disabled 3rd-party distribution.
             if (current.versionsLoaded && ui->versionSelectionBox->count() < 1) {

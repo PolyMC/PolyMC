@@ -171,6 +171,8 @@ void ListModel::packRequestFinished()
     if(parse_error.error != QJsonParseError::NoError) {
         qWarning() << "Error while parsing JSON response from FTB at " << parse_error.offset << " reason: " << parse_error.errorString();
         qWarning() << response;
+        // Skip this pack, but keep loading the others
+        requestNextPack();
         return;
     }
 
@@ -185,6 +187,8 @@ void ListModel::packRequestFinished()
     {
         qDebug() << QString::fromUtf8(response);
         qWarning() << "Error while reading pack manifest from FTB: " << e.cause();
+        // Skip this pack, but keep loading the others
+        requestNextPack();
         return;
     }
 
@@ -201,16 +205,23 @@ void ListModel::packRequestFinished()
         endInsertRows();
     }
 
-    if(!remainingPacks.isEmpty()) {
-        currentPack = remainingPacks.at(0);
-        requestPack();
-    }
+    requestNextPack();
 }
 
 void ListModel::packRequestFailed(QString /*reason*/)
 {
     jobPtr.reset();
     remainingPacks.removeOne(currentPack);
+    // Skip this pack, but keep loading the others
+    requestNextPack();
+}
+
+void ListModel::requestNextPack()
+{
+    if(!remainingPacks.isEmpty()) {
+        currentPack = remainingPacks.at(0);
+        requestPack();
+    }
 }
 
 void ListModel::logoLoaded(QString logo, bool stale)

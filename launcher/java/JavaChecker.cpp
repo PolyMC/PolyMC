@@ -56,6 +56,12 @@ void JavaChecker::performCheck()
     if (checkerJar.isEmpty())
     {
         qDebug() << "Java checker library could not be found. Please check your installation.";
+        // Still report a result, everything waiting on this check would hang otherwise.
+        // Queue it, callers don't expect to get the result before performCheck() returns.
+        JavaCheckResult result;
+        result.path = m_path;
+        result.id = m_id;
+        QMetaObject::invokeMethod(this, [this, result] { emit checkFinished(result); }, Qt::QueuedConnection);
         return;
     }
 

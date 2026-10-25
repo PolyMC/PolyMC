@@ -82,12 +82,12 @@ void ImgurAlbumCreation::executeTask()
 }
 void ImgurAlbumCreation::downloadError(QNetworkReply::NetworkError /*error*/)
 {
+    // The failure is handled in downloadFinished(), setting the state here would make emitFailed() do nothing
     qDebug() << m_reply->errorString();
-    m_state = State::Failed;
 }
 void ImgurAlbumCreation::downloadFinished()
 {
-    if (m_state != State::Failed)
+    if (m_reply->error() == QNetworkReply::NoError)
     {
         QByteArray data = m_reply->readAll();
         m_reply.reset();

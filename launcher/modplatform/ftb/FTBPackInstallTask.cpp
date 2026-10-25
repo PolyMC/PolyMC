@@ -110,6 +110,7 @@ void PackInstallTask::onManifestDownloadSucceeded()
         qWarning() << "Error while parsing JSON response from FTB at " << parse_error.offset
                    << " reason: " << parse_error.errorString();
         qWarning() << m_response;
+        emitFailed(parse_error.errorString());
         return;
     }
 
@@ -236,6 +237,11 @@ void PackInstallTask::downloadPack()
 
         auto relpath = FS::PathCombine("minecraft", file.path, file.name);
         auto path = FS::PathCombine(m_stagingPath, relpath);
+        if (!path.startsWith(FS::PathCombine(m_stagingPath, "minecraft") + '/')) {
+            delete jobPtr;
+            emitFailed(tr("File %1 tries to place itself outside of the instance").arg(file.name));
+            return;
+        }
 
         if (m_files_to_copy.contains(path)) {
             qWarning() << "Ignoring" << file.url << "as a file of that path is already downloading.";

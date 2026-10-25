@@ -131,6 +131,9 @@ void LogView::rowsInserted(const QModelIndex& parent, int first, int last)
     {
         auto idx = m_model->index(i, 0, parent);
         auto text = m_model->data(idx, Qt::DisplayRole).toString();
+        // Keep every row in a single block: inserting a '\n' starts a new block, which would make
+        // rowsRemoved() remove only part of a row. A line separator still shows as a line break.
+        text.replace('\n', QChar::LineSeparator);
         QTextCharFormat format(*m_defaultFormat);
         auto font = m_model->data(idx, Qt::FontRole);
         if(font.isValid())
@@ -161,10 +164,20 @@ void LogView::rowsInserted(const QModelIndex& parent, int first, int last)
 
 void LogView::rowsRemoved(const QModelIndex& parent, int first, int last)
 {
-    // TODO: some day... maybe
     Q_UNUSED(parent)
-    Q_UNUSED(first)
-    Q_UNUSED(last)
+    // The log model drops its oldest lines once it is full. Every row is one block of the document
+    // (see rowsInserted()), so drop the same blocks, otherwise the document keeps growing forever.
+    auto doc = document();
+    auto firstBlock = doc->findBlockByNumber(first);
+    auto lastBlock = doc->findBlockByNumber(last);
+    if(!firstBlock.isValid() || !lastBlock.isValid())
+    {
+        return;
+    }
+    QTextCursor cursor(firstBlock);
+    auto end = lastBlock.next().isValid() ? lastBlock.next().position() : lastBlock.position() + lastBlock.length() - 1;
+    cursor.setPosition(end, QTextCursor::KeepAnchor);
+    cursor.removeSelectedText();
 }
 
 void LogView::scrollToBottom()

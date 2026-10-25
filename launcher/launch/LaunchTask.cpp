@@ -81,6 +81,7 @@ void LaunchTask::executeTask()
     {
         state = LaunchTask::Finished;
         emitSucceeded();
+        return;
     }
     state = LaunchTask::Running;
     onStepFinished();

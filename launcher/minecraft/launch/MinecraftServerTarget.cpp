@@ -55,7 +55,8 @@ MinecraftServerTarget MinecraftServerTarget::parse(const QString &fullAddress) {
     if (split.size() > 1)
     {
         bool ok;
-        realPort = split[1].toUInt(&ok);
+        // toUShort() fails for anything that isn't a valid port, toUInt() would silently wrap it around
+        realPort = split[1].toUShort(&ok);
 
         if (!ok)
         {

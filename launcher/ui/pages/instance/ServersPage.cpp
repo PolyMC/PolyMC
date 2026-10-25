@@ -356,9 +356,14 @@ private:
         while (!m_buffer.isEmpty() && !m_finished) {
             int pos = 0;
             int packetLen;
-            if (!tryReadVarInt(pos, packetLen) || packetLen <= 0)
+            if (!tryReadVarInt(pos, packetLen)) {
+                // A length takes at most 5 bytes. Without one in that much data the server is sending garbage,
+                // stop instead of buffering everything it sends until the timeout.
+                if (m_buffer.size() >= 5)
+                    finish(false);
                 return;
-            if (packetLen > MAX_STATUS_PACKET_SIZE) {
+            }
+            if (packetLen <= 0 || packetLen > MAX_STATUS_PACKET_SIZE) {
                 finish(false);
                 return;
             }
@@ -844,9 +849,11 @@ public:
                 m_servers[r].m_maxPlayers     = max;
                 m_servers[r].m_ping           = ping;
                 m_servers[r].m_motd           = motd;
-                if (!icon.isEmpty()) {
+                if (!icon.isEmpty() && icon != m_servers[r].m_icon) {
                     m_servers[r].m_icon = icon;
-                    scheduleSave();
+                    // While the game runs it owns servers.dat, writing our copy then could undo its changes
+                    if (!m_locked)
+                        scheduleSave();
                 }
                 emit dataChanged(index(r, 0), index(r, COLUMN_COUNT - 1));
             });

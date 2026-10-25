@@ -268,6 +268,18 @@ QString PathCombine(const QString& path1, const QString& path2, const QString& p
     return PathCombine(PathCombine(path1, path2, path3), path4);
 }
 
+bool isSafeRelativePath(const QString& path)
+{
+    const auto segments = QDir::fromNativeSeparators(path).split('/');
+    for (auto segment : segments) {
+        while (segment.endsWith(' '))
+            segment.chop(1);
+        if (segment.size() >= 2 && segment.count('.') == segment.size())
+            return false;
+    }
+    return true;
+}
+
 QString AbsolutePath(QString path)
 {
     return QFileInfo(path).absolutePath();

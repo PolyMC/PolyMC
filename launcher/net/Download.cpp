@@ -99,9 +99,11 @@ void Download::executeTask()
     }
 
     QNetworkRequest request(m_url);
-    m_state = m_sink->init(request);
-    switch (m_state) {
+    // Don't store the sink state yet, emitFailed() and emitAborted() only work while we're still running
+    auto sinkState = m_sink->init(request);
+    switch (sinkState) {
         case State::Succeeded:
+            m_state = State::Succeeded;
             emit succeeded();
             qDebug() << "Download cache hit " << m_url.toString();
             return;
