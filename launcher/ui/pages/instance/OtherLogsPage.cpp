@@ -91,6 +91,12 @@ void OtherLogsPage::closedImpl()
 
 void OtherLogsPage::populateSelectLogBox()
 {
+    // Rebuilding the list changes the current item a few times. Without blocking the signals, that would
+    // forget the selected file and load the first one instead, every time any log file changes.
+    // When nothing is selected yet, let it happen: that's how the first file gets shown.
+    QSignalBlocker blocker(ui->selectLogBox);
+    if (m_currentFile.isEmpty())
+        blocker.unblock();
     ui->selectLogBox->clear();
     ui->selectLogBox->addItems(m_watcher->files());
     if (m_currentFile.isEmpty())
@@ -108,6 +114,10 @@ void OtherLogsPage::populateSelectLogBox()
         }
         else
         {
+            // The selected file is gone
+            m_currentFile = QString();
+            ui->text->clear();
+            ui->selectLogBox->setCurrentIndex(-1);
             setControlsEnabled(false);
         }
     }
