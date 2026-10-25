@@ -173,6 +173,8 @@ void ModrinthCheckUpdate::executeTask()
     });
 
     connect(job.get(), &Task::failed, this, [&error](QString reason) { error = reason; });
+    bool aborted = false;
+    connect(job.get(), &Task::aborted, this, [&aborted] { aborted = true; });
     connect(job.get(), &Task::finished, &lock, &QEventLoop::quit);
 
     setStatus(tr("Waiting for the API response from Modrinth..."));
@@ -183,6 +185,11 @@ void ModrinthCheckUpdate::executeTask()
 
     lock.exec();
 
+    // abort() only aborts the request, report it from here
+    if (aborted) {
+        emitAborted();
+        return;
+    }
     if (!error.isEmpty()) {
         emitFailed(error);
         return;
