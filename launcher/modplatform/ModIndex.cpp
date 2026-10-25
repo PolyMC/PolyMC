@@ -70,8 +70,14 @@ QString ProviderCapabilities::hash(Provider p, QIODevice* device, QString type)
     }
 
     QCryptographicHash hash(algo);
-    if(!hash.addData(device))
-        qCritical() << "Failed to read JAR to create hash!";
+    while (!device->atEnd()) {
+        auto chunk = device->read(1024 * 1024);
+        if (chunk.isEmpty()) {
+            qCritical() << "Failed to read JAR to create hash!";
+            break;
+        }
+        hash.addData(chunk);
+    }
 
     Q_ASSERT(hash.result().length() == hash.hashLength(algo));
     return { hash.result().toHex() };
