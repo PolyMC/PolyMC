@@ -139,36 +139,25 @@ void ResourcePack::setImage(QImage new_image)
 
     Q_ASSERT(!new_image.isNull());
 
-    if (m_pack_image_cache_key.key.isValid())
-        QPixmapCache::remove(m_pack_image_cache_key.key);
-
-    m_pack_image_cache_key.key = QPixmapCache::insert(QPixmap::fromImage(new_image));
-    m_pack_image_cache_key.was_ever_used = true;
+    m_pack_image = new_image;
+    m_pack_image_cache_key = QPixmapCache::Key();
 }
 
 QPixmap ResourcePack::image(QSize size)
 {
+    QMutexLocker locker(&m_data_lock);
+
     QPixmap cached_image;
-    if (QPixmapCache::find(m_pack_image_cache_key.key, &cached_image)) {
-        if (size.isNull())
-            return cached_image;
-        return cached_image.scaled(size);
+    if (!QPixmapCache::find(m_pack_image_cache_key, &cached_image)) {
+        if (m_pack_image.isNull())
+            return {};
+        cached_image = QPixmap::fromImage(m_pack_image);
+        m_pack_image_cache_key = QPixmapCache::insert(cached_image);
     }
 
-    // No valid image we can get
-    if (!m_pack_image_cache_key.was_ever_used)
-        return {};
-
-    // Imaged got evicted from the cache. Re-process it and retry.
-    ResourcePackUtils::process(*this);
-    // Only retry once: if processing didn't put it back (the file is gone, or the image doesn't fit
-    // in the cache), calling ourselves again would recurse until the stack runs out.
-    if (QPixmapCache::find(m_pack_image_cache_key.key, &cached_image)) {
-        if (size.isNull())
-            return cached_image;
-        return cached_image.scaled(size);
-    }
-    return {};
+    if (size.isNull())
+        return cached_image;
+    return cached_image.scaled(size);
 }
 
 QString ResourcePack::toString() const {

@@ -72,14 +72,6 @@ protected:
      */
     QString m_description;
 
-    /** The resource pack's image file cache key, for access in the QPixmapCache global instance.
-     *
-     *  The 'was_ever_used' state simply identifies whether the key was never inserted on the cache
-     * (true), so as to tell whether a cache entry is inexistent or if it was just evicted from the
-     * cache.
-     */
-    struct {
-        QPixmapCache::Key key;
-        bool was_ever_used = false;
-    } m_pack_image_cache_key;
+    QImage m_pack_image;
+    QPixmapCache::Key m_pack_image_cache_key;
 };
