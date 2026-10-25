@@ -2,6 +2,7 @@
 
 #include <QNetworkRequest>
 #include <QUuid>
+#include <QDebug>
 
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"
@@ -34,7 +35,7 @@ void EntitlementsStep::rehydrate() {
 }
 
 void EntitlementsStep::onRequestDone(
-    QNetworkReply::NetworkError /*error*/,
+    QNetworkReply::NetworkError error,
     QByteArray data,
     QList<QNetworkReply::RawHeaderPair> /*headers*/
 ) {
@@ -44,6 +45,13 @@ void EntitlementsStep::onRequestDone(
 #ifndef NDEBUG
     qDebug() << data;
 #endif
+
+    // An error response would be parsed as "doesn't own the game", so keep what we knew before instead
+    if (error != QNetworkReply::NoError) {
+        qWarning() << "Error getting entitlements:" << error << requestor->errorString_;
+        emit finished(AccountTaskState::STATE_WORKING, tr("Couldn't get entitlements"));
+        return;
+    }
 
     // TODO: check presence of same entitlementsRequestId?
     // TODO: validate JWTs?
