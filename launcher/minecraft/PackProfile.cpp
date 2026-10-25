@@ -373,6 +373,12 @@ Task::Ptr PackProfile::getCurrentTask()
 
 void PackProfile::resolve(Net::Mode netmode)
 {
+    // A previous resolve may still be running. Its results are outdated now, and they would reset
+    // the new task when they come in, so stop listening to it.
+    if (d->m_updateTask)
+    {
+        disconnect(d->m_updateTask.get(), nullptr, this, nullptr);
+    }
     auto updateTask = new ComponentUpdateTask(ComponentUpdateTask::Mode::Resolution, netmode, this);
     d->m_updateTask.reset(updateTask);
     connect(updateTask, &ComponentUpdateTask::succeeded, this, &PackProfile::updateSucceeded);
