@@ -106,7 +106,9 @@ void MSALoginDialog::showVerificationUriAndCode(const QUrl& uri, const QString& 
     QString linkString = QString("<a href=\"%1\">%2</a>").arg(urlString, urlString);
     ui->label->setText(tr("<p>Please open up %1 in a browser and put in the code <b>%2</b> to proceed with login.</p>").arg(linkString, code));
     ui->actionButton->setVisible(true);
-    connect(ui->actionButton, &QPushButton::clicked, [=]() {
+    // This runs again for every new code, don't keep the handlers for the old codes around
+    disconnect(ui->actionButton, &QPushButton::clicked, this, nullptr);
+    connect(ui->actionButton, &QPushButton::clicked, this, [=]() {
         DesktopServices::openUrl(uri);
         QClipboard* cb = QApplication::clipboard();
         cb->setText(code);
