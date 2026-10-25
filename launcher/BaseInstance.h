@@ -151,7 +151,7 @@ public:
     void copyManagedPack(BaseInstance& other);
 
     /// guess log level from a line of game log
-    virtual MessageLevel::Enum guessLevel(const QString &line, MessageLevel::Enum level)
+    virtual MessageLevel::Enum guessLevel(const QString &/*line*/, MessageLevel::Enum level)
     {
         return level;
     };
@@ -275,7 +275,7 @@ public:
     /**
      * 'print' a verbose description of the instance into a QStringList
      */
-    virtual QStringList verboseDescription(AuthSessionPtr session, MinecraftServerTargetPtr serverToJoin) = 0;
+    virtual QStringList verboseDescription(MinecraftServerTargetPtr serverToJoin) = 0;
 
     Status currentStatus() const;
 

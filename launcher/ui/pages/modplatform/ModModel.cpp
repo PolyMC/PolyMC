@@ -90,7 +90,7 @@ QVariant ListModel::data(const QModelIndex& index, int role) const
     return {};
 }
 
-bool ListModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool ListModel::setData(const QModelIndex &index, const QVariant &value, int /*role*/)
 {
     int pos = index.row();
     if (pos >= modpacks.size() || pos < 0 || !index.isValid())
@@ -253,7 +253,7 @@ void ListModel::searchRequestFinished(QJsonDocument& doc)
     endInsertRows();
 }
 
-void ListModel::searchRequestFailed(QString reason)
+void ListModel::searchRequestFailed(QString /*reason*/)
 {
     auto failed_action = jobPtr->getFailedActions().at(0);
     if (!failed_action->m_reply) {

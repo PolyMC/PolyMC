@@ -38,9 +38,9 @@ public: /* methods */
     {
         return true;
     }
-    bool write(QByteArray & data) override
+    bool write(QByteArray & newData) override
     {
-        this->data.append(data);
+        this->data.append(newData);
         return true;
     }
     bool abort() override

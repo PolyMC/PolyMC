@@ -240,7 +240,7 @@ void LauncherPage::refreshUpdateChannelList()
     ui->updateChannelComboBox->setEnabled(true);
 }
 
-void LauncherPage::updateChannelSelectionChanged(int index)
+void LauncherPage::updateChannelSelectionChanged(int /*index*/)
 {
     refreshUpdateChannelDesc();
 }
@@ -433,10 +433,10 @@ void LauncherPage::loadSettings()
         auto currentTheme = s->get("ApplicationTheme").toString();
         auto themes = APPLICATION->getValidApplicationThemes();
         int idx = 0;
-        for(auto &theme: themes)
+        for(auto &appTheme: themes)
         {
-            ui->themeComboBoxColors->addItem(theme->name(), theme->id());
-            if(currentTheme == theme->id())
+            ui->themeComboBoxColors->addItem(appTheme->name(), appTheme->id());
+            if(currentTheme == appTheme->id())
             {
                 ui->themeComboBoxColors->setCurrentIndex(idx);
             }

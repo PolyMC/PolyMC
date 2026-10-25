@@ -36,9 +36,9 @@ public:
 
     void updateSize();
 
-    int execWithTask(Task* task);
-    int execWithTask(std::unique_ptr<Task> &&task);
-    int execWithTask(std::unique_ptr<Task> &task);
+    int execWithTask(Task* newTask);
+    int execWithTask(std::unique_ptr<Task> &&newTask);
+    int execWithTask(std::unique_ptr<Task> &newTask);
 
     void setSkipButton(bool present, QString label = QString());
 

@@ -19,7 +19,7 @@ std::array<const char *, 6> validIconExtensions = {{
 namespace IconUtils{
 
 QString findBestIconIn(const QString &folder, const QString & iconKey) {
-    int best_found = validIconExtensions.size();
+    int best_found = static_cast<int>(validIconExtensions.size());
     QString best_filename;
 
     QDirIterator it(folder, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::NoIteratorFlags);

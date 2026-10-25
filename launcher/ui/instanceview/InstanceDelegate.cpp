@@ -400,7 +400,7 @@ signals:
     void editingDone();
 };
 
-void ListViewDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const
+void ListViewDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& /*index*/) const
 {
     const int iconSize = 48;
     QRect textRect = option.rect;
@@ -433,7 +433,7 @@ void ListViewDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, 
     }
 }
 
-QWidget * ListViewDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
+QWidget * ListViewDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& /*option*/, const QModelIndex& /*index*/) const
 {
     auto editor = new NoReturnTextEdit(parent);
     connect(editor, &NoReturnTextEdit::editingDone, this, &ListViewDelegate::editingDone);

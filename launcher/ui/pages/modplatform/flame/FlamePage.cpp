@@ -107,7 +107,7 @@ void FlamePage::triggerSearch()
     listModel->searchWithTerm(ui->searchEdit->text(), ui->sortByBox->currentIndex());
 }
 
-void FlamePage::onSelectionChanged(QModelIndex curr, QModelIndex prev)
+void FlamePage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
 {
     ui->versionSelectionBox->clear();
 
@@ -202,9 +202,9 @@ void FlamePage::suggestCurrent()
                        [this, editedLogoName](QString logo) { dialog->setSuggestedIconFromFile(logo, editedLogoName); });
 }
 
-void FlamePage::onVersionSelectionChanged(QString data)
+void FlamePage::onVersionSelectionChanged(QString newData)
 {
-    if (data.isNull() || data.isEmpty()) {
+    if (newData.isNull() || newData.isEmpty()) {
         selectedVersion = "";
         return;
     }

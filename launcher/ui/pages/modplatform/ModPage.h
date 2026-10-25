@@ -51,7 +51,7 @@ class ModPage : public QWidget, public BasePage {
 
     bool shouldDisplay() const override = 0;
     virtual bool validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const = 0;
-    virtual bool optedOut(ModPlatform::IndexedVersion& ver) const { return false; };
+    virtual bool optedOut(ModPlatform::IndexedVersion& /*ver*/) const { return false; };
 
     ModAPI* apiProvider() { return api.get(); };
     const std::shared_ptr<ModFilterWidget::Filter> getFilter() const { return m_filter; }
@@ -81,7 +81,7 @@ class ModPage : public QWidget, public BasePage {
     virtual void filterMods();
     void triggerSearch();
     void onSelectionChanged(QModelIndex first, QModelIndex second);
-    void onVersionSelectionChanged(QString data);
+    void onVersionSelectionChanged(QString newData);
     void onModSelected();
 
    protected:

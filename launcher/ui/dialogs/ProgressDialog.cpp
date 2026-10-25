@@ -58,9 +58,9 @@ void ProgressDialog::updateSize()
     setFixedSize(qSize);
 }
 
-int ProgressDialog::execWithTask(Task* task)
+int ProgressDialog::execWithTask(Task* newTask)
 {
-    this->task = task;
+    this->task = newTask;
 
     if (!task) {
         qDebug() << "Programmer error: Progress dialog created with null task.";
@@ -101,15 +101,15 @@ int ProgressDialog::execWithTask(Task* task)
 }
 
 // TODO: only provide the unique_ptr overloads
-int ProgressDialog::execWithTask(std::unique_ptr<Task>&& task)
+int ProgressDialog::execWithTask(std::unique_ptr<Task>&& newTask)
 {
-    connect(this, &ProgressDialog::destroyed, task.get(), &Task::deleteLater);
-    return execWithTask(task.release());
+    connect(this, &ProgressDialog::destroyed, newTask.get(), &Task::deleteLater);
+    return execWithTask(newTask.release());
 }
-int ProgressDialog::execWithTask(std::unique_ptr<Task>& task)
+int ProgressDialog::execWithTask(std::unique_ptr<Task>& newTask)
 {
-    connect(this, &ProgressDialog::destroyed, task.get(), &Task::deleteLater);
-    return execWithTask(task.release());
+    connect(this, &ProgressDialog::destroyed, newTask.get(), &Task::deleteLater);
+    return execWithTask(newTask.release());
 }
 
 bool ProgressDialog::handleImmediateResult(QDialog::DialogCode& result)
@@ -132,7 +132,7 @@ Task* ProgressDialog::getTask()
 
 void ProgressDialog::onTaskStarted() {}
 
-void ProgressDialog::onTaskFailed(QString failure)
+void ProgressDialog::onTaskFailed(QString /*failure*/)
 {
     reject();
 }
@@ -142,7 +142,7 @@ void ProgressDialog::onTaskSucceeded()
     accept();
 }
 
-void ProgressDialog::changeStatus(const QString& status)
+void ProgressDialog::changeStatus(const QString& /*status*/)
 {
     ui->globalStatusLabel->setText(task->getStatus());
     ui->statusLabel->setText(task->getStepStatus());

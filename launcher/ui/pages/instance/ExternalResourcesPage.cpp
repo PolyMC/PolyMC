@@ -218,7 +218,7 @@ bool ExternalResourcesPage::current(const QModelIndex& current, const QModelInde
     return onSelectionChanged(current, previous);
 }
 
-bool ExternalResourcesPage::onSelectionChanged(const QModelIndex& current, const QModelIndex& previous)
+bool ExternalResourcesPage::onSelectionChanged(const QModelIndex& current, const QModelIndex& /*previous*/)
 {
     auto sourceCurrent = m_filterModel->mapToSource(current);
     int row = sourceCurrent.row();

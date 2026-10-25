@@ -88,16 +88,16 @@ void InstanceView::setModel(QAbstractItemModel *model)
     connect(model, &QAbstractItemModel::rowsRemoved, this, &InstanceView::rowsRemoved);
 }
 
-void InstanceView::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)
+void InstanceView::dataChanged(const QModelIndex &/*topLeft*/, const QModelIndex &/*bottomRight*/, const QVector<int> &/*roles*/)
 {
     scheduleDelayedItemsLayout();
 }
-void InstanceView::rowsInserted(const QModelIndex &parent, int start, int end)
+void InstanceView::rowsInserted(const QModelIndex &/*parent*/, int /*start*/, int /*end*/)
 {
     scheduleDelayedItemsLayout();
 }
 
-void InstanceView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
+void InstanceView::rowsAboutToBeRemoved(const QModelIndex &/*parent*/, int /*start*/, int /*end*/)
 {
     scheduleDelayedItemsLayout();
 }
@@ -498,7 +498,7 @@ void InstanceView::mouseDoubleClickEvent(QMouseEvent *event)
     }
 }
 
-void InstanceView::paintEvent(QPaintEvent *event)
+void InstanceView::paintEvent(QPaintEvent */*event*/)
 {
     executeDelayedItemsLayout();
 
@@ -589,7 +589,7 @@ void InstanceView::paintEvent(QPaintEvent *event)
 #endif
 }
 
-void InstanceView::resizeEvent(QResizeEvent *event)
+void InstanceView::resizeEvent(QResizeEvent */*event*/)
 {
     int newItemsPerRow = calculateItemsPerRow();
     if(newItemsPerRow != m_currentItemsPerRow)
@@ -630,7 +630,7 @@ void InstanceView::dragMoveEvent(QDragMoveEvent *event)
     event->accept();
 }
 
-void InstanceView::dragLeaveEvent(QDragLeaveEvent *event)
+void InstanceView::dragLeaveEvent(QDragLeaveEvent */*event*/)
 {
     executeDelayedItemsLayout();
 
@@ -697,8 +697,8 @@ void InstanceView::startDrag(Qt::DropActions supportedActions)
     if(indexes.count() == 0)
         return;
 
-    QMimeData *data = model()->mimeData(indexes);
-    if (!data)
+    QMimeData *mimeData = model()->mimeData(indexes);
+    if (!mimeData)
     {
         return;
     }
@@ -706,7 +706,7 @@ void InstanceView::startDrag(Qt::DropActions supportedActions)
     QPixmap pixmap = renderToPixmap(indexes, &rect);
     QDrag *drag = new QDrag(this);
     drag->setPixmap(pixmap);
-    drag->setMimeData(data);
+    drag->setMimeData(mimeData);
     drag->setHotSpot(m_pressedPosition - rect.topLeft());
     Qt::DropAction defaultDropAction = Qt::IgnoreAction;
     if (this->defaultDropAction() != Qt::IgnoreAction && (supportedActions & this->defaultDropAction()))
@@ -833,7 +833,7 @@ QList<std::pair<QRect, QModelIndex>> InstanceView::draggablePaintPairs(const QMo
     return ret;
 }
 
-bool InstanceView::isDragEventAccepted(QDropEvent *event)
+bool InstanceView::isDragEventAccepted(QDropEvent */*event*/)
 {
     return true;
 }
@@ -871,7 +871,7 @@ QRegion InstanceView::visualRegionForSelection(const QItemSelection &selection) 
     return region;
 }
 
-QModelIndex InstanceView::moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
+QModelIndex InstanceView::moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers /*modifiers*/)
 {
     auto current = currentIndex();
     if(!current.isValid())
@@ -1031,7 +1031,7 @@ void InstanceView::scrollTo(const QModelIndex &index, ScrollHint hint)
     verticalScrollBar()->setValue(verticalScrollToValue(index, rect, hint));
 }
 
-int InstanceView::verticalScrollToValue(const QModelIndex &index, const QRect &rect, QListView::ScrollHint hint) const
+int InstanceView::verticalScrollToValue(const QModelIndex &/*index*/, const QRect &rect, QListView::ScrollHint hint) const
 {
     const QRect area = viewport()->rect();
     const bool above = (hint == QListView::EnsureVisible && rect.top() < area.top());

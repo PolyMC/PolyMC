@@ -234,7 +234,7 @@ void Page::ftbPrivatePackDataDownloadSuccessfully(Modpack pack)
     privateListModel->addPack(pack);
 }
 
-void Page::ftbPrivatePackDataDownloadFailed(QString reason, QString packCode)
+void Page::ftbPrivatePackDataDownloadFailed(QString /*reason*/, QString packCode)
 {
     auto reply = QMessageBox::question(
         this,
@@ -247,7 +247,7 @@ void Page::ftbPrivatePackDataDownloadFailed(QString reason, QString packCode)
     }
 }
 
-void Page::onPublicPackSelectionChanged(QModelIndex now, QModelIndex prev)
+void Page::onPublicPackSelectionChanged(QModelIndex now, QModelIndex /*prev*/)
 {
     if(!now.isValid())
     {
@@ -258,7 +258,7 @@ void Page::onPublicPackSelectionChanged(QModelIndex now, QModelIndex prev)
     onPackSelectionChanged(&selectedPack);
 }
 
-void Page::onThirdPartyPackSelectionChanged(QModelIndex now, QModelIndex prev)
+void Page::onThirdPartyPackSelectionChanged(QModelIndex now, QModelIndex /*prev*/)
 {
     if(!now.isValid())
     {
@@ -269,7 +269,7 @@ void Page::onThirdPartyPackSelectionChanged(QModelIndex now, QModelIndex prev)
     onPackSelectionChanged(&selectedPack);
 }
 
-void Page::onPrivatePackSelectionChanged(QModelIndex now, QModelIndex prev)
+void Page::onPrivatePackSelectionChanged(QModelIndex now, QModelIndex /*prev*/)
 {
     if(!now.isValid())
     {
@@ -318,21 +318,21 @@ void Page::onPackSelectionChanged(Modpack* pack)
     suggestCurrent();
 }
 
-void Page::onVersionSelectionItemChanged(QString data)
+void Page::onVersionSelectionItemChanged(QString newData)
 {
-    if(data.isNull() || data.isEmpty())
+    if(newData.isNull() || newData.isEmpty())
     {
         selectedVersion = "";
         return;
     }
 
-    selectedVersion = data;
+    selectedVersion = newData;
     suggestCurrent();
 }
 
-void Page::onSortingSelectionChanged(QString data)
+void Page::onSortingSelectionChanged(QString newData)
 {
-    FilterModel::Sorting toSet = publicFilterModel->getAvailableSortings().value(data);
+    FilterModel::Sorting toSet = publicFilterModel->getAvailableSortings().value(newData);
     publicFilterModel->setSorting(toSet);
     thirdPartyFilterModel->setSorting(toSet);
     privateFilterModel->setSorting(toSet);

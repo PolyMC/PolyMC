@@ -183,7 +183,7 @@ void VersionPage::showContextMenu(const QPoint& pos)
     delete menu;
 }
 
-void VersionPage::packageCurrent(const QModelIndex &current, const QModelIndex &previous)
+void VersionPage::packageCurrent(const QModelIndex &current, const QModelIndex &/*previous*/)
 {
     if (!current.isValid())
     {
@@ -616,7 +616,7 @@ void VersionPage::on_actionMinecraftFolder_triggered()
     DesktopServices::openPath(m_inst->gameRoot(), true);
 }
 
-void VersionPage::versionCurrent(const QModelIndex &current, const QModelIndex &previous)
+void VersionPage::versionCurrent(const QModelIndex &current, const QModelIndex &/*previous*/)
 {
     currentIdx = current.row();
     updateButtons(currentIdx);

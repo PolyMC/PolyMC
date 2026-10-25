@@ -322,7 +322,7 @@ void UpdateController::installUpdates()
                     break;
                 }
             }
-            catch (const Exception &e)
+            catch (const Exception &)
             {
                 qWarning() << "Couldn't read the" << liveCheckFile << "file!";
                 startFailed = true;

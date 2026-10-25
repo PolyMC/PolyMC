@@ -200,7 +200,7 @@ QVariant VersionProxyModel::data(const QModelIndex &index, int role) const
                         }
                         else if(hasLatest)
                         {
-                            auto value = sourceModel()->data(parentIndex, BaseVersionList::LatestRole);
+                            value = sourceModel()->data(parentIndex, BaseVersionList::LatestRole);
                             if(value.toBool())
                             {
                                 return tr("Latest");
@@ -234,7 +234,7 @@ QVariant VersionProxyModel::data(const QModelIndex &index, int role) const
                         }
                         else if(hasLatest)
                         {
-                            auto value = sourceModel()->data(parentIndex, BaseVersionList::LatestRole);
+                            value = sourceModel()->data(parentIndex, BaseVersionList::LatestRole);
                             if(value.toBool())
                             {
                                 return APPLICATION->getThemedIcon("bug");
@@ -274,7 +274,7 @@ QVariant VersionProxyModel::data(const QModelIndex &index, int role) const
     }
 }
 
-QModelIndex VersionProxyModel::parent(const QModelIndex &child) const
+QModelIndex VersionProxyModel::parent(const QModelIndex &/*child*/) const
 {
     return QModelIndex();
 }
@@ -311,12 +311,12 @@ QModelIndex VersionProxyModel::index(int row, int column, const QModelIndex &par
     return QAbstractItemModel::createIndex(row, column);
 }
 
-int VersionProxyModel::columnCount(const QModelIndex &parent) const
+int VersionProxyModel::columnCount(const QModelIndex &/*parent*/) const
 {
     return m_columns.size();
 }
 
-int VersionProxyModel::rowCount(const QModelIndex &parent) const
+int VersionProxyModel::rowCount(const QModelIndex &/*parent*/) const
 {
     if(sourceModel())
     {
@@ -462,7 +462,7 @@ void VersionProxyModel::sourceRowsAboutToBeInserted(const QModelIndex& parent, i
     beginInsertRows(parent, first, last);
 }
 
-void VersionProxyModel::sourceRowsInserted(const QModelIndex& parent, int first, int last)
+void VersionProxyModel::sourceRowsInserted(const QModelIndex& /*parent*/, int /*first*/, int /*last*/)
 {
     endInsertRows();
 }
@@ -472,7 +472,7 @@ void VersionProxyModel::sourceRowsAboutToBeRemoved(const QModelIndex& parent, in
     beginRemoveRows(parent, first, last);
 }
 
-void VersionProxyModel::sourceRowsRemoved(const QModelIndex& parent, int first, int last)
+void VersionProxyModel::sourceRowsRemoved(const QModelIndex& /*parent*/, int /*first*/, int /*last*/)
 {
     endRemoveRows();
 }

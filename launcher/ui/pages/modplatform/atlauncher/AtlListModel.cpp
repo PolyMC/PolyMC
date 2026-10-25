@@ -30,12 +30,12 @@ ListModel::~ListModel()
 {
 }
 
-int ListModel::rowCount(const QModelIndex &parent) const
+int ListModel::rowCount(const QModelIndex &/*parent*/) const
 {
     return modpacks.size();
 }
 
-int ListModel::columnCount(const QModelIndex &parent) const
+int ListModel::columnCount(const QModelIndex &/*parent*/) const
 {
     return 1;
 }
@@ -140,7 +140,7 @@ void ListModel::requestFinished()
     endInsertRows();
 }
 
-void ListModel::requestFailed(QString reason)
+void ListModel::requestFailed(QString /*reason*/)
 {
     jobPtr.reset();
 }

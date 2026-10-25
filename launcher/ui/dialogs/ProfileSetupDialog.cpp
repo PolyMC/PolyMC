@@ -167,14 +167,14 @@ void ProfileSetupDialog::checkName(const QString &name) {
 
 void ProfileSetupDialog::checkFinished(
     QNetworkReply::NetworkError error,
-    QByteArray data,
-    QList<QNetworkReply::RawHeaderPair> headers
+    QByteArray replyData,
+    QList<QNetworkReply::RawHeaderPair> /*headers*/
 ) {
     auto requestor = qobject_cast<AuthRequest *>(QObject::sender());
     requestor->deleteLater();
 
     if(error == QNetworkReply::NoError) {
-        auto doc = QJsonDocument::fromJson(data);
+        auto doc = QJsonDocument::fromJson(replyData);
         auto root = doc.object();
         auto statusValue = root.value("status").toString("INVALID");
         if(statusValue == "AVAILABLE") {
@@ -210,11 +210,11 @@ void ProfileSetupDialog::setupProfile(const QString &profileName) {
     request.setRawHeader("Authorization", QString("Bearer %1").arg(token).toUtf8());
 
     QString payloadTemplate("{\"profileName\":\"%1\"}");
-    auto data = payloadTemplate.arg(profileName).toUtf8();
+    auto payload = payloadTemplate.arg(profileName).toUtf8();
 
     AuthRequest *requestor = new AuthRequest(this);
     connect(requestor, &AuthRequest::finished, this, &ProfileSetupDialog::setupProfileFinished);
-    requestor->post(request, data);
+    requestor->post(request, payload);
     isWorking = true;
 
     auto button = ui->buttonBox->button(QDialogButtonBox::Cancel);
@@ -251,8 +251,8 @@ struct MojangError{
 
 void ProfileSetupDialog::setupProfileFinished(
     QNetworkReply::NetworkError error,
-    QByteArray data,
-    QList<QNetworkReply::RawHeaderPair> headers
+    QByteArray replyData,
+    QList<QNetworkReply::RawHeaderPair> /*headers*/
 ) {
     auto requestor = qobject_cast<AuthRequest *>(QObject::sender());
     requestor->deleteLater();
@@ -260,13 +260,13 @@ void ProfileSetupDialog::setupProfileFinished(
     isWorking = false;
     if(error == QNetworkReply::NoError) {
         /*
-         * data contains the profile in the response
+         * replyData contains the profile in the response
          * ... we could parse it and update the account, but let's just return back to the normal login flow instead...
          */
         accept();
     }
     else {
-        auto parsedError = MojangError::fromJSON(data);
+        auto parsedError = MojangError::fromJSON(replyData);
         ui->errorLabel->setVisible(true);
         ui->errorLabel->setText(tr("The server returned the following error:") + "\n\n" + parsedError.errorMessage);
         qDebug() << parsedError.rawError;

@@ -54,11 +54,11 @@ QVariant Index::data(const QModelIndex &index, int role) const
     }
     return QVariant();
 }
-int Index::rowCount(const QModelIndex &parent) const
+int Index::rowCount(const QModelIndex &/*parent*/) const
 {
     return m_lists.size();
 }
-int Index::columnCount(const QModelIndex &parent) const
+int Index::columnCount(const QModelIndex &/*parent*/) const
 {
     return 1;
 }

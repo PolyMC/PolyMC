@@ -318,7 +318,7 @@ bool ResourceFolderModel::hasPendingParseTasks() const
     return !m_active_parse_tasks.isEmpty();
 }
 
-void ResourceFolderModel::directoryChanged(QString path)
+void ResourceFolderModel::directoryChanged(QString /*path*/)
 {
     update();
 }
@@ -423,7 +423,7 @@ QVariant ResourceFolderModel::data(const QModelIndex& index, int role) const
     }
 }
 
-bool ResourceFolderModel::setData(const QModelIndex& index, const QVariant& value, int role)
+bool ResourceFolderModel::setData(const QModelIndex& index, const QVariant& /*value*/, int role)
 {
     int row = index.row();
     if (row < 0 || row >= rowCount(index) || !index.isValid())
@@ -435,7 +435,7 @@ bool ResourceFolderModel::setData(const QModelIndex& index, const QVariant& valu
     return false;
 }
 
-QVariant ResourceFolderModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant ResourceFolderModel::headerData(int section, Qt::Orientation /*orientation*/, int role) const
 {
     switch (role) {
         case Qt::DisplayRole:
@@ -487,11 +487,11 @@ void ResourceFolderModel::enableInteraction(bool enabled)
 
     m_can_interact = enabled;
     if (size())
-        emit dataChanged(index(0), index(size() - 1));
+        emit dataChanged(index(0), index(static_cast<int>(size()) - 1));
 }
 
 /* Standard Proxy Model for createFilterProxyModel */
-[[nodiscard]] bool ResourceFolderModel::ProxyModel::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const
+[[nodiscard]] bool ResourceFolderModel::ProxyModel::filterAcceptsRow(int source_row, const QModelIndex& /*source_parent*/) const
 {
     auto* model = qobject_cast<ResourceFolderModel*>(sourceModel());
     if (!model)

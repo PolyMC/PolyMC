@@ -108,7 +108,7 @@ bool parseXTokenResponse(QByteArray & data, Katabasis::Token &output, QString na
         if(!item.isObject()) {
             continue;
         }
-        auto obj = item.toObject();
+        obj = item.toObject();
         if(obj.contains("uhs")) {
             foundUHS = true;
         } else {

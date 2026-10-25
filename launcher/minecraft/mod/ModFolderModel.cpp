@@ -109,7 +109,7 @@ QVariant ModFolderModel::data(const QModelIndex &index, int role) const
     }
 }
 
-QVariant ModFolderModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant ModFolderModel::headerData(int section, Qt::Orientation /*orientation*/, int role) const
 {
     switch (role)
     {
@@ -152,7 +152,7 @@ QVariant ModFolderModel::headerData(int section, Qt::Orientation orientation, in
     return QVariant();
 }
 
-int ModFolderModel::columnCount(const QModelIndex &parent) const
+int ModFolderModel::columnCount(const QModelIndex &/*parent*/) const
 {
     return NUM_COLUMNS;
 }

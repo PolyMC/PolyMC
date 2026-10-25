@@ -117,7 +117,7 @@ QVariant GameOptions::data(const QModelIndex& index, int role) const
 
 int GameOptions::rowCount(const QModelIndex&) const
 {
-    return contents.size();
+    return static_cast<int>(contents.size());
 }
 
 int GameOptions::columnCount(const QModelIndex&) const

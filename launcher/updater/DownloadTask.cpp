@@ -106,10 +106,10 @@ void DownloadTask::processDownloadedVersionInfo()
         setStatus(tr("Reading file list for current version..."));
         qDebug() << "Reading file list for current version...";
         // if this fails, it's not a complete loss.
-        QString error;
-        if(!parseVersionInfo( currentVersionFileListData, m_currentVersionFileList, error))
+        QString versionParseError;
+        if(!parseVersionInfo( currentVersionFileListData, m_currentVersionFileList, versionParseError))
         {
-            qDebug() << error << "This is not a fatal error.";
+            qDebug() << versionParseError << "This is not a fatal error.";
         }
     }
 

@@ -50,19 +50,19 @@ class MetaEntry {
 
    public:
     bool isStale() { return stale; }
-    void setStale(bool stale) { this->stale = stale; }
+    void setStale(bool new_stale) { this->stale = new_stale; }
 
     QString getFullPath();
 
     QString getRemoteChangedTimestamp() { return remote_changed_timestamp; }
-    void setRemoteChangedTimestamp(QString remote_changed_timestamp) { this->remote_changed_timestamp = remote_changed_timestamp; }
-    void setLocalChangedTimestamp(qint64 timestamp) { local_changed_timestamp = timestamp; }
+    void setRemoteChangedTimestamp(QString new_remote_timestamp) { this->remote_changed_timestamp = new_remote_timestamp; }
+    void setLocalChangedTimestamp(qint64 new_local_timestamp) { local_changed_timestamp = new_local_timestamp; }
 
     QString getETag() { return etag; }
-    void setETag(QString etag) { this->etag = etag; }
+    void setETag(QString new_etag) { this->etag = new_etag; }
 
     QString getMD5Sum() { return md5sum; }
-    void setMD5Sum(QString md5sum) { this->md5sum = md5sum; }
+    void setMD5Sum(QString new_md5sum) { this->md5sum = new_md5sum; }
 
     /* Whether the entry expires after some time (false) or not (true). */
     void makeEternal(bool eternal) { is_eternal = eternal; }

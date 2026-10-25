@@ -27,7 +27,7 @@ static ModrinthAPI api;
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
 void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj,
-                               ModAPI::ResourceType type) {
+                               ModAPI::ResourceType /*type*/) {
     pack.addonId = Json::ensureString(obj, "project_id");
     if (pack.addonId.toString().isEmpty())
         pack.addonId = Json::requireString(obj, "id");
@@ -95,7 +95,7 @@ void Modrinth::loadExtraPackData(ModPlatform::IndexedPack& pack, QJsonObject& ob
 
 void Modrinth::loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
                                        QJsonArray& arr,
-                                       const shared_qobject_ptr<QNetworkAccessManager>& network,
+                                       const shared_qobject_ptr<QNetworkAccessManager>& /*network*/,
                                        BaseInstance* inst)
 {
     QVector<ModPlatform::IndexedVersion> unsortedVersions;

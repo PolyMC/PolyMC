@@ -1219,9 +1219,9 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
         actionCreateInstance->setToolTip(ui->actionAddInstance->toolTip());
         if(!group.isNull())
         {
-            QVariantMap data;
-            data["group"] = group;
-            actionCreateInstance->setData(data);
+            QVariantMap groupData;
+            groupData["group"] = group;
+            actionCreateInstance->setData(groupData);
         }
 
         connect(actionCreateInstance, SIGNAL(triggered(bool)), SLOT(on_actionAddInstance_triggered()));
@@ -1232,9 +1232,9 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
         if(!group.isNull())
         {
             QAction *actionDeleteGroup = new QAction(tr("Delete group '%1'").arg(group), this);
-            QVariantMap data;
-            data["group"] = group;
-            actionDeleteGroup->setData(data);
+            QVariantMap groupData;
+            groupData["group"] = group;
+            actionDeleteGroup->setData(groupData);
             connect(actionDeleteGroup, SIGNAL(triggered(bool)), SLOT(deleteGroup()));
             actions.append(actionDeleteGroup);
         }
@@ -1465,9 +1465,9 @@ void MainWindow::changeActiveAccount()
     if (sAction->data().type() != QVariant::Type::Int)
         return;
 
-    QVariant data = sAction->data();
+    QVariant actionData = sAction->data();
     bool valid = false;
-    int index = data.toInt(&valid);
+    int index = actionData.toInt(&valid);
     if(!valid) {
         index = -1;
     }
@@ -1880,9 +1880,9 @@ void MainWindow::iconUpdated(QString icon)
 {
     if (icon == m_currentInstIcon)
     {
-        auto icon = APPLICATION->icons()->getIcon(m_currentInstIcon);
-        ui->actionChangeInstIcon->setIcon(icon);
-        ui->changeIconButton->setIcon(icon);
+        auto instIcon = APPLICATION->icons()->getIcon(m_currentInstIcon);
+        ui->actionChangeInstIcon->setIcon(instIcon);
+        ui->changeIconButton->setIcon(instIcon);
     }
 }
 
@@ -2268,7 +2268,7 @@ void MainWindow::startTask(Task *task)
     task->start();
 }
 
-void MainWindow::instanceChanged(const QModelIndex &current, const QModelIndex &previous)
+void MainWindow::instanceChanged(const QModelIndex &current, const QModelIndex &/*previous*/)
 {
     if (!current.isValid())
     {
@@ -2407,7 +2407,7 @@ void MainWindow::updateCat()
     setCatBackground(APPLICATION->settings()->get("TheCat").toBool());
 }
 
-void MainWindow::refreshCurrentInstance(bool running)
+void MainWindow::refreshCurrentInstance(bool /*running*/)
 {
     auto current = view->selectionModel()->currentIndex();
     instanceChanged(current, current);

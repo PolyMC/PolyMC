@@ -59,7 +59,7 @@ public:
     }
 
    public slots:
-    bool onSelectionChanged(const QModelIndex& current, const QModelIndex& previous) override
+    bool onSelectionChanged(const QModelIndex& current, const QModelIndex& /*previous*/) override
     {
         auto sourceCurrent = m_filterModel->mapToSource(current);
         int row = sourceCurrent.row();

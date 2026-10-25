@@ -85,7 +85,7 @@ int intEntry(toml::table table, const std::string entry_name)
     return node.value_or(0);
 }
 
-V1::Mod V1::createModFormat(QDir& index_dir, ModPlatform::IndexedPack& mod_pack, ModPlatform::IndexedVersion& mod_version)
+V1::Mod V1::createModFormat(QDir& /*index_dir*/, ModPlatform::IndexedPack& mod_pack, ModPlatform::IndexedVersion& mod_version)
 {
     Mod mod;
 
@@ -112,7 +112,7 @@ V1::Mod V1::createModFormat(QDir& index_dir, ModPlatform::IndexedPack& mod_pack,
     return mod;
 }
 
-V1::Mod V1::createModFormat(QDir& index_dir, ::Mod& internal_mod, QString slug)
+V1::Mod V1::createModFormat(QDir& index_dir, ::Mod& /*internal_mod*/, QString slug)
 {
     // Try getting metadata if it exists
     Mod mod{ getIndexForMod(index_dir, slug) };

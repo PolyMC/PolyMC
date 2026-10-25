@@ -92,13 +92,13 @@ BaseVersionList::RoleList BaseVersionList::providesRoles() const
     return {VersionPointerRole, VersionRole, VersionIdRole, TypeRole};
 }
 
-int BaseVersionList::rowCount(const QModelIndex &parent) const
+int BaseVersionList::rowCount(const QModelIndex &/*parent*/) const
 {
     // Return count
     return count();
 }
 
-int BaseVersionList::columnCount(const QModelIndex &parent) const
+int BaseVersionList::columnCount(const QModelIndex &/*parent*/) const
 {
     return 1;
 }

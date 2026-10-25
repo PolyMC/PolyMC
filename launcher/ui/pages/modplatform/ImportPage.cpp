@@ -50,7 +50,7 @@ class UrlValidator : public QValidator
 public:
     using QValidator::QValidator;
 
-    State validate(QString &in, int &pos) const
+    State validate(QString &in, int &/*pos*/) const
     {
         const QUrl url(in);
         if (url.isValid() && !url.isRelative() && !url.isEmpty())
@@ -118,8 +118,8 @@ void ImportPage::updateState()
 
             if(fi.exists() && (isZip || isMRPack))
             {
-                QFileInfo fi(url.fileName());
-                dialog->setSuggestedPack(fi.completeBaseName(), new InstanceImportTask(url,this));
+                QFileInfo urlFileInfo(url.fileName());
+                dialog->setSuggestedPack(urlFileInfo.completeBaseName(), new InstanceImportTask(url,this));
                 dialog->setSuggestedIcon("default");
             }
         }

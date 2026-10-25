@@ -32,12 +32,12 @@ ListModel::~ListModel()
 {
 }
 
-int ListModel::rowCount(const QModelIndex &parent) const
+int ListModel::rowCount(const QModelIndex &/*parent*/) const
 {
     return modpacks.size();
 }
 
-int ListModel::columnCount(const QModelIndex &parent) const
+int ListModel::columnCount(const QModelIndex &/*parent*/) const
 {
     return 1;
 }
@@ -142,7 +142,7 @@ void ListModel::requestFinished()
     }
 }
 
-void ListModel::requestFailed(QString reason)
+void ListModel::requestFailed(QString /*reason*/)
 {
     jobPtr.reset();
     remainingPacks.clear();
@@ -207,7 +207,7 @@ void ListModel::packRequestFinished()
     }
 }
 
-void ListModel::packRequestFailed(QString reason)
+void ListModel::packRequestFailed(QString /*reason*/)
 {
     jobPtr.reset();
     remainingPacks.removeOne(currentPack);

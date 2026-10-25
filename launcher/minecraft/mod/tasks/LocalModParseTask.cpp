@@ -145,8 +145,8 @@ ModDetails ReadMCModTOML(QByteArray contents)
     QString authors = "";
     if (auto authorsDatum = tomlData["authors"].as_string()) {
         authors = QString::fromStdString(authorsDatum->get());
-    } else if (auto authorsDatum = (*modsTable)["authors"].as_string()) {
-        authors = QString::fromStdString(authorsDatum->get());
+    } else if (auto modsAuthorsDatum = (*modsTable)["authors"].as_string()) {
+        authors = QString::fromStdString(modsAuthorsDatum->get());
     }
     if (!authors.isEmpty()) {
         details.authors.append(authors);
@@ -155,8 +155,8 @@ ModDetails ReadMCModTOML(QByteArray contents)
     QString homeurl = "";
     if (auto homeurlDatum = tomlData["displayURL"].as_string()) {
         homeurl = QString::fromStdString(homeurlDatum->get());
-    } else if (auto homeurlDatum = (*modsTable)["displayURL"].as_string()) {
-        homeurl = QString::fromStdString(homeurlDatum->get());
+    } else if (auto modsHomeurlDatum = (*modsTable)["displayURL"].as_string()) {
+        homeurl = QString::fromStdString(modsHomeurlDatum->get());
     }
     // fix up url.
     if (!homeurl.isEmpty() && !homeurl.startsWith("http://") && !homeurl.startsWith("https://") && !homeurl.startsWith("ftp://")) {

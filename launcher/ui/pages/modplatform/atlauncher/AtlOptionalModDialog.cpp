@@ -74,11 +74,11 @@ QVector<QString> AtlOptionalModListModel::getResult() {
     return result;
 }
 
-int AtlOptionalModListModel::rowCount(const QModelIndex &parent) const {
+int AtlOptionalModListModel::rowCount(const QModelIndex &/*parent*/) const {
     return m_mods.size();
 }
 
-int AtlOptionalModListModel::columnCount(const QModelIndex &parent) const {
+int AtlOptionalModListModel::columnCount(const QModelIndex &/*parent*/) const {
     // Enabled, Name, Description
     return 3;
 }
@@ -114,7 +114,7 @@ QVariant AtlOptionalModListModel::data(const QModelIndex &index, int role) const
     return {};
 }
 
-bool AtlOptionalModListModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+bool AtlOptionalModListModel::setData(const QModelIndex &index, const QVariant &/*value*/, int role) {
     if (role == Qt::CheckStateRole) {
         auto row = index.row();
         auto mod = m_mods.at(row);
@@ -206,7 +206,7 @@ void AtlOptionalModListModel::shareCodeSuccess() {
                      AtlOptionalModListModel::index(m_mods.size() - 1, EnabledColumn));
 }
 
-void AtlOptionalModListModel::shareCodeFailure(const QString& reason) {
+void AtlOptionalModListModel::shareCodeFailure(const QString& /*reason*/) {
     m_jobPtr.reset();
 
     // fixme: plumb in an error message

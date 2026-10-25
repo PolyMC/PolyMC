@@ -132,13 +132,13 @@ void AtlPage::triggerSearch()
     filterModel->setSearchTerm(ui->searchEdit->text());
 }
 
-void AtlPage::onSortingSelectionChanged(QString data)
+void AtlPage::onSortingSelectionChanged(QString newData)
 {
-    auto toSet = filterModel->getAvailableSortings().value(data);
+    auto toSet = filterModel->getAvailableSortings().value(newData);
     filterModel->setSorting(toSet);
 }
 
-void AtlPage::onSelectionChanged(QModelIndex first, QModelIndex second)
+void AtlPage::onSelectionChanged(QModelIndex first, QModelIndex /*second*/)
 {
     ui->versionSelectionBox->clear();
 
@@ -162,14 +162,14 @@ void AtlPage::onSelectionChanged(QModelIndex first, QModelIndex second)
     suggestCurrent();
 }
 
-void AtlPage::onVersionSelectionChanged(QString data)
+void AtlPage::onVersionSelectionChanged(QString newData)
 {
-    if(data.isNull() || data.isEmpty())
+    if(newData.isNull() || newData.isEmpty())
     {
         selectedVersion = "";
         return;
     }
 
-    selectedVersion = data;
+    selectedVersion = newData;
     suggestCurrent();
 }

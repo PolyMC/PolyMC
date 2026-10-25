@@ -120,7 +120,7 @@ void IconPickerDialog::activated(QModelIndex index)
     accept();
 }
 
-void IconPickerDialog::selectionChanged(QItemSelection selected, QItemSelection deselected)
+void IconPickerDialog::selectionChanged(QItemSelection selected, QItemSelection /*deselected*/)
 {
     if (selected.empty())
         return;
