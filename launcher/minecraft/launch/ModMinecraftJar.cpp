@@ -72,6 +72,12 @@ void ModMinecraftJar::executeTask()
         auto mainJar = profile->getMainJar();
         QStringList jars, temp1, temp2, temp3, temp4;
         mainJar->getApplicableFiles(m_inst->runtimeContext(), jars, temp1, temp2, temp3, m_inst->getLocalLibraryPath());
+        // Native libraries only end up in the native lists, leaving this one empty
+        if(jars.isEmpty())
+        {
+            emitFailed(tr("Couldn't find the Minecraft jar file to add the jar mods to."));
+            return;
+        }
         auto sourceJarPath = jars[0];
         if(!MMCZip::createModdedJar(sourceJarPath, finalJarPath, jarMods))
         {

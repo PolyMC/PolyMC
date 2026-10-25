@@ -387,6 +387,9 @@ QStringList MinecraftInstance::extraArguments()
     {
         QStringList jar, temp1, temp2, temp3;
         agent->library()->getApplicableFiles(runtimeContext(), jar, temp1, temp2, temp3, getLocalLibraryPath());
+        // Native libraries only end up in the native lists, leaving this one empty
+        if (jar.isEmpty())
+            continue;
         list.append("-javaagent:"+jar[0]+(agent->argument().isEmpty() ? "" : "="+agent->argument()));
     }
     return list;
@@ -1200,6 +1203,9 @@ QList<Mod*> MinecraftInstance::getJarMods() const
         QStringList jar, temp1, temp2, temp3;
         jarmod->getApplicableFiles(runtimeContext(), jar, temp1, temp2, temp3, jarmodsPath().absolutePath());
         // QString filePath = jarmodsPath().absoluteFilePath(jarmod->filename(currentSystem));
+        // Native libraries only end up in the native lists, leaving this one empty
+        if (jar.isEmpty())
+            continue;
         mods.push_back(new Mod(QFileInfo(jar[0])));
     }
     return mods;

@@ -807,6 +807,11 @@ bool PackProfile::removeComponent_internal(ComponentPtr patch)
         }
         QStringList jar, temp1, temp2, temp3;
         jarMod->getApplicableFiles(d->m_instance->runtimeContext(), jar, temp1, temp2, temp3, d->m_instance->jarmodsPath().absolutePath());
+        // Native libraries only end up in the native lists, leaving this one empty
+        if (jar.isEmpty())
+        {
+            return true;
+        }
         QFileInfo finfo (jar[0]);
         if(finfo.exists())
         {
