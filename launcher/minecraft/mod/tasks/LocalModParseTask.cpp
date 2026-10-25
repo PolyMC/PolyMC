@@ -207,6 +207,8 @@ ModDetails ReadFabricModInfo(QByteArray contents)
 // https://github.com/QuiltMC/rfcs/blob/master/specification/0002-quilt.mod.json.md
 ModDetails ReadQuiltModInfo(QByteArray contents)
 {
+    // This runs on a thread pool thread, an exception escaping from here would terminate the launcher
+    try {
     QJsonParseError jsonError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(contents, &jsonError);
     auto object = Json::requireObject(jsonDoc, "quilt.mod.json");
@@ -238,6 +240,10 @@ ModDetails ReadQuiltModInfo(QByteArray contents)
         }
     }
     return details;
+    } catch (const Json::JsonException& e) {
+        qWarning() << "Failed to read quilt.mod.json:" << e.cause();
+        return {};
+    }
 }
 
 ModDetails ReadForgeInfo(QByteArray contents)
