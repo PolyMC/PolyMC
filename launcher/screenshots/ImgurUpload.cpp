@@ -85,6 +85,8 @@ void ImgurUpload::executeTask()
     multipart->append(namePart);
 
     QNetworkReply *rep = m_network->post(request, multipart);
+    // The reply needs the data until it's done, so let it own (and later delete) it
+    multipart->setParent(rep);
 
     m_reply.reset(rep);
     connect(rep, &QNetworkReply::uploadProgress, this, &ImgurUpload::downloadProgress);
