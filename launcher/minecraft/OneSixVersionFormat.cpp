@@ -346,6 +346,22 @@ QJsonDocument OneSixVersionFormat::versionFileToJson(const VersionFilePtr &patch
     writeString(root, "appletClass", patch->appletClass);
     writeStringList(root, "+tweakers", patch->addTweakers);
     writeStringList(root, "+traits", patch->traits.values());
+    // Written like they are read in versionFileFromJson(), customizing a component would drop them otherwise
+    writeStringList(root, "+jvmArgs", patch->addnJvmArguments);
+    if (!patch->agents.isEmpty())
+    {
+        QJsonArray array;
+        for (const auto &agent : std::as_const(patch->agents))
+        {
+            auto agentObj = OneSixVersionFormat::libraryToJson(agent->library().get());
+            if (!agent->argument().isEmpty())
+            {
+                agentObj.insert("argument", agent->argument());
+            }
+            array.append(agentObj);
+        }
+        root.insert("+agents", array);
+    }
     if (!patch->libraries.isEmpty())
     {
         QJsonArray array;
