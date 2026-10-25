@@ -103,7 +103,10 @@ void ModFolderLoadTask::executeTask()
         while (iter.hasNext()) {
             auto mod = iter.next().value();
             if (mod->status() == ModStatus::NotInstalled) {
-                mod->destroy(m_index_dir, false);
+                // Only remove the metadata: the file it points to doesn't exist, and the
+                // filename comes from the metadata itself, so it can't be trusted for deletion
+                if (mod->metadata())
+                    Metadata::remove(m_index_dir, mod->metadata()->slug);
                 iter.remove();
             }
         }
