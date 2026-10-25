@@ -36,6 +36,7 @@
 
 #include "Application.h"
 #include "BuildConfig.h"
+#include "Exception.h"
 
 #include "net/PasteUpload.h"
 #include "ui/MainWindow.h"
@@ -1093,7 +1094,15 @@ void Application::messageReceived(const QByteArray& message)
     }
 
     ApplicationMessage received;
-    received.parse(message);
+    try
+    {
+        received.parse(message);
+    }
+    catch (const Exception& e)
+    {
+        qWarning() << "Received an invalid message:" << e.cause();
+        return;
+    }
 
     auto & command = received.command;
 
