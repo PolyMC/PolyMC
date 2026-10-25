@@ -105,24 +105,32 @@ void EnsureMetadataTask::executeTask()
 {
     setStatus(tr("Checking if mods have metadata..."));
 
-    for (auto* mod : std::as_const(m_mods)) {
+    // Remove the handled mods through the iterator, removing them from the list while looping over it isn't safe
+    for (auto it = m_mods.begin(); it != m_mods.end();) {
+        auto* mod = it.value();
         if (!mod->valid()) {
             qDebug() << "Mod" << mod->name() << "is invalid!";
-            emitFail(mod);
+            emitFail(mod, it.key(), RemoveFromList::No);
+            it = m_mods.erase(it);
             continue;
         }
 
         // They already have the right metadata :o
         if (mod->status() != ModStatus::NoMetadata && mod->metadata() && mod->metadata()->provider == m_provider) {
             qDebug() << "Mod" << mod->name() << "already has metadata!";
-            emitReady(mod);
+            emitReady(mod, it.key(), RemoveFromList::No);
+            it = m_mods.erase(it);
             continue;
         }
 
         // Folders don't have metadata
         if (mod->type() == ResourceType::FOLDER) {
-            emitReady(mod);
+            emitReady(mod, it.key(), RemoveFromList::No);
+            it = m_mods.erase(it);
+            continue;
         }
+
+        ++it;
     }
 
     NetJob::Ptr version_task;
