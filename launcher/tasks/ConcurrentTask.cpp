@@ -116,8 +116,9 @@ void ConcurrentTask::startNext()
     setStepStatus(next->isMultiStep() ? next->getStepStatus() : next->getStatus());
     updateState();
 
+    // We may have been aborted before this gets to run, don't start anything then
     QMetaObject::invokeMethod(
-        this, [=] { next->start(); }, Qt::QueuedConnection);
+        this, [=] { if (!m_aborted) next->start(); }, Qt::QueuedConnection);
 }
 
 void ConcurrentTask::subTaskSucceeded(Task::Ptr task)
