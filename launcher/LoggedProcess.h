@@ -91,6 +91,8 @@ private:
 private:
     PolyMCTextDecoder m_err_decoder = PolyMCTextDecoder(PolyMCTextCodec::codecForLocale());
     PolyMCTextDecoder m_out_decoder = PolyMCTextDecoder(PolyMCTextCodec::codecForLocale());
+    QString m_err_leftover;
+    QString m_out_leftover;
     bool m_killed = false;
     State m_state = NotRunning;
     int m_exit_code = 0;
