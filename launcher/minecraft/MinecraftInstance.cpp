@@ -378,6 +378,8 @@ QStringList MinecraftInstance::extraArguments()
         list.append({"-Dfml.ignoreInvalidMinecraftCertificates=true",
                      "-Dfml.ignorePatchDiscrepancies=true"});
     }
+    // getJarMods() gives us new objects that nobody else owns
+    qDeleteAll(jarMods);
     auto addn = m_components->getProfile()->getAddnJvmArguments();
     if (!addn.isEmpty()) {
         list.append(addn);

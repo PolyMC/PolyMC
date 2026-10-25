@@ -44,7 +44,11 @@ void ModMinecraftJar::executeTask()
 {
     auto m_inst = std::dynamic_pointer_cast<MinecraftInstance>(m_parent->instance());
 
-    if(!m_inst->getJarMods().size())
+    // getJarMods() gives us new objects that nobody else owns
+    auto jarModsCheck = m_inst->getJarMods();
+    bool hasJarMods = !jarModsCheck.isEmpty();
+    qDeleteAll(jarModsCheck);
+    if(!hasJarMods)
     {
         emitSucceeded();
         return;
@@ -75,11 +79,14 @@ void ModMinecraftJar::executeTask()
         // Native libraries only end up in the native lists, leaving this one empty
         if(jars.isEmpty())
         {
+            qDeleteAll(jarMods);
             emitFailed(tr("Couldn't find the Minecraft jar file to add the jar mods to."));
             return;
         }
         auto sourceJarPath = jars[0];
-        if(!MMCZip::createModdedJar(sourceJarPath, finalJarPath, jarMods))
+        bool created = MMCZip::createModdedJar(sourceJarPath, finalJarPath, jarMods);
+        qDeleteAll(jarMods);
+        if(!created)
         {
             emitFailed(tr("Failed to create the custom Minecraft jar file."));
             return;
