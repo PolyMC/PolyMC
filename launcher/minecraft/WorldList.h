@@ -19,6 +19,7 @@
 #include <QString>
 #include <QDir>
 #include <QAbstractListModel>
+#include <QFutureWatcher>
 #include <QMimeData>
 #include "minecraft/World.h"
 
@@ -128,4 +129,6 @@ protected:
     bool is_watching;
     QDir m_dir;
     QList<World> worlds;
+    QFutureWatcher<QList<World>> m_update_watcher;
+    bool m_update_pending = false;
 };
