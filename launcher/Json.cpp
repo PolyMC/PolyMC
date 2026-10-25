@@ -165,7 +165,7 @@ QJsonValue toJson<QVariant>(const QVariant &variant)
 
 template<> QByteArray requireIsType<QByteArray>(const QJsonValue &value, const QString &what)
 {
-    const QString string = ensureIsType<QString>(value, what);
+    const QString string = requireIsType<QString>(value, what);
     // ensure that the string can be safely cast to Latin1
     if (string != QString::fromLatin1(string.toLatin1()))
     {
@@ -234,7 +234,7 @@ template<> QDateTime requireIsType<QDateTime>(const QJsonValue &value, const QSt
 
 template<> QUrl requireIsType<QUrl>(const QJsonValue &value, const QString &what)
 {
-    const QString string = ensureIsType<QString>(value, what);
+    const QString string = requireIsType<QString>(value, what);
     if (string.isEmpty())
     {
         return QUrl();
