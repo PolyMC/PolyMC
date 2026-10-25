@@ -183,6 +183,10 @@ void WorldListPage::on_actionRemove_triggered()
     if(!proxiedIndex.isValid())
         return;
 
+    // The world list can be reloaded while the question below is shown. Remember which world was picked,
+    // so we never delete another one that ended up in its row.
+    QPersistentModelIndex worldIndex(proxiedIndex);
+
     auto result = QMessageBox::question(this,
                 tr("Are you sure?"),
                 tr("This will remove the selected world permenantly.\n"
@@ -193,8 +197,12 @@ void WorldListPage::on_actionRemove_triggered()
     {
         return;
     }
+    if(!worldIndex.isValid())
+    {
+        return;
+    }
     m_worlds->stopWatching();
-    m_worlds->deleteWorld(proxiedIndex.row());
+    m_worlds->deleteWorld(worldIndex.row());
     m_worlds->startWatching();
 }
 
