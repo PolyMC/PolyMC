@@ -392,7 +392,8 @@ bool FlameCreationTask::createInstance()
 
     loop.exec();
 
-    bool did_succeed = getError().isEmpty();
+    // Aborting doesn't set an error, but we must not touch the existing instance then either
+    bool did_succeed = getError().isEmpty() && !m_abort;
 
     // Update information of the already installed instance, if any.
     if (m_instance && did_succeed) {
