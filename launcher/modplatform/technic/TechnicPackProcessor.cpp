@@ -88,7 +88,10 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings, const 
         else
         {
             if (minecraftVersion.isEmpty())
+            {
                 emit failed(tr("Could not find \"version.json\" inside \"bin/modpack.jar\", but Minecraft version is unknown"));
+                return;
+            }
             components->setComponentVersion("net.minecraft", minecraftVersion, true);
             components->installJarMods({modpackJar});
 
