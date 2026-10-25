@@ -35,6 +35,12 @@ void JavaCheckerJob::partFinished(JavaCheckResult result)
 void JavaCheckerJob::executeTask()
 {
     qDebug() << m_job_name.toLocal8Bit() << " started.";
+    // Nothing to check means partFinished() is never called
+    if (javacheckers.isEmpty())
+    {
+        QMetaObject::invokeMethod(this, [this] { emitSucceeded(); }, Qt::QueuedConnection);
+        return;
+    }
     for (auto iter : std::as_const(javacheckers))
     {
         javaresults.append(JavaCheckResult());
