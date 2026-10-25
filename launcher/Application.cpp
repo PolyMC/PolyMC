@@ -178,7 +178,7 @@ void appDebugOutput(QtMsgType type, const QMessageLogContext &/*context*/, const
     logging = true;
     APPLICATION->logFile->write(out.toUtf8());
     APPLICATION->logFile->flush();
-    QTextStream(stderr) << out.toLocal8Bit();
+    QTextStream(stderr) << out;
     fflush(stderr);
     logging = false;
 }
