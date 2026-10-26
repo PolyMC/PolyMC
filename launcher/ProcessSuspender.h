@@ -23,7 +23,8 @@
  * Pauses and resumes a child process.
  *
  * The process is only ever signalled through something that pins its identity, so a process that exited can't be
- * confused with an unrelated one that reused its PID: a pidfd on Linux and a process handle on Windows.
+ * confused with an unrelated one that reused its PID: a pidfd on Linux, a process handle on Windows, and the unique id
+ * and pid version on macOS. The BSDs have none of these, so there the start time is checked right before every signal.
  * attach() has to be called while the child is still owned by its QProcess.
  */
 class ProcessSuspender {
