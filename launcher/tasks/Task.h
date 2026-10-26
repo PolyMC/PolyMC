@@ -95,6 +95,7 @@ class Task : public QObject, public QRunnable {
     void failed(QString reason);
     void status(QString status);
     void stepStatus(QString status);
+    void details(QString details);
 
     /** Emitted when the canAbort() status has changed.
      */

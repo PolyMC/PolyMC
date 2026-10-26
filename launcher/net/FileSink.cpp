@@ -37,7 +37,40 @@
 
 #include "FileSystem.h"
 
+#include <QDir>
+#include <QRandomGenerator>
+
+#ifdef Q_OS_WIN
+#include <windows.h>
+#else
+#include <cstdio>
+#endif
+
 namespace Net {
+
+static bool replaceFile(const QString& from, const QString& to)
+{
+#ifdef Q_OS_WIN
+    return MoveFileExW(QDir::toNativeSeparators(from).toStdWString().c_str(), QDir::toNativeSeparators(to).toStdWString().c_str(),
+                       MOVEFILE_REPLACE_EXISTING);
+#else
+    return ::rename(QFile::encodeName(from).constData(), QFile::encodeName(to).constData()) == 0;
+#endif
+}
+
+FileSink::~FileSink()
+{
+    discardOutput();
+}
+
+void FileSink::discardOutput()
+{
+    if (m_output_file) {
+        m_output_file->close();
+        QFile::remove(m_output_file->fileName());
+        m_output_file.reset();
+    }
+}
 
 Task::State FileSink::init(QNetworkRequest& request)
 {
@@ -53,9 +86,12 @@ Task::State FileSink::init(QNetworkRequest& request)
     }
 
     wroteAnyData = false;
-    m_output_file.reset(new QSaveFile(m_filename));
-    if (!m_output_file->open(QIODevice::WriteOnly)) {
+    discardOutput();
+    auto suffix = QString::number(QRandomGenerator::global()->generate(), 16);
+    m_output_file.reset(new QFile(m_filename + "." + suffix + ".part"));
+    if (!m_output_file->open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
         qCritical() << "Could not open " + m_filename + " for writing";
+        m_output_file.reset();
         return Task::State::Failed;
     }
 
@@ -68,8 +104,7 @@ Task::State FileSink::write(QByteArray& data)
 {
     if (!writeAllValidators(data) || m_output_file->write(data) != data.size()) {
         qCritical() << "Failed writing into " + m_filename;
-        m_output_file->cancelWriting();
-        m_output_file.reset();
+        discardOutput();
         wroteAnyData = false;
         return Task::State::Failed;
     }
@@ -81,8 +116,7 @@ Task::State FileSink::write(QByteArray& data)
 Task::State FileSink::abort()
 {
     // A failed write() already cancelled and got rid of the output file
-    if (m_output_file)
-        m_output_file->cancelWriting();
+    discardOutput();
     failAllValidators();
     return Task::State::Failed;
 }
@@ -111,15 +145,22 @@ Task::State FileSink::finalize(QNetworkReply& reply)
             return Task::State::Failed;
 
         // nothing went wrong...
-        if (!m_output_file->commit()) {
+        m_output_file->close();
+        bool written = m_output_file->error() == QFileDevice::NoError;
+        bool existed = QFile::exists(m_filename);
+        auto permissions = existed ? QFile::permissions(m_filename) : QFile::Permissions();
+        if (!written || !replaceFile(m_output_file->fileName(), m_filename)) {
             qCritical() << "Failed to commit changes to " << m_filename;
-            m_output_file->cancelWriting();
+            discardOutput();
             return Task::State::Failed;
         }
+        m_output_file.reset();
+        if (existed)
+            QFile::setPermissions(m_filename, permissions);
     }
 
     // then get rid of the save file
-    m_output_file.reset();
+    discardOutput();
 
     return finalizeCache(reply);
 }

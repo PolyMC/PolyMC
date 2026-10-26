@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include <QSaveFile>
+#include <QFile>
 
 #include "Sink.h"
 
@@ -43,7 +43,7 @@ namespace Net {
 class FileSink : public Sink {
    public:
     FileSink(QString filename) : m_filename(filename){};
-    virtual ~FileSink() = default;
+    virtual ~FileSink();
 
    public:
     Task::State init(QNetworkRequest& request) override;
@@ -57,9 +57,12 @@ class FileSink : public Sink {
     virtual Task::State initCache(QNetworkRequest&);
     virtual Task::State finalizeCache(QNetworkReply& reply);
 
+   private:
+    void discardOutput();
+
    protected:
     QString m_filename;
     bool wroteAnyData = false;
-    std::unique_ptr<QSaveFile> m_output_file;
+    std::unique_ptr<QFile> m_output_file;
 };
 }  // namespace Net

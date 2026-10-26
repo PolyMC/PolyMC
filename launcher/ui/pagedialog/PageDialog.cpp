@@ -49,6 +49,16 @@ PageDialog::PageDialog(BasePageProvider *pageProvider, QString defaultId, QWidge
     restoreGeometry(QByteArray::fromBase64(APPLICATION->settings()->get("PagedGeometry").toByteArray()));
 }
 
+void PageDialog::keyPressEvent(QKeyEvent *event)
+{
+    if (event->matches(QKeySequence::Cancel))
+    {
+        close();
+        return;
+    }
+    QDialog::keyPressEvent(event);
+}
+
 void PageDialog::closeEvent(QCloseEvent *event)
 {
     qDebug() << "Paged dialog close requested";

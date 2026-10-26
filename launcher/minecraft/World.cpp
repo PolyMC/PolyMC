@@ -338,7 +338,7 @@ bool World::install(const QString &to, const QString &name)
         {
             return false;
         }
-        ok = !MMCZip::extractSubDir(&zip, m_containerOffsetPath, finalPath);
+        ok = MMCZip::extractSubDir(&zip, m_containerOffsetPath, finalPath).has_value();
     }
     else if(m_containerFile.isDir())
     {

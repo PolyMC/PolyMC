@@ -187,39 +187,6 @@ void Technic::SolderPackInstallTask::extractFinished()
         emitFailed(tr("Failed to extract modpack"));
         return;
     }
-    QDir extractDir(m_stagingPath);
-
-    qDebug() << "Fixing permissions for extracted pack files...";
-    QDirIterator it(extractDir, QDirIterator::Subdirectories);
-    while (it.hasNext())
-    {
-        auto filepath = it.next();
-        QFileInfo file(filepath);
-        auto permissions = QFile::permissions(filepath);
-        auto origPermissions = permissions;
-        if(file.isDir())
-        {
-            // Folder +rwx for current user
-            permissions |= QFileDevice::Permission::ReadUser | QFileDevice::Permission::WriteUser | QFileDevice::Permission::ExeUser;
-        }
-        else
-        {
-            // File +rw for current user
-            permissions |= QFileDevice::Permission::ReadUser | QFileDevice::Permission::WriteUser;
-        }
-        if(origPermissions != permissions)
-        {
-            if(!QFile::setPermissions(filepath, permissions))
-            {
-                logWarning(tr("Could not fix permissions for %1").arg(filepath));
-            }
-            else
-            {
-                qDebug() << "Fixed" << filepath;
-            }
-        }
-    }
-
     shared_qobject_ptr<Technic::TechnicPackProcessor> packProcessor = new Technic::TechnicPackProcessor();
     connect(packProcessor.get(), &Technic::TechnicPackProcessor::succeeded, this, &Technic::SolderPackInstallTask::emitSucceeded);
     connect(packProcessor.get(), &Technic::TechnicPackProcessor::failed, this, &Technic::SolderPackInstallTask::emitFailed);

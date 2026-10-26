@@ -204,39 +204,6 @@ void InstanceImportTask::extractFinished()
         emitFailed(tr("Failed to extract modpack"));
         return;
     }
-    QDir extractDir(m_stagingPath);
-
-    qDebug() << "Fixing permissions for extracted pack files...";
-    QDirIterator it(extractDir, QDirIterator::Subdirectories);
-    while (it.hasNext())
-    {
-        auto filepath = it.next();
-        QFileInfo file(filepath);
-        auto permissions = QFile::permissions(filepath);
-        auto origPermissions = permissions;
-        if(file.isDir())
-        {
-            // Folder +rwx for current user
-            permissions |= QFileDevice::Permission::ReadUser | QFileDevice::Permission::WriteUser | QFileDevice::Permission::ExeUser;
-        }
-        else
-        {
-            // File +rw for current user
-            permissions |= QFileDevice::Permission::ReadUser | QFileDevice::Permission::WriteUser;
-        }
-        if(origPermissions != permissions)
-        {
-            if(!QFile::setPermissions(filepath, permissions))
-            {
-                logWarning(tr("Could not fix permissions for %1").arg(filepath));
-            }
-            else
-            {
-                qDebug() << "Fixed" << filepath;
-            }
-        }
-    }
-
     switch(m_modpackType)
     {
         case ModpackType::MultiMC:
@@ -277,6 +244,7 @@ void InstanceImportTask::processFlame()
     connect(inst_creation_task, &Task::failed, this, &InstanceImportTask::emitFailed);
     connect(inst_creation_task, &Task::progress, this, &InstanceImportTask::setProgress);
     connect(inst_creation_task, &Task::status, this, &InstanceImportTask::setStatus);
+    connect(inst_creation_task, &Task::details, this, &Task::details);
     connect(inst_creation_task, &Task::finished, inst_creation_task, &InstanceCreationTask::deleteLater);
 
     connect(this, &Task::aborted, inst_creation_task, &InstanceCreationTask::abort);
@@ -341,6 +309,7 @@ void InstanceImportTask::processModrinth()
     connect(inst_creation_task, &Task::failed, this, &InstanceImportTask::emitFailed);
     connect(inst_creation_task, &Task::progress, this, &InstanceImportTask::setProgress);
     connect(inst_creation_task, &Task::status, this, &InstanceImportTask::setStatus);
+    connect(inst_creation_task, &Task::details, this, &Task::details);
     connect(inst_creation_task, &Task::finished, inst_creation_task, &InstanceCreationTask::deleteLater);
 
     connect(this, &Task::aborted, inst_creation_task, &InstanceCreationTask::abort);

@@ -813,7 +813,8 @@ void PackInstallTask::downloadMods()
             }
 
             auto entry = APPLICATION->metacache()->resolveEntry("ATLauncherPacks", cacheName);
-            entry->setStale(true);
+            if (mod.md5.isEmpty())
+                entry->setStale(true);
             modsToExtract.insert(entry->getFullPath(), mod);
 
             auto dl = Net::Download::makeCached(url, entry);
@@ -829,7 +830,8 @@ void PackInstallTask::downloadMods()
             if (!isRunning()) return;
 
             auto entry = APPLICATION->metacache()->resolveEntry("ATLauncherPacks", cacheName);
-            entry->setStale(true);
+            if (mod.md5.isEmpty())
+                entry->setStale(true);
             modsToDecomp.insert(entry->getFullPath(), mod);
 
             auto dl = Net::Download::makeCached(url, entry);
@@ -846,7 +848,8 @@ void PackInstallTask::downloadMods()
             if(relpath == Q_NULLPTR) continue;
 
             auto entry = APPLICATION->metacache()->resolveEntry("ATLauncherPacks", cacheName);
-            entry->setStale(true);
+            if (mod.md5.isEmpty())
+                entry->setStale(true);
 
             auto dl = Net::Download::makeCached(url, entry);
             if (!mod.md5.isEmpty()) {

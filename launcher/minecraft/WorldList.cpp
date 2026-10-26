@@ -44,6 +44,29 @@
 #include <QString>
 #include <QFileSystemWatcher>
 #include <QDebug>
+#include <QtConcurrentRun>
+
+static QList<World> loadWorlds(const QString& path)
+{
+    QDir dir(path);
+    dir.setFilter(QDir::Readable | QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
+    dir.setSorting(QDir::Name | QDir::IgnoreCase | QDir::LocaleAware);
+
+    QList<World> worlds;
+    auto folderContents = dir.entryInfoList();
+    for (const QFileInfo &entry : std::as_const(folderContents))
+    {
+        if(!entry.isDir())
+            continue;
+
+        World w(entry);
+        if(w.isValid())
+        {
+            worlds.append(w);
+        }
+    }
+    return worlds;
+}
 
 WorldList::WorldList(const QString &dir)
     : QAbstractListModel(), m_dir(dir)
@@ -55,6 +78,16 @@ WorldList::WorldList(const QString &dir)
     is_watching = false;
     connect(m_watcher, SIGNAL(directoryChanged(QString)), this,
             SLOT(directoryChanged(QString)));
+    connect(&m_update_watcher, &QFutureWatcher<QList<World>>::finished, this, [this] {
+        beginResetModel();
+        worlds = m_update_watcher.result();
+        endResetModel();
+        if (m_update_pending)
+        {
+            m_update_pending = false;
+            update();
+        }
+    });
 }
 
 void WorldList::startWatching()
@@ -97,24 +130,12 @@ bool WorldList::update()
     if (!isValid())
         return false;
 
-    QList<World> newWorlds;
-    m_dir.refresh();
-    auto folderContents = m_dir.entryInfoList();
-    // if there are any untracked files...
-    for (const QFileInfo &entry : std::as_const(folderContents))
+    if (m_update_watcher.isRunning())
     {
-        if(!entry.isDir())
-            continue;
-
-        World w(entry);
-        if(w.isValid())
-        {
-            newWorlds.append(w);
-        }
+        m_update_pending = true;
+        return true;
     }
-    beginResetModel();
-    worlds.swap(newWorlds);
-    endResetModel();
+    m_update_watcher.setFuture(QtConcurrent::run(loadWorlds, m_dir.absolutePath()));
     return true;
 }
 

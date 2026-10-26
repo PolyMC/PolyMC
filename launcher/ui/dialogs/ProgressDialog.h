@@ -52,6 +52,7 @@ slots:
 
     void changeStatus(const QString &status);
     void changeProgress(qint64 current, qint64 total);
+    void changeDetails(const QString &details);
 
 
 private

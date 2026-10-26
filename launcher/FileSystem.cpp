@@ -47,6 +47,7 @@
 
 #include <limits>
 #include <system_error>
+#include <vector>
 
 #if defined Q_OS_WIN32
 #include <objbase.h>
@@ -448,9 +449,17 @@ bool mergeFolders(QString dstpath, QString srcpath)
     std::error_code ec;
     fs::path fullSrcPath = toStdString(srcpath);
     fs::path fullDstPath = toStdString(dstpath);
+    std::vector<fs::directory_entry> entries;
     for (fs::recursive_directory_iterator it(fullSrcPath, ec), end; !ec && it != end; it.increment(ec))
+        entries.push_back(*it);
+    if (ec)
     {
-        const auto& entry = *it;
+        qCritical() << "Failed to go through" << srcpath << ":" << QString::fromStdString(ec.message());
+        return false;
+    }
+
+    for (const auto& entry : entries)
+    {
         std::error_code entry_ec;
         fs::path childDst = fullDstPath / entry.path().lexically_relative(fullSrcPath);
         if (entry.is_directory(entry_ec))
@@ -463,18 +472,20 @@ bool mergeFolders(QString dstpath, QString srcpath)
             if (fs::exists(childDst, entry_ec) && !entry_ec)
                 fs::remove(childDst, entry_ec);
             if (!entry_ec)
-                fs::copy(entry.path(), childDst, fs::copy_options::none, entry_ec);
+            {
+                fs::rename(entry.path(), childDst, entry_ec);
+                if (entry_ec)
+                {
+                    entry_ec.clear();
+                    fs::copy(entry.path(), childDst, fs::copy_options::none, entry_ec);
+                }
+            }
         }
         if (entry_ec)
         {
             qCritical() << QString("File copy failed with: %1. File was %2 -> %3").arg(QString::fromStdString(entry_ec.message()), toQString(entry.path()), toQString(childDst));
             ok = false;
         }
-    }
-    if (ec)
-    {
-        qCritical() << "Failed to go through" << srcpath << ":" << QString::fromStdString(ec.message());
-        ok = false;
     }
 
     return ok;

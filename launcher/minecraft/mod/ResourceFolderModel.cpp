@@ -20,6 +20,9 @@ ResourceFolderModel::ResourceFolderModel(QDir dir, QObject* parent) : QAbstractL
     m_dir.setFilter(QDir::Readable | QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
     m_dir.setSorting(QDir::Name | QDir::IgnoreCase | QDir::LocaleAware);
 
+    m_watcher_update_timer.setSingleShot(true);
+    m_watcher_update_timer.setInterval(250);
+    connect(&m_watcher_update_timer, &QTimer::timeout, this, [this] { update(); });
     connect(&m_watcher, &QFileSystemWatcher::directoryChanged, this, &ResourceFolderModel::directoryChanged);
 }
 
@@ -53,6 +56,7 @@ bool ResourceFolderModel::stopWatching(const QStringList paths)
     if (!m_is_watching)
         return false;
 
+    m_watcher_update_timer.stop();
     auto couldnt_be_stopped = m_watcher.removePaths(paths);
     for (const auto &path : paths) {
         if (couldnt_be_stopped.contains(path))
@@ -331,7 +335,7 @@ bool ResourceFolderModel::hasPendingParseTasks() const
 
 void ResourceFolderModel::directoryChanged(QString /*path*/)
 {
-    update();
+    m_watcher_update_timer.start();
 }
 
 Qt::DropActions ResourceFolderModel::supportedDropActions() const

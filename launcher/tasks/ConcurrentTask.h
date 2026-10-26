@@ -13,11 +13,11 @@ public:
 
     bool canAbort() const override { return true; }
 
-    inline bool isMultiStep() const override { return m_queue.size() > 1; };
+    inline bool isMultiStep() const override { return m_total_max_size == 1 && m_queue.size() > 1; };
     qint64 getStepProgress() const override;
     qint64 getStepTotalProgress() const override;
 
-    inline QString getStepStatus() const override { return m_step_status; }
+    inline QString getStepStatus() const override { return m_total_max_size == 1 ? m_step_status : m_status; }
 
     void addTask(Task::Ptr task);
 
@@ -34,6 +34,7 @@ slots:
     void subTaskFailed(Task::Ptr, const QString &msg);
     void subTaskStatus(const QString &msg);
     void subTaskProgress(qint64 current, qint64 total);
+    void subTaskDetails(Task* task, const QString& details);
 
 protected:
     void setStepStatus(QString status) { m_step_status = status; emit stepStatus(status); };
@@ -57,4 +58,6 @@ protected:
     qint64 m_stepTotalProgress = 100;
 
     bool m_aborted = false;
+
+    Task* m_details_owner = nullptr;
 };

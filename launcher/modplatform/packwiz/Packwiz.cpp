@@ -63,7 +63,7 @@ static inline QString indexFileName(QString const& mod_slug)
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
 // Helper functions for extracting data from the TOML file
-QString stringEntry(toml::table table, const std::string entry_name)
+QString stringEntry(const toml::table& table, const std::string& entry_name)
 {
     auto node = table[entry_name];
     if (!node) {
@@ -74,7 +74,7 @@ QString stringEntry(toml::table table, const std::string entry_name)
     return QString::fromStdString(node.value_or(""));
 }
 
-int intEntry(toml::table table, const std::string entry_name)
+int intEntry(const toml::table& table, const std::string& entry_name)
 {
     auto node = table[entry_name];
     if (!node) {

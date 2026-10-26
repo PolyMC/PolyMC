@@ -23,6 +23,8 @@
 #include "FileSystem.h"
 #include "minecraft/mod/MetadataHandler.h"
 
+#include <QFile>
+
 #ifdef Q_OS_WIN32
 #include <windows.h>
 #endif
@@ -36,7 +38,7 @@ LocalModUpdateTask::LocalModUpdateTask(QDir index_dir, ModPlatform::IndexedPack&
     }
 
 #ifdef Q_OS_WIN32
-    SetFileAttributesA(index_dir.path().toStdString().c_str(), FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_NOT_CONTENT_INDEXED);
+    SetFileAttributesW(index_dir.path().toStdWString().c_str(), FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_NOT_CONTENT_INDEXED);
 #endif
 }
 
@@ -44,7 +46,11 @@ void LocalModUpdateTask::executeTask()
 {
     setStatus(tr("Updating index for mod:\n%1").arg(m_mod.name));
 
-    auto old_metadata = Metadata::get(m_index_dir, m_mod.addonId);
+    Metadata::ModStruct old_metadata;
+    if (!m_mod.slug.isEmpty() && QFile::exists(m_index_dir.absoluteFilePath(m_mod.slug + ".pw.toml")))
+        old_metadata = Metadata::get(m_index_dir, m_mod.slug);
+    if (!old_metadata.isValid() || old_metadata.mod_id() != m_mod.addonId)
+        old_metadata = Metadata::get(m_index_dir, m_mod.addonId);
     if (old_metadata.isValid()) {
         emit hasOldMod(old_metadata.name, old_metadata.filename);
         if (m_mod.slug.isEmpty())
