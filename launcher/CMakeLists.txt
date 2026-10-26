@@ -14,6 +14,8 @@ set(CORE_SOURCES
     InstanceTask.cpp
     LoggedProcess.h
     LoggedProcess.cpp
+    ProcessSuspender.h
+    ProcessSuspender.cpp
     PolyMCTextCodec.h
     PolyMCTextCodec.cpp
     MessageLevel.cpp
