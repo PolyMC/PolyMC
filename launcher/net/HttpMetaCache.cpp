@@ -115,7 +115,10 @@ MetaEntryPtr HttpMetaCache::resolveEntry(QString base, QString resource_path, QS
     qint64 file_last_changed = finfo.lastModified().toUTC().toMSecsSinceEpoch();
     if (file_last_changed != entry->local_changed_timestamp) {
         QFile input(real_path);
-        input.open(QIODevice::ReadOnly);
+        if (!input.open(QIODevice::ReadOnly)) {
+            selected_base.entry_list.remove(resource_path);
+            return staleEntry(base, resource_path);
+        }
         QString md5sum = QCryptographicHash::hash(input.readAll(), QCryptographicHash::Md5).toHex().constData();
         if (entry->md5sum != md5sum) {
             selected_base.entry_list.remove(resource_path);

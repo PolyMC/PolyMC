@@ -413,7 +413,8 @@ bool createShortCut(QString location, QString dest, QStringList args, QString na
     location = PathCombine(location, name + ".desktop");
 
     QFile f(location);
-    f.open(QIODevice::WriteOnly | QIODevice::Text);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Text))
+        return false;
     QTextStream stream(&f);
 
     QString argstring;
@@ -436,6 +437,11 @@ bool createShortCut(QString location, QString dest, QStringList args, QString na
 
     return true;
 #else
+    Q_UNUSED(location);
+    Q_UNUSED(dest);
+    Q_UNUSED(args);
+    Q_UNUSED(name);
+    Q_UNUSED(icon);
     qWarning("Desktop Shortcuts not supported on your platform!");
     return false;
 #endif

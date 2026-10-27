@@ -114,7 +114,6 @@ QVariant DataPackFolderModel::headerData(int section, Qt::Orientation /*orientat
     default:
         return {};
     }
-    return {};
 }
 
 int DataPackFolderModel::columnCount(const QModelIndex& /*parent*/) const

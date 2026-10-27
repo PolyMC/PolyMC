@@ -114,7 +114,8 @@ QString getLicenseHtml()
 {
     HoeDown hoedown;
     QFile dataFile(":/documents/COPYING.md");
-    dataFile.open(QIODevice::ReadOnly);
+    if (!dataFile.open(QIODevice::ReadOnly))
+        return {};
     QString output = hoedown.process(dataFile.readAll());
     return output;
 }

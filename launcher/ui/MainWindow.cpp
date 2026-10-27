@@ -1492,7 +1492,7 @@ void MainWindow::changeActiveAccount()
     QAction *sAction = (QAction *)sender();
 
             // Profile's associated Mojang username
-    if (sAction->data().type() != QVariant::Type::Int)
+    if (sAction->data().userType() != QMetaType::Int)
         return;
 
     QVariant actionData = sAction->data();

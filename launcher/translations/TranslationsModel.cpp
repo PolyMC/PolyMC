@@ -557,7 +557,11 @@ bool TranslationsModel::selectLanguage(QString key)
     bool successful = false;
     // FIXME: this is likely never present. FIX IT.
     d->m_qt_translator.reset(new QTranslator());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    if (d->m_qt_translator->load("qt_" + langCode, QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+#else
     if (d->m_qt_translator->load("qt_" + langCode, QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+#endif
     {
         qDebug() << "Loading Qt Language File for" << langCode.toLocal8Bit().constData() << "...";
         if (!QCoreApplication::installTranslator(d->m_qt_translator.get()))

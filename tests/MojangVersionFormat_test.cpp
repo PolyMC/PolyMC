@@ -10,7 +10,8 @@ class MojangVersionFormatTest : public QObject
     static QJsonDocument readJson(const QString path)
     {
         QFile jsonFile(path);
-        jsonFile.open(QIODevice::ReadOnly);
+        if (!jsonFile.open(QIODevice::ReadOnly))
+            qFatal("Couldn't open %s", qPrintable(path));
         auto data = jsonFile.readAll();
         jsonFile.close();
         return QJsonDocument::fromJson(data);
@@ -18,7 +19,8 @@ class MojangVersionFormatTest : public QObject
     static void writeJson(const char *file, QJsonDocument doc)
     {
         QFile jsonFile(file);
-        jsonFile.open(QIODevice::WriteOnly | QIODevice::Text);
+        if (!jsonFile.open(QIODevice::WriteOnly | QIODevice::Text))
+            qFatal("Couldn't open %s", file);
         auto data = doc.toJson(QJsonDocument::Indented);
         qDebug() << QString::fromUtf8(data);
         jsonFile.write(data);

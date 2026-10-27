@@ -67,9 +67,20 @@ public:
         return true;
     }
 
+    void filterAboutToChange()
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+        beginFilterChange();
+#endif
+    }
+
     void filterChanged()
     {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+        endFilterChange(QSortFilterProxyModel::Direction::Rows);
+#else
         invalidateFilter();
+#endif
     }
 private:
     VersionProxyModel *m_parent;
@@ -432,12 +443,14 @@ QModelIndex VersionProxyModel::getVersion(const QString& version) const
 
 void VersionProxyModel::clearFilters()
 {
+    filterModel->filterAboutToChange();
     m_filters.clear();
     filterModel->filterChanged();
 }
 
 void VersionProxyModel::setFilter(const BaseVersionList::ModelRoles column, Filter * f)
 {
+    filterModel->filterAboutToChange();
     m_filters[column].reset(f);
     filterModel->filterChanged();
 }

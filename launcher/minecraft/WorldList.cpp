@@ -316,7 +316,6 @@ QVariant WorldList::headerData(int section, Qt::Orientation /*orientation*/, int
     default:
         return QVariant();
     }
-    return QVariant();
 }
 
 QStringList WorldList::mimeTypes() const

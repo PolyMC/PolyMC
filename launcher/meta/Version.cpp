@@ -16,6 +16,7 @@
 #include "Version.h"
 
 #include <QDateTime>
+#include <QTimeZone>
 
 #include "JsonFormat.h"
 #include "minecraft/PackProfile.h"
@@ -46,7 +47,11 @@ QString Meta::Version::typeString() const
 
 QDateTime Meta::Version::time() const
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    return QDateTime::fromMSecsSinceEpoch(m_time * 1000, QTimeZone::UTC);
+#else
     return QDateTime::fromMSecsSinceEpoch(m_time * 1000, Qt::UTC);
+#endif
 }
 
 void Meta::Version::parse(const QJsonObject& obj)

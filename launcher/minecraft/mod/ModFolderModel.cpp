@@ -149,7 +149,6 @@ QVariant ModFolderModel::headerData(int section, Qt::Orientation /*orientation*/
     default:
         return QVariant();
     }
-    return QVariant();
 }
 
 int ModFolderModel::columnCount(const QModelIndex &/*parent*/) const
@@ -243,7 +242,7 @@ QList<Mod*> ModFolderModel::allMods()
 {
     QList<Mod*> mods;
 
-    for (auto& res : qAsConst(m_resources)) {
+    for (auto& res : std::as_const(m_resources)) {
         mods.append(static_cast<Mod*>(res.get()));
     }
 

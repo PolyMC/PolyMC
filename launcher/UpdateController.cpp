@@ -232,12 +232,25 @@ void UpdateController::installUpdates()
 
         // we save it
         QFile scriptFile(scriptPath);
-        scriptFile.open(QIODevice::WriteOnly);
+        if(!scriptFile.open(QIODevice::WriteOnly))
+        {
+            qWarning() << "Couldn't write the update script" << scriptPath << ":" << scriptFile.errorString();
+            m_failedOperationType = Start;
+            fail();
+            return;
+        }
         scriptFile.write(script.toLocal8Bit().replace("\n", "\r\n"));
         scriptFile.close();
 
         // we run it
         started = QProcess::startDetached("wscript", {scriptPath}, m_root);
+        if(!started)
+        {
+            qWarning() << "Couldn't start the update script" << scriptPath;
+            m_failedOperationType = Start;
+            fail();
+            return;
+        }
 
         // and we quit. conscious thought.
         qApp->quit();

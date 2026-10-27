@@ -184,9 +184,8 @@ void PackInstallTask::install()
     //handle different versions
     QFile packJson(m_stagingPath + "/.minecraft/pack.json");
     QDir jarmodDir = QDir(m_stagingPath + "/unzip/instMods");
-    if(packJson.exists())
+    if(packJson.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        packJson.open(QIODevice::ReadOnly | QIODevice::Text);
         QJsonDocument doc = QJsonDocument::fromJson(packJson.readAll());
         packJson.close();
 
