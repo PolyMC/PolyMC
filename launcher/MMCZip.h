@@ -128,6 +128,8 @@ namespace MMCZip
      */
     bool extractFile(QString fileCompressed, QString file, QString dir);
 
+    std::optional<QByteArray> readFile(QuaZip *zip, const QString &file);
+
     /**
      * Populate a QFileInfoList with a directory tree recursively, while allowing to excludeFilter what shouldn't be included.
      * \param rootDir directory to start off

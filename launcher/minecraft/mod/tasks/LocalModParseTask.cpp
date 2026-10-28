@@ -1,7 +1,6 @@
 #include "LocalModParseTask.h"
 
 #include <quazip/quazip.h>
-#include <quazip/quazipfile.h>
 #include <toml++/toml.h>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -11,6 +10,7 @@
 
 #include "FileSystem.h"
 #include "Json.h"
+#include "MMCZip.h"
 #include "settings/INIFile.h"
 
 namespace {
@@ -302,27 +302,18 @@ void LocalModParseTask::processAsZip()
     if (!zip.open(QuaZip::mdUnzip))
         return;
 
-    QuaZipFile file(&zip);
+    auto modsToml = MMCZip::readFile(&zip, "META-INF/neoforge.mods.toml");
+    if (!modsToml)
+        modsToml = MMCZip::readFile(&zip, "META-INF/mods.toml");
 
-    if (zip.setCurrentFile("META-INF/neoforge.mods.toml") || zip.setCurrentFile("META-INF/mods.toml")) {
-        if (!file.open(QIODevice::ReadOnly)) {
-            zip.close();
-            return;
-        }
-
-        m_result->details = ReadMCModTOML(file.readAll());
-        file.close();
+    if (modsToml) {
+        m_result->details = ReadMCModTOML(std::move(*modsToml));
 
         // to replace ${file.jarVersion} with the actual version, as needed
         if (m_result->details.version == "${file.jarVersion}") {
-            if (zip.setCurrentFile("META-INF/MANIFEST.MF")) {
-                if (!file.open(QIODevice::ReadOnly)) {
-                    zip.close();
-                    return;
-                }
-
+            if (auto manifest = MMCZip::readFile(&zip, "META-INF/MANIFEST.MF")) {
                 // quick and dirty line-by-line parser
-                auto manifestLines = file.readAll().split('\n');
+                auto manifestLines = manifest->split('\n');
                 QString manifestVersion = "";
                 for (auto& line : manifestLines) {
                     if (QString(line).startsWith("Implementation-Version: ")) {
@@ -338,53 +329,16 @@ void LocalModParseTask::processAsZip()
                 }
 
                 m_result->details.version = manifestVersion;
-
-                file.close();
             }
         }
-
-        zip.close();
-        return;
-    } else if (zip.setCurrentFile("mcmod.info")) {
-        if (!file.open(QIODevice::ReadOnly)) {
-            zip.close();
-            return;
-        }
-
-        m_result->details = ReadMCModInfo(file.readAll());
-        file.close();
-        zip.close();
-        return;
-    } else if (zip.setCurrentFile("quilt.mod.json")) {
-        if (!file.open(QIODevice::ReadOnly)) {
-            zip.close();
-            return;
-        }
-
-        m_result->details = ReadQuiltModInfo(file.readAll());
-        file.close();
-        zip.close();
-        return;
-    } else if (zip.setCurrentFile("fabric.mod.json")) {
-        if (!file.open(QIODevice::ReadOnly)) {
-            zip.close();
-            return;
-        }
-
-        m_result->details = ReadFabricModInfo(file.readAll());
-        file.close();
-        zip.close();
-        return;
-    } else if (zip.setCurrentFile("forgeversion.properties")) {
-        if (!file.open(QIODevice::ReadOnly)) {
-            zip.close();
-            return;
-        }
-
-        m_result->details = ReadForgeInfo(file.readAll());
-        file.close();
-        zip.close();
-        return;
+    } else if (auto mcmodInfo = MMCZip::readFile(&zip, "mcmod.info")) {
+        m_result->details = ReadMCModInfo(std::move(*mcmodInfo));
+    } else if (auto quiltModJson = MMCZip::readFile(&zip, "quilt.mod.json")) {
+        m_result->details = ReadQuiltModInfo(std::move(*quiltModJson));
+    } else if (auto fabricModJson = MMCZip::readFile(&zip, "fabric.mod.json")) {
+        m_result->details = ReadFabricModInfo(std::move(*fabricModJson));
+    } else if (auto forgeVersion = MMCZip::readFile(&zip, "forgeversion.properties")) {
+        m_result->details = ReadForgeInfo(std::move(*forgeVersion));
     }
 
     zip.close();
@@ -410,17 +364,9 @@ void LocalModParseTask::processAsLitemod()
     if (!zip.open(QuaZip::mdUnzip))
         return;
 
-    QuaZipFile file(&zip);
+    if (auto litemodJson = MMCZip::readFile(&zip, "litemod.json"))
+        m_result->details = ReadLiteModInfo(std::move(*litemodJson));
 
-    if (zip.setCurrentFile("litemod.json")) {
-        if (!file.open(QIODevice::ReadOnly)) {
-            zip.close();
-            return;
-        }
-
-        m_result->details = ReadLiteModInfo(file.readAll());
-        file.close();
-    }
     zip.close();
 }
 
