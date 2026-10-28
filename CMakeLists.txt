@@ -376,6 +376,7 @@ if (FORCE_BUNDLED_QUAZIP)
     message(STATUS "Using bundled QuaZip")
     set(BUILD_SHARED_LIBS 0)  # link statically to avoid conflicts.
     set(QUAZIP_INSTALL 0)
+    set(QUAZIP_BZIP2 OFF) # don't need bz2 in a minecraft launcher
     add_subdirectory(libraries/quazip) # zip manipulation library
 else()
     message(STATUS "Using system QuaZip")
