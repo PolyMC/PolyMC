@@ -63,9 +63,28 @@ set(CMAKE_JAVA_TARGET_OUTPUT_DIR ${PROJECT_BINARY_DIR}/jars)
 include(GenerateExportHeader)
 
 if (MSVC)
-    set(CMAKE_CXX_FLAGS "/W4")
+    add_compile_options(
+        /W4
+        /permissive-
+        )
+elseif((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
+    add_compile_options(
+        -Wall
+        -Wpedantic
+        -Wextra
+        -fstack-protector-strong
+        -ftrivial-auto-var-init=pattern
+        )
 else()
-    set(CMAKE_CXX_FLAGS "-Wall -pedantic -fstack-protector-strong --param=ssp-buffer-size=4 ${CMAKE_CXX_FLAGS}")
+    add_compile_options(
+        -Wall
+        -Wpedantic
+        -Wextra
+        -Wcast-align=strict
+        -Wuseless-cast
+        -fstack-protector-strong
+        -ftrivial-auto-var-init=pattern
+        )
 endif()
 
 # Increases the stack size to 8MB for Windows, only when not building in Debug mode
@@ -73,7 +92,7 @@ endif()
 # but it's fine in debug builds for finding and fixing them
 if((NOT CMAKE_BUILD_TYPE STREQUAL "Debug") AND WIN32)
     if (MSVC)
-        set(CMAKE_EXE_LINKER_FLAGS "/STACK:8388608")
+        set(CMAKE_EXE_LINKER_FLAGS "/STACK:8388608 ${CMAKE_EXE_LINKER_FLAGS}")
     else()
         set(CMAKE_EXE_LINKER_FLAGS "-Wl,--stack,8388608 ${CMAKE_EXE_LINKER_FLAGS}")
     endif()
