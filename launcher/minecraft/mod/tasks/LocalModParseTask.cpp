@@ -97,7 +97,7 @@ ModDetails ReadMCModTOML(QByteArray contents)
 #if TOML_EXCEPTIONS
     try {
         tomlData = toml::parse(contents.toStdString());
-    } catch (const toml::parse_error& err) {
+    } catch (const toml::parse_error&) {
         return {};
     }
 #else
