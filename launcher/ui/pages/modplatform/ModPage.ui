@@ -15,12 +15,6 @@
     <layout class="QGridLayout" name="gridLayout_3">
      <item row="1" column="2">
       <widget class="RemoteTextBrowser" name="packDescription">
-       <property name="openExternalLinks">
-        <bool>true</bool>
-       </property>
-       <property name="openLinks">
-        <bool>true</bool>
-       </property>
       </widget>
      </item>
      <item row="1" column="0">

@@ -16,6 +16,7 @@ public:
 
 protected:
     static constexpr int Marked = QTextFormat::UserProperty + 1;
+    static constexpr int AuthorSize = QTextFormat::UserProperty + 2;
 
     QVariant loadResource(int type, const QUrl &name) override;
 
@@ -24,6 +25,7 @@ public slots:
 
 private:
     void rerender(QTextDocument *doc, const QUrl &url, const QSize &imageSize);
+    QSize fittedSize(const QSize &imageSize, const QSizeF &authorSize) const;
     QImage loadScaled(const QString &path);
 
     struct ImageFragment {

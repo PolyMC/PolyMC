@@ -40,7 +40,7 @@
 #include <QKeyEvent>
 #include <memory>
 
-#include <HoeDown.h>
+#include "Markdown.h"
 
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
@@ -343,6 +343,12 @@ void ModPage::updateUi()
 
     text += "<hr>";
 
-    HoeDown h;
-    ui->packDescription->setHtml(text + (current.extraData.body.isEmpty() ? current.description : h.process(current.extraData.body.toUtf8())));
+    if (current.extraData.body.isEmpty())
+        text += current.description;
+    else if (current.provider == ModPlatform::Provider::FLAME)
+        text += Markdown::lowerHtml(current.extraData.body);
+    else
+        text += Markdown::toHtml(current.extraData.body.toUtf8());
+
+    ui->packDescription->setHtml(text);
 }

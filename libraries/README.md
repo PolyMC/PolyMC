@@ -18,12 +18,6 @@ See [github repo](https://github.com/FeralInteractive/gamemode).
 
 BSD-3-Clause licensed
 
-## hoedown
-
-Hoedown is a revived fork of Sundown, the Markdown parser based on the original code of the Upskirt library by Natacha Porté.
-
-See [github repo](https://github.com/hoedown/hoedown).
-
 ## javacheck
 
 Simple Java tool that prints the JVM details - version and platform bitness.
@@ -152,6 +146,14 @@ Library for making only one instance of the application run at all times.
 BSD licensed, derived from [QtSingleApplication](https://github.com/qtproject/qt-solutions/tree/master/qtsingleapplication).
 
 Changes are made to make the code more generic and useful in less usual conditions.
+
+## md4c
+
+A Markdown parser compliant to the CommonMark specification, with GitHub-flavored extensions.
+
+See [github repo](https://github.com/mity/md4c).
+
+MIT licensed.
 
 ## murmur2
 
