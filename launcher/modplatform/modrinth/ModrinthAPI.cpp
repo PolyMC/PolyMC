@@ -9,7 +9,7 @@ NetJob::Ptr ModrinthAPI::currentVersion(QString hash, QString hash_format, QByte
     auto* netJob = new NetJob(QString("Modrinth::GetCurrentVersion"), APPLICATION->network());
 
     netJob->addNetAction(Net::Download::makeByteArray(
-        QString(BuildConfig.MODRINTH_PROD_URL + "/version_file/%1?algorithm=%2").arg(hash, hash_format), response));
+        (BuildConfig.MODRINTH_PROD_URL + "/version_file/%1?algorithm=%2").arg(hash, hash_format), response));
 
     QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 
@@ -28,7 +28,7 @@ NetJob::Ptr ModrinthAPI::currentVersions(const QStringList& hashes, QString hash
     QJsonDocument body(body_obj);
     auto body_raw = body.toJson();
 
-    netJob->addNetAction(Net::Upload::makeByteArray(QString(BuildConfig.MODRINTH_PROD_URL + "/version_files"), response, body_raw));
+    netJob->addNetAction(Net::Upload::makeByteArray(BuildConfig.MODRINTH_PROD_URL + "/version_files", response, body_raw));
 
     QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 
@@ -57,7 +57,7 @@ NetJob::Ptr ModrinthAPI::latestVersion(QString hash,
     auto body_raw = body.toJson();
 
     netJob->addNetAction(Net::Upload::makeByteArray(
-        QString(BuildConfig.MODRINTH_PROD_URL + "/version_file/%1/update?algorithm=%2").arg(hash, hash_format), response, body_raw));
+        (BuildConfig.MODRINTH_PROD_URL + "/version_file/%1/update?algorithm=%2").arg(hash, hash_format), response, body_raw));
 
     QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 
@@ -88,7 +88,7 @@ NetJob::Ptr ModrinthAPI::latestVersions(const QStringList& hashes,
     QJsonDocument body(body_obj);
     auto body_raw = body.toJson();
 
-    netJob->addNetAction(Net::Upload::makeByteArray(QString(BuildConfig.MODRINTH_PROD_URL + "/version_files/update"), response, body_raw));
+    netJob->addNetAction(Net::Upload::makeByteArray(BuildConfig.MODRINTH_PROD_URL + "/version_files/update", response, body_raw));
 
     QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 

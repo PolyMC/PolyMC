@@ -45,6 +45,7 @@
 #include <updater/GoUpdate.h>
 
 #include <BaseInstance.h>
+#include <tools/BaseProfiler.h>
 
 #include "minecraft/launch/MinecraftServerTarget.h"
 
@@ -63,7 +64,6 @@ class IconList;
 class QNetworkAccessManager;
 class JavaInstallList;
 class UpdateChecker;
-class BaseProfilerFactory;
 class BaseDetachedToolFactory;
 class TranslationsModel;
 class ITheme;

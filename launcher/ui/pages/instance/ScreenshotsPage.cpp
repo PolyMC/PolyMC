@@ -205,7 +205,7 @@ private:
                 SLOT(thumbnailReady(QString)));
         connect(&(runnable->m_resultEmitter), SIGNAL(resultsFailed(QString)),
                 SLOT(thumbnailFailed(QString)));
-        ((QThreadPool &)m_thumbnailingPool).start(runnable);
+        m_thumbnailingPool.start(runnable);
     }
 private slots:
     void thumbnailReady(QString /*path*/) { emit layoutChanged(); }

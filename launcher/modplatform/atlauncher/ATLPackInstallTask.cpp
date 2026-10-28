@@ -82,7 +82,7 @@ void PackInstallTask::executeTask()
 {
     qDebug() << "PackInstallTask::executeTask: " << QThread::currentThreadId();
     auto *netJob = new NetJob("ATLauncher::VersionFetch", APPLICATION->network());
-    auto searchUrl = QString(BuildConfig.ATL_DOWNLOAD_SERVER_URL + "packs/%1/versions/%2/Configs.json")
+    auto searchUrl = (BuildConfig.ATL_DOWNLOAD_SERVER_URL + "packs/%1/versions/%2/Configs.json")
             .arg(m_pack_safe_name).arg(m_version_name);
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchUrl), &response));
     jobPtr = netJob;
@@ -683,7 +683,7 @@ void PackInstallTask::installConfigs()
     jobPtr = new NetJob(tr("Config download"), APPLICATION->network());
 
     auto path = QString("Configs/%1/%2.zip").arg(m_pack_safe_name).arg(m_version_name);
-    auto url = QString(BuildConfig.ATL_DOWNLOAD_SERVER_URL + "packs/%1/versions/%2/Configs.zip")
+    auto url = (BuildConfig.ATL_DOWNLOAD_SERVER_URL + "packs/%1/versions/%2/Configs.zip")
             .arg(m_pack_safe_name).arg(m_version_name);
     auto entry = APPLICATION->metacache()->resolveEntry("ATLauncherPacks", path);
     entry->setStale(true);

@@ -25,9 +25,7 @@ struct JavaInstall : public BaseVersion
         return arch;
     }
 
-    bool operator<(const JavaInstall & rhs);
-    bool operator==(const JavaInstall & rhs);
-    bool operator>(const JavaInstall & rhs);
+    int compare(const JavaInstall& other) const;
 
     JavaVersion id;
     QString arch;

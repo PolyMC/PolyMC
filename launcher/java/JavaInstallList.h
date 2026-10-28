@@ -44,7 +44,6 @@ public:
     bool isLoaded() override;
     const BaseVersionPtr at(int i) const override;
     int count() const override;
-    void sortVersions() override;
 
     QVariant data(const QModelIndex &index, int role) const override;
     RoleList providesRoles() const override;
@@ -55,6 +54,7 @@ public slots:
 protected:
     void load();
     Task::Ptr getCurrentTask();
+    void sortVersions();
 
 protected:
     Status m_status = Status::NotDone;

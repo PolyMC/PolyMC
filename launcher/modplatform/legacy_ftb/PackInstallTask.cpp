@@ -74,11 +74,11 @@ void PackInstallTask::downloadPack()
     QString url;
     if(m_pack.type == PackType::Private)
     {
-        url = QString(BuildConfig.LEGACY_FTB_CDN_BASE_URL + "privatepacks/%1").arg(packoffset);
+        url = (BuildConfig.LEGACY_FTB_CDN_BASE_URL + "privatepacks/%1").arg(packoffset);
     }
     else
     {
-        url = QString(BuildConfig.LEGACY_FTB_CDN_BASE_URL + "modpacks/%1").arg(packoffset);
+        url = (BuildConfig.LEGACY_FTB_CDN_BASE_URL + "modpacks/%1").arg(packoffset);
     }
     netJobContainer->addNetAction(Net::Download::makeCached(url, entry));
     archivePath = entry->getFullPath();

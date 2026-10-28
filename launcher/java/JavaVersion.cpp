@@ -63,7 +63,7 @@ bool JavaVersion::requiresSecBypass() {
     return true;
 }
 
-bool JavaVersion::operator<(const JavaVersion &rhs)
+bool JavaVersion::operator<(const JavaVersion &rhs) const
 {
     if(m_parseable && rhs.m_parseable)
     {
@@ -113,7 +113,7 @@ bool JavaVersion::operator<(const JavaVersion &rhs)
     else return Strings::naturalCompare(m_string, rhs.m_string, Qt::CaseSensitive) < 0;
 }
 
-bool JavaVersion::operator==(const JavaVersion &rhs)
+bool JavaVersion::operator==(const JavaVersion &rhs) const
 {
     if(m_parseable && rhs.m_parseable)
     {
@@ -122,7 +122,7 @@ bool JavaVersion::operator==(const JavaVersion &rhs)
     return m_string == rhs.m_string;
 }
 
-bool JavaVersion::operator>(const JavaVersion &rhs)
+bool JavaVersion::operator>(const JavaVersion &rhs) const
 {
-    return (!operator<(rhs)) && (!operator==(rhs));
+    return rhs < *this;
 }

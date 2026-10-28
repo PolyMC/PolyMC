@@ -59,7 +59,7 @@ using NtProcessFunction = LONG(NTAPI*)(HANDLE);
 static NtProcessFunction ntProcessFunction(const char* name)
 {
     auto ntdll = GetModuleHandleW(L"ntdll.dll");
-    return ntdll ? reinterpret_cast<NtProcessFunction>(GetProcAddress(ntdll, name)) : nullptr;
+    return ntdll ? reinterpret_cast<NtProcessFunction>(reinterpret_cast<void (*)()>(GetProcAddress(ntdll, name))) : nullptr;
 }
 
 static NtProcessFunction ntSuspendProcess()

@@ -49,16 +49,6 @@ int VersionList::count() const
     return m_versions.size();
 }
 
-void VersionList::sortVersions()
-{
-    beginResetModel();
-    std::sort(m_versions.begin(), m_versions.end(), [](const VersionPtr &a, const VersionPtr &b)
-    {
-        return *a.get() < *b.get();
-    });
-    endResetModel();
-}
-
 QVariant VersionList::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || index.row() < 0 || index.row() >= m_versions.size() || index.parent().isValid())

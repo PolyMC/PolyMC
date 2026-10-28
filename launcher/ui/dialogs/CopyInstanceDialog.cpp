@@ -62,7 +62,7 @@ CopyInstanceDialog::CopyInstanceDialog(InstancePtr original, QWidget *parent)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     auto groupList = APPLICATION->instances()->getGroups();
     QSet<QString> groups(groupList.begin(), groupList.end());
-    groupList = QStringList(groups.values());
+    groupList = groups.values();
 #else
     auto groups = APPLICATION->instances()->getGroups().toSet();
     auto groupList = QStringList(groups.toList());
