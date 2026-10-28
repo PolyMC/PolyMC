@@ -50,24 +50,7 @@ StoragePage::StoragePage(BaseInstance* inst, QWidget* parent) : QWidget(parent),
     m_confirmation_box->addButton(QMessageBox::No);
     m_confirmation_box->setDefaultButton(QMessageBox::No);
 
-    m_series = new QPieSeries(this);
-    m_series->setLabelsVisible();
-    m_series->setLabelsPosition(QPieSlice::LabelInsideHorizontal);
-    m_chart_view = new QChartView(this);
-    m_chart = new QChart();
-    m_chart->setParent(this);
-    m_chart->addSeries(m_series);
-    m_chart->setBackgroundVisible(false);
-    m_chart->setMargins(QMargins(0, 0, 0, 0));
-    m_chart->legend()->setAlignment(Qt::AlignLeft);
-    m_chart->legend()->setLabelColor(QApplication::palette().text().color());
-    m_chart_view->setRenderHint(QPainter::Antialiasing);
-    m_chart_view->installEventFilter(this);
-
-    ui->verticalLayout->addWidget(m_chart_view);
     ui->retranslateUi(this);
-
-    updateCalculations();
 
     connect(ui->button_goto_resouce_packs, &QPushButton::clicked, this, [&] { m_container->selectPage("resourcepacks"); });
     connect(ui->button_goto_mods, &QPushButton::clicked, this, [&] { m_container->selectPage("mods"); });
@@ -83,6 +66,30 @@ StoragePage::StoragePage(BaseInstance* inst, QWidget* parent) : QWidget(parent),
 StoragePage::~StoragePage()
 {
     delete ui;
+}
+
+void StoragePage::openedImpl()
+{
+    if (m_chart)
+        return;
+
+    m_series = new QPieSeries(this);
+    m_series->setLabelsVisible();
+    m_series->setLabelsPosition(QPieSlice::LabelInsideHorizontal);
+    m_chart_view = new QChartView(this);
+    m_chart = new QChart();
+    m_chart->setParent(this);
+    m_chart->addSeries(m_series);
+    m_chart->setBackgroundVisible(false);
+    m_chart->setMargins(QMargins(0, 0, 0, 0));
+    m_chart->legend()->setAlignment(Qt::AlignLeft);
+    m_chart->legend()->setLabelColor(QApplication::palette().text().color());
+    m_chart_view->setRenderHint(QPainter::Antialiasing);
+    m_chart_view->installEventFilter(this);
+
+    ui->verticalLayout->addWidget(m_chart_view);
+
+    updateCalculations();
 }
 
 bool StoragePage::apply()
