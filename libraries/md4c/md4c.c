@@ -6460,7 +6460,6 @@ md_is_html_block_end_condition(MD_CTX* ctx, OFF beg, OFF* p_end)
         default:
             MD_UNREACHABLE();
     }
-    return false;
 }
 
 
