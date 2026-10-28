@@ -2907,7 +2907,7 @@ md_add_mark(MD_CTX* ctx)
             mark->prev = -1;                                            \
             mark->next = -1;                                            \
             mark->ch = (char)(ch_);                                     \
-            mark->flags = (flags_);                                     \
+            mark->flags = (unsigned char)(flags_);                      \
         } while(0)
 
 
@@ -3917,7 +3917,7 @@ md_resolve_bracket_link(MD_CTX* ctx, const MD_LINE* lines, MD_SIZE n_lines,
                         OFF* last_link_beg, OFF* last_link_end,
                         OFF* last_img_beg, OFF* last_img_end)
 {
-    MD_LINK_ATTR attr;
+    MD_LINK_ATTR attr = { 0 };
     int is_link = false;
 
     if(next_opener != NULL  &&  next_opener->beg == closer->end) {
@@ -7094,13 +7094,13 @@ md_analyze_line(MD_CTX* ctx, OFF beg, OFF* p_end,
             OFF scan_from = MAX(off, ctx->cr_horizon);
             SZ scan_len = MIN(max_lookahead, ctx->size - scan_from);
             const CHAR* ptr = (const CHAR*) md_memchr(ctx->text + scan_from, _T('\r'), scan_len);
-            ctx->cr_horizon = (ptr != NULL ? ptr - ctx->text : scan_from + scan_len);
+            ctx->cr_horizon = (ptr != NULL ? (OFF) (ptr - ctx->text) : scan_from + scan_len);
         }
         if(ctx->lf_horizon <= off  &&  ctx->lf_horizon < ctx->size) {
             OFF scan_from = MAX(off, ctx->lf_horizon);
             SZ scan_len = MIN(max_lookahead, ctx->size - scan_from);
             const CHAR* ptr = (const CHAR*) md_memchr(ctx->text + scan_from, _T('\n'), scan_len);
-            ctx->lf_horizon = (ptr != NULL ? ptr - ctx->text : scan_from + scan_len);
+            ctx->lf_horizon = (ptr != NULL ? (OFF) (ptr - ctx->text) : scan_from + scan_len);
         }
         off = MIN(ctx->cr_horizon, ctx->lf_horizon);
     }
