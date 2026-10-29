@@ -254,7 +254,7 @@ void ListModel::requestLogo(QString file)
 
     MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry("FTBPacks", QString("logos/%1").arg(file.section(".", 0, 0)));
     NetJob *job = new NetJob(QString("FTB Icon Download for %1").arg(file), APPLICATION->network());
-    job->addNetAction(Net::Download::makeCached(QUrl(QString(BuildConfig.LEGACY_FTB_CDN_BASE_URL + "static/%1").arg(file)), entry));
+    job->addNetAction(Net::Download::makeCached(QUrl((BuildConfig.LEGACY_FTB_CDN_BASE_URL + "static/%1").arg(file)), entry));
 
     auto fullPath = entry->getFullPath();
     // succeeded, not finished: finished also comes after a failure, which would store an empty logo

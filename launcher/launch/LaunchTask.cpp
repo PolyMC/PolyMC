@@ -225,6 +225,31 @@ bool LaunchTask::abort()
     return false;
 }
 
+bool LaunchTask::canSuspend() const
+{
+    return currentStep >= 0 && currentStep < m_steps.size() && m_steps[currentStep]->canSuspend();
+}
+
+bool LaunchTask::isSuspended() const
+{
+    return canSuspend() && m_steps[currentStep]->isSuspended();
+}
+
+bool LaunchTask::suspend()
+{
+    return canSuspend() && m_steps[currentStep]->suspend();
+}
+
+bool LaunchTask::resume()
+{
+    return canSuspend() && m_steps[currentStep]->resume();
+}
+
+void LaunchTask::onSuspendStateChanged()
+{
+    m_instance->setSuspendState(canSuspend(), isSuspended());
+}
+
 shared_qobject_ptr<LogModel> LaunchTask::getLogModel()
 {
     if(!m_logModel)
@@ -272,12 +297,14 @@ void LaunchTask::onLogLine(QString line, MessageLevel::Enum level)
 
 void LaunchTask::emitSucceeded()
 {
+    m_instance->setSuspendState(false, false);
     m_instance->setRunning(false);
     Task::emitSucceeded();
 }
 
 void LaunchTask::emitFailed(QString reason)
 {
+    m_instance->setSuspendState(false, false);
     m_instance->setRunning(false);
     m_instance->setCrashed(true);
     Task::emitFailed(reason);

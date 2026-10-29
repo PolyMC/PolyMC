@@ -98,6 +98,12 @@ void LoggedProcess::on_exit(int exit_code, QProcess::ExitStatus status)
     // save the exit code
     m_exit_code = exit_code;
 
+    if (m_suspender.isAttached())
+    {
+        m_suspender.release();
+        emit suspendStateChanged();
+    }
+
     if (!m_out_leftover.trimmed().isEmpty())
         emit log({ m_out_leftover.remove(QChar::CarriageReturn) }, MessageLevel::StdOut);
     if (!m_err_leftover.trimmed().isEmpty())
@@ -156,6 +162,50 @@ void LoggedProcess::kill()
 {
     m_is_aborting = true;
     QProcess::kill();
+    if (m_suspender.resume())
+    {
+        emit suspendStateChanged();
+    }
+}
+
+bool LoggedProcess::canSuspend() const
+{
+    return m_suspender.isAttached();
+}
+
+bool LoggedProcess::isSuspended() const
+{
+    return m_suspender.isSuspended();
+}
+
+bool LoggedProcess::suspend()
+{
+    if (!m_suspender.suspend())
+    {
+        emit log({tr("Couldn't pause the process.")}, MessageLevel::Error);
+        return false;
+    }
+    emit log({tr("Process paused.")}, MessageLevel::Launcher);
+    emit suspendStateChanged();
+    return true;
+}
+
+bool LoggedProcess::resume()
+{
+    if (!m_suspender.isSuspended())
+    {
+        return false;
+    }
+    if (!m_suspender.resume())
+    {
+        emit log({tr("Couldn't resume the process.")}, MessageLevel::Error);
+    }
+    else
+    {
+        emit log({tr("Process resumed.")}, MessageLevel::Launcher);
+    }
+    emit suspendStateChanged();
+    return true;
 }
 
 int LoggedProcess::exitCode() const
@@ -196,6 +246,10 @@ void LoggedProcess::on_stateChange(QProcess::ProcessState state)
             if(m_state != LoggedProcess::Starting)
             {
                 qWarning() << "Wrong state change for process from state" << m_state << "to" << (int) LoggedProcess::Running;
+            }
+            if (m_suspender.attach(processId()))
+            {
+                emit suspendStateChanged();
             }
             changeState(LoggedProcess::Running);
             return;

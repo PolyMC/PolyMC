@@ -326,7 +326,7 @@ void ResourceFolderModel::applyUpdates(QSet<QString>& current_set, QSet<QString>
     {
         m_resources_index.clear();
         int idx = 0;
-        for (auto const& mod : qAsConst(m_resources)) {
+        for (auto const& mod : std::as_const(m_resources)) {
             m_resources_index[mod->internal_id()] = idx;
             idx++;
         }

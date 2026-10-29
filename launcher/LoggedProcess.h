@@ -38,6 +38,7 @@
 #include <QProcess>
 #include "PolyMCTextCodec.h"
 #include "MessageLevel.h"
+#include "ProcessSuspender.h"
 
 /*
  * This is a basic process.
@@ -67,15 +68,25 @@ public:
 
     void setDetachable(bool detachable);
 
+    bool canSuspend() const;
+    bool isSuspended() const;
+
 signals:
     void log(QStringList lines, MessageLevel::Enum level);
     void stateChanged(LoggedProcess::State state);
+    void suspendStateChanged();
 
 public slots:
     /**
      * @brief kill the process - equivalent to kill -9
      */
     void kill();
+
+    /**
+     * @brief pause the process, or resume it again
+     */
+    bool suspend();
+    bool resume();
 
 
 private slots:
@@ -98,4 +109,5 @@ private:
     int m_exit_code = 0;
     bool m_is_aborting = false;
     bool m_is_detachable = false;
+    ProcessSuspender m_suspender;
 };

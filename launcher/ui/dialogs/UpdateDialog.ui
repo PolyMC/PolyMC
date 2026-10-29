@@ -42,9 +42,6 @@
    </item>
    <item>
      <widget class="RemoteTextBrowser" name="changelogBrowser">
-     <property name="openExternalLinks">
-      <bool>true</bool>
-     </property>
     </widget>
    </item>
    <item>

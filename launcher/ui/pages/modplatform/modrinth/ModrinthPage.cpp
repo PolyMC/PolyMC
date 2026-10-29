@@ -45,7 +45,7 @@
 
 #include "ui/widgets/ProjectItem.h"
 
-#include <HoeDown.h>
+#include "Markdown.h"
 
 #include <QComboBox>
 #include <QKeyEvent>
@@ -285,8 +285,7 @@ void ModrinthPage::updateUI()
 
     text += "<hr>";
 
-    HoeDown h;
-    text += h.process(current.extra.body.toUtf8());
+    text += Markdown::toHtml(current.extra.body.toUtf8());
 
     ui->packDescription->setHtml(text + current.description);
 }

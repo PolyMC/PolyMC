@@ -43,7 +43,7 @@
 #include "ui/dialogs/NewInstanceDialog.h"
 #include "modplatform/ftb/FTBPackInstallTask.h"
 
-#include "HoeDown.h"
+#include "Markdown.h"
 
 FtbPage::FtbPage(NewInstanceDialog* dialog, QWidget *parent)
         : QWidget(parent), ui(new Ui::FtbPage), dialog(dialog)
@@ -167,9 +167,7 @@ void FtbPage::onSelectionChanged(QModelIndex first, QModelIndex /*second*/)
 
     selected = filterModel->data(first, Qt::UserRole).value<FTB::Modpack>();
 
-    HoeDown hoedown;
-    QString output = hoedown.process(selected.description.toUtf8());
-    ui->packDescription->setHtml(output);
+    ui->packDescription->setHtml(Markdown::toHtml(selected.description.toUtf8()));
 
     // reverse foreach, so that the newest versions are first
     for (auto i = selected.versions.size(); i--;) {

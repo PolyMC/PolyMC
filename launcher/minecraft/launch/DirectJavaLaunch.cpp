@@ -31,6 +31,7 @@ DirectJavaLaunch::DirectJavaLaunch(LaunchTask *parent) : LaunchStep(parent)
 {
     connect(&m_process, &LoggedProcess::log, this, &DirectJavaLaunch::logLines);
     connect(&m_process, &LoggedProcess::stateChanged, this, &DirectJavaLaunch::on_state);
+    connect(&m_process, &LoggedProcess::suspendStateChanged, this, &DirectJavaLaunch::suspendStateChanged);
 }
 
 void DirectJavaLaunch::executeTask()

@@ -19,9 +19,9 @@ public:
 
     JavaVersion & operator=(const QString & rhs);
 
-    bool operator<(const JavaVersion & rhs);
-    bool operator==(const JavaVersion & rhs);
-    bool operator>(const JavaVersion & rhs);
+    bool operator<(const JavaVersion & rhs) const;
+    bool operator==(const JavaVersion & rhs) const;
+    bool operator>(const JavaVersion & rhs) const;
 
     bool requiresPermGen();
 

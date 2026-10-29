@@ -14,8 +14,9 @@
 #include "modplatform/flame/FlameCheckUpdate.h"
 #include "modplatform/modrinth/ModrinthCheckUpdate.h"
 
-#include <HoeDown.h>
-#include <QTextBrowser>
+#include "Markdown.h"
+#include "ui/widgets/RemoteTextBrowser.h"
+
 #include <QTreeWidgetItem>
 
 static ModPlatform::ProviderCapabilities ProviderCaps;
@@ -360,28 +361,17 @@ void ModUpdateDialog::appendMod(CheckUpdateTask::UpdatableMod const& info)
     changelog_item->setText(0, tr("Changelog of the latest version"));
 
     auto changelog = new QTreeWidgetItem(changelog_item);
-    auto changelog_area = new QTextBrowser();
+    auto changelog_area = new RemoteTextBrowser();
 
     switch (info.provider) {
-        case ModPlatform::Provider::MODRINTH: {
-            HoeDown h;
-            // HoeDown bug?: \n aren't converted to <br>
-            auto text = h.process(info.changelog.toUtf8());
-
-            // Don't convert if there's an HTML tag right after (Qt rendering weirdness)
-            text.remove(QRegularExpression("(\n+)(?=<)"));
-            text.replace('\n', "<br>");
-
-            changelog_area->setHtml(text);
+        case ModPlatform::Provider::MODRINTH:
+            changelog_area->setHtml(Markdown::toHtml(info.changelog.toUtf8()));
             break;
-        }
-        case ModPlatform::Provider::FLAME: {
-            changelog_area->setHtml(info.changelog);
+        case ModPlatform::Provider::FLAME:
+            changelog_area->setHtml(Markdown::lowerHtml(info.changelog));
             break;
-        }
     }
 
-    changelog_area->setOpenExternalLinks(true);
     changelog_area->setLineWrapMode(QTextBrowser::LineWrapMode::NoWrap);
     changelog_area->setVerticalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAsNeeded);
 

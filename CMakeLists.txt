@@ -63,9 +63,28 @@ set(CMAKE_JAVA_TARGET_OUTPUT_DIR ${PROJECT_BINARY_DIR}/jars)
 include(GenerateExportHeader)
 
 if (MSVC)
-    set(CMAKE_CXX_FLAGS "/W4")
+    add_compile_options(
+        /W4
+        /permissive-
+        )
+elseif((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
+    add_compile_options(
+        -Wall
+        -Wpedantic
+        -Wextra
+        -fstack-protector-strong
+        -ftrivial-auto-var-init=pattern
+        )
 else()
-    set(CMAKE_CXX_FLAGS "-Wall -pedantic -fstack-protector-strong --param=ssp-buffer-size=4 ${CMAKE_CXX_FLAGS}")
+    add_compile_options(
+        -Wall
+        -Wpedantic
+        -Wextra
+        -Wcast-align=strict
+        -Wuseless-cast
+        -fstack-protector-strong
+        -ftrivial-auto-var-init=pattern
+        )
 endif()
 
 # Increases the stack size to 8MB for Windows, only when not building in Debug mode
@@ -73,7 +92,7 @@ endif()
 # but it's fine in debug builds for finding and fixing them
 if((NOT CMAKE_BUILD_TYPE STREQUAL "Debug") AND WIN32)
     if (MSVC)
-        set(CMAKE_EXE_LINKER_FLAGS "/STACK:8388608")
+        set(CMAKE_EXE_LINKER_FLAGS "/STACK:8388608 ${CMAKE_EXE_LINKER_FLAGS}")
     else()
         set(CMAKE_EXE_LINKER_FLAGS "-Wl,--stack,8388608 ${CMAKE_EXE_LINKER_FLAGS}")
     endif()
@@ -213,7 +232,7 @@ else()
     set(QT_BINS_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_BINS})
 endif()
 
-if(NOT Launcher_FORCE_BUNDLED_LIBS)
+if(NOT Launcher_FORCE_BUNDLED_LIBS AND NOT WIN32)
     find_package(QuaZip-Qt${QT_VERSION_MAJOR} 1.3 QUIET)
 endif()
 
@@ -350,13 +369,14 @@ option(NBT_BUILD_TESTS "Build NBT library tests" OFF) #FIXME: fix unit tests.
 add_subdirectory(libraries/libnbtplusplus)
 
 add_subdirectory(libraries/systeminfo) # system information library
-add_subdirectory(libraries/hoedown) # markdown parser
+add_subdirectory(libraries/md4c) # markdown parser
 add_subdirectory(libraries/launcher) # java based launcher part for Minecraft
 add_subdirectory(libraries/javacheck) # java compatibility checker
 if (FORCE_BUNDLED_QUAZIP)
     message(STATUS "Using bundled QuaZip")
     set(BUILD_SHARED_LIBS 0)  # link statically to avoid conflicts.
     set(QUAZIP_INSTALL 0)
+    set(QUAZIP_BZIP2 OFF) # don't need bz2 in a minecraft launcher
     add_subdirectory(libraries/quazip) # zip manipulation library
 else()
     message(STATUS "Using system QuaZip")

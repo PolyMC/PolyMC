@@ -23,6 +23,7 @@
 #include <QPair>
 
 #include "BaseInstance.h"
+#include "settings/Setting.h"
 
 class QFileSystemWatcher;
 class InstanceTask;

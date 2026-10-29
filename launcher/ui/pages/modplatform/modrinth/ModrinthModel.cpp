@@ -129,7 +129,7 @@ void ModpackListModel::performPaginatedSearch()
 {
     // TODO: Move to standalone API
     NetJob* netJob = new NetJob("Modrinth::SearchModpack", APPLICATION->network());
-    auto searchAllUrl = QString(BuildConfig.MODRINTH_PROD_URL +
+    auto searchAllUrl = (BuildConfig.MODRINTH_PROD_URL +
                             "/search?"
                             "offset=%1&"
                             "limit=%2&"

@@ -67,12 +67,6 @@
      </item>
      <item>
       <widget class="RemoteTextBrowser" name="packDescription">
-       <property name="openExternalLinks">
-        <bool>true</bool>
-       </property>
-       <property name="openLinks">
-        <bool>true</bool>
-       </property>
       </widget>
      </item>
     </layout>

@@ -39,9 +39,16 @@ signals:
     void logLine(QString line, MessageLevel::Enum level);
     void readyForLaunch();
     void progressReportingRequest();
+    void suspendStateChanged();
+
+public:
+    virtual bool canSuspend() const { return false; }
+    virtual bool isSuspended() const { return false; }
 
 public slots:
     virtual void proceed() {};
+    virtual bool suspend() { return false; }
+    virtual bool resume() { return false; }
     // called in the opposite order than the Task launch(), used to clean up or otherwise undo things after the launch ends
     virtual void finalize() {};
 

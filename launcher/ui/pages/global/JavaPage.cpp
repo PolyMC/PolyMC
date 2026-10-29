@@ -39,7 +39,7 @@
 #include "ui_JavaPage.h"
 
 #include <QFileDialog>
-#include <QMessageBox>
+#include <QStyle>
 #include <QDir>
 #include <QTabBar>
 
@@ -61,7 +61,7 @@ JavaPage::JavaPage(QWidget *parent) : QWidget(parent), ui(new Ui::JavaPage)
     ui->lowMemWarnWidget->hide();
 
     // TODO(crueter): add warning theme icons.
-    ui->lowMemWarnIcon->setPixmap(QMessageBox::standardIcon(QMessageBox::Warning).scaled(24, 24));
+    ui->lowMemWarnIcon->setPixmap(style()->standardIcon(QStyle::SP_MessageBoxWarning, nullptr, this).pixmap(24));
 
     connect(ui->minMemSpinBox, &QSpinBox::editingFinished,
             this, &JavaPage::normalizeMemory);

@@ -145,8 +145,17 @@ bool PackFetchTask::parseAndAddPacks(QByteArray &data, PackType packType, Modpac
     int errorLine = -1;
     int errorCol = -1;
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    auto result = doc.setContent(data);
+    if(!result)
+    {
+        errorMsg = result.errorMessage;
+        errorLine = static_cast<int>(result.errorLine);
+        errorCol = static_cast<int>(result.errorColumn);
+#else
     if(!doc.setContent(data, false, &errorMsg, &errorLine, &errorCol))
     {
+#endif
         auto fullErrMsg = QString("Failed to fetch modpack data: %1 %2:%3!").arg(errorMsg).arg(errorLine).arg(errorCol);
         qWarning() << fullErrMsg;
         data.clear();

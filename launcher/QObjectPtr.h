@@ -6,12 +6,16 @@
 #include <functional>
 #include <memory>
 
+struct QObjectDeleteLater {
+    void operator()(QObject* object) const { object->deleteLater(); }
+};
+
 /**
  * A unique pointer class with unique pointer semantics intended for derivates of QObject
  * Calls deleteLater() instead of destroying the contained object immediately
  */
 template <typename T>
-using unique_qobject_ptr = QScopedPointer<T, QScopedPointerDeleteLater>;
+using unique_qobject_ptr = std::unique_ptr<T, QObjectDeleteLater>;
 
 /**
  * A shared pointer class with shared pointer semantics intended for derivates of QObject

@@ -18,6 +18,8 @@
 #include "ui/dialogs/BlockedModsDialog.h"
 #include "ui/dialogs/CustomMessageBox.h"
 
+#include <QAbstractButton>
+
 const static QMap<QString, QString> forgemap = { { "1.2.5", "3.4.9.171" },
                                                  { "1.4.2", "6.0.1.355" },
                                                  { "1.4.7", "6.6.2.534" },
@@ -73,9 +75,10 @@ bool FlameCreationTask::updateInstance()
            "separate instance, or update the existing one?\n\nNOTE: Make sure you made a backup of your important instance data before "
            "updating, as worlds can be corrupted and some configuration may be lost (due to pack overrides).")
             .arg(version_str), QMessageBox::Information, QMessageBox::Ok | QMessageBox::Reset | QMessageBox::Abort);
-    info->setButtonText(QMessageBox::Ok, tr("Update existing instance"));
-    info->setButtonText(QMessageBox::Abort, tr("Create new instance"));
-    info->setButtonText(QMessageBox::Reset, tr("Cancel"));
+    info->button(QMessageBox::Ok)->setText(tr("Update existing instance"));
+    info->button(QMessageBox::Abort)->setText(tr("Create new instance"));
+    info->button(QMessageBox::Reset)->setText(tr("Cancel"));
+    info->setEscapeButton(info->button(QMessageBox::Reset));
 
     info->exec();
 
@@ -265,8 +268,8 @@ bool FlameCreationTask::createInstance()
                    "is safe.")
                     .arg(overrideAbsolute),
                 QMessageBox::Critical, QMessageBox::Yes | QMessageBox::No);
-            warn->setButtonText(QMessageBox::Yes, tr("I know what I'm doing"));
-            warn->setButtonText(QMessageBox::No, tr("Cancel"));
+            warn->button(QMessageBox::Yes)->setText(tr("I know what I'm doing"));
+            warn->button(QMessageBox::No)->setText(tr("Cancel"));
 
             warn->exec();
 
@@ -279,8 +282,8 @@ bool FlameCreationTask::createInstance()
                    "This is a security risk! Are you sure you want to continue?")
                     .arg(overrideAbsolute, stagingAbsolute),
                 QMessageBox::Critical, QMessageBox::Yes | QMessageBox::No);
-            warn2->setButtonText(QMessageBox::Yes, tr("Yes, I'm sure"));
-            warn2->setButtonText(QMessageBox::No, tr("Cancel"));
+            warn2->button(QMessageBox::Yes)->setText(tr("Yes, I'm sure"));
+            warn2->button(QMessageBox::No)->setText(tr("Cancel"));
 
             warn2->exec();
 

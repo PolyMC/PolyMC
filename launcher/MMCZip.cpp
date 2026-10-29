@@ -455,3 +455,23 @@ bool MMCZip::collectFileListRecursively(const QString& rootDir, const QString& s
     }
     return true;
 }
+
+std::optional<QByteArray> MMCZip::readFile(QuaZip *zip, const QString &file)
+{
+    unzFile unz = zip->getUnzFile();
+    if (!unz || unzLocateFile(unz, file.toUtf8().constData(), 1) != UNZ_OK)
+        return std::nullopt;
+
+    if (unzOpenCurrentFile(unz) != UNZ_OK)
+        return std::nullopt;
+
+    QByteArray data;
+    char buffer[16384];
+    int read;
+    while ((read = unzReadCurrentFile(unz, buffer, sizeof(buffer))) > 0)
+        data.append(buffer, read);
+
+    if (unzCloseCurrentFile(unz) != UNZ_OK || read < 0)
+        return std::nullopt;
+    return data;
+}

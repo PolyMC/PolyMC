@@ -30,8 +30,7 @@ void ConfigureAuthlibInjector::executeTask()
     m_job->addNetAction(latestJsonDl);
     connect(m_job.get(), &NetJob::succeeded, this, [this, entry, downloadFailed] {
         QFile authlibInjectorLatestJson{entry->getFullPath()};
-        authlibInjectorLatestJson.open(QIODevice::ReadOnly);
-        if (!authlibInjectorLatestJson.isOpen())
+        if (!authlibInjectorLatestJson.open(QIODevice::ReadOnly))
             return emitFailed(QString("Failed to open authlib-injector info json: %1").arg(authlibInjectorLatestJson.errorString()));
 
         QJsonParseError json_parse_error;

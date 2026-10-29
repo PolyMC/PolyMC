@@ -39,7 +39,7 @@
 
 #include <QFileDialog>
 #include <QDialog>
-#include <QMessageBox>
+#include <QStyle>
 
 #include <sys.h>
 
@@ -74,7 +74,7 @@ InstanceSettingsPage::InstanceSettingsPage(BaseInstance *inst, QWidget *parent)
     connect(APPLICATION, &Application::globalSettingsClosed, this, &InstanceSettingsPage::loadSettings);
 
     // TODO(crueter): add warning theme icons.
-    ui->lowMemWarnIcon->setPixmap(QMessageBox::standardIcon(QMessageBox::Warning).scaled(24, 24));
+    ui->lowMemWarnIcon->setPixmap(style()->standardIcon(QStyle::SP_MessageBoxWarning, nullptr, this).pixmap(24));
 
     connect(ui->minMemSpinBox, &QSpinBox::editingFinished,
             this, &InstanceSettingsPage::normalizeMemory);

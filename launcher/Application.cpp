@@ -231,15 +231,16 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
     if(AttachConsole(ATTACH_PARENT_PROCESS))
     {
         // if attach succeeds, reopen and sync all the i/o
-        if(freopen("CON", "w", stdout))
+        FILE* reopened;
+        if(freopen_s(&reopened, "CON", "w", stdout) == 0)
         {
             std::cout.sync_with_stdio();
         }
-        if(freopen("CON", "w", stderr))
+        if(freopen_s(&reopened, "CON", "w", stderr) == 0)
         {
             std::cerr.sync_with_stdio();
         }
-        if(freopen("CON", "r", stdin))
+        if(freopen_s(&reopened, "CON", "r", stdin) == 0)
         {
             std::cin.sync_with_stdio();
         }

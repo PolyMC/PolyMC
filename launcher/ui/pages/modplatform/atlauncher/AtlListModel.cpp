@@ -65,7 +65,7 @@ QVariant ListModel::data(const QModelIndex &index, int role) const
         }
         auto icon = APPLICATION->getThemedIcon("atlauncher-placeholder");
 
-        auto url = QString(BuildConfig.ATL_DOWNLOAD_SERVER_URL + "launcher/images/%1.png").arg(pack.safeName.toLower());
+        auto url = (BuildConfig.ATL_DOWNLOAD_SERVER_URL + "launcher/images/%1.png").arg(pack.safeName.toLower());
         ((ListModel *)this)->requestLogo(pack.safeName, url);
 
         return icon;
@@ -87,7 +87,7 @@ void ListModel::request()
     endResetModel();
 
     auto *netJob = new NetJob("Atl::Request", APPLICATION->network());
-    auto url = QString(BuildConfig.ATL_DOWNLOAD_SERVER_URL + "launcher/json/packsnew.json");
+    auto url = BuildConfig.ATL_DOWNLOAD_SERVER_URL + "launcher/json/packsnew.json";
     netJob->addNetAction(Net::Download::makeByteArray(QUrl(url), &response));
     jobPtr = netJob;
     jobPtr->start();

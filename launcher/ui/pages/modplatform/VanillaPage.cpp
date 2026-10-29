@@ -53,12 +53,12 @@ VanillaPage::VanillaPage(NewInstanceDialog *dialog, QWidget *parent)
     ui->tabWidget->tabBar()->hide();
     connect(ui->versionList, &VersionSelectWidget::selectedVersionChanged, this, &VanillaPage::setSelectedVersion);
     filterChanged();
-    connect(ui->alphaFilter, &QCheckBox::stateChanged, this, &VanillaPage::filterChanged);
-    connect(ui->betaFilter, &QCheckBox::stateChanged, this, &VanillaPage::filterChanged);
-    connect(ui->snapshotFilter, &QCheckBox::stateChanged, this, &VanillaPage::filterChanged);
-    connect(ui->oldSnapshotFilter, &QCheckBox::stateChanged, this, &VanillaPage::filterChanged);
-    connect(ui->releaseFilter, &QCheckBox::stateChanged, this, &VanillaPage::filterChanged);
-    connect(ui->experimentsFilter, &QCheckBox::stateChanged, this, &VanillaPage::filterChanged);
+    connect(ui->alphaFilter, &QCheckBox::toggled, this, &VanillaPage::filterChanged);
+    connect(ui->betaFilter, &QCheckBox::toggled, this, &VanillaPage::filterChanged);
+    connect(ui->snapshotFilter, &QCheckBox::toggled, this, &VanillaPage::filterChanged);
+    connect(ui->oldSnapshotFilter, &QCheckBox::toggled, this, &VanillaPage::filterChanged);
+    connect(ui->releaseFilter, &QCheckBox::toggled, this, &VanillaPage::filterChanged);
+    connect(ui->experimentsFilter, &QCheckBox::toggled, this, &VanillaPage::filterChanged);
     connect(ui->refreshBtn, &QPushButton::clicked, this, &VanillaPage::refresh);
 
     connect(ui->loaderVersionList, &VersionSelectWidget::selectedVersionChanged, this, &VanillaPage::setSelectedLoaderVersion);

@@ -15,7 +15,8 @@ void createOverrides(const QString& name, const QString& parent_folder, const QS
     FS::ensureFilePathExists(file_path);
 
     QFile file(file_path);
-    file.open(QFile::WriteOnly);
+    if (!file.open(QFile::WriteOnly))
+        return;
 
     QDir override_dir(override_path);
     QDirIterator override_iterator(override_path, QDirIterator::Subdirectories);
@@ -41,12 +42,10 @@ QStringList readOverrides(const QString& name, const QString& parent_folder)
     QString file_path(FS::PathCombine(parent_folder, name + ".txt"));
 
     QFile file(file_path);
-    if (!file.exists())
+    if (!file.open(QFile::ReadOnly))
         return {};
 
     QStringList previous_overrides;
-
-    file.open(QFile::ReadOnly);
 
     QString entry;
     do {

@@ -16,12 +16,7 @@ YggdrasilStep::YggdrasilStep(AccountData* data, QString password) : AuthStep(dat
 YggdrasilStep::~YggdrasilStep() noexcept = default;
 
 QString YggdrasilStep::describe() {
-  switch(m_data->type) {
-    case AccountType::AuthlibInjector:
-      return tr("Logging in with %1 account.").arg(m_data->authlibInjectorBaseUrl);
-    default:
-      break;
-  }
+    return tr("Logging in with %1 account.").arg(m_data->authlibInjectorBaseUrl);
 }
 
 void YggdrasilStep::rehydrate() {

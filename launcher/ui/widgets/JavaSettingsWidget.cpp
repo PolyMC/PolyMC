@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QToolButton>
 #include <QFileDialog>
+#include <QStyle>
 
 #include <sys.h>
 
@@ -107,7 +108,7 @@ void JavaSettingsWidget::setupUi()
     m_lowMemWarnLayout = new QHBoxLayout(m_lowMemWarnWidget);
     m_lowMemWarnIcon = new QLabel(m_lowMemWarnWidget);
     // TODO(crueter): add warning theme icons.
-    m_lowMemWarnIcon->setPixmap(QMessageBox::standardIcon(QMessageBox::Warning).scaled(24, 24));
+    m_lowMemWarnIcon->setPixmap(style()->standardIcon(QStyle::SP_MessageBoxWarning, nullptr, this).pixmap(24));
     m_lowMemWarnLabel = new QLabel(m_lowMemWarnWidget);
     m_lowMemWarnLabel->setWordWrap(true);
     m_lowMemWarnLayout->addWidget(m_lowMemWarnIcon);

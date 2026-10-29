@@ -98,11 +98,6 @@ public:
      */
     virtual BaseVersionPtr getRecommended() const;
 
-    /*!
-     * Sorts the version list.
-     */
-    virtual void sortVersions() = 0;
-
 protected
 slots:
     /*!

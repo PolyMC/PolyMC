@@ -35,6 +35,22 @@ public:
     {
         return true;
     }
+    virtual bool canSuspend() const
+    {
+        return m_process.canSuspend();
+    }
+    virtual bool isSuspended() const
+    {
+        return m_process.isSuspended();
+    }
+    virtual bool suspend()
+    {
+        return m_process.suspend();
+    }
+    virtual bool resume()
+    {
+        return m_process.resume();
+    }
     void setWorkingDirectory(const QString &wd);
     void setAuthSession(AuthSessionPtr session)
     {

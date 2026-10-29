@@ -68,6 +68,7 @@ public:
         return "Storage";
     }
     void retranslate() override;
+    void openedImpl() override;
 
     void handleClearScreenshotsButton();
     void handleClearLogsButton();
@@ -82,9 +83,9 @@ private:
     Ui::StoragePage *ui;
     BaseInstance *m_inst;
 
-    QPieSeries *m_series;
-    QChart *m_chart;
-    QChartView *m_chart_view;
+    QPieSeries *m_series = nullptr;
+    QChart *m_chart = nullptr;
+    QChartView *m_chart_view = nullptr;
 
     QMessageBox *m_confirmation_box;
 };

@@ -43,7 +43,7 @@
 #include <net/NetJob.h>
 #include <qobject.h>
 
-#include "HoeDown.h"
+#include "Markdown.h"
 
 namespace {
 QString getLink(QString link, QString name) {
@@ -112,11 +112,10 @@ QString getCreditsHtml()
 
 QString getLicenseHtml()
 {
-    HoeDown hoedown;
     QFile dataFile(":/documents/COPYING.md");
-    dataFile.open(QIODevice::ReadOnly);
-    QString output = hoedown.process(dataFile.readAll());
-    return output;
+    if (!dataFile.open(QIODevice::ReadOnly))
+        return {};
+    return Markdown::toHtml(dataFile.readAll());
 }
 
 }

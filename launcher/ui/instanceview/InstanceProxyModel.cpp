@@ -35,8 +35,14 @@ void InstanceProxyModel::setSearchTerm(const QString &term) {
     if (trimmed == searchTerm) {
         return;
     }
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    beginFilterChange();
+    searchTerm = trimmed;
+    endFilterChange(QSortFilterProxyModel::Direction::Rows);
+#else
     searchTerm = trimmed;
     invalidateFilter();
+#endif
 }
 
 QVariant InstanceProxyModel::data(const QModelIndex & index, int role) const

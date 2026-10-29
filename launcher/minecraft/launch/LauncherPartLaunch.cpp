@@ -65,6 +65,7 @@ LauncherPartLaunch::LauncherPartLaunch(LaunchTask *parent) : LaunchStep(parent)
 
     connect(&m_process, &LoggedProcess::log, this, &LauncherPartLaunch::logLines);
     connect(&m_process, &LoggedProcess::stateChanged, this, &LauncherPartLaunch::on_state);
+    connect(&m_process, &LoggedProcess::suspendStateChanged, this, &LauncherPartLaunch::suspendStateChanged);
 }
 
 #ifdef Q_OS_WIN

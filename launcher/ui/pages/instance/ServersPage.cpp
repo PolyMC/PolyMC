@@ -711,7 +711,7 @@ public:
                     if (ping < 150)
                         return QColor(Qt::yellow);
                     if (ping < 200)
-                        return QColor(QColor(255, 165, 0)); // orange
+                        return QColor(255, 165, 0); // orange
                     return QColor(Qt::red);
                 }
                 default:

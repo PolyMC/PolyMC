@@ -14,6 +14,8 @@ set(CORE_SOURCES
     InstanceTask.cpp
     LoggedProcess.h
     LoggedProcess.cpp
+    ProcessSuspender.h
+    ProcessSuspender.cpp
     PolyMCTextCodec.h
     PolyMCTextCodec.cpp
     MessageLevel.cpp
@@ -604,7 +606,8 @@ SET(LAUNCHER_SOURCES
     DesktopServices.cpp
     VersionProxyModel.h
     VersionProxyModel.cpp
-    HoeDown.h
+    Markdown.h
+    Markdown.cpp
 
     # Super secret!
     KonamiCode.h
@@ -1033,7 +1036,7 @@ target_link_libraries(Launcher_logic
 )
 target_link_libraries(Launcher_logic
     QuaZip::QuaZip
-    hoedown
+    md4c
     LocalPeer
     Launcher_rainbow
 )

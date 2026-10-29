@@ -115,7 +115,6 @@ QVariant ResourcePackFolderModel::headerData(int section, Qt::Orientation /*orie
     default:
         return {};
     }
-    return {};
 }
 
 int ResourcePackFolderModel::columnCount(const QModelIndex& /*parent*/) const

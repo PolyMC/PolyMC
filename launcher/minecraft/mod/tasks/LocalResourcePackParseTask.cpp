@@ -20,9 +20,9 @@
 
 #include "FileSystem.h"
 #include "Json.h"
+#include "MMCZip.h"
 
 #include <quazip/quazip.h>
-#include <quazip/quazipfile.h>
 
 #include <QCryptographicHash>
 
@@ -82,35 +82,11 @@ void processZIP(ResourcePack& pack)
     if (!zip.open(QuaZip::mdUnzip))
         return;
 
-    QuaZipFile file(&zip);
+    if (auto mcmeta = MMCZip::readFile(&zip, "pack.mcmeta"))
+        ResourcePackUtils::processMCMeta(pack, std::move(*mcmeta));
 
-    if (zip.setCurrentFile("pack.mcmeta")) {
-        if (!file.open(QIODevice::ReadOnly)) {
-            qCritical() << "Failed to open file in zip.";
-            zip.close();
-            return;
-        }
-
-        auto data = file.readAll();
-
-        ResourcePackUtils::processMCMeta(pack, std::move(data));
-
-        file.close();
-    }
-
-    if (zip.setCurrentFile("pack.png")) {
-        if (!file.open(QIODevice::ReadOnly)) {
-            qCritical() << "Failed to open file in zip.";
-            zip.close();
-            return;
-        }
-
-        auto data = file.readAll();
-
-        ResourcePackUtils::processPackPNG(pack, std::move(data));
-
-        file.close();
-    }
+    if (auto packPng = MMCZip::readFile(&zip, "pack.png"))
+        ResourcePackUtils::processPackPNG(pack, std::move(*packPng));
 
     zip.close();
 }

@@ -111,12 +111,12 @@ class ModrinthAPI : public NetworkModAPI {
         // Characters like & or # in the search would otherwise end the parameter early
         const auto search = QString::fromUtf8(QUrl::toPercentEncoding(args.search));
 
-        return QString(BuildConfig.MODRINTH_PROD_URL + "/search?"
-                                                       "offset=%1&"
-                                                       "limit=25&"
-                                                       "query=%2&"
-                                                       "index=%3&"
-                                                       "facets=[%4%5%6]")
+        return (BuildConfig.MODRINTH_PROD_URL + "/search?"
+                                                "offset=%1&"
+                                                "limit=25&"
+                                                "query=%2&"
+                                                "index=%3&"
+                                                "facets=[%4%5%6]")
             .arg(off, search, args.sorting, filter,
                  getGameVersionsArray(args.versions), projType);
     };
@@ -137,9 +137,9 @@ class ModrinthAPI : public NetworkModAPI {
                                  ? QStringLiteral("&loaders=[\"%1\"]")
                                        .arg(getModLoaderStrings(args.loaders).join("\",\""))
                                  : "";
-        return QString(BuildConfig.MODRINTH_PROD_URL + "/project/%1/version?"
-                                                       "game_versions=[%2]"
-                                                       "%3")
+        return (BuildConfig.MODRINTH_PROD_URL + "/project/%1/version?"
+                                                "game_versions=[%2]"
+                                                "%3")
             .arg(args.addonId, getGameVersionsString(args.mcVersions), loaders);
     };
 

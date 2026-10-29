@@ -45,7 +45,6 @@ public:
     bool isLoaded() override;
     const BaseVersionPtr at(int i) const override;
     int count() const override;
-    void sortVersions() override;
 
     BaseVersionPtr getRecommended() const override;
 

@@ -1,6 +1,7 @@
 #include "RemoteTextBrowser.h"
 
 #include "Application.h"
+#include "DesktopServices.h"
 
 #include <QCryptographicHash>
 #include <QDebug>
@@ -32,11 +33,19 @@ QImage placeholderImage() {
 RemoteTextBrowser::RemoteTextBrowser(QWidget* parent) : QTextBrowser(parent) {
     document()->setDefaultStyleSheet(QStringLiteral("code { white-space: pre-wrap; }"));
     document()->setUndoRedoEnabled(false);
+
+    setOpenLinks(false);
+    connect(this, &QTextBrowser::anchorClicked, this, [this](const QUrl& url) {
+        if (url.scheme() == "http" || url.scheme() == "https" || url.scheme() == "mailto")
+            DesktopServices::openUrl(url);
+        else if (url.isRelative() && url.path().isEmpty() && url.hasFragment())
+            scrollToAnchor(url.fragment());
+    });
 }
 
 QVariant RemoteTextBrowser::loadResource(int type, const QUrl& url) {
     if (type != QTextDocument::ImageResource || (url.scheme() != "http" && url.scheme() != "https"))
-        return QTextBrowser::loadResource(type, url);
+        return {};
 
     // load an img to the doc
     QPointer<QTextDocument> requestingDoc = document();
@@ -138,7 +147,9 @@ void RemoteTextBrowser::setHtml(const QString& text) {
 
         // prevent the images from rendering for now
         // this prevents e.g. gigantic images from taking up a bunch of blank space
-        applyFormat({0, 0}, true, doc, frag.pos, frag.fmt);
+        auto fmt = frag.fmt;
+        fmt.setProperty(AuthorSize, QSizeF(qMax(qreal(0), fmt.width()), qMax(qreal(0), fmt.height())));
+        applyFormat({0, 0}, true, doc, frag.pos, fmt);
 
         loadResource(QTextDocument::ImageResource, frag.url);
     }
@@ -155,11 +166,30 @@ void RemoteTextBrowser::rerender(QTextDocument* doc, const QUrl& url, const QSiz
 
         // forcefully downsize giant images
         if (fmt.isValid() && (fmt.width() > imageSize.width() || fmt.property(Marked).isValid())) {
-            applyFormat(imageSize, {}, doc, frag.pos, fmt);
+            applyFormat(fittedSize(imageSize, fmt.property(AuthorSize).toSizeF()), {}, doc, frag.pos, fmt);
         } else {
             doc->markContentsDirty(frag.pos, 1);
         }
     }
+}
+
+QSize RemoteTextBrowser::fittedSize(const QSize& imageSize, const QSizeF& authorSize) const {
+    if (imageSize.isEmpty())
+        return {0, 0};
+
+    QSizeF size = imageSize;
+    if (authorSize.width() > 0 && authorSize.height() > 0)
+        size = authorSize;
+    else if (authorSize.width() > 0)
+        size = {authorSize.width(), authorSize.width() * imageSize.height() / imageSize.width()};
+    else if (authorSize.height() > 0)
+        size = {authorSize.height() * imageSize.width() / imageSize.height(), authorSize.height()};
+
+    const int maxWidth = viewport()->width() - 16;
+    if (maxWidth >= 64 && size.width() > maxWidth)
+        size *= maxWidth / size.width();
+
+    return size.toSize();
 }
 
 void RemoteTextBrowser::applyFormat(const QSize& size, const QVariant& mark, QTextDocument* doc,

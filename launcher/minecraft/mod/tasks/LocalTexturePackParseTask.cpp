@@ -20,9 +20,9 @@
 #include "LocalTexturePackParseTask.h"
 
 #include "FileSystem.h"
+#include "MMCZip.h"
 
 #include <quazip/quazip.h>
-#include <quazip/quazipfile.h>
 
 #include <QCryptographicHash>
 #include <QJsonDocument>
@@ -99,8 +99,6 @@ void processZIP(TexturePack& pack)
     if (!zip.open(QuaZip::mdUnzip))
         return;
 
-    QuaZipFile file(&zip);
-
     // some old texture packs might use other schemas, so fallback to those
     static const QStringList candidates = {
         "pack.txt",
@@ -110,38 +108,16 @@ void processZIP(TexturePack& pack)
     };
 
     for (const QString& c : candidates) {
-        if (!zip.setCurrentFile(c))
+        auto data = MMCZip::readFile(&zip, c);
+        if (!data || data->isEmpty())
             continue;
 
-        if (!file.open(QIODevice::ReadOnly)) {
-            qCritical() << "Failed to open file in zip.";
-            zip.close();
-            return;
-        }
-
-        auto data = file.readAll();
-        file.close();
-
-        if (data.isEmpty())
-            continue;
-
-        TexturePackUtils::processPackTXT(pack, std::move(data));
+        TexturePackUtils::processPackTXT(pack, std::move(*data));
         break;
     }
 
-    if (zip.setCurrentFile("pack.png")) {
-        if (!file.open(QIODevice::ReadOnly)) {
-            qCritical() << "Failed to open file in zip.";
-            zip.close();
-            return;
-        }
-
-        auto data = file.readAll();
-
-        TexturePackUtils::processPackPNG(pack, std::move(data));
-
-        file.close();
-    }
+    if (auto packPng = MMCZip::readFile(&zip, "pack.png"))
+        TexturePackUtils::processPackPNG(pack, std::move(*packPng));
 
     zip.close();
 }

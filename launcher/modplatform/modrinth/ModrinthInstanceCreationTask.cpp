@@ -56,9 +56,10 @@ bool ModrinthCreationTask::updateInstance()
            "updating, as worlds can be corrupted and some configuration may be lost (due to pack overrides).")
             .arg(version_str),
         QMessageBox::Information, QMessageBox::Ok | QMessageBox::Reset | QMessageBox::Abort);
-    info->setButtonText(QMessageBox::Ok, tr("Create new instance"));
-    info->setButtonText(QMessageBox::Abort, tr("Update existing instance"));
-    info->setButtonText(QMessageBox::Reset, tr("Cancel"));
+    info->button(QMessageBox::Ok)->setText(tr("Create new instance"));
+    info->button(QMessageBox::Abort)->setText(tr("Update existing instance"));
+    info->button(QMessageBox::Reset)->setText(tr("Cancel"));
+    info->setEscapeButton(info->button(QMessageBox::Reset));
 
     info->exec();
 
