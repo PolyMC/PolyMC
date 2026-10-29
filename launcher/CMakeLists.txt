@@ -608,6 +608,8 @@ SET(LAUNCHER_SOURCES
     VersionProxyModel.cpp
     Markdown.h
     Markdown.cpp
+    CAllocator.h
+    CAllocator.cpp
 
     # Super secret!
     KonamiCode.h

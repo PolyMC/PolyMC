@@ -1,5 +1,7 @@
 #include "Markdown.h"
 
+#include "CAllocator.h"
+
 #include <QObject>
 #include <QRegularExpression>
 #include <QUrl>
@@ -339,7 +341,7 @@ QString Markdown::toHtml(const QByteArray& markdown)
     parser.leave_span = leaveSpan;
     parser.text = onText;
 
-    md_parse(markdown.constData(), static_cast<MD_SIZE>(markdown.size()), &parser, &r);
+    md_parse(markdown.constData(), static_cast<MD_SIZE>(markdown.size()), &parser, &r, &CAllocator::allocate);
     flushHtml(&r);
     return QString::fromUtf8(r.out);
 }

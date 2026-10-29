@@ -177,6 +177,8 @@ struct MD_CTX_tag {
     MD_PARSER parser;
     void* userdata;
 
+    MD_REALLOC_FUNC frealloc;
+
     /* For optimized scan for new line. */
     OFF cr_horizon;
     OFF lf_horizon;
@@ -440,6 +442,39 @@ md_text_with_null_replacement(MD_CTX* ctx, MD_TEXTTYPE type, const CHAR* str, SZ
 }
 
 
+static void*
+md_default_realloc(void* udata, void* ptr, size_t oldsize, size_t newsize)
+{
+    MD_UNUSED(udata);
+    MD_UNUSED(oldsize);
+
+    if(newsize == 0) {
+        free(ptr);
+        return NULL;
+    }
+    return realloc(ptr, newsize);
+}
+
+static void*
+md_malloc(MD_CTX* ctx, size_t size)
+{
+    return ctx->frealloc(ctx->userdata, NULL, 0, size);
+}
+
+static void*
+md_realloc(MD_CTX* ctx, void* ptr, size_t oldsize, size_t newsize)
+{
+    return ctx->frealloc(ctx->userdata, ptr, oldsize, newsize);
+}
+
+static void
+md_free(MD_CTX* ctx, void* ptr)
+{
+    if(ptr != NULL)
+        ctx->frealloc(ctx->userdata, ptr, 0, 0);
+}
+
+
 #define MD_CHECK(func)                                                      \
     do {                                                                    \
         ret = (func);                                                       \
@@ -454,7 +489,8 @@ md_text_with_null_replacement(MD_CTX* ctx, MD_TEXTTYPE type, const CHAR* str, SZ
             CHAR* new_buffer;                                               \
             SZ new_size = ((sz) + (sz) / 2 + 128) & ~127;                   \
                                                                             \
-            new_buffer = realloc(ctx->buffer, new_size);                    \
+            new_buffer = md_realloc(ctx, ctx->buffer,                       \
+                        ctx->alloc_buffer, new_size);                       \
             if(new_buffer == NULL) {                                        \
                 MD_LOG("realloc() failed.");                                \
                 ret = -1;                                                   \
@@ -1069,7 +1105,7 @@ md_merge_lines_alloc(MD_CTX* ctx, OFF beg, OFF end, const MD_LINE* lines, MD_SIZ
 {
     CHAR* buffer;
 
-    buffer = (CHAR*) malloc(sizeof(CHAR) * (end - beg));
+    buffer = (CHAR*) md_malloc(ctx, sizeof(CHAR) * (end - beg));
     if(buffer == NULL) {
         MD_LOG("malloc() failed.");
         return -1;
@@ -1470,7 +1506,8 @@ md_build_attr_append_substr(MD_CTX* ctx, MD_ATTRIBUTE_BUILD* build,
                 ? build->substr_alloc + build->substr_alloc / 2
                 : 8);
 
-        new_substr_types = (MD_TEXTTYPE*) realloc(build->substr_types,
+        new_substr_types = (MD_TEXTTYPE*) md_realloc(ctx, build->substr_types,
+                                    build->substr_alloc * sizeof(MD_TEXTTYPE),
                                     new_alloc * sizeof(MD_TEXTTYPE));
         if(new_substr_types == NULL) {
             MD_LOG("realloc() failed.");
@@ -1479,7 +1516,8 @@ md_build_attr_append_substr(MD_CTX* ctx, MD_ATTRIBUTE_BUILD* build,
         build->substr_types = new_substr_types;
 
         /* Note +1 to reserve space for final offset (== raw_size). */
-        new_substr_offsets = (OFF*) realloc(build->substr_offsets,
+        new_substr_offsets = (OFF*) md_realloc(ctx, build->substr_offsets,
+                                    (build->substr_alloc > 0 ? build->substr_alloc+1 : 0) * sizeof(OFF),
                                     (new_alloc+1) * sizeof(OFF));
         if(new_substr_offsets == NULL) {
             MD_LOG("realloc() failed.");
@@ -1498,8 +1536,6 @@ md_build_attr_append_substr(MD_CTX* ctx, MD_ATTRIBUTE_BUILD* build,
 static void
 md_free_attribute(MD_CTX* ctx, MD_ATTRIBUTE_BUILD* build)
 {
-    MD_UNUSED(ctx);
-
     /* A trivial build aliases caller-owned storage and must not be freed.
      * Every other build owns all three pointers from the moment
      * md_build_attribute() leaves the trivial branch, even if a growth
@@ -1507,9 +1543,9 @@ md_free_attribute(MD_CTX* ctx, MD_ATTRIBUTE_BUILD* build)
      * keeps this idempotent, which matters because md_build_attribute()
      * frees on its own abort path before the caller frees again. */
     if(build->substr_types != build->trivial_types) {
-        free(build->text);
-        free(build->substr_types);
-        free(build->substr_offsets);
+        md_free(ctx, build->text);
+        md_free(ctx, build->substr_types);
+        md_free(ctx, build->substr_offsets);
         build->text = NULL;
         build->substr_types = NULL;
         build->substr_offsets = NULL;
@@ -1549,7 +1585,7 @@ md_build_attribute(MD_CTX* ctx, const CHAR* raw_text, SZ raw_size,
         build->trivial_offsets[1] = raw_size;
         off = raw_size;
     } else {
-        build->text = (CHAR*) malloc(raw_size * sizeof(CHAR));
+        build->text = (CHAR*) md_malloc(ctx, raw_size * sizeof(CHAR));
         if(build->text == NULL) {
             MD_LOG("malloc() failed.");
             goto abort;
@@ -1789,7 +1825,7 @@ md_build_label_hashtable(MD_CTX* ctx, MD_LABEL_HASH_TABLE* table)
         return 0;
 
     table->n_buckets = (table->n_defs * 5) / 4;
-    table->buckets = malloc(table->n_buckets * sizeof(void*));
+    table->buckets = md_malloc(ctx, table->n_buckets * sizeof(void*));
     if(table->buckets == NULL) {
         MD_LOG("malloc() failed.");
         goto abort;
@@ -1826,7 +1862,7 @@ md_build_label_hashtable(MD_CTX* ctx, MD_LABEL_HASH_TABLE* table)
             }
 
             /* Make the bucket complex, i.e. able to hold more entries. */
-            list = (MD_LABEL_HASH_LIST*) malloc(sizeof(MD_LABEL_HASH_LIST) +
+            list = (MD_LABEL_HASH_LIST*) md_malloc(ctx, sizeof(MD_LABEL_HASH_LIST) +
                         2 * sizeof(MD_LABEL_HASH_ENTRY*));
             if(list == NULL) {
                 MD_LOG("malloc() failed.");
@@ -1849,7 +1885,8 @@ md_build_label_hashtable(MD_CTX* ctx, MD_LABEL_HASH_TABLE* table)
         list = (MD_LABEL_HASH_LIST*) *p_bucket;
         if(list->n_entries >= list->alloc_entries) {
             size_t alloc_entries = list->alloc_entries + list->alloc_entries / 2;
-            MD_LABEL_HASH_LIST* list_tmp = (MD_LABEL_HASH_LIST*) realloc(list,
+            MD_LABEL_HASH_LIST* list_tmp = (MD_LABEL_HASH_LIST*) md_realloc(ctx, list,
+                        sizeof(MD_LABEL_HASH_LIST) + list->alloc_entries * sizeof(MD_LABEL_HASH_ENTRY*),
                         sizeof(MD_LABEL_HASH_LIST) + alloc_entries * sizeof(MD_LABEL_HASH_ENTRY*));
             if(list_tmp == NULL) {
                 MD_LOG("realloc() failed.");
@@ -1898,18 +1935,16 @@ abort:
 static void
 md_free_label_hashtable(MD_CTX* ctx, MD_LABEL_HASH_TABLE* table)
 {
-    MD_UNUSED(ctx);
-
     if(table->buckets != NULL) {
         unsigned i;
 
         for(i = 0; i < table->n_buckets; i++) {
             void* bucket = table->buckets[i];
             if(md_is_complex_label_bucket(table, bucket))
-                free(bucket);
+                md_free(ctx, bucket);
         }
 
-        free(table->buckets);
+        md_free(ctx, table->buckets);
     }
 }
 
@@ -1968,7 +2003,8 @@ md_add_label_def(MD_CTX* ctx, MD_LABEL_HASH_TABLE* table, const CHAR* label, SZ 
         new_alloc_defs = (table->alloc_defs > 0
                 ? table->alloc_defs + table->alloc_defs / 2
                 : 8);
-        new_defs = realloc(table->defs, new_alloc_defs * table->def_size);
+        new_defs = md_realloc(ctx, table->defs, table->alloc_defs * table->def_size,
+                    new_alloc_defs * table->def_size);
         if(new_defs == NULL) {
             MD_LOG("realloc() failed.");
             return NULL;
@@ -2121,7 +2157,7 @@ md_is_footnote_definition(MD_CTX* ctx, const MD_LINE* lines, MD_SIZE n_lines)
      * Lines 1..n-1 are stored verbatim (md4c strips indentation before
      * handing us MD_LINE, so no further adjustment is needed). */
     n_content_lines = (off >= lines[0].end  &&  n > 1) ? n - 1 : n;
-    content_lines = (MD_LINE*) malloc(n_content_lines * sizeof(MD_LINE));
+    content_lines = (MD_LINE*) md_malloc(ctx, n_content_lines * sizeof(MD_LINE));
     if(content_lines == NULL) {
         MD_LOG("malloc() failed.");
         ret = -1;
@@ -2149,7 +2185,7 @@ md_is_footnote_definition(MD_CTX* ctx, const MD_LINE* lines, MD_SIZE n_lines)
     return (int) n;
 
 abort:
-    free(content_lines);
+    md_free(ctx, content_lines);
     return ret;
 }
 
@@ -2174,8 +2210,8 @@ md_free_footnote_defs(MD_CTX* ctx)
     md_free_label_hashtable(ctx, &ctx->footnote_hashtable);
 
     for(i = 0; i < ctx->footnote_hashtable.n_defs; i++)
-        free(ctx->footnote_hashtable.footnote_defs[i].content_lines);
-    free(ctx->footnote_hashtable.footnote_defs);
+        md_free(ctx, ctx->footnote_hashtable.footnote_defs[i].content_lines);
+    md_free(ctx, ctx->footnote_hashtable.footnote_defs);
 }
 
 
@@ -2503,7 +2539,7 @@ md_is_link_reference_definition(MD_CTX* ctx, const MD_LINE* lines, MD_SIZE n_lin
         def = (MD_REF_DEF*) md_add_label_def(ctx, &ctx->ref_def_hashtable, label, label_size);
         if(def == NULL) {
             ret = -1;
-            free(label);
+            md_free(ctx, label);
             goto abort;
         }
         def->label_needs_free = true;
@@ -2581,7 +2617,7 @@ md_is_link_reference(MD_CTX* ctx, const MD_LINE* lines, MD_SIZE n_lines,
     }
 
     if(is_multiline)
-        free(label);
+        md_free(ctx, label);
 
     if(def != NULL) {
         /* See https://github.com/mity/md4c/issues/238 */
@@ -2706,12 +2742,12 @@ md_free_ref_defs(MD_CTX* ctx)
         MD_REF_DEF* def = &ctx->ref_def_hashtable.ref_defs[i];
 
         if(def->label_needs_free)
-            free((void*) def->entry.label);
+            md_free(ctx, (void*) def->entry.label);
         if(def->title_needs_free)
-            free(def->title);
+            md_free(ctx, def->title);
     }
 
-    free(ctx->ref_def_hashtable.ref_defs);
+    md_free(ctx, ctx->ref_def_hashtable.ref_defs);
 }
 
 
@@ -2874,17 +2910,19 @@ md_add_mark(MD_CTX* ctx)
 {
     if(ctx->n_marks >= ctx->alloc_marks) {
         MD_MARK* new_marks;
-
-        ctx->alloc_marks = (ctx->alloc_marks > 0
+        int new_alloc_marks = (ctx->alloc_marks > 0
                 ? ctx->alloc_marks + ctx->alloc_marks / 2
                 : 64);
-        new_marks = realloc(ctx->marks, ctx->alloc_marks * sizeof(MD_MARK));
+
+        new_marks = md_realloc(ctx, ctx->marks, ctx->alloc_marks * sizeof(MD_MARK),
+                    new_alloc_marks * sizeof(MD_MARK));
         if(new_marks == NULL) {
             MD_LOG("realloc() failed.");
             return NULL;
         }
 
         ctx->marks = new_marks;
+        ctx->alloc_marks = new_alloc_marks;
     }
 
     return &ctx->marks[ctx->n_marks++];
@@ -3969,7 +4007,7 @@ md_resolve_bracket_link(MD_CTX* ctx, const MD_LINE* lines, MD_SIZE n_lines,
                         if(ctx->marks[mark->next].beg >= inline_link_end) {
                             /* Cancel the link status. */
                             if(attr.title_needs_free)
-                                free(attr.title);
+                                md_free(ctx, attr.title);
                             is_link = false;
                             break;
                         }
@@ -5293,7 +5331,7 @@ md_process_table_row(MD_CTX* ctx, MD_BLOCKTYPE cell_type, OFF beg, OFF end,
     /* We have to remember the cell boundaries in local buffer because
      * ctx->marks[] shall be reused during cell contents processing. */
     n = ctx->n_table_cell_boundaries + 2;
-    cell_begs = (OFF*) malloc(n * sizeof(OFF));
+    cell_begs = (OFF*) md_malloc(ctx, n * sizeof(OFF));
     if(cell_begs == NULL) {
         MD_LOG("malloc() failed.");
         ret = -1;
@@ -5324,7 +5362,7 @@ md_process_table_row(MD_CTX* ctx, MD_BLOCKTYPE cell_type, OFF beg, OFF end,
     MD_LEAVE_BLOCK(MD_BLOCK_TR, NULL);
 
 abort:
-    free(cell_begs);
+    md_free(ctx, cell_begs);
 
     ctx->table_cell_boundaries_head = -1;
     ctx->table_cell_boundaries_tail = -1;
@@ -5343,7 +5381,7 @@ md_process_table_block_contents(MD_CTX* ctx, int col_count, const MD_LINE* lines
      * with the underlines. */
     MD_ASSERT(n_lines >= 2);
 
-    align = malloc(col_count * sizeof(MD_ALIGN));
+    align = md_malloc(ctx, col_count * sizeof(MD_ALIGN));
     if(align == NULL) {
         MD_LOG("malloc() failed.");
         ret = -1;
@@ -5367,7 +5405,7 @@ md_process_table_block_contents(MD_CTX* ctx, int col_count, const MD_LINE* lines
     }
 
 abort:
-    free(align);
+    md_free(ctx, align);
     return ret;
 }
 
@@ -5429,7 +5467,7 @@ md_process_normal_block_contents(MD_CTX* ctx, const MD_LINE* lines, MD_SIZE n_li
 abort:
     /* Free any temporary memory blocks stored within some dummy marks. */
     for(i = ctx->ptr_stack.top; i >= 0; i = ctx->marks[i].next)
-        free(md_mark_get_ptr(ctx, i));
+        md_free(ctx, md_mark_get_ptr(ctx, i));
     ctx->ptr_stack.top = -1;
 
     return ret;
@@ -5770,11 +5808,12 @@ md_push_block_bytes(MD_CTX* ctx, int n_bytes)
 
     if(ctx->n_block_bytes + n_bytes > ctx->alloc_block_bytes) {
         void* new_block_bytes;
-
-        ctx->alloc_block_bytes = (ctx->alloc_block_bytes > 0
+        int new_alloc_block_bytes = (ctx->alloc_block_bytes > 0
                 ? ctx->alloc_block_bytes + ctx->alloc_block_bytes / 2
                 : 512);
-        new_block_bytes = realloc(ctx->block_bytes, ctx->alloc_block_bytes);
+
+        new_block_bytes = md_realloc(ctx, ctx->block_bytes, ctx->alloc_block_bytes,
+                    new_alloc_block_bytes);
         if(new_block_bytes == NULL) {
             MD_LOG("realloc() failed.");
             return NULL;
@@ -5787,6 +5826,7 @@ md_push_block_bytes(MD_CTX* ctx, int n_bytes)
         }
 
         ctx->block_bytes = new_block_bytes;
+        ctx->alloc_block_bytes = new_alloc_block_bytes;
     }
 
     ptr = (char*)ctx->block_bytes + ctx->n_block_bytes;
@@ -6483,17 +6523,19 @@ md_push_container(MD_CTX* ctx, const MD_CONTAINER* container)
 {
     if(ctx->n_containers >= ctx->alloc_containers) {
         MD_CONTAINER* new_containers;
-
-        ctx->alloc_containers = (ctx->alloc_containers > 0
+        int new_alloc_containers = (ctx->alloc_containers > 0
                 ? ctx->alloc_containers + ctx->alloc_containers / 2
                 : 16);
-        new_containers = realloc(ctx->containers, ctx->alloc_containers * sizeof(MD_CONTAINER));
+
+        new_containers = md_realloc(ctx, ctx->containers, ctx->alloc_containers * sizeof(MD_CONTAINER),
+                    new_alloc_containers * sizeof(MD_CONTAINER));
         if(new_containers == NULL) {
             MD_LOG("realloc() failed.");
             return -1;
         }
 
         ctx->containers = new_containers;
+        ctx->alloc_containers = new_alloc_containers;
     }
 
     memcpy(&ctx->containers[ctx->n_containers++], container, sizeof(MD_CONTAINER));
@@ -7321,7 +7363,7 @@ md_process_footnote_defs(MD_CTX* ctx)
 
     /* Keep definitions in place because the label hash table points into them.
      * A definition may first be referenced while rendering another one. */
-    ctx->footnote_order = malloc(ctx->footnote_hashtable.n_defs * sizeof(*ctx->footnote_order));
+    ctx->footnote_order = md_malloc(ctx, ctx->footnote_hashtable.n_defs * sizeof(*ctx->footnote_order));
     if(ctx->footnote_order == NULL) {
         MD_LOG("malloc() failed.");
         return -1;
@@ -7340,7 +7382,7 @@ md_process_footnote_defs(MD_CTX* ctx)
     MD_LEAVE_BLOCK(MD_BLOCK_FOOTNOTE_DEF_SECTION, NULL);
 
 abort:
-    free(ctx->footnote_order);
+    md_free(ctx, ctx->footnote_order);
     ctx->footnote_order = NULL;
     return ret;
 }
@@ -7415,7 +7457,7 @@ abort:
  ********************/
 
 int
-md_parse(const MD_CHAR* text, MD_SIZE size, const MD_PARSER* parser, void* userdata)
+md_parse(const MD_CHAR* text, MD_SIZE size, const MD_PARSER* parser, void* userdata, MD_REALLOC_FUNC frealloc)
 {
     MD_CTX ctx;
     int i;
@@ -7433,6 +7475,7 @@ md_parse(const MD_CHAR* text, MD_SIZE size, const MD_PARSER* parser, void* userd
     ctx.size = size;
     memcpy(&ctx.parser, parser, sizeof(MD_PARSER));
     ctx.userdata = userdata;
+    ctx.frealloc = (frealloc != NULL ? frealloc : md_default_realloc);
     ctx.code_indent_offset = (ctx.parser.flags & MD_FLAG_NOINDENTEDCODEBLOCKS) ? (OFF)(-1) : 4;
     md_build_mark_char_map(&ctx);
     ctx.ref_def_hashtable.def_size = sizeof(MD_REF_DEF);
@@ -7454,10 +7497,10 @@ md_parse(const MD_CHAR* text, MD_SIZE size, const MD_PARSER* parser, void* userd
     /* Clean-up. */
     md_free_ref_defs(&ctx);
     md_free_footnote_defs(&ctx);
-    free(ctx.buffer);
-    free(ctx.marks);
-    free(ctx.block_bytes);
-    free(ctx.containers);
+    md_free(&ctx, ctx.buffer);
+    md_free(&ctx, ctx.marks);
+    md_free(&ctx, ctx.block_bytes);
+    md_free(&ctx, ctx.containers);
 
     return ret;
 }

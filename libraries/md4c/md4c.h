@@ -26,6 +26,8 @@
 #ifndef MD4C_H
 #define MD4C_H
 
+#include <stddef.h>
+
 #ifdef __cplusplus
     extern "C" {
 #endif
@@ -476,6 +478,9 @@ typedef struct MD_PARSER {
 typedef MD_PARSER MD_RENDERER;
 
 
+typedef void* (*MD_REALLOC_FUNC)(void* udata, void* ptr, size_t oldsize, size_t newsize);
+
+
 /* Parse the Markdown document stored in the string 'text' of size 'size'.
  * The parser provides callbacks to be called during the parsing so the
  * caller can render the document on the screen or convert the Markdown
@@ -484,8 +489,10 @@ typedef MD_PARSER MD_RENDERER;
  * Zero is returned on success. If a runtime error occurs (e.g. a memory
  * fails), -1 is returned. If the processing is aborted due any callback
  * returning non-zero, the return value of the callback is returned.
+ *
+ * If 'frealloc' is NULL, the C runtime realloc() and free() are used.
  */
-int md_parse(const MD_CHAR* text, MD_SIZE size, const MD_PARSER* parser, void* userdata);
+int md_parse(const MD_CHAR* text, MD_SIZE size, const MD_PARSER* parser, void* userdata, MD_REALLOC_FUNC frealloc);
 
 
 #ifdef __cplusplus
