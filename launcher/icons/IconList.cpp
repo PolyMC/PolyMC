@@ -106,11 +106,7 @@ void IconList::directoryChanged(const QString &path)
         QString &foo = (*it);
         foo = m_dir.filePath(foo);
     }
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     QSet<QString> new_set(new_list.begin(), new_list.end());
-#else
-    auto new_set = new_list.toSet();
-#endif
     QList<QString> current_list;
     for (auto &it : icons)
     {
@@ -118,11 +114,7 @@ void IconList::directoryChanged(const QString &path)
             continue;
         current_list.push_back(it.m_images[IconType::FileBased].filename);
     }
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     QSet<QString> current_set(current_list.begin(), current_list.end());
-#else
-    QSet<QString> current_set = current_list.toSet();
-#endif
 
     QSet<QString> to_remove = current_set;
     to_remove -= new_set;

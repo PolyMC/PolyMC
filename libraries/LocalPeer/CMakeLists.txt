@@ -1,11 +1,7 @@
 cmake_minimum_required(VERSION 3.9.4)
 project(LocalPeer)
 
-if(QT_VERSION_MAJOR EQUAL 5)
-    find_package(Qt5 COMPONENTS Core Network REQUIRED)
-elseif(Launcher_QT_VERSION_MAJOR EQUAL 6)
-    find_package(Qt6 COMPONENTS Core Network REQUIRED)
-endif()
+find_package(Qt6 COMPONENTS Core Network REQUIRED)
 
 set(SINGLE_SOURCES
     src/LocalPeer.cpp
@@ -24,4 +20,4 @@ endif()
 add_library(LocalPeer STATIC ${SINGLE_SOURCES})
 target_include_directories(LocalPeer PUBLIC include)
 
-target_link_libraries(LocalPeer Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Network ${LocalPeer_LIBS})
+target_link_libraries(LocalPeer Qt6::Core Qt6::Network ${LocalPeer_LIBS})

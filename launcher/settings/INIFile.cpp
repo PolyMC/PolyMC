@@ -137,10 +137,7 @@ bool INIFile::loadFile(QString fileName)
 bool INIFile::loadFile(QByteArray file)
 {
     QTextStream in(file);
-#if QT_VERSION <= QT_VERSION_CHECK(6, 0, 0)
-    in.setCodec("UTF-8");
-#endif
-
+    
     QStringList lines = in.readAll().split('\n');
     for (int i = 0; i < lines.count(); i++)
     {

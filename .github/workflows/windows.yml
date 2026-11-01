@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    name: "Windows ${{ matrix.arch }} (Qt ${{ matrix.qt_ver }})"
+    name: "Windows ${{ matrix.arch }}"
     strategy:
       fail-fast: false
       matrix:
@@ -22,15 +22,9 @@ jobs:
           - os: windows-2022
             arch: amd64
             msystem: ucrt64
-            qt_ver: 5
-          - os: windows-2022
-            arch: amd64
-            msystem: ucrt64
-            qt_ver: 6
           - os: windows-11-arm
             arch: aarch64
             msystem: clangarm64
-            qt_ver: 6
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -44,7 +38,6 @@ jobs:
         with:
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
-          qt_ver: ${{ matrix.qt_ver }}
           version: ${{ inputs.version }}
 
       - name: Setup MSYS2
@@ -56,12 +49,11 @@ jobs:
           install: git
           pacboy: >-
             toolchain:p cmake:p extra-cmake-modules:p ninja:p 7zip:p
-            qt${{ matrix.qt_ver }}-base:p qt${{ matrix.qt_ver }}-svg:p
-            qt${{ matrix.qt_ver }}-imageformats:p qt${{ matrix.qt_ver }}-charts:p
+            qt6-base:p qt6-svg:p
+            qt6-imageformats:p qt6-charts:p
             ccache:p
-            ${{ matrix.qt_ver == 6 && 'quazip-qt6:p' || '' }}
+            quazip-qt6:p
             nsis:u
-            ${{ matrix.qt_ver == 6 && 'qt6-5compat:p' || '' }}
 
       - name: Put MSYS2 location in env
         shell: bash

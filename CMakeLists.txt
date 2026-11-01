@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.15)  # minimum version required by QuaZip
 
-# if(WIN32)
-#     # In Qt 5.1+ we have our own main() function, don't autolink to qtmain on Windows
-#     cmake_policy(SET CMP0020 OLD)
-# endif()
-
 project(Launcher)
 
 string(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_BUILD_DIR}" IS_IN_SOURCE_BUILD)
@@ -25,17 +20,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_C_STANDARD_REQUIRED true)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
-
-if (MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DQT_NO_DEPRECATED_WARNINGS=Y")
-
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DQT_DISABLE_DEPRECATED_BEFORE=0x050C00")
-else()
-    # Fix build with Qt 5.13
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DQT_NO_DEPRECATED_WARNINGS=Y")
-
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DQT_DISABLE_DEPRECATED_BEFORE=0x050C00")
-endif()
 
 # set CXXFLAGS for build targets
 
@@ -159,7 +143,7 @@ set(Launcher_SUBREDDIT_URL "https://www.reddit.com/r/PolyMCLauncher/" CACHE STRI
 
 # Builds
 set(Launcher_FORCE_BUNDLED_LIBS OFF CACHE BOOL "Prevent using system libraries, if they are available as submodules")
-set(Launcher_QT_VERSION_MAJOR "5" CACHE STRING "Major Qt version to build against")
+set(Launcher_QT_VERSION_MAJOR "6" CACHE STRING "Major Qt version to build against")
 
 # API Keys
 # NOTE: These API keys are here for convenience. If you rebrand this software or intend to break the terms of service
@@ -199,62 +183,38 @@ endif()
 
 ################################ 3rd Party Libs ################################
 
-# Find the required Qt parts
-include(QtVersionlessBackport)
-set(valid_qt_versions 5 6)
+set(valid_qt_versions 6)
 if (NOT Launcher_QT_VERSION_MAJOR IN_LIST valid_qt_versions)
     message(FATAL_ERROR "Qt version ${Launcher_QT_VERSION_MAJOR} is not supported")
 endif()
 
 # TODO: Migrate to QXmlStream
 set(QT_VERSION_MAJOR ${Launcher_QT_VERSION_MAJOR})
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets
     Concurrent Network Test Xml Charts)
 
-
-if(QT_VERSION_MAJOR EQUAL 5)
-    get_target_property(qmake_executable Qt5::qmake IMPORTED_LOCATION)
-    foreach(qt_var IN ITEMS PLUGINS:QT_INSTALL_PLUGINS LIBS:QT_INSTALL_LIBS
-                             LIBEXECS:QT_INSTALL_LIBEXECS DATA:QT_HOST_DATA BINS:QT_INSTALL_BINS)
-        string(REPLACE ":" ";" qt_var "${qt_var}")
-        list(GET qt_var 0 qt_name)
-        list(GET qt_var 1 qt_query)
-        execute_process(COMMAND "${qmake_executable}" -query ${qt_query}
-            OUTPUT_VARIABLE qmake_output OUTPUT_STRIP_TRAILING_WHITESPACE
-            COMMAND_ERROR_IS_FATAL ANY)
-        file(TO_CMAKE_PATH "${qmake_output}" QT_${qt_name}_DIR)
-    endforeach()
-else()
-    set(QT_PLUGINS_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_PLUGINS})
-    set(QT_LIBS_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_LIBS})
-    set(QT_LIBEXECS_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_LIBEXECS})
-    set(QT_DATA_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_DATA})
-    set(QT_BINS_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_BINS})
-endif()
+set(QT_PLUGINS_DIR ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS})
+set(QT_LIBS_DIR ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_LIBS})
+set(QT_LIBEXECS_DIR ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_LIBEXECS})
+set(QT_DATA_DIR ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_DATA})
+set(QT_BINS_DIR ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS})
 
 if(NOT Launcher_FORCE_BUNDLED_LIBS AND NOT WIN32)
-    find_package(QuaZip-Qt${QT_VERSION_MAJOR} 1.3 QUIET)
+    find_package(QuaZip-Qt6 1.3 QUIET)
 endif()
 
-if (NOT QuaZip-Qt${QT_VERSION_MAJOR}_FOUND)
-    set(QUAZIP_QT_MAJOR_VERSION ${QT_VERSION_MAJOR})
+if (NOT QuaZip-Qt6_FOUND)
+    set(QUAZIP_QT_MAJOR_VERSION 6)
     set(FORCE_BUNDLED_QUAZIP 1)
 endif()
 
 # removes Core5Compat dep
-if (QT_VERSION_MAJOR EQUAL 6)
-    set(QUAZIP_ENABLE_QTEXTCODEC OFF)
-endif()
+set(QUAZIP_ENABLE_QTEXTCODEC OFF)
 
 # Qt 6 sets these by default. Notably causes Windows APIs to use UNICODE strings.
 add_compile_definitions(UNICODE _UNICODE)
 
 set(QT_MKSPECS_DIR ${QT_DATA_DIR}/mkspecs)
-
-# NOTE: Qt 6 already sets this by default
-if (Qt5_POSITION_INDEPENDENT_CODE)
-    SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
 
 if(NOT Launcher_FORCE_BUNDLED_LIBS)
     # Find toml++

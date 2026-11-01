@@ -1619,11 +1619,7 @@ void MainWindow::updateNotAvailable()
 
 QList<int> stringToIntList(const QString &string)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     QStringList split = string.split(',', Qt::SkipEmptyParts);
-#else
-    QStringList split = string.split(',', QString::SkipEmptyParts);
-#endif
     QList<int> out;
     for (int i = 0; i < split.size(); ++i)
     {

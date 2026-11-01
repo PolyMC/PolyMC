@@ -48,7 +48,6 @@ PreLaunchCommand::PreLaunchCommand(LaunchTask *parent) : LaunchStep(parent)
 void PreLaunchCommand::executeTask()
 {
     //FIXME: where to put this?
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
     auto args = QProcess::splitCommand(m_command);
     // A command made only of whitespace has nothing to run
     if (args.isEmpty()) {
@@ -60,12 +59,6 @@ void PreLaunchCommand::executeTask()
     emit logLine(tr("Running Pre-Launch command: %1").arg(args.join(' ')), MessageLevel::Launcher);
     const QString program = args.takeFirst();
     m_process.start(program, args);
-#else
-    m_parent->substituteVariables(m_command);
-
-    emit logLine(tr("Running Pre-Launch command: %1").arg(m_command), MessageLevel::Launcher);
-    m_process.start(m_command);
-#endif
 }
 
 void PreLaunchCommand::on_state(LoggedProcess::State state)

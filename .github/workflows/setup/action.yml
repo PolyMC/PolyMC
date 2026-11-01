@@ -5,8 +5,6 @@ inputs:
     required: true
   arch:
     required: true
-  qt_ver:
-    required: true
   version:
     required: false
 
@@ -16,7 +14,7 @@ runs:
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@main
       with:
-        key: ${{ inputs.os }}-qt${{ inputs.qt_ver }}
+        key: ${{ inputs.os }}-qt6
         install: binary
 
     - name: Setup Variables
@@ -32,10 +30,7 @@ runs:
         echo "VERSION=${_ver}" >> $GITHUB_ENV
         echo "PLATFORM=$(echo ${{ runner.os }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-        LEGACY_BUILD="${{ inputs.qt_ver == '5' && 'true' || 'false' }}"
-        BUILD_NAME="${{ runner.os }}-${{ inputs.arch }}-Qt${{ inputs.qt_ver }}$([ "$LEGACY_BUILD" = "true" ] && echo "-Legacy" || echo "")-${_ver}"
+        BUILD_NAME="${{ runner.os }}-${{ inputs.arch }}-Qt6-${_ver}"
 
         echo "BUILD_ID=$BUILD_NAME" >> $GITHUB_ENV
-        echo "LEGACY_BUILD=$LEGACY_BUILD" >> $GITHUB_ENV
-        echo "QT_VERSION=${{ inputs.qt_ver }}" >> $GITHUB_ENV
         echo "ARCH=${{ inputs.arch }}" >> $GITHUB_ENV

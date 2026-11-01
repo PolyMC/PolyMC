@@ -16,6 +16,6 @@ cp "$_svg" "$_composed"
 xcrun actool "$_icon" \
     --compile "$out" \
     --platform macosx \
-    --minimum-deployment-target 10.15 \
+    --minimum-deployment-target 11.0 \
     --app-icon "$app_icon" \
     --output-partial-info-plist /dev/null

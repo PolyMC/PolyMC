@@ -94,11 +94,7 @@ void JavaChecker::performCheck()
     qDebug() << "Running java checker: " + m_path + args.join(" ");;
 
     connect(process.get(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finished(int, QProcess::ExitStatus)));
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     connect(process.get(), SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(error(QProcess::ProcessError)));
-#else
-    connect(process.get(), SIGNAL(error(QProcess::ProcessError)), this, SLOT(error(QProcess::ProcessError)));
-#endif
     connect(process.get(), SIGNAL(readyReadStandardOutput()), this, SLOT(stdoutReady()));
     connect(process.get(), SIGNAL(readyReadStandardError()), this, SLOT(stderrReady()));
     connect(&killTimer, SIGNAL(timeout()), SLOT(timeout()));
@@ -151,11 +147,7 @@ void JavaChecker::finished(int exitcode, QProcess::ExitStatus status)
 
     QMap<QString, QString> results;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     QStringList lines = m_stdout.split("\n", Qt::SkipEmptyParts);
-#else
-    QStringList lines = m_stdout.split("\n", QString::SkipEmptyParts);
-#endif
     for (QString line : std::as_const(lines))
     {
         line = line.trimmed();
@@ -164,11 +156,7 @@ void JavaChecker::finished(int exitcode, QProcess::ExitStatus status)
             continue;
         }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
         auto parts = line.split('=', Qt::SkipEmptyParts);
-#else
-        auto parts = line.split('=', QString::SkipEmptyParts);
-#endif
         if(parts.size() != 2 || parts[0].isEmpty() || parts[1].isEmpty())
         {
             continue;

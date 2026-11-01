@@ -5,10 +5,6 @@ INSTALL="$PWD/install"
 ARTIFACTS_DIR="$PWD/artifacts"
 BUILD="$PWD/build"
 
-if [ "${LEGACY_BUILD:-false}" = 'true' ]; then
-	_id="-Legacy"
-fi
-
 mkdir -p "$ARTIFACTS_DIR"
 _artifact="$ARTIFACTS_DIR/PolyMC-macOS${_id}-${VERSION}.tar.gz"
 EXE="$INSTALL/PolyMC.app/Contents/MacOS/polymc"

@@ -282,11 +282,7 @@ bool deletePath(QString path)
 
 bool trash(QString path, QString *pathInTrash = nullptr)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    return false;
-#else
     return QFile::moveToTrash(path, pathInTrash);
-#endif
 }
 
 QString PathCombine(const QString& path1, const QString& path2)

@@ -2,7 +2,7 @@ project(tests)
 
 function(add_test_wrapper name)
     add_executable(${name}_test ${name}_test.cpp)
-    target_link_libraries(${name}_test PRIVATE Launcher_logic Qt${QT_VERSION_MAJOR}::Test)
+    target_link_libraries(${name}_test PRIVATE Launcher_logic Qt6::Test)
     add_test(NAME ${name} COMMAND ${name}_test)
 endfunction()
 

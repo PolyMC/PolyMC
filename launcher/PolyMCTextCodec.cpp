@@ -22,8 +22,6 @@
 
 #include "PolyMCTextCodec.h"
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-
 #include <QHash>
 
 static QHash<QStringConverter::Encoding,PolyMCTextCodec*> *static_hash_quazip_codecs = nullptr;
@@ -113,5 +111,3 @@ QString PolyMCTextDecoder::toUnicode(const QByteArray &data)
 {
     return m_decoder(data);
 }
-
-#endif

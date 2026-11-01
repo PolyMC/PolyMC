@@ -213,12 +213,7 @@ public:
         m_socket = new QTcpSocket(this);
         connect(m_socket, &QTcpSocket::connected, this, &ServerPinger::onConnected);
         connect(m_socket, &QTcpSocket::readyRead,  this, &ServerPinger::onReadyRead);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
         connect(m_socket, &QAbstractSocket::errorOccurred, this, &ServerPinger::onSocketError);
-#else
-        connect(m_socket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error),
-                this, &ServerPinger::onSocketError);
-#endif
         m_timeout.setSingleShot(true);
         m_timeout.setInterval(5000);
         connect(&m_timeout, &QTimer::timeout, this, &ServerPinger::onTimeout);
@@ -570,11 +565,7 @@ public:
             return false;
         }
         beginMoveRows(QModelIndex(), row, row, QModelIndex(), row - 1);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
         m_servers.swapItemsAt(row-1, row);
-#else
-        m_servers.swap(row-1, row);
-#endif
         endMoveRows();
         scheduleSave();
         return true;
@@ -592,11 +583,7 @@ public:
             return false;
         }
         beginMoveRows(QModelIndex(), row, row, QModelIndex(), row + 2);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
         m_servers.swapItemsAt(row+1, row);
-#else
-        m_servers.swap(row+1, row);
-#endif
         endMoveRows();
         scheduleSave();
         return true;

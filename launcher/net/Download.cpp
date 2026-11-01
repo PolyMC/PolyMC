@@ -127,14 +127,8 @@ void Download::executeTask()
         request.setHeader(QNetworkRequest::UserAgentHeader, APPLICATION->getUserAgent().toUtf8());
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
     if (!(m_options & Option::AllowHttp2))
         request.setTransferTimeout(60000);
-#endif
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    if (m_options & Option::AllowHttp2)
-        request.setAttribute(QNetworkRequest::Http2AllowedAttribute, true);
-#endif
 
     emit details(m_url.toString());
     QNetworkReply* rep = m_network->get(request);
@@ -142,11 +136,7 @@ void Download::executeTask()
     m_reply.reset(rep);
     connect(rep, &QNetworkReply::downloadProgress, this, &Download::downloadProgress);
     connect(rep, &QNetworkReply::finished, this, &Download::downloadFinished);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     connect(rep, SIGNAL(errorOccurred(QNetworkReply::NetworkError)), SLOT(downloadError(QNetworkReply::NetworkError)));
-#else
-    connect(rep, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(downloadError(QNetworkReply::NetworkError)));
-#endif
     connect(rep, &QNetworkReply::sslErrors, this, &Download::sslErrors);
     connect(rep, &QNetworkReply::readyRead, this, &Download::downloadReadyRead);
 }

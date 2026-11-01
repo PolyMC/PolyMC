@@ -25,12 +25,6 @@
 #include <QByteArray>
 #include <QtGlobal>
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-#include <QTextCodec>
-typedef QTextCodec PolyMCTextCodec;
-#include <QTextDecoder>
-typedef QTextDecoder PolyMCTextDecoder;
-#else
 #include <QStringConverter>
 #include <QStringDecoder>
 #include <QStringEncoder>
@@ -64,4 +58,4 @@ public:
 private:
     QStringDecoder m_decoder;
 };
-#endif
+

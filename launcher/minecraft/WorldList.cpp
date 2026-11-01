@@ -341,11 +341,7 @@ public:
     }
 
 protected:
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     QVariant retrieveData(const QString &mimetype, QMetaType type) const
-#else
-    QVariant retrieveData(const QString &mimetype, QVariant::Type type) const
-#endif
     {
         QList<QUrl> urls;
         for(auto &world: m_worlds)
