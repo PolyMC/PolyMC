@@ -101,8 +101,8 @@ LauncherPage::LauncherPage(QWidget *parent) : QWidget(parent), ui(new Ui::Launch
     {
         ui->updateSettingsBox->setHidden(true);
     }
-    connect(ui->fontSizeBox, SIGNAL(valueChanged(int)), SLOT(refreshFontPreview()));
-    connect(ui->consoleFont, SIGNAL(currentFontChanged(QFont)), SLOT(refreshFontPreview()));
+    connect(ui->fontSizeBox, &QSpinBox::valueChanged, this, &LauncherPage::refreshFontPreview);
+    connect(ui->consoleFont, &QFontComboBox::currentFontChanged, this, &LauncherPage::refreshFontPreview);
 }
 
 LauncherPage::~LauncherPage()
@@ -200,8 +200,7 @@ void LauncherPage::refreshUpdateChannelList()
     // Stop listening for selection changes. It's going to change a lot while we update it and
     // we don't need to update the
     // description label constantly.
-    QObject::disconnect(ui->updateChannelComboBox, SIGNAL(currentIndexChanged(int)), this,
-                        SLOT(updateChannelSelectionChanged(int)));
+    disconnect(ui->updateChannelComboBox, &QComboBox::currentIndexChanged, this, &LauncherPage::updateChannelSelectionChanged);
 
     QList<UpdateChecker::ChannelListEntry> channelList = APPLICATION->updateChecker()->getChannelList();
     ui->updateChannelComboBox->clear();
@@ -230,8 +229,7 @@ void LauncherPage::refreshUpdateChannelList()
     ui->updateChannelComboBox->setCurrentIndex(selection);
 
     // Start listening for selection changes again and update the description label.
-    QObject::connect(ui->updateChannelComboBox, SIGNAL(currentIndexChanged(int)), this,
-                     SLOT(updateChannelSelectionChanged(int)));
+    connect(ui->updateChannelComboBox, &QComboBox::currentIndexChanged, this, &LauncherPage::updateChannelSelectionChanged);
     refreshUpdateChannelDesc();
 
     // Now that we've updated the channel list, we can enable the combo box.

@@ -44,7 +44,7 @@ void JavaCheckerJob::executeTask()
     for (auto iter : std::as_const(javacheckers))
     {
         javaresults.append(JavaCheckResult());
-        connect(iter.get(), SIGNAL(checkFinished(JavaCheckResult)), SLOT(partFinished(JavaCheckResult)));
+        connect(iter.get(), &JavaChecker::checkFinished, this, &JavaCheckerJob::partFinished);
         iter->performCheck();
     }
 }

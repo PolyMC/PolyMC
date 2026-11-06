@@ -43,12 +43,8 @@ LoggedProcess::LoggedProcess(QObject *parent) : QProcess(parent)
     // QProcess has a strange interface... let's map a lot of those into a few.
     connect(this, &QProcess::readyReadStandardOutput, this, &LoggedProcess::on_stdOut);
     connect(this, &QProcess::readyReadStandardError, this, &LoggedProcess::on_stdErr);
-    connect(this, SIGNAL(finished(int,QProcess::ExitStatus)), SLOT(on_exit(int,QProcess::ExitStatus)));
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    connect(this, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(on_error(QProcess::ProcessError)));
-#else
-    connect(this, SIGNAL(error(QProcess::ProcessError)), this, SLOT(on_error(QProcess::ProcessError)));
-#endif
+    connect(this, &QProcess::finished, this, &LoggedProcess::on_exit);
+    connect(this, &QProcess::errorOccurred, this, &LoggedProcess::on_error);
     connect(this, &QProcess::stateChanged, this, &LoggedProcess::on_stateChange);
 }
 
@@ -73,11 +69,7 @@ QStringList reprocess(const QByteArray& data, PolyMCTextDecoder& decoder, QStrin
     {
         leftover.clear();
     }
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-    auto lines = str.remove(QChar::CarriageReturn).split(QChar::LineFeed, QString::SkipEmptyParts);
-#else
     auto lines = str.remove(QChar::CarriageReturn).split(QChar::LineFeed, Qt::SkipEmptyParts);
-#endif
     return lines;
 }
 

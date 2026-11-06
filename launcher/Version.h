@@ -77,21 +77,16 @@ public:
                     break;
                 }
             }
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+
             auto numPart = QStringView{m_fullString}.left(cutoff);
-#else
-            auto numPart = m_fullString.leftRef(cutoff);
-#endif
+
             if(numPart.size())
             {
                 numValid = true;
                 m_numPart = numPart.toInt();
             }
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
             auto stringPart = QStringView{m_fullString}.mid(cutoff);
-#else
-            auto stringPart = m_fullString.midRef(cutoff);
-#endif
+
             if(stringPart.size())
             {
                 m_stringPart = stringPart.toString();

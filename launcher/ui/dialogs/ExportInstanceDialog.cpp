@@ -343,7 +343,7 @@ ExportInstanceDialog::ExportInstanceDialog(InstancePtr instance, QWidget *parent
     ui->treeView->setRootIndex(proxyModel->mapFromSource(model->index(root)));
     ui->treeView->sortByColumn(0, Qt::AscendingOrder);
 
-    connect(proxyModel, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(rowsInserted(QModelIndex,int,int)));
+    connect(proxyModel, &QAbstractItemModel::rowsInserted, this, &ExportInstanceDialog::rowsInserted);
 
     model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Hidden);
     model->setRootPath(root);
@@ -490,11 +490,8 @@ void ExportInstanceDialog::loadPackIgnore()
     auto string = QString::fromUtf8(ignoreData);
     // The file may have been edited on Windows, don't leave a '\r' at the end of every path
     string.remove('\r');
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+
     proxyModel->setBlockedPaths(string.split('\n', Qt::SkipEmptyParts));
-#else
-    proxyModel->setBlockedPaths(string.split('\n', QString::SkipEmptyParts));
-#endif
 }
 
 void ExportInstanceDialog::savePackIgnore()

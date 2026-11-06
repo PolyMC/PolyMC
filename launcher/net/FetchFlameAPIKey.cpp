@@ -37,11 +37,7 @@ void FetchFlameAPIKey::executeTask()
     connect(m_reply.get(), &QNetworkReply::downloadProgress, this, &Task::setProgress);
     connect(m_reply.get(), &QNetworkReply::finished, this, &FetchFlameAPIKey::downloadFinished);
     connect(m_reply.get(),
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             &QNetworkReply::errorOccurred,
-#else
-            qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
-#endif
             this,
             [this] (QNetworkReply::NetworkError error) {
                 qCritical() << "Network error: " << error;

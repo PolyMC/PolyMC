@@ -44,7 +44,6 @@ jobs:
         with:
           os: ${{ matrix.os.runs-on }}
           arch: ${{ matrix.os.arch }}
-          qt_ver: 6
           version: ${{ inputs.version }}
 
       - name: Install Dependencies

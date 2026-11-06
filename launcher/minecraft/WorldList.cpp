@@ -76,8 +76,7 @@ WorldList::WorldList(const QString &dir)
     m_dir.setSorting(QDir::Name | QDir::IgnoreCase | QDir::LocaleAware);
     m_watcher = new QFileSystemWatcher(this);
     is_watching = false;
-    connect(m_watcher, SIGNAL(directoryChanged(QString)), this,
-            SLOT(directoryChanged(QString)));
+    connect(m_watcher, &QFileSystemWatcher::directoryChanged, this, &WorldList::directoryChanged);
     connect(&m_update_watcher, &QFutureWatcher<QList<World>>::finished, this, [this] {
         beginResetModel();
         worlds = m_update_watcher.result();
@@ -341,11 +340,7 @@ public:
     }
 
 protected:
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     QVariant retrieveData(const QString &mimetype, QMetaType type) const
-#else
-    QVariant retrieveData(const QString &mimetype, QVariant::Type type) const
-#endif
     {
         QList<QUrl> urls;
         for(auto &world: m_worlds)

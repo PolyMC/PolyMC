@@ -736,11 +736,7 @@ void PackInstallTask::extractConfigs()
         return;
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     m_extractFuture = QtConcurrent::run(QThreadPool::globalInstance(), QOverload<QString, QString>::of(MMCZip::extractDir), archivePath, extractDir.absolutePath() + "/minecraft");
-#else
-    m_extractFuture = QtConcurrent::run(QThreadPool::globalInstance(), MMCZip::extractDir, archivePath, extractDir.absolutePath() + "/minecraft");
-#endif
     connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::finished, this, [&]()
     {
         // Don't go on with a pack that's missing its configs
@@ -915,11 +911,7 @@ void PackInstallTask::onModsDownloaded() {
     jobPtr.reset();
 
     if(!modsToExtract.empty() || !modsToDecomp.empty() || !modsToCopy.empty()) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         m_modExtractFuture = QtConcurrent::run(QThreadPool::globalInstance(), &PackInstallTask::extractMods, this, modsToExtract, modsToDecomp, modsToCopy);
-#else
-        m_modExtractFuture = QtConcurrent::run(QThreadPool::globalInstance(), this, &PackInstallTask::extractMods, modsToExtract, modsToDecomp, modsToCopy);
-#endif
         connect(&m_modExtractFutureWatcher, &QFutureWatcher<QStringList>::finished, this, &PackInstallTask::onModsExtracted);
         connect(&m_modExtractFutureWatcher, &QFutureWatcher<QStringList>::canceled, this, [&]()
         {

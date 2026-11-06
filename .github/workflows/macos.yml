@@ -17,7 +17,7 @@ on:
 
 jobs:
   build:
-    name: "macOS ${{ matrix.arch }} (Qt ${{ matrix.qt_ver }})"
+    name: "macOS ${{ matrix.arch }}"
     strategy:
       fail-fast: false
       matrix:
@@ -25,7 +25,6 @@ jobs:
           - os: macos-26
             arch: universal
             macosx_deployment_target: 12.0
-            qt_ver: 6
             qt_host: mac
             qt_version: '6.9.3'
             qt_modules: 'qtimageformats qtcharts'
@@ -45,7 +44,6 @@ jobs:
         with:
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
-          qt_ver: ${{ matrix.qt_ver }}
           version: ${{ inputs.version }}
 
       - name: Install Dependencies

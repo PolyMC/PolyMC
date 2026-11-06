@@ -16,11 +16,7 @@ set(CMAKE_C_STANDARD_REQUIRED true)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 11)
 
-if(QT_VERSION_MAJOR EQUAL 5)
-    find_package(Qt5 COMPONENTS Core Network REQUIRED)
-elseif(Launcher_QT_VERSION_MAJOR EQUAL 6)
-    find_package(Qt6 COMPONENTS Core Network REQUIRED)
-endif()
+find_package(Qt6 COMPONENTS Core Network REQUIRED)
 
 set( katabasis_PRIVATE
     src/DeviceFlow.cpp
@@ -39,7 +35,7 @@ set( katabasis_PUBLIC
 )
 
 add_library( Katabasis STATIC ${katabasis_PRIVATE} ${katabasis_PUBLIC} )
-target_link_libraries(Katabasis Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Network)
+target_link_libraries(Katabasis Qt6::Core Qt6::Network)
 
 # needed for statically linked Katabasis in shared libs on x86_64
 set_target_properties(Katabasis

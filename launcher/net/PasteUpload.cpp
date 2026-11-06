@@ -129,13 +129,7 @@ void PasteUpload::executeTask()
 
     connect(rep, &QNetworkReply::uploadProgress, this, &Task::setProgress);
     connect(rep, &QNetworkReply::finished, this, &PasteUpload::downloadFinished);
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
     connect(rep, &QNetworkReply::errorOccurred, this, &PasteUpload::downloadError);
-#else
-    connect(rep, QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error), this, &PasteUpload::downloadError);
-#endif
-
 
     // The reply gets released from inside its own signals, so it must not be deleted right away
     m_reply = std::shared_ptr<QNetworkReply>(rep, [](QNetworkReply* reply) { reply->deleteLater(); });

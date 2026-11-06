@@ -55,7 +55,7 @@ ModrinthModPage::ModrinthModPage(ModDownloadDialog* dialog, ModAPI::ResourceType
 
     // sometimes Qt just ignores virtual slots and doesn't work as intended it seems,
     // so it's best not to connect them in the parent's constructor...
-    connect(ui->sortByBox, SIGNAL(currentIndexChanged(int)), this, SLOT(triggerSearch()));
+    connect(ui->sortByBox, &QComboBox::currentIndexChanged, this, &ModrinthModPage::triggerSearch);
     connect(ui->packView->selectionModel(), &QItemSelectionModel::currentChanged, this, &ModrinthModPage::onSelectionChanged);
     connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this, &ModrinthModPage::onVersionSelectionChanged);
     connect(ui->modSelectionButton, &QPushButton::clicked, this, &ModrinthModPage::onModSelected);

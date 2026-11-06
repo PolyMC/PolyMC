@@ -1,10 +1,6 @@
 project(systeminfo)
 
-if(QT_VERSION_MAJOR EQUAL 5)
-    find_package(Qt5 COMPONENTS Core REQUIRED)
-elseif(Launcher_QT_VERSION_MAJOR EQUAL 6)
-    find_package(Qt6 COMPONENTS Core REQUIRED)
-endif()
+find_package(Qt6 COMPONENTS Core REQUIRED)
 
 set(systeminfo_SOURCES
     include/sys.h
@@ -22,5 +18,5 @@ elseif (UNIX)
 endif()
 
 add_library(systeminfo STATIC ${systeminfo_SOURCES})
-target_link_libraries(systeminfo Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Gui Qt${QT_VERSION_MAJOR}::Network ${systeminfo_LIBS})
+target_link_libraries(systeminfo Qt6::Core Qt6::Gui Qt6::Network ${systeminfo_LIBS})
 target_include_directories(systeminfo PUBLIC include)

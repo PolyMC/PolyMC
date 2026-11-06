@@ -76,11 +76,7 @@ ApplicationId ApplicationId::fromTraditionalApp()
     prefix.remove(QRegularExpression("[^a-zA-Z]"));
     prefix.truncate(6);
     QByteArray idc = protoId.toUtf8();
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     quint16 idNum = qChecksum(idc);
-#else
-    quint16 idNum = qChecksum(idc.constData(), idc.size());
-#endif
     auto socketName = QLatin1String("qtsingleapp-") + prefix + QLatin1Char('-') + QString::number(idNum, 16);
 #if defined(Q_OS_WIN)
     if (!pProcessIdToSessionId)
@@ -155,7 +151,7 @@ bool LocalPeer::isClient()
 #endif
     if (!res)
         qWarning("QtSingleCoreApplication: listen on local socket failed, %s", qPrintable(server->errorString()));
-    QObject::connect(server.get(), SIGNAL(newConnection()), SLOT(receiveConnection()));
+    QObject::connect(server.get(), &QLocalServer::newConnection, this, &LocalPeer::receiveConnection);
     return false;
 }
 

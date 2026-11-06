@@ -46,7 +46,7 @@ ModFilterWidget::ModFilterWidget(Version def, QWidget* parent)
     m_mcVersion_buttons.addButton(ui->allVersionsButton,     VersionButtonID::All);
     //m_mcVersion_buttons.addButton(ui->betweenVersionsButton, VersionButtonID::Between);
 
-    connect(&m_mcVersion_buttons, SIGNAL(idClicked(int)), this, SLOT(onVersionFilterChanged(int)));
+    connect(&m_mcVersion_buttons, &QButtonGroup::idClicked, this, &ModFilterWidget::onVersionFilterChanged);
 
     m_filter->versions.push_front(def);
 

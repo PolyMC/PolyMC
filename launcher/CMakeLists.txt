@@ -1015,7 +1015,7 @@ target_link_libraries(Launcher_logic
     tomlplusplus::tomlplusplus
     BuildConfig
     Katabasis
-    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt6::Widgets
 )
 
 if (UNIX AND NOT CYGWIN AND NOT APPLE)
@@ -1025,13 +1025,13 @@ if (UNIX AND NOT CYGWIN AND NOT APPLE)
 endif()
 
 target_link_libraries(Launcher_logic
-    Qt${QT_VERSION_MAJOR}::Core
-    Qt${QT_VERSION_MAJOR}::Xml
-    Qt${QT_VERSION_MAJOR}::Network
-    Qt${QT_VERSION_MAJOR}::Concurrent
-    Qt${QT_VERSION_MAJOR}::Gui
-    Qt${QT_VERSION_MAJOR}::Widgets
-    Qt${QT_VERSION_MAJOR}::Charts
+    Qt6::Core
+    Qt6::Xml
+    Qt6::Network
+    Qt6::Concurrent
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::Charts
     ${Launcher_QT_LIBS}
 )
 target_link_libraries(Launcher_logic

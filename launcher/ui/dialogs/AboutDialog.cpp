@@ -64,9 +64,7 @@ QString getCreditsHtml()
 {
     QString output;
     QTextStream stream(&output);
-#if QT_VERSION <= QT_VERSION_CHECK(6, 0, 0)
-    stream.setCodec(QTextCodec::codecForName("UTF-8"));
-#endif
+
     stream << "<center>\n";
 
     //: %1 is the name of the launcher, determined at build time, e.g. "PolyMC Developers"
@@ -167,7 +165,7 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent), ui(new Ui::AboutDia
     QString copyText("© 2021-2024 %1");
     ui->copyLabel->setText(copyText.arg(BuildConfig.LAUNCHER_COPYRIGHT));
 
-    connect(ui->closeButton, SIGNAL(clicked()), SLOT(close()));
+    connect(ui->closeButton, &QPushButton::clicked, this, &AboutDialog::close);
 
     connect(ui->aboutQt, &QPushButton::clicked, &QApplication::aboutQt);
 }

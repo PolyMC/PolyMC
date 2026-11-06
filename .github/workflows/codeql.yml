@@ -25,7 +25,6 @@ jobs:
         with:
           os: codeql
           arch: amd64
-          qt_ver: 6
           version: ${{ inputs.version }}
 
       - name: Install Dependencies

@@ -195,7 +195,7 @@ LogPage::LogPage(InstancePtr instance, QWidget *parent)
     connect(newShortcut(QKeySequence::FindPrevious), &QShortcut::activated, this,
             &LogPage::findPreviousActivated);
 
-    connect(ui->searchBar, SIGNAL(returnPressed()), SLOT(on_findButton_clicked()));
+    connect(ui->searchBar, &QLineEdit::returnPressed, this, &LogPage::on_findButton_clicked);
 }
 
 LogPage::~LogPage()
