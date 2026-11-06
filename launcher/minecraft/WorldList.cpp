@@ -76,8 +76,7 @@ WorldList::WorldList(const QString &dir)
     m_dir.setSorting(QDir::Name | QDir::IgnoreCase | QDir::LocaleAware);
     m_watcher = new QFileSystemWatcher(this);
     is_watching = false;
-    connect(m_watcher, SIGNAL(directoryChanged(QString)), this,
-            SLOT(directoryChanged(QString)));
+    connect(m_watcher, &QFileSystemWatcher::directoryChanged, this, &WorldList::directoryChanged);
     connect(&m_update_watcher, &QFutureWatcher<QList<World>>::finished, this, [this] {
         beginResetModel();
         worlds = m_update_watcher.result();

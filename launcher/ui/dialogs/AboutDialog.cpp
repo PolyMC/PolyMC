@@ -165,7 +165,7 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent), ui(new Ui::AboutDia
     QString copyText("© 2021-2024 %1");
     ui->copyLabel->setText(copyText.arg(BuildConfig.LAUNCHER_COPYRIGHT));
 
-    connect(ui->closeButton, SIGNAL(clicked()), SLOT(close()));
+    connect(ui->closeButton, &QPushButton::clicked, this, &AboutDialog::close);
 
     connect(ui->aboutQt, &QPushButton::clicked, &QApplication::aboutQt);
 }

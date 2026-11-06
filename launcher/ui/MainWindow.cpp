@@ -375,7 +375,7 @@ class MainWindow::Ui
         all_actions.append(&actionSettings);
 
         actionUndoTrashInstance = TranslatedAction(MainWindow);
-        connect(actionUndoTrashInstance, SIGNAL(triggered(bool)), MainWindow, SLOT(undoTrashInstance()));
+        connect(actionUndoTrashInstance, &QAction::triggered, MainWindow, &MainWindow::undoTrashInstance);
         actionUndoTrashInstance->setObjectName(QStringLiteral("actionUndoTrashInstance"));
         actionUndoTrashInstance.setTextId(QT_TRANSLATE_NOOP("MainWindow", "&Undo Last Instance Deletion"));
         actionUndoTrashInstance->setEnabled(APPLICATION->instances()->trashedSomething());
@@ -964,7 +964,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
     {
         // FIXME: This is kinda weird. and bad. We need some kind of managed shutdown.
         auto q = new QShortcut(QKeySequence::Quit, this);
-        connect(q, SIGNAL(activated()), qApp, SLOT(quit()));
+        connect(q, &QShortcut::activated, qApp, &QCoreApplication::quit);
     }
 
             // Konami Code
@@ -1041,7 +1041,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
         bool cat_enable = APPLICATION->settings()->get("TheCat").toBool();
         ui->actionCAT->setChecked(cat_enable);
         // NOTE: calling the operator like that is an ugly hack to appease ancient gcc...
-        connect(ui->actionCAT.operator->(), SIGNAL(toggled(bool)), SLOT(onCatToggled(bool)));
+        connect(ui->actionCAT.operator->(), &QAction::toggled, this, &MainWindow::onCatToggled);
         setCatBackground(cat_enable);
     }
     // start instance when double-clicked
@@ -1247,7 +1247,7 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
             actionCreateInstance->setData(groupData);
         }
 
-        connect(actionCreateInstance, SIGNAL(triggered(bool)), SLOT(on_actionAddInstance_triggered()));
+        connect(actionCreateInstance, &QAction::triggered, this, &MainWindow::on_actionAddInstance_triggered);
 
         actions.prepend(actionSep);
         actions.prepend(actionVoid);
@@ -1258,12 +1258,12 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
             QVariantMap groupData;
             groupData["group"] = group;
             actionDeleteGroup->setData(groupData);
-            connect(actionDeleteGroup, SIGNAL(triggered(bool)), SLOT(deleteGroup()));
+            connect(actionDeleteGroup, &QAction::triggered, this, &MainWindow::deleteGroup);
             actions.append(actionDeleteGroup);
         }
 
         QAction *actionUndoTrashInstance = new QAction("Undo last trash instance", &myMenu);
-        connect(actionUndoTrashInstance, SIGNAL(triggered(bool)), SLOT(undoTrashInstance()));
+        connect(actionUndoTrashInstance, &QAction::triggered, this, &MainWindow::undoTrashInstance);
         actionUndoTrashInstance->setEnabled(APPLICATION->instances()->trashedSomething());
         actions.append(actionUndoTrashInstance);
     }
@@ -1444,7 +1444,7 @@ void MainWindow::repopulateAccountsMenu()
 
             accountMenu->addAction(action);
             ui->profileMenu->addAction(action);
-            connect(action, SIGNAL(triggered(bool)), SLOT(changeActiveAccount()));
+            connect(action, &QAction::triggered, this, &MainWindow::changeActiveAccount);
         }
     }
 
@@ -1465,7 +1465,7 @@ void MainWindow::repopulateAccountsMenu()
 
     accountMenu->addAction(ui->actionNoDefaultAccount);
     ui->profileMenu->addAction(ui->actionNoDefaultAccount);
-    connect(ui->actionNoDefaultAccount, SIGNAL(triggered(bool)), SLOT(changeActiveAccount()));
+    connect(ui->actionNoDefaultAccount, &QAction::triggered, this, &MainWindow::changeActiveAccount);
     ui->all_actions.append(&ui->actionNoDefaultAccount);
     ui->actionNoDefaultAccount.retranslate();
 
@@ -2309,8 +2309,8 @@ void MainWindow::taskEnd()
 
 void MainWindow::startTask(Task *task)
 {
-    connect(task, SIGNAL(succeeded()), SLOT(taskEnd()));
-    connect(task, SIGNAL(failed(QString)), SLOT(taskEnd()));
+    connect(task, &Task::succeeded, this, &MainWindow::taskEnd);
+    connect(task, &Task::failed, this, &MainWindow::taskEnd);
     task->start();
 }
 
