@@ -207,7 +207,7 @@ void JavaPage::on_javaTestBtn_clicked()
     checker.reset(new JavaCommon::TestCheck(
         this, ui->javaPathTextBox->text(), ui->jvmArgsTextBox->toPlainText().replace("\n", " "),
         ui->minMemSpinBox->value(), ui->maxMemSpinBox->value(), ui->permGenSpinBox->value()));
-    connect(checker.get(), SIGNAL(finished()), SLOT(checkerFinished()));
+    connect(checker.get(), &JavaCommon::TestCheck::finished, this, &JavaPage::checkerFinished);
     checker->run();
 }
 

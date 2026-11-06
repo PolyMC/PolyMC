@@ -143,7 +143,7 @@ public:
         m_thumbnailingPool.setMaxThreadCount(4);
         m_thumbnailCache = std::make_shared<SharedIconCache>();
         m_thumbnailCache->add("placeholder", APPLICATION->getThemedIcon("screenshot-placeholder"));
-        connect(&watcher, SIGNAL(fileChanged(QString)), SLOT(fileChanged(QString)));
+        connect(&watcher, &QFileSystemWatcher::fileChanged, this, &FilterModel::fileChanged);
         // FIXME: the watched file set is not updated when files are removed
     }
     virtual ~FilterModel() { m_thumbnailingPool.waitForDone(500); }
@@ -201,10 +201,8 @@ private:
     void thumbnailImage(QString path)
     {
         auto runnable = new ThumbnailRunnable(path, m_thumbnailCache);
-        connect(&(runnable->m_resultEmitter), SIGNAL(resultsReady(QString)),
-                SLOT(thumbnailReady(QString)));
-        connect(&(runnable->m_resultEmitter), SIGNAL(resultsFailed(QString)),
-                SLOT(thumbnailFailed(QString)));
+        connect(&(runnable->m_resultEmitter), &ThumbnailingResult::resultsReady, this, &FilterModel::thumbnailReady);
+        connect(&(runnable->m_resultEmitter), &ThumbnailingResult::resultsFailed, this, &FilterModel::thumbnailFailed);
         m_thumbnailingPool.start(runnable);
     }
 private slots:
@@ -275,7 +273,7 @@ ScreenshotsPage::ScreenshotsPage(QString path, QWidget *parent)
     ui->listView->setItemDelegate(new CenteredEditingDelegate(this));
     ui->listView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->listView, &QListView::customContextMenuRequested, this, &ScreenshotsPage::ShowContextMenu);
-    connect(ui->listView, SIGNAL(activated(QModelIndex)), SLOT(onItemActivated(QModelIndex)));
+    connect(ui->listView, &QAbstractItemView::activated, this, &ScreenshotsPage::onItemActivated);
 }
 
 bool ScreenshotsPage::eventFilter(QObject *obj, QEvent *evt)
