@@ -1693,8 +1693,10 @@ void MainWindow::setCatBackground(bool enabled)
     {
         QDateTime now = QDateTime::currentDateTime();
         QDateTime birthday(QDate(now.date().year(), 11, 30), QTime(0, 0));
-        QDateTime christmasStart(QDate(now.date().year(), 12, 25), QTime(0, 0));
+        QDateTime christmasStart(QDate(now.date().year(), 12, 5), QTime(0, 0)); //should start early December instead of on Christmas
         QDateTime christmasEnd(QDate(now.date().year(), 1, 7), QTime(0, 0)); //end at midnight of the 7th
+        QDateTime milkStart(QDate(now.date().year(), 6, 1), QTime(0, 0)); //National Dairy Month
+        QDateTime milkEnd(QDate(now.date().year(), 6, 30), QTime(0, 0));
 
         QString cat = "default";
         QString catStyleOpt = APPLICATION->settings()->get("CatStyle").toString();
@@ -1711,6 +1713,9 @@ void MainWindow::setCatBackground(bool enabled)
         }
         else if (non_stupid_abs(now.daysTo(birthday)) <= 12) {
             cat += "Cattiversary";
+        }
+        else if(milkStart >= now || now < milkEnd) {
+            cat += "Catmilk";
         }
         else {
             cat += "Cat";
