@@ -404,7 +404,11 @@ bool FlameCreationTask::createInstance()
 
     m_mod_id_resolver->start();
 
+    connect(this, &Task::aborted, &loop, &QEventLoop::quit);
     loop.exec();
+
+    if (m_mod_id_resolver)
+        m_mod_id_resolver->disconnect();
 
     // Aborting doesn't set an error, but we must not touch the existing instance then either
     bool did_succeed = getError().isEmpty() && !m_abort;
