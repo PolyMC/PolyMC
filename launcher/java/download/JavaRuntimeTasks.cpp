@@ -23,6 +23,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegularExpression>
+#include <QThread>
 #include <QUrlQuery>
 #include <QtConcurrentRun>
 
@@ -158,6 +159,12 @@ QUrl releaseListUrl(Provider provider, int major)
     return {};
 }
 
+// Mojang's index also lists things that are not Java runtimes, like minecraft-java-exe on Windows
+bool isMojangRuntimeComponent(const QString& component)
+{
+    return component.startsWith("java-runtime-") || component.startsWith("jre-");
+}
+
 // "8u202", "1.8.0_51", "17.0.15" -> major version
 int majorFromVersionName(const QString& name)
 {
@@ -214,6 +221,24 @@ QString findJavaBinary(const QString& directory)
     return best;
 }
 
+// Virus scanners on Windows briefly lock freshly written files, which makes renaming their folder fail.
+// Retry for a moment, then copy instead.
+bool moveDirectory(const QString& source, const QString& target)
+{
+    for (int attempt = 0; attempt < 10; attempt++) {
+        if (QDir().rename(source, target))
+            return true;
+        QThread::msleep(200);
+    }
+    qWarning() << "Could not rename" << source << "to" << target << ", copying instead";
+    if (!FS::copy(source, target)()) {
+        FS::deletePath(target);
+        return false;
+    }
+    FS::deletePath(source);
+    return true;
+}
+
 void makeExecutable(const QString& path)
 {
     QFile file(path);
@@ -227,7 +252,7 @@ QList<Release> parseMojang(const QJsonDocument& doc, int major)
     auto platform = doc.object().value(mojangPlatform()).toObject();
     for (auto it = platform.begin(); it != platform.end(); ++it) {
         auto entries = it.value().toArray();
-        if (entries.isEmpty())
+        if (entries.isEmpty() || !isMojangRuntimeComponent(it.key()))
             continue;
         auto entry = entries[0].toObject();
         auto version = entry.value("version").toObject();
@@ -412,9 +437,9 @@ void VersionListTask::parse()
     switch (m_provider) {
         case Provider::Mojang: {
             auto platform = doc.object().value(mojangPlatform()).toObject();
-            for (auto value : platform) {
-                auto entries = value.toArray();
-                if (!entries.isEmpty())
+            for (auto it = platform.begin(); it != platform.end(); ++it) {
+                auto entries = it.value().toArray();
+                if (!entries.isEmpty() && isMojangRuntimeComponent(it.key()))
                     majors.insert(majorFromVersionName(entries[0].toObject().value("version").toObject().value("name").toString()));
             }
             break;
@@ -754,7 +779,7 @@ void InstallTask::install()
         emitFailed(tr("Could not replace %1. Is it still in use?").arg(target));
         return;
     }
-    if (!QDir().rename(source, target)) {
+    if (!moveDirectory(source, target)) {
         emitFailed(tr("Could not move Java into %1").arg(target));
         return;
     }

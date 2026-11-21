@@ -170,6 +170,11 @@ QString safePath(const QDir& root, const QString& name)
 {
     if (name.isEmpty() || name.startsWith('/') || name.contains('\\') || QDir::isAbsolutePath(name))
         return {};
+#ifdef Q_OS_WIN
+    // drive-relative paths ("C:foo") and NTFS alternate data streams ("file:stream")
+    if (name.contains(':'))
+        return {};
+#endif
     auto path = QDir::cleanPath(root.absoluteFilePath(name));
     auto rootPath = QDir::cleanPath(root.absolutePath());
     if (path != rootPath && !path.startsWith(rootPath + '/'))

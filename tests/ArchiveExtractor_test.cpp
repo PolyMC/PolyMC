@@ -105,7 +105,10 @@ class ArchiveExtractorTest : public QObject {
 
         QDir out(target);
         QVERIFY(QFileInfo(out.filePath("jdk/bin/java")).isFile());
+#ifndef Q_OS_WIN
+        // Windows decides executability by file extension, there is no mode bit to check
         QVERIFY(QFileInfo(out.filePath("jdk/bin/java")).isExecutable());
+#endif
         QFile release(out.filePath("jdk/release"));
         QVERIFY(release.open(QIODevice::ReadOnly));
         QCOMPARE(release.readAll(), QByteArray("JAVA_VERSION=\"17\"\n"));
@@ -129,6 +132,10 @@ class ArchiveExtractorTest : public QObject {
         QTest::newRow("symlink out") << QByteArray("jdk/link") << '2' << QByteArray("../../evil");
         QTest::newRow("absolute symlink") << QByteArray("jdk/link") << '2' << QByteArray("/etc/passwd");
         QTest::newRow("hardlink out") << QByteArray("jdk/link") << '1' << QByteArray("../evil");
+#ifdef Q_OS_WIN
+        QTest::newRow("drive relative") << QByteArray("C:evil") << '0' << QByteArray();
+        QTest::newRow("data stream") << QByteArray("jdk/file:stream") << '0' << QByteArray();
+#endif
     }
 
     void test_rejectsTraversal()
