@@ -39,6 +39,7 @@
 #include <QClipboard>
 #include <QApplication>
 #include <QFileDialog>
+#include <QPointer>
 
 #include "net/FetchFlameAPIKey.h"
 #include "ui/dialogs/ProgressDialog.h"
@@ -77,12 +78,16 @@ QString GuiUtil::fetchFlameKey(QWidget *parentWidget)
 
 QString GuiUtil::uploadPaste(const QString &text, QWidget *parentWidget)
 {
-    ProgressDialog dialog(parentWidget);
+    QPointer<QWidget> parentGuard(parentWidget);
+    QPointer<ProgressDialog> dialog = new ProgressDialog(parentWidget);
     auto pasteTypeSetting = static_cast<PasteUpload::PasteType>(APPLICATION->settings()->get("PastebinType").toInt());
     auto pasteCustomAPIBaseSetting = APPLICATION->settings()->get("PastebinCustomAPIBase").toString();
     std::unique_ptr<PasteUpload> paste(new PasteUpload(parentWidget, text, pasteCustomAPIBaseSetting, pasteTypeSetting));
 
-    dialog.execWithTask(paste.get());
+    dialog->execWithTask(paste.get());
+    delete dialog;
+    if (parentWidget && !parentGuard)
+        return QString();
     if (!paste->wasSuccessful())
     {
         CustomMessageBox::selectable(
