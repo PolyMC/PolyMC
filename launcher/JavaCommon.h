@@ -1,7 +1,8 @@
 #pragma once
 #include <java/JavaChecker.h>
 
-class QWidget;
+#include <QPointer>
+#include <QWidget>
 
 /**
  * Common UI bits for the java pages to use.
@@ -40,7 +41,7 @@ namespace JavaCommon
 
     private:
         std::shared_ptr<JavaChecker> checker;
-        QWidget *m_parent = nullptr;
+        QPointer<QWidget> m_parent;
         QString m_path;
         QString m_args;
         int m_minMem = 0;
