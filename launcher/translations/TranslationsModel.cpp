@@ -589,73 +589,76 @@ bool TranslationsModel::selectLanguage(QString key)
     bool successful = false;
     // FIXME: this is likely never present. FIX IT.
     d->m_qt_translator.reset(new QTranslator());
-    if (d->m_qt_translator->load(
-            "qt_" + langCode,
-            QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+    do
     {
+        if (!d->m_qt_translator->load(
+                "qt_" + langCode,
+                QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+        {
+            break;
+        }
         qDebug() << "Loading Qt Language File for"
                  << langCode.toLocal8Bit().constData() << "...";
         if (!QCoreApplication::installTranslator(d->m_qt_translator.get()))
         {
             qCritical() << "Loading Qt Language File failed.";
-            d->m_qt_translator.reset();
+            break;
         }
-        else
-        {
-            successful = true;
-        }
-    }
-    else
+        successful = true;
+    } while (0);
+
+    if (!successful)
     {
         d->m_qt_translator.reset();
     }
 
-    if (langIterator->localFileType == FileType::PO)
+    bool app_installed = false;
+    do
     {
-        qDebug() << "Loading Application Language File for"
-                 << langCode.toLocal8Bit().constData() << "...";
-        auto poTranslator = new POTranslator(
-            FS::PathCombine(d->m_dir.path(), langCode + ".po"));
-        if (!poTranslator->isEmpty())
+        if (langIterator->localFileType == FileType::PO)
         {
+            qDebug() << "Loading Application Language File for"
+                     << langCode.toLocal8Bit().constData() << "...";
+            auto poTranslator = new POTranslator(
+                FS::PathCombine(d->m_dir.path(), langCode + ".po"));
+            if (poTranslator->isEmpty())
+            {
+                qCritical() << "Loading Application Language File failed.";
+                break;
+            }
             if (!QCoreApplication::installTranslator(poTranslator))
             {
                 delete poTranslator;
                 qCritical() << "Installing Application Language File failed.";
+                break;
             }
-            else
+            d->m_app_translator.reset(poTranslator);
+        }
+        else if (langIterator->localFileType == FileType::QM)
+        {
+            d->m_app_translator.reset(new QTranslator());
+            if (!d->m_app_translator->load("mmc_" + langCode, d->m_dir.path()))
             {
-                d->m_app_translator.reset(poTranslator);
-                successful = true;
+                break;
             }
-        }
-        else
-        {
-            qCritical() << "Loading Application Language File failed.";
-            d->m_app_translator.reset();
-        }
-    }
-    else if (langIterator->localFileType == FileType::QM)
-    {
-        d->m_app_translator.reset(new QTranslator());
-        if (d->m_app_translator->load("mmc_" + langCode, d->m_dir.path()))
-        {
             qDebug() << "Loading Application Language File for"
                      << langCode.toLocal8Bit().constData() << "...";
             if (!QCoreApplication::installTranslator(d->m_app_translator.get()))
             {
                 qCritical() << "Installing Application Language File failed.";
-                d->m_app_translator.reset();
-            }
-            else
-            {
-                successful = true;
+                break;
             }
         }
         else
         {
-            d->m_app_translator.reset();
+            break;
         }
+        app_installed = true;
+    } while (0);
+
+    if (app_installed)
+    {
+        successful = true;
     }
     else
     {

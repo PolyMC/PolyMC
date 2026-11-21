@@ -228,68 +228,66 @@ QList<JavaInstallPtr> JavaUtils::FindJavaFromRegistryKey(DWORD keyType,
                          NULL, NULL, NULL, NULL, NULL);
 
         // Iterate until RegEnumKeyEx fails
-        if (numSubKeys > 0)
+        for (DWORD i = 0; i < numSubKeys; i++)
         {
-            for (DWORD i = 0; i < numSubKeys; i++)
+            subKeyNameSize = 255;
+            retCode = RegEnumKeyExW(jreKey, i, subKeyName, &subKeyNameSize,
+                                    NULL, NULL, NULL, NULL);
+            if (retCode != ERROR_SUCCESS)
             {
-                subKeyNameSize = 255;
-                retCode = RegEnumKeyExW(jreKey, i, subKeyName, &subKeyNameSize,
-                                        NULL, NULL, NULL, NULL);
-                if (retCode == ERROR_SUCCESS)
-                {
-                    QString newSubkeyName =
-                        QString::fromWCharArray(subKeyName, subKeyNameSize);
-                    // Now open the registry key for the version that we just
-                    // got.
-                    QString newKeyName =
-                        keyName + "\\" + newSubkeyName + subkeySuffix;
-
-                    HKEY newKey;
-                    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE,
-                                      newKeyName.toStdWString().c_str(), 0,
-                                      KEY_READ | KEY_WOW64_64KEY,
-                                      &newKey) == ERROR_SUCCESS)
-                    {
-                        // Read the JavaHome value to find where Java is
-                        // installed.
-                        DWORD valueSz = 0;
-                        if (RegGetValueW(newKey, NULL,
-                                         keyJavaDir.toStdWString().c_str(),
-                                         RRF_RT_REG_SZ, NULL, NULL,
-                                         &valueSz) == ERROR_SUCCESS)
-                        {
-                            std::vector<WCHAR> value(
-                                valueSz / sizeof(WCHAR) + 1, 0);
-                            valueSz = static_cast<DWORD>(value.size() *
-                                                         sizeof(WCHAR));
-                            if (RegGetValueW(newKey, NULL,
-                                             keyJavaDir.toStdWString().c_str(),
-                                             RRF_RT_REG_SZ, NULL, value.data(),
-                                             &valueSz) != ERROR_SUCCESS)
-                            {
-                                RegCloseKey(newKey);
-                                continue;
-                            }
-
-                            QString newValue =
-                                QString::fromWCharArray(value.data());
-
-                            // Now, we construct the version object and add it
-                            // to the list.
-                            JavaInstallPtr javaVersion(new JavaInstall());
-
-                            javaVersion->id = newSubkeyName;
-                            javaVersion->arch = archType;
-                            javaVersion->path =
-                                QDir(FS::PathCombine(newValue, "bin"))
-                                    .absoluteFilePath("javaw.exe");
-                            javas.append(javaVersion);
-                        }
-
-                        RegCloseKey(newKey);
-                    }
-                }
+                continue;
             }
+
+            QString newSubkeyName =
+                QString::fromWCharArray(subKeyName, subKeyNameSize);
+            // Now open the registry key for the version that we just
+            // got.
+            QString newKeyName = keyName + "\\" + newSubkeyName + subkeySuffix;
+
+            HKEY newKey;
+            if (RegOpenKeyExW(
+                    HKEY_LOCAL_MACHINE, newKeyName.toStdWString().c_str(), 0,
+                    KEY_READ | KEY_WOW64_64KEY, &newKey) != ERROR_SUCCESS)
+            {
+                continue;
+            }
+
+            do
+            {
+                // Read the JavaHome value to find where Java is
+                // installed.
+                DWORD valueSz = 0;
+                if (RegGetValueW(
+                        newKey, NULL, keyJavaDir.toStdWString().c_str(),
+                        RRF_RT_REG_SZ, NULL, NULL, &valueSz) != ERROR_SUCCESS)
+                {
+                    break;
+                }
+
+                std::vector<WCHAR> value(valueSz / sizeof(WCHAR) + 1, 0);
+                valueSz = static_cast<DWORD>(value.size() * sizeof(WCHAR));
+                if (RegGetValueW(newKey, NULL,
+                                 keyJavaDir.toStdWString().c_str(),
+                                 RRF_RT_REG_SZ, NULL, value.data(),
+                                 &valueSz) != ERROR_SUCCESS)
+                {
+                    break;
+                }
+
+                QString newValue = QString::fromWCharArray(value.data());
+
+                // Now, we construct the version object and add it
+                // to the list.
+                JavaInstallPtr javaVersion(new JavaInstall());
+
+                javaVersion->id = newSubkeyName;
+                javaVersion->arch = archType;
+                javaVersion->path = QDir(FS::PathCombine(newValue, "bin"))
+                                        .absoluteFilePath("javaw.exe");
+                javas.append(javaVersion);
+            } while (0);
+
+            RegCloseKey(newKey);
         }
 
         RegCloseKey(jreKey);

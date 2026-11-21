@@ -209,6 +209,7 @@ void PasteUpload::downloadFinished()
         return;
     }
 
+    bool malformed = false;
     switch (m_pasteType)
     {
         case NullPointer:
@@ -218,88 +219,73 @@ void PasteUpload::downloadFinished()
         {
             QJsonDocument jsonDoc{QJsonDocument::fromJson(data)};
             QJsonObject jsonObj{jsonDoc.object()};
-            if (jsonObj.contains("key") && jsonObj["key"].isString())
+            if (!jsonObj.contains("key") || !jsonObj["key"].isString())
             {
-                QString key = jsonDoc.object()["key"].toString();
-                m_pasteLink = m_baseUrl + "/" + key;
+                malformed = true;
+                break;
             }
-            else
-            {
-                emitFailed(tr("Error: %1 returned a malformed response body")
-                               .arg(m_uploadUrl));
-                qCritical() << m_uploadUrl
-                            << " returned malformed response body: " << data;
-                return;
-            }
+            QString key = jsonDoc.object()["key"].toString();
+            m_pasteLink = m_baseUrl + "/" + key;
             break;
         }
         case Mclogs:
         {
             QJsonDocument jsonDoc{QJsonDocument::fromJson(data)};
             QJsonObject jsonObj{jsonDoc.object()};
-            if (jsonObj.contains("success") && jsonObj["success"].isBool())
+            if (!jsonObj.contains("success") || !jsonObj["success"].isBool())
             {
-                bool success = jsonObj["success"].toBool();
-                if (success)
-                {
-                    m_pasteLink = jsonObj["url"].toString();
-                }
-                else
-                {
-                    QString error = jsonObj["error"].toString();
-                    emitFailed(tr("Error: %1 returned an error: %2")
-                                   .arg(m_uploadUrl, error));
-                    qCritical() << m_uploadUrl << " returned error: " << error;
-                    qCritical() << "Response body: " << data;
-                    return;
-                }
+                malformed = true;
+                break;
             }
-            else
+            bool success = jsonObj["success"].toBool();
+            if (!success)
             {
-                emitFailed(tr("Error: %1 returned a malformed response body")
-                               .arg(m_uploadUrl));
-                qCritical() << m_uploadUrl
-                            << " returned malformed response body: " << data;
+                QString error = jsonObj["error"].toString();
+                emitFailed(tr("Error: %1 returned an error: %2")
+                               .arg(m_uploadUrl, error));
+                qCritical() << m_uploadUrl << " returned error: " << error;
+                qCritical() << "Response body: " << data;
                 return;
             }
+            m_pasteLink = jsonObj["url"].toString();
             break;
         }
         case PasteGG:
             QJsonDocument jsonDoc{QJsonDocument::fromJson(data)};
             QJsonObject jsonObj{jsonDoc.object()};
-            if (jsonObj.contains("status") && jsonObj["status"].isString())
+            if (!jsonObj.contains("status") || !jsonObj["status"].isString())
             {
-                QString status = jsonObj["status"].toString();
-                if (status == "success")
-                {
-                    m_pasteLink = m_baseUrl + "/p/anonymous/" +
-                                  jsonObj["result"].toObject()["id"].toString();
-                }
-                else
-                {
-                    QString error = jsonObj["error"].toString();
-                    QString message = (jsonObj.contains("message") &&
-                                       jsonObj["message"].isString())
-                                          ? jsonObj["message"].toString()
-                                          : "none";
-                    emitFailed(tr("Error: %1 returned an error code: %2\nError "
-                                  "message: %3")
-                                   .arg(m_uploadUrl, error, message));
-                    qCritical() << m_uploadUrl << " returned error: " << error;
-                    qCritical() << "Error message: " << message;
-                    qCritical() << "Response body: " << data;
-                    return;
-                }
+                malformed = true;
+                break;
             }
-            else
+            QString status = jsonObj["status"].toString();
+            if (status != "success")
             {
-                emitFailed(tr("Error: %1 returned a malformed response body")
-                               .arg(m_uploadUrl));
-                qCritical() << m_uploadUrl
-                            << " returned malformed response body: " << data;
+                QString error = jsonObj["error"].toString();
+                QString message = (jsonObj.contains("message") &&
+                                   jsonObj["message"].isString())
+                                      ? jsonObj["message"].toString()
+                                      : "none";
+                emitFailed(tr("Error: %1 returned an error code: %2\nError "
+                              "message: %3")
+                               .arg(m_uploadUrl, error, message));
+                qCritical() << m_uploadUrl << " returned error: " << error;
+                qCritical() << "Error message: " << message;
+                qCritical() << "Response body: " << data;
                 return;
             }
+            m_pasteLink = m_baseUrl + "/p/anonymous/" +
+                          jsonObj["result"].toObject()["id"].toString();
             break;
+    }
+
+    if (malformed)
+    {
+        emitFailed(tr("Error: %1 returned a malformed response body")
+                       .arg(m_uploadUrl));
+        qCritical() << m_uploadUrl
+                    << " returned malformed response body: " << data;
+        return;
     }
     emitSucceeded();
 }

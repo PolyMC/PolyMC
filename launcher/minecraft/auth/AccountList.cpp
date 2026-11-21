@@ -150,59 +150,54 @@ void AccountList::addAccount(const MinecraftAccountPtr account)
     // override/replace existing account with the same profileId AND account
     // type
     auto profileId = account->profileId();
-    if (profileId.size())
+    do
     {
-        auto existingAccount = findAccountByProfileId(profileId);
-        if (existingAccount != -1)
+        if (!profileId.size())
         {
-            MinecraftAccountPtr existingAccountPtr =
-                m_accounts[existingAccount];
-            bool shouldReplace = false;
-
-            // Check if account types match
-            if (existingAccountPtr->accountData()->type ==
-                account->accountData()->type)
-            {
-                // For authlib injector accounts, also check the server URL
-                if (account->accountData()->type ==
-                    AccountType::AuthlibInjector)
-                {
-                    if (existingAccountPtr->accountData()
-                            ->authlibInjectorBaseUrl ==
-                        account->accountData()->authlibInjectorBaseUrl)
-                    {
-                        shouldReplace = true;
-                    }
-                }
-                else
-                {
-                    // For other account types, matching type is enough
-                    shouldReplace = true;
-                }
-            }
-
-            if (shouldReplace)
-            {
-                qDebug() << "Replacing old account with a new one with the "
-                            "same profile ID, account type, and server!";
-
-                m_accounts[existingAccount] = account;
-                if (m_defaultAccount == existingAccountPtr)
-                {
-                    m_defaultAccount = account;
-                }
-                // disconnect notifications for changes in the account being
-                // replaced
-                disconnect(existingAccountPtr.get(), &MinecraftAccount::changed,
-                           this, &AccountList::accountChanged);
-                emit dataChanged(
-                    index(existingAccount),
-                    index(existingAccount, columnCount(QModelIndex()) - 1));
-                onListChanged();
-                return;
-            }
+            break;
         }
-    }
+
+        auto existingAccount = findAccountByProfileId(profileId);
+        if (existingAccount == -1)
+        {
+            break;
+        }
+
+        MinecraftAccountPtr existingAccountPtr = m_accounts[existingAccount];
+
+        // Check if account types match
+        if (existingAccountPtr->accountData()->type !=
+            account->accountData()->type)
+        {
+            break;
+        }
+
+        // For authlib injector accounts, also check the server URL
+        if (account->accountData()->type == AccountType::AuthlibInjector &&
+            existingAccountPtr->accountData()->authlibInjectorBaseUrl !=
+                account->accountData()->authlibInjectorBaseUrl)
+        {
+            break;
+        }
+
+        qDebug() << "Replacing old account with a new one with the "
+                    "same profile ID, account type, and server!";
+
+        m_accounts[existingAccount] = account;
+        if (m_defaultAccount == existingAccountPtr)
+        {
+            m_defaultAccount = account;
+        }
+        // disconnect notifications for changes in the account being
+        // replaced
+        disconnect(existingAccountPtr.get(), &MinecraftAccount::changed, this,
+                   &AccountList::accountChanged);
+        emit dataChanged(
+            index(existingAccount),
+            index(existingAccount, columnCount(QModelIndex()) - 1));
+        onListChanged();
+        return;
+    } while (0);
 
     // if we don't have this profileId yet, add the account to the end
     int row = m_accounts.count();
