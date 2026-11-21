@@ -702,18 +702,18 @@ void PackInstallTask::installConfigs()
         jobPtr.reset();
         extractConfigs();
     });
-    connect(jobPtr.get(), &NetJob::failed, [&](QString reason)
+    connect(jobPtr.get(), &NetJob::failed, this, [&](QString reason)
     {
         abortable = false;
         jobPtr.reset();
         emitFailed(reason);
     });
-    connect(jobPtr.get(), &NetJob::progress, [&](qint64 current, qint64 total)
+    connect(jobPtr.get(), &NetJob::progress, this, [&](qint64 current, qint64 total)
     {
         abortable = true;
         setProgress(current, total);
     });
-    connect(jobPtr.get(), &NetJob::aborted, [&]{
+    connect(jobPtr.get(), &NetJob::aborted, this, [&]{
         abortable = false;
         jobPtr.reset();
         emitAborted();
@@ -883,18 +883,18 @@ void PackInstallTask::downloadMods()
     }
 
     connect(jobPtr.get(), &NetJob::succeeded, this, &PackInstallTask::onModsDownloaded);
-    connect(jobPtr.get(), &NetJob::failed, [&](QString reason)
+    connect(jobPtr.get(), &NetJob::failed, this, [&](QString reason)
     {
         abortable = false;
         jobPtr.reset();
         emitFailed(reason);
     });
-    connect(jobPtr.get(), &NetJob::progress, [&](qint64 current, qint64 total)
+    connect(jobPtr.get(), &NetJob::progress, this, [&](qint64 current, qint64 total)
     {
         abortable = true;
         setProgress(current, total);
     });
-    connect(jobPtr.get(), &NetJob::aborted, [&]
+    connect(jobPtr.get(), &NetJob::aborted, this, [&]
     {
         abortable = false;
         jobPtr.reset();
