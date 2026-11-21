@@ -38,6 +38,8 @@
 #include <QDir>
 #include <QStringList>
 
+#include <vector>
+
 #include <settings/Setting.h>
 
 #include <QDebug>
@@ -227,9 +229,9 @@ QList<JavaInstallPtr> JavaUtils::FindJavaFromRegistryKey(DWORD keyType, QString 
                 subKeyNameSize = 255;
                 retCode = RegEnumKeyExW(jreKey, i, subKeyName, &subKeyNameSize, NULL, NULL, NULL,
                                         NULL);
-                QString newSubkeyName = QString::fromWCharArray(subKeyName);
                 if (retCode == ERROR_SUCCESS)
                 {
+                    QString newSubkeyName = QString::fromWCharArray(subKeyName, subKeyNameSize);
                     // Now open the registry key for the version that we just got.
                     QString newKeyName = keyName + "\\" + newSubkeyName + subkeySuffix;
 
@@ -239,15 +241,19 @@ QList<JavaInstallPtr> JavaUtils::FindJavaFromRegistryKey(DWORD keyType, QString 
                     {
                         // Read the JavaHome value to find where Java is installed.
                         DWORD valueSz = 0;
-                        if (RegQueryValueExW(newKey, keyJavaDir.toStdWString().c_str(), NULL, NULL, NULL,
-                                             &valueSz) == ERROR_SUCCESS)
+                        if (RegGetValueW(newKey, NULL, keyJavaDir.toStdWString().c_str(), RRF_RT_REG_SZ, NULL, NULL,
+                                         &valueSz) == ERROR_SUCCESS)
                         {
-                            WCHAR *value = new WCHAR[valueSz];
-                            RegQueryValueExW(newKey, keyJavaDir.toStdWString().c_str(), NULL, NULL, (BYTE *)value,
-                                             &valueSz);
+                            std::vector<WCHAR> value(valueSz / sizeof(WCHAR) + 1, 0);
+                            valueSz = static_cast<DWORD>(value.size() * sizeof(WCHAR));
+                            if (RegGetValueW(newKey, NULL, keyJavaDir.toStdWString().c_str(), RRF_RT_REG_SZ, NULL,
+                                             value.data(), &valueSz) != ERROR_SUCCESS)
+                            {
+                                RegCloseKey(newKey);
+                                continue;
+                            }
 
-                            QString newValue = QString::fromWCharArray(value);
-                            delete [] value;
+                            QString newValue = QString::fromWCharArray(value.data());
 
                             // Now, we construct the version object and add it to the list.
                             JavaInstallPtr javaVersion(new JavaInstall());
