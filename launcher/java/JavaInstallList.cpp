@@ -98,7 +98,7 @@ QVariant JavaInstallList::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    if (index.row() > count())
+    if (index.row() < 0 || index.row() >= count())
         return QVariant();
 
     auto version = std::dynamic_pointer_cast<JavaInstall>(m_vlist[index.row()]);

@@ -63,7 +63,7 @@ QVariant BaseVersionList::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    if (index.row() > count())
+    if (index.row() < 0 || index.row() >= count())
         return QVariant();
 
     BaseVersionPtr version = at(index.row());
