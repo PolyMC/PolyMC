@@ -261,7 +261,7 @@ bool ResourceFolderModel::update()
     return true;
 }
 
-void ResourceFolderModel::resolveResource(Resource* res)
+void ResourceFolderModel::resolveResource(Resource::Ptr res)
 {
     if (!res->shouldResolve()) {
         return;
@@ -277,13 +277,13 @@ void ResourceFolderModel::resolveResource(Resource* res)
     m_active_parse_tasks.insert(ticket, task);
 
     // These are queued, so the resource may have been removed from the list (and deleted) by the time they run
-    QPointer<Resource> resource = res;
+    QPointer<Resource> resource = res.get();
     connect(
         task, &Task::succeeded, this, [=] { if (resource) onParseSucceeded(ticket, resource->internal_id()); }, Qt::ConnectionType::QueuedConnection);
     connect(
         task, &Task::failed, this, [=] { if (resource) onParseFailed(ticket, resource->internal_id()); }, Qt::ConnectionType::QueuedConnection);
     connect(
-        task, &Task::finished, this, [=] { m_active_parse_tasks.remove(ticket); }, Qt::ConnectionType::QueuedConnection);
+        task, &Task::finished, this, [this, ticket, res] { m_active_parse_tasks.remove(ticket); }, Qt::ConnectionType::QueuedConnection);
 
     QThreadPool::globalInstance()->start(task);
 }
