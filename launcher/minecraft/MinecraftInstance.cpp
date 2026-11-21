@@ -481,7 +481,7 @@ QStringList MinecraftInstance::javaArguments()
     args.append(extraArguments());
 
     // OSX dock icon and name
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     args << "-Xdock:icon=icon.png";
     args << QString("-Xdock:name=\"%1\"").arg(windowTitle());
 #endif
@@ -489,7 +489,7 @@ QStringList MinecraftInstance::javaArguments()
     // HACK: fix issues on macOS with 1.13 snapshots
     // NOTE: Oracle Java option. if there are alternate jvm implementations,
     // this would be the place to customize this for them
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     if (traits_.contains("FirstThreadOnMacOS"))
     {
         args << QString("-XstartOnFirstThread");

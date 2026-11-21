@@ -224,7 +224,7 @@ private slots:
 
     void globalSettingsClosed();
 
-#ifndef Q_OS_MAC
+#ifndef Q_OS_MACOS
     void keyReleaseEvent(QKeyEvent* event) override;
 #endif
 

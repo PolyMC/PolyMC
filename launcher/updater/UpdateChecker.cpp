@@ -32,7 +32,7 @@ UpdateChecker::UpdateChecker(shared_qobject_ptr<QNetworkAccessManager> nam,
     m_channelUrl = channelUrl;
     m_currentChannel = currentChannel;
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     m_externalUpdater = new MacSparkleUpdater();
 #endif
 }

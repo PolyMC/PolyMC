@@ -95,7 +95,7 @@ void UpdateController::installUpdates()
     QString finishCmd = QApplication::applicationFilePath();
 #elif defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD) || defined(Q_OS_OPENBSD)
     QString finishCmd = FS::PathCombine(m_root, BuildConfig.LAUNCHER_NAME);
-#elif defined Q_OS_MAC
+#elif defined Q_OS_MACOS
     QString finishCmd = QApplication::applicationFilePath();
 #else
 #error Unsupported operating system.

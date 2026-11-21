@@ -192,7 +192,7 @@ void ExternalToolsPage::on_mceditPathBtn_clicked()
     QString error;
     do
     {
-#ifdef Q_OS_OSX
+#ifdef Q_OS_MACOS
         raw_dir = QFileDialog::getOpenFileName(this, tr("MCEdit Application"),
                                                raw_dir);
 #else

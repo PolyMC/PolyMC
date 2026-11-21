@@ -19,7 +19,7 @@
 #include "GoUpdate.h"
 #include "ExternalUpdater.h"
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 #include "MacSparkleUpdater.h"
 #endif
 

@@ -489,7 +489,7 @@ QString getDesktopDir()
 bool createShortCut(QString location, QString dest, QStringList args,
                     QString name, QString icon)
 {
-#if !defined(Q_OS_WIN) && !defined(Q_OS_OSX)
+#if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
     location = PathCombine(location, name + ".desktop");
 
     QFile f(location);
