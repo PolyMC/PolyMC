@@ -57,6 +57,7 @@ public:
     };
 
     AtlOptionalModListModel(QWidget *parent, ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods);
+    ~AtlOptionalModListModel() override;
 
     QVector<QString> getResult();
 

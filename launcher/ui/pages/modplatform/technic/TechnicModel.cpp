@@ -46,6 +46,10 @@ Technic::ListModel::ListModel(QObject *parent) : QAbstractListModel(parent)
 
 Technic::ListModel::~ListModel()
 {
+    if (jobPtr && jobPtr->isRunning()) {
+        jobPtr->disconnect(this);
+        jobPtr->abort();
+    }
 }
 
 QVariant Technic::ListModel::data(const QModelIndex& index, int role) const

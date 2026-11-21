@@ -77,6 +77,10 @@ bool TechnicPage::eventFilter(QObject* watched, QEvent* event)
 
 TechnicPage::~TechnicPage()
 {
+    if (jobPtr && jobPtr->isRunning()) {
+        jobPtr->disconnect(this);
+        jobPtr->abort();
+    }
     delete ui;
 }
 
@@ -202,6 +206,10 @@ void TechnicPage::suggestCurrent()
         metadataLoaded();
     });
 
+    if (jobPtr && jobPtr->isRunning()) {
+        jobPtr->disconnect(this);
+        jobPtr->abort();
+    }
     jobPtr = netJob;
     jobPtr->start();
 }
@@ -254,6 +262,10 @@ void TechnicPage::metadataLoaded()
         // Use finished, so a failed request also ends up using the fallback version list
         QObject::connect(netJob, &NetJob::finished, this, &TechnicPage::onSolderLoaded);
 
+        if (jobPtr && jobPtr->isRunning()) {
+            jobPtr->disconnect(this);
+            jobPtr->abort();
+        }
         jobPtr = netJob;
         jobPtr->start();
     }

@@ -28,6 +28,10 @@ ListModel::ListModel(QObject *parent) : QAbstractListModel(parent)
 
 ListModel::~ListModel()
 {
+    if (jobPtr && jobPtr->isRunning()) {
+        jobPtr->disconnect(this);
+        jobPtr->abort();
+    }
 }
 
 int ListModel::rowCount(const QModelIndex &/*parent*/) const
