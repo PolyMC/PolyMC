@@ -40,6 +40,8 @@
 
 #include <QIcon>
 
+#include <functional>
+
 Technic::ListModel::ListModel(QObject* parent) : QAbstractListModel(parent)
 {
 }
@@ -349,17 +351,12 @@ void Technic::ListModel::requestLogo(QString logo, QString url)
 
     auto fullPath = entry->getFullPath();
 
-    QObject::connect(job, &NetJob::succeeded, this,
-                     [this, logo, fullPath]
-                     {
-                         logoLoaded(logo, fullPath);
-                     });
+    QObject::connect(
+        job, &NetJob::succeeded, this,
+        std::bind(&Technic::ListModel::logoLoaded, this, logo, fullPath));
 
     QObject::connect(job, &NetJob::failed, this,
-                     [this, logo]
-                     {
-                         logoFailed(logo);
-                     });
+                     std::bind(&Technic::ListModel::logoFailed, this, logo));
 
     job->start();
 

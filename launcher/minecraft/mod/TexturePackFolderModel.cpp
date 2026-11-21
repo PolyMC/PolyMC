@@ -44,13 +44,17 @@ TexturePackFolderModel::TexturePackFolderModel(const QString& dir)
 {
 }
 
+namespace
+{
+Resource* createTexturePack(QFileInfo const& entry)
+{
+    return new TexturePack(entry);
+}
+}  // namespace
+
 Task* TexturePackFolderModel::createUpdateTask()
 {
-    return new BasicFolderLoadTask(m_dir,
-                                   [](QFileInfo const& entry)
-                                   {
-                                       return new TexturePack(entry);
-                                   });
+    return new BasicFolderLoadTask(m_dir, createTexturePack);
 }
 
 Task* TexturePackFolderModel::createParseTask(Resource& resource)

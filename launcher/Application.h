@@ -68,6 +68,7 @@ class BaseDetachedToolFactory;
 class TranslationsModel;
 class ITheme;
 class MCEditTool;
+class Setting;
 
 namespace Meta
 {
@@ -249,6 +250,12 @@ private slots:
     void setupWizardFinished(int status);
 
 private:
+    void onIconsDirChanged(const Setting&, QVariant value);
+    void insertTheme(ITheme* theme);
+    void onAboutToQuit();
+    void controllerAborted();
+    bool isJavaSetupRequired();
+    bool isLanguageSetupRequired();
     bool createSetupWizard();
     void performMainStartupAction();
 

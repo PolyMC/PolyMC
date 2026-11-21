@@ -128,6 +128,21 @@ void GuiUtil::setClipboardText(const QString& text)
     QApplication::clipboard()->setText(text);
 }
 
+namespace
+{
+void addExistingLocation(QSet<QString>& locations,
+                         QStandardPaths::StandardLocation kind)
+{
+    QString location = QStandardPaths::writableLocation(kind);
+    QFileInfo finfo(location);
+    if (!finfo.exists())
+    {
+        return;
+    }
+    locations.insert(location);
+}
+}  // namespace
+
 static QStringList BrowseForFileInternal(QString context, QString caption,
                                          QString filter, QString defaultPath,
                                          QWidget* parentWidget, bool single)
@@ -136,20 +151,10 @@ static QStringList BrowseForFileInternal(QString context, QString caption,
 
     QFileDialog w(parentWidget, caption);
     QSet<QString> locations;
-    auto f = [&](QStandardPaths::StandardLocation l)
-    {
-        QString location = QStandardPaths::writableLocation(l);
-        QFileInfo finfo(location);
-        if (!finfo.exists())
-        {
-            return;
-        }
-        locations.insert(location);
-    };
-    f(QStandardPaths::DesktopLocation);
-    f(QStandardPaths::DocumentsLocation);
-    f(QStandardPaths::DownloadLocation);
-    f(QStandardPaths::HomeLocation);
+    addExistingLocation(locations, QStandardPaths::DesktopLocation);
+    addExistingLocation(locations, QStandardPaths::DocumentsLocation);
+    addExistingLocation(locations, QStandardPaths::DownloadLocation);
+    addExistingLocation(locations, QStandardPaths::HomeLocation);
     QList<QUrl> urls;
     for (const auto& location : locations)
     {

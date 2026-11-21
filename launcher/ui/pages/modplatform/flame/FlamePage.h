@@ -88,6 +88,9 @@ public:
 
 private:
     void suggestCurrent();
+    void onVersionsLoaded(QByteArray* response, int addon,
+                          const QModelIndex& curr);
+    void setSuggestedLogo(const QString& name, QString logo);
 
 private slots:
     void triggerSearch();

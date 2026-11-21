@@ -163,6 +163,34 @@ public:
     }
 };
 
+namespace
+{
+void endEntry(QByteArray& context, QByteArray& disambiguation, QByteArray& id,
+              QByteArray& str, bool& fuzzy, bool& next,
+              QHash<QByteArray, POEntry>& mapping,
+              QHash<QByteArray, POEntry>& disambiguated)
+{
+    auto strStr = QString::fromUtf8(str);
+    // NOTE: PO header has empty id. We skip it.
+    if (!id.isEmpty())
+    {
+        auto normalKey = context + "|" + id;
+        mapping.insert(normalKey, {strStr, fuzzy});
+        if (!disambiguation.isEmpty())
+        {
+            auto disambiguationKey = context + "|" + id + "@" + disambiguation;
+            disambiguated.insert(disambiguationKey, {strStr, fuzzy});
+        }
+    }
+    context.clear();
+    disambiguation.clear();
+    id.clear();
+    str.clear();
+    fuzzy = next;
+    next = false;
+}
+}  // namespace
+
 void POTranslatorPrivate::reload()
 {
     QFile file(filename);
@@ -191,29 +219,6 @@ void POTranslatorPrivate::reload()
     int lineNumber = 0;
     QHash<QByteArray, POEntry> newMapping;
     QHash<QByteArray, POEntry> newMapping_disambiguation;
-    auto endEntry = [&]()
-    {
-        auto strStr = QString::fromUtf8(str);
-        // NOTE: PO header has empty id. We skip it.
-        if (!id.isEmpty())
-        {
-            auto normalKey = context + "|" + id;
-            newMapping.insert(normalKey, {strStr, fuzzy});
-            if (!disambiguation.isEmpty())
-            {
-                auto disambiguationKey =
-                    context + "|" + id + "@" + disambiguation;
-                newMapping_disambiguation.insert(disambiguationKey,
-                                                 {strStr, fuzzy});
-            }
-        }
-        context.clear();
-        disambiguation.clear();
-        id.clear();
-        str.clear();
-        fuzzy = nextFuzzy;
-        nextFuzzy = false;
-    };
     while (!file.atEnd())
     {
         ParserArray line = file.readLine();
@@ -272,7 +277,8 @@ void POTranslatorPrivate::reload()
                 case Mode::First:
                     break;
                 case Mode::MessageString:
-                    endEntry();
+                    endEntry(context, disambiguation, id, str, fuzzy, nextFuzzy,
+                             newMapping, newMapping_disambiguation);
                     break;
                 case Mode::MessageContext:
                 case Mode::MessageId:
@@ -298,7 +304,8 @@ void POTranslatorPrivate::reload()
                 case Mode::First:
                     break;
                 case Mode::MessageString:
-                    endEntry();
+                    endEntry(context, disambiguation, id, str, fuzzy, nextFuzzy,
+                             newMapping, newMapping_disambiguation);
                     break;
                 case Mode::MessageId:
                     qDebug() << "Unexpected msgid line:" << lineNumber;
@@ -333,7 +340,8 @@ void POTranslatorPrivate::reload()
         }
         lineNumber++;
     }
-    endEntry();
+    endEntry(context, disambiguation, id, str, fuzzy, nextFuzzy, newMapping,
+             newMapping_disambiguation);
     mapping = std::move(newMapping);
     mapping_disambiguatrion = std::move(newMapping_disambiguation);
     loaded = true;

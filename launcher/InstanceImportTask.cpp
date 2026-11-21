@@ -52,6 +52,7 @@
 
 #include <QtConcurrentRun>
 #include <algorithm>
+#include <functional>
 
 #include <quazip/quazipdir.h>
 
@@ -250,6 +251,12 @@ void InstanceImportTask::extractAborted()
     emitAborted();
 }
 
+void InstanceImportTask::onCreationTaskSucceeded(InstanceTask* task)
+{
+    setOverride(task->shouldOverride());
+    emitSucceeded();
+}
+
 void InstanceImportTask::processFlame()
 {
     auto* inst_creation_task =
@@ -260,11 +267,8 @@ void InstanceImportTask::processFlame()
     inst_creation_task->setGroup(m_instGroup);
 
     connect(inst_creation_task, &Task::succeeded, this,
-            [this, inst_creation_task]
-            {
-                setOverride(inst_creation_task->shouldOverride());
-                emitSucceeded();
-            });
+            std::bind(&InstanceImportTask::onCreationTaskSucceeded, this,
+                      inst_creation_task));
     connect(inst_creation_task, &Task::failed, this,
             &InstanceImportTask::emitFailed);
     connect(inst_creation_task, &Task::progress, this,
@@ -344,11 +348,8 @@ void InstanceImportTask::processModrinth()
     inst_creation_task->setGroup(m_instGroup);
 
     connect(inst_creation_task, &Task::succeeded, this,
-            [this, inst_creation_task]
-            {
-                setOverride(inst_creation_task->shouldOverride());
-                emitSucceeded();
-            });
+            std::bind(&InstanceImportTask::onCreationTaskSucceeded, this,
+                      inst_creation_task));
     connect(inst_creation_task, &Task::failed, this,
             &InstanceImportTask::emitFailed);
     connect(inst_creation_task, &Task::progress, this,

@@ -44,6 +44,8 @@
 #include <QApplication>
 #include <QClipboard>
 
+#include <functional>
+
 MSALoginDialog::MSALoginDialog(QWidget* parent)
     : QDialog(parent), ui(new Ui::MSALoginDialog)
 {
@@ -100,6 +102,16 @@ void MSALoginDialog::externalLoginTick()
     }
 }
 
+namespace
+{
+void openUriAndCopyCode(QUrl uri, QString code)
+{
+    DesktopServices::openUrl(uri);
+    QClipboard* cb = QApplication::clipboard();
+    cb->setText(code);
+}
+}  // namespace
+
 void MSALoginDialog::showVerificationUriAndCode(const QUrl& uri,
                                                 const QString& code,
                                                 int expiresIn)
@@ -125,12 +137,7 @@ void MSALoginDialog::showVerificationUriAndCode(const QUrl& uri,
     // codes around
     disconnect(ui->actionButton, &QPushButton::clicked, this, nullptr);
     connect(ui->actionButton, &QPushButton::clicked, this,
-            [=]()
-            {
-                DesktopServices::openUrl(uri);
-                QClipboard* cb = QApplication::clipboard();
-                cb->setText(code);
-            });
+            std::bind(&openUriAndCopyCode, uri, code));
 }
 
 void MSALoginDialog::hideVerificationUriAndCode()

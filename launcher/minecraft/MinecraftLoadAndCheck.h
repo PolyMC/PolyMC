@@ -41,6 +41,8 @@ private slots:
     void subtaskFailed(QString error);
 
 private:
+    void subtaskAborted();
+
     MinecraftInstance* m_inst = nullptr;
     Task::Ptr m_task;
     QString m_preFailure;

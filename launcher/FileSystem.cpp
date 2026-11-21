@@ -179,6 +179,37 @@ bool ensureFolderPathExists(const QString folderPathName)
     return ensureFolderPathExists(QFileInfo(folderPathName));
 }
 
+namespace
+{
+void testAndCopy(fs::copy_options options, std::error_code& error,
+                 const QString& source, const QString& target)
+{
+    if (ensureFilePathExists(target))
+    {
+        fs::copy(toStdString(source), toStdString(target), options, error);
+    }
+    else
+    {
+        // mkpath failed which means the destination directory doesn't
+        // exist.
+        error = std::make_error_code(std::errc::no_such_file_or_directory);
+    }
+
+    if (error)
+    {
+        qWarning() << "Failed to copy files:"
+                   << QString::fromStdString(error.message());
+        qDebug() << "Source file:" << source;
+        qDebug() << "Destination file:" << target;
+    }
+}
+
+QString toQString(const fs::path& path)
+{
+    return QString::fromStdU16String(path.u16string());
+}
+}  // namespace
+
 bool copy::operator()(const QString& offset)
 {
     using copy_opts = fs::copy_options;
@@ -200,28 +231,6 @@ bool copy::operator()(const QString& offset)
     {
         opt |= copy_opts::copy_symlinks;
     }
-
-    const auto testAndCopy = [opt, &err](const QString& s, const QString& d)
-    {
-        if (ensureFilePathExists(d))
-        {
-            fs::copy(toStdString(s), toStdString(d), opt, err);
-        }
-        else
-        {
-            // mkpath failed which means the destination directory doesn't
-            // exist.
-            err = std::make_error_code(std::errc::no_such_file_or_directory);
-        }
-
-        if (err)
-        {
-            qWarning() << "Failed to copy files:"
-                       << QString::fromStdString(err.message());
-            qDebug() << "Source file:" << s;
-            qDebug() << "Destination file:" << d;
-        }
-    };
 
     // We can't use copy_opts::recursive because we need to take into account
     // the blacklisted paths, so we iterate over the source directory, and if
@@ -246,7 +255,7 @@ bool copy::operator()(const QString& offset)
                 continue;
             }
 
-            testAndCopy(src_path, dst_path);
+            testAndCopy(opt, err, src_path, dst_path);
         }
     }
     else
@@ -259,7 +268,7 @@ bool copy::operator()(const QString& offset)
         }
         else
         {
-            testAndCopy(src, dst);
+            testAndCopy(opt, err, src, dst);
         }
     }
 
@@ -521,11 +530,6 @@ bool createShortCut(QString location, QString dest, QStringList args,
 
 bool mergeFolders(QString dstpath, QString srcpath)
 {
-    const auto toQString = [](const fs::path& p)
-    {
-        return QString::fromStdU16String(p.u16string());
-    };
-
     bool ok = true;
     std::error_code ec;
     fs::path fullSrcPath = toStdString(srcpath);

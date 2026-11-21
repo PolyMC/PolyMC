@@ -62,6 +62,16 @@
                                                                  \
     disconnect(&model, nullptr, &loop, nullptr);
 
+namespace
+{
+void verifyTestFolder(QString path)
+{
+    QDir target_dir(FS::PathCombine(path, "test_folder"));
+    QVERIFY(target_dir.entryList().contains("pack.mcmeta"));
+    QVERIFY(target_dir.entryList().contains("assets"));
+}
+}  // namespace
+
 class ResourceFolderModelTest : public QObject
 {
     Q_OBJECT
@@ -76,13 +86,6 @@ private slots:
 
         // sanity check
         QVERIFY(!source.endsWith('/'));
-
-        auto verify = [](QString path)
-        {
-            QDir target_dir(FS::PathCombine(path, "test_folder"));
-            QVERIFY(target_dir.entryList().contains("pack.mcmeta"));
-            QVERIFY(target_dir.entryList().contains("assets"));
-        };
 
         // 1. test with no trailing /
         {
@@ -109,7 +112,7 @@ private slots:
                      "Timer has expired. The update never finished.");
             expire_timer.stop();
 
-            verify(tempDir.path());
+            verifyTestFolder(tempDir.path());
         }
 
         // 2. test with trailing /
@@ -135,7 +138,7 @@ private slots:
                      "Timer has expired. The update never finished.");
             expire_timer.stop();
 
-            verify(tempDir.path());
+            verifyTestFolder(tempDir.path());
         }
     }
 

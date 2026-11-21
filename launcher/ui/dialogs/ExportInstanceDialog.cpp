@@ -374,6 +374,14 @@ ExportInstanceDialog::~ExportInstanceDialog()
 }
 
 /// Save icon to instance's folder is needed
+namespace
+{
+int areaOf(QSize size)
+{
+    return size.width() * size.height();
+}
+}  // namespace
+
 void SaveIcon(InstancePtr m_instance)
 {
     auto iconKey = m_instance->iconKey();
@@ -398,10 +406,6 @@ void SaveIcon(InstancePtr m_instance)
     {
         return;
     }
-    auto areaOf = [](QSize size)
-    {
-        return size.width() * size.height();
-    };
     QSize largest = sizes[0];
     // find variant with largest area
     for (auto size : std::as_const(sizes))

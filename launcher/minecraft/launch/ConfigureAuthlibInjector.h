@@ -21,6 +21,10 @@ public:
     }
 
 private:
+    void downloadFailed(QString reason);
+    void latestJsonDownloaded(MetaEntryPtr entry);
+    void javaAgentDownloaded(MetaEntryPtr entry);
+
     std::unique_ptr<NetJob> m_job;
     std::shared_ptr<QString> m_javaagent_arg;
     QString m_yggdrasil_base_url;

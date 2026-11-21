@@ -37,13 +37,15 @@ void FetchFlameAPIKey::executeTask()
     connect(m_reply.get(), &QNetworkReply::finished, this,
             &FetchFlameAPIKey::downloadFinished);
     connect(m_reply.get(), &QNetworkReply::errorOccurred, this,
-            [this](QNetworkReply::NetworkError error)
-            {
-                qCritical() << "Network error: " << error;
-                emitFailed(m_reply->errorString());
-            });
+            &FetchFlameAPIKey::networkError);
 
     setStatus(tr("Fetching Curseforge core API key"));
+}
+
+void FetchFlameAPIKey::networkError(QNetworkReply::NetworkError error)
+{
+    qCritical() << "Network error: " << error;
+    emitFailed(m_reply->errorString());
 }
 
 void FetchFlameAPIKey::downloadFinished()

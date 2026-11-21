@@ -74,4 +74,7 @@ protected:
     bool m_aborted = false;
 
     Task* m_details_owner = nullptr;
+
+private:
+    void startQueuedTask(Task::Ptr task);
 };

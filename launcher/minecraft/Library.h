@@ -215,6 +215,16 @@ private: /* methods */
         return m_hint;
     }
 
+    QString actualPath(bool local, const QString& folder,
+                       QString relative) const;
+
+    bool addDownload(QList<NetAction::Ptr>& downloads,
+                     class HttpMetaCache* cache, QStringList& failed,
+                     const QString& folder, bool stale, bool local,
+                     QString storage, QString url, QString sha1) const;
+
+    QString downloadUrl(const QString& storage) const;
+
 protected: /* data */
     /// the basic gradle dependency specifier.
     GradleSpecifier m_name;

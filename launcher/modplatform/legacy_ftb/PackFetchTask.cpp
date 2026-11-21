@@ -40,6 +40,8 @@
 #include "BuildConfig.h"
 #include "Application.h"
 
+#include <functional>
+
 namespace LegacyFTB
 {
 
@@ -87,44 +89,55 @@ void PackFetchTask::fetchPrivate(const QStringList& toFetch)
             privatePackBaseUrl.arg(packCode), data));
 
         QObject::connect(job, &NetJob::succeeded, this,
-                         [this, job, data, packCode]
-                         {
-                             ModpackList packs;
-                             parseAndAddPacks(*data, PackType::Private, packs);
-                             foreach (Modpack currentPack, packs)
-                             {
-                                 currentPack.packCode = packCode;
-                                 emit privateFileDownloadFinished(currentPack);
-                             }
-
-                             job->deleteLater();
-
-                             data->clear();
-                             delete data;
-                         });
+                         std::bind(&PackFetchTask::onPrivatePackSucceeded, this,
+                                   job, data, packCode));
 
         QObject::connect(job, &NetJob::failed, this,
-                         [this, job, packCode, data](QString reason)
-                         {
-                             emit privateFileDownloadFailed(reason, packCode);
-                             job->deleteLater();
+                         std::bind(&PackFetchTask::onPrivatePackFailed, this,
+                                   job, packCode, data, std::placeholders::_1));
 
-                             data->clear();
-                             delete data;
-                         });
-
-        QObject::connect(job, &NetJob::aborted, this,
-                         [this, job, data]
-                         {
-                             emit aborted();
-                             job->deleteLater();
-
-                             data->clear();
-                             delete data;
-                         });
+        QObject::connect(
+            job, &NetJob::aborted, this,
+            std::bind(&PackFetchTask::onPrivatePackAborted, this, job, data));
 
         job->start();
     }
+}
+
+void PackFetchTask::onPrivatePackSucceeded(NetJob* job, QByteArray* data,
+                                           const QString& code)
+{
+    ModpackList packs;
+    parseAndAddPacks(*data, PackType::Private, packs);
+    foreach (Modpack currentPack, packs)
+    {
+        currentPack.packCode = code;
+        emit privateFileDownloadFinished(currentPack);
+    }
+
+    job->deleteLater();
+
+    data->clear();
+    delete data;
+}
+
+void PackFetchTask::onPrivatePackFailed(NetJob* job, const QString& code,
+                                        QByteArray* data, QString reason)
+{
+    emit privateFileDownloadFailed(reason, code);
+    job->deleteLater();
+
+    data->clear();
+    delete data;
+}
+
+void PackFetchTask::onPrivatePackAborted(NetJob* job, QByteArray* data)
+{
+    emit aborted();
+    job->deleteLater();
+
+    data->clear();
+    delete data;
 }
 
 void PackFetchTask::fileDownloadFinished()

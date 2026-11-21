@@ -24,6 +24,8 @@ public slots:
     bool abort() override;
 
 private:
+    void downloadAborted();
+
     MinecraftInstance* m_inst;
     NetJob::Ptr downloadJob;
     QList<FMLlib> fmlLibsToProcess;

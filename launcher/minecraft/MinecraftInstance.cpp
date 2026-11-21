@@ -776,6 +776,68 @@ QString MinecraftInstance::createLaunchScript(
     return launchScript;
 }
 
+namespace
+{
+void printLibFile(QStringList& out, const QString& path)
+{
+    QFileInfo info(path);
+    if (info.exists())
+    {
+        out << "  " + path;
+    }
+    else
+    {
+        out << "  " + path + " (missing)";
+    }
+}
+
+template <typename T>
+bool modFileNameLess(T first, T second)
+{
+    auto aName = first->fileinfo().completeBaseName();
+    auto bName = second->fileinfo().completeBaseName();
+    return aName.localeAwareCompare(bName) < 0;
+}
+
+void printModList(QStringList& out, const QString& label, ModFolderModel& model)
+{
+    if (model.size())
+    {
+        out << QString("%1:").arg(label);
+        auto modList = model.allMods();
+        std::sort(modList.begin(), modList.end(), modFileNameLess<Mod*>);
+        for (auto mod : std::as_const(modList))
+        {
+            if (mod->type() == ResourceType::FOLDER)
+            {
+                out << u8"  [🖿] " + mod->fileinfo().completeBaseName() +
+                           " (folder)";
+                continue;
+            }
+
+            if (mod->enabled())
+            {
+                out << u8"  [✔] " + mod->fileinfo().completeBaseName();
+            }
+            else
+            {
+                out << u8"  [✘] " + mod->fileinfo().completeBaseName() +
+                           " (disabled)";
+            }
+        }
+        out << "";
+    }
+}
+
+void addToFilter(QMap<QString, QString>& filter, QString key, QString value)
+{
+    if (key.trimmed().size())
+    {
+        filter[key] = value;
+    }
+}
+}  // namespace
+
 QStringList MinecraftInstance::verboseDescription(
     MinecraftServerTargetPtr serverToJoin)
 {
@@ -818,69 +880,21 @@ QStringList MinecraftInstance::verboseDescription(
         QStringList jars, nativeJars;
         profile->getLibraryFiles(runtimeContext(), jars, nativeJars,
                                  getLocalLibraryPath(), binRoot());
-        auto printLibFile = [&](const QString& path)
-        {
-            QFileInfo info(path);
-            if (info.exists())
-            {
-                out << "  " + path;
-            }
-            else
-            {
-                out << "  " + path + " (missing)";
-            }
-        };
         for (const auto& file : std::as_const(jars))
         {
-            printLibFile(file);
+            printLibFile(out, file);
         }
         out << "";
         out << "Native libraries:";
         for (const auto& file : std::as_const(nativeJars))
         {
-            printLibFile(file);
+            printLibFile(out, file);
         }
         out << "";
     }
 
-    auto printModList = [&](const QString& label, ModFolderModel& model)
-    {
-        if (model.size())
-        {
-            out << QString("%1:").arg(label);
-            auto modList = model.allMods();
-            std::sort(modList.begin(), modList.end(),
-                      [](auto a, auto b)
-                      {
-                          auto aName = a->fileinfo().completeBaseName();
-                          auto bName = b->fileinfo().completeBaseName();
-                          return aName.localeAwareCompare(bName) < 0;
-                      });
-            for (auto mod : std::as_const(modList))
-            {
-                if (mod->type() == ResourceType::FOLDER)
-                {
-                    out << u8"  [🖿] " + mod->fileinfo().completeBaseName() +
-                               " (folder)";
-                    continue;
-                }
-
-                if (mod->enabled())
-                {
-                    out << u8"  [✔] " + mod->fileinfo().completeBaseName();
-                }
-                else
-                {
-                    out << u8"  [✘] " + mod->fileinfo().completeBaseName() +
-                               " (disabled)";
-                }
-            }
-            out << "";
-        }
-    };
-
-    printModList("Mods", *(loaderModList().get()));
-    printModList("Core Mods", *(coreModList().get()));
+    printModList(out, "Mods", *(loaderModList().get()));
+    printModList(out, "Core Mods", *(coreModList().get()));
 
     auto& jarMods = profile->getJarMods();
     if (jarMods.size())
@@ -932,26 +946,19 @@ QMap<QString, QString> MinecraftInstance::createCensorFilterFromSession(
     }
     auto& sessionRef = *session.get();
     QMap<QString, QString> filter;
-    auto addToFilter = [&filter](QString key, QString value)
-    {
-        if (key.trimmed().size())
-        {
-            filter[key] = value;
-        }
-    };
     if (sessionRef.session != "-")
     {
-        addToFilter(sessionRef.session, tr("<SESSION ID>"));
+        addToFilter(filter, sessionRef.session, tr("<SESSION ID>"));
     }
     if (sessionRef.access_token != "offline")
     {
-        addToFilter(sessionRef.access_token, tr("<ACCESS TOKEN>"));
+        addToFilter(filter, sessionRef.access_token, tr("<ACCESS TOKEN>"));
     }
     if (sessionRef.client_token.size())
     {
-        addToFilter(sessionRef.client_token, tr("<CLIENT TOKEN>"));
+        addToFilter(filter, sessionRef.client_token, tr("<CLIENT TOKEN>"));
     }
-    addToFilter(sessionRef.uuid, tr("<PROFILE ID>"));
+    addToFilter(filter, sessionRef.uuid, tr("<PROFILE ID>"));
 
     return filter;
 }

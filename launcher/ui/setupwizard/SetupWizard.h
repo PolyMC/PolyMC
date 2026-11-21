@@ -41,4 +41,5 @@ private slots:
 
 private: /* methods */
     void retranslate();
+    void refreshCurrentPage();
 };

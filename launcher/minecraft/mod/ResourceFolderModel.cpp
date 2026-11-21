@@ -25,10 +25,7 @@ ResourceFolderModel::ResourceFolderModel(QDir dir, QObject* parent)
     m_watcher_update_timer.setSingleShot(true);
     m_watcher_update_timer.setInterval(250);
     connect(&m_watcher_update_timer, &QTimer::timeout, this,
-            [this]
-            {
-                update();
-            });
+            &ResourceFolderModel::update);
     connect(&m_watcher, &QFileSystemWatcher::directoryChanged, this,
             &ResourceFolderModel::directoryChanged);
 }
@@ -318,24 +315,26 @@ bool ResourceFolderModel::update()
             &ResourceFolderModel::onUpdateFailed,
             Qt::ConnectionType::QueuedConnection);
     connect(m_current_update_task.get(), &Task::finished, this,
-            [=]
-            {
-                m_current_update_task.reset();
-                if (m_scheduled_update)
-                {
-                    m_scheduled_update = false;
-                    update();
-                }
-                else
-                {
-                    emit updateFinished();
-                }
-            },
+            &ResourceFolderModel::updateTaskFinished,
             Qt::ConnectionType::QueuedConnection);
 
     m_thread_pool.start(m_current_update_task.get());
 
     return true;
+}
+
+void ResourceFolderModel::updateTaskFinished()
+{
+    m_current_update_task.reset();
+    if (m_scheduled_update)
+    {
+        m_scheduled_update = false;
+        update();
+    }
+    else
+    {
+        emit updateFinished();
+    }
 }
 
 void ResourceFolderModel::resolveResource(Resource::Ptr res)
@@ -360,31 +359,49 @@ void ResourceFolderModel::resolveResource(Resource::Ptr res)
     // (and deleted) by the time they run
     QPointer<Resource> resource = res.get();
     connect(task, &Task::succeeded, this,
-            [=]
-            {
-                if (resource)
-                {
-                    onParseSucceeded(ticket, resource->internal_id());
-                }
-            },
+            std::bind(&ResourceFolderModel::parseTaskSucceeded, this, ticket,
+                      resource),
             Qt::ConnectionType::QueuedConnection);
     connect(task, &Task::failed, this,
-            [=]
-            {
-                if (resource)
-                {
-                    onParseFailed(ticket, resource->internal_id());
-                }
-            },
+            std::bind(&ResourceFolderModel::parseTaskFailed, this, ticket,
+                      resource),
             Qt::ConnectionType::QueuedConnection);
-    connect(task, &Task::finished, this,
-            [this, ticket, res]
-            {
-                m_active_parse_tasks.remove(ticket);
-            },
-            Qt::ConnectionType::QueuedConnection);
+    connect(
+        task, &Task::finished, this,
+        std::bind(&ResourceFolderModel::parseTaskFinished, this, ticket, res),
+        Qt::ConnectionType::QueuedConnection);
 
     m_thread_pool.start(task);
+}
+
+void ResourceFolderModel::parseTaskSucceeded(int ticket,
+                                             QPointer<Resource> resource)
+{
+    if (resource)
+    {
+        onParseSucceeded(ticket, resource->internal_id());
+    }
+}
+
+void ResourceFolderModel::parseTaskFailed(int ticket,
+                                          QPointer<Resource> resource)
+{
+    if (resource)
+    {
+        onParseFailed(ticket, resource->internal_id());
+    }
+}
+
+void ResourceFolderModel::parseTaskFinished(
+    int ticket, [[maybe_unused]] Resource::Ptr resource)
+{
+    m_active_parse_tasks.remove(ticket);
+}
+
+bool ResourceFolderModel::hasInternalId(const QString& id,
+                                        Resource::Ptr const& resource)
+{
+    return resource->internal_id() == id;
 }
 
 void ResourceFolderModel::onUpdateSucceeded()

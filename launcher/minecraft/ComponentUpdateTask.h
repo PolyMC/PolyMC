@@ -32,6 +32,7 @@ private:
     void remoteLoadSucceeded(size_t index);
     void remoteLoadFailed(size_t index, const QString& msg,
                           bool canUseLocal = false);
+    void remoteLoadAborted(size_t index);
     void checkIfAllFinished();
 
 private:

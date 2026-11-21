@@ -33,6 +33,12 @@ private slots:
     void setupDownloadJob(QEventLoop&);
 
 private:
+    void onOldFilesResolved(QByteArray* response, const QStringList& ids,
+                            QMap<int, Flame::File>& files, const QDir& dir);
+    void onIdResolverFailed(QEventLoop& loop, QString reason);
+    void onFilesJobSucceeded();
+    void onFilesJobFailed(QString reason);
+
     QWidget* m_parent = nullptr;
 
     shared_qobject_ptr<Flame::FileResolvingTask> m_mod_id_resolver;

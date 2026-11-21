@@ -186,6 +186,7 @@ private:
     void suspendWatch();
     void resumeWatch();
     void add(const QList<InstancePtr>& list);
+    void removeInstanceRange(int& front, int& back, int current);
     void loadGroupList();
     void saveGroupList();
     QList<InstanceId> discoverInstances();

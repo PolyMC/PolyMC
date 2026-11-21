@@ -77,14 +77,15 @@ void FMLLibrariesTask::executeTask()
     connect(dljob, &NetJob::succeeded, this,
             &FMLLibrariesTask::fmllibsFinished);
     connect(dljob, &NetJob::failed, this, &FMLLibrariesTask::fmllibsFailed);
-    connect(dljob, &NetJob::aborted, this,
-            [this]
-            {
-                emitFailed(tr("Aborted"));
-            });
+    connect(dljob, &NetJob::aborted, this, &FMLLibrariesTask::downloadAborted);
     connect(dljob, &NetJob::progress, this, &FMLLibrariesTask::progress);
     downloadJob.reset(dljob);
     downloadJob->start();
+}
+
+void FMLLibrariesTask::downloadAborted()
+{
+    emitFailed(tr("Aborted"));
 }
 
 bool FMLLibrariesTask::canAbort() const

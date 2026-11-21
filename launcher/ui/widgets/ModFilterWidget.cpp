@@ -15,12 +15,7 @@ unique_qobject_ptr<ModFilterWidget> ModFilterWidget::create(
         // Use the widget as context, the task can outlive it when the time
         // limit runs out
         connect(task.get(), &Task::failed, filter_widget,
-                [filter_widget]
-                {
-                    filter_widget->disableVersionButton(
-                        VersionButtonID::Major,
-                        tr("failed to get version index"));
-                });
+                &ModFilterWidget::onVersionIndexFailed);
 
         if (!task->isRunning())
         {
@@ -29,6 +24,12 @@ unique_qobject_ptr<ModFilterWidget> ModFilterWidget::create(
     }
 
     return unique_qobject_ptr<ModFilterWidget>(filter_widget);
+}
+
+void ModFilterWidget::onVersionIndexFailed()
+{
+    disableVersionButton(VersionButtonID::Major,
+                         tr("failed to get version index"));
 }
 
 ModFilterWidget::ModFilterWidget(Version def, QWidget* parent)

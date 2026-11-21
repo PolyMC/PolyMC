@@ -55,6 +55,8 @@ private:
 
     void requestLogo(QString file);
     QString translatePackType(PackType type) const;
+    void onLogoSucceeded(const QString& file, const QString& path);
+    void onLogoFailed(const QString& file);
 
 private slots:
     void logoFailed(QString logo);

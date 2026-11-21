@@ -60,6 +60,9 @@ protected: /* methods */
     bool loadLocalFile();
 
 private:
+    void updateSucceeded();
+    void updateFailed();
+
     LoadStatus m_loadStatus = LoadStatus::NotLoaded;
     UpdateStatus m_updateStatus = UpdateStatus::NotDone;
     NetJob::Ptr m_updateTask;

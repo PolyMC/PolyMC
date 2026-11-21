@@ -26,6 +26,18 @@
 static ModrinthAPI api;
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
+namespace
+{
+
+bool isNewerVersion(const ModPlatform::IndexedVersion& a,
+                    const ModPlatform::IndexedVersion& b)
+{
+    // dates are in RFC 3339 format
+    return a.date > b.date;
+}
+
+}  // namespace
+
 void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj,
                                ModAPI::ResourceType /*type*/)
 {
@@ -132,14 +144,7 @@ void Modrinth::loadIndexedPackVersions(
             unsortedVersions.append(file);
         }
     }
-    auto orderSortPredicate = [](const ModPlatform::IndexedVersion& a,
-                                 const ModPlatform::IndexedVersion& b) -> bool
-    {
-        // dates are in RFC 3339 format
-        return a.date > b.date;
-    };
-    std::sort(unsortedVersions.begin(), unsortedVersions.end(),
-              orderSortPredicate);
+    std::sort(unsortedVersions.begin(), unsortedVersions.end(), isNewerVersion);
     pack.versions = unsortedVersions;
     pack.versionsLoaded = true;
 }

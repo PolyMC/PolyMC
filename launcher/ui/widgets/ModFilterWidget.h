@@ -81,6 +81,8 @@ private:
         return {mcVersionStr()};
     }
 
+    void onVersionIndexFailed();
+
 private slots:
     void onVersionFilterChanged(int id);
 

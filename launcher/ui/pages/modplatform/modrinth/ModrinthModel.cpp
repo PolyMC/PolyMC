@@ -45,6 +45,8 @@
 
 #include <QMessageBox>
 
+#include <functional>
+
 namespace Modrinth
 {
 
@@ -171,25 +173,8 @@ void ModpackListModel::performPaginatedSearch()
     netJob->addNetAction(
         Net::Download::makeByteArray(QUrl(searchAllUrl), &m_all_response));
 
-    QObject::connect(
-        netJob, &NetJob::succeeded, this,
-        [this]
-        {
-            QJsonParseError parse_error_all{};
-
-            QJsonDocument doc_all =
-                QJsonDocument::fromJson(m_all_response, &parse_error_all);
-            if (parse_error_all.error != QJsonParseError::NoError)
-            {
-                qWarning() << "Error while parsing JSON response from "
-                           << debugName() << " at " << parse_error_all.offset
-                           << " reason: " << parse_error_all.errorString();
-                qWarning() << m_all_response;
-                return;
-            }
-
-            searchRequestFinished(doc_all);
-        });
+    QObject::connect(netJob, &NetJob::succeeded, this,
+                     &ModpackListModel::onSearchSucceeded);
     QObject::connect(netJob, &NetJob::failed, this,
                      &ModpackListModel::searchRequestFailed);
     QObject::connect(netJob, &NetJob::aborted, this,
@@ -197,6 +182,24 @@ void ModpackListModel::performPaginatedSearch()
 
     jobPtr = netJob;
     jobPtr->start();
+}
+
+void ModpackListModel::onSearchSucceeded()
+{
+    QJsonParseError parse_error_all{};
+
+    QJsonDocument doc_all =
+        QJsonDocument::fromJson(m_all_response, &parse_error_all);
+    if (parse_error_all.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from " << debugName()
+                   << " at " << parse_error_all.offset
+                   << " reason: " << parse_error_all.errorString();
+        qWarning() << m_all_response;
+        return;
+    }
+
+    searchRequestFinished(doc_all);
 }
 
 void ModpackListModel::refresh()
@@ -298,26 +301,31 @@ void ModpackListModel::requestLogo(QString logo, QString url)
     job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
 
     auto fullPath = entry->getFullPath();
-    QObject::connect(job, &NetJob::succeeded, this,
-                     [this, logo, fullPath]
-                     {
-                         emit logoLoaded(logo, QIcon(fullPath));
-                         if (waitingCallbacks.contains(logo))
-                         {
-                             waitingCallbacks.value(logo)(fullPath);
-                         }
-                     });
+    QObject::connect(
+        job, &NetJob::succeeded, this,
+        std::bind(&ModpackListModel::onLogoSucceeded, this, logo, fullPath));
 
     QObject::connect(job, &NetJob::failed, this,
-                     [this, logo]
-                     {
-                         emit logoFailed(logo);
-                     });
+                     std::bind(&ModpackListModel::onLogoFailed, this, logo));
 
     QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
 
     job->start();
     m_loadingLogos.append(logo);
+}
+
+void ModpackListModel::onLogoSucceeded(const QString& logo, const QString& path)
+{
+    emit logoLoaded(logo, QIcon(path));
+    if (waitingCallbacks.contains(logo))
+    {
+        waitingCallbacks.value(logo)(path);
+    }
+}
+
+void ModpackListModel::onLogoFailed(const QString& logo)
+{
+    emit logoFailed(logo);
 }
 
 /******** Request callbacks ********/

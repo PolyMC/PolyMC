@@ -63,6 +63,8 @@ private slots:
 private:
     void packRequestFinished(const QByteArray& packResponse);
     void requestLogo(QString file, QString url);
+    void onPackDownloaded(std::shared_ptr<QByteArray> response);
+    void onPacksJobFinished();
 
 private:
     QList<FTB::Modpack> modpacks;

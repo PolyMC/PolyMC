@@ -5,6 +5,10 @@
 #include <tasks/SequentialTask.h>
 #include <tasks/Task.h>
 
+#include <QList>
+
+#include <functional>
+
 /* Does nothing. Only used for testing. */
 class BasicTask : public Task
 {
@@ -34,6 +38,30 @@ private:
 
     void executeTask() override {};
 };
+
+namespace
+{
+void verifyFinishedTasks(const Task& task, const QList<const Task*>& succeeded,
+                         const QList<const Task*>& failed)
+{
+    QVERIFY2(task.wasSuccessful(),
+             "Task finished but was not successful "
+             "when it should have been.");
+    for (auto subtask : succeeded)
+    {
+        QVERIFY(subtask->wasSuccessful());
+    }
+    for (auto subtask : failed)
+    {
+        QVERIFY(!subtask->wasSuccessful());
+    }
+}
+
+bool isTaskFinished(const Task& task)
+{
+    return task.isFinished();
+}
+}  // namespace
 
 class TaskTest : public QObject
 {
@@ -80,21 +108,13 @@ private slots:
     {
         BasicTask t;
         QObject::connect(&t, &Task::finished,
-                         [&]
-                         {
-                             QVERIFY2(t.wasSuccessful(),
-                                      "Task finished but was not successful "
-                                      "when it should have been.");
-                         });
+                         std::bind(&verifyFinishedTasks, std::cref(t),
+                                   QList<const Task*>{}, QList<const Task*>{}));
         t.start();
 
-        QVERIFY2(QTest::qWaitFor(
-                     [&]()
-                     {
-                         return t.isFinished();
-                     },
-                     1000),
-                 "Task didn't finish as it should.");
+        QVERIFY2(
+            QTest::qWaitFor(std::bind(&isTaskFinished, std::cref(t)), 1000),
+            "Task didn't finish as it should.");
     }
 
     void test_basicConcurrentRun()
@@ -109,25 +129,15 @@ private slots:
         t.addTask(&t2);
         t.addTask(&t3);
 
-        QObject::connect(&t, &Task::finished,
-                         [&]
-                         {
-                             QVERIFY2(t.wasSuccessful(),
-                                      "Task finished but was not successful "
-                                      "when it should have been.");
-                             QVERIFY(t1.wasSuccessful());
-                             QVERIFY(t2.wasSuccessful());
-                             QVERIFY(t3.wasSuccessful());
-                         });
+        QObject::connect(
+            &t, &Task::finished,
+            std::bind(&verifyFinishedTasks, std::cref(t),
+                      QList<const Task*>{&t1, &t2, &t3}, QList<const Task*>{}));
 
         t.start();
-        QVERIFY2(QTest::qWaitFor(
-                     [&]()
-                     {
-                         return t.isFinished();
-                     },
-                     1000),
-                 "Task didn't finish as it should.");
+        QVERIFY2(
+            QTest::qWaitFor(std::bind(&isTaskFinished, std::cref(t)), 1000),
+            "Task didn't finish as it should.");
     }
 
     // Tests if starting new tasks after the 6 initial ones is working
@@ -148,30 +158,15 @@ private slots:
         t.addTask(&t9);
 
         QObject::connect(&t, &Task::finished,
-                         [&]
-                         {
-                             QVERIFY2(t.wasSuccessful(),
-                                      "Task finished but was not successful "
-                                      "when it should have been.");
-                             QVERIFY(t1.wasSuccessful());
-                             QVERIFY(t2.wasSuccessful());
-                             QVERIFY(t3.wasSuccessful());
-                             QVERIFY(t4.wasSuccessful());
-                             QVERIFY(t5.wasSuccessful());
-                             QVERIFY(t6.wasSuccessful());
-                             QVERIFY(t7.wasSuccessful());
-                             QVERIFY(t8.wasSuccessful());
-                             QVERIFY(t9.wasSuccessful());
-                         });
+                         std::bind(&verifyFinishedTasks, std::cref(t),
+                                   QList<const Task*>{&t1, &t2, &t3, &t4, &t5,
+                                                      &t6, &t7, &t8, &t9},
+                                   QList<const Task*>{}));
 
         t.start();
-        QVERIFY2(QTest::qWaitFor(
-                     [&]()
-                     {
-                         return t.isFinished();
-                     },
-                     1000),
-                 "Task didn't finish as it should.");
+        QVERIFY2(
+            QTest::qWaitFor(std::bind(&isTaskFinished, std::cref(t)), 1000),
+            "Task didn't finish as it should.");
     }
 
     void test_basicSequentialRun()
@@ -186,25 +181,15 @@ private slots:
         t.addTask(&t2);
         t.addTask(&t3);
 
-        QObject::connect(&t, &Task::finished,
-                         [&]
-                         {
-                             QVERIFY2(t.wasSuccessful(),
-                                      "Task finished but was not successful "
-                                      "when it should have been.");
-                             QVERIFY(t1.wasSuccessful());
-                             QVERIFY(t2.wasSuccessful());
-                             QVERIFY(t3.wasSuccessful());
-                         });
+        QObject::connect(
+            &t, &Task::finished,
+            std::bind(&verifyFinishedTasks, std::cref(t),
+                      QList<const Task*>{&t1, &t2, &t3}, QList<const Task*>{}));
 
         t.start();
-        QVERIFY2(QTest::qWaitFor(
-                     [&]()
-                     {
-                         return t.isFinished();
-                     },
-                     1000),
-                 "Task didn't finish as it should.");
+        QVERIFY2(
+            QTest::qWaitFor(std::bind(&isTaskFinished, std::cref(t)), 1000),
+            "Task didn't finish as it should.");
     }
 
     void test_basicMultipleOptionsRun()
@@ -219,25 +204,15 @@ private slots:
         t.addTask(&t2);
         t.addTask(&t3);
 
-        QObject::connect(&t, &Task::finished,
-                         [&]
-                         {
-                             QVERIFY2(t.wasSuccessful(),
-                                      "Task finished but was not successful "
-                                      "when it should have been.");
-                             QVERIFY(t1.wasSuccessful());
-                             QVERIFY(!t2.wasSuccessful());
-                             QVERIFY(!t3.wasSuccessful());
-                         });
+        QObject::connect(
+            &t, &Task::finished,
+            std::bind(&verifyFinishedTasks, std::cref(t),
+                      QList<const Task*>{&t1}, QList<const Task*>{&t2, &t3}));
 
         t.start();
-        QVERIFY2(QTest::qWaitFor(
-                     [&]()
-                     {
-                         return t.isFinished();
-                     },
-                     1000),
-                 "Task didn't finish as it should.");
+        QVERIFY2(
+            QTest::qWaitFor(std::bind(&isTaskFinished, std::cref(t)), 1000),
+            "Task didn't finish as it should.");
     }
 };
 

@@ -59,10 +59,7 @@ void AssetUpdateTask::executeTask()
     connect(downloadJob.get(), &NetJob::failed, this,
             &AssetUpdateTask::assetIndexFailed);
     connect(downloadJob.get(), &NetJob::aborted, this,
-            [this]
-            {
-                emitFailed(tr("Aborted"));
-            });
+            &AssetUpdateTask::downloadAborted);
     connect(downloadJob.get(), &NetJob::progress, this,
             &AssetUpdateTask::progress);
 
@@ -107,10 +104,7 @@ void AssetUpdateTask::assetIndexFinished()
         connect(downloadJob.get(), &NetJob::failed, this,
                 &AssetUpdateTask::assetsFailed);
         connect(downloadJob.get(), &NetJob::aborted, this,
-                [this]
-                {
-                    emitFailed(tr("Aborted"));
-                });
+                &AssetUpdateTask::downloadAborted);
         connect(downloadJob.get(), &NetJob::progress, this,
                 &AssetUpdateTask::progress);
         downloadJob->start();
@@ -126,6 +120,11 @@ void AssetUpdateTask::assetIndexFailed(QString reason)
     // there is none.
     logWarning(tr("Failed to download the assets index:\n%1").arg(reason));
     assetIndexFinished();
+}
+
+void AssetUpdateTask::downloadAborted()
+{
+    emitFailed(tr("Aborted"));
 }
 
 void AssetUpdateTask::assetsFailed(QString reason)

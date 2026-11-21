@@ -107,6 +107,20 @@ QJsonObject OneSixVersionFormat::libraryToJson(Library* library)
     return libRoot;
 }
 
+static void readLibs(const QJsonObject& root, ProblemContainer& problems,
+                     const QString& filename, const char* which,
+                     QList<LibraryPtr>& list)
+{
+    for (auto libVal : requireArray(root.value(which)))
+    {
+        QJsonObject libObj = requireObject(libVal);
+        // parse the library
+        auto lib =
+            OneSixVersionFormat::libraryFromJson(problems, libObj, filename);
+        list.append(lib);
+    }
+}
+
 VersionFilePtr OneSixVersionFormat::versionFileFromJson(
     const QJsonDocument& doc, const QString& filename, const bool requireOrder)
 {
@@ -227,16 +241,6 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(
         }
     }
 
-    auto readLibs = [&](const char* which, QList<LibraryPtr>& outList)
-    {
-        for (auto libVal : requireArray(root.value(which)))
-        {
-            QJsonObject libObj = requireObject(libVal);
-            // parse the library
-            auto lib = libraryFromJson(*out, libObj, filename);
-            outList.append(lib);
-        }
-    };
     bool hasPlusLibs = root.contains("+libraries");
     bool hasLibs = root.contains("libraries");
     if (hasPlusLibs && hasLibs)
@@ -245,21 +249,21 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(
             ProblemSeverity::Warning,
             QObject::tr("Version file has both '+libraries' and 'libraries'. "
                         "This is no longer supported."));
-        readLibs("libraries", out->libraries);
-        readLibs("+libraries", out->libraries);
+        readLibs(root, *out, filename, "libraries", out->libraries);
+        readLibs(root, *out, filename, "+libraries", out->libraries);
     }
     else if (hasLibs)
     {
-        readLibs("libraries", out->libraries);
+        readLibs(root, *out, filename, "libraries", out->libraries);
     }
     else if (hasPlusLibs)
     {
-        readLibs("+libraries", out->libraries);
+        readLibs(root, *out, filename, "+libraries", out->libraries);
     }
 
     if (root.contains("mavenFiles"))
     {
-        readLibs("mavenFiles", out->mavenFiles);
+        readLibs(root, *out, filename, "mavenFiles", out->mavenFiles);
     }
 
     if (root.contains("+agents"))

@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <QCoreApplication>
 
+#include <functional>
+
 ConcurrentTask::ConcurrentTask(QObject* parent, QString task_name,
                                int max_concurrent)
     : Task(parent), m_name(task_name), m_total_max_size(max_concurrent)
@@ -143,15 +145,10 @@ void ConcurrentTask::startNext()
     Task::Ptr next = m_queue.dequeue();
 
     connect(next.get(), &Task::succeeded, this,
-            [this, next]
-            {
-                subTaskSucceeded(next);
-            });
+            std::bind(&ConcurrentTask::subTaskSucceeded, this, next));
     connect(next.get(), &Task::failed, this,
-            [this, next](QString msg)
-            {
-                subTaskFailed(next, msg);
-            });
+            std::bind(&ConcurrentTask::subTaskFailed, this, next,
+                      std::placeholders::_1));
 
     connect(next.get(), &Task::status, this, &ConcurrentTask::subTaskStatus);
     connect(next.get(), &Task::stepStatus, this,
@@ -160,10 +157,8 @@ void ConcurrentTask::startNext()
     connect(next.get(), &Task::progress, this,
             &ConcurrentTask::subTaskProgress);
     connect(next.get(), &Task::details, this,
-            [this, task = next.get()](QString details)
-            {
-                subTaskDetails(task, details);
-            });
+            std::bind(&ConcurrentTask::subTaskDetails, this, next.get(),
+                      std::placeholders::_1));
 
     m_doing.insert(next.get(), next);
 
@@ -173,15 +168,17 @@ void ConcurrentTask::startNext()
 
     // We may have been aborted before this gets to run, don't start anything
     // then
-    QMetaObject::invokeMethod(this,
-                              [=]
-                              {
-                                  if (!m_aborted)
-                                  {
-                                      next->start();
-                                  }
-                              },
-                              Qt::QueuedConnection);
+    QMetaObject::invokeMethod(
+        this, std::bind(&ConcurrentTask::startQueuedTask, this, next),
+        Qt::QueuedConnection);
+}
+
+void ConcurrentTask::startQueuedTask(Task::Ptr task)
+{
+    if (!m_aborted)
+    {
+        task->start();
+    }
 }
 
 void ConcurrentTask::subTaskSucceeded(Task::Ptr task)

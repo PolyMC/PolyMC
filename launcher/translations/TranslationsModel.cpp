@@ -43,6 +43,8 @@
 #include <QLibraryInfo>
 #include <QDebug>
 
+#include <functional>
+
 #include "FileSystem.h"
 #include "net/NetJob.h"
 #include "net/ChecksumValidator.h"
@@ -393,31 +395,35 @@ void TranslationsModel::reloadLocalFiles()
     {
         d->m_languages.append(language);
     }
-    const auto rank = [this](const Language& l)
-    {
-        if (l.key == d->m_system_locale)
-        {
-            return 0;
-        }
-        if (l.key == d->m_system_language)
-        {
-            return 1;
-        }
-        return 2;
-    };
     std::sort(d->m_languages.begin(), d->m_languages.end(),
-              [&rank](const Language& a, const Language& b)
-              {
-                  const int rankA = rank(a);
-                  const int rankB = rank(b);
-                  if (rankA != rankB)
-                  {
-                      return rankA < rankB;
-                  }
-                  return a.languageName().toLower() <
-                         b.languageName().toLower();
-              });
+              std::bind(&TranslationsModel::languageLess, this,
+                        std::placeholders::_1, std::placeholders::_2));
     endInsertRows();
+}
+
+int TranslationsModel::languageRank(const Language& language) const
+{
+    if (language.key == d->m_system_locale)
+    {
+        return 0;
+    }
+    if (language.key == d->m_system_language)
+    {
+        return 1;
+    }
+    return 2;
+}
+
+bool TranslationsModel::languageLess(const Language& first,
+                                     const Language& second) const
+{
+    const int rankA = languageRank(first);
+    const int rankB = languageRank(second);
+    if (rankA != rankB)
+    {
+        return rankA < rankB;
+    }
+    return first.languageName().toLower() < second.languageName().toLower();
 }
 
 namespace
@@ -517,13 +523,19 @@ int TranslationsModel::columnCount(const QModelIndex& /*parent*/) const
     return 2;
 }
 
+namespace
+{
+bool hasLanguageKey(const QString& key, Language& lang)
+{
+    return lang.key == key;
+}
+}  // namespace
+
 QVector<Language>::iterator TranslationsModel::findLanguage(const QString& key)
 {
-    auto found = std::find_if(d->m_languages.begin(), d->m_languages.end(),
-                              [&](Language& lang)
-                              {
-                                  return lang.key == key;
-                              });
+    auto found = std::find_if(
+        d->m_languages.begin(), d->m_languages.end(),
+        std::bind(hasLanguageKey, std::cref(key), std::placeholders::_1));
     if (found == d->m_languages.end())
     {
         return {};

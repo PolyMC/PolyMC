@@ -44,6 +44,26 @@
 #include "Json.h"
 #include "ui/dialogs/NewInstanceDialog.h"
 
+#include <functional>
+
+namespace
+{
+void cleanupVersionsJob(QByteArray* response, NetJob* job)
+{
+    job->deleteLater();
+    delete response;
+}
+
+QString authorToStr(Flame::ModpackAuthor& author)
+{
+    if (author.url.isEmpty())
+    {
+        return author.name;
+    }
+    return QString("<a href=\"%1\">%2</a>").arg(author.url, author.name);
+}
+}  // namespace
+
 FlamePage::FlamePage(NewInstanceDialog* dialog, QWidget* parent)
     : QWidget(parent), ui(new Ui::FlamePage), dialog(dialog)
 {
@@ -144,77 +164,11 @@ void FlamePage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
             QString("https://api.curseforge.com/v1/mods/%1/files").arg(addonId),
             response));
 
-        QObject::connect(
-            netJob, &NetJob::succeeded, this,
-            [this, response, addonId, curr]
-            {
-                if (addonId != current.addonId)
-                {
-                    return;  // wrong request
-                }
-                QJsonParseError parse_error;
-                QJsonDocument doc =
-                    QJsonDocument::fromJson(*response, &parse_error);
-                if (parse_error.error != QJsonParseError::NoError)
-                {
-                    qWarning() << "Error while parsing JSON response from "
-                                  "CurseForge at "
-                               << parse_error.offset
-                               << " reason: " << parse_error.errorString();
-                    qWarning() << *response;
-                    return;
-                }
-                auto arr = Json::ensureArray(doc.object(), "data");
-                try
-                {
-                    Flame::loadIndexedPackVersions(current, arr);
-                }
-                catch (const JSONValidationError& e)
-                {
-                    qDebug() << *response;
-                    qWarning() << "Error while reading flame modpack version: "
-                               << e.cause();
-                }
-
-                for (const auto& version : std::as_const(current.versions))
-                {
-                    ui->versionSelectionBox->addItem(
-                        version.version, QVariant(version.downloadUrl));
-                }
-
-                // Only cache it if the row still holds this pack, a new search
-                // may have put another one there meanwhile
-                if (listModel->data(curr, Qt::UserRole)
-                        .value<Flame::IndexedPack>()
-                        .addonId == addonId)
-                {
-                    QVariant current_updated;
-                    current_updated.setValue(current);
-
-                    if (!listModel->setData(curr, current_updated,
-                                            Qt::UserRole))
-                    {
-                        qWarning()
-                            << "Failed to cache versions for the current pack!";
-                    }
-                }
-
-                // TODO: Check whether it's a connection issue or the project
-                // disabled 3rd-party distribution.
-                if (current.versionsLoaded &&
-                    ui->versionSelectionBox->count() < 1)
-                {
-                    ui->versionSelectionBox->addItem(
-                        tr("No version is available!"), -1);
-                }
-                suggestCurrent();
-            });
+        QObject::connect(netJob, &NetJob::succeeded, this,
+                         std::bind(&FlamePage::onVersionsLoaded, this, response,
+                                   addonId, curr));
         QObject::connect(netJob, &NetJob::finished, netJob,
-                         [response, netJob]
-                         {
-                             netJob->deleteLater();
-                             delete response;
-                         });
+                         std::bind(cleanupVersionsJob, response, netJob));
         netJob->start();
     }
     else
@@ -238,6 +192,66 @@ void FlamePage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
     updateUi();
 }
 
+void FlamePage::onVersionsLoaded(QByteArray* response, int addon,
+                                 const QModelIndex& curr)
+{
+    if (addon != current.addonId)
+    {
+        return;  // wrong request
+    }
+    QJsonParseError parse_error;
+    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from "
+                      "CurseForge at "
+                   << parse_error.offset
+                   << " reason: " << parse_error.errorString();
+        qWarning() << *response;
+        return;
+    }
+    auto arr = Json::ensureArray(doc.object(), "data");
+    try
+    {
+        Flame::loadIndexedPackVersions(current, arr);
+    }
+    catch (const JSONValidationError& e)
+    {
+        qDebug() << *response;
+        qWarning() << "Error while reading flame modpack version: "
+                   << e.cause();
+    }
+
+    for (const auto& version : std::as_const(current.versions))
+    {
+        ui->versionSelectionBox->addItem(version.version,
+                                         QVariant(version.downloadUrl));
+    }
+
+    // Only cache it if the row still holds this pack, a new search
+    // may have put another one there meanwhile
+    if (listModel->data(curr, Qt::UserRole)
+            .value<Flame::IndexedPack>()
+            .addonId == addon)
+    {
+        QVariant current_updated;
+        current_updated.setValue(current);
+
+        if (!listModel->setData(curr, current_updated, Qt::UserRole))
+        {
+            qWarning() << "Failed to cache versions for the current pack!";
+        }
+    }
+
+    // TODO: Check whether it's a connection issue or the project
+    // disabled 3rd-party distribution.
+    if (current.versionsLoaded && ui->versionSelectionBox->count() < 1)
+    {
+        ui->versionSelectionBox->addItem(tr("No version is available!"), -1);
+    }
+    suggestCurrent();
+}
+
 void FlamePage::suggestCurrent()
 {
     if (!isOpened)
@@ -256,11 +270,13 @@ void FlamePage::suggestCurrent()
     QString editedLogoName;
     editedLogoName = "curseforge_" + current.logoName.section(".", 0, 0);
     listModel->getLogo(current.logoName, current.logoUrl,
-                       [this, editedLogoName](QString logo)
-                       {
-                           dialog->setSuggestedIconFromFile(logo,
-                                                            editedLogoName);
-                       });
+                       std::bind(&FlamePage::setSuggestedLogo, this,
+                                 editedLogoName, std::placeholders::_1));
+}
+
+void FlamePage::setSuggestedLogo(const QString& name, QString logo)
+{
+    dialog->setSuggestedIconFromFile(logo, name);
 }
 
 void FlamePage::onVersionSelectionChanged(QString newData)
@@ -289,15 +305,6 @@ void FlamePage::updateUi()
     }
     if (!current.authors.empty())
     {
-        auto authorToStr = [](Flame::ModpackAuthor& author)
-        {
-            if (author.url.isEmpty())
-            {
-                return author.name;
-            }
-            return QString("<a href=\"%1\">%2</a>")
-                .arg(author.url, author.name);
-        };
         QStringList authorStrs;
         for (auto& author : current.authors)
         {

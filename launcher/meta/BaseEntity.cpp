@@ -15,6 +15,8 @@
 
 #include "BaseEntity.h"
 
+#include <functional>
+
 #include "net/Download.h"
 #include "net/HttpMetaCache.h"
 #include "net/NetJob.h"
@@ -142,19 +144,23 @@ void Meta::BaseEntity::load(Net::Mode loadType)
     m_updateTask->addNetAction(dl);
     m_updateStatus = UpdateStatus::InProgress;
     QObject::connect(m_updateTask.get(), &NetJob::succeeded,
-                     [&]()
-                     {
-                         m_loadStatus = LoadStatus::Remote;
-                         m_updateStatus = UpdateStatus::Succeeded;
-                         m_updateTask.reset();
-                     });
+                     std::bind(&BaseEntity::updateSucceeded, this));
     QObject::connect(m_updateTask.get(), &NetJob::failed,
-                     [&]()
-                     {
-                         m_updateStatus = UpdateStatus::Failed;
-                         m_updateTask.reset();
-                     });
+                     std::bind(&BaseEntity::updateFailed, this));
     m_updateTask->start();
+}
+
+void Meta::BaseEntity::updateSucceeded()
+{
+    m_loadStatus = LoadStatus::Remote;
+    m_updateStatus = UpdateStatus::Succeeded;
+    m_updateTask.reset();
+}
+
+void Meta::BaseEntity::updateFailed()
+{
+    m_updateStatus = UpdateStatus::Failed;
+    m_updateTask.reset();
 }
 
 bool Meta::BaseEntity::isLoaded() const

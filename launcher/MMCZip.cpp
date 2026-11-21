@@ -150,6 +150,14 @@ bool MMCZip::compressDirFiles(QString fileCompressed, QString dir,
 }
 
 // ours
+namespace
+{
+bool isNotMetaInf(const QString key)
+{
+    return !key.contains("META-INF");
+}
+}  // namespace
+
 bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath,
                              const QList<Mod*>& mods)
 {
@@ -246,10 +254,7 @@ bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath,
     }
 
     if (!mergeZipFiles(&zipOut, QFileInfo(sourceJarPath), addedFiles,
-                       [](const QString key)
-                       {
-                           return !key.contains("META-INF");
-                       }))
+                       &isNotMetaInf))
     {
         zipOut.close();
         QFile::remove(targetJarPath);

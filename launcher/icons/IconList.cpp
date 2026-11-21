@@ -45,6 +45,14 @@
 
 #define MAX_SIZE 1024
 
+namespace
+{
+bool iconKeyLess(const MMCIcon& first, const MMCIcon& second)
+{
+    return first.m_key.localeAwareCompare(second.m_key) < 0;
+}
+}  // namespace
+
 IconList::IconList(const QStringList& builtinPaths, QString path,
                    QObject* parent)
     : QAbstractListModel(parent)
@@ -84,11 +92,7 @@ IconList::IconList(const QStringList& builtinPaths, QString path,
 void IconList::sortIconList()
 {
     qDebug() << "Sorting icon list...";
-    std::sort(icons.begin(), icons.end(),
-              [](const MMCIcon& a, const MMCIcon& b)
-              {
-                  return a.m_key.localeAwareCompare(b.m_key) < 0;
-              });
+    std::sort(icons.begin(), icons.end(), iconKeyLess);
     reindex();
 }
 

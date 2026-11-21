@@ -82,17 +82,19 @@ WorldList::WorldList(const QString& dir) : QAbstractListModel(), m_dir(dir)
     connect(m_watcher, &QFileSystemWatcher::directoryChanged, this,
             &WorldList::directoryChanged);
     connect(&m_update_watcher, &QFutureWatcher<QList<World>>::finished, this,
-            [this]
-            {
-                beginResetModel();
-                worlds = m_update_watcher.result();
-                endResetModel();
-                if (m_update_pending)
-                {
-                    m_update_pending = false;
-                    update();
-                }
-            });
+            &WorldList::updateFinished);
+}
+
+void WorldList::updateFinished()
+{
+    beginResetModel();
+    worlds = m_update_watcher.result();
+    endResetModel();
+    if (m_update_pending)
+    {
+        m_update_pending = false;
+        update();
+    }
 }
 
 void WorldList::startWatching()

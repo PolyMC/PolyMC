@@ -145,13 +145,17 @@ int DataPackFolderModel::columnCount(const QModelIndex& /*parent*/) const
     return NUM_COLUMNS;
 }
 
+namespace
+{
+Resource* createDataPack(QFileInfo const& entry)
+{
+    return new DataPack(entry);
+}
+}  // namespace
+
 Task* DataPackFolderModel::createUpdateTask()
 {
-    return new BasicFolderLoadTask(m_dir,
-                                   [](QFileInfo const& entry)
-                                   {
-                                       return new DataPack(entry);
-                                   });
+    return new BasicFolderLoadTask(m_dir, createDataPack);
 }
 
 Task* DataPackFolderModel::createParseTask(Resource& resource)

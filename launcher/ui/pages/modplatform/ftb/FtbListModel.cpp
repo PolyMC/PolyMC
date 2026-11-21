@@ -22,6 +22,7 @@
 
 #include <QPainter>
 
+#include <functional>
 #include <memory>
 
 namespace Ftb
@@ -165,21 +166,26 @@ void ListModel::requestFinished()
         auto packResponse = std::make_shared<QByteArray>();
         auto dl =
             Net::Download::makeByteArray(QUrl(packUrl), packResponse.get());
-        QObject::connect(dl.get(), &Net::Download::succeeded, this,
-                         [this, packResponse]
-                         {
-                             packRequestFinished(*packResponse);
-                         });
+        QObject::connect(
+            dl.get(), &Net::Download::succeeded, this,
+            std::bind(&ListModel::onPackDownloaded, this, packResponse));
         netJob->addNetAction(dl);
     }
     jobPtr = netJob;
 
     QObject::connect(netJob, &NetJob::finished, this,
-                     [this]
-                     {
-                         jobPtr.reset();
-                     });
+                     &ListModel::onPacksJobFinished);
     jobPtr->start();
+}
+
+void ListModel::onPackDownloaded(std::shared_ptr<QByteArray> response)
+{
+    packRequestFinished(*response);
+}
+
+void ListModel::onPacksJobFinished()
+{
+    jobPtr.reset();
 }
 
 void ListModel::requestFailed(QString /*reason*/)
@@ -304,16 +310,10 @@ void ListModel::requestLogo(QString logo, QString url)
 
     auto fullPath = entry->getFullPath();
     QObject::connect(job, &NetJob::finished, this,
-                     [this, logo, fullPath, stale]
-                     {
-                         logoLoaded(logo, stale);
-                     });
+                     std::bind(&ListModel::logoLoaded, this, logo, stale));
 
     QObject::connect(job, &NetJob::failed, this,
-                     [this, logo]
-                     {
-                         logoFailed(logo);
-                     });
+                     std::bind(&ListModel::logoFailed, this, logo));
 
     auto& newLogoEntry = m_logoMap[logo];
     newLogoEntry.downloadJob = job;

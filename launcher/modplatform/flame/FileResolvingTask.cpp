@@ -3,6 +3,29 @@
 #include "Json.h"
 #include "net/Upload.h"
 
+#include <functional>
+
+namespace
+{
+
+QVariantList appendFileId(QVariantList& list, const Flame::File& file)
+{
+    list.push_back(file.fileId);
+    return list;
+}
+
+void markResolved(Flame::File& file)
+{
+    file.resolved = true;
+}
+
+bool isUnresolved(Flame::File* file)
+{
+    return !file->resolved;
+}
+
+}  // namespace
+
 Flame::FileResolvingTask::FileResolvingTask(
     const shared_qobject_ptr<QNetworkAccessManager>& network,
     Flame::Manifest& toProcess)
@@ -28,13 +51,9 @@ void Flame::FileResolvingTask::executeTask()
     // build json data to send
     QJsonObject object;
 
-    object["fileIds"] = QJsonArray::fromVariantList(std::accumulate(
-        m_toProcess.files.begin(), m_toProcess.files.end(), QVariantList(),
-        [](QVariantList& l, const File& s)
-        {
-            l.push_back(s.fileId);
-            return l;
-        }));
+    object["fileIds"] = QJsonArray::fromVariantList(
+        std::accumulate(m_toProcess.files.begin(), m_toProcess.files.end(),
+                        QVariantList(), appendFileId));
     QByteArray data = Json::toText(object);
     auto dl = Net::Upload::makeByteArray(
         QUrl("https://api.curseforge.com/v1/mods/files"), result.get(), data);
@@ -106,25 +125,25 @@ void Flame::FileResolvingTask::netJobFinished()
                 auto output = new QByteArray();
                 auto dl = Net::Download::makeByteArray(QUrl(url), output);
                 QObject::connect(dl.get(), &Net::Download::succeeded,
-                                 [&out]()
-                                 {
-                                     out.resolved = true;
-                                 });
+                                 std::bind(markResolved, std::ref(out)));
 
                 job->addNetAction(dl);
                 blockedProjects.insert(&out, output);
             }
         }
     }
-    connect(job, &NetJob::finished, this,
-            [this, job]
-            {
-                // Nothing else owns the job
-                job->deleteLater();
-                modrinthCheckFinished();
-            });
+    connect(
+        job, &NetJob::finished, this,
+        std::bind(&Flame::FileResolvingTask::onModrinthJobFinished, this, job));
 
     job->start();
+}
+
+void Flame::FileResolvingTask::onModrinthJobFinished(NetJob* job)
+{
+    // Nothing else owns the job
+    job->deleteLater();
+    modrinthCheckFinished();
 }
 
 void Flame::FileResolvingTask::modrinthCheckFinished()
@@ -174,10 +193,7 @@ void Flame::FileResolvingTask::modrinthCheckFinished()
     auto block = new QList<File*>();
     auto it = blockedProjects.keys();
     std::copy_if(it.begin(), it.end(), std::back_inserter(*block),
-                 [](File* f)
-                 {
-                     return !f->resolved;
-                 });
+                 isUnresolved);
     // Display not found mods early
     if (!block->empty())
     {
@@ -199,38 +215,8 @@ void Flame::FileResolvingTask::modrinthCheckFinished()
         // Use finished: the links are only used for display, one failed lookup
         // shouldn't stop everything
         connect(slugJob, &NetJob::finished, this,
-                [slugs, this, slugJob, block]()
-                {
-                    slugJob->deleteLater();
-                    auto index = 0;
-                    for (const auto& slugResult : slugs)
-                    {
-                        auto mod = block->at(index);
-                        index++;
-                        try
-                        {
-                            auto json = QJsonDocument::fromJson(slugResult);
-                            auto base = Json::requireString(
-                                Json::requireObject(
-                                    Json::requireObject(
-                                        Json::requireObject(json), "data"),
-                                    "links"),
-                                "websiteUrl");
-                            auto link =
-                                QString("%1/download/%2")
-                                    .arg(base, QString::number(mod->fileId));
-                            mod->websiteUrl = link;
-                        }
-                        catch (const JSONValidationError& e)
-                        {
-                            qWarning()
-                                << "Couldn't get the website of blocked mod"
-                                << mod->fileName << ":" << e.cause();
-                        }
-                    }
-                    delete block;
-                    emitSucceeded();
-                });
+                std::bind(&Flame::FileResolvingTask::onSlugJobFinished, this,
+                          slugs, slugJob, block));
         slugJob->start();
     }
     else
@@ -238,4 +224,35 @@ void Flame::FileResolvingTask::modrinthCheckFinished()
         delete block;
         emitSucceeded();
     }
+}
+
+void Flame::FileResolvingTask::onSlugJobFinished(
+    const QVector<QByteArray>& slugs, NetJob* job, QList<File*>* block)
+{
+    job->deleteLater();
+    auto index = 0;
+    for (const auto& slugResult : slugs)
+    {
+        auto mod = block->at(index);
+        index++;
+        try
+        {
+            auto json = QJsonDocument::fromJson(slugResult);
+            auto base = Json::requireString(
+                Json::requireObject(
+                    Json::requireObject(Json::requireObject(json), "data"),
+                    "links"),
+                "websiteUrl");
+            auto link = QString("%1/download/%2")
+                            .arg(base, QString::number(mod->fileId));
+            mod->websiteUrl = link;
+        }
+        catch (const JSONValidationError& e)
+        {
+            qWarning() << "Couldn't get the website of blocked mod"
+                       << mod->fileName << ":" << e.cause();
+        }
+    }
+    delete block;
+    emitSucceeded();
 }

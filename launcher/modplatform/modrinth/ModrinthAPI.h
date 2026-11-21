@@ -78,7 +78,7 @@ public:
         }
         if ((types & Quilt) && (~types & Fabric))
         {
-            {   // Add Fabric if Quilt is in use, if Fabric
+            {  // Add Fabric if Quilt is in use, if Fabric
                 // isn't already there
                 l << ModAPI::getModLoaderString(Fabric);
             }

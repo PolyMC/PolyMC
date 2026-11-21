@@ -65,20 +65,21 @@ void PostLaunchCommand::executeTask()
     m_process.start(program, args);
 }
 
+QString PostLaunchCommand::failureMessage()
+{
+    return tr("Post-Launch command failed with code %1.\n\n")
+        .arg(m_process.exitCode());
+}
+
 void PostLaunchCommand::on_state(LoggedProcess::State state)
 {
-    auto getError = [&]()
-    {
-        return tr("Post-Launch command failed with code %1.\n\n")
-            .arg(m_process.exitCode());
-    };
     switch (state)
     {
         case LoggedProcess::Aborted:
         case LoggedProcess::Crashed:
         case LoggedProcess::FailedToStart:
         {
-            auto error = getError();
+            auto error = failureMessage();
             emit logLine(error, MessageLevel::Fatal);
             emitFailed(error);
             return;
@@ -87,7 +88,7 @@ void PostLaunchCommand::on_state(LoggedProcess::State state)
         {
             if (m_process.exitCode() != 0)
             {
-                auto error = getError();
+                auto error = failureMessage();
                 emit logLine(error, MessageLevel::Fatal);
                 emitFailed(error);
             }

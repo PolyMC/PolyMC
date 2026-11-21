@@ -96,6 +96,9 @@ private:
     VersionPtr m_recommended;
 
     void setupAddedVersion(const int row, const VersionPtr& version);
+    void versionRequiresChanged(int row);
+    void versionTimeChanged(int row);
+    void versionTypeChanged(int row);
 };
 }  // namespace Meta
 Q_DECLARE_METATYPE(Meta::VersionListPtr)

@@ -39,6 +39,9 @@ private:
     // Warns about files not served by cdn.modrinth.com. Returns false if the
     // user declined.
     bool confirmNonModrinthDownloads();
+    void onFileDownloadFailed(Modrinth::File& file, const QString& path,
+                              const QWeakPointer<Net::Download>& action);
+    void onFilesJobFailed(bool& ended, const QString& reason);
 
 private:
     QWidget* m_parent = nullptr;

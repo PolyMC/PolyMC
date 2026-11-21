@@ -72,6 +72,8 @@ private slots:
     void extractAborted();
 
 private:
+    bool extractDownloadedMods();
+
     bool m_abortable = false;
 
     shared_qobject_ptr<QNetworkAccessManager> m_network;

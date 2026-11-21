@@ -49,6 +49,8 @@
 #include "modplatform/legacy_ftb/PrivatePackManager.h"
 #include "ListModel.h"
 
+#include <functional>
+
 namespace LegacyFTB
 {
 
@@ -217,31 +219,27 @@ void Page::suggestCurrent()
 
     if (selected.type == PackType::Public)
     {
-        publicListModel->getLogo(selected.logo,
-                                 [this, editedLogoName](QString logo)
-                                 {
-                                     dialog->setSuggestedIconFromFile(
-                                         logo, editedLogoName);
-                                 });
+        publicListModel->getLogo(
+            selected.logo, std::bind(&Page::setSuggestedLogo, this,
+                                     editedLogoName, std::placeholders::_1));
     }
     else if (selected.type == PackType::ThirdParty)
     {
-        thirdPartyModel->getLogo(selected.logo,
-                                 [this, editedLogoName](QString logo)
-                                 {
-                                     dialog->setSuggestedIconFromFile(
-                                         logo, editedLogoName);
-                                 });
+        thirdPartyModel->getLogo(
+            selected.logo, std::bind(&Page::setSuggestedLogo, this,
+                                     editedLogoName, std::placeholders::_1));
     }
     else if (selected.type == PackType::Private)
     {
-        privateListModel->getLogo(selected.logo,
-                                  [this, editedLogoName](QString logo)
-                                  {
-                                      dialog->setSuggestedIconFromFile(
-                                          logo, editedLogoName);
-                                  });
+        privateListModel->getLogo(
+            selected.logo, std::bind(&Page::setSuggestedLogo, this,
+                                     editedLogoName, std::placeholders::_1));
     }
+}
+
+void Page::setSuggestedLogo(const QString& name, QString logo)
+{
+    dialog->setSuggestedIconFromFile(logo, name);
 }
 
 void Page::ftbPackDataDownloadSuccessfully(ModpackList publicPacks,

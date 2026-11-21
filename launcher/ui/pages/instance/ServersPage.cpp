@@ -61,6 +61,8 @@
 #include <QImageReader>
 #include <QBuffer>
 
+#include <functional>
+
 static const int COLUMN_COUNT = 4;  // Name, Address, Players, Ping
 
 struct Server
@@ -974,38 +976,12 @@ public:
         auto target = MinecraftServerTarget::parse(addr);
 
         auto* pinger = new ServerPinger(target.address, target.port, this);
-        connect(pinger, &ServerPinger::done, this,
-                [this, persistentIdx, generation](
-                    bool success, int current, int max, int ping,
-                    const QString& motd, const QByteArray& icon)
-                {
-                    if (!persistentIdx.isValid())
-                    {
-                        return;
-                    }
-                    int r = persistentIdx.row();
-                    if (m_servers[r].m_pingGeneration != generation)
-                    {
-                        return;
-                    }
-                    m_servers[r].m_checked = true;
-                    m_servers[r].m_up = success;
-                    m_servers[r].m_currentPlayers = current;
-                    m_servers[r].m_maxPlayers = max;
-                    m_servers[r].m_ping = ping;
-                    m_servers[r].m_motd = motd;
-                    if (!icon.isEmpty() && icon != m_servers[r].m_icon)
-                    {
-                        m_servers[r].m_icon = icon;
-                        // While the game runs it owns servers.dat, writing our
-                        // copy then could undo its changes
-                        if (!m_locked)
-                        {
-                            scheduleSave();
-                        }
-                    }
-                    emit dataChanged(index(r, 0), index(r, COLUMN_COUNT - 1));
-                });
+        connect(
+            pinger, &ServerPinger::done, this,
+            std::bind(&ServersModel::onPingDone, this, persistentIdx,
+                      generation, std::placeholders::_1, std::placeholders::_2,
+                      std::placeholders::_3, std::placeholders::_4,
+                      std::placeholders::_5, std::placeholders::_6));
         pinger->ping();
     }
 
@@ -1085,6 +1061,38 @@ private:
     bool saveIsScheduled() const
     {
         return m_dirty;
+    }
+
+    void onPingDone(const QPersistentModelIndex& target, quint64 generation,
+                    bool success, int current, int max, int ping,
+                    const QString& motd, const QByteArray& icon)
+    {
+        if (!target.isValid())
+        {
+            return;
+        }
+        int r = target.row();
+        if (m_servers[r].m_pingGeneration != generation)
+        {
+            return;
+        }
+        m_servers[r].m_checked = true;
+        m_servers[r].m_up = success;
+        m_servers[r].m_currentPlayers = current;
+        m_servers[r].m_maxPlayers = max;
+        m_servers[r].m_ping = ping;
+        m_servers[r].m_motd = motd;
+        if (!icon.isEmpty() && icon != m_servers[r].m_icon)
+        {
+            m_servers[r].m_icon = icon;
+            // While the game runs it owns servers.dat, writing our
+            // copy then could undo its changes
+            if (!m_locked)
+            {
+                scheduleSave();
+            }
+        }
+        emit dataChanged(index(r, 0), index(r, COLUMN_COUNT - 1));
     }
 
     void updateFSObserver()
@@ -1196,13 +1204,7 @@ ServersPage::ServersPage(InstancePtr inst, QWidget* parent)
     m_pingDebounce.setSingleShot(true);
     m_pingDebounce.setInterval(1500);
     connect(&m_pingDebounce, &QTimer::timeout, this,
-            [this]()
-            {
-                if (m_pingDebounceTarget.isValid())
-                {
-                    m_model->pingServer(m_pingDebounceTarget.row());
-                }
-            });
+            &ServersPage::onPingDebounceTimeout);
 
     m_locked = m_inst->isRunning();
     if (m_locked)
@@ -1217,6 +1219,14 @@ ServersPage::~ServersPage()
 {
     m_model->saveNow();
     delete ui;
+}
+
+void ServersPage::onPingDebounceTimeout()
+{
+    if (m_pingDebounceTarget.isValid())
+    {
+        m_model->pingServer(m_pingDebounceTarget.row());
+    }
 }
 
 void ServersPage::retranslate()

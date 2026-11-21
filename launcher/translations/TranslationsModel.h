@@ -46,6 +46,8 @@ private:
     void reloadLocalFiles();
     void downloadTranslation(QString key);
     void downloadNext();
+    int languageRank(const Language& language) const;
+    bool languageLess(const Language& first, const Language& second) const;
 
     // hide copy constructor
     TranslationsModel(const TranslationsModel&) = delete;

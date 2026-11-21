@@ -60,6 +60,7 @@ class MinecraftLauncher;
 class BaseProfilerFactory;
 class InstanceView;
 class KonamiCode;
+class ProgressDialog;
 class InstanceTask;
 
 class MainWindow : public QMainWindow
@@ -237,6 +238,18 @@ private:
     void updateInstanceToolIcon(QString new_icon);
     void setSelectedInstanceById(const QString& id);
     void updateStatusCenter();
+
+    void selectFirstInstance();
+    void focusInstanceSearch();
+    void clearInstanceSearch();
+    void launchSelectedInstance(bool online, bool demo);
+    void launchSelectedInstanceWithProfiler(
+        std::shared_ptr<BaseProfilerFactory> profiler, bool online);
+    void onModalTaskFailed(ProgressDialog& dialog, QString reason);
+    void onModalTaskSucceeded(Task* task);
+    void onModalTaskAborted(ProgressDialog& dialog);
+    void onInstanceUpdateFailed(QString reason);
+    void onSuspendStatusChanged();
 
     void runModalTask(Task* task);
     void instanceFromInstanceTask(InstanceTask* task);

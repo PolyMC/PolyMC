@@ -35,6 +35,8 @@
 
 #include "JavaChecker.h"
 
+#include <functional>
+
 #include <QFile>
 #include <QProcess>
 #include <QMap>
@@ -63,12 +65,9 @@ void JavaChecker::performCheck()
         JavaCheckResult result;
         result.path = m_path;
         result.id = m_id;
-        QMetaObject::invokeMethod(this,
-                                  [this, result]
-                                  {
-                                      emit checkFinished(result);
-                                  },
-                                  Qt::QueuedConnection);
+        QMetaObject::invokeMethod(
+            this, std::bind(&JavaChecker::emitCheckFinished, this, result),
+            Qt::QueuedConnection);
         return;
     }
 
@@ -111,6 +110,11 @@ void JavaChecker::performCheck()
     killTimer.setSingleShot(true);
     killTimer.start(15000);
     process->start();
+}
+
+void JavaChecker::emitCheckFinished(const JavaCheckResult& result)
+{
+    emit checkFinished(result);
 }
 
 void JavaChecker::stdoutReady()

@@ -48,6 +48,8 @@ signals:
     void checkFinished(JavaCheckResult result);
 
 private:
+    void emitCheckFinished(const JavaCheckResult& result);
+
     QProcessPtr process;
     QTimer killTimer;
     QString m_stdout;

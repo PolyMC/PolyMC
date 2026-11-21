@@ -115,6 +115,62 @@ QString reprocessMarkdown(QByteArray markdown)
     return output;
 }
 
+namespace
+{
+void printCommits(QString& result, const QJsonObject& root)
+{
+    result +=
+        "<table cellspacing=0 cellpadding=2 style='border-width: 1px; "
+        "border-style: solid'>";
+    auto commitarray = Json::requireArray(root, "commits");
+    for (int i = commitarray.size() - 1; i >= 0; i--)
+    {
+        const auto& commitval = commitarray[i];
+        auto commitobj = Json::requireObject(commitval);
+        auto parents_info = Json::ensureArray(commitobj, "parents");
+        // NOTE: this ignores merge commits, because they have more than
+        // one parent
+        if (parents_info.size() > 1)
+        {
+            continue;
+        }
+        auto commit_url = Json::requireString(commitobj, "html_url");
+        auto commit_info = Json::requireObject(commitobj, "commit");
+        auto commit_message = Json::requireString(commit_info, "message");
+        auto lines = commit_message.split('\n');
+        QRegularExpression regexp(
+            "(?<prefix>(GH-(?<issuenr>[0-9]+))|(NOISSUE)|(SCRATCH))? "
+            "*(?<rest>.*) *");
+        auto match =
+            regexp.match(lines.takeFirst(), 0, QRegularExpression::NormalMatch);
+        auto issuenr = match.captured("issuenr");
+        auto prefix = match.captured("prefix");
+        auto rest = match.captured("rest");
+        result += "<tr><td>";
+        if (issuenr.length())
+        {
+            result += QString(
+                          "<a "
+                          "href=\"https://github.com/PolyMC/PolyMC/"
+                          "issues/%1\">GH-%2</a>")
+                          .arg(issuenr, issuenr);
+        }
+        else if (prefix.length())
+        {
+            result += QString("<a href=\"%1\">%2</a>").arg(commit_url, prefix);
+        }
+        else
+        {
+            result += QString("<a href=\"%1\">NOISSUE</a>").arg(commit_url);
+        }
+        result += "</td>";
+        lines.prepend(rest);
+        result += "<td><p>" + lines.join("<br />") + "</p></td></tr>";
+    }
+    result += "</table>";
+}
+}  // namespace
+
 QString reprocessCommits(QByteArray json)
 {
     auto channel = APPLICATION->settings()->get("UpdateChannel").toString();
@@ -125,62 +181,6 @@ QString reprocessCommits(QByteArray json)
         auto rootobject = Json::requireObject(document);
         auto status = Json::requireString(rootobject, "status");
         auto diff_url = Json::requireString(rootobject, "html_url");
-
-        auto print_commits = [&]()
-        {
-            result +=
-                "<table cellspacing=0 cellpadding=2 style='border-width: 1px; "
-                "border-style: solid'>";
-            auto commitarray = Json::requireArray(rootobject, "commits");
-            for (int i = commitarray.size() - 1; i >= 0; i--)
-            {
-                const auto& commitval = commitarray[i];
-                auto commitobj = Json::requireObject(commitval);
-                auto parents_info = Json::ensureArray(commitobj, "parents");
-                // NOTE: this ignores merge commits, because they have more than
-                // one parent
-                if (parents_info.size() > 1)
-                {
-                    continue;
-                }
-                auto commit_url = Json::requireString(commitobj, "html_url");
-                auto commit_info = Json::requireObject(commitobj, "commit");
-                auto commit_message =
-                    Json::requireString(commit_info, "message");
-                auto lines = commit_message.split('\n');
-                QRegularExpression regexp(
-                    "(?<prefix>(GH-(?<issuenr>[0-9]+))|(NOISSUE)|(SCRATCH))? "
-                    "*(?<rest>.*) *");
-                auto match = regexp.match(lines.takeFirst(), 0,
-                                          QRegularExpression::NormalMatch);
-                auto issuenr = match.captured("issuenr");
-                auto prefix = match.captured("prefix");
-                auto rest = match.captured("rest");
-                result += "<tr><td>";
-                if (issuenr.length())
-                {
-                    result += QString(
-                                  "<a "
-                                  "href=\"https://github.com/PolyMC/PolyMC/"
-                                  "issues/%1\">GH-%2</a>")
-                                  .arg(issuenr, issuenr);
-                }
-                else if (prefix.length())
-                {
-                    result += QString("<a href=\"%1\">%2</a>")
-                                  .arg(commit_url, prefix);
-                }
-                else
-                {
-                    result +=
-                        QString("<a href=\"%1\">NOISSUE</a>").arg(commit_url);
-                }
-                result += "</td>";
-                lines.prepend(rest);
-                result += "<td><p>" + lines.join("<br />") + "</p></td></tr>";
-            }
-            result += "</table>";
-        };
 
         if (status == "identical")
         {
@@ -193,7 +193,7 @@ QString reprocessCommits(QByteArray json)
         {
             result += QObject::tr(
                 "<p>Following commits were added since last update:</p>");
-            print_commits();
+            printCommits(result, rootobject);
         }
         else if (status == "diverged")
         {
@@ -204,7 +204,7 @@ QString reprocessCommits(QByteArray json)
                           "following %2:</p>")
                           .arg(commit_behind)
                           .arg(commit_ahead);
-            print_commits();
+            printCommits(result, rootobject);
         }
         result += QObject::tr(
                       "<p>You can <a href=\"%1\">look at the changes on "

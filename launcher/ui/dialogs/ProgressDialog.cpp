@@ -20,6 +20,7 @@
 #include <QKeyEvent>
 #include <QProgressBar>
 
+#include <functional>
 #include <limits>
 
 #include "tasks/Task.h"
@@ -92,10 +93,7 @@ int ProgressDialog::execWithTask(Task* newTask)
     connect(task, &Task::details, this, &ProgressDialog::changeDetails);
 
     connect(task, &Task::aborted,
-            [this]
-            {
-                QDialog::reject();
-            });
+            std::bind(&ProgressDialog::onTaskAborted, this));
     connect(task, &Task::abortStatusChanged, ui->skipButton,
             &QPushButton::setEnabled);
 
@@ -133,6 +131,11 @@ int ProgressDialog::execWithTask(std::unique_ptr<Task>& newTask)
     connect(this, &ProgressDialog::destroyed, newTask.get(),
             &Task::deleteLater);
     return execWithTask(newTask.release());
+}
+
+void ProgressDialog::onTaskAborted()
+{
+    QDialog::reject();
 }
 
 bool ProgressDialog::handleImmediateResult(QDialog::DialogCode& result)

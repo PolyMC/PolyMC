@@ -418,10 +418,7 @@ void PackProfile::resolve(Net::Mode netmode)
     connect(updateTask, &ComponentUpdateTask::failed, this,
             &PackProfile::updateFailed);
     connect(updateTask, &ComponentUpdateTask::aborted, this,
-            [this]
-            {
-                updateFailed(tr("Aborted"));
-            });
+            &PackProfile::updateAborted);
     d->m_updateTask->start();
 }
 
@@ -431,6 +428,11 @@ void PackProfile::updateSucceeded()
              << d->m_instance->name();
     d->m_updateTask.reset();
     invalidateLaunchProfile();
+}
+
+void PackProfile::updateAborted()
+{
+    updateFailed(tr("Aborted"));
 }
 
 void PackProfile::updateFailed(const QString& error)
@@ -862,38 +864,6 @@ bool PackProfile::removeComponent_internal(ComponentPtr patch)
 
     // FIXME: we need a generic way of removing local resources, not just jar
     // mods...
-    auto preRemoveJarMod = [&](LibraryPtr jarMod) -> bool
-    {
-        if (!jarMod->isLocal())
-        {
-            return true;
-        }
-        QStringList jar, temp1, temp2, temp3;
-        jarMod->getApplicableFiles(d->m_instance->runtimeContext(), jar, temp1,
-                                   temp2, temp3,
-                                   d->m_instance->jarmodsPath().absolutePath());
-        // Native libraries only end up in the native lists, leaving this one
-        // empty
-        if (jar.isEmpty())
-        {
-            return true;
-        }
-        QFileInfo finfo(jar[0]);
-        if (finfo.exists())
-        {
-            QFile jarModFile(jar[0]);
-            if (!jarModFile.remove())
-            {
-                qCritical()
-                    << "File" << jar[0] << "could not be removed because:"
-                    << jarModFile.errorString();
-                return false;
-            }
-            return true;
-        }
-        return true;
-    };
-
     auto vFile = patch->getVersionFile();
     if (vFile)
     {
@@ -904,6 +874,37 @@ bool PackProfile::removeComponent_internal(ComponentPtr patch)
         }
     }
     return ok;
+}
+
+bool PackProfile::preRemoveJarMod(LibraryPtr jarmod)
+{
+    if (!jarmod->isLocal())
+    {
+        return true;
+    }
+    QStringList jar, temp1, temp2, temp3;
+    jarmod->getApplicableFiles(d->m_instance->runtimeContext(), jar, temp1,
+                               temp2, temp3,
+                               d->m_instance->jarmodsPath().absolutePath());
+    // Native libraries only end up in the native lists, leaving this one
+    // empty
+    if (jar.isEmpty())
+    {
+        return true;
+    }
+    QFileInfo finfo(jar[0]);
+    if (finfo.exists())
+    {
+        QFile jarModFile(jar[0]);
+        if (!jarModFile.remove())
+        {
+            qCritical() << "File" << jar[0] << "could not be removed because:"
+                        << jarModFile.errorString();
+            return false;
+        }
+        return true;
+    }
+    return true;
 }
 
 bool PackProfile::installJarMods_internal(QStringList filepaths)

@@ -54,6 +54,19 @@ private:
     Hashing::Hasher::Ptr createNewHash(Mod*);
     QString getExistingHash(Mod*);
 
+    void onHashSucceeded(Hashing::Hasher* hasher, Mod* mod);
+    void onHashFailed(Mod* mod);
+    void invalidateLeftover();
+    void onVersionTaskFinished();
+    void onProjectTaskFinished(NetJob::Ptr task);
+    void releaseVersionTask(NetJob::Ptr task);
+    void onModrinthVersionsReceived(QByteArray* response);
+    void onModrinthProjectsReceived(QByteArray* response,
+                                    const QHash<QString, QString>& addons);
+    void onFlameVersionsReceived(QByteArray* response);
+    void onFlameProjectsReceived(QByteArray* response,
+                                 const QHash<QString, QString>& addons);
+
 private slots:
     void modrinthCallback(ModPlatform::IndexedPack& pack,
                           ModPlatform::IndexedVersion& ver, Mod*);

@@ -126,6 +126,9 @@ private slots:
 signals:
     void changed();
 
+private:
+    void updateFinished();
+
 protected:
     QFileSystemWatcher* m_watcher;
     bool is_watching;

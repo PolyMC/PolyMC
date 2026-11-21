@@ -102,6 +102,8 @@ private:
     void login();
     void launchInstance();
     void decideAccount();
+    void onProfilerReady(const QString& message);
+    void onProfilerAborted(const QString& message);
 
 private slots:
     void readyForLaunch();

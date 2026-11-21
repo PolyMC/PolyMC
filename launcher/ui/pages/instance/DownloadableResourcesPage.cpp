@@ -22,6 +22,8 @@
 #include "ui/dialogs/ProgressDialog.h"
 #include "ui/pages/instance/ExternalResourcesPage.h"
 
+#include <functional>
+
 DownloadableResourcesPage::DownloadableResourcesPage(
     BaseInstance* instance, std::shared_ptr<ResourceFolderModel> model,
     QWidget* parent)
@@ -33,37 +35,15 @@ void DownloadableResourcesPage::runTasks(const QList<ModDownloadTask*>& toRun)
 {
     auto* tasks = new ConcurrentTask(this);
     connect(tasks, &Task::failed,
-            [this, tasks](QString reason)
-            {
-                CustomMessageBox::selectable(this, tr("Error"), reason,
-                                             QMessageBox::Critical)
-                    ->show();
-                tasks->deleteLater();
-            });
+            std::bind(&DownloadableResourcesPage::onTasksFailed, this, tasks,
+                      std::placeholders::_1));
 
     connect(tasks, &Task::aborted,
-            [this, tasks]()
-            {
-                CustomMessageBox::selectable(this, tr("Aborted"),
-                                             tr("Download stopped by user."),
-                                             QMessageBox::Information)
-                    ->show();
-                tasks->deleteLater();
-            });
+            std::bind(&DownloadableResourcesPage::onTasksAborted, this, tasks));
 
-    connect(tasks, &Task::succeeded,
-            [this, tasks]()
-            {
-                const auto warnings = tasks->warnings();
-                if (warnings.count())
-                {
-                    CustomMessageBox::selectable(this, tr("Warnings"),
-                                                 warnings.join('\n'),
-                                                 QMessageBox::Warning)
-                        ->show();
-                }
-                tasks->deleteLater();
-            });
+    connect(
+        tasks, &Task::succeeded,
+        std::bind(&DownloadableResourcesPage::onTasksSucceeded, this, tasks));
 
     for (auto* task : toRun)
     {
@@ -75,4 +55,34 @@ void DownloadableResourcesPage::runTasks(const QList<ModDownloadTask*>& toRun)
     loadDialog.execWithTask(tasks);
 
     m_model->update();
+}
+
+void DownloadableResourcesPage::onTasksFailed(ConcurrentTask* tasks,
+                                              QString reason)
+{
+    CustomMessageBox::selectable(this, tr("Error"), reason,
+                                 QMessageBox::Critical)
+        ->show();
+    tasks->deleteLater();
+}
+
+void DownloadableResourcesPage::onTasksAborted(ConcurrentTask* tasks)
+{
+    CustomMessageBox::selectable(this, tr("Aborted"),
+                                 tr("Download stopped by user."),
+                                 QMessageBox::Information)
+        ->show();
+    tasks->deleteLater();
+}
+
+void DownloadableResourcesPage::onTasksSucceeded(ConcurrentTask* tasks)
+{
+    const auto warnings = tasks->warnings();
+    if (warnings.count())
+    {
+        CustomMessageBox::selectable(this, tr("Warnings"), warnings.join('\n'),
+                                     QMessageBox::Warning)
+            ->show();
+    }
+    tasks->deleteLater();
 }

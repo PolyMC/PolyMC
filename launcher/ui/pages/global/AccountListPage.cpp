@@ -90,12 +90,8 @@ AccountListPage::AccountListPage(QWidget* parent)
 
     QItemSelectionModel* selectionModel = ui->listView->selectionModel();
 
-    connect(
-        selectionModel, &QItemSelectionModel::selectionChanged,
-        [this](const QItemSelection& /*sel*/, const QItemSelection& /*dsel*/)
-        {
-            updateButtonStates();
-        });
+    connect(selectionModel, &QItemSelectionModel::selectionChanged, this,
+            &AccountListPage::updateButtonStates);
     connect(ui->listView, &VersionListView::customContextMenuRequested, this,
             &AccountListPage::ShowContextMenu);
 
