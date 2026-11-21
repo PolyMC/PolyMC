@@ -1,16 +1,49 @@
 ---
-Language:        Cpp
-BasedOnStyle:  Chromium
+BasedOnStyle: Google
+
 IndentWidth: 4
-AlignConsecutiveMacros: false
-AlignConsecutiveAssignments: false
-AllowShortIfStatementsOnASingleLine: false
-BraceWrapping:
-  AfterFunction:   true
-  SplitEmptyFunction: false
-  SplitEmptyRecord: false
-  SplitEmptyNamespace: false
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+ConstructorInitializerIndentWidth: 4
+ObjCBlockIndentWidth: 4
+AccessModifierOffset: -4
+
 BreakBeforeBraces: Custom
-BreakConstructorInitializers: BeforeComma
-ColumnLimit:     140
-Cpp11BracedListStyle: false
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterClass: true
+  AfterControlStatement: Always
+  AfterEnum: true
+  AfterExportBlock: true
+  AfterExternBlock: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterObjCDeclaration: true
+  AfterRequiresExpression: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeLambdaBody: true
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortCompoundRequirementOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: None
+AllowShortLoopsOnASingleLine: false
+AllowShortNamespacesOnASingleLine: false
+AllowShortRecordOnASingleLine: Never
+
+InsertBraces: true
+
+SpaceBeforeParens: ControlStatements
+...

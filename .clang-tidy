@@ -1,0 +1,44 @@
+---
+Checks: >-
+  -*,
+  readability-braces-around-statements,
+  readability-identifier-naming,
+  custom-no-lambdas,
+  custom-one-word-parameter
+
+WarningsAsErrors: >-
+  readability-braces-around-statements,
+  custom-no-lambdas
+
+HeaderFilterRegex: '[/\\](launcher|tests|buildconfig)[/\\]'
+ExcludeHeaderFilterRegex: '[/\\](build[^/\\]*|libraries)[/\\]|_autogen[/\\]|[/\\](ui|moc|qrc)_[^/\\]*$'
+SystemHeaders: false
+FormatStyle: file
+
+CheckOptions:
+  readability-braces-around-statements.ShortStatementLines: 0
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.MethodCase: camelBack
+  readability-identifier-naming.MethodIgnoredRegexp: '^on_[A-Za-z0-9]+_[A-Za-z0-9_]+$'
+  readability-identifier-naming.VariableCase: lower_case
+  readability-identifier-naming.MemberCase: lower_case
+  readability-identifier-naming.MemberPrefix: m_
+  readability-identifier-naming.ClassMemberCase: lower_case
+  readability-identifier-naming.ClassMemberPrefix: m_
+
+CustomChecks:
+  - Name: no-lambdas
+    Query: |
+      match lambdaExpr(unless(isExpansionInSystemHeader())).bind("lambda")
+    Diagnostic:
+      - BindName: lambda
+        Message: lambda expressions are not allowed; use a named function or method
+        Level: Warning
+  - Name: one-word-parameter
+    Query: |
+      match parmVarDecl(unless(isExpansionInSystemHeader()), matchesName("[A-Z_]")).bind("param")
+    Diagnostic:
+      - BindName: param
+        Message: parameter names must be a single lowercase word
+        Level: Warning
+...
