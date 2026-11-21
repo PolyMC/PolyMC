@@ -1,2 +1,6 @@
 CompileFlags:
   CompilationDatabase: build
+Diagnostics:
+  ClangTidy:
+    ExperimentalCustomChecks: true
+    FastCheckFilter: Loose
