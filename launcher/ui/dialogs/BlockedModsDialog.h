@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QUrl>
 
 
 QT_BEGIN_NAMESPACE
@@ -17,6 +18,6 @@ public:
 
 private:
     Ui::BlockedModsDialog *ui;
-    const QList<QUrl> &urls;
+    const QList<QUrl> urls;
     void openAll();
 };

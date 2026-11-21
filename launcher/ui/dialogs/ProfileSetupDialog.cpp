@@ -61,7 +61,7 @@ ProfileSetupDialog::ProfileSetupDialog(MinecraftAccountPtr accountToSetup, QWidg
 
     QRegularExpression permittedNames("[a-zA-Z0-9_]{3,16}");
     auto nameEdit = ui->nameEdit;
-    nameEdit->setValidator(new QRegularExpressionValidator(permittedNames));
+    nameEdit->setValidator(new QRegularExpressionValidator(permittedNames, nameEdit));
     nameEdit->setClearButtonEnabled(true);
     validityAction = nameEdit->addAction(yellowIcon, QLineEdit::LeadingPosition);
     connect(nameEdit, &QLineEdit::textEdited, this, &ProfileSetupDialog::nameEdited);
