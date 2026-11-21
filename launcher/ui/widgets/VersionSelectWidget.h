@@ -60,7 +60,7 @@ signals:
     void selectedVersionChanged(BaseVersionPtr version);
 
 protected:
-    virtual void closeEvent(QCloseEvent*);
+    void closeEvent(QCloseEvent*) override;
 
 private slots:
     void onTaskSucceeded();
