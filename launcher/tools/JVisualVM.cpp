@@ -60,8 +60,8 @@ void JVisualVM::beginProfilingImpl(shared_qobject_ptr<LaunchTask> process)
     connect(profiler, &QProcess::started, this, &JVisualVM::profilerStarted);
     connect(profiler, &QProcess::finished, this, &JVisualVM::profilerFinished);
 
-    profiler->start();
     m_profilerProcess = profiler;
+    profiler->start();
 }
 
 void JVisualVMFactory::registerSettings(SettingsObjectPtr settings)
