@@ -89,176 +89,178 @@ void ModUpdateDialog::checkCandidates()
         return;
     }
 
-    // Report failed metadata generation
-    if (!m_failed_metadata.empty())
+    do
     {
-        QString text;
-        for (const auto& failed : std::as_const(m_failed_metadata))
+        // Report failed metadata generation
+        if (!m_failed_metadata.empty())
         {
-            const auto& mod = std::get<0>(failed);
-            const auto& reason = std::get<1>(failed);
-            text += tr("Name: %1<br>File name: %2<br>Reason: %3<br><br>")
+            QString text;
+            for (const auto& failed : std::as_const(m_failed_metadata))
+            {
+                const auto& mod = std::get<0>(failed);
+                const auto& reason = std::get<1>(failed);
+                text +=
+                    tr("Name: %1<br>File name: %2<br>Reason: %3<br><br>")
                         .arg(mod->name(), mod->fileinfo().fileName(), reason);
+            }
+
+            ScrollMessageBox message_dialog(
+                m_parent, tr("Metadata generation failed"),
+                tr("Could not generate metadata for the following %1s:<br>"
+                   "Do you wish to proceed without them?")
+                    .arg(m_typeString),
+                text);
+            message_dialog.setModal(true);
+            if (message_dialog.exec() == QDialog::Rejected)
+            {
+                m_aborted = true;
+                break;
+            }
         }
 
-        ScrollMessageBox message_dialog(
-            m_parent, tr("Metadata generation failed"),
-            tr("Could not generate metadata for the following %1s:<br>"
-               "Do you wish to proceed without them?")
-                .arg(m_typeString),
-            text);
-        message_dialog.setModal(true);
-        if (message_dialog.exec() == QDialog::Rejected)
+        auto versions = mcVersions(m_instance);
+        auto loaders = mcLoaders(m_instance);
+
+        SequentialTask check_task(m_parent, tr("Checking for updates"));
+
+        if (!m_modrinth_to_update.empty())
+        {
+            m_modrinth_check_task = new ModrinthCheckUpdate(
+                m_modrinth_to_update, versions, loaders, m_mod_model);
+            connect(m_modrinth_check_task, &CheckUpdateTask::checkFailed, this,
+                    &ModUpdateDialog::onCheckFailed);
+            check_task.addTask(m_modrinth_check_task);
+        }
+
+        if (!m_flame_to_update.empty())
+        {
+            m_flame_check_task = new FlameCheckUpdate(
+                m_flame_to_update, versions, loaders, m_mod_model);
+            connect(m_flame_check_task, &CheckUpdateTask::checkFailed, this,
+                    &ModUpdateDialog::onCheckFailed);
+            check_task.addTask(m_flame_check_task);
+        }
+
+        connect(&check_task, &Task::failed, this,
+                &ModUpdateDialog::onCheckTaskFailed);
+
+        // Check for updates
+        ProgressDialog progress_dialog(m_parent);
+        progress_dialog.setSkipButton(true, tr("Abort"));
+        progress_dialog.setWindowTitle(tr("Checking for updates..."));
+        auto ret = progress_dialog.execWithTask(&check_task);
+
+        if (check_task.wasSuccessful())
+        {
+            QStringList warnings = check_task.warnings();
+            if (warnings.count())
+            {
+                CustomMessageBox::selectable(this, tr("Warnings"),
+                                             warnings.join('\n'),
+                                             QMessageBox::Warning)
+                    ->exec();
+            }
+        }
+
+        // If the dialog was skipped / some download error happened
+        if (ret == QDialog::DialogCode::Rejected)
         {
             m_aborted = true;
-            QMetaObject::invokeMethod(this, "reject", Qt::QueuedConnection);
-            return;
+            break;
         }
-    }
 
-    auto versions = mcVersions(m_instance);
-    auto loaders = mcLoaders(m_instance);
-
-    SequentialTask check_task(m_parent, tr("Checking for updates"));
-
-    if (!m_modrinth_to_update.empty())
-    {
-        m_modrinth_check_task = new ModrinthCheckUpdate(
-            m_modrinth_to_update, versions, loaders, m_mod_model);
-        connect(m_modrinth_check_task, &CheckUpdateTask::checkFailed, this,
-                &ModUpdateDialog::onCheckFailed);
-        check_task.addTask(m_modrinth_check_task);
-    }
-
-    if (!m_flame_to_update.empty())
-    {
-        m_flame_check_task = new FlameCheckUpdate(m_flame_to_update, versions,
-                                                  loaders, m_mod_model);
-        connect(m_flame_check_task, &CheckUpdateTask::checkFailed, this,
-                &ModUpdateDialog::onCheckFailed);
-        check_task.addTask(m_flame_check_task);
-    }
-
-    connect(&check_task, &Task::failed, this,
-            &ModUpdateDialog::onCheckTaskFailed);
-
-    // Check for updates
-    ProgressDialog progress_dialog(m_parent);
-    progress_dialog.setSkipButton(true, tr("Abort"));
-    progress_dialog.setWindowTitle(tr("Checking for updates..."));
-    auto ret = progress_dialog.execWithTask(&check_task);
-
-    if (check_task.wasSuccessful())
-    {
-        QStringList warnings = check_task.warnings();
-        if (warnings.count())
+        // Add found updates for Modrinth
+        if (m_modrinth_check_task)
         {
-            CustomMessageBox::selectable(
-                this, tr("Warnings"), warnings.join('\n'), QMessageBox::Warning)
-                ->exec();
-        }
-    }
-
-    // If the dialog was skipped / some download error happened
-    if (ret == QDialog::DialogCode::Rejected)
-    {
-        m_aborted = true;
-        QMetaObject::invokeMethod(this, "reject", Qt::QueuedConnection);
-        return;
-    }
-
-    // Add found updates for Modrinth
-    if (m_modrinth_check_task)
-    {
-        auto modrinth_updates = m_modrinth_check_task->getUpdatable();
-        for (auto& updatable : modrinth_updates)
-        {
-            qDebug() << QString("Mod %1 has an update available!")
-                            .arg(updatable.name);
-
-            appendMod(updatable);
-            m_tasks.insert(updatable.name, updatable.download);
-        }
-    }
-
-    // Add found updated for Flame
-    if (m_flame_check_task)
-    {
-        auto flame_updates = m_flame_check_task->getUpdatable();
-        for (auto& updatable : flame_updates)
-        {
-            qDebug() << QString("Mod %1 has an update available!")
-                            .arg(updatable.name);
-
-            appendMod(updatable);
-            m_tasks.insert(updatable.name, updatable.download);
-        }
-    }
-
-    // Report failed update checking
-    if (!m_failed_check_update.empty())
-    {
-        QString text;
-        for (const auto& failed : std::as_const(m_failed_check_update))
-        {
-            const auto& mod = std::get<0>(failed);
-            const auto& reason = std::get<1>(failed);
-            const auto& recover_url = std::get<2>(failed);
-
-            qDebug() << mod->name() << " failed to check for updates!";
-
-            text += tr("Mod name: %1").arg(mod->name()) + "<br>";
-            if (!reason.isEmpty())
+            auto modrinth_updates = m_modrinth_check_task->getUpdatable();
+            for (auto& updatable : modrinth_updates)
             {
-                text += tr("Reason: %1").arg(reason) + "<br>";
+                qDebug() << QString("Mod %1 has an update available!")
+                                .arg(updatable.name);
+
+                appendMod(updatable);
+                m_tasks.insert(updatable.name, updatable.download);
             }
-            if (!recover_url.isEmpty())
+        }
+
+        // Add found updated for Flame
+        if (m_flame_check_task)
+        {
+            auto flame_updates = m_flame_check_task->getUpdatable();
+            for (auto& updatable : flame_updates)
             {
-                //: %1 is the link to download it manually
-                text += tr("Possible solution: Getting the latest version "
-                           "manually:<br>%1<br>")
-                            .arg(QString("<a href='%1'>%1</a>")
-                                     .arg(recover_url.toString()));
+                qDebug() << QString("Mod %1 has an update available!")
+                                .arg(updatable.name);
+
+                appendMod(updatable);
+                m_tasks.insert(updatable.name, updatable.download);
             }
-            text += "<br>";
         }
 
-        ScrollMessageBox message_dialog(
-            m_parent, tr("Failed to check for updates"),
-            tr("Could not check or get the following %1s for updates:<br>"
-               "Do you wish to proceed without them?")
-                .arg(m_typeString),
-            text);
-        message_dialog.setModal(true);
-        if (message_dialog.exec() == QDialog::Rejected)
+        // Report failed update checking
+        if (!m_failed_check_update.empty())
         {
-            m_aborted = true;
-            QMetaObject::invokeMethod(this, "reject", Qt::QueuedConnection);
-            return;
+            QString text;
+            for (const auto& failed : std::as_const(m_failed_check_update))
+            {
+                const auto& mod = std::get<0>(failed);
+                const auto& reason = std::get<1>(failed);
+                const auto& recover_url = std::get<2>(failed);
+
+                qDebug() << mod->name() << " failed to check for updates!";
+
+                text += tr("Mod name: %1").arg(mod->name()) + "<br>";
+                if (!reason.isEmpty())
+                {
+                    text += tr("Reason: %1").arg(reason) + "<br>";
+                }
+                if (!recover_url.isEmpty())
+                {
+                    //: %1 is the link to download it manually
+                    text += tr("Possible solution: Getting the latest version "
+                               "manually:<br>%1<br>")
+                                .arg(QString("<a href='%1'>%1</a>")
+                                         .arg(recover_url.toString()));
+                }
+                text += "<br>";
+            }
+
+            ScrollMessageBox message_dialog(
+                m_parent, tr("Failed to check for updates"),
+                tr("Could not check or get the following %1s for updates:<br>"
+                   "Do you wish to proceed without them?")
+                    .arg(m_typeString),
+                text);
+            message_dialog.setModal(true);
+            if (message_dialog.exec() == QDialog::Rejected)
+            {
+                m_aborted = true;
+                break;
+            }
         }
-    }
 
-    // If there's no mod to be updated
-    if (ui->modTreeWidget->topLevelItemCount() == 0)
-    {
-        m_no_updates = true;
-    }
-    else
-    {
-        // FIXME: Find a more efficient way of doing this!
-
-        // Sort major items in alphabetical order (also sorts the children
-        // unfortunately)
-        ui->modTreeWidget->sortItems(0, Qt::SortOrder::AscendingOrder);
-
-        // Re-sort the children
-        auto* item = ui->modTreeWidget->topLevelItem(0);
-        for (int i = 1; item != nullptr; ++i)
+        // If there's no mod to be updated
+        if (ui->modTreeWidget->topLevelItemCount() == 0)
         {
-            item->sortChildren(0, Qt::SortOrder::DescendingOrder);
-            item = ui->modTreeWidget->topLevelItem(i);
+            m_no_updates = true;
         }
-    }
+        else
+        {
+            // FIXME: Find a more efficient way of doing this!
+
+            // Sort major items in alphabetical order (also sorts the children
+            // unfortunately)
+            ui->modTreeWidget->sortItems(0, Qt::SortOrder::AscendingOrder);
+
+            // Re-sort the children
+            auto* item = ui->modTreeWidget->topLevelItem(0);
+            for (int i = 1; item != nullptr; ++i)
+            {
+                item->sortChildren(0, Qt::SortOrder::DescendingOrder);
+                item = ui->modTreeWidget->topLevelItem(i);
+            }
+        }
+    } while (0);
 
     if (m_aborted || m_no_updates)
     {

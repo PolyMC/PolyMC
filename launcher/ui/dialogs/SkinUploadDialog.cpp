@@ -59,108 +59,89 @@ void SkinUploadDialog::on_buttonBox_accepted()
     QString input = ui->skinPathTextBox->text();
     ProgressDialog prog(this);
     SequentialTask skinUpload;
+    QString message;
+    QMessageBox::Icon icon = QMessageBox::Warning;
 
-    if (!input.isEmpty())
+    do
     {
-        QRegularExpression urlPrefixMatcher(
-            QRegularExpression::anchoredPattern("^([a-z]+)://.+$"));
-        bool isLocalFile = false;
-        // it has an URL prefix -> it is an URL
-        if (urlPrefixMatcher.match(input).hasMatch())
+        if (!input.isEmpty())
         {
-            QUrl fileURL = input;
-            if (fileURL.isValid())
+            QRegularExpression urlPrefixMatcher(
+                QRegularExpression::anchoredPattern("^([a-z]+)://.+$"));
+            bool isLocalFile = false;
+            // it has an URL prefix -> it is an URL
+            if (urlPrefixMatcher.match(input).hasMatch())
             {
+                QUrl fileURL = input;
+                if (!fileURL.isValid())
+                {
+                    message = tr(
+                        "You cannot use an invalid URL for uploading skins.");
+                    break;
+                }
                 // local?
-                if (fileURL.isLocalFile())
+                if (!fileURL.isLocalFile())
                 {
-                    isLocalFile = true;
-                    fileName = fileURL.toLocalFile();
-                }
-                else
-                {
-                    CustomMessageBox::selectable(
-                        this, tr("Skin Upload"),
+                    message =
                         tr("Using remote URLs for setting skins is not "
-                           "implemented yet."),
-                        QMessageBox::Warning)
-                        ->exec();
-                    close();
-                    return;
+                           "implemented yet.");
+                    break;
                 }
+                isLocalFile = true;
+                fileName = fileURL.toLocalFile();
             }
             else
             {
-                CustomMessageBox::selectable(
-                    this, tr("Skin Upload"),
-                    tr("You cannot use an invalid URL for uploading skins."),
-                    QMessageBox::Warning)
-                    ->exec();
-                close();
-                return;
+                // just assume it's a path then
+                isLocalFile = true;
+                fileName = ui->skinPathTextBox->text();
             }
+            if (isLocalFile && !QFile::exists(fileName))
+            {
+                message = tr("Skin file does not exist!");
+                break;
+            }
+            SkinUpload::Model model = SkinUpload::STEVE;
+            if (ui->steveBtn->isChecked())
+            {
+                model = SkinUpload::STEVE;
+            }
+            else if (ui->alexBtn->isChecked())
+            {
+                model = SkinUpload::ALEX;
+            }
+            // FS::read() throws when the file can't be read, for example when
+            // it's a folder or locked
+            QByteArray skinData;
+            try
+            {
+                skinData = FS::read(fileName);
+            }
+            catch (const FS::FileSystemException&)
+            {
+                message = tr("Skin file could not be read!");
+                break;
+            }
+            skinUpload.addTask(shared_qobject_ptr<SkinUpload>(
+                new SkinUpload(this, m_acct->accessToken(), skinData, model)));
         }
-        else
-        {
-            // just assume it's a path then
-            isLocalFile = true;
-            fileName = ui->skinPathTextBox->text();
-        }
-        if (isLocalFile && !QFile::exists(fileName))
-        {
-            CustomMessageBox::selectable(this, tr("Skin Upload"),
-                                         tr("Skin file does not exist!"),
-                                         QMessageBox::Warning)
-                ->exec();
-            close();
-            return;
-        }
-        SkinUpload::Model model = SkinUpload::STEVE;
-        if (ui->steveBtn->isChecked())
-        {
-            model = SkinUpload::STEVE;
-        }
-        else if (ui->alexBtn->isChecked())
-        {
-            model = SkinUpload::ALEX;
-        }
-        // FS::read() throws when the file can't be read, for example when it's
-        // a folder or locked
-        QByteArray skinData;
-        try
-        {
-            skinData = FS::read(fileName);
-        }
-        catch (const FS::FileSystemException&)
-        {
-            CustomMessageBox::selectable(this, tr("Skin Upload"),
-                                         tr("Skin file could not be read!"),
-                                         QMessageBox::Warning)
-                ->exec();
-            close();
-            return;
-        }
-        skinUpload.addTask(shared_qobject_ptr<SkinUpload>(
-            new SkinUpload(this, m_acct->accessToken(), skinData, model)));
-    }
 
-    auto selectedCape = ui->capeCombo->currentData().toString();
-    if (selectedCape != m_acct->accountData()->minecraftProfile.currentCape)
-    {
-        skinUpload.addTask(shared_qobject_ptr<CapeChange>(
-            new CapeChange(this, m_acct->accessToken(), selectedCape)));
-    }
-    if (prog.execWithTask(&skinUpload) != QDialog::Accepted)
-    {
-        CustomMessageBox::selectable(this, tr("Skin Upload"),
-                                     tr("Failed to upload skin!"),
-                                     QMessageBox::Warning)
-            ->exec();
-        close();
-        return;
-    }
-    CustomMessageBox::selectable(this, tr("Skin Upload"), tr("Success"),
-                                 QMessageBox::Information)
+        auto selectedCape = ui->capeCombo->currentData().toString();
+        if (selectedCape != m_acct->accountData()->minecraftProfile.currentCape)
+        {
+            skinUpload.addTask(shared_qobject_ptr<CapeChange>(
+                new CapeChange(this, m_acct->accessToken(), selectedCape)));
+        }
+        if (prog.execWithTask(&skinUpload) != QDialog::Accepted)
+        {
+            message = tr("Failed to upload skin!");
+            break;
+        }
+        message = tr("Success");
+        icon = QMessageBox::Information;
+    } while (0);
+
+    CustomMessageBox::selectable(this, tr("Skin Upload"), message, icon)
         ->exec();
     close();
 }

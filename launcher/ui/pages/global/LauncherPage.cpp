@@ -129,9 +129,14 @@ void LauncherPage::on_instDirBrowseBtn_clicked()
     QString raw_dir = QFileDialog::getExistingDirectory(
         this, tr("Instance Folder"), ui->instDirTextBox->text());
 
-    // do not allow current dir - it's dirty. Do not allow dirs that don't exist
-    if (!raw_dir.isEmpty() && QDir(raw_dir).exists())
+    do
     {
+        // do not allow current dir - it's dirty. Do not allow dirs that don't
+        // exist
+        if (raw_dir.isEmpty() || !QDir(raw_dir).exists())
+        {
+            break;
+        }
         QString cooked_dir = FS::NormalizePath(raw_dir);
         if (FS::checkProblemticPathJava(QDir(cooked_dir)))
         {
@@ -147,9 +152,9 @@ void LauncherPage::on_instDirBrowseBtn_clicked()
                    "instance path."));
             warning.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
             int result = warning.exec();
-            if (result == QMessageBox::Ok)
+            if (result != QMessageBox::Ok)
             {
-                ui->instDirTextBox->setText(cooked_dir);
+                break;
             }
         }
         else if (APPLICATION->isFlatpak() && raw_dir.startsWith("/run/user"))
@@ -165,16 +170,13 @@ void LauncherPage::on_instDirBrowseBtn_clicked()
             warning.setInformativeText(tr("Do you want to proceed anyway?"));
             warning.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
             int result = warning.exec();
-            if (result == QMessageBox::Ok)
+            if (result != QMessageBox::Ok)
             {
-                ui->instDirTextBox->setText(cooked_dir);
+                break;
             }
         }
-        else
-        {
-            ui->instDirTextBox->setText(cooked_dir);
-        }
-    }
+        ui->instDirTextBox->setText(cooked_dir);
+    } while (0);
 }
 
 void LauncherPage::on_iconsDirBrowseBtn_clicked()

@@ -1083,76 +1083,78 @@ void Application::performMainStartupAction()
 {
     m_status = Application::Initialized;
 
-    if (!m_instanceIdToLaunch.isEmpty())
+    do
     {
-        auto inst = instances()->getInstanceById(m_instanceIdToLaunch);
-        if (inst)
+        if (m_instanceIdToLaunch.isEmpty())
         {
-            MinecraftServerTargetPtr serverToJoin = nullptr;
-            MinecraftAccountPtr accountToUse = nullptr;
-
-            qDebug() << "<> Instance" << m_instanceIdToLaunch << "launching";
-            if (!m_serverToJoin.isEmpty())
-            {
-                // FIXME: validate the server string
-                serverToJoin.reset(new MinecraftServerTarget(
-                    MinecraftServerTarget::parse(m_serverToJoin)));
-                qDebug() << "   Launching with server" << m_serverToJoin;
-            }
-
-            if (!m_profileToUse.isEmpty())
-            {
-                accountToUse =
-                    accounts()->getAccountByProfileName(m_profileToUse);
-                if (!accountToUse)
-                {
-                    qWarning() << "   No account found for profile"
-                               << m_profileToUse << ", not launching";
-                }
-                else
-                {
-                    qDebug() << "   Launching with account" << m_profileToUse;
-                }
-            }
-
-            if (m_profileToUse.isEmpty() || accountToUse)
-            {
-                launch(inst, true, false, nullptr, serverToJoin, accountToUse);
-                return;
-            }
+            break;
         }
-    }
+        auto inst = instances()->getInstanceById(m_instanceIdToLaunch);
+        if (!inst)
+        {
+            break;
+        }
+        MinecraftServerTargetPtr serverToJoin = nullptr;
+        MinecraftAccountPtr accountToUse = nullptr;
 
+        qDebug() << "<> Instance" << m_instanceIdToLaunch << "launching";
+        if (!m_serverToJoin.isEmpty())
+        {
+            // FIXME: validate the server string
+            serverToJoin.reset(new MinecraftServerTarget(
+                MinecraftServerTarget::parse(m_serverToJoin)));
+            qDebug() << "   Launching with server" << m_serverToJoin;
+        }
+
+        if (!m_profileToUse.isEmpty())
+        {
+            accountToUse = accounts()->getAccountByProfileName(m_profileToUse);
+            if (!accountToUse)
+            {
+                qWarning() << "   No account found for profile"
+                           << m_profileToUse << ", not launching";
+                break;
+            }
+            qDebug() << "   Launching with account" << m_profileToUse;
+        }
+
+        launch(inst, true, false, nullptr, serverToJoin, accountToUse);
+        return;
+    } while (0);
+
+    do
     {
         bool shouldFetch =
             m_settings->get("FlameKeyShouldBeFetchedOnStartup").toBool();
-        if (!BuildConfig.FLAME_API_KEY_API_URL.isEmpty() && shouldFetch &&
-            !(capabilities() & Capability::SupportsFlame))
+        if (BuildConfig.FLAME_API_KEY_API_URL.isEmpty() || !shouldFetch ||
+            (capabilities() & Capability::SupportsFlame))
         {
-            auto response = QMessageBox::question(
-                nullptr, tr("Curseforge Core API Key"),
-                tr("Should PolyMC try to fetch the Official Curseforge "
-                   "Launcher's API Key? "
-                   "Using this key technically breaks Curseforge's Terms of "
-                   "Service, but this distribution of PolyMC "
-                   "does not come with a Curseforge API key by default, so "
-                   "without this key or another valid API key, "
-                   "which you can always change in the settings, you won't be "
-                   "able to download Curseforge modpacks."),
-                QMessageBox::Yes | QMessageBox::No);
-
-            if (response == QMessageBox::Yes)
-            {
-                QString apiKey = GuiUtil::fetchFlameKey();
-                if (!apiKey.isEmpty())
-                {
-                    m_settings->set("FlameKeyOverride", apiKey);
-                    updateCapabilities();
-                }
-            }
+            break;
         }
-        m_settings->set("FlameKeyShouldBeFetchedOnStartup", false);
-    }
+        auto response = QMessageBox::question(
+            nullptr, tr("Curseforge Core API Key"),
+            tr("Should PolyMC try to fetch the Official Curseforge "
+               "Launcher's API Key? "
+               "Using this key technically breaks Curseforge's Terms of "
+               "Service, but this distribution of PolyMC "
+               "does not come with a Curseforge API key by default, so "
+               "without this key or another valid API key, "
+               "which you can always change in the settings, you won't be "
+               "able to download Curseforge modpacks."),
+            QMessageBox::Yes | QMessageBox::No);
+        if (response != QMessageBox::Yes)
+        {
+            break;
+        }
+        QString apiKey = GuiUtil::fetchFlameKey();
+        if (apiKey.isEmpty())
+        {
+            break;
+        }
+        m_settings->set("FlameKeyOverride", apiKey);
+        updateCapabilities();
+    } while (0);
+    m_settings->set("FlameKeyShouldBeFetchedOnStartup", false);
 
     if (!m_mainWindow)
     {
