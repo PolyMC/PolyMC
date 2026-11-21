@@ -38,6 +38,9 @@ protected:
     virtual void executeTask();
 
     std::shared_ptr<QNetworkReply> m_reply;
+
+private:
+    void networkError(QNetworkReply::NetworkError error);
 };
 
 #endif  // FETCHFLAMEAPIKEY_H

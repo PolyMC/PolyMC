@@ -112,6 +112,10 @@ protected slots:
     void onVersionSelectionChanged(QString newData);
     void onModSelected();
 
+private:
+    void markFilterChanged();
+    void markFilterUnchanged();
+
 protected:
     Ui::ModPage* ui = nullptr;
     ModDownloadDialog* dialog = nullptr;

@@ -6,6 +6,75 @@
 
 #include <pathmatcher/RegexpMatcher.h>
 
+namespace
+{
+void copyAndVerify(const QString& folder)
+{
+    QTemporaryDir tempDir;
+    tempDir.setAutoRemove(true);
+    qDebug() << "From:" << folder << "To:" << tempDir.path();
+
+    QDir target_dir(FS::PathCombine(tempDir.path(), "test_folder"));
+    qDebug() << tempDir.path();
+    qDebug() << target_dir.path();
+    FS::copy c(folder, target_dir.path());
+    c();
+
+    for (auto entry : target_dir.entryList())
+    {
+        qDebug() << entry;
+    }
+    QVERIFY(target_dir.entryList().contains("pack.mcmeta"));
+    QVERIFY(target_dir.entryList().contains("assets"));
+}
+
+void copyWithBlacklistAndVerify(const QString& folder)
+{
+    QTemporaryDir tempDir;
+    tempDir.setAutoRemove(true);
+    qDebug() << "From:" << folder << "To:" << tempDir.path();
+
+    QDir target_dir(FS::PathCombine(tempDir.path(), "test_folder"));
+    qDebug() << tempDir.path();
+    qDebug() << target_dir.path();
+    FS::copy c(folder, target_dir.path());
+    c.blacklist(new RegexpMatcher("[.]?mcmeta"));
+    c();
+
+    for (auto entry : target_dir.entryList())
+    {
+        qDebug() << entry;
+    }
+    QVERIFY(!target_dir.entryList().contains("pack.mcmeta"));
+    QVERIFY(target_dir.entryList().contains("assets"));
+}
+
+void copyWithDotHiddenAndVerify(const QString& folder)
+{
+    QTemporaryDir tempDir;
+    tempDir.setAutoRemove(true);
+    qDebug() << "From:" << folder << "To:" << tempDir.path();
+
+    QDir target_dir(FS::PathCombine(tempDir.path(), "test_folder"));
+    qDebug() << tempDir.path();
+    qDebug() << target_dir.path();
+    FS::copy c(folder, target_dir.path());
+    c();
+
+    auto filter =
+        QDir::Filter::Files | QDir::Filter::Dirs | QDir::Filter::Hidden;
+
+    for (auto entry : target_dir.entryList(filter))
+    {
+        qDebug() << entry;
+    }
+
+    QVERIFY(target_dir.entryList(filter).contains(".secret_folder"));
+    target_dir.cd(".secret_folder");
+    QVERIFY(target_dir.entryList(filter).contains(".secret_file.txt"));
+}
+}  // namespace
+
 class FileSystemTest : public QObject
 {
     Q_OBJECT
@@ -97,106 +166,40 @@ private slots:
     void test_copy()
     {
         QString folder = QFINDTESTDATA("testdata/FileSystem/test_folder");
-        auto f = [&folder]()
-        {
-            QTemporaryDir tempDir;
-            tempDir.setAutoRemove(true);
-            qDebug() << "From:" << folder << "To:" << tempDir.path();
-
-            QDir target_dir(FS::PathCombine(tempDir.path(), "test_folder"));
-            qDebug() << tempDir.path();
-            qDebug() << target_dir.path();
-            FS::copy c(folder, target_dir.path());
-            c();
-
-            for (auto entry : target_dir.entryList())
-            {
-                qDebug() << entry;
-            }
-            QVERIFY(target_dir.entryList().contains("pack.mcmeta"));
-            QVERIFY(target_dir.entryList().contains("assets"));
-        };
-
         // first try variant without trailing /
         QVERIFY(!folder.endsWith('/'));
-        f();
+        copyAndVerify(folder);
 
         // then variant with trailing /
         folder.append('/');
         QVERIFY(folder.endsWith('/'));
-        f();
+        copyAndVerify(folder);
     }
 
     void test_copy_with_blacklist()
     {
         QString folder = QFINDTESTDATA("testdata/FileSystem/test_folder");
-        auto f = [&folder]()
-        {
-            QTemporaryDir tempDir;
-            tempDir.setAutoRemove(true);
-            qDebug() << "From:" << folder << "To:" << tempDir.path();
-
-            QDir target_dir(FS::PathCombine(tempDir.path(), "test_folder"));
-            qDebug() << tempDir.path();
-            qDebug() << target_dir.path();
-            FS::copy c(folder, target_dir.path());
-            c.blacklist(new RegexpMatcher("[.]?mcmeta"));
-            c();
-
-            for (auto entry : target_dir.entryList())
-            {
-                qDebug() << entry;
-            }
-            QVERIFY(!target_dir.entryList().contains("pack.mcmeta"));
-            QVERIFY(target_dir.entryList().contains("assets"));
-        };
-
         // first try variant without trailing /
         QVERIFY(!folder.endsWith('/'));
-        f();
+        copyWithBlacklistAndVerify(folder);
 
         // then variant with trailing /
         folder.append('/');
         QVERIFY(folder.endsWith('/'));
-        f();
+        copyWithBlacklistAndVerify(folder);
     }
 
     void test_copy_with_dot_hidden()
     {
         QString folder = QFINDTESTDATA("testdata/FileSystem/test_folder");
-        auto f = [&folder]()
-        {
-            QTemporaryDir tempDir;
-            tempDir.setAutoRemove(true);
-            qDebug() << "From:" << folder << "To:" << tempDir.path();
-
-            QDir target_dir(FS::PathCombine(tempDir.path(), "test_folder"));
-            qDebug() << tempDir.path();
-            qDebug() << target_dir.path();
-            FS::copy c(folder, target_dir.path());
-            c();
-
-            auto filter =
-                QDir::Filter::Files | QDir::Filter::Dirs | QDir::Filter::Hidden;
-
-            for (auto entry : target_dir.entryList(filter))
-            {
-                qDebug() << entry;
-            }
-
-            QVERIFY(target_dir.entryList(filter).contains(".secret_folder"));
-            target_dir.cd(".secret_folder");
-            QVERIFY(target_dir.entryList(filter).contains(".secret_file.txt"));
-        };
-
         // first try variant without trailing /
         QVERIFY(!folder.endsWith('/'));
-        f();
+        copyWithDotHiddenAndVerify(folder);
 
         // then variant with trailing /
         folder.append('/');
         QVERIFY(folder.endsWith('/'));
-        f();
+        copyWithDotHiddenAndVerify(folder);
     }
 
     void test_getDesktop()

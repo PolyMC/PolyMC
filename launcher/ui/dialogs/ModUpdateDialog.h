@@ -12,6 +12,7 @@ class Mod;
 class ModrinthCheckUpdate;
 class FlameCheckUpdate;
 class ConcurrentTask;
+class Task;
 
 class ModUpdateDialog final : public ReviewMessageBox
 {
@@ -54,6 +55,12 @@ private slots:
         ModPlatform::Provider first_choice = ModPlatform::Provider::MODRINTH);
 
 private:
+    void onCheckFailed(Mod* mod, QString reason, QUrl recovery);
+    void onCheckTaskFailed(QString reason);
+    void onCheckTaskSucceeded(const Task& task);
+    void onFirstMetadataFailed(QHash<QString, bool>& others,
+                               ModPlatform::Provider provider, Mod* candidate);
+
     QWidget* m_parent;
 
     ModrinthCheckUpdate* m_modrinth_check_task = nullptr;

@@ -184,10 +184,7 @@ shared_qobject_ptr<AccountTask> MinecraftAccount::login(QString password)
     connect(m_currentTask.get(), &Task::failed, this,
             &MinecraftAccount::authFailed);
     connect(m_currentTask.get(), &Task::aborted, this,
-            [this]
-            {
-                authFailed(tr("Aborted"));
-            });
+            &MinecraftAccount::authAborted);
     emit activityChanged(true);
     return m_currentTask;
 }
@@ -202,10 +199,7 @@ shared_qobject_ptr<AccountTask> MinecraftAccount::loginMSA()
     connect(m_currentTask.get(), &Task::failed, this,
             &MinecraftAccount::authFailed);
     connect(m_currentTask.get(), &Task::aborted, this,
-            [this]
-            {
-                authFailed(tr("Aborted"));
-            });
+            &MinecraftAccount::authAborted);
     emit activityChanged(true);
     return m_currentTask;
 }
@@ -220,10 +214,7 @@ shared_qobject_ptr<AccountTask> MinecraftAccount::loginOffline()
     connect(m_currentTask.get(), &Task::failed, this,
             &MinecraftAccount::authFailed);
     connect(m_currentTask.get(), &Task::aborted, this,
-            [this]
-            {
-                authFailed(tr("Aborted"));
-            });
+            &MinecraftAccount::authAborted);
     emit activityChanged(true);
     return m_currentTask;
 }
@@ -253,10 +244,7 @@ shared_qobject_ptr<AccountTask> MinecraftAccount::refresh()
     connect(m_currentTask.get(), &Task::failed, this,
             &MinecraftAccount::authFailed);
     connect(m_currentTask.get(), &Task::aborted, this,
-            [this]
-            {
-                authFailed(tr("Aborted"));
-            });
+            &MinecraftAccount::authAborted);
     emit activityChanged(true);
     return m_currentTask;
 }
@@ -271,6 +259,11 @@ void MinecraftAccount::authSucceeded()
     m_currentTask.reset();
     emit changed();
     emit activityChanged(false);
+}
+
+void MinecraftAccount::authAborted()
+{
+    authFailed(tr("Aborted"));
 }
 
 void MinecraftAccount::authFailed(QString /*reason*/)

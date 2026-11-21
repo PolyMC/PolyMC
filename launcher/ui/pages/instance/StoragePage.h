@@ -80,6 +80,12 @@ protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
 private:
+    void gotoResourcePacks();
+    void gotoMods();
+    void gotoWorlds();
+    void gotoScreenshots();
+    void gotoOtherLogs();
+
     Ui::StoragePage* ui;
     BaseInstance* m_inst;
 

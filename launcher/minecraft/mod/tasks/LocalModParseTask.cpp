@@ -16,6 +16,49 @@
 namespace
 {
 
+ModDetails getInfoFromArray(QJsonArray arr)
+{
+    if (!arr.at(0).isObject())
+    {
+        return {};
+    }
+    ModDetails details;
+    auto firstObj = arr.at(0).toObject();
+    details.mod_id = firstObj.value("modid").toString();
+    auto name = firstObj.value("name").toString();
+    // NOTE: ignore stupid example mods copies where the author didn't even
+    // bother to change the name
+    if (name != "Example Mod")
+    {
+        details.name = name;
+    }
+    details.version = firstObj.value("version").toString();
+    auto homeurl = firstObj.value("url").toString().trimmed();
+    if (!homeurl.isEmpty())
+    {
+        // fix up url.
+        if (!homeurl.startsWith("http://") && !homeurl.startsWith("https://") &&
+            !homeurl.startsWith("ftp://"))
+        {
+            homeurl.prepend("http://");
+        }
+    }
+    details.homeurl = homeurl;
+    details.description = firstObj.value("description").toString();
+    QJsonArray authors = firstObj.value("authorList").toArray();
+    if (authors.size() == 0)
+    {
+        // FIXME: what is the format of this? is there any?
+        authors = firstObj.value("authors").toArray();
+    }
+
+    for (auto author : std::as_const(authors))
+    {
+        details.authors.append(author.toString());
+    }
+    return details;
+}
+
 // NEW format
 // https://github.com/MinecraftForge/FML/wiki/FML-mod-information-file/6f62b37cea040daf350dc253eae6326dd9c822c3
 
@@ -23,49 +66,6 @@ namespace
 // https://github.com/MinecraftForge/FML/wiki/FML-mod-information-file/5bf6a2d05145ec79387acc0d45c958642fb049fc
 ModDetails ReadMCModInfo(QByteArray contents)
 {
-    auto getInfoFromArray = [&](QJsonArray arr) -> ModDetails
-    {
-        if (!arr.at(0).isObject())
-        {
-            return {};
-        }
-        ModDetails details;
-        auto firstObj = arr.at(0).toObject();
-        details.mod_id = firstObj.value("modid").toString();
-        auto name = firstObj.value("name").toString();
-        // NOTE: ignore stupid example mods copies where the author didn't even
-        // bother to change the name
-        if (name != "Example Mod")
-        {
-            details.name = name;
-        }
-        details.version = firstObj.value("version").toString();
-        auto homeurl = firstObj.value("url").toString().trimmed();
-        if (!homeurl.isEmpty())
-        {
-            // fix up url.
-            if (!homeurl.startsWith("http://") &&
-                !homeurl.startsWith("https://") &&
-                !homeurl.startsWith("ftp://"))
-            {
-                homeurl.prepend("http://");
-            }
-        }
-        details.homeurl = homeurl;
-        details.description = firstObj.value("description").toString();
-        QJsonArray authors = firstObj.value("authorList").toArray();
-        if (authors.size() == 0)
-        {
-            // FIXME: what is the format of this? is there any?
-            authors = firstObj.value("authors").toArray();
-        }
-
-        for (auto author : std::as_const(authors))
-        {
-            details.authors.append(author.toString());
-        }
-        return details;
-    };
     QJsonParseError jsonError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(contents, &jsonError);
     // this is the very old format that had just the array

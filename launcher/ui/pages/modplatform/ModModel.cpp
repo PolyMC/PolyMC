@@ -12,8 +12,39 @@
 #include <QMessageBox>
 #include <QPointer>
 
+#include <functional>
+
 namespace ModPlatform
 {
+
+namespace
+{
+void onVersionsReceived(const QPointer<ListModel>& self,
+                        const QModelIndex& index, QJsonDocument& doc,
+                        QString addon)
+{
+    if (!self)
+    {
+        return;
+    }
+    self->versionRequestSucceeded(doc, addon, index);
+}
+
+void onInfoReceived(const QPointer<ListModel>& self, const QModelIndex& index,
+                    const QVariant& requested, QJsonDocument& doc,
+                    ModPlatform::IndexedPack& pack)
+{
+    if (!self)
+    {
+        return;
+    }
+    if (pack.addonId != requested)
+    {
+        return;
+    }
+    self->infoRequestFinished(doc, pack, index);
+}
+}  // namespace
 
 ListModel::ListModel(ModPage* parent)
     : QAbstractListModel(parent), m_parent(parent)
@@ -125,15 +156,8 @@ void ListModel::requestModVersions(ModPlatform::IndexedPack const& current,
     m_parent->apiProvider()->getVersions(
         {current.addonId.toString(), getMineVersions(),
          profile->getModLoaders(), m_parent->resourceType()},
-        [self = QPointer<ListModel>(this), index](QJsonDocument& doc,
-                                                  QString addonId)
-        {
-            if (!self)
-            {
-                return;
-            }
-            self->versionRequestSucceeded(doc, addonId, index);
-        });
+        std::bind(onVersionsReceived, QPointer<ListModel>(this), index,
+                  std::placeholders::_1, std::placeholders::_2));
 }
 
 void ListModel::performPaginatedSearch()
@@ -156,19 +180,8 @@ void ListModel::requestModInfo(ModPlatform::IndexedPack& current,
     auto requested_id = current.addonId;
     m_parent->apiProvider()->getModInfo(
         current,
-        [self = QPointer<ListModel>(this), index, requested_id](
-            QJsonDocument& doc, ModPlatform::IndexedPack& pack)
-        {
-            if (!self)
-            {
-                return;
-            }
-            if (pack.addonId != requested_id)
-            {
-                return;
-            }
-            self->infoRequestFinished(doc, pack, index);
-        });
+        std::bind(onInfoReceived, QPointer<ListModel>(this), index,
+                  requested_id, std::placeholders::_1, std::placeholders::_2));
 }
 
 void ListModel::refresh()
@@ -242,26 +255,31 @@ void ListModel::requestLogo(QString logo, QString url)
     job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
 
     auto fullPath = entry->getFullPath();
-    QObject::connect(job, &NetJob::succeeded, this,
-                     [this, logo, fullPath]
-                     {
-                         emit logoLoaded(logo, QIcon(fullPath));
-                         if (waitingCallbacks.contains(logo))
-                         {
-                             waitingCallbacks.value(logo)(fullPath);
-                         }
-                     });
+    QObject::connect(
+        job, &NetJob::succeeded, this,
+        std::bind(&ListModel::onLogoSucceeded, this, logo, fullPath));
 
     QObject::connect(job, &NetJob::failed, this,
-                     [this, logo]
-                     {
-                         emit logoFailed(logo);
-                     });
+                     std::bind(&ListModel::onLogoFailed, this, logo));
 
     QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
 
     job->start();
     m_loadingLogos.append(logo);
+}
+
+void ListModel::onLogoSucceeded(const QString& logo, const QString& path)
+{
+    emit logoLoaded(logo, QIcon(path));
+    if (waitingCallbacks.contains(logo))
+    {
+        waitingCallbacks.value(logo)(path);
+    }
+}
+
+void ListModel::onLogoFailed(const QString& logo)
+{
+    emit logoFailed(logo);
 }
 
 /******** Request callbacks ********/

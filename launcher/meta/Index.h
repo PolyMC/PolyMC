@@ -72,5 +72,6 @@ private:
     QHash<QString, VersionListPtr> m_uids;
 
     void connectVersionList(const int row, const VersionListPtr& list);
+    void versionListNameChanged(int row);
 };
 }  // namespace Meta

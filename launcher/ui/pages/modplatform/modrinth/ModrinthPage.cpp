@@ -51,6 +51,22 @@
 #include <QKeyEvent>
 #include <QPushButton>
 
+#include <functional>
+
+namespace
+{
+void cleanupJob(QByteArray* response, NetJob* job)
+{
+    job->deleteLater();
+    delete response;
+}
+
+QString donateToStr(Modrinth::DonationData& donate)
+{
+    return QString("<a href=\"%1\">%2</a>").arg(donate.url, donate.platform);
+}
+}  // namespace
+
 ModrinthPage::ModrinthPage(NewInstanceDialog* dialog, QWidget* parent)
     : QWidget(parent), ui(new Ui::ModrinthPage), dialog(dialog)
 {
@@ -147,67 +163,9 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
 
         QObject::connect(
             netJob, &NetJob::succeeded, this,
-            [this, response, id, curr]
-            {
-                if (id != current.id)
-                {
-                    return;  // wrong request?
-                }
-
-                QJsonParseError parse_error;
-                QJsonDocument doc =
-                    QJsonDocument::fromJson(*response, &parse_error);
-                if (parse_error.error != QJsonParseError::NoError)
-                {
-                    qWarning()
-                        << "Error while parsing JSON response from Modrinth at "
-                        << parse_error.offset
-                        << " reason: " << parse_error.errorString();
-                    qWarning() << *response;
-                    return;
-                }
-
-                try
-                {
-                    // Inside the try block, this throws when the response isn't
-                    // an object
-                    auto obj = Json::requireObject(doc);
-                    Modrinth::loadIndexedInfo(current, obj);
-                }
-                catch (const JSONValidationError& e)
-                {
-                    qDebug() << *response;
-                    qWarning()
-                        << "Error while reading modrinth modpack version: "
-                        << e.cause();
-                }
-
-                updateUI();
-
-                // Only cache it if the row still holds this pack, a new search
-                // may have put another one there meanwhile
-                if (m_model->data(curr, Qt::UserRole)
-                        .value<Modrinth::Modpack>()
-                        .id == id)
-                {
-                    QVariant current_updated;
-                    current_updated.setValue(current);
-
-                    if (!m_model->setData(curr, current_updated, Qt::UserRole))
-                    {
-                        qWarning() << "Failed to cache extra info for the "
-                                      "current pack!";
-                    }
-                }
-
-                suggestCurrent();
-            });
+            std::bind(&ModrinthPage::onInfoLoaded, this, response, id, curr));
         QObject::connect(netJob, &NetJob::finished, netJob,
-                         [response, netJob]
-                         {
-                             netJob->deleteLater();
-                             delete response;
-                         });
+                         std::bind(cleanupJob, response, netJob));
         netJob->start();
     }
     else
@@ -231,80 +189,11 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
                 .arg(BuildConfig.MODRINTH_PROD_URL, id),
             response));
 
-        QObject::connect(
-            netJob, &NetJob::succeeded, this,
-            [this, response, id, curr]
-            {
-                if (id != current.id)
-                {
-                    return;  // wrong request?
-                }
-
-                QJsonParseError parse_error;
-                QJsonDocument doc =
-                    QJsonDocument::fromJson(*response, &parse_error);
-                if (parse_error.error != QJsonParseError::NoError)
-                {
-                    qWarning()
-                        << "Error while parsing JSON response from Modrinth at "
-                        << parse_error.offset
-                        << " reason: " << parse_error.errorString();
-                    qWarning() << *response;
-                    return;
-                }
-
-                try
-                {
-                    Modrinth::loadIndexedVersions(current, doc);
-                }
-                catch (const JSONValidationError& e)
-                {
-                    qDebug() << *response;
-                    qWarning()
-                        << "Error while reading modrinth modpack version: "
-                        << e.cause();
-                }
-
-                for (auto version : std::as_const(current.versions))
-                {
-                    if (!version.name.contains(version.version))
-                    {
-                        ui->versionSelectionBox->addItem(
-                            QString("%1 — %2").arg(version.name,
-                                                   version.version),
-                            QVariant(version.id));
-                    }
-                    else
-                    {
-                        ui->versionSelectionBox->addItem(version.name,
-                                                         QVariant(version.id));
-                    }
-                }
-
-                // Only cache it if the row still holds this pack, a new search
-                // may have put another one there meanwhile
-                if (m_model->data(curr, Qt::UserRole)
-                        .value<Modrinth::Modpack>()
-                        .id == id)
-                {
-                    QVariant current_updated;
-                    current_updated.setValue(current);
-
-                    if (!m_model->setData(curr, current_updated, Qt::UserRole))
-                    {
-                        qWarning()
-                            << "Failed to cache versions for the current pack!";
-                    }
-                }
-
-                suggestCurrent();
-            });
+        QObject::connect(netJob, &NetJob::succeeded, this,
+                         std::bind(&ModrinthPage::onVersionsLoaded, this,
+                                   response, id, curr));
         QObject::connect(netJob, &NetJob::finished, netJob,
-                         [response, netJob]
-                         {
-                             netJob->deleteLater();
-                             delete response;
-                         });
+                         std::bind(cleanupJob, response, netJob));
         netJob->start();
     }
     else
@@ -326,6 +215,124 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
 
         suggestCurrent();
     }
+}
+
+void ModrinthPage::onInfoLoaded(QByteArray* response, const QString& id,
+                                const QModelIndex& curr)
+{
+    if (id != current.id)
+    {
+        return;  // wrong request?
+    }
+
+    QJsonParseError parse_error;
+    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from Modrinth at "
+                   << parse_error.offset
+                   << " reason: " << parse_error.errorString();
+        qWarning() << *response;
+        return;
+    }
+
+    try
+    {
+        // Inside the try block, this throws when the response isn't
+        // an object
+        auto obj = Json::requireObject(doc);
+        Modrinth::loadIndexedInfo(current, obj);
+    }
+    catch (const JSONValidationError& e)
+    {
+        qDebug() << *response;
+        qWarning() << "Error while reading modrinth modpack version: "
+                   << e.cause();
+    }
+
+    updateUI();
+
+    // Only cache it if the row still holds this pack, a new search
+    // may have put another one there meanwhile
+    if (m_model->data(curr, Qt::UserRole).value<Modrinth::Modpack>().id == id)
+    {
+        QVariant current_updated;
+        current_updated.setValue(current);
+
+        if (!m_model->setData(curr, current_updated, Qt::UserRole))
+        {
+            qWarning() << "Failed to cache extra info for the "
+                          "current pack!";
+        }
+    }
+
+    suggestCurrent();
+}
+
+void ModrinthPage::onVersionsLoaded(QByteArray* response, const QString& id,
+                                    const QModelIndex& curr)
+{
+    if (id != current.id)
+    {
+        return;  // wrong request?
+    }
+
+    QJsonParseError parse_error;
+    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from Modrinth at "
+                   << parse_error.offset
+                   << " reason: " << parse_error.errorString();
+        qWarning() << *response;
+        return;
+    }
+
+    try
+    {
+        Modrinth::loadIndexedVersions(current, doc);
+    }
+    catch (const JSONValidationError& e)
+    {
+        qDebug() << *response;
+        qWarning() << "Error while reading modrinth modpack version: "
+                   << e.cause();
+    }
+
+    for (auto version : std::as_const(current.versions))
+    {
+        if (!version.name.contains(version.version))
+        {
+            ui->versionSelectionBox->addItem(
+                QString("%1 — %2").arg(version.name, version.version),
+                QVariant(version.id));
+        }
+        else
+        {
+            ui->versionSelectionBox->addItem(version.name,
+                                             QVariant(version.id));
+        }
+    }
+
+    // Only cache it if the row still holds this pack, a new search
+    // may have put another one there meanwhile
+    if (m_model->data(curr, Qt::UserRole).value<Modrinth::Modpack>().id == id)
+    {
+        QVariant current_updated;
+        current_updated.setValue(current);
+
+        if (!m_model->setData(curr, current_updated, Qt::UserRole))
+        {
+            qWarning() << "Failed to cache versions for the current pack!";
+        }
+    }
+
+    suggestCurrent();
+}
+
+void ModrinthPage::setSuggestedLogo(const QString& name, QString logo)
+{
+    dialog->setSuggestedIconFromFile(logo, name);
 }
 
 void ModrinthPage::updateUI()
@@ -353,11 +360,6 @@ void ModrinthPage::updateUI()
         if (!current.extra.donate.isEmpty())
         {
             text += "<br><br>" + tr("Donate information: ");
-            auto donateToStr = [](Modrinth::DonationData& donate) -> QString
-            {
-                return QString("<a href=\"%1\">%2</a>")
-                    .arg(donate.url, donate.platform);
-            };
             QStringList donates;
             for (auto& donate : current.extra.donate)
             {
@@ -432,11 +434,8 @@ void ModrinthPage::suggestCurrent()
                 new InstanceImportTask(ver.download_url, this));
             auto iconName = current.iconName;
             m_model->getLogo(iconName, current.iconUrl.toString(),
-                             [this, iconName](QString logo)
-                             {
-                                 dialog->setSuggestedIconFromFile(logo,
-                                                                  iconName);
-                             });
+                             std::bind(&ModrinthPage::setSuggestedLogo, this,
+                                       iconName, std::placeholders::_1));
 
             break;
         }

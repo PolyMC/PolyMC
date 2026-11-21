@@ -47,17 +47,6 @@ void Library::getApplicableFiles(const RuntimeContext& runtimeContext,
                                  const QString& overridePath) const
 {
     bool local = isLocal();
-    auto actualPath = [&](QString relPath)
-    {
-        QFileInfo out(FS::PathCombine(storagePrefix(), relPath));
-        if (local && !overridePath.isEmpty())
-        {
-            QString fileName = out.fileName();
-            return QFileInfo(FS::PathCombine(overridePath, fileName))
-                .absoluteFilePath();
-        }
-        return out.absoluteFilePath();
-    };
     QString raw_storage = storageSuffix(runtimeContext);
     if (isNative())
     {
@@ -67,17 +56,114 @@ void Library::getApplicableFiles(const RuntimeContext& runtimeContext,
             nat32Storage.replace("${arch}", "32");
             auto nat64Storage = raw_storage;
             nat64Storage.replace("${arch}", "64");
-            native32 += actualPath(nat32Storage);
-            native64 += actualPath(nat64Storage);
+            native32 += actualPath(local, overridePath, nat32Storage);
+            native64 += actualPath(local, overridePath, nat64Storage);
         }
         else
         {
-            native += actualPath(raw_storage);
+            native += actualPath(local, overridePath, raw_storage);
         }
     }
     else
     {
-        jar += actualPath(raw_storage);
+        jar += actualPath(local, overridePath, raw_storage);
+    }
+}
+
+QString Library::actualPath(bool local, const QString& folder,
+                            QString relative) const
+{
+    QFileInfo out(FS::PathCombine(storagePrefix(), relative));
+    if (local && !folder.isEmpty())
+    {
+        QString fileName = out.fileName();
+        return QFileInfo(FS::PathCombine(folder, fileName)).absoluteFilePath();
+    }
+    return out.absoluteFilePath();
+}
+
+namespace
+{
+bool checkLocalFile(const QString& folder, QStringList& failed, QString storage)
+{
+    QFileInfo fileinfo(storage);
+    QString fileName = fileinfo.fileName();
+    auto fullPath = FS::PathCombine(folder, fileName);
+    QFileInfo localFileInfo(fullPath);
+    if (!localFileInfo.exists())
+    {
+        failed.append(localFileInfo.filePath());
+        return false;
+    }
+    return true;
+}
+}  // namespace
+
+bool Library::addDownload(QList<NetAction::Ptr>& downloads,
+                          class HttpMetaCache* cache, QStringList& failed,
+                          const QString& folder, bool stale, bool local,
+                          QString storage, QString url, QString sha1) const
+{
+    if (local)
+    {
+        return checkLocalFile(folder, failed, storage);
+    }
+    auto entry = cache->resolveEntry("libraries", storage);
+    if (stale)
+    {
+        entry->setStale(true);
+    }
+    if (!entry->isStale())
+    {
+        return true;
+    }
+    Net::Download::Options options;
+    if (stale)
+    {
+        options |= Net::Download::Option::AcceptLocalFiles;
+    }
+
+    // Don't add a time limit for the libraries cache entry validity
+    options |= Net::Download::Option::MakeEternal;
+
+    if (sha1.size())
+    {
+        auto rawSha1 = QByteArray::fromHex(sha1.toLatin1());
+        auto dl = Net::Download::makeCached(url, entry, options);
+        dl->addValidator(
+            new Net::ChecksumValidator(QCryptographicHash::Sha1, rawSha1));
+        qDebug() << "Checksummed Download for:" << rawName().serialize()
+                 << "storage:" << storage << "url:" << url;
+        downloads.append(dl);
+    }
+    else
+    {
+        downloads.append(Net::Download::makeCached(url, entry, options));
+        qDebug() << "Download for:" << rawName().serialize()
+                 << "storage:" << storage << "url:" << url;
+    }
+    return true;
+}
+
+QString Library::downloadUrl(const QString& storage) const
+{
+    if (!m_absoluteURL.isEmpty())
+    {
+        return m_absoluteURL;
+    }
+
+    if (m_repositoryURL.isEmpty())
+    {
+        return BuildConfig.LIBRARY_BASE + storage;
+    }
+
+    if (m_repositoryURL.endsWith('/'))
+    {
+        return m_repositoryURL + storage;
+    }
+    else
+    {
+        return m_repositoryURL + QChar('/') + storage;
     }
 }
 
@@ -88,63 +174,6 @@ QList<NetAction::Ptr> Library::getDownloads(
     QList<NetAction::Ptr> out;
     bool stale = isAlwaysStale();
     bool local = isLocal();
-
-    auto check_local_file = [&](QString storage)
-    {
-        QFileInfo fileinfo(storage);
-        QString fileName = fileinfo.fileName();
-        auto fullPath = FS::PathCombine(overridePath, fileName);
-        QFileInfo localFileInfo(fullPath);
-        if (!localFileInfo.exists())
-        {
-            failedLocalFiles.append(localFileInfo.filePath());
-            return false;
-        }
-        return true;
-    };
-
-    auto add_download = [&](QString storage, QString url, QString sha1)
-    {
-        if (local)
-        {
-            return check_local_file(storage);
-        }
-        auto entry = cache->resolveEntry("libraries", storage);
-        if (stale)
-        {
-            entry->setStale(true);
-        }
-        if (!entry->isStale())
-        {
-            return true;
-        }
-        Net::Download::Options options;
-        if (stale)
-        {
-            options |= Net::Download::Option::AcceptLocalFiles;
-        }
-
-        // Don't add a time limit for the libraries cache entry validity
-        options |= Net::Download::Option::MakeEternal;
-
-        if (sha1.size())
-        {
-            auto rawSha1 = QByteArray::fromHex(sha1.toLatin1());
-            auto dl = Net::Download::makeCached(url, entry, options);
-            dl->addValidator(
-                new Net::ChecksumValidator(QCryptographicHash::Sha1, rawSha1));
-            qDebug() << "Checksummed Download for:" << rawName().serialize()
-                     << "storage:" << storage << "url:" << url;
-            out.append(dl);
-        }
-        else
-        {
-            out.append(Net::Download::makeCached(url, entry, options));
-            qDebug() << "Download for:" << rawName().serialize()
-                     << "storage:" << storage << "url:" << url;
-        }
-        return true;
-    };
 
     QString raw_storage = storageSuffix(runtimeContext);
     if (m_mojangDownloads)
@@ -166,8 +195,9 @@ QList<NetAction::Ptr> Library::getDownloads(
                     {
                         auto cooked_storage = raw_storage;
                         cooked_storage.replace("${arch}", "32");
-                        add_download(cooked_storage, nat32info->url,
-                                     nat32info->sha1);
+                        addDownload(out, cache, failedLocalFiles, overridePath,
+                                    stale, local, cooked_storage,
+                                    nat32info->url, nat32info->sha1);
                     }
                     auto nat64info =
                         m_mojangDownloads->getDownloadInfo(nat64Classifier);
@@ -175,8 +205,9 @@ QList<NetAction::Ptr> Library::getDownloads(
                     {
                         auto cooked_storage = raw_storage;
                         cooked_storage.replace("${arch}", "64");
-                        add_download(cooked_storage, nat64info->url,
-                                     nat64info->sha1);
+                        addDownload(out, cache, failedLocalFiles, overridePath,
+                                    stale, local, cooked_storage,
+                                    nat64info->url, nat64info->sha1);
                     }
                 }
                 else
@@ -185,7 +216,9 @@ QList<NetAction::Ptr> Library::getDownloads(
                         m_mojangDownloads->getDownloadInfo(nativeClassifier);
                     if (info)
                     {
-                        add_download(raw_storage, info->url, info->sha1);
+                        addDownload(out, cache, failedLocalFiles, overridePath,
+                                    stale, local, raw_storage, info->url,
+                                    info->sha1);
                     }
                 }
             }
@@ -200,7 +233,8 @@ QList<NetAction::Ptr> Library::getDownloads(
             if (m_mojangDownloads->artifact)
             {
                 auto artifact = m_mojangDownloads->artifact;
-                add_download(raw_storage, artifact->url, artifact->sha1);
+                addDownload(out, cache, failedLocalFiles, overridePath, stale,
+                            local, raw_storage, artifact->url, artifact->sha1);
             }
             else
             {
@@ -211,41 +245,24 @@ QList<NetAction::Ptr> Library::getDownloads(
     }
     else
     {
-        auto raw_dl = [&]()
-        {
-            if (!m_absoluteURL.isEmpty())
-            {
-                return m_absoluteURL;
-            }
-
-            if (m_repositoryURL.isEmpty())
-            {
-                return BuildConfig.LIBRARY_BASE + raw_storage;
-            }
-
-            if (m_repositoryURL.endsWith('/'))
-            {
-                return m_repositoryURL + raw_storage;
-            }
-            else
-            {
-                return m_repositoryURL + QChar('/') + raw_storage;
-            }
-        }();
+        auto raw_dl = downloadUrl(raw_storage);
         if (raw_storage.contains("${arch}"))
         {
             QString cooked_storage = raw_storage;
             QString cooked_dl = raw_dl;
-            add_download(cooked_storage.replace("${arch}", "32"),
-                         cooked_dl.replace("${arch}", "32"), QString());
+            addDownload(out, cache, failedLocalFiles, overridePath, stale,
+                        local, cooked_storage.replace("${arch}", "32"),
+                        cooked_dl.replace("${arch}", "32"), QString());
             cooked_storage = raw_storage;
             cooked_dl = raw_dl;
-            add_download(cooked_storage.replace("${arch}", "64"),
-                         cooked_dl.replace("${arch}", "64"), QString());
+            addDownload(out, cache, failedLocalFiles, overridePath, stale,
+                        local, cooked_storage.replace("${arch}", "64"),
+                        cooked_dl.replace("${arch}", "64"), QString());
         }
         else
         {
-            add_download(raw_storage, raw_dl, QString());
+            addDownload(out, cache, failedLocalFiles, overridePath, stale,
+                        local, raw_storage, raw_dl, QString());
         }
     }
     return out;

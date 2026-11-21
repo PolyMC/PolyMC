@@ -240,4 +240,7 @@ protected: /* methods */
 private slots:
     void authSucceeded();
     void authFailed(QString reason);
+
+private:
+    void authAborted();
 };

@@ -4,20 +4,23 @@
 #include <QRegularExpression>
 #include <QString>
 
+namespace
+{
+int getCapturedInteger(const QRegularExpressionMatch& match,
+                       const QString& what)
+{
+    auto str = match.captured(what);
+    if (str.isEmpty())
+    {
+        return 0;
+    }
+    return str.toInt();
+}
+}  // namespace
+
 JavaVersion& JavaVersion::operator=(const QString& javaVersionString)
 {
     m_string = javaVersionString;
-
-    auto getCapturedInteger = [](const QRegularExpressionMatch& match,
-                                 const QString& what) -> int
-    {
-        auto str = match.captured(what);
-        if (str.isEmpty())
-        {
-            return 0;
-        }
-        return str.toInt();
-    };
 
     QRegularExpression pattern;
     if (javaVersionString.startsWith("1."))

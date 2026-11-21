@@ -69,19 +69,21 @@ void SetupWizard::pageChanged(int id)
         // handler each time
         disconnect(customButton, &QAbstractButton::pressed, this, nullptr);
         connect(customButton, &QAbstractButton::pressed, this,
-                [&]()
-                {
-                    auto basePagePtr = getCurrentBasePage();
-                    if (basePagePtr)
-                    {
-                        basePagePtr->refresh();
-                    }
-                });
+                &SetupWizard::refreshCurrentPage);
     }
     else
     {
         setButtonLayout({QWizard::Stretch, QWizard::BackButton,
                          QWizard::NextButton, QWizard::FinishButton});
+    }
+}
+
+void SetupWizard::refreshCurrentPage()
+{
+    auto basePagePtr = getCurrentBasePage();
+    if (basePagePtr)
+    {
+        basePagePtr->refresh();
     }
 }
 

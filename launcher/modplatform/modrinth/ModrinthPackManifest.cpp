@@ -49,6 +49,17 @@ static ModrinthAPI api;
 namespace Modrinth
 {
 
+namespace
+{
+
+bool isNewerVersion(const ModpackVersion& a, const ModpackVersion& b)
+{
+    // dates are in RFC 3339 format
+    return a.date > b.date;
+}
+
+}  // namespace
+
 void loadIndexedPack(Modpack& pack, QJsonObject& obj)
 {
     pack.id = Json::ensureString(obj, "project_id");
@@ -126,15 +137,7 @@ void loadIndexedVersions(Modpack& pack, QJsonDocument& doc)
             unsortedVersions.append(file);
         }
     }
-    auto orderSortPredicate = [](const ModpackVersion& a,
-                                 const ModpackVersion& b) -> bool
-    {
-        // dates are in RFC 3339 format
-        return a.date > b.date;
-    };
-
-    std::sort(unsortedVersions.begin(), unsortedVersions.end(),
-              orderSortPredicate);
+    std::sort(unsortedVersions.begin(), unsortedVersions.end(), isNewerVersion);
 
     pack.versions.swap(unsortedVersions);
 

@@ -89,6 +89,9 @@ private:
     void suggestCurrent();
     void metadataLoaded();
     void selectVersion();
+    void setSuggestedLogo(const QString& name, QString logo);
+    void onPackMetaReceived(const QString& slug);
+    void useFallbackVersions();
 
 private slots:
     void triggerSearch();

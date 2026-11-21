@@ -65,14 +65,16 @@ public:
     template <typename PageClass>
     void addPage()
     {
-        addPageCreator(
-            []()
-            {
-                return new PageClass();
-            });
+        addPageCreator(&GenericPageProvider::createPage<PageClass>);
     }
 
 private:
+    template <typename PageClass>
+    static BasePage* createPage()
+    {
+        return new PageClass();
+    }
+
     QList<PageCreator> m_creators;
     QString m_dialogTitle;
 };

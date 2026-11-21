@@ -16,18 +16,22 @@
 #include <QSize>
 #include <QTimer>
 
+#include <functional>
+
 namespace
 {
 
 // replaces the broken image icon before load
+QImage makePlaceholderImage()
+{
+    QImage i(1, 1, QImage::Format_ARGB32);
+    i.fill(Qt::transparent);
+    return i;
+}
+
 QImage placeholderImage()
 {
-    static QImage img = []
-    {
-        QImage i(1, 1, QImage::Format_ARGB32);
-        i.fill(Qt::transparent);
-        return i;
-    }();
+    static QImage img = makePlaceholderImage();
     return img;
 }
 
@@ -41,19 +45,85 @@ RemoteTextBrowser::RemoteTextBrowser(QWidget* parent) : QTextBrowser(parent)
 
     setOpenLinks(false);
     connect(this, &QTextBrowser::anchorClicked, this,
-            [this](const QUrl& url)
-            {
-                if (url.scheme() == "http" || url.scheme() == "https" ||
-                    url.scheme() == "mailto")
-                {
-                    DesktopServices::openUrl(url);
-                }
-                else if (url.isRelative() && url.path().isEmpty() &&
-                         url.hasFragment())
-                {
-                    scrollToAnchor(url.fragment());
-                }
-            });
+            &RemoteTextBrowser::onAnchorClicked);
+}
+
+void RemoteTextBrowser::onAnchorClicked(const QUrl& url)
+{
+    if (url.scheme() == "http" || url.scheme() == "https" ||
+        url.scheme() == "mailto")
+    {
+        DesktopServices::openUrl(url);
+    }
+    else if (url.isRelative() && url.path().isEmpty() && url.hasFragment())
+    {
+        scrollToAnchor(url.fragment());
+    }
+}
+
+void RemoteTextBrowser::applyLoadedImage(QUrl url,
+                                         QPointer<QTextDocument> requesting,
+                                         const QImage& img)
+{
+    m_loading.remove(url);
+    if (img.isNull())
+    {
+        m_failed.insert(url);
+
+        // don't render this image at all
+        if (requesting && document() == requesting)
+        {
+            rerender(requesting, url, QSize(0, 0));
+        }
+
+        return;
+    }
+
+    // another doc was navigated to during download
+    if (!requesting || document() != requesting)
+    {
+        return;
+    }
+
+    QTimer::singleShot(0, this,
+                       std::bind(&RemoteTextBrowser::addLoadedImage, this, url,
+                                 img, QPointer<QTextDocument>(document())));
+
+    viewport()->update();
+}
+
+void RemoteTextBrowser::addLoadedImage(QUrl url, QImage img,
+                                       QPointer<QTextDocument> doc)
+{
+    if (!doc || document() != doc)
+    {
+        return;
+    }
+    doc->addResource(QTextDocument::ImageResource, url, img);
+    rerender(doc, url, img.size());
+}
+
+void RemoteTextBrowser::onImageDownloaded(QUrl url,
+                                          QPointer<QTextDocument> requesting,
+                                          MetaEntryPtr entry)
+{
+    applyLoadedImage(url, requesting, loadScaled(entry->getFullPath()));
+}
+
+void RemoteTextBrowser::onImageDownloadFailed(
+    QUrl url, QPointer<QTextDocument> requesting, MetaEntryPtr entry,
+    const QString& reason)
+{
+    qDebug() << "Failed to load image from" << url << "at"
+             << entry->getFullPath() << "because:" << reason;
+
+    applyLoadedImage(url, requesting, QImage{});
+}
+
+void RemoteTextBrowser::onJobFinished(NetJob* job)
+{
+    m_jobs.removeAll(job);
+    job->deleteLater();
 }
 
 QVariant RemoteTextBrowser::loadResource(int type, const QUrl& url)
@@ -66,43 +136,6 @@ QVariant RemoteTextBrowser::loadResource(int type, const QUrl& url)
 
     // load an img to the doc
     QPointer<QTextDocument> requestingDoc = document();
-    auto load = [this, url, requestingDoc](const QImage& img)
-    {
-        m_loading.remove(url);
-        if (img.isNull())
-        {
-            m_failed.insert(url);
-
-            // don't render this image at all
-            if (requestingDoc && document() == requestingDoc)
-            {
-                rerender(requestingDoc, url, QSize(0, 0));
-            }
-
-            return;
-        }
-
-        // another doc was navigated to during download
-        if (!requestingDoc || document() != requestingDoc)
-        {
-            return;
-        }
-
-        QTimer::singleShot(
-            0, this,
-            [this, url, img, doc = QPointer<QTextDocument>(document())]
-            {
-                if (!doc || document() != doc)
-                {
-                    return;
-                }
-                doc->addResource(QTextDocument::ImageResource, url, img);
-                rerender(doc, url, img.size());
-            });
-
-        viewport()->update();
-    };
-
     // do not attempt reload
     if (m_loading.contains(url) || m_failed.contains(url))
     {
@@ -121,7 +154,7 @@ QVariant RemoteTextBrowser::loadResource(int type, const QUrl& url)
         QImage img = loadScaled(entry->getFullPath());
         if (!img.isNull())
         {
-            load(img);
+            applyLoadedImage(url, requestingDoc, img);
             return placeholderImage();
         }
     }
@@ -133,26 +166,15 @@ QVariant RemoteTextBrowser::loadResource(int type, const QUrl& url)
     job->addNetAction(Net::Download::makeCached(url, entry));
 
     connect(job, &NetJob::succeeded, this,
-            [url, entry, load, this]()
-            {
-                load(loadScaled(entry->getFullPath()));
-            });
+            std::bind(&RemoteTextBrowser::onImageDownloaded, this, url,
+                      requestingDoc, entry));
 
     connect(job, &NetJob::failed, this,
-            [url, entry, load](const QString& reason)
-            {
-                qDebug() << "Failed to load image from" << url << "at"
-                         << entry->getFullPath() << "because:" << reason;
-
-                load(QImage{});
-            });
+            std::bind(&RemoteTextBrowser::onImageDownloadFailed, this, url,
+                      requestingDoc, entry, std::placeholders::_1));
 
     connect(job, &NetJob::finished, job,
-            [this, job]()
-            {
-                m_jobs.removeAll(job);
-                job->deleteLater();
-            });
+            std::bind(&RemoteTextBrowser::onJobFinished, this, job));
 
     m_loading.insert(url);
     m_jobs.append(job);

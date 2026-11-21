@@ -20,6 +20,8 @@
 #include <QJsonValue>
 #include <QDebug>
 
+#include <functional>
+
 #define API_VERSION 0
 #define CHANLIST_FORMAT 0
 
@@ -140,10 +142,8 @@ void UpdateChecker::checkForUpdate(const QString& updateChannel,
         indexJob->addNetAction(
             Net::Download::makeByteArray(indexUrl, &indexData));
         connect(indexJob.get(), &NetJob::succeeded,
-                [this, notifyNoUpdate]()
-                {
-                    updateCheckFinished(notifyNoUpdate);
-                });
+                std::bind(&UpdateChecker::updateCheckFinished, this,
+                          notifyNoUpdate));
         connect(indexJob.get(), &NetJob::failed, this,
                 &UpdateChecker::updateCheckFailed);
         indexJob->start();
@@ -241,10 +241,8 @@ void UpdateChecker::updateChanList(bool notifyNoUpdate)
     chanListJob->addNetAction(
         Net::Download::makeByteArray(QUrl(m_channelUrl), &chanlistData));
     connect(chanListJob.get(), &NetJob::succeeded,
-            [this, notifyNoUpdate]()
-            {
-                chanListDownloadFinished(notifyNoUpdate);
-            });
+            std::bind(&UpdateChecker::chanListDownloadFinished, this,
+                      notifyNoUpdate));
     connect(chanListJob.get(), &NetJob::failed, this,
             &UpdateChecker::chanListDownloadFailed);
     chanListJob->start();

@@ -51,6 +51,14 @@ std::array<PasteUpload::PasteTypeInfo, 4> PasteUpload::PasteTypes = {
      {"paste.gg", "https://paste.gg", "/api/v1/pastes"},
      {"mclo.gs", "https://api.mclo.gs", "/1/log"}}};
 
+namespace
+{
+void deleteReplyLater(QNetworkReply* reply)
+{
+    reply->deleteLater();
+}
+}  // namespace
+
 PasteUpload::PasteUpload(QWidget* window, QString text, QString baseUrl,
                          PasteType pasteType)
     : m_window(window),
@@ -162,11 +170,7 @@ void PasteUpload::executeTask()
 
     // The reply gets released from inside its own signals, so it must not be
     // deleted right away
-    m_reply = std::shared_ptr<QNetworkReply>(rep,
-                                             [](QNetworkReply* reply)
-                                             {
-                                                 reply->deleteLater();
-                                             });
+    m_reply = std::shared_ptr<QNetworkReply>(rep, deleteReplyLater);
 
     setStatus(tr("Uploading to %1").arg(m_uploadUrl));
 }

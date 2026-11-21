@@ -182,6 +182,8 @@ private:
     bool installJarMods_internal(QStringList filepaths);
     bool installCustomJar_internal(QString filepath);
     bool removeComponent_internal(ComponentPtr patch);
+    bool preRemoveJarMod(LibraryPtr jarmod);
+    void updateAborted();
 
 private: /* data */
     std::unique_ptr<PackProfileData> d;

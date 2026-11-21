@@ -19,6 +19,7 @@
 #include "ui/dialogs/CustomMessageBox.h"
 
 #include <QAbstractButton>
+#include <functional>
 
 const static QMap<QString, QString> forgemap = {{"1.2.5", "3.4.9.171"},
                                                 {"1.4.2", "6.0.1.355"},
@@ -204,71 +205,10 @@ bool FlameCreationTask::updateInstance()
 
         QEventLoop loop;
 
-        connect(
-            job, &NetJob::succeeded, this,
-            [this, raw_response, fileIds, old_inst_dir, &old_files,
-             old_minecraft_dir]
-            {
-                // Parse the API response
-                QJsonParseError parse_error{};
-                auto doc = QJsonDocument::fromJson(*raw_response, &parse_error);
-                if (parse_error.error != QJsonParseError::NoError)
-                {
-                    qWarning() << "Error while parsing JSON response from "
-                                  "Flame files task at "
-                               << parse_error.offset
-                               << " reason: " << parse_error.errorString();
-                    qWarning() << *raw_response;
-                    return;
-                }
-
-                try
-                {
-                    QJsonArray entries;
-                    if (fileIds.size() == 1)
-                    {
-                        entries = {Json::requireObject(Json::requireObject(doc),
-                                                       "data")};
-                    }
-                    else
-                    {
-                        entries = Json::requireArray(Json::requireObject(doc),
-                                                     "data");
-                    }
-
-                    for (auto entry : std::as_const(entries))
-                    {
-                        auto entry_obj = Json::requireObject(entry);
-
-                        Flame::File file;
-                        // We don't care about blocked mods, we just need local
-                        // data to delete the file
-                        file.parseFromObject(entry_obj, false);
-
-                        auto id = Json::requireInteger(entry_obj, "id");
-                        old_files.insert(id, file);
-                    }
-                }
-                catch (Json::JsonException& e)
-                {
-                    qCritical() << e.cause() << e.what();
-                }
-
-                // Delete the files
-                for (auto& file : old_files)
-                {
-                    if (file.fileName.isEmpty() || file.targetFolder.isEmpty())
-                    {
-                        continue;
-                    }
-
-                    QString relative_path(
-                        FS::PathCombine(file.targetFolder, file.fileName));
-                    qDebug() << "Scheduling" << relative_path << "for removal";
-                    m_files_to_remove.append(
-                        old_minecraft_dir.absoluteFilePath(relative_path));
-                }
-            });
+        connect(job, &NetJob::succeeded, this,
+                std::bind(&FlameCreationTask::onOldFilesResolved, this,
+                          raw_response, fileIds, std::ref(old_files),
+                          old_minecraft_dir));
         connect(job, &NetJob::finished, &loop, &QEventLoop::quit);
 
         m_process_update_file_info_job = job;
@@ -303,6 +243,69 @@ bool FlameCreationTask::updateInstance()
     // We let it go through the createInstance() stage, just with a couple
     // modifications for updating
     return false;
+}
+
+void FlameCreationTask::onOldFilesResolved(QByteArray* response,
+                                           const QStringList& ids,
+                                           QMap<int, Flame::File>& files,
+                                           const QDir& dir)
+{
+    // Parse the API response
+    QJsonParseError parse_error{};
+    auto doc = QJsonDocument::fromJson(*response, &parse_error);
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from "
+                      "Flame files task at "
+                   << parse_error.offset
+                   << " reason: " << parse_error.errorString();
+        qWarning() << *response;
+        return;
+    }
+
+    try
+    {
+        QJsonArray entries;
+        if (ids.size() == 1)
+        {
+            entries = {Json::requireObject(Json::requireObject(doc), "data")};
+        }
+        else
+        {
+            entries = Json::requireArray(Json::requireObject(doc), "data");
+        }
+
+        for (auto entry : std::as_const(entries))
+        {
+            auto entry_obj = Json::requireObject(entry);
+
+            Flame::File file;
+            // We don't care about blocked mods, we just need local
+            // data to delete the file
+            file.parseFromObject(entry_obj, false);
+
+            auto id = Json::requireInteger(entry_obj, "id");
+            files.insert(id, file);
+        }
+    }
+    catch (Json::JsonException& e)
+    {
+        qCritical() << e.cause() << e.what();
+    }
+
+    // Delete the files
+    for (auto& file : files)
+    {
+        if (file.fileName.isEmpty() || file.targetFolder.isEmpty())
+        {
+            continue;
+        }
+
+        QString relative_path(
+            FS::PathCombine(file.targetFolder, file.fileName));
+        qDebug() << "Scheduling" << relative_path << "for removal";
+        m_files_to_remove.append(dir.absoluteFilePath(relative_path));
+    }
 }
 
 bool FlameCreationTask::createInstance()
@@ -530,17 +533,11 @@ bool FlameCreationTask::createInstance()
     m_mod_id_resolver =
         new Flame::FileResolvingTask(APPLICATION->network(), m_pack);
     connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::succeeded, this,
-            [this, &loop]
-            {
-                idResolverSucceeded(loop);
-            });
+            std::bind(&FlameCreationTask::idResolverSucceeded, this,
+                      std::ref(loop)));
     connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::failed,
-            [this, &loop](QString reason)
-            {
-                m_mod_id_resolver.reset();
-                setError(tr("Unable to resolve mod IDs:\n") + reason);
-                loop.exit();
-            });
+            std::bind(&FlameCreationTask::onIdResolverFailed, this,
+                      std::ref(loop), std::placeholders::_1));
     connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::progress, this,
             &FlameCreationTask::setProgress);
     connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::status, this,
@@ -683,24 +680,34 @@ void FlameCreationTask::setupDownloadJob(QEventLoop& loop)
 
     m_mod_id_resolver.reset();
     connect(m_files_job.get(), &NetJob::succeeded, this,
-            [&]()
-            {
-                m_files_job.reset();
-            });
+            &FlameCreationTask::onFilesJobSucceeded);
     connect(m_files_job.get(), &NetJob::failed,
-            [&](QString reason)
-            {
-                m_files_job.reset();
-                setError(reason);
-            });
+            std::bind(&FlameCreationTask::onFilesJobFailed, this,
+                      std::placeholders::_1));
     connect(m_files_job.get(), &NetJob::progress,
-            [&](qint64 current, qint64 total)
-            {
-                setProgress(current, total);
-            });
+            std::bind(&FlameCreationTask::setProgress, this,
+                      std::placeholders::_1, std::placeholders::_2));
     connect(m_files_job.get(), &NetJob::details, this, &Task::details);
     connect(m_files_job.get(), &NetJob::finished, &loop, &QEventLoop::quit);
 
     setStatus(tr("Downloading mods..."));
     m_files_job->start();
+}
+
+void FlameCreationTask::onIdResolverFailed(QEventLoop& loop, QString reason)
+{
+    m_mod_id_resolver.reset();
+    setError(tr("Unable to resolve mod IDs:\n") + reason);
+    loop.exit();
+}
+
+void FlameCreationTask::onFilesJobSucceeded()
+{
+    m_files_job.reset();
+}
+
+void FlameCreationTask::onFilesJobFailed(QString reason)
+{
+    m_files_job.reset();
+    setError(reason);
 }

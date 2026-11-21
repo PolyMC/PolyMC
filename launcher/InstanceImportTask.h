@@ -75,6 +75,7 @@ private:
     void processTechnic();
     void processFlame();
     void processModrinth();
+    void onCreationTaskSucceeded(InstanceTask* task);
 
 private slots:
     void downloadSucceeded();

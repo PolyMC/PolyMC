@@ -89,6 +89,7 @@ private:
     void updateState();
     void scheduleSave();
     bool saveIsScheduled() const;
+    void onPingDebounceTimeout();
 
 private slots:
     void currentChanged(const QModelIndex& current,

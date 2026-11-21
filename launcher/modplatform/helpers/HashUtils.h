@@ -51,6 +51,8 @@ protected:
     QString m_path;
 
 private:
+    void onHashFinished();
+
     HashFunction m_hash_function;
     QFutureWatcher<QString> m_watcher;
 };

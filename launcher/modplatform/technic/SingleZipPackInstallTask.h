@@ -54,6 +54,8 @@ private slots:
     void extractAborted();
 
 private:
+    void downloadAborted();
+
     bool m_abortable = false;
 
     QUrl m_sourceUrl;

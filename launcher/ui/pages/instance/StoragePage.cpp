@@ -55,30 +55,15 @@ StoragePage::StoragePage(BaseInstance* inst, QWidget* parent)
     ui->retranslateUi(this);
 
     connect(ui->button_goto_resouce_packs, &QPushButton::clicked, this,
-            [&]
-            {
-                m_container->selectPage("resourcepacks");
-            });
+            &StoragePage::gotoResourcePacks);
     connect(ui->button_goto_mods, &QPushButton::clicked, this,
-            [&]
-            {
-                m_container->selectPage("mods");
-            });
+            &StoragePage::gotoMods);
     connect(ui->button_goto_worlds, &QPushButton::clicked, this,
-            [&]
-            {
-                m_container->selectPage("worlds");
-            });
+            &StoragePage::gotoWorlds);
     connect(ui->button_goto_screenshots, &QPushButton::clicked, this,
-            [&]
-            {
-                m_container->selectPage("screenshots");
-            });
+            &StoragePage::gotoScreenshots);
     connect(ui->button_goto_other_logs, &QPushButton::clicked, this,
-            [&]
-            {
-                m_container->selectPage("logs");
-            });
+            &StoragePage::gotoOtherLogs);
 
     connect(ui->button_clear_screenshots, &QPushButton::clicked, this,
             &StoragePage::handleClearScreenshotsButton);
@@ -91,6 +76,31 @@ StoragePage::StoragePage(BaseInstance* inst, QWidget* parent)
 StoragePage::~StoragePage()
 {
     delete ui;
+}
+
+void StoragePage::gotoResourcePacks()
+{
+    m_container->selectPage("resourcepacks");
+}
+
+void StoragePage::gotoMods()
+{
+    m_container->selectPage("mods");
+}
+
+void StoragePage::gotoWorlds()
+{
+    m_container->selectPage("worlds");
+}
+
+void StoragePage::gotoScreenshots()
+{
+    m_container->selectPage("screenshots");
+}
+
+void StoragePage::gotoOtherLogs()
+{
+    m_container->selectPage("logs");
 }
 
 void StoragePage::openedImpl()

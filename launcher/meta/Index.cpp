@@ -15,6 +15,8 @@
 
 #include "Index.h"
 
+#include <functional>
+
 #include "VersionList.h"
 #include "JsonFormat.h"
 
@@ -152,10 +154,11 @@ void Index::merge(const std::shared_ptr<Index>& other)
 void Index::connectVersionList(const int row, const VersionListPtr& list)
 {
     connect(list.get(), &VersionList::nameChanged, this,
-            [this, row]()
-            {
-                emit dataChanged(index(row), index(row),
-                                 QVector<int>() << Qt::DisplayRole);
-            });
+            std::bind(&Index::versionListNameChanged, this, row));
+}
+
+void Index::versionListNameChanged(int row)
+{
+    emit dataChanged(index(row), index(row), QVector<int>() << Qt::DisplayRole);
 }
 }  // namespace Meta

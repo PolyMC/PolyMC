@@ -64,6 +64,7 @@ protected:
 
 private:
     bool handleImmediateResult(QDialog::DialogCode& result);
+    void onTaskAborted();
 
 private:
     Ui::ProgressDialog* ui;

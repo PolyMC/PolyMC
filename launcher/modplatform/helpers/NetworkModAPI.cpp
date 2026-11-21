@@ -5,6 +5,84 @@
 #include "Application.h"
 #include "net/NetJob.h"
 
+#include <functional>
+
+namespace
+{
+
+void setCallerJob(ModPlatform::ListModel* caller, NetJob* job)
+{
+    caller->setActiveJob(job);
+}
+
+void handleSearchResponse(ModPlatform::ListModel* caller, QByteArray* response)
+{
+    QJsonParseError parse_error{};
+    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from "
+                   << caller->debugName() << " at " << parse_error.offset
+                   << " reason: " << parse_error.errorString();
+        qWarning() << *response;
+        return;
+    }
+
+    caller->searchRequestFinished(doc);
+}
+
+void deleteResponse(QByteArray* response)
+{
+    delete response;
+}
+
+void handleModInfoResponse(
+    const std::function<void(QJsonDocument&, ModPlatform::IndexedPack&)>&
+        callback,
+    ModPlatform::IndexedPack& pack, QByteArray* response)
+{
+    QJsonParseError parse_error{};
+    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response for mod info at "
+                   << parse_error.offset
+                   << " reason: " << parse_error.errorString();
+        qWarning() << *response;
+        return;
+    }
+
+    callback(doc, pack);
+}
+
+void handleVersionsResponse(
+    QByteArray* response,
+    const std::function<void(QJsonDocument&, QString)>& callback,
+    const ModAPI::VersionSearchArgs& args)
+{
+    QJsonParseError parse_error{};
+    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response for "
+                      "getting versions at "
+                   << parse_error.offset
+                   << " reason: " << parse_error.errorString();
+        qWarning() << *response;
+        return;
+    }
+
+    callback(doc, args.addonId);
+}
+
+void finishJob(QByteArray* response, NetJob* job)
+{
+    job->deleteLater();
+    delete response;
+}
+
+}  // namespace
+
 void NetworkModAPI::searchMods(CallerType* caller, SearchArgs&& args) const
 {
     auto netJob = new NetJob(QString("%1::Search").arg(caller->debugName()),
@@ -16,38 +94,15 @@ void NetworkModAPI::searchMods(CallerType* caller, SearchArgs&& args) const
         Net::Download::makeByteArray(QUrl(searchUrl), response));
 
     QObject::connect(netJob, &NetJob::started, caller,
-                     [caller, netJob]
-                     {
-                         caller->setActiveJob(netJob);
-                     });
+                     std::bind(setCallerJob, caller, netJob));
     QObject::connect(netJob, &NetJob::failed, caller,
                      &CallerType::searchRequestFailed);
     QObject::connect(netJob, &NetJob::aborted, caller,
                      &CallerType::searchRequestAborted);
     QObject::connect(netJob, &NetJob::succeeded, caller,
-                     [caller, response]
-                     {
-                         QJsonParseError parse_error{};
-                         QJsonDocument doc =
-                             QJsonDocument::fromJson(*response, &parse_error);
-                         if (parse_error.error != QJsonParseError::NoError)
-                         {
-                             qWarning()
-                                 << "Error while parsing JSON response from "
-                                 << caller->debugName() << " at "
-                                 << parse_error.offset
-                                 << " reason: " << parse_error.errorString();
-                             qWarning() << *response;
-                             return;
-                         }
-
-                         caller->searchRequestFinished(doc);
-                     });
+                     std::bind(handleSearchResponse, caller, response));
     QObject::connect(netJob, &NetJob::finished,
-                     [response]
-                     {
-                         delete response;
-                     });
+                     std::bind(deleteResponse, response));
 
     netJob->start();
 }
@@ -61,23 +116,7 @@ void NetworkModAPI::getModInfo(
 
     QObject::connect(
         job, &NetJob::succeeded,
-        [callback, &pack, response]
-        {
-            QJsonParseError parse_error{};
-            QJsonDocument doc =
-                QJsonDocument::fromJson(*response, &parse_error);
-            if (parse_error.error != QJsonParseError::NoError)
-            {
-                qWarning()
-                    << "Error while parsing JSON response for mod info at "
-                    << parse_error.offset
-                    << " reason: " << parse_error.errorString();
-                qWarning() << *response;
-                return;
-            }
-
-            callback(doc, pack);
-        });
+        std::bind(handleModInfoResponse, callback, std::ref(pack), response));
 
     job->start();
 }
@@ -93,32 +132,12 @@ void NetworkModAPI::getVersions(
     netJob->addNetAction(
         Net::Download::makeByteArray(getVersionsURL(args), response));
 
-    QObject::connect(netJob, &NetJob::succeeded,
-                     [response, callback, args]
-                     {
-                         QJsonParseError parse_error{};
-                         QJsonDocument doc =
-                             QJsonDocument::fromJson(*response, &parse_error);
-                         if (parse_error.error != QJsonParseError::NoError)
-                         {
-                             qWarning()
-                                 << "Error while parsing JSON response for "
-                                    "getting versions at "
-                                 << parse_error.offset
-                                 << " reason: " << parse_error.errorString();
-                             qWarning() << *response;
-                             return;
-                         }
-
-                         callback(doc, args.addonId);
-                     });
+    QObject::connect(
+        netJob, &NetJob::succeeded,
+        std::bind(handleVersionsResponse, response, callback, args));
 
     QObject::connect(netJob, &NetJob::finished,
-                     [response, netJob]
-                     {
-                         netJob->deleteLater();
-                         delete response;
-                     });
+                     std::bind(finishJob, response, netJob));
 
     netJob->start();
 }
@@ -133,11 +152,7 @@ NetJob* NetworkModAPI::getProject(QString addonId, QByteArray* response) const
         Net::Download::makeByteArray(QUrl(searchUrl), response));
 
     QObject::connect(netJob, &NetJob::finished,
-                     [response, netJob]
-                     {
-                         netJob->deleteLater();
-                         delete response;
-                     });
+                     std::bind(finishJob, response, netJob));
 
     return netJob;
 }

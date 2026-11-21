@@ -47,6 +47,23 @@
 #include "ui/dialogs/ModDownloadDialog.h"
 #include "ui/widgets/ProjectItem.h"
 
+namespace
+{
+QString authorToStr(ModPlatform::ModpackAuthor& author)
+{
+    if (author.url.isEmpty())
+    {
+        return author.name;
+    }
+    return QString("<a href=\"%1\">%2</a>").arg(author.url, author.name);
+}
+
+QString donateToStr(ModPlatform::DonationData& donate)
+{
+    return QString("<a href=\"%1\">%2</a>").arg(donate.url, donate.platform);
+}
+}  // namespace
+
 ModPage::ModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type,
                  BaseInstance* instance, ModAPI* api)
     : QWidget(dialog),
@@ -110,15 +127,19 @@ void ModPage::setFilterWidget(unique_qobject_ptr<ModFilterWidget>& widget)
     m_filter = m_filter_widget->getFilter();
 
     connect(m_filter_widget.get(), &ModFilterWidget::filterChanged, this,
-            [&]
-            {
-                ui->searchButton->setStyleSheet("text-decoration: underline");
-            });
+            &ModPage::markFilterChanged);
     connect(m_filter_widget.get(), &ModFilterWidget::filterUnchanged, this,
-            [&]
-            {
-                ui->searchButton->setStyleSheet("text-decoration: none");
-            });
+            &ModPage::markFilterUnchanged);
+}
+
+void ModPage::markFilterChanged()
+{
+    ui->searchButton->setStyleSheet("text-decoration: underline");
+}
+
+void ModPage::markFilterUnchanged()
+{
+    ui->searchButton->setStyleSheet("text-decoration: none");
 }
 
 /******** Qt things ********/
@@ -369,15 +390,6 @@ void ModPage::updateUi()
 
     if (!current.authors.empty())
     {
-        auto authorToStr = [](ModPlatform::ModpackAuthor& author) -> QString
-        {
-            if (author.url.isEmpty())
-            {
-                return author.name;
-            }
-            return QString("<a href=\"%1\">%2</a>")
-                .arg(author.url, author.name);
-        };
         QStringList authorStrs;
         for (auto& author : current.authors)
         {
@@ -391,11 +403,6 @@ void ModPage::updateUi()
         if (!current.extraData.donate.isEmpty())
         {
             text += "<br><br>" + tr("Donate information: ");
-            auto donateToStr = [](ModPlatform::DonationData& donate) -> QString
-            {
-                return QString("<a href=\"%1\">%2</a>")
-                    .arg(donate.url, donate.platform);
-            };
             QStringList donates;
             for (auto& donate : current.extraData.donate)
             {

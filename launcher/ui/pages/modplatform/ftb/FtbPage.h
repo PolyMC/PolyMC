@@ -83,6 +83,7 @@ public:
 
 private:
     void suggestCurrent();
+    void setSuggestedLogo(const QString& name, QString logo);
 
 private slots:
     void triggerSearch();

@@ -59,6 +59,8 @@
 #include "minecraft/auth/AccountTask.h"
 #include "launch/steps/TextPrint.h"
 
+#include <functional>
+
 LaunchController::LaunchController(QObject* parent) : Task(parent)
 {
 }
@@ -486,34 +488,11 @@ void LaunchController::readyForLaunch()
         m_profiler->createProfiler(m_launcher->instance(), this);
 
     connect(profilerInstance, &BaseProfiler::readyToLaunch,
-            [this](const QString& message)
-            {
-                QMessageBox msg;
-                msg.setText(tr("The game launch is delayed until you press the "
-                               "button. This is the right time to setup the "
-                               "profiler, as the "
-                               "profiler server is running now.\n\n%1")
-                                .arg(message));
-                msg.setWindowTitle(tr("Waiting."));
-                msg.setIcon(QMessageBox::Information);
-                msg.addButton(tr("Launch"), QMessageBox::AcceptRole);
-                msg.setModal(true);
-                msg.exec();
-                m_launcher->proceed();
-            });
+            std::bind(&LaunchController::onProfilerReady, this,
+                      std::placeholders::_1));
     connect(profilerInstance, &BaseProfiler::abortLaunch,
-            [this](const QString& message)
-            {
-                QMessageBox msg;
-                msg.setText(tr("Couldn't start the profiler: %1").arg(message));
-                msg.setWindowTitle(tr("Error"));
-                msg.setIcon(QMessageBox::Critical);
-                msg.addButton(QMessageBox::Ok);
-                msg.setModal(true);
-                msg.exec();
-                m_launcher->abort();
-                emitFailed("Profiler startup failed!");
-            });
+            std::bind(&LaunchController::onProfilerAborted, this,
+                      std::placeholders::_1));
     profilerInstance->beginProfiling(m_launcher);
 }
 
@@ -562,4 +541,33 @@ bool LaunchController::abort()
         return m_launcher->abort();
     }
     return false;
+}
+
+void LaunchController::onProfilerReady(const QString& message)
+{
+    QMessageBox msg;
+    msg.setText(tr("The game launch is delayed until you press the "
+                   "button. This is the right time to setup the "
+                   "profiler, as the "
+                   "profiler server is running now.\n\n%1")
+                    .arg(message));
+    msg.setWindowTitle(tr("Waiting."));
+    msg.setIcon(QMessageBox::Information);
+    msg.addButton(tr("Launch"), QMessageBox::AcceptRole);
+    msg.setModal(true);
+    msg.exec();
+    m_launcher->proceed();
+}
+
+void LaunchController::onProfilerAborted(const QString& message)
+{
+    QMessageBox msg;
+    msg.setText(tr("Couldn't start the profiler: %1").arg(message));
+    msg.setWindowTitle(tr("Error"));
+    msg.setIcon(QMessageBox::Critical);
+    msg.addButton(QMessageBox::Ok);
+    msg.setModal(true);
+    msg.exec();
+    m_launcher->abort();
+    emitFailed("Profiler startup failed!");
 }

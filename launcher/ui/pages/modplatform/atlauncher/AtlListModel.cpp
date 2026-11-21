@@ -20,6 +20,8 @@
 #include <Application.h>
 #include <Json.h>
 
+#include <functional>
+
 namespace Atl
 {
 
@@ -231,25 +233,30 @@ void ListModel::requestLogo(QString file, QString url)
     QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
 
     auto fullPath = entry->getFullPath();
-    QObject::connect(job, &NetJob::succeeded, this,
-                     [this, file, fullPath]
-                     {
-                         emit logoLoaded(file, QIcon(fullPath));
-                         if (waitingCallbacks.contains(file))
-                         {
-                             waitingCallbacks.value(file)(fullPath);
-                         }
-                     });
+    QObject::connect(
+        job, &NetJob::succeeded, this,
+        std::bind(&ListModel::onLogoSucceeded, this, file, fullPath));
 
     QObject::connect(job, &NetJob::failed, this,
-                     [this, file]
-                     {
-                         emit logoFailed(file);
-                     });
+                     std::bind(&ListModel::onLogoFailed, this, file));
 
     job->start();
 
     m_loadingLogos.append(file);
+}
+
+void ListModel::onLogoSucceeded(const QString& file, const QString& path)
+{
+    emit logoLoaded(file, QIcon(path));
+    if (waitingCallbacks.contains(file))
+    {
+        waitingCallbacks.value(file)(path);
+    }
+}
+
+void ListModel::onLogoFailed(const QString& file)
+{
+    emit logoFailed(file);
 }
 
 }  // namespace Atl

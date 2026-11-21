@@ -46,6 +46,8 @@
 
 #include <QMessageBox>
 
+#include <functional>
+
 AtlPage::AtlPage(NewInstanceDialog* dialog, QWidget* parent)
     : QWidget(parent), ui(new Ui::AtlPage), dialog(dialog)
 {
@@ -130,11 +132,13 @@ void AtlPage::suggestCurrent()
     auto url = (BuildConfig.ATL_DOWNLOAD_SERVER_URL + "launcher/images/%1.png")
                    .arg(selected.safeName.toLower());
     listModel->getLogo(selected.safeName, url,
-                       [this, editedLogoName](QString logo)
-                       {
-                           dialog->setSuggestedIconFromFile(logo,
-                                                            editedLogoName);
-                       });
+                       std::bind(&AtlPage::setSuggestedLogo, this,
+                                 editedLogoName, std::placeholders::_1));
+}
+
+void AtlPage::setSuggestedLogo(const QString& name, QString logo)
+{
+    dialog->setSuggestedIconFromFile(logo, name);
 }
 
 void AtlPage::triggerSearch()

@@ -1,5 +1,7 @@
 #include "ComponentUpdateTask.h"
 
+#include <functional>
+
 #include "PackProfile_p.h"
 #include "PackProfile.h"
 #include "Component.h"
@@ -205,20 +207,14 @@ void ComponentUpdateTask::loadComponents()
             status.type = RemoteLoadStatus::Type::Index;
             d->remoteLoadStatusList.append(status);
             connect(indexLoadTask.get(), &Task::succeeded, this,
-                    [=]()
-                    {
-                        remoteLoadSucceeded(taskIndex);
-                    });
+                    std::bind(&ComponentUpdateTask::remoteLoadSucceeded, this,
+                              taskIndex));
             connect(indexLoadTask.get(), &Task::failed, this,
-                    [=](const QString& error)
-                    {
-                        remoteLoadFailed(taskIndex, error, true);
-                    });
+                    std::bind(&ComponentUpdateTask::remoteLoadFailed, this,
+                              taskIndex, std::placeholders::_1, true));
             connect(indexLoadTask.get(), &Task::aborted, this,
-                    [=]()
-                    {
-                        remoteLoadFailed(taskIndex, tr("Aborted"));
-                    });
+                    std::bind(&ComponentUpdateTask::remoteLoadAborted, this,
+                              taskIndex));
             taskIndex++;
         }
     }
@@ -261,20 +257,14 @@ void ComponentUpdateTask::loadComponents()
             qDebug() << "Remote loading is being run for"
                      << component->getName();
             connect(loadTask.get(), &Task::succeeded, this,
-                    [=]()
-                    {
-                        remoteLoadSucceeded(taskIndex);
-                    });
+                    std::bind(&ComponentUpdateTask::remoteLoadSucceeded, this,
+                              taskIndex));
             connect(loadTask.get(), &Task::failed, this,
-                    [=](const QString& error)
-                    {
-                        remoteLoadFailed(taskIndex, error, true);
-                    });
+                    std::bind(&ComponentUpdateTask::remoteLoadFailed, this,
+                              taskIndex, std::placeholders::_1, true));
             connect(loadTask.get(), &Task::aborted, this,
-                    [=]()
-                    {
-                        remoteLoadFailed(taskIndex, tr("Aborted"));
-                    });
+                    std::bind(&ComponentUpdateTask::remoteLoadAborted, this,
+                              taskIndex));
             RemoteLoadStatus status;
             status.type = loadType;
             status.uid = component->getID();
@@ -362,6 +352,11 @@ static RequireCompositionResult composeRequirement(const RequireEx& a,
     return {true, out};
 }
 
+static bool hasSameUid(const Meta::Require& needle, const Meta::Require& req)
+{
+    return req.uid == needle.uid;
+}
+
 // gather the requirements from all components, finding any obvious conflicts
 static bool gatherRequirementsFromComponents(const ComponentContainer& input,
                                              RequireExSet& output)
@@ -373,12 +368,9 @@ static bool gatherRequirementsFromComponents(const ComponentContainer& input,
         auto& componentRequires = component->m_cachedRequires;
         for (const auto& componentRequire : componentRequires)
         {
-            auto found =
-                std::find_if(output.cbegin(), output.cend(),
-                             [componentRequire](const Meta::Require& req)
-                             {
-                                 return req.uid == componentRequire.uid;
-                             });
+            auto found = std::find_if(
+                output.cbegin(), output.cend(),
+                std::bind(hasSameUid, componentRequire, std::placeholders::_1));
 
             RequireEx componenRequireEx;
             componenRequireEx.uid = componentRequire.uid;
@@ -551,6 +543,11 @@ static bool getTrivialComponentChanges(const ComponentIndex& index,
     return succeeded;
 }
 
+static bool isMinecraftComponent(ComponentPtr& cmp)
+{
+    return cmp->getID() == "net.minecraft";
+}
+
 // FIXME, TODO: decouple dependency resolution from loading
 // FIXME: This works directly with the PackProfile internals. It shouldn't! It
 // needs richer data types than PackProfile uses.
@@ -671,12 +668,9 @@ void ComponentUpdateTask::resolveDependencies(bool checkOnly)
                     else if (add.uid == "net.fabricmc.intermediary" ||
                              add.uid == "org.quiltmc.hashed")
                     {
-                        auto minecraft = std::find_if(
-                            components.begin(), components.end(),
-                            [](ComponentPtr& cmp)
-                            {
-                                return cmp->getID() == "net.minecraft";
-                            });
+                        auto minecraft =
+                            std::find_if(components.begin(), components.end(),
+                                         isMinecraftComponent);
                         if (minecraft != components.end())
                         {
                             component->m_version = (*minecraft)->getVersion();
@@ -751,6 +745,11 @@ void ComponentUpdateTask::remoteLoadSucceeded(size_t taskIndex)
         }
     }
     checkIfAllFinished();
+}
+
+void ComponentUpdateTask::remoteLoadAborted(size_t index)
+{
+    remoteLoadFailed(index, tr("Aborted"));
 }
 
 void ComponentUpdateTask::remoteLoadFailed(size_t taskIndex, const QString& msg,

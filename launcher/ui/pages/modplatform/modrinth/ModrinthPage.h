@@ -106,6 +106,12 @@ private slots:
     void triggerSearch();
 
 private:
+    void onInfoLoaded(QByteArray* response, const QString& id,
+                      const QModelIndex& curr);
+    void onVersionsLoaded(QByteArray* response, const QString& id,
+                          const QModelIndex& curr);
+    void setSuggestedLogo(const QString& name, QString logo);
+
     Ui::ModrinthPage* ui;
     NewInstanceDialog* dialog;
     Modrinth::ModpackListModel* m_model;

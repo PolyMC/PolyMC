@@ -36,6 +36,9 @@ private:
                        bool set_managed_info = true,
                        bool show_optional_dialog = true);
     QString getManagedPackID() const;
+    void onFileDownloadFailed(Modrinth::File& file, const QString& path,
+                              const QWeakPointer<Net::Download>& action);
+    void onFilesJobFailed(bool& ended, const QString& reason);
 
 private:
     QWidget* m_parent = nullptr;

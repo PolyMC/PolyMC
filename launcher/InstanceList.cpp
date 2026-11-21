@@ -423,6 +423,25 @@ void InstanceList::deleteInstance(const InstanceId& id)
     qDebug() << "Instance" << id << "has been deleted by the launcher.";
 }
 
+namespace
+{
+bool orderSortPredicate(const InstanceLocator& left,
+                        const InstanceLocator& right)
+{
+    return left.second > right.second;
+}
+}  // namespace
+
+void InstanceList::removeInstanceRange(int& front, int& back, int current)
+{
+    beginRemoveRows(QModelIndex(), front, back);
+    m_instances.erase(m_instances.begin() + front,
+                      m_instances.begin() + back + 1);
+    endRemoveRows();
+    front = -1;
+    back = current;
+}
+
 static QMap<InstanceId, InstanceLocator> getIdMapping(
     const QList<InstancePtr>& list)
 {
@@ -509,25 +528,11 @@ InstanceList::InstListError InstanceList::loadList()
         // get the list of removed instances and sort it by their original
         // index, from last to first
         auto deadList = existingIds.values();
-        auto orderSortPredicate = [](const InstanceLocator& a,
-                                     const InstanceLocator& b) -> bool
-        {
-            return a.second > b.second;
-        };
         std::sort(deadList.begin(), deadList.end(), orderSortPredicate);
         // remove the contiguous ranges of rows
         int front_bookmark = -1;
         int back_bookmark = -1;
         int currentItem = -1;
-        auto removeNow = [&]()
-        {
-            beginRemoveRows(QModelIndex(), front_bookmark, back_bookmark);
-            m_instances.erase(m_instances.begin() + front_bookmark,
-                              m_instances.begin() + back_bookmark + 1);
-            endRemoveRows();
-            front_bookmark = -1;
-            back_bookmark = currentItem;
-        };
         for (auto& removedItem : deadList)
         {
             auto instPtr = removedItem.first;
@@ -545,13 +550,13 @@ InstanceList::InstListError InstanceList::loadList()
             else
             {
                 // seam between previous and current item
-                removeNow();
+                removeInstanceRange(front_bookmark, back_bookmark, currentItem);
             }
             front_bookmark = currentItem;
         }
         if (back_bookmark != -1)
         {
-            removeNow();
+            removeInstanceRange(front_bookmark, back_bookmark, currentItem);
         }
     }
     if (newList.size())

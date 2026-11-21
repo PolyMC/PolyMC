@@ -41,6 +41,8 @@
 #include <Application.h>
 #include <pathmatcher/IPathMatcher.h>
 
+class QFile;
+
 namespace Ui
 {
 class OtherLogsPage;
@@ -94,6 +96,8 @@ private slots:
 
 private:
     void setControlsEnabled(const bool enabled);
+    void setPlainText(const QString& text);
+    void showTooBig(const QFile& file);
 
 private:
     Ui::OtherLogsPage* ui;

@@ -4,6 +4,24 @@
 #include "Json.h"
 #include "net/Upload.h"
 
+#include <functional>
+
+namespace
+{
+
+void deleteResponse(QByteArray* response)
+{
+    delete response;
+}
+
+void releaseJob(QByteArray* response, NetJob* job)
+{
+    delete response;
+    job->deleteLater();
+}
+
+}  // namespace
+
 NetJob::Ptr ModrinthAPI::currentVersion(QString hash, QString hash_format,
                                         QByteArray* response)
 {
@@ -16,10 +34,7 @@ NetJob::Ptr ModrinthAPI::currentVersion(QString hash, QString hash_format,
         response));
 
     QObject::connect(netJob, &NetJob::finished,
-                     [response]
-                     {
-                         delete response;
-                     });
+                     std::bind(deleteResponse, response));
 
     return netJob;
 }
@@ -43,10 +58,7 @@ NetJob::Ptr ModrinthAPI::currentVersions(const QStringList& hashes,
         BuildConfig.MODRINTH_PROD_URL + "/version_files", response, body_raw));
 
     QObject::connect(netJob, &NetJob::finished,
-                     [response]
-                     {
-                         delete response;
-                     });
+                     std::bind(deleteResponse, response));
 
     return netJob;
 }
@@ -79,10 +91,7 @@ NetJob::Ptr ModrinthAPI::latestVersion(QString hash, QString hash_format,
         response, body_raw));
 
     QObject::connect(netJob, &NetJob::finished,
-                     [response]
-                     {
-                         delete response;
-                     });
+                     std::bind(deleteResponse, response));
 
     return netJob;
 }
@@ -118,10 +127,7 @@ NetJob::Ptr ModrinthAPI::latestVersions(const QStringList& hashes,
         body_raw));
 
     QObject::connect(netJob, &NetJob::finished,
-                     [response]
-                     {
-                         delete response;
-                     });
+                     std::bind(deleteResponse, response));
 
     return netJob;
 }
@@ -137,11 +143,7 @@ NetJob* ModrinthAPI::getProjects(QStringList addonIds,
         Net::Download::makeByteArray(QUrl(searchUrl), response));
 
     QObject::connect(netJob, &NetJob::finished,
-                     [response, netJob]
-                     {
-                         delete response;
-                         netJob->deleteLater();
-                     });
+                     std::bind(releaseJob, response, netJob));
 
     return netJob;
 }

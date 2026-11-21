@@ -17,6 +17,18 @@
 
 #include <QAbstractButton>
 
+#include <functional>
+
+namespace
+{
+
+void markEndedWell(bool& ended)
+{
+    ended = true;
+}
+
+}  // namespace
+
 bool ModrinthCreationTask::abort()
 {
     if (!canAbort())
@@ -321,40 +333,22 @@ bool ModrinthCreationTask::createInstance()
             // MultipleOptionsTask's , once those exist :)
             auto param = dl.toWeakRef();
             connect(dl.get(), &NetAction::failed,
-                    [this, &file, path, param]
-                    {
-                        auto ndl = Net::Download::makeFile(
-                            file.downloads.dequeue(), path);
-                        ndl->addValidator(new Net::ChecksumValidator(
-                            file.hashAlgorithm, file.hash));
-                        m_files_job->addNetAction(ndl);
-                        if (auto shared = param.lock())
-                        {
-                            shared->succeeded();
-                        }
-                    });
+                    std::bind(&ModrinthCreationTask::onFileDownloadFailed, this,
+                              std::ref(file), path, param));
         }
     }
 
     bool ended_well = false;
 
     connect(m_files_job.get(), &NetJob::succeeded, this,
-            [&]()
-            {
-                ended_well = true;
-            });
+            std::bind(markEndedWell, std::ref(ended_well)));
     connect(m_files_job.get(), &NetJob::failed,
-            [&](const QString& reason)
-            {
-                ended_well = false;
-                setError(reason);
-            });
+            std::bind(&ModrinthCreationTask::onFilesJobFailed, this,
+                      std::ref(ended_well), std::placeholders::_1));
     connect(m_files_job.get(), &NetJob::finished, &loop, &QEventLoop::quit);
     connect(m_files_job.get(), &NetJob::progress,
-            [&](qint64 current, qint64 total)
-            {
-                setProgress(current, total);
-            });
+            std::bind(&ModrinthCreationTask::setProgress, this,
+                      std::placeholders::_1, std::placeholders::_2));
     connect(m_files_job.get(), &NetJob::details, this, &Task::details);
 
     setStatus(tr("Downloading mods..."));
@@ -600,4 +594,24 @@ QString ModrinthCreationTask::getManagedPackID() const
     }
 
     return {};
+}
+
+void ModrinthCreationTask::onFileDownloadFailed(
+    Modrinth::File& file, const QString& path,
+    const QWeakPointer<Net::Download>& action)
+{
+    auto ndl = Net::Download::makeFile(file.downloads.dequeue(), path);
+    ndl->addValidator(
+        new Net::ChecksumValidator(file.hashAlgorithm, file.hash));
+    m_files_job->addNetAction(ndl);
+    if (auto shared = action.lock())
+    {
+        shared->succeeded();
+    }
+}
+
+void ModrinthCreationTask::onFilesJobFailed(bool& ended, const QString& reason)
+{
+    ended = false;
+    setError(reason);
 }

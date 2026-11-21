@@ -468,62 +468,68 @@ QList<QString> JavaUtils::FindJavaPaths()
 }
 
 #elif defined(Q_OS_LINUX)
+namespace
+{
+void scanJavaDir(QList<QString>& javas, const QString& path)
+{
+    QDir dir(path);
+    if (!dir.exists())
+    {
+        return;
+    }
+    auto entries =
+        dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks);
+    for (auto& entry : entries)
+    {
+        QString prefix;
+        if (entry.isAbsolute())
+        {
+            prefix = entry.absoluteFilePath();
+        }
+        else
+        {
+            prefix = entry.filePath();
+        }
+
+        javas.append(FS::PathCombine(prefix, "jre/bin/java"));
+        javas.append(FS::PathCombine(prefix, "bin/java"));
+    }
+}
+}  // namespace
+
 QList<QString> JavaUtils::FindJavaPaths()
 {
     qDebug() << "Linux Java detection incomplete - defaulting to \"java\"";
 
     QList<QString> javas;
     javas.append(this->GetDefaultJava()->path);
-    auto scanJavaDir = [&](const QString& dirPath)
-    {
-        QDir dir(dirPath);
-        if (!dir.exists())
-            return;
-        auto entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot |
-                                         QDir::NoSymLinks);
-        for (auto& entry : entries)
-        {
-            QString prefix;
-            if (entry.isAbsolute())
-            {
-                prefix = entry.absoluteFilePath();
-            }
-            else
-            {
-                prefix = entry.filePath();
-            }
-
-            javas.append(FS::PathCombine(prefix, "jre/bin/java"));
-            javas.append(FS::PathCombine(prefix, "bin/java"));
-        }
-    };
     // oracle RPMs
-    scanJavaDir("/usr/java");
+    scanJavaDir(javas, "/usr/java");
     // general locations used by distro packaging
-    scanJavaDir("/usr/lib/jvm");
-    scanJavaDir("/usr/lib64/jvm");
-    scanJavaDir("/usr/lib32/jvm");
+    scanJavaDir(javas, "/usr/lib/jvm");
+    scanJavaDir(javas, "/usr/lib64/jvm");
+    scanJavaDir(javas, "/usr/lib32/jvm");
     // Gentoo's locations for openjdk and openjdk-bin respectively
-    scanJavaDir("/usr/lib64");
-    scanJavaDir("/usr/lib");
-    scanJavaDir("/opt");
+    scanJavaDir(javas, "/usr/lib64");
+    scanJavaDir(javas, "/usr/lib");
+    scanJavaDir(javas, "/opt");
     // javas stored in PolyMC's folder
-    scanJavaDir("java");
+    scanJavaDir(javas, "java");
     // manually installed JDKs in /opt
-    scanJavaDir("/opt/jdk");
-    scanJavaDir("/opt/jdks");
+    scanJavaDir(javas, "/opt/jdk");
+    scanJavaDir(javas, "/opt/jdks");
     // flatpak
-    scanJavaDir("/app/jdk");
+    scanJavaDir(javas, "/app/jdk");
 
     // appimage
     auto appimagePath = qEnvironmentVariable("APPIMAGE");
-    scanJavaDir(FS::PathCombine(appimagePath, "usr/lib/jvm"));
+    scanJavaDir(javas, FS::PathCombine(appimagePath, "usr/lib/jvm"));
 
     // Default SDKMAN directory can be overwritten via SDKMAN_DIR env var
     // (default $HOME/.sdkman) see https://sdkman.io/install
     auto sdkmanInstallPath = qEnvironmentVariable(
         "SDKMAN_DIR", FS::PathCombine(QDir::homePath(), ".sdkman"));
-    scanJavaDir(FS::PathCombine(sdkmanInstallPath, "candidates/java"));
+    scanJavaDir(javas, FS::PathCombine(sdkmanInstallPath, "candidates/java"));
     // Default ASDF directory can be overwritten via ASDF_DIR or ASDF_DATA_DIR
     // env vars (default $HOME/.asdf) see
     // https://asdf-vm.com/manage/configuration.html#asdf-dir
@@ -531,7 +537,7 @@ QList<QString> JavaUtils::FindJavaPaths()
         "ASDF_DATA_DIR",
         qEnvironmentVariable("ASDF_DIR",
                              FS::PathCombine(QDir::homePath(), ".asdf")));
-    scanJavaDir(FS::PathCombine(asdfDataPath, "installs/java"));
+    scanJavaDir(javas, FS::PathCombine(asdfDataPath, "installs/java"));
 
     return addJavasFromEnv(javas);
 }

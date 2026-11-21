@@ -72,6 +72,28 @@ static inline QString indexFileName(QString const& mod_slug)
 
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
+namespace
+{
+
+// Values are written as TOML basic strings, so escape what would end them
+// early or break the line
+QString escape(QString value)
+{
+    value.replace('\\', "\\\\");
+    value.replace('"', "\\\"");
+    value.replace('\n', "\\n");
+    value.replace('\r', "\\r");
+    value.replace('\t', "\\t");
+    return value;
+}
+
+void addToStream(QTextStream& stream, QString&& key, QString value)
+{
+    stream << QString("%1 = \"%2\"\n").arg(key, escape(value));
+}
+
+}  // namespace
+
 // Helper functions for extracting data from the TOML file
 QString stringEntry(const toml::table& table, const std::string& entry_name)
 {
@@ -189,32 +211,17 @@ void V1::updateModIndex(QDir& index_dir, Mod& mod)
 
     // Put TOML data into the file
     QTextStream in_stream(&index_file);
-    // Values are written as TOML basic strings, so escape what would end them
-    // early or break the line
-    auto escape = [](QString value)
-    {
-        value.replace('\\', "\\\\");
-        value.replace('"', "\\\"");
-        value.replace('\n', "\\n");
-        value.replace('\r', "\\r");
-        value.replace('\t', "\\t");
-        return value;
-    };
-    auto addToStream = [&in_stream, &escape](QString&& key, QString value)
-    {
-        in_stream << QString("%1 = \"%2\"\n").arg(key, escape(value));
-    };
 
     {
-        addToStream("name", mod.name);
-        addToStream("filename", mod.filename);
-        addToStream("side", mod.side);
+        addToStream(in_stream, "name", mod.name);
+        addToStream(in_stream, "filename", mod.filename);
+        addToStream(in_stream, "side", mod.side);
 
         in_stream << QString("\n[download]\n");
-        addToStream("mode", mod.mode);
-        addToStream("url", mod.url.toString());
-        addToStream("hash-format", mod.hash_format);
-        addToStream("hash", mod.hash);
+        addToStream(in_stream, "mode", mod.mode);
+        addToStream(in_stream, "url", mod.url.toString());
+        addToStream(in_stream, "hash-format", mod.hash_format);
+        addToStream(in_stream, "hash", mod.hash);
 
         in_stream << QString("\n[update]\n");
         in_stream
@@ -228,12 +235,12 @@ void V1::updateModIndex(QDir& index_dir, Mod& mod)
                                  .arg(mod.project_id.toString());
                 break;
             case (ModPlatform::Provider::MODRINTH):
-                addToStream("mod-id", mod.mod_id().toString());
-                addToStream("version", mod.version().toString());
+                addToStream(in_stream, "mod-id", mod.mod_id().toString());
+                addToStream(in_stream, "version", mod.version().toString());
                 break;
         }
         in_stream << QString("\n[update.do_updates]\n");
-        addToStream("do_updates", mod.do_updates);
+        addToStream(in_stream, "do_updates", mod.do_updates);
     }
 
     index_file.flush();

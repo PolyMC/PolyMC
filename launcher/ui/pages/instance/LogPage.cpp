@@ -52,6 +52,14 @@
 
 #include <BuildConfig.h>
 
+namespace
+{
+QShortcut* newShortcut(QWidget* parent, QKeySequence::StandardKey key)
+{
+    return new QShortcut(QKeySequence(key), parent);
+}
+}  // namespace
+
 class LogFormatProxyModel : public QIdentityProxyModel
 {
 public:
@@ -99,21 +107,6 @@ public:
                      bool reverse) const
     {
         QModelIndex parentIndex = parent(start);
-        auto compare = [&](int r) -> QModelIndex
-        {
-            QModelIndex idx = index(r, start.column(), parentIndex);
-            if (!idx.isValid() || idx == start)
-            {
-                return QModelIndex();
-            }
-            QVariant v = data(idx, Qt::DisplayRole);
-            QString t = v.toString();
-            if (t.contains(value, Qt::CaseInsensitive))
-            {
-                return idx;
-            }
-            return QModelIndex();
-        };
         if (reverse)
         {
             int from = start.row();
@@ -123,7 +116,7 @@ public:
             {
                 for (int r = from; (r >= to); --r)
                 {
-                    auto idx = compare(r);
+                    auto idx = compare(start, parentIndex, value, r);
                     if (idx.isValid())
                     {
                         return idx;
@@ -143,7 +136,7 @@ public:
             {
                 for (int r = from; (r < to); ++r)
                 {
-                    auto idx = compare(r);
+                    auto idx = compare(start, parentIndex, value, r);
                     if (idx.isValid())
                     {
                         return idx;
@@ -158,6 +151,23 @@ public:
     }
 
 private:
+    QModelIndex compare(const QModelIndex& start, const QModelIndex& root,
+                        const QString& value, int row) const
+    {
+        QModelIndex idx = index(row, start.column(), root);
+        if (!idx.isValid() || idx == start)
+        {
+            return QModelIndex();
+        }
+        QVariant v = data(idx, Qt::DisplayRole);
+        QString t = v.toString();
+        if (t.contains(value, Qt::CaseInsensitive))
+        {
+            return idx;
+        }
+        return QModelIndex();
+    }
+
     QFont m_font;
     std::unique_ptr<LogColorCache> m_colors;
 };
@@ -207,17 +217,12 @@ LogPage::LogPage(InstancePtr instance, QWidget* parent)
                 &LogPage::onInstanceLaunchTaskChanged);
     }
 
-    auto newShortcut = [this](QKeySequence::StandardKey key)
-    {
-        return new QShortcut(QKeySequence(key), this);
-    };
-
-    connect(newShortcut(QKeySequence::Find), &QShortcut::activated, this,
+    connect(newShortcut(this, QKeySequence::Find), &QShortcut::activated, this,
             &LogPage::findActivated);
-    connect(newShortcut(QKeySequence::FindNext), &QShortcut::activated, this,
-            &LogPage::findNextActivated);
-    connect(newShortcut(QKeySequence::FindPrevious), &QShortcut::activated,
-            this, &LogPage::findPreviousActivated);
+    connect(newShortcut(this, QKeySequence::FindNext), &QShortcut::activated,
+            this, &LogPage::findNextActivated);
+    connect(newShortcut(this, QKeySequence::FindPrevious),
+            &QShortcut::activated, this, &LogPage::findPreviousActivated);
 
     connect(ui->searchBar, &QLineEdit::returnPressed, this,
             &LogPage::on_findButton_clicked);

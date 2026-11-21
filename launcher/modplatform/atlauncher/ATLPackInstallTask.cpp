@@ -62,6 +62,23 @@ namespace ATLauncher
 static Meta::VersionPtr getComponentVersion(const QString& uid,
                                             const QString& version);
 
+namespace
+{
+
+QString convertToSystemPath(const QString& path)
+{
+    auto t = path;
+    t.replace("%s%", QDir::separator());
+    return t;
+}
+
+bool isMinecraftRequire(const Meta::Require& req)
+{
+    return req.uid == "net.minecraft";
+}
+
+}  // namespace
+
 PackInstallTask::PackInstallTask(UserInteractionSupport* support,
                                  QString packName, QString version,
                                  InstallMode installMode)
@@ -201,6 +218,62 @@ void PackInstallTask::onDownloadAborted()
     emitAborted();
 }
 
+QString PackInstallTask::getPathForBase(const QString& base) const
+{
+    auto minecraftPath = FS::PathCombine(m_stagingPath, "minecraft");
+
+    if (base == "root")
+    {
+        return minecraftPath;
+    }
+    else if (base == "config")
+    {
+        return FS::PathCombine(minecraftPath, "config");
+    }
+    else
+    {
+        qWarning() << "Unrecognised base path" << base;
+        return minecraftPath;
+    }
+}
+
+bool PackInstallTask::shouldKeep(const VersionKeeps& keeps,
+                                 const QString& candidate) const
+{
+    for (const auto& item : keeps.files)
+    {
+        auto basePath = getPathForBase(item.base);
+        auto targetPath = convertToSystemPath(item.target);
+        auto path = FS::PathCombine(basePath, targetPath);
+
+        if (candidate == path)
+        {
+            return true;
+        }
+    }
+
+    for (const auto& item : keeps.folders)
+    {
+        auto basePath = getPathForBase(item.base);
+        auto targetPath = convertToSystemPath(item.target);
+        auto path = FS::PathCombine(basePath, targetPath);
+
+        if (candidate.startsWith(path))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// The targets come from the pack, so never delete anything outside of the
+// instance's minecraft folder
+bool PackInstallTask::isInsideInstance(const QString& path) const
+{
+    return path.startsWith(FS::PathCombine(m_stagingPath, "minecraft") + '/');
+}
+
 void PackInstallTask::deleteExistingFiles()
 {
     setStatus(tr("Deleting existing files..."));
@@ -238,70 +311,6 @@ void PackInstallTask::deleteExistingFiles()
         keeps.folders.append(item);
     }
 
-    auto getPathForBase = [this](const QString& base)
-    {
-        auto minecraftPath = FS::PathCombine(m_stagingPath, "minecraft");
-
-        if (base == "root")
-        {
-            return minecraftPath;
-        }
-        else if (base == "config")
-        {
-            return FS::PathCombine(minecraftPath, "config");
-        }
-        else
-        {
-            qWarning() << "Unrecognised base path" << base;
-            return minecraftPath;
-        }
-    };
-
-    auto convertToSystemPath = [](const QString& path)
-    {
-        auto t = path;
-        t.replace("%s%", QDir::separator());
-        return t;
-    };
-
-    auto shouldKeep =
-        [keeps, getPathForBase, convertToSystemPath](const QString& fullPath)
-    {
-        for (const auto& item : keeps.files)
-        {
-            auto basePath = getPathForBase(item.base);
-            auto targetPath = convertToSystemPath(item.target);
-            auto path = FS::PathCombine(basePath, targetPath);
-
-            if (fullPath == path)
-            {
-                return true;
-            }
-        }
-
-        for (const auto& item : keeps.folders)
-        {
-            auto basePath = getPathForBase(item.base);
-            auto targetPath = convertToSystemPath(item.target);
-            auto path = FS::PathCombine(basePath, targetPath);
-
-            if (fullPath.startsWith(path))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    // The targets come from the pack, so never delete anything outside of the
-    // instance's minecraft folder
-    auto isInsideInstance = [this](const QString& path)
-    {
-        return path.startsWith(FS::PathCombine(m_stagingPath, "minecraft") +
-                               '/');
-    };
-
     // Keep track of files to delete
     QSet<QString> filesToDelete;
 
@@ -318,7 +327,7 @@ void PackInstallTask::deleteExistingFiles()
             continue;
         }
 
-        if (shouldKeep(fullPath))
+        if (shouldKeep(keeps, fullPath))
         {
             continue;
         }
@@ -344,7 +353,7 @@ void PackInstallTask::deleteExistingFiles()
         {
             auto path = it.next();
 
-            if (shouldKeep(path))
+            if (shouldKeep(keeps, path))
             {
                 continue;
             }
@@ -440,12 +449,8 @@ QString PackInstallTask::getVersionForLoader(QString uid)
                 // loaders.
                 if (m_version.loader.type != "fabric")
                 {
-                    auto iter =
-                        std::find_if(reqs.begin(), reqs.end(),
-                                     [](const Meta::Require& req)
-                                     {
-                                         return req.uid == "net.minecraft";
-                                     });
+                    auto iter = std::find_if(reqs.begin(), reqs.end(),
+                                             isMinecraftRequire);
                     if (iter == reqs.end())
                     {
                         continue;
@@ -838,34 +843,57 @@ void PackInstallTask::installConfigs()
     archivePath = entry->getFullPath();
 
     connect(jobPtr.get(), &NetJob::succeeded, this,
-            [&]()
-            {
-                abortable = false;
-                jobPtr.reset();
-                extractConfigs();
-            });
-    connect(jobPtr.get(), &NetJob::failed, this,
-            [&](QString reason)
-            {
-                abortable = false;
-                jobPtr.reset();
-                emitFailed(reason);
-            });
+            &PackInstallTask::onConfigsDownloaded);
+    connect(jobPtr.get(), &NetJob::failed, this, &PackInstallTask::onJobFailed);
     connect(jobPtr.get(), &NetJob::progress, this,
-            [&](qint64 current, qint64 total)
-            {
-                abortable = true;
-                setProgress(current, total);
-            });
+            &PackInstallTask::onJobProgress);
     connect(jobPtr.get(), &NetJob::aborted, this,
-            [&]
-            {
-                abortable = false;
-                jobPtr.reset();
-                emitAborted();
-            });
+            &PackInstallTask::onJobAborted);
 
     jobPtr->start();
+}
+
+void PackInstallTask::onConfigsDownloaded()
+{
+    abortable = false;
+    jobPtr.reset();
+    extractConfigs();
+}
+
+void PackInstallTask::onJobFailed(QString reason)
+{
+    abortable = false;
+    jobPtr.reset();
+    emitFailed(reason);
+}
+
+void PackInstallTask::onJobProgress(qint64 current, qint64 total)
+{
+    abortable = true;
+    setProgress(current, total);
+}
+
+void PackInstallTask::onJobAborted()
+{
+    abortable = false;
+    jobPtr.reset();
+    emitAborted();
+}
+
+void PackInstallTask::onConfigsExtracted()
+{
+    // Don't go on with a pack that's missing its configs
+    if (!m_extractFuture.result())
+    {
+        emitFailed(tr("Failed to extract the pack configs!"));
+        return;
+    }
+    downloadMods();
+}
+
+void PackInstallTask::onExtractCanceled()
+{
+    emitAborted();
 }
 
 void PackInstallTask::extractConfigs()
@@ -888,23 +916,9 @@ void PackInstallTask::extractConfigs()
         QOverload<QString, QString>::of(MMCZip::extractDir), archivePath,
         extractDir.absolutePath() + "/minecraft");
     connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::finished,
-            this,
-            [&]()
-            {
-                // Don't go on with a pack that's missing its configs
-                if (!m_extractFuture.result())
-                {
-                    emitFailed(tr("Failed to extract the pack configs!"));
-                    return;
-                }
-                downloadMods();
-            });
+            this, &PackInstallTask::onConfigsExtracted);
     connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::canceled,
-            this,
-            [&]()
-            {
-                emitAborted();
-            });
+            this, &PackInstallTask::onExtractCanceled);
     m_extractFutureWatcher.setFuture(m_extractFuture);
 }
 
@@ -1098,26 +1112,11 @@ void PackInstallTask::downloadMods()
 
     connect(jobPtr.get(), &NetJob::succeeded, this,
             &PackInstallTask::onModsDownloaded);
-    connect(jobPtr.get(), &NetJob::failed, this,
-            [&](QString reason)
-            {
-                abortable = false;
-                jobPtr.reset();
-                emitFailed(reason);
-            });
+    connect(jobPtr.get(), &NetJob::failed, this, &PackInstallTask::onJobFailed);
     connect(jobPtr.get(), &NetJob::progress, this,
-            [&](qint64 current, qint64 total)
-            {
-                abortable = true;
-                setProgress(current, total);
-            });
+            &PackInstallTask::onJobProgress);
     connect(jobPtr.get(), &NetJob::aborted, this,
-            [&]
-            {
-                abortable = false;
-                jobPtr.reset();
-                emitAborted();
-            });
+            &PackInstallTask::onJobAborted);
 
     jobPtr->start();
 }
@@ -1140,10 +1139,7 @@ void PackInstallTask::onModsDownloaded()
                 &PackInstallTask::onModsExtracted);
         connect(&m_modExtractFutureWatcher,
                 &QFutureWatcher<QStringList>::canceled, this,
-                [&]()
-                {
-                    emitAborted();
-                });
+                &PackInstallTask::onExtractCanceled);
         m_modExtractFutureWatcher.setFuture(m_modExtractFuture);
     }
     else

@@ -45,6 +45,8 @@
 #include <QScopeGuard>
 #include <QSortFilterProxyModel>
 
+#include <functional>
+
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ModDownloadDialog.h"
 #include "ui/dialogs/ModUpdateDialog.h"
@@ -81,52 +83,59 @@ ModFolderPage::ModFolderPage(BaseInstance* inst,
                 &ModFolderPage::disableUpdates);
         connect(ui->treeView->selectionModel(),
                 &QItemSelectionModel::selectionChanged, this,
-                [this]
-                {
-                    ui->actionDisableUpdates->setEnabled(
-                        ui->treeView->selectionModel()->hasSelection());
-                    onDisableUpdatesChange();
-                });
-
-        auto check_allow_update = [this]
-        {
-            return (!m_instance || !m_instance->isRunning()) &&
-                   (ui->treeView->selectionModel()->hasSelection() ||
-                    !m_model->empty());
-        };
+                &ModFolderPage::updateDisableUpdatesAction);
 
         connect(ui->treeView->selectionModel(),
                 &QItemSelectionModel::selectionChanged, this,
-                [this, check_allow_update]
-                {
-                    ui->actionUpdateItem->setEnabled(check_allow_update());
-                });
+                &ModFolderPage::updateUpdateAction);
 
         connect(mods.get(), &ModFolderModel::rowsInserted, this,
-                [this, check_allow_update]
-                {
-                    ui->actionUpdateItem->setEnabled(check_allow_update());
-                });
+                &ModFolderPage::updateUpdateAction);
 
         connect(mods.get(), &ModFolderModel::rowsRemoved, this,
-                [this, check_allow_update]
-                {
-                    ui->actionUpdateItem->setEnabled(check_allow_update());
-                });
+                &ModFolderPage::updateUpdateAction);
 
         connect(mods.get(), &ModFolderModel::updateFinished, this,
-                [this, check_allow_update, mods]
-                {
-                    ui->actionUpdateItem->setEnabled(check_allow_update());
-
-                    // Prevent a weird crash when trying to open the mods page
-                    // twice in a session o.O
-                    disconnect(mods.get(), &ModFolderModel::updateFinished,
-                               this, 0);
-                });
+                std::bind(&ModFolderPage::onModsUpdateFinished, this, mods));
 
         ModFolderPage::runningStateChanged(m_instance &&
                                            m_instance->isRunning());
+    }
+}
+
+void ModFolderPage::updateDisableUpdatesAction()
+{
+    ui->actionDisableUpdates->setEnabled(
+        ui->treeView->selectionModel()->hasSelection());
+    onDisableUpdatesChange();
+}
+
+bool ModFolderPage::checkAllowUpdate()
+{
+    return (!m_instance || !m_instance->isRunning()) &&
+           (ui->treeView->selectionModel()->hasSelection() ||
+            !m_model->empty());
+}
+
+void ModFolderPage::updateUpdateAction()
+{
+    ui->actionUpdateItem->setEnabled(checkAllowUpdate());
+}
+
+void ModFolderPage::onModsUpdateFinished(std::shared_ptr<ModFolderModel> mods)
+{
+    ui->actionUpdateItem->setEnabled(checkAllowUpdate());
+
+    // Prevent a weird crash when trying to open the mods page
+    // twice in a session o.O
+    disconnect(mods.get(), &ModFolderModel::updateFinished, this, 0);
+}
+
+void ModFolderPage::resumeWatching(bool watching)
+{
+    if (watching)
+    {
+        m_model->startWatching();
     }
 }
 
@@ -199,13 +208,7 @@ void ModFolderPage::updateMods()
 {
     bool was_watching = m_model->stopWatching();
     auto resume_watching = qScopeGuard(
-        [this, was_watching]
-        {
-            if (was_watching)
-            {
-                m_model->startWatching();
-            }
-        });
+        std::bind(&ModFolderPage::resumeWatching, this, was_watching));
 
     auto selection =
         m_filterModel
@@ -274,13 +277,7 @@ void ModFolderPage::disableUpdates()
 {
     bool was_watching = m_model->stopWatching();
     auto resume_watching = qScopeGuard(
-        [this, was_watching]
-        {
-            if (was_watching)
-            {
-                m_model->startWatching();
-            }
-        });
+        std::bind(&ModFolderPage::resumeWatching, this, was_watching));
 
     auto selection =
         m_filterModel

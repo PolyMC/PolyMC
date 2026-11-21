@@ -15,6 +15,8 @@
 
 #include "JsonFormat.h"
 
+#include <functional>
+
 // FIXME: remove this from here... somehow
 #include "minecraft/OneSixVersionFormat.h"
 #include "Json.h"
@@ -34,6 +36,14 @@ MetadataVersion currentFormatVersion()
 }
 
 // Index
+static VersionListPtr parseIndexEntry(const QJsonObject& obj)
+{
+    VersionListPtr list =
+        std::make_shared<VersionList>(requireString(obj, "uid"));
+    list->setName(ensureString(obj, "name", QString()));
+    return list;
+}
+
 static std::shared_ptr<Index> parseIndexInternal(const QJsonObject& obj)
 {
     const QVector<QJsonObject> objects =
@@ -41,13 +51,7 @@ static std::shared_ptr<Index> parseIndexInternal(const QJsonObject& obj)
     QVector<VersionListPtr> lists;
     lists.reserve(objects.size());
     std::transform(objects.begin(), objects.end(), std::back_inserter(lists),
-                   [](const QJsonObject& obj)
-                   {
-                       VersionListPtr list = std::make_shared<VersionList>(
-                           requireString(obj, "uid"));
-                       list->setName(ensureString(obj, "name", QString()));
-                       return list;
-                   });
+                   parseIndexEntry);
     return std::make_shared<Index>(lists);
 }
 
@@ -67,6 +71,13 @@ static VersionPtr parseCommonVersion(const QString& uid, const QJsonObject& obj)
     parseRequires(obj, &required, "requires");
     parseRequires(obj, &conflicts, "conflicts");
     version->setRequires(required, conflicts);
+    return version;
+}
+
+static VersionPtr parseListedVersion(const QString& uid, const QJsonObject& obj)
+{
+    auto version = parseCommonVersion(uid, obj);
+    version->setProvidesRecommendations();
     return version;
 }
 
@@ -93,12 +104,7 @@ static std::shared_ptr<VersionList> parseVersionListInternal(
     versions.reserve(versionsRaw.size());
     std::transform(versionsRaw.begin(), versionsRaw.end(),
                    std::back_inserter(versions),
-                   [uid](const QJsonObject& vObj)
-                   {
-                       auto version = parseCommonVersion(uid, vObj);
-                       version->setProvidesRecommendations();
-                       return version;
-                   });
+                   std::bind(parseListedVersion, uid, std::placeholders::_1));
 
     VersionListPtr list = std::make_shared<VersionList>(uid);
     list->setName(ensureString(obj, "name", QString()));

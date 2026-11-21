@@ -2,6 +2,7 @@
 
 #include <MurmurHash2.h>
 #include <QDebug>
+#include <functional>
 
 #include "Json.h"
 
@@ -79,17 +80,22 @@ EnsureMetadataTask::EnsureMetadataTask(QList<Mod*>& mods, QDir dir,
             continue;
         }
         connect(hash_task.get(), &Task::succeeded, this,
-                [this, hasher = hash_task.get(), mod]
-                {
-                    m_mods.insert(hasher->getResult(), mod);
-                });
+                std::bind(&EnsureMetadataTask::onHashSucceeded, this,
+                          hash_task.get(), mod));
         connect(hash_task.get(), &Task::failed, this,
-                [this, mod]
-                {
-                    emitFail(mod, "", RemoveFromList::No);
-                });
+                std::bind(&EnsureMetadataTask::onHashFailed, this, mod));
         m_hashing_task->addTask(hash_task);
     }
+}
+
+void EnsureMetadataTask::onHashSucceeded(Hashing::Hasher* hasher, Mod* mod)
+{
+    m_mods.insert(hasher->getResult(), mod);
+}
+
+void EnsureMetadataTask::onHashFailed(Mod* mod)
+{
+    emitFail(mod, "", RemoveFromList::No);
 }
 
 Hashing::Hasher::Ptr EnsureMetadataTask::createNewHash(Mod* mod)
@@ -189,56 +195,12 @@ void EnsureMetadataTask::executeTask()
             break;
     }
 
-    auto invalidade_leftover = [this]
-    {
-        for (auto mod = m_mods.constBegin(); mod != m_mods.constEnd(); mod++)
-        {
-            emitFail(mod.value(), mod.key(), RemoveFromList::No);
-        }
-        m_mods.clear();
-
-        emitSucceeded();
-    };
-
     connect(version_task.get(), &Task::finished, this,
-            [this, invalidade_leftover]
-            {
-                NetJob::Ptr project_task;
+            &EnsureMetadataTask::onVersionTaskFinished);
 
-                switch (m_provider)
-                {
-                    case (ModPlatform::Provider::MODRINTH):
-                        project_task = modrinthProjectsTask();
-                        break;
-                    case (ModPlatform::Provider::FLAME):
-                        project_task = flameProjectsTask();
-                        break;
-                }
-
-                if (!project_task)
-                {
-                    invalidade_leftover();
-                    return;
-                }
-
-                connect(project_task.get(), &Task::finished, this,
-                        [=]
-                        {
-                            invalidade_leftover();
-                            project_task->deleteLater();
-                            m_current_task = nullptr;
-                        });
-
-                m_current_task = project_task.get();
-                project_task->start();
-            });
-
-    connect(version_task.get(), &Task::finished,
-            [=]
-            {
-                version_task->deleteLater();
-                m_current_task = nullptr;
-            });
+    connect(
+        version_task.get(), &Task::finished,
+        std::bind(&EnsureMetadataTask::releaseVersionTask, this, version_task));
 
     if (m_mods.size() > 1)
     {
@@ -254,6 +216,58 @@ void EnsureMetadataTask::executeTask()
 
     m_current_task = version_task.get();
     version_task->start();
+}
+
+void EnsureMetadataTask::invalidateLeftover()
+{
+    for (auto mod = m_mods.constBegin(); mod != m_mods.constEnd(); mod++)
+    {
+        emitFail(mod.value(), mod.key(), RemoveFromList::No);
+    }
+    m_mods.clear();
+
+    emitSucceeded();
+}
+
+void EnsureMetadataTask::onVersionTaskFinished()
+{
+    NetJob::Ptr project_task;
+
+    switch (m_provider)
+    {
+        case (ModPlatform::Provider::MODRINTH):
+            project_task = modrinthProjectsTask();
+            break;
+        case (ModPlatform::Provider::FLAME):
+            project_task = flameProjectsTask();
+            break;
+    }
+
+    if (!project_task)
+    {
+        invalidateLeftover();
+        return;
+    }
+
+    connect(project_task.get(), &Task::finished, this,
+            std::bind(&EnsureMetadataTask::onProjectTaskFinished, this,
+                      project_task));
+
+    m_current_task = project_task.get();
+    project_task->start();
+}
+
+void EnsureMetadataTask::onProjectTaskFinished(NetJob::Ptr task)
+{
+    invalidateLeftover();
+    task->deleteLater();
+    m_current_task = nullptr;
+}
+
+void EnsureMetadataTask::releaseVersionTask(NetJob::Ptr task)
+{
+    task->deleteLater();
+    m_current_task = nullptr;
 }
 
 void EnsureMetadataTask::emitReady(Mod* m, QString key, RemoveFromList remove)
@@ -325,63 +339,63 @@ NetJob::Ptr EnsureMetadataTask::modrinthVersionsTask()
         return {};
     }
 
-    connect(
-        ver_task.get(), &NetJob::succeeded, this,
-        [this, response]
+    connect(ver_task.get(), &NetJob::succeeded, this,
+            std::bind(&EnsureMetadataTask::onModrinthVersionsReceived, this,
+                      response));
+
+    return ver_task;
+}
+
+void EnsureMetadataTask::onModrinthVersionsReceived(QByteArray* response)
+{
+    QJsonParseError parse_error{};
+    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from "
+                      "Modrinth::CurrentVersions at "
+                   << parse_error.offset
+                   << " reason: " << parse_error.errorString();
+        qWarning() << *response;
+
+        // The mods we couldn't get information about are marked as
+        // failed when the task finishes, emitting failed() here would
+        // be followed by emitSucceeded() then
+        return;
+    }
+
+    try
+    {
+        auto entries = Json::requireObject(doc);
+        for (auto& hash : m_mods.keys())
         {
-            QJsonParseError parse_error{};
-            QJsonDocument doc =
-                QJsonDocument::fromJson(*response, &parse_error);
-            if (parse_error.error != QJsonParseError::NoError)
-            {
-                qWarning() << "Error while parsing JSON response from "
-                              "Modrinth::CurrentVersions at "
-                           << parse_error.offset
-                           << " reason: " << parse_error.errorString();
-                qWarning() << *response;
-
-                // The mods we couldn't get information about are marked as
-                // failed when the task finishes, emitting failed() here would
-                // be followed by emitSucceeded() then
-                return;
-            }
-
+            auto mod = m_mods.find(hash).value();
             try
             {
-                auto entries = Json::requireObject(doc);
-                for (auto& hash : m_mods.keys())
-                {
-                    auto mod = m_mods.find(hash).value();
-                    try
-                    {
-                        auto entry = Json::requireObject(entries, hash);
+                auto entry = Json::requireObject(entries, hash);
 
-                        setStatus(
-                            tr("Parsing API response from Modrinth for '%1'...")
-                                .arg(mod->name()));
-                        qDebug() << "Getting version for" << mod->name()
-                                 << "from Modrinth";
+                setStatus(tr("Parsing API response from Modrinth for '%1'...")
+                              .arg(mod->name()));
+                qDebug() << "Getting version for" << mod->name()
+                         << "from Modrinth";
 
-                        m_temp_versions.insert(
-                            hash, Modrinth::loadIndexedPackVersion(entry));
-                    }
-                    catch (Json::JsonException& e)
-                    {
-                        qDebug() << e.cause();
-                        qDebug() << entries;
-
-                        emitFail(mod);
-                    }
-                }
+                m_temp_versions.insert(hash,
+                                       Modrinth::loadIndexedPackVersion(entry));
             }
             catch (Json::JsonException& e)
             {
                 qDebug() << e.cause();
-                qDebug() << doc;
-            }
-        });
+                qDebug() << entries;
 
-    return ver_task;
+                emitFail(mod);
+            }
+        }
+    }
+    catch (Json::JsonException& e)
+    {
+        qDebug() << e.cause();
+        qDebug() << doc;
+    }
 }
 
 NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
@@ -414,86 +428,85 @@ NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
         return {};
     }
 
-    connect(
-        proj_task.get(), &NetJob::succeeded, this,
-        [this, response, addonIds]
+    connect(proj_task.get(), &NetJob::succeeded, this,
+            std::bind(&EnsureMetadataTask::onModrinthProjectsReceived, this,
+                      response, addonIds));
+
+    return proj_task;
+}
+
+void EnsureMetadataTask::onModrinthProjectsReceived(
+    QByteArray* response, const QHash<QString, QString>& addons)
+{
+    QJsonParseError parse_error{};
+    auto doc = QJsonDocument::fromJson(*response, &parse_error);
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from Modrinth "
+                      "projects task at "
+                   << parse_error.offset
+                   << " reason: " << parse_error.errorString();
+        qWarning() << *response;
+        return;
+    }
+
+    try
+    {
+        QJsonArray entries;
+        if (addons.size() == 1)
         {
-            QJsonParseError parse_error{};
-            auto doc = QJsonDocument::fromJson(*response, &parse_error);
-            if (parse_error.error != QJsonParseError::NoError)
+            entries = {doc.object()};
+        }
+        else
+        {
+            entries = Json::requireArray(doc);
+        }
+
+        for (auto entry : std::as_const(entries))
+        {
+            auto entry_obj = Json::requireObject(entry);
+
+            ModPlatform::IndexedPack pack;
+            Modrinth::loadIndexedPack(pack, entry_obj);
+
+            auto hash_iter = addons.find(pack.addonId.toString());
+            if (hash_iter == addons.end())
             {
-                qWarning() << "Error while parsing JSON response from Modrinth "
-                              "projects task at "
-                           << parse_error.offset
-                           << " reason: " << parse_error.errorString();
-                qWarning() << *response;
-                return;
+                qWarning() << "Invalid project id from the API response.";
+                continue;
             }
+            auto hash = hash_iter.value();
+
+            auto mod_iter = m_mods.find(hash);
+            if (mod_iter == m_mods.end())
+            {
+                qWarning() << "Invalid project id from the API response.";
+                continue;
+            }
+
+            auto* mod = mod_iter.value();
 
             try
             {
-                QJsonArray entries;
-                if (addonIds.size() == 1)
-                {
-                    entries = {doc.object()};
-                }
-                else
-                {
-                    entries = Json::requireArray(doc);
-                }
+                setStatus(tr("Parsing API response from Modrinth for '%1'...")
+                              .arg(mod->name()));
 
-                for (auto entry : std::as_const(entries))
-                {
-                    auto entry_obj = Json::requireObject(entry);
-
-                    ModPlatform::IndexedPack pack;
-                    Modrinth::loadIndexedPack(pack, entry_obj);
-
-                    auto hash_iter = addonIds.find(pack.addonId.toString());
-                    if (hash_iter == addonIds.end())
-                    {
-                        qWarning()
-                            << "Invalid project id from the API response.";
-                        continue;
-                    }
-                    auto hash = hash_iter.value();
-
-                    auto mod_iter = m_mods.find(hash);
-                    if (mod_iter == m_mods.end())
-                    {
-                        qWarning()
-                            << "Invalid project id from the API response.";
-                        continue;
-                    }
-
-                    auto* mod = mod_iter.value();
-
-                    try
-                    {
-                        setStatus(
-                            tr("Parsing API response from Modrinth for '%1'...")
-                                .arg(mod->name()));
-
-                        modrinthCallback(
-                            pack, m_temp_versions.find(hash).value(), mod);
-                    }
-                    catch (Json::JsonException& e)
-                    {
-                        qDebug() << e.cause();
-                        qDebug() << entries;
-
-                        emitFail(mod);
-                    }
-                }
+                modrinthCallback(pack, m_temp_versions.find(hash).value(), mod);
             }
             catch (Json::JsonException& e)
             {
                 qDebug() << e.cause();
-                qDebug() << doc;
-            }
-        });
+                qDebug() << entries;
 
-    return proj_task;
+                emitFail(mod);
+            }
+        }
+    }
+    catch (Json::JsonException& e)
+    {
+        qDebug() << e.cause();
+        qDebug() << doc;
+    }
 }
 
 // Flame
@@ -509,80 +522,77 @@ NetJob::Ptr EnsureMetadataTask::flameVersionsTask()
 
     auto ver_task = flame_api.matchFingerprints(fingerprints, response);
 
-    connect(
-        ver_task.get(), &Task::succeeded, this,
-        [this, response]
-        {
-            QJsonParseError parse_error{};
-            QJsonDocument doc =
-                QJsonDocument::fromJson(*response, &parse_error);
-            if (parse_error.error != QJsonParseError::NoError)
-            {
-                qWarning() << "Error while parsing JSON response from "
-                              "Modrinth::CurrentVersions at "
-                           << parse_error.offset
-                           << " reason: " << parse_error.errorString();
-                qWarning() << *response;
+    connect(ver_task.get(), &Task::succeeded, this,
+            std::bind(&EnsureMetadataTask::onFlameVersionsReceived, this,
+                      response));
 
-                // The mods we couldn't get information about are marked as
-                // failed when the task finishes, emitting failed() here would
-                // be followed by emitSucceeded() then
+    return ver_task;
+}
+
+void EnsureMetadataTask::onFlameVersionsReceived(QByteArray* response)
+{
+    QJsonParseError parse_error{};
+    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from "
+                      "Modrinth::CurrentVersions at "
+                   << parse_error.offset
+                   << " reason: " << parse_error.errorString();
+        qWarning() << *response;
+
+        // The mods we couldn't get information about are marked as
+        // failed when the task finishes, emitting failed() here would
+        // be followed by emitSucceeded() then
+        return;
+    }
+
+    try
+    {
+        auto doc_obj = Json::requireObject(doc);
+        auto data_obj = Json::requireObject(doc_obj, "data");
+        auto data_arr = Json::requireArray(data_obj, "exactMatches");
+
+        if (data_arr.isEmpty())
+        {
+            qWarning() << "No matches found for fingerprint search!";
+
+            return;
+        }
+
+        for (auto match : std::as_const(data_arr))
+        {
+            auto match_obj = Json::ensureObject(match, {});
+            auto file_obj = Json::ensureObject(match_obj, "file", {});
+
+            if (match_obj.isEmpty() || file_obj.isEmpty())
+            {
+                qWarning() << "Fingerprint match is empty!";
+
                 return;
             }
 
-            try
+            auto fingerprint = QString::number(
+                Json::ensureVariant(file_obj, "fileFingerprint").toUInt());
+            auto mod = m_mods.find(fingerprint);
+            if (mod == m_mods.end())
             {
-                auto doc_obj = Json::requireObject(doc);
-                auto data_obj = Json::requireObject(doc_obj, "data");
-                auto data_arr = Json::requireArray(data_obj, "exactMatches");
-
-                if (data_arr.isEmpty())
-                {
-                    qWarning() << "No matches found for fingerprint search!";
-
-                    return;
-                }
-
-                for (auto match : std::as_const(data_arr))
-                {
-                    auto match_obj = Json::ensureObject(match, {});
-                    auto file_obj = Json::ensureObject(match_obj, "file", {});
-
-                    if (match_obj.isEmpty() || file_obj.isEmpty())
-                    {
-                        qWarning() << "Fingerprint match is empty!";
-
-                        return;
-                    }
-
-                    auto fingerprint = QString::number(
-                        Json::ensureVariant(file_obj, "fileFingerprint")
-                            .toUInt());
-                    auto mod = m_mods.find(fingerprint);
-                    if (mod == m_mods.end())
-                    {
-                        qWarning()
-                            << "Invalid fingerprint from the API response.";
-                        continue;
-                    }
-
-                    setStatus(
-                        tr("Parsing API response from CurseForge for '%1'...")
-                            .arg((*mod)->name()));
-
-                    m_temp_versions.insert(
-                        fingerprint,
-                        FlameMod::loadIndexedPackVersion(file_obj));
-                }
+                qWarning() << "Invalid fingerprint from the API response.";
+                continue;
             }
-            catch (Json::JsonException& e)
-            {
-                qDebug() << e.cause();
-                qDebug() << doc;
-            }
-        });
 
-    return ver_task;
+            setStatus(tr("Parsing API response from CurseForge for '%1'...")
+                          .arg((*mod)->name()));
+
+            m_temp_versions.insert(fingerprint,
+                                   FlameMod::loadIndexedPackVersion(file_obj));
+        }
+    }
+    catch (Json::JsonException& e)
+    {
+        qDebug() << e.cause();
+        qDebug() << doc;
+    }
 }
 
 NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
@@ -625,89 +635,86 @@ NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
         return {};
     }
 
-    connect(
-        proj_task.get(), &NetJob::succeeded, this,
-        [this, response, addonIds]
+    connect(proj_task.get(), &NetJob::succeeded, this,
+            std::bind(&EnsureMetadataTask::onFlameProjectsReceived, this,
+                      response, addonIds));
+
+    return proj_task;
+}
+
+void EnsureMetadataTask::onFlameProjectsReceived(
+    QByteArray* response, const QHash<QString, QString>& addons)
+{
+    QJsonParseError parse_error{};
+    auto doc = QJsonDocument::fromJson(*response, &parse_error);
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from Modrinth "
+                      "projects task at "
+                   << parse_error.offset
+                   << " reason: " << parse_error.errorString();
+        qWarning() << *response;
+        return;
+    }
+
+    try
+    {
+        QJsonArray entries;
+        if (addons.size() == 1)
         {
-            QJsonParseError parse_error{};
-            auto doc = QJsonDocument::fromJson(*response, &parse_error);
-            if (parse_error.error != QJsonParseError::NoError)
+            entries = {Json::requireObject(Json::requireObject(doc), "data")};
+        }
+        else
+        {
+            entries = Json::requireArray(Json::requireObject(doc), "data");
+        }
+
+        for (auto entry : std::as_const(entries))
+        {
+            auto entry_obj = Json::requireObject(entry);
+
+            auto id = QString::number(Json::requireInteger(entry_obj, "id"));
+            auto hash_iter = addons.find(id);
+            if (hash_iter == addons.end())
             {
-                qWarning() << "Error while parsing JSON response from Modrinth "
-                              "projects task at "
-                           << parse_error.offset
-                           << " reason: " << parse_error.errorString();
-                qWarning() << *response;
-                return;
+                qWarning() << "Invalid project id from the API response.";
+                continue;
             }
+            auto hash = hash_iter.value();
+
+            auto mod_iter = m_mods.find(hash);
+            if (mod_iter == m_mods.end())
+            {
+                qWarning() << "Invalid project id from the API response.";
+                continue;
+            }
+            auto mod = mod_iter.value();
 
             try
             {
-                QJsonArray entries;
-                if (addonIds.size() == 1)
-                {
-                    entries = {
-                        Json::requireObject(Json::requireObject(doc), "data")};
-                }
-                else
-                {
-                    entries =
-                        Json::requireArray(Json::requireObject(doc), "data");
-                }
+                setStatus(tr("Parsing API response from CurseForge for "
+                             "'%1'...")
+                              .arg(mod->name()));
 
-                for (auto entry : std::as_const(entries))
-                {
-                    auto entry_obj = Json::requireObject(entry);
+                ModPlatform::IndexedPack pack;
+                FlameMod::loadIndexedPack(pack, entry_obj);
 
-                    auto id =
-                        QString::number(Json::requireInteger(entry_obj, "id"));
-                    auto hash_iter = addonIds.find(id);
-                    if (hash_iter == addonIds.end())
-                    {
-                        qWarning()
-                            << "Invalid project id from the API response.";
-                        continue;
-                    }
-                    auto hash = hash_iter.value();
-
-                    auto mod_iter = m_mods.find(hash);
-                    if (mod_iter == m_mods.end())
-                    {
-                        qWarning()
-                            << "Invalid project id from the API response.";
-                        continue;
-                    }
-                    auto mod = mod_iter.value();
-
-                    try
-                    {
-                        setStatus(tr("Parsing API response from CurseForge for "
-                                     "'%1'...")
-                                      .arg(mod->name()));
-
-                        ModPlatform::IndexedPack pack;
-                        FlameMod::loadIndexedPack(pack, entry_obj);
-
-                        flameCallback(pack, m_temp_versions.find(hash).value(),
-                                      mod);
-                    }
-                    catch (Json::JsonException& e)
-                    {
-                        qDebug() << e.cause();
-                        qDebug() << entries;
-
-                        emitFail(mod);
-                    }
-                }
+                flameCallback(pack, m_temp_versions.find(hash).value(), mod);
             }
             catch (Json::JsonException& e)
             {
                 qDebug() << e.cause();
-                qDebug() << doc;
-            }
-        });
+                qDebug() << entries;
 
-    return proj_task;
+                emitFail(mod);
+            }
+        }
+    }
+    catch (Json::JsonException& e)
+    {
+        qDebug() << e.cause();
+        qDebug() << doc;
+    }
 }
 
 void EnsureMetadataTask::modrinthCallback(ModPlatform::IndexedPack& pack,

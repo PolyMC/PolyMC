@@ -36,6 +36,8 @@ private slots:
     void on_state(LoggedProcess::State state);
 
 private:
+    QString failureMessage();
+
     LoggedProcess m_process;
     QString m_command;
 };

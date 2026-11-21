@@ -76,6 +76,7 @@
 
 #include "ApplicationMessage.h"
 
+#include <functional>
 #include <iostream>
 
 #include <QAccessible>
@@ -216,6 +217,13 @@ QString getIdealPlatform(QString currentPlatform)
         }
     }
     return currentPlatform;
+}
+
+void moveLogFile(const QString& from, const QString& to)
+{
+    QFile::remove(to);
+    QFile::copy(from, to);
+    QFile::remove(from);
 }
 
 }  // namespace
@@ -455,17 +463,10 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
     // init the logger
     {
         static const QString logBase = BuildConfig.LAUNCHER_NAME + "-%0.log";
-        auto moveFile = [](const QString& oldName, const QString& newName)
-        {
-            QFile::remove(newName);
-            QFile::copy(oldName, newName);
-            QFile::remove(oldName);
-        };
-
-        moveFile(logBase.arg(3), logBase.arg(4));
-        moveFile(logBase.arg(2), logBase.arg(3));
-        moveFile(logBase.arg(1), logBase.arg(2));
-        moveFile(logBase.arg(0), logBase.arg(1));
+        moveLogFile(logBase.arg(3), logBase.arg(4));
+        moveLogFile(logBase.arg(2), logBase.arg(3));
+        moveLogFile(logBase.arg(1), logBase.arg(2));
+        moveLogFile(logBase.arg(0), logBase.arg(1));
 
         logFile = std::unique_ptr<QFile>(new QFile(logBase.arg(0)));
         if (!logFile->open(QIODevice::WriteOnly | QIODevice::Text |
@@ -818,10 +819,8 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
                                    ":/icons/multimc/scalable/instances/"};
         m_icons.reset(new IconList(instFolders, setting->get().toString()));
         connect(setting.get(), &Setting::SettingChanged,
-                [&](const Setting&, QVariant value)
-                {
-                    m_icons->directoryChanged(value.toString());
-                });
+                std::bind(&Application::onIconsDirChanged, this,
+                          std::placeholders::_1, std::placeholders::_2));
         qDebug() << "<> Instance icons intialized.";
     }
 
@@ -837,11 +836,6 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
 
     // Initialize widget themes
     {
-        auto insertTheme = [this](ITheme* theme)
-        {
-            m_themes.insert(
-                std::make_pair(theme->id(), std::unique_ptr<ITheme>(theme)));
-        };
         auto darkTheme = new DarkTheme();
         insertTheme(new SystemTheme());
         insertTheme(darkTheme);
@@ -942,30 +936,11 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
 
 #ifdef Q_OS_MACOS
     connect(this, &Application::clickedOnDock,
-            [this]()
-            {
-                this->showMainWindow();
-            });
+            std::bind(&Application::showMainWindow, this, false));
 #endif
 
     connect(this, &Application::aboutToQuit,
-            [this]()
-            {
-                if (m_instances)
-                {
-                    // save any remaining instance state
-                    m_instances->saveNow();
-                }
-                if (m_metacache)
-                {
-                    m_metacache->SaveNow();
-                }
-                if (logFile)
-                {
-                    logFile->flush();
-                    logFile->close();
-                }
-            });
+            std::bind(&Application::onAboutToQuit, this));
 
     {
         setIconTheme(settings()->get("IconTheme").toString());
@@ -985,38 +960,71 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
     performMainStartupAction();
 }
 
+void Application::onIconsDirChanged(const Setting&, QVariant value)
+{
+    m_icons->directoryChanged(value.toString());
+}
+
+void Application::insertTheme(ITheme* theme)
+{
+    m_themes.insert(
+        std::make_pair(theme->id(), std::unique_ptr<ITheme>(theme)));
+}
+
+void Application::onAboutToQuit()
+{
+    if (m_instances)
+    {
+        // save any remaining instance state
+        m_instances->saveNow();
+    }
+    if (m_metacache)
+    {
+        m_metacache->SaveNow();
+    }
+    if (logFile)
+    {
+        logFile->flush();
+        logFile->close();
+    }
+}
+
+bool Application::isJavaSetupRequired()
+{
+    bool ignoreJavaWizard = m_settings->get("IgnoreJavaWizard").toBool();
+    if (ignoreJavaWizard)
+    {
+        return false;
+    }
+    QString currentHostName = QHostInfo::localHostName();
+    QString oldHostName = settings()->get("LastHostname").toString();
+    if (currentHostName != oldHostName)
+    {
+        settings()->set("LastHostname", currentHostName);
+        return true;
+    }
+    QString currentJavaPath = settings()->get("JavaPath").toString();
+    QString actualPath = FS::ResolveExecutable(currentJavaPath);
+    if (actualPath.isNull())
+    {
+        return true;
+    }
+    return false;
+}
+
+bool Application::isLanguageSetupRequired()
+{
+    if (settings()->get("Language").toString().isEmpty())
+    {
+        return true;
+    }
+    return false;
+}
+
 bool Application::createSetupWizard()
 {
-    bool javaRequired = [&]()
-    {
-        bool ignoreJavaWizard = m_settings->get("IgnoreJavaWizard").toBool();
-        if (ignoreJavaWizard)
-        {
-            return false;
-        }
-        QString currentHostName = QHostInfo::localHostName();
-        QString oldHostName = settings()->get("LastHostname").toString();
-        if (currentHostName != oldHostName)
-        {
-            settings()->set("LastHostname", currentHostName);
-            return true;
-        }
-        QString currentJavaPath = settings()->get("JavaPath").toString();
-        QString actualPath = FS::ResolveExecutable(currentJavaPath);
-        if (actualPath.isNull())
-        {
-            return true;
-        }
-        return false;
-    }();
-    bool languageRequired = [&]()
-    {
-        if (settings()->get("Language").toString().isEmpty())
-        {
-            return true;
-        }
-        return false;
-    }();
+    bool javaRequired = isJavaSetupRequired();
+    bool languageRequired = isLanguageSetupRequired();
     bool pasteInterventionRequired = settings()->get("PastebinURL") != "";
     bool wizardRequired =
         javaRequired || languageRequired || pasteInterventionRequired;
@@ -1418,10 +1426,7 @@ bool Application::launch(InstancePtr instance, bool online, bool demo,
         connect(controller.get(), &LaunchController::failed, this,
                 &Application::controllerFailed);
         connect(controller.get(), &LaunchController::aborted, this,
-                [this]
-                {
-                    controllerFailed(tr("Aborted"));
-                });
+                &Application::controllerAborted);
         addRunningInstance();
         controller->start();
         return true;
@@ -1534,6 +1539,11 @@ void Application::controllerSucceeded()
         m_status = Status::Succeeded;
         exit(0);
     }
+}
+
+void Application::controllerAborted()
+{
+    controllerFailed(tr("Aborted"));
 }
 
 void Application::controllerFailed(const QString& error)

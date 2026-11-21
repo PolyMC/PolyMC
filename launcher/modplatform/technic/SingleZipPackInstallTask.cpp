@@ -57,13 +57,15 @@ void Technic::SingleZipPackInstallTask::executeTask()
     connect(job, &NetJob::failed, this,
             &Technic::SingleZipPackInstallTask::downloadFailed);
     connect(job, &NetJob::aborted, this,
-            [this]
-            {
-                m_abortable = false;
-                emitAborted();
-                m_filesNetJob.reset();
-            });
+            &Technic::SingleZipPackInstallTask::downloadAborted);
     m_filesNetJob->start();
+}
+
+void Technic::SingleZipPackInstallTask::downloadAborted()
+{
+    m_abortable = false;
+    emitAborted();
+    m_filesNetJob.reset();
 }
 
 void Technic::SingleZipPackInstallTask::downloadSucceeded()

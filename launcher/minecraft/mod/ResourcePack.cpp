@@ -8,6 +8,19 @@
 
 #include "minecraft/mod/tasks/LocalResourcePackParseTask.h"
 
+namespace
+{
+QString fmtToStr(std::pair<int, int> pair)
+{
+    auto str = QString::number(pair.first);
+    if (pair.second != 0)
+    {
+        str += QStringLiteral(".%1").arg(QString::number(pair.second));
+    }
+    return str;
+}
+}  // namespace
+
 // https://minecraft.wiki/w/Pack_format#List_of_pack_formats
 static const QMap<std::pair<int, int>, std::pair<Version, Version>>
     s_pack_format_versions = {
@@ -190,16 +203,6 @@ QString ResourcePack::toString() const
     }
 
     // min and max are defined
-    auto fmtToStr = [](std::pair<int, int> pair)
-    {
-        auto str = QString::number(pair.first);
-        if (pair.second != 0)
-        {
-            str += QStringLiteral(".%1").arg(QString::number(pair.second));
-        }
-        return str;
-    };
-
     const auto minStr = fmtToStr(m_minFormat);
     const auto maxStr = fmtToStr(m_maxFormat);
 

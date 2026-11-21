@@ -146,13 +146,17 @@ int ResourcePackFolderModel::columnCount(const QModelIndex& /*parent*/) const
     return NUM_COLUMNS;
 }
 
+namespace
+{
+Resource* createResourcePack(QFileInfo const& entry)
+{
+    return new ResourcePack(entry);
+}
+}  // namespace
+
 Task* ResourcePackFolderModel::createUpdateTask()
 {
-    return new BasicFolderLoadTask(m_dir,
-                                   [](QFileInfo const& entry)
-                                   {
-                                       return new ResourcePack(entry);
-                                   });
+    return new BasicFolderLoadTask(m_dir, createResourcePack);
 }
 
 Task* ResourcePackFolderModel::createParseTask(Resource& resource)

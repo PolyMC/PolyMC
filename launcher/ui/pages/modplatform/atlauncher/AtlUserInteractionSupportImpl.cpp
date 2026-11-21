@@ -39,6 +39,14 @@
 #include "AtlOptionalModDialog.h"
 #include "ui/dialogs/VersionSelectDialog.h"
 
+namespace
+{
+bool isMinecraftRequire(const Meta::Require& req)
+{
+    return req.uid == "net.minecraft";
+}
+}  // namespace
+
 AtlUserInteractionSupportImpl::AtlUserInteractionSupportImpl(QWidget* parent)
     : QObject(parent), m_parent(parent)
 {
@@ -81,11 +89,8 @@ QString AtlUserInteractionSupportImpl::chooseVersion(Meta::VersionListPtr vlist,
         // version.
         if (minecraftVersion != nullptr)
         {
-            auto iter = std::find_if(reqs.begin(), reqs.end(),
-                                     [](const Meta::Require& req)
-                                     {
-                                         return req.uid == "net.minecraft";
-                                     });
+            auto iter =
+                std::find_if(reqs.begin(), reqs.end(), isMinecraftRequire);
             if (iter == reqs.end())
             {
                 continue;

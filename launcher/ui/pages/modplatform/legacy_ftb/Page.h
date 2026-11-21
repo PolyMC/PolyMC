@@ -92,6 +92,7 @@ public:
 private:
     void suggestCurrent();
     void onPackSelectionChanged(Modpack* pack = nullptr);
+    void setSuggestedLogo(const QString& name, QString logo);
 
 private slots:
     void ftbPackDataDownloadSuccessfully(ModpackList publicPacks,

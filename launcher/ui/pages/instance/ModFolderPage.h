@@ -87,6 +87,13 @@ private slots:
     void disableUpdates();
     void onDisableUpdatesChange();
 
+private:
+    void updateDisableUpdatesAction();
+    bool checkAllowUpdate();
+    void updateUpdateAction();
+    void onModsUpdateFinished(std::shared_ptr<ModFolderModel> mods);
+    void resumeWatching(bool watching);
+
 protected:
     std::shared_ptr<ModFolderModel> m_model;
 };

@@ -64,20 +64,21 @@ void PreLaunchCommand::executeTask()
     m_process.start(program, args);
 }
 
+QString PreLaunchCommand::failureMessage()
+{
+    return tr("Pre-Launch command failed with code %1.\n\n")
+        .arg(m_process.exitCode());
+}
+
 void PreLaunchCommand::on_state(LoggedProcess::State state)
 {
-    auto getError = [&]()
-    {
-        return tr("Pre-Launch command failed with code %1.\n\n")
-            .arg(m_process.exitCode());
-    };
     switch (state)
     {
         case LoggedProcess::Aborted:
         case LoggedProcess::Crashed:
         case LoggedProcess::FailedToStart:
         {
-            auto error = getError();
+            auto error = failureMessage();
             emit logLine(error, MessageLevel::Fatal);
             emitFailed(error);
             return;
@@ -86,7 +87,7 @@ void PreLaunchCommand::on_state(LoggedProcess::State state)
         {
             if (m_process.exitCode() != 0)
             {
-                auto error = getError();
+                auto error = failureMessage();
                 emit logLine(error, MessageLevel::Fatal);
                 emitFailed(error);
             }

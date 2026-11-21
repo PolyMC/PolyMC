@@ -2,6 +2,16 @@
 
 #include "Json.h"
 
+namespace
+{
+
+bool isNewerFile(const Flame::IndexedVersion& a, const Flame::IndexedVersion& b)
+{
+    return a.fileId > b.fileId;
+}
+
+}  // namespace
+
 void Flame::loadIndexedPack(Flame::IndexedPack& pack, QJsonObject& obj)
 {
     pack.addonId = Json::requireInteger(obj, "id");
@@ -115,13 +125,7 @@ void Flame::loadIndexedPackVersions(Flame::IndexedPack& pack, QJsonArray& arr)
         }
     }
 
-    auto orderSortPredicate = [](const IndexedVersion& a,
-                                 const IndexedVersion& b) -> bool
-    {
-        return a.fileId > b.fileId;
-    };
-    std::sort(unsortedVersions.begin(), unsortedVersions.end(),
-              orderSortPredicate);
+    std::sort(unsortedVersions.begin(), unsortedVersions.end(), isNewerFile);
     pack.versions = unsortedVersions;
     pack.versionsLoaded = true;
 }

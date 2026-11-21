@@ -9,6 +9,9 @@
 #include <QThreadPool>
 #include <QTimer>
 
+#include <QPointer>
+#include <functional>
+
 #include "Resource.h"
 
 #include "tasks/Task.h"
@@ -225,6 +228,8 @@ protected:
     void applyUpdates(QSet<QString>& current_set, QSet<QString>& new_set,
                       QMap<QString, T>& new_resources);
 
+    static bool hasInternalId(const QString& id, Resource::Ptr const& resource);
+
 protected slots:
     void directoryChanged(QString);
 
@@ -250,6 +255,12 @@ protected slots:
     virtual void onParseFailed(int /* ticket */, QString /* resource_id */)
     {
     }
+
+private:
+    void updateTaskFinished();
+    void parseTaskSucceeded(int ticket, QPointer<Resource> resource);
+    void parseTaskFailed(int ticket, QPointer<Resource> resource);
+    void parseTaskFinished(int ticket, Resource::Ptr resource);
 
 protected:
     // Represents the relationship between a column's index (represented by the
@@ -307,12 +318,12 @@ protected:
     {                                                                      \
         auto iter =                                                        \
             std::find_if(m_resources.constBegin(), m_resources.constEnd(), \
-                         [&](Resource::Ptr const& r)                       \
-                         {                                                 \
-                             return r->internal_id() == id;                \
-                         });                                               \
+                         std::bind(&ResourceFolderModel::hasInternalId,    \
+                                   std::cref(id), std::placeholders::_1)); \
         if (iter == m_resources.constEnd())                                \
+        {                                                                  \
             return nullptr;                                                \
+        }                                                                  \
         return static_cast<T*>((*iter).get());                             \
     }
 

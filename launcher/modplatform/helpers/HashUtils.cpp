@@ -58,14 +58,14 @@ static QString hashModrinthFile(const QString& path)
     return ProviderCaps.hash(ModPlatform::Provider::MODRINTH, &file, hash_type);
 }
 
+// CF-specific
+static bool shouldFilterOut(char c)
+{
+    return (c == 9 || c == 10 || c == 13 || c == 32);
+}
+
 static QString hashFlameFile(const QString& path)
 {
-    // CF-specific
-    auto should_filter_out = [](char c)
-    {
-        return (c == 9 || c == 10 || c == 13 || c == 32);
-    };
-
     // Go through std::filesystem::path, a plain narrow string can't represent
     // every path on Windows
 #ifdef Q_OS_WIN
@@ -81,29 +81,31 @@ static QString hashFlameFile(const QString& path)
         return {};
     }
     return QString::number(
-        MurmurHash2(std::move(file_stream), 4 * MiB, should_filter_out));
+        MurmurHash2(std::move(file_stream), 4 * MiB, shouldFilterOut));
 }
 
 Hasher::Hasher(QString file_path, HashFunction hash_function)
     : m_path(std::move(file_path)), m_hash_function(hash_function)
 {
     connect(&m_watcher, &QFutureWatcher<QString>::finished, this,
-            [this]
-            {
-                if (!isRunning())
-                {
-                    return;
-                }
-                m_hash = m_watcher.result();
-                if (m_hash.isEmpty())
-                {
-                    emitFailed("Failed to hash file.");
-                }
-                else
-                {
-                    emitSucceeded();
-                }
-            });
+            &Hasher::onHashFinished);
+}
+
+void Hasher::onHashFinished()
+{
+    if (!isRunning())
+    {
+        return;
+    }
+    m_hash = m_watcher.result();
+    if (m_hash.isEmpty())
+    {
+        emitFailed("Failed to hash file.");
+    }
+    else
+    {
+        emitSucceeded();
+    }
 }
 
 void Hasher::executeTask()

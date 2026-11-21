@@ -8,6 +8,18 @@
 static FlameAPI api;
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
+namespace
+{
+
+bool isNewerVersion(const ModPlatform::IndexedVersion& a,
+                    const ModPlatform::IndexedVersion& b)
+{
+    // dates are in RFC 3339 format
+    return a.date > b.date;
+}
+
+}  // namespace
+
 void FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj)
 {
     pack.addonId = Json::requireInteger(obj, "id");
@@ -114,14 +126,7 @@ void FlameMod::loadIndexedPackVersions(
         }
     }
 
-    auto orderSortPredicate = [](const ModPlatform::IndexedVersion& a,
-                                 const ModPlatform::IndexedVersion& b) -> bool
-    {
-        // dates are in RFC 3339 format
-        return a.date > b.date;
-    };
-    std::sort(unsortedVersions.begin(), unsortedVersions.end(),
-              orderSortPredicate);
+    std::sort(unsortedVersions.begin(), unsortedVersions.end(), isNewerVersion);
     pack.versions = unsortedVersions;
     pack.versionsLoaded = true;
 }

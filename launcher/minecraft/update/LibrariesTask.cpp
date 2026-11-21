@@ -26,28 +26,6 @@ void LibrariesTask::executeTask()
 
     auto metacache = APPLICATION->metacache();
 
-    auto processArtifactPool = [&](const QList<LibraryPtr>& pool,
-                                   QStringList& errors,
-                                   const QString& localPath)
-    {
-        for (const auto& lib : pool)
-        {
-            if (!lib)
-            {
-                emitFailed(
-                    tr("Null jar is specified in the metadata, aborting."));
-                return false;
-            }
-            auto dls = lib->getDownloads(inst->runtimeContext(),
-                                         metacache.get(), errors, localPath);
-            for (const auto& dl : std::as_const(dls))
-            {
-                downloadJob->addNetAction(dl);
-            }
-        }
-        return true;
-    };
-
     QStringList failedLocalLibraries;
     QList<LibraryPtr> libArtifactPool;
     libArtifactPool.append(profile->getLibraries());
@@ -58,15 +36,15 @@ void LibrariesTask::executeTask()
         libArtifactPool.append(agent->library());
     }
     libArtifactPool.append(profile->getMainJar());
-    if (!processArtifactPool(libArtifactPool, failedLocalLibraries,
-                             inst->getLocalLibraryPath()))
+    if (!processArtifactPool(inst, metacache.get(), libArtifactPool,
+                             failedLocalLibraries, inst->getLocalLibraryPath()))
     {
         return;
     }
 
     QStringList failedLocalJarMods;
-    if (!processArtifactPool(profile->getJarMods(), failedLocalJarMods,
-                             inst->jarModsDir()))
+    if (!processArtifactPool(inst, metacache.get(), profile->getJarMods(),
+                             failedLocalJarMods, inst->jarModsDir()))
     {
         return;
     }
@@ -89,13 +67,38 @@ void LibrariesTask::executeTask()
     connect(downloadJob.get(), &NetJob::failed, this,
             &LibrariesTask::jarlibFailed);
     connect(downloadJob.get(), &NetJob::aborted, this,
-            [this]
-            {
-                emitFailed(tr("Aborted"));
-            });
+            &LibrariesTask::downloadAborted);
     connect(downloadJob.get(), &NetJob::progress, this,
             &LibrariesTask::progress);
     downloadJob->start();
+}
+
+bool LibrariesTask::processArtifactPool(MinecraftInstance* inst,
+                                        HttpMetaCache* cache,
+                                        const QList<LibraryPtr>& pool,
+                                        QStringList& errors,
+                                        const QString& path)
+{
+    for (const auto& lib : pool)
+    {
+        if (!lib)
+        {
+            emitFailed(tr("Null jar is specified in the metadata, aborting."));
+            return false;
+        }
+        auto dls =
+            lib->getDownloads(inst->runtimeContext(), cache, errors, path);
+        for (const auto& dl : std::as_const(dls))
+        {
+            downloadJob->addNetAction(dl);
+        }
+    }
+    return true;
+}
+
+void LibrariesTask::downloadAborted()
+{
+    emitFailed(tr("Aborted"));
 }
 
 bool LibrariesTask::canAbort() const

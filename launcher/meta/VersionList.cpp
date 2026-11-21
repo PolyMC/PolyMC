@@ -17,12 +17,37 @@
 
 #include <QDateTime>
 
+#include <functional>
+
 #include "Version.h"
 #include "JsonFormat.h"
 #include "Version.h"
 
 namespace Meta
 {
+namespace
+{
+bool isMinecraftRequire(const Require& req)
+{
+    return req.uid == "net.minecraft";
+}
+
+bool hasVersionString(const QString& version, Meta::VersionPtr const& entry)
+{
+    return entry->version() == version;
+}
+
+bool isNewerVersion(const VersionPtr& first, const VersionPtr& second)
+{
+    return first->rawTime() > second->rawTime();
+}
+
+bool isReleaseVersion(const VersionPtr& ptr)
+{
+    return ptr->type() == "release";
+}
+}  // namespace
+
 VersionList::VersionList(const QString& uid, QObject* parent)
     : BaseVersionList(parent), m_uid(uid)
 {
@@ -72,11 +97,8 @@ QVariant VersionList::data(const QModelIndex& index, int role) const
             // FIXME: HACK: this should be generic and be replaced by something
             // else. Anything that is a hard 'equals' dep is a 'parent uid'.
             auto& reqs = version->required();
-            auto iter = std::find_if(reqs.begin(), reqs.end(),
-                                     [](const Require& req)
-                                     {
-                                         return req.uid == "net.minecraft";
-                                     });
+            auto iter =
+                std::find_if(reqs.begin(), reqs.end(), isMinecraftRequire);
             if (iter != reqs.end())
             {
                 return (*iter).equalsVersion;
@@ -146,11 +168,9 @@ VersionPtr VersionList::getVersion(const QString& version)
 
 bool VersionList::hasVersion(QString version) const
 {
-    auto ver = std::find_if(m_versions.constBegin(), m_versions.constEnd(),
-                            [&](Meta::VersionPtr const& a)
-                            {
-                                return a->version() == version;
-                            });
+    auto ver = std::find_if(
+        m_versions.constBegin(), m_versions.constEnd(),
+        std::bind(hasVersionString, std::cref(version), std::placeholders::_1));
     return (ver != m_versions.constEnd());
 }
 
@@ -164,11 +184,7 @@ void VersionList::setVersions(const QVector<VersionPtr>& versions)
 {
     beginResetModel();
     m_versions = versions;
-    std::sort(m_versions.begin(), m_versions.end(),
-              [](const VersionPtr& a, const VersionPtr& b)
-              {
-                  return a->rawTime() > b->rawTime();
-              });
+    std::sort(m_versions.begin(), m_versions.end(), isNewerVersion);
     for (int i = 0; i < m_versions.size(); ++i)
     {
         m_lookup.insert(m_versions.at(i)->version(), m_versions.at(i));
@@ -177,12 +193,8 @@ void VersionList::setVersions(const QVector<VersionPtr>& versions)
 
     // FIXME: this is dumb, we have 'recommended' as part of the metadata
     // already...
-    auto recommendedIt =
-        std::find_if(m_versions.constBegin(), m_versions.constEnd(),
-                     [](const VersionPtr& ptr)
-                     {
-                         return ptr->type() == "release";
-                     });
+    auto recommendedIt = std::find_if(m_versions.constBegin(),
+                                      m_versions.constEnd(), isReleaseVersion);
     m_recommended =
         recommendedIt == m_versions.constEnd() ? nullptr : *recommendedIt;
     endResetModel();
@@ -265,23 +277,27 @@ void VersionList::setupAddedVersion(const int row, const VersionPtr& version)
     // FIXME: do not disconnect from everythin, disconnect only the lambdas here
     version->disconnect();
     connect(version.get(), &Version::requiresChanged, this,
-            [this, row]()
-            {
-                emit dataChanged(index(row), index(row),
-                                 QVector<int>() << RequiresRole);
-            });
+            std::bind(&VersionList::versionRequiresChanged, this, row));
     connect(version.get(), &Version::timeChanged, this,
-            [this, row]()
-            {
-                emit dataChanged(index(row), index(row),
-                                 QVector<int>() << TimeRole << SortRole);
-            });
+            std::bind(&VersionList::versionTimeChanged, this, row));
     connect(version.get(), &Version::typeChanged, this,
-            [this, row]()
-            {
-                emit dataChanged(index(row), index(row),
-                                 QVector<int>() << TypeRole);
-            });
+            std::bind(&VersionList::versionTypeChanged, this, row));
+}
+
+void VersionList::versionRequiresChanged(int row)
+{
+    emit dataChanged(index(row), index(row), QVector<int>() << RequiresRole);
+}
+
+void VersionList::versionTimeChanged(int row)
+{
+    emit dataChanged(index(row), index(row),
+                     QVector<int>() << TimeRole << SortRole);
+}
+
+void VersionList::versionTypeChanged(int row)
+{
+    emit dataChanged(index(row), index(row), QVector<int>() << TypeRole);
 }
 
 BaseVersionPtr VersionList::getRecommended() const

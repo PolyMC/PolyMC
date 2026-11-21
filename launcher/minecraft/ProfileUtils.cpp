@@ -192,21 +192,21 @@ bool saveJsonFile(const QJsonDocument doc, const QString& filename)
     return true;
 }
 
+static void filterLwjgl(QList<LibraryPtr>& libs)
+{
+    QList<LibraryPtr> filteredLibs;
+    for (const auto& lib : libs)
+    {
+        if (!g_VersionFilterData.lwjglWhitelist.contains(lib->artifactPrefix()))
+        {
+            filteredLibs.append(lib);
+        }
+    }
+    libs = filteredLibs;
+}
+
 void removeLwjglFromPatch(VersionFilePtr patch)
 {
-    auto filter = [](QList<LibraryPtr>& libs)
-    {
-        QList<LibraryPtr> filteredLibs;
-        for (const auto& lib : libs)
-        {
-            if (!g_VersionFilterData.lwjglWhitelist.contains(
-                    lib->artifactPrefix()))
-            {
-                filteredLibs.append(lib);
-            }
-        }
-        libs = filteredLibs;
-    };
-    filter(patch->libraries);
+    filterLwjgl(patch->libraries);
 }
 }  // namespace ProfileUtils

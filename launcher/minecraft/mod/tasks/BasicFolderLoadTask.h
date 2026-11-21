@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QThread>
 
+#include <functional>
 #include <memory>
 
 #include "minecraft/mod/Resource.h"
@@ -35,10 +36,7 @@ public:
           m_result(new Result),
           m_thread_to_spawn_into(thread())
     {
-        m_create_func = [](QFileInfo const& entry) -> Resource*
-        {
-            return new Resource(entry);
-        };
+        m_create_func = createResource;
     }
     BasicFolderLoadTask(
         QDir dir, std::function<Resource*(QFileInfo const&)> create_function)
@@ -86,6 +84,11 @@ public:
     }
 
 private:
+    static Resource* createResource(QFileInfo const& entry)
+    {
+        return new Resource(entry);
+    }
+
     QDir m_dir;
     ResultPtr m_result;
 

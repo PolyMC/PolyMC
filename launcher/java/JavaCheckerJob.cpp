@@ -38,11 +38,7 @@ void JavaCheckerJob::executeTask()
     // Nothing to check means partFinished() is never called
     if (javacheckers.isEmpty())
     {
-        QMetaObject::invokeMethod(this,
-                                  [this]
-                                  {
-                                      emitSucceeded();
-                                  },
+        QMetaObject::invokeMethod(this, &JavaCheckerJob::emitSucceeded,
                                   Qt::QueuedConnection);
         return;
     }

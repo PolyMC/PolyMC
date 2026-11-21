@@ -39,6 +39,9 @@ private: /* data */
     NetJob::Ptr m_dljob;
 
     void modrinthCheckFinished();
+    void onModrinthJobFinished(NetJob* job);
+    void onSlugJobFinished(const QVector<QByteArray>& slugs, NetJob* job,
+                           QList<File*>* block);
 
     QMap<File*, QByteArray*> blockedProjects;
 };

@@ -117,6 +117,8 @@
 
 #include "MMCTime.h"
 
+#include <functional>
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 // For .lnk creation
 #include <windows.h>
@@ -153,6 +155,11 @@ HRESULT createLink(const LPCWSTR& target, const LPCWSTR& shortcut_path,
 
 namespace
 {
+bool isGroupCollapsed(const QString& group)
+{
+    return APPLICATION->instances()->isGroupCollapsed(group);
+}
+
 QString profileInUseFilter(const QString& profile, bool used)
 {
     if (used)
@@ -966,6 +973,11 @@ public:
         setInstanceActionsEnabled(false);
     }
 
+    void keepInstanceToolbarVertical()
+    {
+        instanceToolBar->setOrientation(Qt::Vertical);
+    }
+
     void createInstanceToolbar(QMainWindow* MainWindow)
     {
         instanceToolBar = TranslatedToolbar(MainWindow);
@@ -976,10 +988,7 @@ public:
         // Qt doesn't like vertical moving toolbars, so we have to force them...
         // See https://github.com/PolyMC/PolyMC/issues/493
         connect(instanceToolBar, &QToolBar::orientationChanged,
-                [=](Qt::Orientation)
-                {
-                    instanceToolBar->setOrientation(Qt::Vertical);
-                });
+                std::bind(&Ui::keepInstanceToolbarVertical, this));
         instanceToolBar->setAllowedAreas(Qt::LeftToolBarArea |
                                          Qt::RightToolBarArea);
         instanceToolBar->setToolButtonStyle(Qt::ToolButtonTextOnly);
@@ -1175,11 +1184,7 @@ MainWindow::MainWindow(QWidget* parent)
                 &MainWindow::instanceDataChanged);
 
         view->setModel(proxymodel);
-        view->setSourceOfGroupCollapseStatus(
-            [](const QString& groupName) -> bool
-            {
-                return APPLICATION->instances()->isGroupCollapsed(groupName);
-            });
+        view->setSourceOfGroupCollapseStatus(&isGroupCollapsed);
         connect(view, &InstanceView::groupStateChanged,
                 APPLICATION->instances().get(),
                 &InstanceList::on_GroupStateChanged);
@@ -1190,34 +1195,15 @@ MainWindow::MainWindow(QWidget* parent)
         connect(ui->instanceSearch, &QLineEdit::textChanged, proxymodel,
                 &InstanceProxyModel::setSearchTerm);
         connect(ui->instanceSearch, &QLineEdit::returnPressed, this,
-                [this]()
-                {
-                    auto first = proxymodel->index(0, 0);
-                    if (first.isValid())
-                    {
-                        view->selectionModel()->setCurrentIndex(
-                            first, QItemSelectionModel::ClearAndSelect);
-                    }
-                });
+                &MainWindow::selectFirstInstance);
 
         auto focusSearch = new QShortcut(QKeySequence::Find, this);
         connect(focusSearch, &QShortcut::activated, this,
-                [this]()
-                {
-                    ui->instanceSearch->setFocus();
-                });
+                &MainWindow::focusInstanceSearch);
 
         auto clearSearch = new QShortcut(QKeySequence(Qt::Key_Escape), this);
         connect(clearSearch, &QShortcut::activated, this,
-                [this]()
-                {
-                    if (ui->instanceSearch->hasFocus() &&
-                        !ui->instanceSearch->text().isEmpty())
-                    {
-                        ui->instanceSearch->clear();
-                        view->setFocus();
-                    }
-                });
+                &MainWindow::clearInstanceSearch);
     }
     // The cat background
     {
@@ -1284,18 +1270,10 @@ MainWindow::MainWindow(QWidget* parent)
     ui->mainToolBar->addAction(accountMenuButtonAction);
 
     // Update the menu when the active account changes.
-    // Shouldn't have to use lambdas here like this, but if I don't, the
-    // compiler throws a fit. Template hell sucks...
     connect(APPLICATION->accounts().get(), &AccountList::defaultAccountChanged,
-            [this]
-            {
-                defaultAccountChanged();
-            });
+            std::bind(&MainWindow::defaultAccountChanged, this));
     connect(APPLICATION->accounts().get(), &AccountList::listChanged,
-            [this]
-            {
-                repopulateAccountsMenu();
-            });
+            std::bind(&MainWindow::repopulateAccountsMenu, this));
 
     // Show initial account
     defaultAccountChanged();
@@ -1499,6 +1477,41 @@ void MainWindow::updateMainToolBar()
         !APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
 }
 
+void MainWindow::selectFirstInstance()
+{
+    auto first = proxymodel->index(0, 0);
+    if (first.isValid())
+    {
+        view->selectionModel()->setCurrentIndex(
+            first, QItemSelectionModel::ClearAndSelect);
+    }
+}
+
+void MainWindow::focusInstanceSearch()
+{
+    ui->instanceSearch->setFocus();
+}
+
+void MainWindow::clearInstanceSearch()
+{
+    if (ui->instanceSearch->hasFocus() && !ui->instanceSearch->text().isEmpty())
+    {
+        ui->instanceSearch->clear();
+        view->setFocus();
+    }
+}
+
+void MainWindow::launchSelectedInstance(bool online, bool demo)
+{
+    APPLICATION->launch(m_selectedInstance, online, demo);
+}
+
+void MainWindow::launchSelectedInstanceWithProfiler(
+    std::shared_ptr<BaseProfilerFactory> profiler, bool online)
+{
+    APPLICATION->launch(m_selectedInstance, online, false, profiler.get());
+}
+
 void MainWindow::updateToolsMenu()
 {
     QToolButton* launchButton = dynamic_cast<QToolButton*>(
@@ -1537,21 +1550,15 @@ void MainWindow::updateToolsMenu()
         normalLaunchOffline->setEnabled(m_selectedInstance->canLaunch());
         normalLaunchDemo->setEnabled(m_selectedInstance->canLaunch());
 
-        connect(normalLaunch, &QAction::triggered,
-                [this]()
-                {
-                    APPLICATION->launch(m_selectedInstance, true, false);
-                });
-        connect(normalLaunchOffline, &QAction::triggered,
-                [this]()
-                {
-                    APPLICATION->launch(m_selectedInstance, false, false);
-                });
-        connect(normalLaunchDemo, &QAction::triggered,
-                [this]()
-                {
-                    APPLICATION->launch(m_selectedInstance, false, true);
-                });
+        connect(
+            normalLaunch, &QAction::triggered,
+            std::bind(&MainWindow::launchSelectedInstance, this, true, false));
+        connect(
+            normalLaunchOffline, &QAction::triggered,
+            std::bind(&MainWindow::launchSelectedInstance, this, false, false));
+        connect(
+            normalLaunchDemo, &QAction::triggered,
+            std::bind(&MainWindow::launchSelectedInstance, this, false, true));
     }
     else
     {
@@ -1591,17 +1598,11 @@ void MainWindow::updateToolsMenu()
             profilerOfflineAction->setEnabled(m_selectedInstance->canLaunch());
 
             connect(profilerAction, &QAction::triggered,
-                    [this, profiler]()
-                    {
-                        APPLICATION->launch(m_selectedInstance, true, false,
-                                            profiler.get());
-                    });
+                    std::bind(&MainWindow::launchSelectedInstanceWithProfiler,
+                              this, profiler, true));
             connect(profilerOfflineAction, &QAction::triggered,
-                    [this, profiler]()
-                    {
-                        APPLICATION->launch(m_selectedInstance, false, false,
-                                            profiler.get());
-                    });
+                    std::bind(&MainWindow::launchSelectedInstanceWithProfiler,
+                              this, profiler, false));
         }
         else
         {
@@ -2038,46 +2039,52 @@ InstanceView
     }
 }
 
+void MainWindow::onModalTaskFailed(ProgressDialog& dialog, QString reason)
+{
+    // FIXME:
+    // HACK: I don't know why calling show() on this
+    // CustomMessageBox causes loadDialog to not close, but this
+    // forces it to close BEFORE the CustomMessageBox gets opened...
+    // I think this is a bad fix
+    dialog.close();
+    CustomMessageBox::selectable(this, tr("Error"), reason,
+                                 QMessageBox::Critical)
+        ->show();
+}
+
+void MainWindow::onModalTaskSucceeded(Task* task)
+{
+    QStringList warnings = task->warnings();
+    if (warnings.count())
+    {
+        CustomMessageBox::selectable(this, tr("Warnings"), warnings.join('\n'),
+                                     QMessageBox::Warning)
+            ->show();
+    }
+}
+
+void MainWindow::onModalTaskAborted(ProgressDialog& dialog)
+{
+    // HACK: Same bad hack as above slot for Task::failed
+    dialog.close();
+    CustomMessageBox::selectable(this, tr("Task aborted"),
+                                 tr("The task has been aborted by the user."),
+                                 QMessageBox::Information)
+        ->show();
+}
+
 void MainWindow::runModalTask(Task* task)
 {
     ProgressDialog loadDialog(this);
 
     connect(task, &Task::failed,
-            [this, &loadDialog](QString reason)
-            {
-                // FIXME:
-                // HACK: I don't know why calling show() on this
-                // CustomMessageBox causes loadDialog to not close, but this
-                // forces it to close BEFORE the CustomMessageBox gets opened...
-                // I think this is a bad fix
-                loadDialog.close();
-                CustomMessageBox::selectable(this, tr("Error"), reason,
-                                             QMessageBox::Critical)
-                    ->show();
-            });
+            std::bind(&MainWindow::onModalTaskFailed, this,
+                      std::ref(loadDialog), std::placeholders::_1));
     connect(task, &Task::succeeded,
-            [this, task]()
-            {
-                QStringList warnings = task->warnings();
-                if (warnings.count())
-                {
-                    CustomMessageBox::selectable(this, tr("Warnings"),
-                                                 warnings.join('\n'),
-                                                 QMessageBox::Warning)
-                        ->show();
-                }
-            });
-    connect(task, &Task::aborted,
-            [this, &loadDialog]
-            {
-                // HACK: Same bad hack as above slot for Task::failed
-                loadDialog.close();
-                CustomMessageBox::selectable(
-                    this, tr("Task aborted"),
-                    tr("The task has been aborted by the user."),
-                    QMessageBox::Information)
-                    ->show();
-            });
+            std::bind(&MainWindow::onModalTaskSucceeded, this, task));
+    connect(
+        task, &Task::aborted,
+        std::bind(&MainWindow::onModalTaskAborted, this, std::ref(loadDialog)));
     loadDialog.setSkipButton(true, tr("Abort"));
     loadDialog.execWithTask(task);
     qDebug() << "MainWindow::runModalTask: execWithTask exited properly";
@@ -2114,6 +2121,13 @@ void MainWindow::on_actionCopyInstance_triggered()
     runModalTask(task.get());
 }
 
+void MainWindow::onInstanceUpdateFailed(QString reason)
+{
+    QString error = QString("Instance load failed: %1").arg(reason);
+    CustomMessageBox::selectable(this, tr("Error"), error, QMessageBox::Warning)
+        ->show();
+}
+
 void MainWindow::finalizeInstance(InstancePtr inst)
 {
     view->updateGeometries();
@@ -2123,14 +2137,8 @@ void MainWindow::finalizeInstance(InstancePtr inst)
         ProgressDialog loadDialog(this);
         auto update = inst->createUpdateTask(Net::Mode::Online);
         connect(update.get(), &Task::failed,
-                [this](QString reason)
-                {
-                    QString error =
-                        QString("Instance load failed: %1").arg(reason);
-                    CustomMessageBox::selectable(this, tr("Error"), error,
-                                                 QMessageBox::Warning)
-                        ->show();
-                });
+                std::bind(&MainWindow::onInstanceUpdateFailed, this,
+                          std::placeholders::_1));
         if (update)
         {
             loadDialog.setSkipButton(true, tr("Abort"));
@@ -2757,11 +2765,7 @@ void MainWindow::instanceChanged(const QModelIndex& current,
         connect(m_selectedInstance.get(), &BaseInstance::runningStatusChanged,
                 this, &MainWindow::refreshCurrentInstance);
         connect(m_selectedInstance.get(), &BaseInstance::suspendStatusChanged,
-                this,
-                [this]
-                {
-                    refreshCurrentInstance(true);
-                });
+                this, &MainWindow::onSuspendStatusChanged);
     }
     else
     {
@@ -2779,6 +2783,11 @@ void MainWindow::instanceChanged(const QModelIndex& current,
         selectionBad();
         return;
     }
+}
+
+void MainWindow::onSuspendStatusChanged()
+{
+    refreshCurrentInstance(true);
 }
 
 void MainWindow::instanceSelectRequest(QString id)

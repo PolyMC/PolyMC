@@ -113,6 +113,11 @@ protected:
 
     inline std::list<Version> getMineVersions() const;
 
+private:
+    void onSearchSucceeded();
+    void onLogoSucceeded(const QString& logo, const QString& path);
+    void onLogoFailed(const QString& logo);
+
 protected:
     ModrinthPage* m_parent;
 

@@ -7,6 +7,8 @@
 
 #include <QtMath>
 
+#include <functional>
+
 namespace Flame
 {
 
@@ -123,27 +125,32 @@ void ListModel::requestLogo(QString logo, QString url)
     job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
 
     auto fullPath = entry->getFullPath();
-    QObject::connect(job, &NetJob::succeeded, this,
-                     [this, logo, fullPath]
-                     {
-                         emit logoLoaded(logo, QIcon(fullPath));
-                         if (waitingCallbacks.contains(logo))
-                         {
-                             waitingCallbacks.value(logo)(fullPath);
-                         }
-                     });
+    QObject::connect(
+        job, &NetJob::succeeded, this,
+        std::bind(&ListModel::onLogoSucceeded, this, logo, fullPath));
 
     QObject::connect(job, &NetJob::failed, this,
-                     [this, logo]
-                     {
-                         emit logoFailed(logo);
-                     });
+                     std::bind(&ListModel::onLogoFailed, this, logo));
 
     QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
 
     job->start();
 
     m_loadingLogos.append(logo);
+}
+
+void ListModel::onLogoSucceeded(const QString& logo, const QString& path)
+{
+    emit logoLoaded(logo, QIcon(path));
+    if (waitingCallbacks.contains(logo))
+    {
+        waitingCallbacks.value(logo)(path);
+    }
+}
+
+void ListModel::onLogoFailed(const QString& logo)
+{
+    emit logoFailed(logo);
 }
 
 void ListModel::getLogo(const QString& logo, const QString& logoUrl,
@@ -216,10 +223,12 @@ void ListModel::performPaginatedSearch()
     QObject::connect(netJob, &NetJob::failed, this,
                      &ListModel::searchRequestFailed);
     QObject::connect(netJob, &NetJob::aborted, this,
-                     [this]
-                     {
-                         searchRequestFailed({});
-                     });
+                     &ListModel::onSearchAborted);
+}
+
+void ListModel::onSearchAborted()
+{
+    searchRequestFailed({});
 }
 
 void ListModel::searchWithTerm(const QString& term, int sort)

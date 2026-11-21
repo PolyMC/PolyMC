@@ -4,6 +4,17 @@
 #include <QDir>
 #include "Application.h"
 
+namespace
+{
+void blend(QPalette& palette, qreal bias, QColor color,
+           QPalette::ColorRole role)
+{
+    QColor from = palette.color(QPalette::Active, role);
+    QColor blended = Rainbow::mix(from, color, bias);
+    palette.setColor(QPalette::Disabled, role, blended);
+}
+}  // namespace
+
 void ITheme::apply(bool)
 {
     QApplication::setStyle(QStyleFactory::create(qtTheme()));
@@ -24,24 +35,18 @@ void ITheme::apply(bool)
 
 QPalette ITheme::fadeInactive(QPalette in, qreal bias, QColor color)
 {
-    auto blend = [&in, bias, color](QPalette::ColorRole role)
-    {
-        QColor from = in.color(QPalette::Active, role);
-        QColor blended = Rainbow::mix(from, color, bias);
-        in.setColor(QPalette::Disabled, role, blended);
-    };
-    blend(QPalette::Window);
-    blend(QPalette::WindowText);
-    blend(QPalette::Base);
-    blend(QPalette::AlternateBase);
-    blend(QPalette::ToolTipBase);
-    blend(QPalette::ToolTipText);
-    blend(QPalette::Text);
-    blend(QPalette::Button);
-    blend(QPalette::ButtonText);
-    blend(QPalette::BrightText);
-    blend(QPalette::Link);
-    blend(QPalette::Highlight);
-    blend(QPalette::HighlightedText);
+    blend(in, bias, color, QPalette::Window);
+    blend(in, bias, color, QPalette::WindowText);
+    blend(in, bias, color, QPalette::Base);
+    blend(in, bias, color, QPalette::AlternateBase);
+    blend(in, bias, color, QPalette::ToolTipBase);
+    blend(in, bias, color, QPalette::ToolTipText);
+    blend(in, bias, color, QPalette::Text);
+    blend(in, bias, color, QPalette::Button);
+    blend(in, bias, color, QPalette::ButtonText);
+    blend(in, bias, color, QPalette::BrightText);
+    blend(in, bias, color, QPalette::Link);
+    blend(in, bias, color, QPalette::Highlight);
+    blend(in, bias, color, QPalette::HighlightedText);
     return in;
 }

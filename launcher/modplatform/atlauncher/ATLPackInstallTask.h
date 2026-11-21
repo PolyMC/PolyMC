@@ -120,6 +120,17 @@ private:
     bool createPackComponent(QString instanceRoot,
                              std::shared_ptr<PackProfile> profile);
 
+    QString getPathForBase(const QString& base) const;
+    bool shouldKeep(const VersionKeeps& keeps, const QString& candidate) const;
+    bool isInsideInstance(const QString& path) const;
+
+    void onConfigsDownloaded();
+    void onJobFailed(QString reason);
+    void onJobProgress(qint64 current, qint64 total);
+    void onJobAborted();
+    void onConfigsExtracted();
+    void onExtractCanceled();
+
     void deleteExistingFiles();
     void installConfigs();
     void extractConfigs();

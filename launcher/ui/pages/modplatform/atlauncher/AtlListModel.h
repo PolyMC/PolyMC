@@ -54,6 +54,8 @@ private slots:
 
 private:
     void requestLogo(QString file, QString url);
+    void onLogoSucceeded(const QString& file, const QString& path);
+    void onLogoFailed(const QString& file);
 
 private:
     QList<ATLauncher::IndexedPack> modpacks;
