@@ -10,19 +10,13 @@
 #include "ui/widgets/ProjectItem.h"
 
 #include <QMessageBox>
+#include <QPointer>
 
 namespace ModPlatform {
 
-// HACK: We need this to prevent callbacks from calling the ListModel after it has already been deleted.
-// This leaks a tiny bit of memory per time the user has opened the mod dialog. How to make this better?
-static QHash<ListModel*, bool> s_running;
+ListModel::ListModel(ModPage* parent) : QAbstractListModel(parent), m_parent(parent) {}
 
-ListModel::ListModel(ModPage* parent) : QAbstractListModel(parent), m_parent(parent) { s_running.insert(this, true); }
-
-ListModel::~ListModel()
-{
-    s_running.find(this).value() = false;
-}
+ListModel::~ListModel() = default;
 
 QString ListModel::debugName() const
 {
@@ -106,10 +100,10 @@ void ListModel::requestModVersions(ModPlatform::IndexedPack const& current, QMod
     auto profile = (dynamic_cast<MinecraftInstance*>((dynamic_cast<ModPage*>(parent()))->m_instance))->getPackProfile();
 
     m_parent->apiProvider()->getVersions({ current.addonId.toString(), getMineVersions(), profile->getModLoaders(), m_parent->resourceType() },
-                                         [this, current, index](QJsonDocument& doc, QString addonId) {
-                                             if (!s_running.constFind(this).value())
+                                         [self = QPointer<ListModel>(this), index](QJsonDocument& doc, QString addonId) {
+                                             if (!self)
                                                  return;
-                                             versionRequestSucceeded(doc, addonId, index);
+                                             self->versionRequestSucceeded(doc, addonId, index);
                                          });
 }
 
@@ -125,12 +119,12 @@ void ListModel::requestModInfo(ModPlatform::IndexedPack& current, QModelIndex in
 {
     // pack is a reference to whatever the page has selected when the reply comes in, which may be another mod by then
     auto requested_id = current.addonId;
-    m_parent->apiProvider()->getModInfo(current, [this, index, requested_id](QJsonDocument& doc, ModPlatform::IndexedPack& pack) {
-        if (!s_running.constFind(this).value())
+    m_parent->apiProvider()->getModInfo(current, [self = QPointer<ListModel>(this), index, requested_id](QJsonDocument& doc, ModPlatform::IndexedPack& pack) {
+        if (!self)
             return;
         if (pack.addonId != requested_id)
             return;
-        infoRequestFinished(doc, pack, index);
+        self->infoRequestFinished(doc, pack, index);
     });
 }
 
