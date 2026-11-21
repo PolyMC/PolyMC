@@ -386,17 +386,23 @@ void TranslationsModel::reloadLocalFiles()
     {
         d->m_languages.append(language);
     }
-    std::sort(d->m_languages.begin(), d->m_languages.end(), [this](const Language& a, const Language& b) {
-        if (a.key != b.key)
+    const auto rank = [this](const Language& l) {
+        if (l.key == d->m_system_locale)
         {
-            if (a.key == d->m_system_locale || a.key == d->m_system_language)
-            {
-                return true;
-            }
-            if (b.key == d->m_system_locale || b.key == d->m_system_language)
-            {
-                return false;
-            }
+            return 0;
+        }
+        if (l.key == d->m_system_language)
+        {
+            return 1;
+        }
+        return 2;
+    };
+    std::sort(d->m_languages.begin(), d->m_languages.end(), [&rank](const Language& a, const Language& b) {
+        const int rankA = rank(a);
+        const int rankB = rank(b);
+        if (rankA != rankB)
+        {
+            return rankA < rankB;
         }
         return a.languageName().toLower() < b.languageName().toLower();
     });
