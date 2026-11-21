@@ -295,6 +295,7 @@ void Technic::ListModel::requestLogo(QString logo, QString url)
     MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry("TechnicPacks", QString("logos/%1").arg(logo));
     NetJob *job = new NetJob(QString("Technic Icon Download %1").arg(logo), APPLICATION->network());
     job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
+    QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
 
     auto fullPath = entry->getFullPath();
 
