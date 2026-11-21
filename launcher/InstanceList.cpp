@@ -804,9 +804,7 @@ class InstanceStaging : public Task {
         if (!canAbort())
             return false;
 
-        m_child->abort();
-
-        return Task::abort();
+        return m_child->abort();
     }
     bool canAbort() const override
     {
