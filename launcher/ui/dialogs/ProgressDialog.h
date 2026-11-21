@@ -54,6 +54,8 @@ slots:
     void changeProgress(qint64 current, qint64 total);
     void changeDetails(const QString &details);
 
+    void reject() override;
+
 
 private
 slots:

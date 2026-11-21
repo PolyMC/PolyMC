@@ -205,6 +205,14 @@ void ProgressDialog::keyPressEvent(QKeyEvent* e)
     QDialog::keyPressEvent(e);
 }
 
+void ProgressDialog::reject()
+{
+    if (task && task->isRunning()) {
+        return;
+    }
+    QDialog::reject();
+}
+
 void ProgressDialog::closeEvent(QCloseEvent* e)
 {
     if (task && task->isRunning()) {
