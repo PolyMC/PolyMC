@@ -51,11 +51,12 @@ class GameOptions;
 class LaunchStep;
 class PackProfile;
 
-class MinecraftInstance: public BaseInstance
+class MinecraftInstance : public BaseInstance
 {
     Q_OBJECT
 public:
-    MinecraftInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString &rootDir);
+    MinecraftInstance(SettingsObjectPtr globalSettings,
+                      SettingsObjectPtr settings, const QString& rootDir);
     virtual ~MinecraftInstance() {};
     virtual void saveNow() override;
 
@@ -104,7 +105,8 @@ public:
     // where the instance-local libraries should be
     QString getLocalLibraryPath() const;
 
-    /** Returns whether the instance, with its version, has support for demo mode. */
+    /** Returns whether the instance, with its version, has support for demo
+     * mode. */
     [[nodiscard]] bool supportsDemo() const;
 
     void updateRuntimeContext();
@@ -123,11 +125,14 @@ public:
 
     //////  Launch stuff //////
     Task::Ptr createUpdateTask(Net::Mode mode) override;
-    shared_qobject_ptr<LaunchTask> createLaunchTask(AuthSessionPtr account, MinecraftServerTargetPtr serverToJoin) override;
+    shared_qobject_ptr<LaunchTask> createLaunchTask(
+        AuthSessionPtr account, MinecraftServerTargetPtr serverToJoin) override;
     QStringList extraArguments() override;
-    QStringList verboseDescription(MinecraftServerTargetPtr serverToJoin) override;
+    QStringList verboseDescription(
+        MinecraftServerTargetPtr serverToJoin) override;
     QList<Mod*> getJarMods() const;
-    QString createLaunchScript(AuthSessionPtr session, MinecraftServerTargetPtr serverToJoin);
+    QString createLaunchScript(AuthSessionPtr session,
+                               MinecraftServerTargetPtr serverToJoin);
     /// get arguments passed to java
     QStringList javaArguments();
 
@@ -139,7 +144,8 @@ public:
     QProcessEnvironment createLaunchEnvironment() override;
 
     /// guess log level from a line of minecraft log
-    MessageLevel::Enum guessLevel(const QString &line, MessageLevel::Enum level) override;
+    MessageLevel::Enum guessLevel(const QString& line,
+                                  MessageLevel::Enum level) override;
 
     IPathMatcher::Ptr getLogFileMatcher() override;
 
@@ -155,16 +161,18 @@ public:
     virtual QString getMainClass() const;
 
     // FIXME: remove
-    virtual QStringList processMinecraftArgs(AuthSessionPtr account, MinecraftServerTargetPtr serverToJoin) const;
+    virtual QStringList processMinecraftArgs(
+        AuthSessionPtr account, MinecraftServerTargetPtr serverToJoin) const;
 
     virtual JavaVersion getJavaVersion();
 
 protected:
-    QMap<QString, QString> createCensorFilterFromSession(AuthSessionPtr session);
+    QMap<QString, QString> createCensorFilterFromSession(
+        AuthSessionPtr session);
     QStringList validLaunchMethods();
     QString launchMethod();
 
-protected: // data
+protected:  // data
     std::shared_ptr<PackProfile> m_components;
     mutable std::shared_ptr<ModFolderModel> m_loader_mod_list;
     mutable std::shared_ptr<ModFolderModel> m_core_mod_list;
@@ -173,7 +181,8 @@ protected: // data
     mutable std::shared_ptr<TexturePackFolderModel> m_texture_pack_list;
     mutable std::shared_ptr<WorldList> m_world_list;
     mutable std::shared_ptr<GameOptions> m_game_options;
-    mutable std::shared_ptr<QString> m_yggdrasil_javaagent = std::make_shared<QString>();
+    mutable std::shared_ptr<QString> m_yggdrasil_javaagent =
+        std::make_shared<QString>();
 };
 
 typedef std::shared_ptr<MinecraftInstance> MinecraftInstancePtr;

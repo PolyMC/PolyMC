@@ -21,9 +21,10 @@
 #include "modplatform/ftb/FTBPackManifest.h"
 #include <MMCStrings.h>
 
-namespace Ftb {
+namespace Ftb
+{
 
-FilterModel::FilterModel(QObject *parent) : QSortFilterProxyModel(parent)
+FilterModel::FilterModel(QObject* parent) : QSortFilterProxyModel(parent)
 {
     currentSorting = Sorting::ByPlays;
     sortings.insert(tr("Sort by Plays"), Sorting::ByPlays);
@@ -58,9 +59,11 @@ void FilterModel::setSearchTerm(const QString& term)
     invalidate();
 }
 
-bool FilterModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+bool FilterModel::filterAcceptsRow(int sourceRow,
+                                   const QModelIndex& sourceParent) const
 {
-    if (searchTerm.isEmpty()) {
+    if (searchTerm.isEmpty())
+    {
         return true;
     }
 
@@ -69,19 +72,26 @@ bool FilterModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParen
     return pack.name.contains(searchTerm, Qt::CaseInsensitive);
 }
 
-bool FilterModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
+bool FilterModel::lessThan(const QModelIndex& left,
+                           const QModelIndex& right) const
 {
-    FTB::Modpack leftPack = sourceModel()->data(left, Qt::UserRole).value<FTB::Modpack>();
-    FTB::Modpack rightPack = sourceModel()->data(right, Qt::UserRole).value<FTB::Modpack>();
+    FTB::Modpack leftPack =
+        sourceModel()->data(left, Qt::UserRole).value<FTB::Modpack>();
+    FTB::Modpack rightPack =
+        sourceModel()->data(right, Qt::UserRole).value<FTB::Modpack>();
 
-    if (currentSorting == ByPlays) {
+    if (currentSorting == ByPlays)
+    {
         return leftPack.plays < rightPack.plays;
     }
-    else if (currentSorting == ByInstalls) {
+    else if (currentSorting == ByInstalls)
+    {
         return leftPack.installs < rightPack.installs;
     }
-    else if (currentSorting == ByName) {
-        return Strings::naturalCompare(leftPack.name, rightPack.name, Qt::CaseSensitive) > 0;
+    else if (currentSorting == ByName)
+    {
+        return Strings::naturalCompare(leftPack.name, rightPack.name,
+                                       Qt::CaseSensitive) > 0;
     }
 
     // Invalid sorting set, somehow...
@@ -89,4 +99,4 @@ bool FilterModel::lessThan(const QModelIndex &left, const QModelIndex &right) co
     return true;
 }
 
-}
+}  // namespace Ftb

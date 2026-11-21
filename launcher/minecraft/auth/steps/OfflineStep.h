@@ -6,10 +6,11 @@
 
 #include <katabasis/DeviceFlow.h>
 
-class OfflineStep : public AuthStep {
+class OfflineStep : public AuthStep
+{
     Q_OBJECT
 public:
-    explicit OfflineStep(AccountData *data);
+    explicit OfflineStep(AccountData* data);
     virtual ~OfflineStep() noexcept;
 
     void perform() override;

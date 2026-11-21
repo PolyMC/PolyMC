@@ -9,7 +9,9 @@ class QWidget;
 class UpdateController
 {
 public:
-    UpdateController(QWidget * parent, const QString &root, const QString updateFilesDir, GoUpdate::OperationList operations);
+    UpdateController(QWidget* parent, const QString& root,
+                     const QString updateFilesDir,
+                     GoUpdate::OperationList operations);
     void installUpdates();
 
 private:
@@ -20,7 +22,7 @@ private:
     QString m_root;
     QString m_updateFilesDir;
     GoUpdate::OperationList m_operations;
-    QWidget * m_parent;
+    QWidget* m_parent;
 
     struct BackupEntry
     {
@@ -31,8 +33,8 @@ private:
         // path where the backup of the updated file was placed
         QString backup;
     };
-    QList <BackupEntry> m_replace_backups;
-    QList <BackupEntry> m_delete_backups;
+    QList<BackupEntry> m_replace_backups;
+    QList<BackupEntry> m_delete_backups;
     enum Failure
     {
         Replace,

@@ -44,13 +44,16 @@ struct AssetsIndex
 /// FIXME: this is absolutely horrendous. REDO!!!!
 namespace AssetsUtils
 {
-/// Returns whether a host name or address belongs to the local machine or a local network.
-bool isLocalMetadataHost(const QString &host);
+/// Returns whether a host name or address belongs to the local machine or a
+/// local network.
+bool isLocalMetadataHost(const QString& host);
 
-bool loadAssetsIndexJson(const QString &id, const QString &file, AssetsIndex& index);
+bool loadAssetsIndexJson(const QString& id, const QString& file,
+                         AssetsIndex& index);
 
-QDir getAssetsDir(const QString &assetsId, const QString &resourcesFolder);
+QDir getAssetsDir(const QString& assetsId, const QString& resourcesFolder);
 
-/// Reconstruct a virtual assets folder for the given assets ID and return the folder
+/// Reconstruct a virtual assets folder for the given assets ID and return the
+/// folder
 bool reconstructAssets(QString assetsId, QString resourcesFolder);
-}
+}  // namespace AssetsUtils

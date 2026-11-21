@@ -4,12 +4,12 @@
 #include "QObjectPtr.h"
 #include "minecraft/auth/AuthStep.h"
 
-
-class MigrationEligibilityStep : public AuthStep {
+class MigrationEligibilityStep : public AuthStep
+{
     Q_OBJECT
 
 public:
-    explicit MigrationEligibilityStep(AccountData *data);
+    explicit MigrationEligibilityStep(AccountData* data);
     virtual ~MigrationEligibilityStep() noexcept;
 
     void perform() override;
@@ -18,5 +18,6 @@ public:
     QString describe() override;
 
 private slots:
-    void onRequestDone(QNetworkReply::NetworkError, QByteArray, QList<QNetworkReply::RawHeaderPair>);
+    void onRequestDone(QNetworkReply::NetworkError, QByteArray,
+                       QList<QNetworkReply::RawHeaderPair>);
 };

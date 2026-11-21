@@ -51,7 +51,7 @@ class NotesPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit NotesPage(BaseInstance *inst, QWidget *parent = 0);
+    explicit NotesPage(BaseInstance* inst, QWidget* parent = 0);
     virtual ~NotesPage();
     virtual QString displayName() const override
     {
@@ -60,8 +60,12 @@ public:
     virtual QIcon icon() const override
     {
         auto icon = APPLICATION->getThemedIcon("notes");
-        if(icon.isNull())
-            icon = APPLICATION->getThemedIcon("news");
+        if (icon.isNull())
+        {
+            {
+                icon = APPLICATION->getThemedIcon("news");
+            }
+        }
         return icon;
     }
     virtual QString id() const override
@@ -76,6 +80,6 @@ public:
     void retranslate() override;
 
 private:
-    Ui::NotesPage *ui;
-    BaseInstance *m_inst;
+    Ui::NotesPage* ui;
+    BaseInstance* m_inst;
 };

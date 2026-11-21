@@ -10,15 +10,14 @@
 
 #include "BuildConfig.h"
 
-
 // from <sys/stat.h>
 #ifndef S_IRUSR
-#define __S_IREAD 0400         /* Read by owner.  */
-#define __S_IWRITE 0200        /* Write by owner.  */
-#define __S_IEXEC 0100         /* Execute by owner.  */
-#define S_IRUSR __S_IREAD      /* Read by owner.  */
-#define S_IWUSR __S_IWRITE     /* Write by owner.  */
-#define S_IXUSR __S_IEXEC      /* Execute by owner.  */
+#define __S_IREAD 0400     /* Read by owner.  */
+#define __S_IWRITE 0200    /* Write by owner.  */
+#define __S_IEXEC 0100     /* Execute by owner.  */
+#define S_IRUSR __S_IREAD  /* Read by owner.  */
+#define S_IWUSR __S_IWRITE /* Write by owner.  */
+#define S_IXUSR __S_IEXEC  /* Execute by owner.  */
 
 #define S_IRGRP (S_IRUSR >> 3) /* Read by group.  */
 #define S_IWGRP (S_IWUSR >> 3) /* Write by group.  */
@@ -75,14 +74,15 @@ static QFile::Permissions unixModeToPermissions(const int mode)
 
 static const QLatin1String liveCheckFile("live.check");
 
-UpdateController::UpdateController(QWidget * parent, const QString& root, const QString updateFilesDir, GoUpdate::OperationList operations)
+UpdateController::UpdateController(QWidget* parent, const QString& root,
+                                   const QString updateFilesDir,
+                                   GoUpdate::OperationList operations)
 {
     m_parent = parent;
     m_root = root;
     m_updateFilesDir = updateFilesDir;
     m_operations = operations;
 }
-
 
 void UpdateController::installUpdates()
 {
@@ -93,7 +93,7 @@ void UpdateController::installUpdates()
     qDebug() << "Installing updates.";
 #ifdef Q_OS_WIN
     QString finishCmd = QApplication::applicationFilePath();
-#elif defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD) || defined (Q_OS_OPENBSD)
+#elif defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD) || defined(Q_OS_OPENBSD)
     QString finishCmd = FS::PathCombine(m_root, BuildConfig.LAUNCHER_NAME);
 #elif defined Q_OS_MAC
     QString finishCmd = QApplication::applicationFilePath();
@@ -105,12 +105,12 @@ void UpdateController::installUpdates()
     QDir origin(m_root);
 
     // clean up the backup folder. it should be empty before we start
-    if(!FS::deletePath(backupPath))
+    if (!FS::deletePath(backupPath))
     {
         qWarning() << "couldn't remove previous backup folder" << backupPath;
     }
     // and it should exist.
-    if(!FS::ensureFolderPathExists(backupPath))
+    if (!FS::ensureFolderPathExists(backupPath))
     {
         qWarning() << "couldn't create folder" << backupPath;
         return;
@@ -122,31 +122,38 @@ void UpdateController::installUpdates()
     QString exeBackup;
 
     // perform the update operations
-    for (const auto &op : std::as_const(m_operations))
+    for (const auto& op : std::as_const(m_operations))
     {
         auto dest = op.destination;
-        switch(op.type)
+        switch (op.type)
         {
-            // replace = move original out to backup, if it exists, move the new file in its place
+            // replace = move original out to backup, if it exists, move the new
+            // file in its place
             case GoUpdate::Operation::OP_REPLACE:
             {
 #ifdef Q_OS_WIN32
-                QString windowsExeName = QStringLiteral("%1.exe").arg(BuildConfig.LAUNCHER_NAME);
+                QString windowsExeName =
+                    QStringLiteral("%1.exe").arg(BuildConfig.LAUNCHER_NAME);
                 // hack for people renaming the .exe because ... reasons :)
-                if(dest == windowsExeName)
+                if (dest == windowsExeName)
                 {
-                    dest = QFileInfo(QApplication::applicationFilePath()).fileName();
+                    dest = QFileInfo(QApplication::applicationFilePath())
+                               .fileName();
                 }
 #endif
-                QFileInfo destination (FS::PathCombine(m_root, dest));
-                if(destination.exists())
+                QFileInfo destination(FS::PathCombine(m_root, dest));
+                if (destination.exists())
                 {
                     QString backupName = dest;
                     backupName.replace('/', '_');
-                    QString backupFilePath = FS::PathCombine(backupPath, backupName);
-                    if(!QFile::rename(destination.absoluteFilePath(), backupFilePath))
+                    QString backupFilePath =
+                        FS::PathCombine(backupPath, backupName);
+                    if (!QFile::rename(destination.absoluteFilePath(),
+                                       backupFilePath))
                     {
-                        qWarning() << "Couldn't move:" << destination.absoluteFilePath() << "to" << backupFilePath;
+                        qWarning() << "Couldn't move:"
+                                   << destination.absoluteFilePath() << "to"
+                                   << backupFilePath;
                         m_failedOperationType = Replace;
                         m_failedFile = dest;
                         fail();
@@ -159,39 +166,45 @@ void UpdateController::installUpdates()
                     m_replace_backups.append(be);
                 }
                 // make sure the folder we are putting this into exists
-                if(!FS::ensureFilePathExists(destination.absoluteFilePath()))
+                if (!FS::ensureFilePathExists(destination.absoluteFilePath()))
                 {
-                    qWarning() << "REPLACE: Couldn't create folder:" << destination.absoluteFilePath();
+                    qWarning() << "REPLACE: Couldn't create folder:"
+                               << destination.absoluteFilePath();
                     m_failedOperationType = Replace;
                     m_failedFile = dest;
                     fail();
                     return;
                 }
                 // now move the new file in
-                if(!QFile::rename(op.source, destination.absoluteFilePath()))
+                if (!QFile::rename(op.source, destination.absoluteFilePath()))
                 {
-                    qWarning() << "REPLACE: Couldn't move:" << op.source << "to" << destination.absoluteFilePath();
+                    qWarning() << "REPLACE: Couldn't move:" << op.source << "to"
+                               << destination.absoluteFilePath();
                     m_failedOperationType = Replace;
                     m_failedFile = dest;
                     fail();
                     return;
                 }
-                QFile::setPermissions(destination.absoluteFilePath(), unixModeToPermissions(op.destinationMode));
+                QFile::setPermissions(
+                    destination.absoluteFilePath(),
+                    unixModeToPermissions(op.destinationMode));
             }
             break;
             // delete = move original to backup
             case GoUpdate::Operation::OP_DELETE:
             {
                 QString destFilePath = FS::PathCombine(m_root, dest);
-                if(QFile::exists(destFilePath))
+                if (QFile::exists(destFilePath))
                 {
                     QString backupName = dest;
                     backupName.replace('/', '_');
-                    QString trashFilePath = FS::PathCombine(backupPath, backupName);
+                    QString trashFilePath =
+                        FS::PathCombine(backupPath, backupName);
 
-                    if(!QFile::rename(destFilePath, trashFilePath))
+                    if (!QFile::rename(destFilePath, trashFilePath))
                     {
-                        qWarning() << "DELETE: Couldn't move:" << dest << "to" << trashFilePath;
+                        qWarning() << "DELETE: Couldn't move:" << dest << "to"
+                                   << trashFilePath;
                         m_failedFile = dest;
                         m_failedOperationType = Delete;
                         fail();
@@ -211,8 +224,9 @@ void UpdateController::installUpdates()
     args = qApp->arguments();
     args.removeFirst();
 
-    // on old Windows, do insane things... no error checking here, this is just to have something.
-    if(useXPHack)
+    // on old Windows, do insane things... no error checking here, this is just
+    // to have something.
+    if (useXPHack)
     {
         QString script;
         auto nativePath = QDir::toNativeSeparators(exePath);
@@ -224,17 +238,20 @@ void UpdateController::installUpdates()
         out << "WScript.Sleep 1000\n";
         out << "Set fso=CreateObject(\"Scripting.FileSystemObject\")\n";
         out << "Set shell=CreateObject(\"WScript.Shell\")\n";
-        out << "fso.MoveFile \"" << nativePath << "\", \"" << nativeBackupPath << "\"\n";
-        out << "fso.MoveFile \"" << nativeOriginPath << "\", \"" << nativePath << "\"\n";
+        out << "fso.MoveFile \"" << nativePath << "\", \"" << nativeBackupPath
+            << "\"\n";
+        out << "fso.MoveFile \"" << nativeOriginPath << "\", \"" << nativePath
+            << "\"\n";
         out << "shell.Run \"" << nativePath << "\"\n";
 
         QString scriptPath = FS::PathCombine(m_root, "update", "update.vbs");
 
         // we save it
         QFile scriptFile(scriptPath);
-        if(!scriptFile.open(QIODevice::WriteOnly))
+        if (!scriptFile.open(QIODevice::WriteOnly))
         {
-            qWarning() << "Couldn't write the update script" << scriptPath << ":" << scriptFile.errorString();
+            qWarning() << "Couldn't write the update script" << scriptPath
+                       << ":" << scriptFile.errorString();
             m_failedOperationType = Start;
             fail();
             return;
@@ -244,7 +261,7 @@ void UpdateController::installUpdates()
 
         // we run it
         started = QProcess::startDetached("wscript", {scriptPath}, m_root);
-        if(!started)
+        if (!started)
         {
             qWarning() << "Couldn't start the update script" << scriptPath;
             m_failedOperationType = Start;
@@ -260,34 +277,36 @@ void UpdateController::installUpdates()
     bool startFailed = false;
 
     // remove live check file, if any
-    if(QFile::exists(liveCheckFile))
+    if (QFile::exists(liveCheckFile))
     {
-        if(!QFile::remove(liveCheckFile))
+        if (!QFile::remove(liveCheckFile))
         {
-            qWarning() << "Couldn't remove the" << liveCheckFile << "file! We will proceed without :(";
+            qWarning() << "Couldn't remove the" << liveCheckFile
+                       << "file! We will proceed without :(";
             doLiveCheck = false;
         }
     }
 
-    if(doLiveCheck)
+    if (doLiveCheck)
     {
-        if(!args.contains("--alive"))
+        if (!args.contains("--alive"))
         {
             args.append("--alive");
         }
     }
 
-    // FIXME: reparse args and construct a safe variant from scratch. This is a workaround for GH-1874:
+    // FIXME: reparse args and construct a safe variant from scratch. This is a
+    // workaround for GH-1874:
     QStringList realargs;
     int skip = 0;
-    for(auto & arg: args)
+    for (auto& arg : args)
     {
-        if(skip)
+        if (skip)
         {
             skip--;
             continue;
         }
-        if(arg == "-l")
+        if (arg == "-l")
         {
             skip = 1;
             continue;
@@ -296,22 +315,23 @@ void UpdateController::installUpdates()
     }
 
     // start the updated application
-    started = QProcess::startDetached(finishCmd, realargs, QDir::currentPath(), &pid);
+    started =
+        QProcess::startDetached(finishCmd, realargs, QDir::currentPath(), &pid);
     // much dumber check - just find out if the call
-    if(!started || pid == -1)
+    if (!started || pid == -1)
     {
         qWarning() << "Couldn't start new process properly!";
         startFailed = true;
     }
-    if(!startFailed && doLiveCheck)
+    if (!startFailed && doLiveCheck)
     {
         int attempts = 0;
-        while(attempts < 10)
+        while (attempts < 10)
         {
             attempts++;
             QString key;
             std::this_thread::sleep_for(std::chrono::milliseconds(250));
-            if(!QFile::exists(liveCheckFile))
+            if (!QFile::exists(liveCheckFile))
             {
                 qWarning() << "Couldn't find the" << liveCheckFile << "file!";
                 startFailed = true;
@@ -322,7 +342,7 @@ void UpdateController::installUpdates()
                 key = QString::fromUtf8(FS::read(liveCheckFile));
                 auto id = ApplicationId::fromRawString(key);
                 LocalPeer peer(nullptr, id);
-                if(peer.isClient())
+                if (peer.isClient())
                 {
                     startFailed = false;
                     qDebug() << "Found process started with key " << key;
@@ -331,11 +351,12 @@ void UpdateController::installUpdates()
                 else
                 {
                     startFailed = true;
-                    qDebug() << "Process started with key " << key << "apparently died or is not reponding...";
+                    qDebug() << "Process started with key " << key
+                             << "apparently died or is not reponding...";
                     break;
                 }
             }
-            catch (const Exception &)
+            catch (const Exception&)
             {
                 qWarning() << "Couldn't read the" << liveCheckFile << "file!";
                 startFailed = true;
@@ -343,7 +364,7 @@ void UpdateController::installUpdates()
             }
         }
     }
-    if(startFailed)
+    if (startFailed)
     {
         m_failedOperationType = Start;
         fail();
@@ -370,9 +391,9 @@ void UpdateController::fail()
         case Replace:
         {
             msg = QObject::tr(
-                "Couldn't replace file %1. Changes will be reverted.\n"
-                "See the %2 log file for details."
-            ).arg(m_failedFile, BuildConfig.LAUNCHER_NAME);
+                      "Couldn't replace file %1. Changes will be reverted.\n"
+                      "See the %2 log file for details.")
+                      .arg(m_failedFile, BuildConfig.LAUNCHER_NAME);
             doRollback = true;
             QMessageBox::critical(m_parent, failTitle, msg);
             break;
@@ -380,25 +401,23 @@ void UpdateController::fail()
         case Delete:
         {
             msg = QObject::tr(
-                "Couldn't remove file %1. Changes will be reverted.\n"
-                "See the %2 log file for details."
-            ).arg(m_failedFile, BuildConfig.LAUNCHER_NAME);
+                      "Couldn't remove file %1. Changes will be reverted.\n"
+                      "See the %2 log file for details.")
+                      .arg(m_failedFile, BuildConfig.LAUNCHER_NAME);
             doRollback = true;
             QMessageBox::critical(m_parent, failTitle, msg);
             break;
         }
         case Start:
         {
-            msg = QObject::tr("The new version didn't start or is too old and doesn't respond to startup checks.\n"
+            msg = QObject::tr(
+                "The new version didn't start or is too old and doesn't "
+                "respond to startup checks.\n"
                 "\n"
                 "Roll back to previous version?");
             auto result = QMessageBox::critical(
-                m_parent,
-                failTitle,
-                msg,
-                QMessageBox::Yes | QMessageBox::No,
-                QMessageBox::Yes
-            );
+                m_parent, failTitle, msg, QMessageBox::Yes | QMessageBox::No,
+                QMessageBox::Yes);
             doRollback = (result == QMessageBox::Yes);
             break;
         }
@@ -406,14 +425,16 @@ void UpdateController::fail()
         default:
             return;
     }
-    if(doRollback)
+    if (doRollback)
     {
         auto rollbackOK = rollback();
-        if(!rollbackOK)
+        if (!rollbackOK)
         {
-            msg = QObject::tr("The rollback failed too.\n"
-                "You will have to repair %1 manually.\n"
-                "Please let us know why and how this happened.").arg(BuildConfig.LAUNCHER_NAME);
+            msg = QObject::tr(
+                      "The rollback failed too.\n"
+                      "You will have to repair %1 manually.\n"
+                      "Please let us know why and how this happened.")
+                      .arg(BuildConfig.LAUNCHER_NAME);
             QMessageBox::critical(m_parent, rollFailTitle, msg);
             qApp->quit();
         }
@@ -428,26 +449,28 @@ bool UpdateController::rollback()
 {
     bool revertOK = true;
     // if the above failed, roll back changes
-    for (const auto &backup : std::as_const(m_replace_backups))
+    for (const auto& backup : std::as_const(m_replace_backups))
     {
         qWarning() << "restoring" << backup.original << "from" << backup.backup;
-        if(QFile::exists(backup.original) && !QFile::rename(backup.original, backup.update))
+        if (QFile::exists(backup.original) &&
+            !QFile::rename(backup.original, backup.update))
         {
             revertOK = false;
-            qWarning() << "moving new" << backup.original << "back to" << backup.update << "failed!";
+            qWarning() << "moving new" << backup.original << "back to"
+                       << backup.update << "failed!";
             continue;
         }
 
-        if(!QFile::rename(backup.backup, backup.original))
+        if (!QFile::rename(backup.backup, backup.original))
         {
             revertOK = false;
             qWarning() << "restoring" << backup.original << "failed!";
         }
     }
-    for (const auto &backup : std::as_const(m_delete_backups))
+    for (const auto& backup : std::as_const(m_delete_backups))
     {
         qWarning() << "restoring" << backup.original << "from" << backup.backup;
-        if(!QFile::rename(backup.backup, backup.original))
+        if (!QFile::rename(backup.backup, backup.original))
         {
             revertOK = false;
             qWarning() << "restoring" << backup.original << "failed!";

@@ -39,13 +39,15 @@
 
 #include "Sink.h"
 
-namespace Net {
-class FileSink : public Sink {
-   public:
-    FileSink(QString filename) : m_filename(filename){};
+namespace Net
+{
+class FileSink : public Sink
+{
+public:
+    FileSink(QString filename) : m_filename(filename) {};
     virtual ~FileSink();
 
-   public:
+public:
     Task::State init(QNetworkRequest& request) override;
     Task::State write(QByteArray& data) override;
     Task::State abort() override;
@@ -53,14 +55,14 @@ class FileSink : public Sink {
 
     bool hasLocalData() override;
 
-   protected:
+protected:
     virtual Task::State initCache(QNetworkRequest&);
     virtual Task::State finalizeCache(QNetworkReply& reply);
 
-   private:
+private:
     void discardOutput();
 
-   protected:
+protected:
     QString m_filename;
     bool wroteAnyData = false;
     std::unique_ptr<QFile> m_output_file;

@@ -4,7 +4,8 @@
 #include <QString>
 #include <QFile>
 
-namespace LegacyFTB {
+namespace LegacyFTB
+{
 
 class PrivatePackManager
 {
@@ -19,16 +20,16 @@ public:
     {
         return currentPacks.empty();
     }
-    const QSet<QString> &getCurrentPackCodes() const
+    const QSet<QString>& getCurrentPackCodes() const
     {
         return currentPacks;
     }
-    void add(const QString &code)
+    void add(const QString& code)
     {
         currentPacks.insert(code);
         dirty = true;
     }
-    void remove(const QString &code)
+    void remove(const QString& code)
     {
         currentPacks.remove(code);
         dirty = true;
@@ -40,4 +41,4 @@ private:
     mutable bool dirty = false;
 };
 
-}
+}  // namespace LegacyFTB

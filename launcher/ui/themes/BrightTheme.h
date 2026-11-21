@@ -2,10 +2,12 @@
 
 #include "FusionTheme.h"
 
-class BrightTheme: public FusionTheme
+class BrightTheme : public FusionTheme
 {
 public:
-    virtual ~BrightTheme() {}
+    virtual ~BrightTheme()
+    {
+    }
 
     QString id() override;
     QString name() override;
@@ -16,4 +18,3 @@ public:
     double fadeAmount() override;
     QColor fadeColor() override;
 };
-

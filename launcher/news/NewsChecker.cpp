@@ -40,7 +40,8 @@
 
 #include <QDebug>
 
-NewsChecker::NewsChecker(shared_qobject_ptr<QNetworkAccessManager> network, const QString& feedUrl)
+NewsChecker::NewsChecker(shared_qobject_ptr<QNetworkAccessManager> network,
+                         const QString& feedUrl)
 {
     m_network = network;
     m_feedUrl = feedUrl;
@@ -48,10 +49,12 @@ NewsChecker::NewsChecker(shared_qobject_ptr<QNetworkAccessManager> network, cons
 
 void NewsChecker::reloadNews()
 {
-    // Start a netjob to download the RSS feed and call rssDownloadFinished() when it's done.
+    // Start a netjob to download the RSS feed and call rssDownloadFinished()
+    // when it's done.
     if (isLoadingNews())
     {
-        qDebug() << "Ignored request to reload news. Currently reloading already.";
+        qDebug()
+            << "Ignored request to reload news. Currently reloading already.";
         return;
     }
 
@@ -59,8 +62,10 @@ void NewsChecker::reloadNews()
 
     NetJob* job = new NetJob("News RSS Feed", m_network);
     job->addNetAction(Net::Download::makeByteArray(m_feedUrl, &newsData));
-    QObject::connect(job, &NetJob::succeeded, this, &NewsChecker::rssDownloadFinished);
-    QObject::connect(job, &NetJob::failed, this, &NewsChecker::rssDownloadFailed);
+    QObject::connect(job, &NetJob::succeeded, this,
+                     &NewsChecker::rssDownloadFinished);
+    QObject::connect(job, &NetJob::failed, this,
+                     &NewsChecker::rssDownloadFailed);
     m_newsNetJob.reset(job);
     job->start();
 }
@@ -90,7 +95,11 @@ void NewsChecker::rssDownloadFinished()
         if (!doc.setContent(newsData, false, &errorMsg, &errorLine, &errorCol))
         {
 #endif
-            QString fullErrorMsg = QString("Error parsing RSS feed XML. %1 at %2:%3.").arg(errorMsg).arg(errorLine).arg(errorCol);
+            QString fullErrorMsg =
+                QString("Error parsing RSS feed XML. %1 at %2:%3.")
+                    .arg(errorMsg)
+                    .arg(errorLine)
+                    .arg(errorCol);
             fail(fullErrorMsg);
             newsData.clear();
             return;
@@ -114,7 +123,8 @@ void NewsChecker::rssDownloadFinished()
         }
         else
         {
-            qWarning() << "Failed to load news entry at index" << i << ":" << errorMsg;
+            qWarning() << "Failed to load news entry at index" << i << ":"
+                       << errorMsg;
         }
     }
 
@@ -126,7 +136,6 @@ void NewsChecker::rssDownloadFailed(QString reason)
     // Set an error message and fail.
     fail(tr("Failed to load news RSS feed:\n%1").arg(reason));
 }
-
 
 QList<NewsEntryPtr> NewsChecker::getNewsEntries() const
 {
@@ -158,4 +167,3 @@ void NewsChecker::fail(const QString& errorMsg)
     m_newsNetJob.reset();
     emit newsLoadingFailed(errorMsg);
 }
-

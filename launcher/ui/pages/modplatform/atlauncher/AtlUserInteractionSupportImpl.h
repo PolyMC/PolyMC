@@ -39,18 +39,22 @@
 
 #include "modplatform/atlauncher/ATLPackInstallTask.h"
 
-class AtlUserInteractionSupportImpl : public QObject, public ATLauncher::UserInteractionSupport {
+class AtlUserInteractionSupportImpl : public QObject,
+                                      public ATLauncher::UserInteractionSupport
+{
     Q_OBJECT
 
 public:
     AtlUserInteractionSupportImpl(QWidget* parent);
 
 private:
-    QString chooseVersion(Meta::VersionListPtr vlist, QString minecraftVersion) override;
-    QVector<QString> chooseOptionalMods(ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods) override;
+    QString chooseVersion(Meta::VersionListPtr vlist,
+                          QString minecraftVersion) override;
+    QVector<QString> chooseOptionalMods(
+        ATLauncher::PackVersion version,
+        QVector<ATLauncher::VersionMod> mods) override;
     void displayMessage(QString message) override;
 
 private:
     QWidget* m_parent;
-
 };

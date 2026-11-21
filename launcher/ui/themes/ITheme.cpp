@@ -7,11 +7,11 @@
 void ITheme::apply(bool)
 {
     QApplication::setStyle(QStyleFactory::create(qtTheme()));
-    if(hasColorScheme())
+    if (hasColorScheme())
     {
         QApplication::setPalette(colorScheme());
     }
-    if(hasStyleSheet())
+    if (hasStyleSheet())
     {
         APPLICATION->setStyleSheet(appStyleSheet());
     }

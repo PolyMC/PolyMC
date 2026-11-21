@@ -29,11 +29,13 @@
 #include <QJsonParseError>
 #include <QJsonObject>
 
-namespace TexturePackUtils {
+namespace TexturePackUtils
+{
 
 bool process(TexturePack& pack)
 {
-    switch (pack.type()) {
+    switch (pack.type())
+    {
         case ResourceType::FOLDER:
             TexturePackUtils::processFolder(pack);
             return true;
@@ -52,36 +54,44 @@ void processFolder(TexturePack& pack)
 
     // some old texture packs might use other schemas, so fallback to those
     static const QStringList candidates = {
-        "pack.txt",
-        "pack.json",
-        "manifest.json",
-        "manifest.json.txt"
-    };
+        "pack.txt", "pack.json", "manifest.json", "manifest.json.txt"};
 
-    for (const QString& c : candidates) {
-        QFileInfo mcmeta_file_info(FS::PathCombine(pack.fileinfo().filePath(), c));
+    for (const QString& c : candidates)
+    {
+        QFileInfo mcmeta_file_info(
+            FS::PathCombine(pack.fileinfo().filePath(), c));
         if (!mcmeta_file_info.isFile())
+        {
             continue;
+        }
 
         QFile mcmeta_file(mcmeta_file_info.filePath());
 
         if (!mcmeta_file.open(QIODevice::ReadOnly))
+        {
             return;
+        }
 
         auto data = mcmeta_file.readAll();
         mcmeta_file.close();
         if (data.isEmpty())
+        {
             continue;
+        }
 
         TexturePackUtils::processPackTXT(pack, std::move(data));
         break;
     }
 
-    QFileInfo image_file_info(FS::PathCombine(pack.fileinfo().filePath(), "pack.png"));
-    if (image_file_info.isFile()) {
+    QFileInfo image_file_info(
+        FS::PathCombine(pack.fileinfo().filePath(), "pack.png"));
+    if (image_file_info.isFile())
+    {
         QFile mcmeta_file(image_file_info.filePath());
         if (!mcmeta_file.open(QIODevice::ReadOnly))
+        {
             return;
+        }
 
         auto data = mcmeta_file.readAll();
 
@@ -97,27 +107,30 @@ void processZIP(TexturePack& pack)
 
     QuaZip zip(pack.fileinfo().filePath());
     if (!zip.open(QuaZip::mdUnzip))
+    {
         return;
+    }
 
     // some old texture packs might use other schemas, so fallback to those
     static const QStringList candidates = {
-        "pack.txt",
-        "pack.json",
-        "manifest.json",
-        "manifest.json.txt"
-    };
+        "pack.txt", "pack.json", "manifest.json", "manifest.json.txt"};
 
-    for (const QString& c : candidates) {
+    for (const QString& c : candidates)
+    {
         auto data = MMCZip::readFile(&zip, c);
         if (!data || data->isEmpty())
+        {
             continue;
+        }
 
         TexturePackUtils::processPackTXT(pack, std::move(*data));
         break;
     }
 
     if (auto packPng = MMCZip::readFile(&zip, "pack.png"))
+    {
         TexturePackUtils::processPackPNG(pack, std::move(*packPng));
+    }
 
     zip.close();
 }
@@ -128,17 +141,17 @@ void processPackTXT(TexturePack& pack, QByteArray&& raw_data)
     // in this case fall back to manifest.json parsing
     QJsonParseError err;
     auto doc = QJsonDocument::fromJson(raw_data, &err);
-    if (err.error == QJsonParseError::NoError && doc.isObject()) {
+    if (err.error == QJsonParseError::NoError && doc.isObject())
+    {
         auto obj = doc.object().value("description").isObject()
-        ? doc.object().value("description").toObject()
-        : doc.object();
-        QStringList parts = {
-            obj.value("name").toString(),
-            obj.value("line1").toString(),
-            obj.value("line2").toString()
-        };
+                       ? doc.object().value("description").toObject()
+                       : doc.object();
+        QStringList parts = {obj.value("name").toString(),
+                             obj.value("line1").toString(),
+                             obj.value("line2").toString()};
         parts.removeAll({});
-        if (!parts.isEmpty()) {
+        if (!parts.isEmpty())
+        {
             pack.setDescription(parts.join('\n'));
             return;
         }
@@ -150,9 +163,12 @@ void processPackTXT(TexturePack& pack, QByteArray&& raw_data)
 void processPackPNG(TexturePack& pack, QByteArray&& raw_data)
 {
     auto img = QImage::fromData(raw_data);
-    if (!img.isNull()) {
+    if (!img.isNull())
+    {
         pack.setImage(img);
-    } else {
+    }
+    else
+    {
         qWarning() << "Failed to parse pack.png.";
     }
 }
@@ -160,7 +176,8 @@ void processPackPNG(TexturePack& pack, QByteArray&& raw_data)
 
 LocalTexturePackParseTask::LocalTexturePackParseTask(int token, TexturePack& rp)
     : Task(nullptr, false), m_token(token), m_texture_pack(rp)
-{}
+{
+}
 
 bool LocalTexturePackParseTask::abort()
 {
@@ -173,10 +190,16 @@ void LocalTexturePackParseTask::executeTask()
     Q_ASSERT(m_texture_pack.valid());
 
     if (!TexturePackUtils::process(m_texture_pack))
+    {
         return;
+    }
 
     if (m_aborted)
+    {
         emitAborted();
+    }
     else
+    {
         emitSucceeded();
+    }
 }

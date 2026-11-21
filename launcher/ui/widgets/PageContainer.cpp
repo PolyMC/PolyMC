@@ -59,25 +59,28 @@
 class PageEntryFilterModel : public QSortFilterProxyModel
 {
 public:
-    explicit PageEntryFilterModel(QObject *parent = 0) : QSortFilterProxyModel(parent)
+    explicit PageEntryFilterModel(QObject* parent = 0)
+        : QSortFilterProxyModel(parent)
     {
     }
 
 protected:
-    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+    bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const
     {
         const QString pattern = filterRegularExpression().pattern();
-        const auto model = static_cast<PageModel *>(sourceModel());
+        const auto model = static_cast<PageModel*>(sourceModel());
         const auto page = model->pages().at(sourceRow);
         if (!page->shouldDisplay())
+        {
             return false;
+        }
         // Regular contents check, then check page-filter.
         return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
     }
 };
 
-PageContainer::PageContainer(BasePageProvider *pageProvider, QString defaultId,
-                             QWidget *parent)
+PageContainer::PageContainer(BasePageProvider* pageProvider, QString defaultId,
+                             QWidget* parent)
     : QWidget(parent)
 {
     createUI();
@@ -87,7 +90,7 @@ PageContainer::PageContainer(BasePageProvider *pageProvider, QString defaultId,
     auto pages = pageProvider->getPages();
     for (auto page : std::as_const(pages))
     {
-        page->stackIndex = m_pageStack->addWidget(dynamic_cast<QWidget *>(page));
+        page->stackIndex = m_pageStack->addWidget(dynamic_cast<QWidget*>(page));
         page->listIndex = counter;
         page->setParentContainer(this);
         counter++;
@@ -102,7 +105,9 @@ PageContainer::PageContainer(BasePageProvider *pageProvider, QString defaultId,
     m_pageList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     m_pageList->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     m_pageList->setModel(m_proxyModel);
-    connect(m_pageList->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &PageContainer::currentChanged);
+    connect(m_pageList->selectionModel(),
+            &QItemSelectionModel::currentRowChanged, this,
+            &PageContainer::currentChanged);
     m_pageStack->setStackingMode(QStackedLayout::StackOne);
     m_pageList->setFocus();
     selectPage(defaultId);
@@ -117,7 +122,7 @@ bool PageContainer::selectPage(QString pageId)
     {
         index = m_proxyModel->mapFromSource(m_model->index(page->listIndex));
     }
-    if(!index.isValid())
+    if (!index.isValid())
     {
         index = m_proxyModel->index(0, 0);
     }
@@ -133,16 +138,17 @@ void PageContainer::refreshContainer()
 {
     m_proxyModel->invalidate();
     // There may not be a current page yet, pick the first one then too
-    if(!m_currentPage || !m_currentPage->shouldDisplay())
+    if (!m_currentPage || !m_currentPage->shouldDisplay())
     {
         auto index = m_proxyModel->index(0, 0);
-        if(index.isValid())
+        if (index.isValid())
         {
             m_pageList->setCurrentIndex(index);
         }
         else
         {
-            // FIXME: unhandled corner case: what to do when there's no page to select?
+            // FIXME: unhandled corner case: what to do when there's no page to
+            // select?
         }
     }
 }
@@ -158,17 +164,24 @@ void PageContainer::createUI()
     headerLabelFont.setBold(true);
     const int pointSize = headerLabelFont.pointSize();
     if (pointSize > 0)
+    {
         headerLabelFont.setPointSize(pointSize + 2);
+    }
     m_header->setFont(headerLabelFont);
 
-    QHBoxLayout *headerHLayout = new QHBoxLayout;
-    const int leftMargin = APPLICATION->style()->pixelMetric(QStyle::PM_LayoutLeftMargin);
-    headerHLayout->addSpacerItem(new QSpacerItem(leftMargin, 0, QSizePolicy::Fixed, QSizePolicy::Ignored));
+    QHBoxLayout* headerHLayout = new QHBoxLayout;
+    const int leftMargin =
+        APPLICATION->style()->pixelMetric(QStyle::PM_LayoutLeftMargin);
+    headerHLayout->addSpacerItem(new QSpacerItem(
+        leftMargin, 0, QSizePolicy::Fixed, QSizePolicy::Ignored));
     headerHLayout->addWidget(m_header);
-    headerHLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Ignored));
+    headerHLayout->addSpacerItem(
+        new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Ignored));
     headerHLayout->addWidget(m_iconHeader);
-    const int rightMargin = APPLICATION->style()->pixelMetric(QStyle::PM_LayoutRightMargin);
-    headerHLayout->addSpacerItem(new QSpacerItem(rightMargin, 0, QSizePolicy::Fixed, QSizePolicy::Ignored));
+    const int rightMargin =
+        APPLICATION->style()->pixelMetric(QStyle::PM_LayoutRightMargin);
+    headerHLayout->addSpacerItem(new QSpacerItem(
+        rightMargin, 0, QSizePolicy::Fixed, QSizePolicy::Ignored));
     headerHLayout->setContentsMargins(0, 6, 0, 0);
 
     m_pageStack->setContentsMargins(0, 0, 0, 0);
@@ -179,25 +192,29 @@ void PageContainer::createUI()
     m_layout->addWidget(m_pageList, 0, 0, 2, 1);
     m_layout->addLayout(m_pageStack, 1, 1, 1, 1);
     m_layout->setColumnStretch(1, 4);
-    m_layout->setContentsMargins(0,0,0,6);
+    m_layout->setContentsMargins(0, 0, 0, 6);
     setLayout(m_layout);
 }
 
 void PageContainer::retranslate()
 {
     if (m_currentPage)
+    {
         m_header->setText(m_currentPage->displayName());
+    }
 
     for (auto page : m_model->pages())
+    {
         page->retranslate();
+    }
 }
 
-void PageContainer::addButtons(QWidget *buttons)
+void PageContainer::addButtons(QWidget* buttons)
 {
     m_layout->addWidget(buttons, 2, 0, 1, 2);
 }
 
-void PageContainer::addButtons(QLayout *buttons)
+void PageContainer::addButtons(QLayout* buttons)
 {
     m_layout->addLayout(buttons, 2, 0, 1, 2);
 }
@@ -237,28 +254,35 @@ void PageContainer::help()
     {
         QString pageId = m_currentPage->helpPage();
         if (pageId.isEmpty())
+        {
             return;
+        }
         DesktopServices::openUrl(QUrl(BuildConfig.HELP_URL.arg(pageId)));
     }
 }
 
-void PageContainer::currentChanged(const QModelIndex &current)
+void PageContainer::currentChanged(const QModelIndex& current)
 {
-    int selected_index = current.isValid() ? m_proxyModel->mapToSource(current).row() : -1;
+    int selected_index =
+        current.isValid() ? m_proxyModel->mapToSource(current).row() : -1;
 
-    // Nothing is selected when the proxy model got invalidated without a current row
-    auto* selected = selected_index >= 0 ? m_model->pages().at(selected_index) : nullptr;
+    // Nothing is selected when the proxy model got invalidated without a
+    // current row
+    auto* selected =
+        selected_index >= 0 ? m_model->pages().at(selected_index) : nullptr;
     auto* previous = m_currentPage;
 
     if (selected)
+    {
         emit selectedPageChanged(previous, selected);
+    }
 
     showPage(selected_index);
 }
 
 bool PageContainer::prepareToClose()
 {
-    if(!saveAll())
+    if (!saveAll())
     {
         return false;
     }
@@ -274,14 +298,17 @@ bool PageContainer::saveAll()
     for (auto page : m_model->pages())
     {
         if (!page->apply())
+        {
             return false;
+        }
     }
     return true;
 }
 
 void PageContainer::changeEvent(QEvent* event)
 {
-    if (event->type() == QEvent::LanguageChange) {
+    if (event->type() == QEvent::LanguageChange)
+    {
         retranslate();
     }
     QWidget::changeEvent(event);

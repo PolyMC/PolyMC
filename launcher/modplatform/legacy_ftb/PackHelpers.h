@@ -5,9 +5,10 @@
 #include <QStringList>
 #include <QMetaType>
 
-namespace LegacyFTB {
+namespace LegacyFTB
+{
 
-//Header for structs etc...
+// Header for structs etc...
 enum class PackType
 {
     Public,
@@ -26,9 +27,9 @@ struct Modpack
     QString mods;
     QString logo;
 
-    //Technical data
+    // Technical data
     QString dir;
-    QString file; //<- Url in the xml, but doesn't make much sense
+    QString file;  //<- Url in the xml, but doesn't make much sense
 
     bool bugged = false;
     bool broken = false;
@@ -39,7 +40,7 @@ struct Modpack
 
 typedef QList<Modpack> ModpackList;
 
-}
+}  // namespace LegacyFTB
 
-//We need it for the proxy model
+// We need it for the proxy model
 Q_DECLARE_METATYPE(LegacyFTB::Modpack)

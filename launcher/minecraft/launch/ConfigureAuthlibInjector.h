@@ -4,11 +4,13 @@
 #include <minecraft/auth/MinecraftAccount.h>
 #include "net/NetJob.h"
 
-class ConfigureAuthlibInjector: public LaunchStep
+class ConfigureAuthlibInjector : public LaunchStep
 {
     Q_OBJECT
 public:
-    explicit ConfigureAuthlibInjector(LaunchTask *parent, QString authlibinjector_base_url, std::shared_ptr<QString> javaagent_arg);
+    explicit ConfigureAuthlibInjector(LaunchTask* parent,
+                                      QString authlibinjector_base_url,
+                                      std::shared_ptr<QString> javaagent_arg);
     virtual ~ConfigureAuthlibInjector() {};
 
     void executeTask() override;
@@ -17,6 +19,7 @@ public:
     {
         return false;
     }
+
 private:
     std::unique_ptr<NetJob> m_job;
     std::shared_ptr<QString> m_javaagent_arg;

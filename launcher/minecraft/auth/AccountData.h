@@ -40,7 +40,8 @@
 #include <katabasis/Bits.h>
 #include <QJsonObject>
 
-struct Skin {
+struct Skin
+{
     QString id;
     QString url;
     QString variant;
@@ -48,7 +49,8 @@ struct Skin {
     QByteArray data;
 };
 
-struct Cape {
+struct Cape
+{
     QString id;
     QString url;
     QString alias;
@@ -56,13 +58,15 @@ struct Cape {
     QByteArray data;
 };
 
-struct MinecraftEntitlement {
+struct MinecraftEntitlement
+{
     bool ownsMinecraft = false;
     bool canPlayMinecraft = false;
     Katabasis::Validity validity = Katabasis::Validity::None;
 };
 
-struct MinecraftProfile {
+struct MinecraftProfile
+{
     QString id;
     QString name;
     Skin skin;
@@ -71,13 +75,15 @@ struct MinecraftProfile {
     Katabasis::Validity validity = Katabasis::Validity::None;
 };
 
-enum class AccountType {
+enum class AccountType
+{
     MSA,
     AuthlibInjector,
     Offline
 };
 
-enum class AccountState {
+enum class AccountState
+{
     Unchecked,
     Offline,
     Working,
@@ -89,7 +95,8 @@ enum class AccountState {
     Gone
 };
 
-struct AccountData {
+struct AccountData
+{
     QJsonObject saveState() const;
     bool resumeStateFromV3(QJsonObject data);
 

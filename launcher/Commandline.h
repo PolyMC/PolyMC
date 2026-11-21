@@ -34,4 +34,4 @@ namespace Commandline
  * @return a QStringList containing all arguments
  */
 QStringList splitArgs(QString args);
-}
+}  // namespace Commandline

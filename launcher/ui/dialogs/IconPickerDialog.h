@@ -27,19 +27,18 @@ class IconPickerDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit IconPickerDialog(QWidget *parent = 0);
+    explicit IconPickerDialog(QWidget* parent = 0);
     ~IconPickerDialog();
     int execWithSelection(QString selection);
     QString selectedIconKey;
 
 protected:
-    virtual bool eventFilter(QObject *, QEvent *);
+    virtual bool eventFilter(QObject*, QEvent*);
 
 private:
-    Ui::IconPickerDialog *ui;
+    Ui::IconPickerDialog* ui;
 
-private
-slots:
+private slots:
     void selectionChanged(QItemSelection, QItemSelection);
     void activated(QModelIndex);
     void delayed_scroll(QModelIndex);

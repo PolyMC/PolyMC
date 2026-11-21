@@ -9,14 +9,22 @@
 class ModDownloadTask;
 class ModFolderModel;
 
-class CheckUpdateTask : public Task {
+class CheckUpdateTask : public Task
+{
     Q_OBJECT
 
-   public:
-    CheckUpdateTask(QList<Mod*>& mods, std::list<Version>& mcVersions, ModAPI::ModLoaderTypes loaders, std::shared_ptr<ResourceFolderModel> mods_folder)
-        : Task(nullptr), m_mods(mods), m_game_versions(mcVersions), m_loaders(loaders), m_mods_folder(mods_folder) {};
+public:
+    CheckUpdateTask(QList<Mod*>& mods, std::list<Version>& mcVersions,
+                    ModAPI::ModLoaderTypes loaders,
+                    std::shared_ptr<ResourceFolderModel> mods_folder)
+        : Task(nullptr),
+          m_mods(mods),
+          m_game_versions(mcVersions),
+          m_loaders(loaders),
+          m_mods_folder(mods_folder) {};
 
-    struct UpdatableMod {
+    struct UpdatableMod
+    {
         QString name;
         QString old_hash;
         QString old_version;
@@ -25,24 +33,36 @@ class CheckUpdateTask : public Task {
         ModPlatform::Provider provider;
         ModDownloadTask* download;
 
-       public:
-        UpdatableMod(QString name, QString old_h, QString old_v, QString new_v, QString changelog, ModPlatform::Provider p, ModDownloadTask* t)
-            : name(name), old_hash(old_h), old_version(old_v), new_version(new_v), changelog(changelog), provider(p), download(t)
-        {}
+    public:
+        UpdatableMod(QString name, QString old_h, QString old_v, QString new_v,
+                     QString changelog, ModPlatform::Provider p,
+                     ModDownloadTask* t)
+            : name(name),
+              old_hash(old_h),
+              old_version(old_v),
+              new_version(new_v),
+              changelog(changelog),
+              provider(p),
+              download(t)
+        {
+        }
     };
 
-    std::vector<UpdatableMod>&& getUpdatable() { return std::move(m_updatable); }
+    std::vector<UpdatableMod>&& getUpdatable()
+    {
+        return std::move(m_updatable);
+    }
 
-   public slots:
+public slots:
     bool abort() override = 0;
 
-   protected slots:
+protected slots:
     void executeTask() override = 0;
 
-   signals:
+signals:
     void checkFailed(Mod* failed, QString reason, QUrl recover_url = {});
 
-   protected:
+protected:
     QList<Mod*>& m_mods;
     std::list<Version>& m_game_versions;
     ModAPI::ModLoaderTypes m_loaders;

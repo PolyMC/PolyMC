@@ -6,8 +6,7 @@
 class BaseWizardPage : public QWizardPage
 {
 public:
-    explicit BaseWizardPage(QWidget *parent = Q_NULLPTR)
-        : QWizardPage(parent)
+    explicit BaseWizardPage(QWidget* parent = Q_NULLPTR) : QWizardPage(parent)
     {
     }
     virtual ~BaseWizardPage() {};
@@ -22,7 +21,7 @@ public:
 
 protected:
     virtual void retranslate() = 0;
-    void changeEvent(QEvent * event) override
+    void changeEvent(QEvent* event) override
     {
         if (event->type() == QEvent::LanguageChange)
         {

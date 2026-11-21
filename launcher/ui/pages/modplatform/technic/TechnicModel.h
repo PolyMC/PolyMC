@@ -40,7 +40,8 @@
 #include "TechnicData.h"
 #include "net/NetJob.h"
 
-namespace Technic {
+namespace Technic
+{
 
 typedef std::function<void(QString)> LogoCallback;
 
@@ -49,15 +50,16 @@ class ListModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    ListModel(QObject *parent);
+    ListModel(QObject* parent);
     virtual ~ListModel();
 
     virtual QVariant data(const QModelIndex& index, int role) const;
     virtual int columnCount(const QModelIndex& parent) const;
     virtual int rowCount(const QModelIndex& parent) const;
 
-    void getLogo(const QString &logo, const QString &logoUrl, LogoCallback callback);
-    void searchWithTerm(const QString & term);
+    void getLogo(const QString& logo, const QString& logoUrl,
+                 LogoCallback callback);
+    void searchWithTerm(const QString& term);
 
 private slots:
     void searchRequestFinished();
@@ -78,12 +80,14 @@ private:
     QMap<QString, LogoCallback> waitingCallbacks;
 
     QString currentSearchTerm;
-    enum SearchState {
+    enum SearchState
+    {
         None,
         ResetRequested,
         Finished
     } searchState = None;
-    enum SearchMode {
+    enum SearchMode
+    {
         List,
         Single,
     } searchMode = List;
@@ -91,4 +95,4 @@ private:
     QByteArray response;
 };
 
-}
+}  // namespace Technic

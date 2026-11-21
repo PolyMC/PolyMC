@@ -50,7 +50,7 @@ LogView::~LogView()
 
 void LogView::setWordWrap(bool wrapping)
 {
-    if(wrapping)
+    if (wrapping)
     {
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         setLineWrapMode(QPlainTextEdit::WidgetWidth);
@@ -64,33 +64,42 @@ void LogView::setWordWrap(bool wrapping)
 
 void LogView::setModel(QAbstractItemModel* model)
 {
-    if(m_model)
+    if (m_model)
     {
-        disconnect(m_model, &QAbstractItemModel::modelReset, this, &LogView::repopulate);
-        disconnect(m_model, &QAbstractItemModel::rowsInserted, this, &LogView::rowsInserted);
-        disconnect(m_model, &QAbstractItemModel::rowsAboutToBeInserted, this, &LogView::rowsAboutToBeInserted);
-        disconnect(m_model, &QAbstractItemModel::rowsRemoved, this, &LogView::rowsRemoved);
+        disconnect(m_model, &QAbstractItemModel::modelReset, this,
+                   &LogView::repopulate);
+        disconnect(m_model, &QAbstractItemModel::rowsInserted, this,
+                   &LogView::rowsInserted);
+        disconnect(m_model, &QAbstractItemModel::rowsAboutToBeInserted, this,
+                   &LogView::rowsAboutToBeInserted);
+        disconnect(m_model, &QAbstractItemModel::rowsRemoved, this,
+                   &LogView::rowsRemoved);
     }
     m_model = model;
-    if(m_model)
+    if (m_model)
     {
-        connect(m_model, &QAbstractItemModel::modelReset, this, &LogView::repopulate);
-        connect(m_model, &QAbstractItemModel::rowsInserted, this, &LogView::rowsInserted);
-        connect(m_model, &QAbstractItemModel::rowsAboutToBeInserted, this, &LogView::rowsAboutToBeInserted);
-        connect(m_model, &QAbstractItemModel::rowsRemoved, this, &LogView::rowsRemoved);
-        connect(m_model, &QAbstractItemModel::destroyed, this, &LogView::modelDestroyed);
+        connect(m_model, &QAbstractItemModel::modelReset, this,
+                &LogView::repopulate);
+        connect(m_model, &QAbstractItemModel::rowsInserted, this,
+                &LogView::rowsInserted);
+        connect(m_model, &QAbstractItemModel::rowsAboutToBeInserted, this,
+                &LogView::rowsAboutToBeInserted);
+        connect(m_model, &QAbstractItemModel::rowsRemoved, this,
+                &LogView::rowsRemoved);
+        connect(m_model, &QAbstractItemModel::destroyed, this,
+                &LogView::modelDestroyed);
     }
     repopulate();
 }
 
-QAbstractItemModel * LogView::model() const
+QAbstractItemModel* LogView::model() const
 {
     return m_model;
 }
 
 void LogView::modelDestroyed(QObject* model)
 {
-    if(m_model == model)
+    if (m_model == model)
     {
         setModel(nullptr);
     }
@@ -100,19 +109,20 @@ void LogView::repopulate()
 {
     auto doc = document();
     doc->clear();
-    if(!m_model)
+    if (!m_model)
     {
         return;
     }
     rowsInserted(QModelIndex(), 0, m_model->rowCount() - 1);
 }
 
-void LogView::rowsAboutToBeInserted(const QModelIndex& parent, int first, int last)
+void LogView::rowsAboutToBeInserted(const QModelIndex& parent, int first,
+                                    int last)
 {
     Q_UNUSED(parent)
     Q_UNUSED(first)
     Q_UNUSED(last)
-    QScrollBar *bar = verticalScrollBar();
+    QScrollBar* bar = verticalScrollBar();
     int max_bar = bar->maximum();
     int val_bar = bar->value();
     if (m_scroll)
@@ -127,28 +137,33 @@ void LogView::rowsAboutToBeInserted(const QModelIndex& parent, int first, int la
 
 void LogView::rowsInserted(const QModelIndex& parent, int first, int last)
 {
-    for(int i = first; i <= last; i++)
+    for (int i = first; i <= last; i++)
     {
         auto idx = m_model->index(i, 0, parent);
         auto text = m_model->data(idx, Qt::DisplayRole).toString();
-        // Keep every row in a single block: inserting a '\n' starts a new block, which would make
-        // rowsRemoved() remove only part of a row. A line separator still shows as a line break.
+        // Keep every row in a single block: inserting a '\n' starts a new
+        // block, which would make rowsRemoved() remove only part of a row. A
+        // line separator still shows as a line break.
         text.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
-        for (QChar c : { QChar('\n'), QChar('\r'), QChar(QChar::ParagraphSeparator), QChar(0xFDD0), QChar(0xFDD1) })
+        for (QChar c :
+             {QChar('\n'), QChar('\r'), QChar(QChar::ParagraphSeparator),
+              QChar(0xFDD0), QChar(0xFDD1)})
+        {
             text.replace(c, QChar::LineSeparator);
+        }
         QTextCharFormat format(*m_defaultFormat);
         auto font = m_model->data(idx, Qt::FontRole);
-        if(font.isValid())
+        if (font.isValid())
         {
             format.setFont(font.value<QFont>());
         }
         auto fg = m_model->data(idx, Qt::ForegroundRole);
-        if(fg.isValid())
+        if (fg.isValid())
         {
             format.setForeground(fg.value<QColor>());
         }
         auto bg = m_model->data(idx, Qt::BackgroundRole);
-        if(bg.isValid())
+        if (bg.isValid())
         {
             format.setBackground(bg.value<QColor>());
         }
@@ -157,27 +172,30 @@ void LogView::rowsInserted(const QModelIndex& parent, int first, int last)
         workCursor.insertText(text, format);
         workCursor.insertBlock();
     }
-    if(m_scroll && !m_scrolling)
+    if (m_scroll && !m_scrolling)
     {
         m_scrolling = true;
-        QMetaObject::invokeMethod( this, "scrollToBottom", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, "scrollToBottom", Qt::QueuedConnection);
     }
 }
 
 void LogView::rowsRemoved(const QModelIndex& parent, int first, int last)
 {
     Q_UNUSED(parent)
-    // The log model drops its oldest lines once it is full. Every row is one block of the document
-    // (see rowsInserted()), so drop the same blocks, otherwise the document keeps growing forever.
+    // The log model drops its oldest lines once it is full. Every row is one
+    // block of the document (see rowsInserted()), so drop the same blocks,
+    // otherwise the document keeps growing forever.
     auto doc = document();
     auto firstBlock = doc->findBlockByNumber(first);
     auto lastBlock = doc->findBlockByNumber(last);
-    if(!firstBlock.isValid() || !lastBlock.isValid())
+    if (!firstBlock.isValid() || !lastBlock.isValid())
     {
         return;
     }
     QTextCursor cursor(firstBlock);
-    auto end = lastBlock.next().isValid() ? lastBlock.next().position() : lastBlock.position() + lastBlock.length() - 1;
+    auto end = lastBlock.next().isValid()
+                   ? lastBlock.next().position()
+                   : lastBlock.position() + lastBlock.length() - 1;
     cursor.setPosition(end, QTextCursor::KeepAnchor);
     cursor.removeSelectedText();
 }
@@ -192,13 +210,16 @@ void LogView::findNext(const QString& what, bool reverse)
 {
     auto flags = QTextDocument::FindFlags(0);
     if (reverse)
+    {
         flags |= QTextDocument::FindBackward;
+    }
 
     // initial search
     bool found = find(what, flags);
 
     // wrap and search again if not found
-    if (!found) {
+    if (!found)
+    {
         auto cursor = textCursor();
         cursor.movePosition(reverse ? QTextCursor::End : QTextCursor::Start);
         setTextCursor(cursor);

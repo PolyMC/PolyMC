@@ -54,7 +54,7 @@ class LogPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit LogPage(InstancePtr instance, QWidget *parent = 0);
+    explicit LogPage(InstancePtr instance, QWidget* parent = 0);
     virtual ~LogPage();
     virtual QString displayName() const override
     {
@@ -95,13 +95,14 @@ private slots:
 private:
     void modelStateToUI();
     void UIToModelState();
-    void setInstanceLaunchTaskChanged(shared_qobject_ptr<LaunchTask> proc, bool initial);
+    void setInstanceLaunchTaskChanged(shared_qobject_ptr<LaunchTask> proc,
+                                      bool initial);
 
 private:
-    Ui::LogPage *ui;
+    Ui::LogPage* ui;
     InstancePtr m_instance;
     shared_qobject_ptr<LaunchTask> m_process;
 
-    LogFormatProxyModel * m_proxy;
-    shared_qobject_ptr <LogModel> m_model;
+    LogFormatProxyModel* m_proxy;
+    shared_qobject_ptr<LogModel> m_model;
 };

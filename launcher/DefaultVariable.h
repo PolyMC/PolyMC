@@ -4,18 +4,18 @@ template <typename T>
 class DefaultVariable
 {
 public:
-    DefaultVariable(const T & value)
+    DefaultVariable(const T& value)
     {
         defaultValue = value;
     }
-    DefaultVariable<T> & operator =(const T & value)
+    DefaultVariable<T>& operator=(const T& value)
     {
         currentValue = value;
         is_default = currentValue == defaultValue;
         is_explicit = true;
         return *this;
     }
-    operator const T &() const
+    operator const T&() const
     {
         return is_default ? defaultValue : currentValue;
     }
@@ -27,6 +27,7 @@ public:
     {
         return is_explicit;
     }
+
 private:
     T currentValue;
     T defaultValue;

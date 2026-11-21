@@ -50,23 +50,33 @@
 #include "BuildConfig.h"
 #include "ui/dialogs/BlockedModsDialog.h"
 
-namespace FTB {
+namespace FTB
+{
 
 PackInstallTask::PackInstallTask(Modpack pack, QString version, QWidget* parent)
-    : m_pack(std::move(pack)), m_version_name(std::move(version)), m_parent(parent)
-{}
+    : m_pack(std::move(pack)),
+      m_version_name(std::move(version)),
+      m_parent(parent)
+{
+}
 
 bool PackInstallTask::abort()
 {
     bool aborted = true;
 
     if (m_net_job)
+    {
         aborted &= m_net_job->abort();
+    }
     if (m_mod_id_resolver_task)
+    {
         aborted &= m_mod_id_resolver_task->abort();
+    }
 
     if (aborted)
+    {
         emitAborted();
+    }
 
     return aborted;
 }
@@ -76,10 +86,15 @@ void PackInstallTask::executeTask()
     setStatus(tr("Getting the manifest..."));
 
     // Find pack version
-    auto version_it = std::find_if(m_pack.versions.constBegin(), m_pack.versions.constEnd(),
-                                   [this](FTB::VersionInfo const& a) { return a.name == m_version_name; });
+    auto version_it =
+        std::find_if(m_pack.versions.constBegin(), m_pack.versions.constEnd(),
+                     [this](FTB::VersionInfo const& a)
+                     {
+                         return a.name == m_version_name;
+                     });
 
-    if (version_it == m_pack.versions.constEnd()) {
+    if (version_it == m_pack.versions.constEnd())
+    {
         emitFailed(tr("Failed to find pack version %1").arg(m_version_name));
         return;
     }
@@ -88,12 +103,18 @@ void PackInstallTask::executeTask()
 
     auto* netJob = new NetJob("FTB::VersionFetch", APPLICATION->network());
 
-    auto searchUrl = (BuildConfig.FTB_API_BASE_URL + "/modpack/%1/%2").arg(m_pack.id).arg(version.id);
-    netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchUrl), &m_response));
+    auto searchUrl = (BuildConfig.FTB_API_BASE_URL + "/modpack/%1/%2")
+                         .arg(m_pack.id)
+                         .arg(version.id);
+    netJob->addNetAction(
+        Net::Download::makeByteArray(QUrl(searchUrl), &m_response));
 
-    QObject::connect(netJob, &NetJob::succeeded, this, &PackInstallTask::onManifestDownloadSucceeded);
-    QObject::connect(netJob, &NetJob::failed, this, &PackInstallTask::onManifestDownloadFailed);
-    QObject::connect(netJob, &NetJob::progress, this, &PackInstallTask::setProgress);
+    QObject::connect(netJob, &NetJob::succeeded, this,
+                     &PackInstallTask::onManifestDownloadSucceeded);
+    QObject::connect(netJob, &NetJob::failed, this,
+                     &PackInstallTask::onManifestDownloadFailed);
+    QObject::connect(netJob, &NetJob::progress, this,
+                     &PackInstallTask::setProgress);
 
     m_net_job = netJob;
 
@@ -106,8 +127,10 @@ void PackInstallTask::onManifestDownloadSucceeded()
 
     QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(m_response, &parse_error);
-    if (parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from FTB at " << parse_error.offset
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from FTB at "
+                   << parse_error.offset
                    << " reason: " << parse_error.errorString();
         qWarning() << m_response;
         emitFailed(parse_error.errorString());
@@ -115,10 +138,13 @@ void PackInstallTask::onManifestDownloadSucceeded()
     }
 
     FTB::Version version;
-    try {
+    try
+    {
         auto obj = Json::requireObject(doc);
         FTB::loadVersion(version, obj);
-    } catch (const JSONValidationError& e) {
+    }
+    catch (const JSONValidationError& e)
+    {
         emitFailed(tr("Could not understand pack manifest:\n") + e.cause());
         return;
     }
@@ -136,10 +162,15 @@ void PackInstallTask::resolveMods()
     m_file_id_map.clear();
 
     Flame::Manifest manifest;
-    for (auto const& file : std::as_const(m_version.files)) {
-        if (!file.serverOnly && file.url.isEmpty()) {
-            if (file.curseforge.file_id <= 0) {
-                emitFailed(tr("Invalid manifest: There's no information available to download the file '%1'!").arg(file.name));
+    for (auto const& file : std::as_const(m_version.files))
+    {
+        if (!file.serverOnly && file.url.isEmpty())
+        {
+            if (file.curseforge.file_id <= 0)
+            {
+                emitFailed(tr("Invalid manifest: There's no information "
+                              "available to download the file '%1'!")
+                               .arg(file.name));
                 return;
             }
 
@@ -150,22 +181,29 @@ void PackInstallTask::resolveMods()
 
             manifest.files.insert(flame_file.fileId, flame_file);
             m_file_id_map.append(flame_file.fileId);
-        } else {
+        }
+        else
+        {
             m_file_id_map.append(-1);
         }
     }
 
     // don't try to resolve mods if there aren't any curseforge IDs
-    if (manifest.files.isEmpty()) {
+    if (manifest.files.isEmpty())
+    {
         downloadPack();
         return;
     }
 
-    m_mod_id_resolver_task = new Flame::FileResolvingTask(APPLICATION->network(), manifest);
+    m_mod_id_resolver_task =
+        new Flame::FileResolvingTask(APPLICATION->network(), manifest);
 
-    connect(m_mod_id_resolver_task.get(), &Flame::FileResolvingTask::succeeded, this, &PackInstallTask::onResolveModsSucceeded);
-    connect(m_mod_id_resolver_task.get(), &Flame::FileResolvingTask::failed, this, &PackInstallTask::onResolveModsFailed);
-    connect(m_mod_id_resolver_task.get(), &Flame::FileResolvingTask::progress, this, &PackInstallTask::setProgress);
+    connect(m_mod_id_resolver_task.get(), &Flame::FileResolvingTask::succeeded,
+            this, &PackInstallTask::onResolveModsSucceeded);
+    connect(m_mod_id_resolver_task.get(), &Flame::FileResolvingTask::failed,
+            this, &PackInstallTask::onResolveModsFailed);
+    connect(m_mod_id_resolver_task.get(), &Flame::FileResolvingTask::progress,
+            this, &PackInstallTask::setProgress);
 
     m_mod_id_resolver_task->start();
 }
@@ -179,43 +217,59 @@ void PackInstallTask::onResolveModsSucceeded()
     auto anyBlocked = false;
 
     Flame::Manifest results = m_mod_id_resolver_task->getResults();
-    for (int index = 0; index < m_file_id_map.size(); index++) {
+    for (int index = 0; index < m_file_id_map.size(); index++)
+    {
         auto const file_id = m_file_id_map.at(index);
         if (file_id < 0)
+        {
             continue;
+        }
 
         Flame::File results_file = results.files[file_id];
         VersionFile& local_file = m_version.files[index];
 
         // First check for blocked mods
-        if (!results_file.resolved || results_file.url.isEmpty()) {
+        if (!results_file.resolved || results_file.url.isEmpty())
+        {
             QString type(local_file.type);
 
             type[0] = type[0].toUpper();
-            text += QString("%1: %2 - <a href='%3'>%3</a><br/>").arg(type, local_file.name, results_file.websiteUrl);
+            text += QString("%1: %2 - <a href='%3'>%3</a><br/>")
+                        .arg(type, local_file.name, results_file.websiteUrl);
             urls.append(QUrl(results_file.websiteUrl));
             anyBlocked = true;
-        } else {
+        }
+        else
+        {
             local_file.url = results_file.url.toString();
         }
     }
 
     m_mod_id_resolver_task.reset();
 
-    if (anyBlocked) {
+    if (anyBlocked)
+    {
         qDebug() << "Blocked files found, displaying file list";
 
-        auto message_dialog = new BlockedModsDialog(m_parent, tr("Blocked files found"),
-                                                   tr("The following files are not available for download in third party launchers.<br/>"
-                                                      "You will need to manually download them and add them to the instance."),
-                                                   text,
-                                                   urls);
+        auto message_dialog = new BlockedModsDialog(
+            m_parent, tr("Blocked files found"),
+            tr("The following files are not available for download in third "
+               "party launchers.<br/>"
+               "You will need to manually download them and add them to the "
+               "instance."),
+            text, urls);
 
         if (message_dialog->exec() == QDialog::Accepted)
+        {
             downloadPack();
+        }
         else
+        {
             abort();
-    } else {
+        }
+    }
+    else
+    {
         downloadPack();
     }
 }
@@ -225,27 +279,39 @@ void PackInstallTask::downloadPack()
     setStatus(tr("Downloading mods..."));
 
     auto* jobPtr = new NetJob(tr("Mod download"), APPLICATION->network());
-    for (auto const& file : std::as_const(m_version.files)) {
+    for (auto const& file : std::as_const(m_version.files))
+    {
         if (file.serverOnly || file.url.isEmpty())
+        {
             continue;
+        }
 
         QFileInfo file_info(file.name);
-        auto cacheName = file_info.completeBaseName() + "-" + file.sha1 + "." + file_info.suffix();
+        auto cacheName = file_info.completeBaseName() + "-" + file.sha1 + "." +
+                         file_info.suffix();
 
-        auto entry = APPLICATION->metacache()->resolveEntry("FTBPacks", cacheName);
+        auto entry =
+            APPLICATION->metacache()->resolveEntry("FTBPacks", cacheName);
         if (file.sha1.isEmpty())
+        {
             entry->setStale(true);
+        }
 
         auto relpath = FS::PathCombine("minecraft", file.path, file.name);
         auto path = FS::PathCombine(m_stagingPath, relpath);
-        if (!path.startsWith(FS::PathCombine(m_stagingPath, "minecraft") + '/')) {
+        if (!path.startsWith(FS::PathCombine(m_stagingPath, "minecraft") + '/'))
+        {
             delete jobPtr;
-            emitFailed(tr("File %1 tries to place itself outside of the instance").arg(file.name));
+            emitFailed(
+                tr("File %1 tries to place itself outside of the instance")
+                    .arg(file.name));
             return;
         }
 
-        if (m_files_to_copy.contains(path)) {
-            qWarning() << "Ignoring" << file.url << "as a file of that path is already downloading.";
+        if (m_files_to_copy.contains(path))
+        {
+            qWarning() << "Ignoring" << file.url
+                       << "as a file of that path is already downloading.";
             continue;
         }
 
@@ -253,16 +319,20 @@ void PackInstallTask::downloadPack()
         m_files_to_copy[path] = entry->getFullPath();
 
         auto dl = Net::Download::makeCached(file.url, entry);
-        if (!file.sha1.isEmpty()) {
+        if (!file.sha1.isEmpty())
+        {
             auto rawSha1 = QByteArray::fromHex(file.sha1.toLatin1());
-            dl->addValidator(new Net::ChecksumValidator(QCryptographicHash::Sha1, rawSha1));
+            dl->addValidator(
+                new Net::ChecksumValidator(QCryptographicHash::Sha1, rawSha1));
         }
 
         jobPtr->addNetAction(dl);
     }
 
-    connect(jobPtr, &NetJob::succeeded, this, &PackInstallTask::onModDownloadSucceeded);
-    connect(jobPtr, &NetJob::failed, this, &PackInstallTask::onModDownloadFailed);
+    connect(jobPtr, &NetJob::succeeded, this,
+            &PackInstallTask::onModDownloadSucceeded);
+    connect(jobPtr, &NetJob::failed, this,
+            &PackInstallTask::onModDownloadFailed);
     connect(jobPtr, &NetJob::progress, this, &PackInstallTask::setProgress);
 
     m_net_job = jobPtr;
@@ -286,11 +356,14 @@ void PackInstallTask::install()
     m_abortable = false;
 
     int i = 0;
-    for (auto iter = m_files_to_copy.constBegin(); iter != m_files_to_copy.constEnd(); iter++) {
+    for (auto iter = m_files_to_copy.constBegin();
+         iter != m_files_to_copy.constEnd(); iter++)
+    {
         auto& to = iter.key();
         auto& from = iter.value();
         FS::copy fileCopyOperation(from, to);
-        if (!fileCopyOperation()) {
+        if (!fileCopyOperation())
+        {
             qWarning() << "Failed to copy" << from << "to" << to;
             emitFailed(tr("Failed to copy files"));
             return;
@@ -304,39 +377,58 @@ void PackInstallTask::install()
     QCoreApplication::processEvents();
 
     auto instanceConfigPath = FS::PathCombine(m_stagingPath, "instance.cfg");
-    auto instanceSettings = std::make_shared<INISettingsObject>(instanceConfigPath);
+    auto instanceSettings =
+        std::make_shared<INISettingsObject>(instanceConfigPath);
     instanceSettings->suspendSave();
 
-    MinecraftInstance instance(m_globalSettings, instanceSettings, m_stagingPath);
+    MinecraftInstance instance(m_globalSettings, instanceSettings,
+                               m_stagingPath);
     auto components = instance.getPackProfile();
     components->buildingFromScratch();
 
-    for (const auto &target : std::as_const(m_version.targets)) {
-        if (target.type == "game" && target.name == "minecraft") {
-            components->setComponentVersion("net.minecraft", target.version, true);
+    for (const auto& target : std::as_const(m_version.targets))
+    {
+        if (target.type == "game" && target.name == "minecraft")
+        {
+            components->setComponentVersion("net.minecraft", target.version,
+                                            true);
             break;
         }
     }
 
-    for (const auto &target : std::as_const(m_version.targets)) {
+    for (const auto& target : std::as_const(m_version.targets))
+    {
         if (target.type != "modloader")
+        {
             continue;
+        }
 
-        if (target.name == "forge") {
-            components->setComponentVersion("net.minecraftforge", target.version);
-        } else if (target.name == "fabric") {
-            components->setComponentVersion("net.fabricmc.fabric-loader", target.version);
-        } else if (target.name == "neoforge") {
-            components->setComponentVersion("net.neoforged.neoforge", target.version);
+        if (target.name == "forge")
+        {
+            components->setComponentVersion("net.minecraftforge",
+                                            target.version);
+        }
+        else if (target.name == "fabric")
+        {
+            components->setComponentVersion("net.fabricmc.fabric-loader",
+                                            target.version);
+        }
+        else if (target.name == "neoforge")
+        {
+            components->setComponentVersion("net.neoforged.neoforge",
+                                            target.version);
         }
     }
 
     // install any jar mods
     QDir jarModsDir(FS::PathCombine(m_stagingPath, "minecraft", "jarmods"));
-    if (jarModsDir.exists()) {
+    if (jarModsDir.exists())
+    {
         QStringList jarMods;
 
-        for (const auto& info : jarModsDir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files)) {
+        for (const auto& info :
+             jarModsDir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files))
+        {
             jarMods.push_back(info.absoluteFilePath());
         }
 
@@ -347,7 +439,8 @@ void PackInstallTask::install()
 
     instance.setName(name());
     instance.setIconKey(m_instIcon);
-    instance.setManagedPack("ftb", QString::number(m_pack.id), m_pack.name, QString::number(m_version.id), m_version.name);
+    instance.setManagedPack("ftb", QString::number(m_pack.id), m_pack.name,
+                            QString::number(m_version.id), m_version.name);
     instanceSettings->resumeSave();
 
     emitSucceeded();

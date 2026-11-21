@@ -51,10 +51,12 @@
 #include <DesktopServices.h>
 #include <BuildConfig.h>
 
-QString GuiUtil::fetchFlameKey(QWidget *parentWidget)
+QString GuiUtil::fetchFlameKey(QWidget* parentWidget)
 {
     if (BuildConfig.FLAME_API_KEY_API_URL.isEmpty())
+    {
         return "";
+    }
 
     ProgressDialog prog(parentWidget);
     auto flameKeyTask = std::make_unique<FetchFlameAPIKey>();
@@ -62,40 +64,48 @@ QString GuiUtil::fetchFlameKey(QWidget *parentWidget)
 
     if (!flameKeyTask->wasSuccessful())
     {
-        auto message = QObject::tr("Fetching the Curseforge API key failed. Reason: %1").arg(flameKeyTask->failReason());
+        auto message =
+            QObject::tr("Fetching the Curseforge API key failed. Reason: %1")
+                .arg(flameKeyTask->failReason());
         if (!(APPLICATION->capabilities() & Application::SupportsFlame))
         {
-            message += "\n\n" + QObject::tr("Downloading Curseforge modpacks will not work unless you manually set a valid Curseforge Core API key in the settings.");
+            message += "\n\n" + QObject::tr(
+                                    "Downloading Curseforge modpacks will not "
+                                    "work unless you manually set a valid "
+                                    "Curseforge Core API key in the settings.");
         }
 
-        CustomMessageBox::selectable(parentWidget,
-                                     QObject::tr("Failed to fetch Curseforge API key."),
-                                     message, QMessageBox::Critical)->exec();
+        CustomMessageBox::selectable(
+            parentWidget, QObject::tr("Failed to fetch Curseforge API key."),
+            message, QMessageBox::Critical)
+            ->exec();
     }
 
     return flameKeyTask->m_result;
 }
 
-QString GuiUtil::uploadPaste(const QString &text, QWidget *parentWidget)
+QString GuiUtil::uploadPaste(const QString& text, QWidget* parentWidget)
 {
     QPointer<QWidget> parentGuard(parentWidget);
     QPointer<ProgressDialog> dialog = new ProgressDialog(parentWidget);
-    auto pasteTypeSetting = static_cast<PasteUpload::PasteType>(APPLICATION->settings()->get("PastebinType").toInt());
-    auto pasteCustomAPIBaseSetting = APPLICATION->settings()->get("PastebinCustomAPIBase").toString();
-    std::unique_ptr<PasteUpload> paste(new PasteUpload(parentWidget, text, pasteCustomAPIBaseSetting, pasteTypeSetting));
+    auto pasteTypeSetting = static_cast<PasteUpload::PasteType>(
+        APPLICATION->settings()->get("PastebinType").toInt());
+    auto pasteCustomAPIBaseSetting =
+        APPLICATION->settings()->get("PastebinCustomAPIBase").toString();
+    std::unique_ptr<PasteUpload> paste(new PasteUpload(
+        parentWidget, text, pasteCustomAPIBaseSetting, pasteTypeSetting));
 
     dialog->execWithTask(paste.get());
     delete dialog;
     if (parentWidget && !parentGuard)
+    {
         return QString();
+    }
     if (!paste->wasSuccessful())
     {
-        CustomMessageBox::selectable(
-            parentWidget,
-            QObject::tr("Upload failed"),
-            paste->failReason(),
-            QMessageBox::Critical
-        )->exec();
+        CustomMessageBox::selectable(parentWidget, QObject::tr("Upload failed"),
+                                     paste->failReason(), QMessageBox::Critical)
+            ->exec();
         return QString();
     }
     else
@@ -104,18 +114,23 @@ QString GuiUtil::uploadPaste(const QString &text, QWidget *parentWidget)
         setClipboardText(link);
         CustomMessageBox::selectable(
             parentWidget, QObject::tr("Upload finished"),
-            QObject::tr("The <a href=\"%1\">link to the uploaded log</a> has been placed in your clipboard.").arg(link),
-            QMessageBox::Information)->exec();
+            QObject::tr("The <a href=\"%1\">link to the uploaded log</a> has "
+                        "been placed in your clipboard.")
+                .arg(link),
+            QMessageBox::Information)
+            ->exec();
         return link;
     }
 }
 
-void GuiUtil::setClipboardText(const QString &text)
+void GuiUtil::setClipboardText(const QString& text)
 {
     QApplication::clipboard()->setText(text);
 }
 
-static QStringList BrowseForFileInternal(QString context, QString caption, QString filter, QString defaultPath, QWidget *parentWidget, bool single)
+static QStringList BrowseForFileInternal(QString context, QString caption,
+                                         QString filter, QString defaultPath,
+                                         QWidget* parentWidget, bool single)
 {
     static QMap<QString, QString> savedPaths;
 
@@ -125,7 +140,8 @@ static QStringList BrowseForFileInternal(QString context, QString caption, QStri
     {
         QString location = QStandardPaths::writableLocation(l);
         QFileInfo finfo(location);
-        if (!finfo.exists()) {
+        if (!finfo.exists())
+        {
             return;
         }
         locations.insert(location);
@@ -135,18 +151,19 @@ static QStringList BrowseForFileInternal(QString context, QString caption, QStri
     f(QStandardPaths::DownloadLocation);
     f(QStandardPaths::HomeLocation);
     QList<QUrl> urls;
-    for (const auto &location : locations)
+    for (const auto& location : locations)
     {
         urls.append(QUrl::fromLocalFile(location));
     }
     urls.append(QUrl::fromLocalFile(defaultPath));
 
-    w.setFileMode(single ? QFileDialog::ExistingFile : QFileDialog::ExistingFiles);
+    w.setFileMode(single ? QFileDialog::ExistingFile
+                         : QFileDialog::ExistingFiles);
     w.setAcceptMode(QFileDialog::AcceptOpen);
     w.setNameFilter(filter);
 
     QString pathToOpen;
-    if(savedPaths.contains(context))
+    if (savedPaths.contains(context))
     {
         pathToOpen = savedPaths[context];
     }
@@ -154,10 +171,10 @@ static QStringList BrowseForFileInternal(QString context, QString caption, QStri
     {
         pathToOpen = defaultPath;
     }
-    if(!pathToOpen.isEmpty())
+    if (!pathToOpen.isEmpty())
     {
         QFileInfo finfo(pathToOpen);
-        if(finfo.exists() && finfo.isDir())
+        if (finfo.exists() && finfo.isDir())
         {
             w.setDirectory(finfo.absoluteFilePath());
         }
@@ -174,18 +191,22 @@ static QStringList BrowseForFileInternal(QString context, QString caption, QStri
     return {};
 }
 
-QString GuiUtil::BrowseForFile(QString context, QString caption, QString filter, QString defaultPath, QWidget *parentWidget)
+QString GuiUtil::BrowseForFile(QString context, QString caption, QString filter,
+                               QString defaultPath, QWidget* parentWidget)
 {
-    auto resultList = BrowseForFileInternal(context, caption, filter, defaultPath, parentWidget, true);
-    if(resultList.size())
+    auto resultList = BrowseForFileInternal(context, caption, filter,
+                                            defaultPath, parentWidget, true);
+    if (resultList.size())
     {
         return resultList[0];
     }
     return QString();
 }
 
-
-QStringList GuiUtil::BrowseForFiles(QString context, QString caption, QString filter, QString defaultPath, QWidget *parentWidget)
+QStringList GuiUtil::BrowseForFiles(QString context, QString caption,
+                                    QString filter, QString defaultPath,
+                                    QWidget* parentWidget)
 {
-    return BrowseForFileInternal(context, caption, filter, defaultPath, parentWidget, false);
+    return BrowseForFileInternal(context, caption, filter, defaultPath,
+                                 parentWidget, false);
 }

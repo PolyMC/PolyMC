@@ -28,18 +28,27 @@
 
 class Version;
 
-class TexturePack : public Resource {
+class TexturePack : public Resource
+{
     Q_OBJECT
-   public:
+public:
     using Ptr = shared_qobject_ptr<Resource>;
 
-    TexturePack(QObject* parent = nullptr) : Resource(parent) {}
-    TexturePack(QFileInfo file_info) : Resource(file_info) {}
+    TexturePack(QObject* parent = nullptr) : Resource(parent)
+    {
+    }
+    TexturePack(QFileInfo file_info) : Resource(file_info)
+    {
+    }
 
     /** Gets the description of the texture pack. */
-    [[nodiscard]] QString description() const { return m_description; }
+    [[nodiscard]] QString description() const
+    {
+        return m_description;
+    }
 
-    /** Gets the image of the texture pack, converted to a QPixmap for drawing, and scaled to size. */
+    /** Gets the image of the texture pack, converted to a QPixmap for drawing,
+     * and scaled to size. */
     [[nodiscard]] QPixmap image(QSize size);
 
     /** Thread-safe. */
@@ -48,7 +57,7 @@ class TexturePack : public Resource {
     /** Thread-safe. */
     void setImage(QImage new_image);
 
-   protected:
+protected:
     mutable QMutex m_data_lock;
 
     /** The texture pack's description, as defined in the pack.txt file.

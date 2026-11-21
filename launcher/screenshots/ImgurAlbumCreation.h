@@ -57,15 +57,15 @@ public:
         return m_id;
     }
 
-protected
-slots:
+protected slots:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal) override;
     void downloadError(QNetworkReply::NetworkError error) override;
     void downloadFinished() override;
-    void downloadReadyRead() override {}
+    void downloadReadyRead() override
+    {
+    }
 
-public
-slots:
+public slots:
     void executeTask() override;
 
 private:

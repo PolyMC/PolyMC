@@ -27,9 +27,7 @@ void ErrorFrame::clear()
     setDescription(QString());
 }
 
-ErrorFrame::ErrorFrame(QWidget *parent) :
-    QFrame(parent),
-    ui(new Ui::ErrorFrame)
+ErrorFrame::ErrorFrame(QWidget* parent) : QFrame(parent), ui(new Ui::ErrorFrame)
 {
     ui->setupUi(this);
     ui->label_Description->setHidden(true);
@@ -44,7 +42,7 @@ ErrorFrame::~ErrorFrame()
 
 void ErrorFrame::updateHiddenState()
 {
-    if(ui->label_Description->isHidden() && ui->label_Title->isHidden())
+    if (ui->label_Description->isHidden() && ui->label_Title->isHidden())
     {
         setHidden(true);
     }
@@ -56,7 +54,7 @@ void ErrorFrame::updateHiddenState()
 
 void ErrorFrame::setTitle(QString text)
 {
-    if(text.isEmpty())
+    if (text.isEmpty())
     {
         ui->label_Title->setHidden(true);
     }
@@ -70,7 +68,7 @@ void ErrorFrame::setTitle(QString text)
 
 void ErrorFrame::setDescription(QString text)
 {
-    if(text.isEmpty())
+    if (text.isEmpty())
     {
         ui->label_Description->setHidden(true);
         updateHiddenState();
@@ -87,9 +85,10 @@ void ErrorFrame::setDescription(QString text)
     QChar rem('\n');
     QString finaltext;
     finaltext.reserve(intermediatetext.size());
-    foreach(const QChar& c, intermediatetext)
+    foreach (const QChar& c, intermediatetext)
     {
-        if(c == rem && prev){
+        if (c == rem && prev)
+        {
             continue;
         }
         prev = c == rem;
@@ -97,19 +96,22 @@ void ErrorFrame::setDescription(QString text)
     }
     QString labeltext;
     labeltext.reserve(300);
-    if(finaltext.length() > 290)
+    if (finaltext.length() > 290)
     {
         ui->label_Description->setOpenExternalLinks(false);
         ui->label_Description->setTextFormat(Qt::TextFormat::RichText);
         desc = text;
         // This allows injecting HTML here.
-        labeltext.append("<html><body>" + finaltext.left(287) + "<a href=\"#mod_desc\">...</a></body></html>");
-        QObject::connect(ui->label_Description, &QLabel::linkActivated, this, &ErrorFrame::ellipsisHandler, Qt::UniqueConnection);
+        labeltext.append("<html><body>" + finaltext.left(287) +
+                         "<a href=\"#mod_desc\">...</a></body></html>");
+        QObject::connect(ui->label_Description, &QLabel::linkActivated, this,
+                         &ErrorFrame::ellipsisHandler, Qt::UniqueConnection);
     }
     else
     {
         // Undo what a previous long description set up
-        QObject::disconnect(ui->label_Description, &QLabel::linkActivated, this, &ErrorFrame::ellipsisHandler);
+        QObject::disconnect(ui->label_Description, &QLabel::linkActivated, this,
+                            &ErrorFrame::ellipsisHandler);
         ui->label_Description->setOpenExternalLinks(true);
         ui->label_Description->setTextFormat(Qt::TextFormat::PlainText);
         labeltext.append(finaltext);
@@ -117,12 +119,13 @@ void ErrorFrame::setDescription(QString text)
     ui->label_Description->setText(labeltext);
 }
 
-void ErrorFrame::ellipsisHandler(const QString &link)
+void ErrorFrame::ellipsisHandler(const QString& link)
 {
-    if(!currentBox)
+    if (!currentBox)
     {
         currentBox = CustomMessageBox::selectable(this, QString(), desc);
-        connect(currentBox, &QMessageBox::finished, this, &ErrorFrame::boxClosed);
+        connect(currentBox, &QMessageBox::finished, this,
+                &ErrorFrame::boxClosed);
         currentBox->show();
     }
     else

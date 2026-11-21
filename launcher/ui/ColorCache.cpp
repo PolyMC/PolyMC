@@ -1,6 +1,5 @@
 #include "ColorCache.h"
 
-
 /**
  * Blend the color with the front color, adapting to the back color
  */
@@ -27,7 +26,7 @@ QColor ColorCache::blendBackground(QColor color)
 void ColorCache::recolorAll()
 {
     auto iter = m_colors.begin();
-    while(iter != m_colors.end())
+    while (iter != m_colors.end())
     {
         iter->front = blend(iter->original);
         iter->back = blendBackground(iter->original);

@@ -5,14 +5,17 @@
 #include <QString>
 #include <QVector>
 
-namespace Flame {
+namespace Flame
+{
 
-struct ModpackAuthor {
+struct ModpackAuthor
+{
     QString name;
     QString url;
 };
 
-struct IndexedVersion {
+struct IndexedVersion
+{
     int addonId;
     int fileId;
     QString version;
@@ -20,7 +23,8 @@ struct IndexedVersion {
     QString downloadUrl;
 };
 
-struct ModpackExtra {
+struct ModpackExtra
+{
     QString websiteUrl;
     QString wikiUrl;
     QString issuesUrl;
@@ -43,9 +47,9 @@ struct IndexedPack
     ModpackExtra extra;
 };
 
-void loadIndexedPack(IndexedPack & m, QJsonObject & obj);
+void loadIndexedPack(IndexedPack& m, QJsonObject& obj);
 void loadIndexedInfo(IndexedPack&, QJsonObject&);
-void loadIndexedPackVersions(IndexedPack & m, QJsonArray & arr);
-}
+void loadIndexedPackVersions(IndexedPack& m, QJsonArray& arr);
+}  // namespace Flame
 
 Q_DECLARE_METATYPE(Flame::IndexedPack)

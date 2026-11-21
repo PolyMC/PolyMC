@@ -13,27 +13,35 @@ class ModrinthCheckUpdate;
 class FlameCheckUpdate;
 class ConcurrentTask;
 
-class ModUpdateDialog final : public ReviewMessageBox {
+class ModUpdateDialog final : public ReviewMessageBox
+{
     Q_OBJECT
 public:
-    explicit ModUpdateDialog(QWidget* parent, ModAPI::ResourceType type, BaseInstance* instance,
+    explicit ModUpdateDialog(QWidget* parent, ModAPI::ResourceType type,
+                             BaseInstance* instance,
                              const std::shared_ptr<ModFolderModel> mod_model,
                              QList<Mod*>& search_for, bool update_mods = true);
-    ~ModUpdateDialog() override { qDeleteAll(m_tasks); }
+    ~ModUpdateDialog() override
+    {
+        qDeleteAll(m_tasks);
+    }
 
     void checkCandidates();
 
     void appendMod(const CheckUpdateTask::UpdatableMod& info);
 
     const QList<ModDownloadTask*> getTasks();
-    QDir indexDir() const {
+    QDir indexDir() const
+    {
         return m_mod_model->indexDir();
     }
 
-    bool noUpdates() const {
+    bool noUpdates() const
+    {
         return m_no_updates;
     };
-    bool aborted() const {
+    bool aborted() const
+    {
         return m_aborted;
     };
 
@@ -41,8 +49,9 @@ public:
 
 private slots:
     void onMetadataEnsured(Mod*);
-    void onMetadataFailed(Mod*, bool try_others = false,
-                          ModPlatform::Provider first_choice = ModPlatform::Provider::MODRINTH);
+    void onMetadataFailed(
+        Mod*, bool try_others = false,
+        ModPlatform::Provider first_choice = ModPlatform::Provider::MODRINTH);
 
 private:
     QWidget* m_parent;

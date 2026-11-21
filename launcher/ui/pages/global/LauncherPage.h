@@ -56,7 +56,7 @@ class LauncherPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit LauncherPage(QWidget *parent = 0);
+    explicit LauncherPage(QWidget* parent = 0);
     ~LauncherPage();
 
     QString displayName() const override
@@ -82,8 +82,7 @@ private:
     void applySettings();
     void loadSettings();
 
-private
-slots:
+private slots:
     void on_instDirBrowseBtn_clicked();
     void on_modsDirBrowseBtn_clicked();
     void on_iconsDirBrowseBtn_clicked();
@@ -107,7 +106,7 @@ slots:
     void updateChannelSelectionChanged(int index);
 
 private:
-    Ui::LauncherPage *ui;
+    Ui::LauncherPage* ui;
 
     /*!
      * Stores the currently selected update channel.
@@ -115,7 +114,7 @@ private:
     QString m_currentUpdateChannel;
 
     // default format for the font preview...
-    QTextCharFormat *defaultFormat;
+    QTextCharFormat* defaultFormat;
 
     std::unique_ptr<LogColorCache> m_colors;
 

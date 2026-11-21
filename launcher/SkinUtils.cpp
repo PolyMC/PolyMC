@@ -26,16 +26,19 @@
 namespace SkinUtils
 {
 /*
- * Given a username, return a pixmap of the cached skin (if it exists), QPixmap() otherwise
+ * Given a username, return a pixmap of the cached skin (if it exists),
+ * QPixmap() otherwise
  */
 QPixmap getFaceFromCache(QString username, int height, int width)
 {
-    QFile fskin(APPLICATION->metacache()->resolveEntry("skins", username + ".png")->getFullPath());
+    QFile fskin(APPLICATION->metacache()
+                    ->resolveEntry("skins", username + ".png")
+                    ->getFullPath());
 
     if (fskin.exists())
     {
         QPixmap skinTexture(fskin.fileName());
-        if(!skinTexture.isNull())
+        if (!skinTexture.isNull())
         {
             QPixmap skin = QPixmap(8, 8);
             QPainter painter(&skin);
@@ -47,4 +50,4 @@ QPixmap getFaceFromCache(QString username, int height, int width)
 
     return QPixmap();
 }
-}
+}  // namespace SkinUtils

@@ -26,19 +26,18 @@
 class FetchFlameAPIKey : public Task
 {
     Q_OBJECT
-   public:
-    explicit FetchFlameAPIKey(QObject *parent = nullptr);
+public:
+    explicit FetchFlameAPIKey(QObject* parent = nullptr);
 
     QString m_result;
 
-   public slots:
+public slots:
     void downloadFinished();
 
-   protected:
+protected:
     virtual void executeTask();
-
 
     std::shared_ptr<QNetworkReply> m_reply;
 };
 
-#endif // FETCHFLAMEAPIKEY_H
+#endif  // FETCHFLAMEAPIKEY_H

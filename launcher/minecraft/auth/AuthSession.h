@@ -49,7 +49,7 @@ struct AuthSession
     // Did the user request online mode?
     bool wants_online = true;
 
-    //Is this a demo session?
+    // Is this a demo session?
     bool demo = false;
 };
 

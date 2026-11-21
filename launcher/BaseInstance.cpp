@@ -49,7 +49,8 @@
 #include "Commandline.h"
 #include "BuildConfig.h"
 
-BaseInstance::BaseInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString &rootDir)
+BaseInstance::BaseInstance(SettingsObjectPtr globalSettings,
+                           SettingsObjectPtr settings, const QString& rootDir)
     : QObject()
 {
     m_settings = settings;
@@ -65,30 +66,45 @@ BaseInstance::BaseInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr s
     m_settings->registerSetting("lastTimePlayed", 0);
 
     // Game time override
-    auto gameTimeOverride = m_settings->registerSetting("OverrideGameTime", false);
-    m_settings->registerOverride(globalSettings->getSetting("ShowGameTime"), gameTimeOverride);
-    m_settings->registerOverride(globalSettings->getSetting("RecordGameTime"), gameTimeOverride);
+    auto gameTimeOverride =
+        m_settings->registerSetting("OverrideGameTime", false);
+    m_settings->registerOverride(globalSettings->getSetting("ShowGameTime"),
+                                 gameTimeOverride);
+    m_settings->registerOverride(globalSettings->getSetting("RecordGameTime"),
+                                 gameTimeOverride);
 
-    // NOTE: Sometimees InstanceType is already registered, as it was used to identify the type of
-    // a locally stored instance
+    // NOTE: Sometimees InstanceType is already registered, as it was used to
+    // identify the type of a locally stored instance
     if (!m_settings->getSetting("InstanceType"))
+    {
         m_settings->registerSetting("InstanceType", "");
+    }
 
     // Custom Commands
-    auto commandSetting = m_settings->registerSetting({"OverrideCommands","OverrideLaunchCmd"}, false);
-    m_settings->registerOverride(globalSettings->getSetting("PreLaunchCommand"), commandSetting);
-    m_settings->registerOverride(globalSettings->getSetting("WrapperCommand"), commandSetting);
-    m_settings->registerOverride(globalSettings->getSetting("PostExitCommand"), commandSetting);
+    auto commandSetting = m_settings->registerSetting(
+        {"OverrideCommands", "OverrideLaunchCmd"}, false);
+    m_settings->registerOverride(globalSettings->getSetting("PreLaunchCommand"),
+                                 commandSetting);
+    m_settings->registerOverride(globalSettings->getSetting("WrapperCommand"),
+                                 commandSetting);
+    m_settings->registerOverride(globalSettings->getSetting("PostExitCommand"),
+                                 commandSetting);
 
     // Console
     auto consoleSetting = m_settings->registerSetting("OverrideConsole", false);
-    m_settings->registerOverride(globalSettings->getSetting("ShowConsole"), consoleSetting);
-    m_settings->registerOverride(globalSettings->getSetting("AutoCloseConsole"), consoleSetting);
-    m_settings->registerOverride(globalSettings->getSetting("ShowConsoleOnError"), consoleSetting);
-    m_settings->registerOverride(globalSettings->getSetting("LogPrePostOutput"), consoleSetting);
+    m_settings->registerOverride(globalSettings->getSetting("ShowConsole"),
+                                 consoleSetting);
+    m_settings->registerOverride(globalSettings->getSetting("AutoCloseConsole"),
+                                 consoleSetting);
+    m_settings->registerOverride(
+        globalSettings->getSetting("ShowConsoleOnError"), consoleSetting);
+    m_settings->registerOverride(globalSettings->getSetting("LogPrePostOutput"),
+                                 consoleSetting);
 
-    m_settings->registerPassthrough(globalSettings->getSetting("ConsoleMaxLines"), nullptr);
-    m_settings->registerPassthrough(globalSettings->getSetting("ConsoleOverflowStop"), nullptr);
+    m_settings->registerPassthrough(
+        globalSettings->getSetting("ConsoleMaxLines"), nullptr);
+    m_settings->registerPassthrough(
+        globalSettings->getSetting("ConsoleOverflowStop"), nullptr);
 
     // Managed Packs
     m_settings->registerSetting("ManagedPack", false);
@@ -144,7 +160,9 @@ QString BaseInstance::getManagedPackVersionName() const
     return m_settings->get("ManagedPackVersionName").toString();
 }
 
-void BaseInstance::setManagedPack(const QString& type, const QString& id, const QString& name, const QString& versionId, const QString& version)
+void BaseInstance::setManagedPack(const QString& type, const QString& id,
+                                  const QString& name, const QString& versionId,
+                                  const QString& version)
 {
     m_settings->set("ManagedPack", true);
     m_settings->set("ManagedPackType", type);
@@ -161,7 +179,8 @@ void BaseInstance::copyManagedPack(BaseInstance& other)
     m_settings->set("ManagedPackID", other.getManagedPackID());
     m_settings->set("ManagedPackName", other.getManagedPackName());
     m_settings->set("ManagedPackVersionID", other.getManagedPackVersionID());
-    m_settings->set("ManagedPackVersionName", other.getManagedPackVersionName());
+    m_settings->set("ManagedPackVersionName",
+                    other.getManagedPackVersionName());
 }
 
 int BaseInstance::getConsoleMaxLines() const
@@ -169,10 +188,11 @@ int BaseInstance::getConsoleMaxLines() const
     auto lineSetting = m_settings->getSetting("ConsoleMaxLines");
     bool conversionOk = false;
     int maxLines = lineSetting->get().toInt(&conversionOk);
-    if(!conversionOk || maxLines < 1)
+    if (!conversionOk || maxLines < 1)
     {
         maxLines = lineSetting->defValue().toInt();
-        qWarning() << "ConsoleMaxLines has nonsensical value, defaulting to" << maxLines;
+        qWarning() << "ConsoleMaxLines has nonsensical value, defaulting to"
+                   << maxLines;
     }
     return maxLines;
 }
@@ -184,7 +204,7 @@ bool BaseInstance::shouldStopOnConsoleOverflow() const
 
 void BaseInstance::iconUpdated(QString key)
 {
-    if(iconKey() == key)
+    if (iconKey() == key)
     {
         emit propertiesChanged(this);
     }
@@ -199,7 +219,7 @@ void BaseInstance::invalidate()
 void BaseInstance::changeStatus(BaseInstance::Status newStatus)
 {
     Status status = currentStatus();
-    if(status != newStatus)
+    if (status != newStatus)
     {
         m_status = newStatus;
         emit statusChanged(status, newStatus);
@@ -223,20 +243,24 @@ bool BaseInstance::isRunning() const
 
 void BaseInstance::setRunning(bool running)
 {
-    if(running == m_isRunning)
+    if (running == m_isRunning)
+    {
         return;
+    }
 
     m_isRunning = running;
 
-    if(!m_settings->get("RecordGameTime").toBool())
+    if (!m_settings->get("RecordGameTime").toBool())
     {
-        if(running)
+        if (running)
+        {
             m_timeStarted = QDateTime();
+        }
         emit runningStatusChanged(running);
         return;
     }
 
-    if(running)
+    if (running)
     {
         m_timeStarted = QDateTime::currentDateTime();
     }
@@ -245,7 +269,8 @@ void BaseInstance::setRunning(bool running)
         QDateTime timeEnded = QDateTime::currentDateTime();
 
         qint64 current = settings()->get("totalTimePlayed").toLongLong();
-        settings()->set("totalTimePlayed", current + m_timeStarted.secsTo(timeEnded));
+        settings()->set("totalTimePlayed",
+                        current + m_timeStarted.secsTo(timeEnded));
         settings()->set("lastTimePlayed", m_timeStarted.secsTo(timeEnded));
 
         emit propertiesChanged(this);
@@ -256,8 +281,10 @@ void BaseInstance::setRunning(bool running)
 
 void BaseInstance::setSuspendState(bool can_suspend, bool suspended)
 {
-    if(can_suspend == m_canSuspend && suspended == m_isSuspended)
+    if (can_suspend == m_canSuspend && suspended == m_isSuspended)
+    {
         return;
+    }
 
     m_canSuspend = can_suspend;
     m_isSuspended = suspended;
@@ -277,7 +304,7 @@ bool BaseInstance::isSuspended() const
 int64_t BaseInstance::totalTimePlayed() const
 {
     qint64 current = m_settings->get("totalTimePlayed").toLongLong();
-    if(m_isRunning)
+    if (m_isRunning)
     {
         QDateTime timeNow = QDateTime::currentDateTime();
         return current + m_timeStarted.secsTo(timeNow);
@@ -287,7 +314,7 @@ int64_t BaseInstance::totalTimePlayed() const
 
 int64_t BaseInstance::lastTimePlayed() const
 {
-    if(m_isRunning)
+    if (m_isRunning)
     {
         QDateTime timeNow = QDateTime::currentDateTime();
         return m_timeStarted.secsTo(timeNow);
@@ -335,14 +362,14 @@ qint64 BaseInstance::lastLaunch() const
 
 void BaseInstance::setLastLaunch(qint64 val)
 {
-    //FIXME: if no change, do not set. setting involves saving a file.
+    // FIXME: if no change, do not set. setting involves saving a file.
     m_settings->set("lastLaunchTime", val);
     emit propertiesChanged(this);
 }
 
 void BaseInstance::setNotes(QString val)
 {
-    //FIXME: if no change, do not set. setting involves saving a file.
+    // FIXME: if no change, do not set. setting involves saving a file.
     m_settings->set("notes", val);
 }
 
@@ -353,7 +380,7 @@ QString BaseInstance::notes() const
 
 void BaseInstance::setIconKey(QString val)
 {
-    //FIXME: if no change, do not set. setting involves saving a file.
+    // FIXME: if no change, do not set. setting involves saving a file.
     m_settings->set("iconKey", val);
     emit propertiesChanged(this);
 }
@@ -365,7 +392,7 @@ QString BaseInstance::iconKey() const
 
 void BaseInstance::setName(QString val)
 {
-    //FIXME: if no change, do not set. setting involves saving a file.
+    // FIXME: if no change, do not set. setting involves saving a file.
     m_settings->set("name", val);
     emit propertiesChanged(this);
 }
@@ -377,7 +404,8 @@ QString BaseInstance::name() const
 
 QString BaseInstance::windowTitle() const
 {
-    return BuildConfig.LAUNCHER_NAME + ": " + name().replace(QRegularExpression("\\s+"), " ");
+    return BuildConfig.LAUNCHER_NAME + ": " +
+           name().replace(QRegularExpression("\\s+"), " ");
 }
 
 // FIXME: why is this here? move it to MinecraftInstance!!!

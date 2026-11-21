@@ -24,12 +24,15 @@
 
 #include "tasks/Task.h"
 
-ProgressDialog::ProgressDialog(QWidget* parent) : QDialog(parent), ui(new Ui::ProgressDialog)
+ProgressDialog::ProgressDialog(QWidget* parent)
+    : QDialog(parent), ui(new Ui::ProgressDialog)
 {
     ui->setupUi(this);
-    this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    this->setWindowFlags(this->windowFlags() &
+                         ~Qt::WindowContextHelpButtonHint);
     ui->detailsLabel->setHidden(true);
-    ui->detailsLabel->setMinimumHeight(ui->detailsLabel->fontMetrics().height());
+    ui->detailsLabel->setMinimumHeight(
+        ui->detailsLabel->fontMetrics().height());
     setSkipButton(false);
     changeProgress(0, 100);
 }
@@ -67,13 +70,15 @@ int ProgressDialog::execWithTask(Task* newTask)
 {
     this->task = newTask;
 
-    if (!task) {
+    if (!task)
+    {
         qDebug() << "Programmer error: Progress dialog created with null task.";
         return QDialog::DialogCode::Accepted;
     }
 
     QDialog::DialogCode result;
-    if (handleImmediateResult(result)) {
+    if (handleImmediateResult(result))
+    {
         return result;
     }
 
@@ -86,19 +91,29 @@ int ProgressDialog::execWithTask(Task* newTask)
     connect(task, &Task::progress, this, &ProgressDialog::changeProgress);
     connect(task, &Task::details, this, &ProgressDialog::changeDetails);
 
-    connect(task, &Task::aborted, [this] { QDialog::reject(); });
-    connect(task, &Task::abortStatusChanged, ui->skipButton, &QPushButton::setEnabled);
+    connect(task, &Task::aborted,
+            [this]
+            {
+                QDialog::reject();
+            });
+    connect(task, &Task::abortStatusChanged, ui->skipButton,
+            &QPushButton::setEnabled);
 
     m_is_multi_step = task->isMultiStep();
-    if (!m_is_multi_step) {
+    if (!m_is_multi_step)
+    {
         ui->globalStatusLabel->setHidden(true);
         ui->globalProgressBar->setHidden(true);
     }
 
-    // It's a good idea to start the task after we entered the dialog's event loop :^)
-    if (!task->isRunning()) {
+    // It's a good idea to start the task after we entered the dialog's event
+    // loop :^)
+    if (!task->isRunning())
+    {
         QMetaObject::invokeMethod(task, &Task::start, Qt::QueuedConnection);
-    } else {
+    }
+    else
+    {
         changeStatus(task->getStatus());
         changeProgress(task->getProgress(), task->getTotalProgress());
     }
@@ -109,21 +124,27 @@ int ProgressDialog::execWithTask(Task* newTask)
 // TODO: only provide the unique_ptr overloads
 int ProgressDialog::execWithTask(std::unique_ptr<Task>&& newTask)
 {
-    connect(this, &ProgressDialog::destroyed, newTask.get(), &Task::deleteLater);
+    connect(this, &ProgressDialog::destroyed, newTask.get(),
+            &Task::deleteLater);
     return execWithTask(newTask.release());
 }
 int ProgressDialog::execWithTask(std::unique_ptr<Task>& newTask)
 {
-    connect(this, &ProgressDialog::destroyed, newTask.get(), &Task::deleteLater);
+    connect(this, &ProgressDialog::destroyed, newTask.get(),
+            &Task::deleteLater);
     return execWithTask(newTask.release());
 }
 
 bool ProgressDialog::handleImmediateResult(QDialog::DialogCode& result)
 {
-    if (task->isFinished()) {
-        if (task->wasSuccessful()) {
+    if (task->isFinished())
+    {
+        if (task->wasSuccessful())
+        {
             result = QDialog::Accepted;
-        } else {
+        }
+        else
+        {
             result = QDialog::Rejected;
         }
         return true;
@@ -136,7 +157,9 @@ Task* ProgressDialog::getTask()
     return task;
 }
 
-void ProgressDialog::onTaskStarted() {}
+void ProgressDialog::onTaskStarted()
+{
+}
 
 void ProgressDialog::onTaskFailed(QString /*failure*/)
 {
@@ -158,18 +181,22 @@ void ProgressDialog::changeStatus(const QString& /*status*/)
 
 void ProgressDialog::changeDetails(const QString& details)
 {
-    if (!details.isEmpty() && ui->detailsLabel->isHidden()) {
+    if (!details.isEmpty() && ui->detailsLabel->isHidden())
+    {
         ui->detailsLabel->setHidden(false);
         updateSize();
     }
 
-    ui->detailsLabel->setText(ui->detailsLabel->fontMetrics().elidedText(details, Qt::ElideRight, ui->taskProgressBar->width()));
+    ui->detailsLabel->setText(ui->detailsLabel->fontMetrics().elidedText(
+        details, Qt::ElideRight, ui->taskProgressBar->width()));
 }
 
-// Progress bars only take ints, so scale byte counts of large downloads down instead of letting them overflow
+// Progress bars only take ints, so scale byte counts of large downloads down
+// instead of letting them overflow
 static void setBarProgress(QProgressBar* bar, qint64 current, qint64 total)
 {
-    while (total > std::numeric_limits<int>::max()) {
+    while (total > std::numeric_limits<int>::max())
+    {
         total /= 2;
         current /= 2;
     }
@@ -181,20 +208,28 @@ void ProgressDialog::changeProgress(qint64 current, qint64 total)
 {
     setBarProgress(ui->globalProgressBar, current, total);
 
-    if (!m_is_multi_step) {
+    if (!m_is_multi_step)
+    {
         setBarProgress(ui->taskProgressBar, current, total);
-    } else {
-        setBarProgress(ui->taskProgressBar, task->getStepProgress(), task->getStepTotalProgress());
+    }
+    else
+    {
+        setBarProgress(ui->taskProgressBar, task->getStepProgress(),
+                       task->getStepTotalProgress());
     }
 }
 
 void ProgressDialog::keyPressEvent(QKeyEvent* e)
 {
-    if (ui->skipButton->isVisible()) {
-        if (e->key() == Qt::Key_Escape) {
+    if (ui->skipButton->isVisible())
+    {
+        if (e->key() == Qt::Key_Escape)
+        {
             on_skipButton_clicked(true);
             return;
-        } else if (e->key() == Qt::Key_Tab) {
+        }
+        else if (e->key() == Qt::Key_Tab)
+        {
             ui->skipButton->setFocusPolicy(Qt::StrongFocus);
             ui->skipButton->setFocus();
             ui->skipButton->setAutoDefault(true);
@@ -207,7 +242,8 @@ void ProgressDialog::keyPressEvent(QKeyEvent* e)
 
 void ProgressDialog::reject()
 {
-    if (task && task->isRunning()) {
+    if (task && task->isRunning())
+    {
         return;
     }
     QDialog::reject();
@@ -215,9 +251,12 @@ void ProgressDialog::reject()
 
 void ProgressDialog::closeEvent(QCloseEvent* e)
 {
-    if (task && task->isRunning()) {
+    if (task && task->isRunning())
+    {
         e->ignore();
-    } else {
+    }
+    else
+    {
         QDialog::closeEvent(e);
     }
 }

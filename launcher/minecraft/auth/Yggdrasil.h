@@ -28,16 +28,14 @@ class QNetworkAccessManager;
 class QNetworkReply;
 
 /**
- * A Yggdrasil task is a task that performs an operation on a given mojang account.
+ * A Yggdrasil task is a task that performs an operation on a given mojang
+ * account.
  */
 class Yggdrasil : public AccountTask
 {
     Q_OBJECT
 public:
-    explicit Yggdrasil(
-        AccountData *data,
-        QObject *parent = 0
-    );
+    explicit Yggdrasil(AccountData* data, QObject* parent = 0);
     virtual ~Yggdrasil() = default;
 
     void refresh();
@@ -64,16 +62,17 @@ protected:
     /**
      * Processes the response received from the server.
      * If an error occurred, this should emit a failed signal.
-     * If Yggdrasil gave an error response, it should call setError() first, and then return false.
-     * Otherwise, it should return true.
-     * Note: If the response from the server was blank, and the HTTP code was 200, this function is called with
-     * an empty QJsonObject.
+     * If Yggdrasil gave an error response, it should call setError() first, and
+     * then return false. Otherwise, it should return true. Note: If the
+     * response from the server was blank, and the HTTP code was 200, this
+     * function is called with an empty QJsonObject.
      */
     void processResponse(QJsonObject responseData);
 
     /**
      * Processes an error response received from the server.
-     * The default implementation will read data from Yggdrasil's standard error response format and set it as this task's Error.
+     * The default implementation will read data from Yggdrasil's standard error
+     * response format and set it as this task's Error.
      * \returns a QString error message that will be passed to emitFailed.
      */
     virtual void processError(QJsonObject responseData);
@@ -93,10 +92,10 @@ private:
     QString getBaseUrl();
 
 protected:
-    QNetworkReply *m_netReply = nullptr;
+    QNetworkReply* m_netReply = nullptr;
     QTimer timeout_keeper;
     QTimer counter;
-    int count = 0; // num msec since time reset
+    int count = 0;  // num msec since time reset
 
     const int timeout_max = 30000;
     const int time_step = 50;

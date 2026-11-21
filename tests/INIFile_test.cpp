@@ -5,15 +5,12 @@
 class IniFileTest : public QObject
 {
     Q_OBJECT
-private
-slots:
+private slots:
     void initTestCase()
     {
-
     }
     void cleanupTestCase()
     {
-
     }
 
     void test_Escape_data()
@@ -21,9 +18,11 @@ slots:
         QTest::addColumn<QString>("through");
 
         QTest::newRow("unix path") << "/abc/def/ghi/jkl";
-        QTest::newRow("windows path") << "C:\\Program files\\terrible\\name\\of something\\";
+        QTest::newRow("windows path")
+            << "C:\\Program files\\terrible\\name\\of something\\";
         QTest::newRow("Plain text") << "Lorem ipsum dolor sit amet.";
-        QTest::newRow("Escape sequences") << "Lorem\n\t\n\\n\\tAAZ\nipsum dolor\n\nsit amet.";
+        QTest::newRow("Escape sequences")
+            << "Lorem\n\t\n\\n\\tAAZ\nipsum dolor\n\nsit amet.";
         QTest::newRow("Escape sequences 2") << "\"\n\n\"";
         QTest::newRow("Hashtags") << "some data#something";
     }
@@ -40,7 +39,9 @@ slots:
     void test_SaveLoad()
     {
         QString a = "a";
-        QString b = "a\nb\t\n\\\\\\C:\\Program files\\terrible\\name\\of something\\#thisIsNotAComment";
+        QString b =
+            "a\nb\t\n\\\\\\C:\\Program files\\terrible\\name\\of "
+            "something\\#thisIsNotAComment";
         QString filename = "test_SaveLoad.ini";
 
         // save
@@ -52,8 +53,8 @@ slots:
         // load
         INIFile f2;
         f2.loadFile(filename);
-        QCOMPARE(a, f2.get("a","NOT SET").toString());
-        QCOMPARE(b, f2.get("b","NOT SET").toString());
+        QCOMPARE(a, f2.get("a", "NOT SET").toString());
+        QCOMPARE(b, f2.get("b", "NOT SET").toString());
     }
 };
 

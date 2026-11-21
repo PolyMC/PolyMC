@@ -3,7 +3,7 @@
 #include <GZip.h>
 #include <random>
 
-void fib(int &prev, int &cur)
+void fib(int& prev, int& cur)
 {
     auto ret = prev + cur;
     prev = cur;
@@ -13,8 +13,7 @@ void fib(int &prev, int &cur)
 class GZipTest : public QObject
 {
     Q_OBJECT
-private
-slots:
+private slots:
 
     void test_Through()
     {
@@ -27,7 +26,7 @@ slots:
         std::uniform_int_distribution<uint32_t> idis(0);
 
         // initialize random buffer
-        for(int i = 0; i < size; i++)
+        for (int i = 0; i < size; i++)
         {
             random.append(char(idis(eng)));
         }

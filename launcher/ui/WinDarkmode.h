@@ -3,12 +3,13 @@
 #include <windows.h>
 #include <dwmapi.h>
 
-
-namespace WinDarkmode {
+namespace WinDarkmode
+{
 
 void setWindowDarkModeEnabled(HWND hWnd, bool Enabled);
 
-enum PreferredAppMode {
+enum PreferredAppMode
+{
     AppMode_Default,
     AppMode_AllowDark,
     AppMode_ForceDark,
@@ -16,7 +17,8 @@ enum PreferredAppMode {
     AppMode_Max
 };
 
-enum WINDOWCOMPOSITIONATTRIB {
+enum WINDOWCOMPOSITIONATTRIB
+{
     WCA_UNDEFINED = 0,
     WCA_NCRENDERING_ENABLED = 1,
     WCA_NCRENDERING_POLICY = 2,
@@ -47,14 +49,17 @@ enum WINDOWCOMPOSITIONATTRIB {
     WCA_LAST = 27
 };
 
-struct WINDOWCOMPOSITIONATTRIBDATA {
+struct WINDOWCOMPOSITIONATTRIBDATA
+{
     WINDOWCOMPOSITIONATTRIB Attrib;
     PVOID pvData;
     SIZE_T cbData;
 };
 
-using fnAllowDarkModeForWindow =  BOOL (WINAPI *)(HWND hWnd, BOOL allow);
-using fnSetPreferredAppMode = PreferredAppMode (WINAPI *)(PreferredAppMode appMode);
-using fnSetWindowCompositionAttribute =  BOOL (WINAPI *)(HWND hwnd, WINDOWCOMPOSITIONATTRIBDATA *);
+using fnAllowDarkModeForWindow = BOOL(WINAPI*)(HWND hWnd, BOOL allow);
+using fnSetPreferredAppMode =
+    PreferredAppMode(WINAPI*)(PreferredAppMode appMode);
+using fnSetWindowCompositionAttribute =
+    BOOL(WINAPI*)(HWND hwnd, WINDOWCOMPOSITIONATTRIBDATA*);
 
-}
+}  // namespace WinDarkmode

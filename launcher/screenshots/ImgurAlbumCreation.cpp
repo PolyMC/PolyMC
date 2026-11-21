@@ -46,7 +46,8 @@
 #include "BuildConfig.h"
 #include "Application.h"
 
-ImgurAlbumCreation::ImgurAlbumCreation(QList<ScreenShot::Ptr> screenshots) : NetAction(), m_screenshots(screenshots)
+ImgurAlbumCreation::ImgurAlbumCreation(QList<ScreenShot::Ptr> screenshots)
+    : NetAction(), m_screenshots(screenshots)
 {
     m_url = BuildConfig.IMGUR_BASE_URL + "album.json";
     m_state = State::Inactive;
@@ -56,29 +57,39 @@ void ImgurAlbumCreation::executeTask()
 {
     m_state = State::Running;
     QNetworkRequest request(m_url);
-    request.setHeader(QNetworkRequest::UserAgentHeader, APPLICATION->getUserAgentUncached().toUtf8());
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    request.setRawHeader("Authorization", QString("Client-ID %1").arg(BuildConfig.IMGUR_CLIENT_ID).toStdString().c_str());
+    request.setHeader(QNetworkRequest::UserAgentHeader,
+                      APPLICATION->getUserAgentUncached().toUtf8());
+    request.setHeader(QNetworkRequest::ContentTypeHeader,
+                      "application/x-www-form-urlencoded");
+    request.setRawHeader("Authorization", QString("Client-ID %1")
+                                              .arg(BuildConfig.IMGUR_CLIENT_ID)
+                                              .toStdString()
+                                              .c_str());
     request.setRawHeader("Accept", "application/json");
 
     QStringList hashes;
-    for (const auto &shot : std::as_const(m_screenshots))
+    for (const auto& shot : std::as_const(m_screenshots))
     {
         hashes.append(shot->m_imgurDeleteHash);
     }
 
-    const QByteArray data = "deletehashes=" + hashes.join(',').toUtf8() + "&title=Minecraft%20Screenshots&privacy=hidden";
+    const QByteArray data = "deletehashes=" + hashes.join(',').toUtf8() +
+                            "&title=Minecraft%20Screenshots&privacy=hidden";
 
-    QNetworkReply *rep = APPLICATION->network()->post(request, data);
+    QNetworkReply* rep = APPLICATION->network()->post(request, data);
 
     m_reply.reset(rep);
-    connect(rep, &QNetworkReply::uploadProgress, this, &ImgurAlbumCreation::downloadProgress);
-    connect(rep, &QNetworkReply::finished, this, &ImgurAlbumCreation::downloadFinished);
-    connect(rep, &QNetworkReply::errorOccurred, this, &ImgurAlbumCreation::downloadError);
+    connect(rep, &QNetworkReply::uploadProgress, this,
+            &ImgurAlbumCreation::downloadProgress);
+    connect(rep, &QNetworkReply::finished, this,
+            &ImgurAlbumCreation::downloadFinished);
+    connect(rep, &QNetworkReply::errorOccurred, this,
+            &ImgurAlbumCreation::downloadError);
 }
 void ImgurAlbumCreation::downloadError(QNetworkReply::NetworkError /*error*/)
 {
-    // The failure is handled in downloadFinished(), setting the state here would make emitFailed() do nothing
+    // The failure is handled in downloadFinished(), setting the state here
+    // would make emitFailed() do nothing
     qDebug() << m_reply->errorString();
 }
 void ImgurAlbumCreation::downloadFinished()
@@ -102,7 +113,8 @@ void ImgurAlbumCreation::downloadFinished()
             emitFailed();
             return;
         }
-        m_deleteHash = object.value("data").toObject().value("deletehash").toString();
+        m_deleteHash =
+            object.value("data").toObject().value("deletehash").toString();
         m_id = object.value("data").toObject().value("id").toString();
         m_state = State::Succeeded;
         emit succeeded();
@@ -116,7 +128,8 @@ void ImgurAlbumCreation::downloadFinished()
         return;
     }
 }
-void ImgurAlbumCreation::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
+void ImgurAlbumCreation::downloadProgress(qint64 bytesReceived,
+                                          qint64 bytesTotal)
 {
     setProgress(bytesReceived, bytesTotal);
     emit progress(bytesReceived, bytesTotal);

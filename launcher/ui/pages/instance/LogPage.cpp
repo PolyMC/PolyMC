@@ -58,25 +58,31 @@ public:
     LogFormatProxyModel(QObject* parent = nullptr) : QIdentityProxyModel(parent)
     {
     }
-    QVariant data(const QModelIndex &index, int role) const override
+    QVariant data(const QModelIndex& index, int role) const override
     {
-        switch(role)
+        switch (role)
         {
             case Qt::FontRole:
                 return m_font;
             case Qt::ForegroundRole:
             {
-                MessageLevel::Enum level = (MessageLevel::Enum) QIdentityProxyModel::data(index, LogModel::LevelRole).toInt();
+                MessageLevel::Enum level =
+                    (MessageLevel::Enum)QIdentityProxyModel::data(
+                        index, LogModel::LevelRole)
+                        .toInt();
                 return m_colors->getFront(level);
             }
             case Qt::BackgroundRole:
             {
-                MessageLevel::Enum level = (MessageLevel::Enum) QIdentityProxyModel::data(index, LogModel::LevelRole).toInt();
+                MessageLevel::Enum level =
+                    (MessageLevel::Enum)QIdentityProxyModel::data(
+                        index, LogModel::LevelRole)
+                        .toInt();
                 return m_colors->getBack(level);
             }
             default:
                 return QIdentityProxyModel::data(index, role);
-            }
+        }
     }
 
     void setFont(QFont font)
@@ -89,7 +95,8 @@ public:
         m_colors.reset(colors);
     }
 
-    QModelIndex find(const QModelIndex &start, const QString &value, bool reverse) const
+    QModelIndex find(const QModelIndex& start, const QString& value,
+                     bool reverse) const
     {
         QModelIndex parentIndex = parent(start);
         auto compare = [&](int r) -> QModelIndex
@@ -102,10 +109,12 @@ public:
             QVariant v = data(idx, Qt::DisplayRole);
             QString t = v.toString();
             if (t.contains(value, Qt::CaseInsensitive))
+            {
                 return idx;
+            }
             return QModelIndex();
         };
-        if(reverse)
+        if (reverse)
         {
             int from = start.row();
             int to = 0;
@@ -115,8 +124,10 @@ public:
                 for (int r = from; (r >= to); --r)
                 {
                     auto idx = compare(r);
-                    if(idx.isValid())
+                    if (idx.isValid())
+                    {
                         return idx;
+                    }
                 }
                 // prepare for the next iteration
                 from = rowCount() - 1;
@@ -133,8 +144,10 @@ public:
                 for (int r = from; (r < to); ++r)
                 {
                     auto idx = compare(r);
-                    if(idx.isValid())
+                    if (idx.isValid())
+                    {
                         return idx;
+                    }
                 }
                 // prepare for the next iteration
                 from = 0;
@@ -143,31 +156,38 @@ public:
         }
         return QModelIndex();
     }
+
 private:
     QFont m_font;
     std::unique_ptr<LogColorCache> m_colors;
 };
 
-LogPage::LogPage(InstancePtr instance, QWidget *parent)
+LogPage::LogPage(InstancePtr instance, QWidget* parent)
     : QWidget(parent), ui(new Ui::LogPage), m_instance(instance)
 {
     ui->setupUi(this);
     ui->tabWidget->tabBar()->hide();
 
     m_proxy = new LogFormatProxyModel(this);
-    // set up text colors in the log proxy and adapt them to the current theme foreground and background
+    // set up text colors in the log proxy and adapt them to the current theme
+    // foreground and background
     {
-        auto origForeground = ui->text->palette().color(ui->text->foregroundRole());
-        auto origBackground = ui->text->palette().color(ui->text->backgroundRole());
+        auto origForeground =
+            ui->text->palette().color(ui->text->foregroundRole());
+        auto origBackground =
+            ui->text->palette().color(ui->text->backgroundRole());
         m_proxy->setColors(new LogColorCache(origForeground, origBackground));
     }
 
     // set up fonts in the log proxy
     {
-        QString fontFamily = APPLICATION->settings()->get("ConsoleFont").toString();
+        QString fontFamily =
+            APPLICATION->settings()->get("ConsoleFont").toString();
         bool conversionOk = false;
-        int fontSize = APPLICATION->settings()->get("ConsoleFontSize").toInt(&conversionOk);
-        if(!conversionOk)
+        int fontSize = APPLICATION->settings()
+                           ->get("ConsoleFontSize")
+                           .toInt(&conversionOk);
+        if (!conversionOk)
         {
             fontSize = 11;
         }
@@ -179,24 +199,28 @@ LogPage::LogPage(InstancePtr instance, QWidget *parent)
     // set up instance and launch process recognition
     {
         auto launchTask = m_instance->getLaunchTask();
-        if(launchTask)
+        if (launchTask)
         {
             setInstanceLaunchTaskChanged(launchTask, true);
         }
-        connect(m_instance.get(), &BaseInstance::launchTaskChanged, this, &LogPage::onInstanceLaunchTaskChanged);
+        connect(m_instance.get(), &BaseInstance::launchTaskChanged, this,
+                &LogPage::onInstanceLaunchTaskChanged);
     }
 
-    auto newShortcut = [this](QKeySequence::StandardKey key) {
+    auto newShortcut = [this](QKeySequence::StandardKey key)
+    {
         return new QShortcut(QKeySequence(key), this);
     };
 
-    connect(newShortcut(QKeySequence::Find), &QShortcut::activated, this, &LogPage::findActivated);
+    connect(newShortcut(QKeySequence::Find), &QShortcut::activated, this,
+            &LogPage::findActivated);
     connect(newShortcut(QKeySequence::FindNext), &QShortcut::activated, this,
             &LogPage::findNextActivated);
-    connect(newShortcut(QKeySequence::FindPrevious), &QShortcut::activated, this,
-            &LogPage::findPreviousActivated);
+    connect(newShortcut(QKeySequence::FindPrevious), &QShortcut::activated,
+            this, &LogPage::findPreviousActivated);
 
-    connect(ui->searchBar, &QLineEdit::returnPressed, this, &LogPage::on_findButton_clicked);
+    connect(ui->searchBar, &QLineEdit::returnPressed, this,
+            &LogPage::on_findButton_clicked);
 }
 
 LogPage::~LogPage()
@@ -206,7 +230,7 @@ LogPage::~LogPage()
 
 void LogPage::modelStateToUI()
 {
-    if(m_model->wrapLines())
+    if (m_model->wrapLines())
     {
         ui->text->setWordWrap(true);
         ui->wrapCheckbox->setCheckState(Qt::Checked);
@@ -216,7 +240,7 @@ void LogPage::modelStateToUI()
         ui->text->setWordWrap(false);
         ui->wrapCheckbox->setCheckState(Qt::Unchecked);
     }
-    if(m_model->suspended())
+    if (m_model->suspended())
     {
         ui->trackLogCheckbox->setCheckState(Qt::Unchecked);
     }
@@ -228,7 +252,7 @@ void LogPage::modelStateToUI()
 
 void LogPage::UIToModelState()
 {
-    if(!m_model)
+    if (!m_model)
     {
         return;
     }
@@ -236,14 +260,15 @@ void LogPage::UIToModelState()
     m_model->suspend(ui->trackLogCheckbox->checkState() != Qt::Checked);
 }
 
-void LogPage::setInstanceLaunchTaskChanged(shared_qobject_ptr<LaunchTask> proc, bool initial)
+void LogPage::setInstanceLaunchTaskChanged(shared_qobject_ptr<LaunchTask> proc,
+                                           bool initial)
 {
     m_process = proc;
-    if(m_process)
+    if (m_process)
     {
         m_model = proc->getLogModel();
         m_proxy->setSourceModel(m_model.get());
-        if(initial)
+        if (initial)
         {
             modelStateToUI();
         }
@@ -276,52 +301,57 @@ bool LogPage::shouldDisplay() const
 
 void LogPage::on_btnPaste_clicked()
 {
-    if(!m_model)
+    if (!m_model)
+    {
         return;
+    }
 
-    //FIXME: turn this into a proper task and move the upload logic out of GuiUtil!
+    // FIXME: turn this into a proper task and move the upload logic out of
+    // GuiUtil!
     m_model->append(
         MessageLevel::Launcher,
-        QString("%2: Log upload triggered at: %1").arg(
-            QDateTime::currentDateTime().toString(Qt::RFC2822Date),
-            BuildConfig.LAUNCHER_NAME
-        )
-    );
+        QString("%2: Log upload triggered at: %1")
+            .arg(QDateTime::currentDateTime().toString(Qt::RFC2822Date),
+                 BuildConfig.LAUNCHER_NAME));
     QPointer<LogPage> self(this);
     auto url = GuiUtil::uploadPaste(m_model->toPlainText(), this);
     if (!self)
-        return;
-    if(!url.isEmpty())
     {
-        m_model->append(
-            MessageLevel::Launcher,
-            QString("%2: Log uploaded to: %1").arg(
-                url,
-                BuildConfig.LAUNCHER_NAME
-            )
-        );
+        return;
+    }
+    if (!url.isEmpty())
+    {
+        m_model->append(MessageLevel::Launcher,
+                        QString("%2: Log uploaded to: %1")
+                            .arg(url, BuildConfig.LAUNCHER_NAME));
     }
     else
     {
         m_model->append(
             MessageLevel::Error,
-            QString("%1: Log upload failed!").arg(BuildConfig.LAUNCHER_NAME)
-        );
+            QString("%1: Log upload failed!").arg(BuildConfig.LAUNCHER_NAME));
     }
 }
 
 void LogPage::on_btnCopy_clicked()
 {
-    if(!m_model)
+    if (!m_model)
+    {
         return;
-    m_model->append(MessageLevel::Launcher, QString("Clipboard copy at: %1").arg(QDateTime::currentDateTime().toString(Qt::RFC2822Date)));
+    }
+    m_model->append(
+        MessageLevel::Launcher,
+        QString("Clipboard copy at: %1")
+            .arg(QDateTime::currentDateTime().toString(Qt::RFC2822Date)));
     GuiUtil::setClipboardText(m_model->toPlainText());
 }
 
 void LogPage::on_btnClear_clicked()
 {
-    if(!m_model)
+    if (!m_model)
+    {
         return;
+    }
     m_model->clear();
     m_container->refreshContainer();
 }
@@ -333,16 +363,20 @@ void LogPage::on_btnBottom_clicked()
 
 void LogPage::on_trackLogCheckbox_clicked(bool checked)
 {
-    if(!m_model)
+    if (!m_model)
+    {
         return;
+    }
     m_model->suspend(!checked);
 }
 
 void LogPage::on_wrapCheckbox_clicked(bool checked)
 {
     ui->text->setWordWrap(checked);
-    if(!m_model)
+    if (!m_model)
+    {
         return;
+    }
     m_model->setLineWrap(checked);
 }
 

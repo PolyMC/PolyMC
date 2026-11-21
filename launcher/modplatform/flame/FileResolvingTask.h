@@ -10,13 +10,18 @@ class FileResolvingTask : public Task
 {
     Q_OBJECT
 public:
-    explicit FileResolvingTask(const shared_qobject_ptr<QNetworkAccessManager>& network, Flame::Manifest &toProcess);
+    explicit FileResolvingTask(
+        const shared_qobject_ptr<QNetworkAccessManager>& network,
+        Flame::Manifest& toProcess);
     virtual ~FileResolvingTask() {};
 
-    bool canAbort() const override { return true; }
+    bool canAbort() const override
+    {
+        return true;
+    }
     bool abort() override;
 
-    const Flame::Manifest &getResults() const
+    const Flame::Manifest& getResults() const
     {
         return m_toProcess;
     }
@@ -35,6 +40,6 @@ private: /* data */
 
     void modrinthCheckFinished();
 
-    QMap<File *, QByteArray *> blockedProjects;
+    QMap<File*, QByteArray*> blockedProjects;
 };
-}
+}  // namespace Flame

@@ -26,7 +26,8 @@ qint64 getDirectorySize(QString path)
 {
     QDirIterator it(path, QDirIterator::Subdirectories);
     qint64 fileSizeTotal = 0;
-    while (it.hasNext()) {
+    while (it.hasNext())
+    {
         it.next();
         fileSizeTotal += it.fileInfo().size();
     }
@@ -38,7 +39,8 @@ void clearDirectoryInner(QString path)
     QDir(path).removeRecursively();
 }
 
-StoragePage::StoragePage(BaseInstance* inst, QWidget* parent) : QWidget(parent), ui(new Ui::StoragePage), m_inst(inst)
+StoragePage::StoragePage(BaseInstance* inst, QWidget* parent)
+    : QWidget(parent), ui(new Ui::StoragePage), m_inst(inst)
 {
     ui->setupUi(this);
 
@@ -52,15 +54,38 @@ StoragePage::StoragePage(BaseInstance* inst, QWidget* parent) : QWidget(parent),
 
     ui->retranslateUi(this);
 
-    connect(ui->button_goto_resouce_packs, &QPushButton::clicked, this, [&] { m_container->selectPage("resourcepacks"); });
-    connect(ui->button_goto_mods, &QPushButton::clicked, this, [&] { m_container->selectPage("mods"); });
-    connect(ui->button_goto_worlds, &QPushButton::clicked, this, [&] { m_container->selectPage("worlds"); });
-    connect(ui->button_goto_screenshots, &QPushButton::clicked, this, [&] { m_container->selectPage("screenshots"); });
-    connect(ui->button_goto_other_logs, &QPushButton::clicked, this, [&] { m_container->selectPage("logs"); });
+    connect(ui->button_goto_resouce_packs, &QPushButton::clicked, this,
+            [&]
+            {
+                m_container->selectPage("resourcepacks");
+            });
+    connect(ui->button_goto_mods, &QPushButton::clicked, this,
+            [&]
+            {
+                m_container->selectPage("mods");
+            });
+    connect(ui->button_goto_worlds, &QPushButton::clicked, this,
+            [&]
+            {
+                m_container->selectPage("worlds");
+            });
+    connect(ui->button_goto_screenshots, &QPushButton::clicked, this,
+            [&]
+            {
+                m_container->selectPage("screenshots");
+            });
+    connect(ui->button_goto_other_logs, &QPushButton::clicked, this,
+            [&]
+            {
+                m_container->selectPage("logs");
+            });
 
-    connect(ui->button_clear_screenshots, &QPushButton::clicked, this, &StoragePage::handleClearScreenshotsButton);
-    connect(ui->button_clear_logs, &QPushButton::clicked, this, &StoragePage::handleClearLogsButton);
-    connect(ui->button_clear_all, &QPushButton::clicked, this, &StoragePage::handleClearAllButton);
+    connect(ui->button_clear_screenshots, &QPushButton::clicked, this,
+            &StoragePage::handleClearScreenshotsButton);
+    connect(ui->button_clear_logs, &QPushButton::clicked, this,
+            &StoragePage::handleClearLogsButton);
+    connect(ui->button_clear_all, &QPushButton::clicked, this,
+            &StoragePage::handleClearAllButton);
 }
 
 StoragePage::~StoragePage()
@@ -71,7 +96,9 @@ StoragePage::~StoragePage()
 void StoragePage::openedImpl()
 {
     if (m_chart)
+    {
         return;
+    }
 
     m_series = new QPieSeries(this);
     m_series->setLabelsVisible();
@@ -105,7 +132,9 @@ void StoragePage::retranslate()
 void StoragePage::handleClearScreenshotsButton()
 {
     if (m_confirmation_box->exec() != QMessageBox::Yes)
+    {
         return;
+    }
 
     auto path = m_inst->gameRoot() + "/screenshots";
     QDir(path).removeRecursively();
@@ -115,7 +144,9 @@ void StoragePage::handleClearScreenshotsButton()
 void StoragePage::handleClearLogsButton()
 {
     if (m_confirmation_box->exec() != QMessageBox::Yes)
+    {
         return;
+    }
 
     auto path = m_inst->gameRoot() + "/logs";
     QDir(path).removeRecursively();
@@ -125,7 +156,9 @@ void StoragePage::handleClearLogsButton()
 void StoragePage::handleClearAllButton()
 {
     if (m_confirmation_box->exec() != QMessageBox::Yes)
+    {
         return;
+    }
 
     handleClearScreenshotsButton();
     handleClearLogsButton();
@@ -134,10 +167,12 @@ void StoragePage::handleClearAllButton()
 void StoragePage::updateCalculations()
 {
     auto size_resource_packs =
-        getDirectorySize((m_inst->gameRoot() + "/texturepacks")) + getDirectorySize((m_inst->gameRoot() + "/resourcepacks"));
+        getDirectorySize((m_inst->gameRoot() + "/texturepacks")) +
+        getDirectorySize((m_inst->gameRoot() + "/resourcepacks"));
     auto size_mods = getDirectorySize(m_inst->modsRoot());
     auto size_saves = getDirectorySize((m_inst->gameRoot() + "/saves"));
-    auto size_screenshots = getDirectorySize((m_inst->gameRoot() + "/screenshots"));
+    auto size_screenshots =
+        getDirectorySize((m_inst->gameRoot() + "/screenshots"));
     auto size_logs = getDirectorySize((m_inst->gameRoot() + "/logs"));
 
     auto storage_info = QStorageInfo(QDir(m_inst->gameRoot()));
@@ -145,12 +180,15 @@ void StoragePage::updateCalculations()
     auto size_used = storage_info.bytesTotal() - size_remaining;
 
     auto locale = this->locale();
-    ui->label_resource_packs->setText(locale.formattedDataSize(size_resource_packs));
+    ui->label_resource_packs->setText(
+        locale.formattedDataSize(size_resource_packs));
     ui->label_mods->setText(locale.formattedDataSize(size_mods));
     ui->label_saves->setText(locale.formattedDataSize(size_saves));
     ui->label_screenshots->setText(locale.formattedDataSize(size_screenshots));
     ui->label_logs->setText(locale.formattedDataSize(size_logs));
-    ui->label_combined->setText(locale.formattedDataSize(size_resource_packs + size_mods + size_saves + size_screenshots + size_logs));
+    ui->label_combined->setText(
+        locale.formattedDataSize(size_resource_packs + size_mods + size_saves +
+                                 size_screenshots + size_logs));
 
     ui->label_used->setText(locale.formattedDataSize(size_used));
     ui->label_remaining->setText(locale.formattedDataSize(size_remaining));
@@ -164,14 +202,19 @@ void StoragePage::updateCalculations()
 
     m_chart_view->setChart(m_chart);
     for (auto slice : m_series->slices())
-        slice->setLabel(slice->label() + " " + QString("%1%").arg(100 * slice->percentage(), 0, 'f', 1));
+    {
+        slice->setLabel(
+            slice->label() + " " +
+            QString("%1%").arg(100 * slice->percentage(), 0, 'f', 1));
+    }
 }
 
-bool StoragePage::eventFilter(QObject */*object*/, QEvent *event)
+bool StoragePage::eventFilter(QObject* /*object*/, QEvent* event)
 {
-    if(event->type() == QEvent::PaletteChange)
+    if (event->type() == QEvent::PaletteChange)
     {
-        m_chart->legend()->setLabelColor(QApplication::palette().text().color());
+        m_chart->legend()->setLabelColor(
+            QApplication::palette().text().color());
         return true;
     }
     return false;

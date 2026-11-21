@@ -56,14 +56,15 @@ class PackIgnoreProxy : public QSortFilterProxyModel
     Q_OBJECT
 
 public:
-    PackIgnoreProxy(InstancePtr instance, QObject *parent) : QSortFilterProxyModel(parent)
+    PackIgnoreProxy(InstancePtr instance, QObject* parent)
+        : QSortFilterProxyModel(parent)
     {
         m_instance = instance;
     }
     // NOTE: Sadly, we have to do sorting ourselves.
-    bool lessThan(const QModelIndex &left, const QModelIndex &right) const
+    bool lessThan(const QModelIndex& left, const QModelIndex& right) const
     {
-        QFileSystemModel *fsm = qobject_cast<QFileSystemModel *>(sourceModel());
+        QFileSystemModel* fsm = qobject_cast<QFileSystemModel*>(sourceModel());
         if (!fsm)
         {
             return QSortFilterProxyModel::lessThan(left, right);
@@ -85,14 +86,16 @@ public:
         // sort and proxy model breaks the original model...
         if (sortColumn() == 0)
         {
-            return Strings::naturalCompare(leftFileInfo.fileName(), rightFileInfo.fileName(),
+            return Strings::naturalCompare(leftFileInfo.fileName(),
+                                           rightFileInfo.fileName(),
                                            Qt::CaseInsensitive) < 0;
         }
         if (sortColumn() == 1)
         {
             auto leftSize = leftFileInfo.size();
             auto rightSize = rightFileInfo.size();
-            if ((leftSize == rightSize) || (leftFileInfo.isDir() && rightFileInfo.isDir()))
+            if ((leftSize == rightSize) ||
+                (leftFileInfo.isDir() && rightFileInfo.isDir()))
             {
                 return Strings::naturalCompare(leftFileInfo.fileName(),
                                                rightFileInfo.fileName(),
@@ -105,10 +108,12 @@ public:
         return QSortFilterProxyModel::lessThan(left, right);
     }
 
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const
     {
         if (!index.isValid())
+        {
             return Qt::NoItemFlags;
+        }
 
         auto sourceIndex = mapToSource(index);
         Qt::ItemFlags flags = sourceIndex.flags();
@@ -124,13 +129,15 @@ public:
         return flags;
     }
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const
+    virtual QVariant data(const QModelIndex& index,
+                          int role = Qt::DisplayRole) const
     {
         QModelIndex sourceIndex = mapToSource(index);
 
         if (index.column() == 0 && role == Qt::CheckStateRole)
         {
-            QFileSystemModel *fsm = qobject_cast<QFileSystemModel *>(sourceModel());
+            QFileSystemModel* fsm =
+                qobject_cast<QFileSystemModel*>(sourceModel());
             auto blockedPath = relPath(fsm->filePath(sourceIndex));
             auto cover = blocked.cover(blockedPath);
             if (!cover.isNull())
@@ -150,7 +157,7 @@ public:
         return sourceIndex.data(role);
     }
 
-    virtual bool setData(const QModelIndex &index, const QVariant &value,
+    virtual bool setData(const QModelIndex& index, const QVariant& value,
                          int role = Qt::EditRole)
     {
         if (index.column() == 0 && role == Qt::CheckStateRole)
@@ -160,10 +167,11 @@ public:
         }
 
         QModelIndex sourceIndex = mapToSource(index);
-        return QSortFilterProxyModel::sourceModel()->setData(sourceIndex, value, role);
+        return QSortFilterProxyModel::sourceModel()->setData(sourceIndex, value,
+                                                             role);
     }
 
-    QString relPath(const QString &path) const
+    QString relPath(const QString& path) const
     {
         QString prefix = QDir().absoluteFilePath(m_instance->instanceRoot());
         prefix += '/';
@@ -176,7 +184,7 @@ public:
 
     bool setFilterState(QModelIndex index, Qt::CheckState state)
     {
-        QFileSystemModel *fsm = qobject_cast<QFileSystemModel *>(sourceModel());
+        QFileSystemModel* fsm = qobject_cast<QFileSystemModel*>(sourceModel());
 
         if (!fsm)
         {
@@ -189,7 +197,7 @@ public:
         if (state == Qt::Unchecked)
         {
             // blocking a path
-            auto &node = blocked.insert(blockedPath);
+            auto& node = blocked.insert(blockedPath);
             // get rid of all blocked nodes below
             node.clear();
             changed = true;
@@ -203,8 +211,8 @@ public:
                 // uncover
                 blocked.remove(cover);
                 // block all contents, except for any cover
-                QModelIndex rootIndex =
-                    fsm->index(FS::PathCombine(m_instance->instanceRoot(), cover));
+                QModelIndex rootIndex = fsm->index(
+                    FS::PathCombine(m_instance->instanceRoot(), cover));
                 QModelIndex doing = rootIndex;
                 int row = 0;
                 QStack<QModelIndex> todo;
@@ -225,7 +233,7 @@ public:
                         }
                     }
                     auto relpath = relPath(fsm->filePath(node));
-                    if (blockedPath.startsWith(relpath)) // cover found?
+                    if (blockedPath.startsWith(relpath))  // cover found?
                     {
                         // continue processing cover later
                         todo.push(node);
@@ -249,7 +257,9 @@ public:
             while (1)
             {
                 if (!up.isValid())
+                {
                     break;
+                }
                 emit dataChanged(up, up, {Qt::CheckStateRole});
                 up = up.parent();
             }
@@ -285,14 +295,14 @@ public:
     bool shouldExpand(QModelIndex index)
     {
         QModelIndex sourceIndex = mapToSource(index);
-        QFileSystemModel *fsm = qobject_cast<QFileSystemModel *>(sourceModel());
+        QFileSystemModel* fsm = qobject_cast<QFileSystemModel*>(sourceModel());
         if (!fsm)
         {
             return false;
         }
         auto blockedPath = relPath(fsm->filePath(sourceIndex));
         auto found = blocked.find(blockedPath);
-        if(found)
+        if (found)
         {
             return !found->leaf();
         }
@@ -307,20 +317,23 @@ public:
         endResetModel();
     }
 
-    const SeparatorPrefixTree<'/'> & blockedPaths() const
+    const SeparatorPrefixTree<'/'>& blockedPaths() const
     {
         return blocked;
     }
 
 protected:
-    bool filterAcceptsColumn(int source_column, const QModelIndex &source_parent) const
+    bool filterAcceptsColumn(int source_column,
+                             const QModelIndex& source_parent) const
     {
         Q_UNUSED(source_parent)
 
         // adjust the columns you want to filter out here
         // return false for those that will be hidden
         if (source_column == 2 || source_column == 3)
+        {
             return false;
+        }
 
         return true;
     }
@@ -330,7 +343,8 @@ private:
     SeparatorPrefixTree<'/'> blocked;
 };
 
-ExportInstanceDialog::ExportInstanceDialog(InstancePtr instance, QWidget *parent)
+ExportInstanceDialog::ExportInstanceDialog(InstancePtr instance,
+                                           QWidget* parent)
     : QDialog(parent), ui(new Ui::ExportInstanceDialog), m_instance(instance)
 {
     ui->setupUi(this);
@@ -343,9 +357,11 @@ ExportInstanceDialog::ExportInstanceDialog(InstancePtr instance, QWidget *parent
     ui->treeView->setRootIndex(proxyModel->mapFromSource(model->index(root)));
     ui->treeView->sortByColumn(0, Qt::AscendingOrder);
 
-    connect(proxyModel, &QAbstractItemModel::rowsInserted, this, &ExportInstanceDialog::rowsInserted);
+    connect(proxyModel, &QAbstractItemModel::rowsInserted, this,
+            &ExportInstanceDialog::rowsInserted);
 
-    model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Hidden);
+    model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::AllDirs |
+                     QDir::Hidden);
     model->setRootPath(root);
     auto headerView = ui->treeView->header();
     headerView->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -363,19 +379,22 @@ void SaveIcon(InstancePtr m_instance)
     auto iconKey = m_instance->iconKey();
     auto iconList = APPLICATION->icons();
     auto mmcIcon = iconList->icon(iconKey);
-    if(!mmcIcon || mmcIcon->isBuiltIn()) {
+    if (!mmcIcon || mmcIcon->isBuiltIn())
+    {
         return;
     }
     auto path = mmcIcon->getFilePath();
-    if(!path.isNull()) {
-        QFileInfo inInfo (path);
-        FS::copy(path, FS::PathCombine(m_instance->instanceRoot(), inInfo.fileName())) ();
+    if (!path.isNull())
+    {
+        QFileInfo inInfo(path);
+        FS::copy(path, FS::PathCombine(m_instance->instanceRoot(),
+                                       inInfo.fileName()))();
         return;
     }
-    auto & image = mmcIcon->m_images[mmcIcon->type()];
-    auto & icon = image.icon;
+    auto& image = mmcIcon->m_images[mmcIcon->type()];
+    auto& icon = image.icon;
     auto sizes = icon.availableSizes();
-    if(sizes.size() == 0)
+    if (sizes.size() == 0)
     {
         return;
     }
@@ -387,7 +406,7 @@ void SaveIcon(InstancePtr m_instance)
     // find variant with largest area
     for (auto size : std::as_const(sizes))
     {
-        if(areaOf(largest) < areaOf(size))
+        if (areaOf(largest) < areaOf(size))
         {
             largest = size;
         }
@@ -402,17 +421,18 @@ bool ExportInstanceDialog::doExport()
 
     const QString output = QFileDialog::getSaveFileName(
         this, tr("Export %1").arg(m_instance->name()),
-        FS::PathCombine(QDir::homePath(), name + ".zip"), "Zip (*.zip)", nullptr, QFileDialog::DontConfirmOverwrite);
+        FS::PathCombine(QDir::homePath(), name + ".zip"), "Zip (*.zip)",
+        nullptr, QFileDialog::DontConfirmOverwrite);
     if (output.isEmpty())
     {
         return false;
     }
     if (QFile::exists(output))
     {
-        int ret =
-            QMessageBox::question(this, tr("Overwrite?"),
-                                  tr("This file already exists. Do you want to overwrite it?"),
-                                  QMessageBox::No, QMessageBox::Yes);
+        int ret = QMessageBox::question(
+            this, tr("Overwrite?"),
+            tr("This file already exists. Do you want to overwrite it?"),
+            QMessageBox::No, QMessageBox::Yes);
         if (ret == QMessageBox::No)
         {
             return false;
@@ -421,17 +441,21 @@ bool ExportInstanceDialog::doExport()
 
     SaveIcon(m_instance);
 
-    auto & blocked = proxyModel->blockedPaths();
+    auto& blocked = proxyModel->blockedPaths();
     using std::placeholders::_1;
     auto files = QFileInfoList();
-    if (!MMCZip::collectFileListRecursively(m_instance->instanceRoot(), nullptr, &files,
-                                    std::bind(&SeparatorPrefixTree<'/'>::covers, blocked, _1))) {
-        QMessageBox::warning(this, tr("Error"), tr("Unable to export instance"));
+    if (!MMCZip::collectFileListRecursively(
+            m_instance->instanceRoot(), nullptr, &files,
+            std::bind(&SeparatorPrefixTree<'/'>::covers, blocked, _1)))
+    {
+        QMessageBox::warning(this, tr("Error"),
+                             tr("Unable to export instance"));
         return false;
     }
     if (!MMCZip::compressDirFiles(output, m_instance->instanceRoot(), files))
     {
-        QMessageBox::warning(this, tr("Error"), tr("Unable to export instance"));
+        QMessageBox::warning(this, tr("Error"),
+                             tr("Unable to export instance"));
         return false;
     }
     return true;
@@ -458,13 +482,13 @@ void ExportInstanceDialog::done(int result)
 void ExportInstanceDialog::rowsInserted(QModelIndex parent, int top, int bottom)
 {
     // bottom is inclusive
-    for(int i = top; i <= bottom; i++)
+    for (int i = top; i <= bottom; i++)
     {
         auto node = proxyModel->index(i, 0, parent);
-        if(proxyModel->shouldExpand(node))
+        if (proxyModel->shouldExpand(node))
         {
             auto expNode = node.parent();
-            if(!expNode.isValid())
+            if (!expNode.isValid())
             {
                 continue;
             }
@@ -482,13 +506,14 @@ void ExportInstanceDialog::loadPackIgnore()
 {
     auto filename = ignoreFileName();
     QFile ignoreFile(filename);
-    if(!ignoreFile.open(QIODevice::ReadOnly))
+    if (!ignoreFile.open(QIODevice::ReadOnly))
     {
         return;
     }
     auto ignoreData = ignoreFile.readAll();
     auto string = QString::fromUtf8(ignoreData);
-    // The file may have been edited on Windows, don't leave a '\r' at the end of every path
+    // The file may have been edited on Windows, don't leave a '\r' at the end
+    // of every path
     string.remove('\r');
 
     proxyModel->setBlockedPaths(string.split('\n', Qt::SkipEmptyParts));
@@ -496,13 +521,14 @@ void ExportInstanceDialog::loadPackIgnore()
 
 void ExportInstanceDialog::savePackIgnore()
 {
-    auto ignoreData = proxyModel->blockedPaths().toStringList().join('\n').toUtf8();
+    auto ignoreData =
+        proxyModel->blockedPaths().toStringList().join('\n').toUtf8();
     auto filename = ignoreFileName();
     try
     {
         FS::write(filename, ignoreData);
     }
-    catch (const Exception &e)
+    catch (const Exception& e)
     {
         qWarning() << e.cause();
     }

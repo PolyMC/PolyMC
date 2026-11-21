@@ -2,17 +2,21 @@
 
 #include <QDialog>
 
-namespace Ui {
+namespace Ui
+{
 class ReviewMessageBox;
 }
 
-class ReviewMessageBox : public QDialog {
+class ReviewMessageBox : public QDialog
+{
     Q_OBJECT
 
 public:
-    static ReviewMessageBox* create(QWidget* parent, QString&& title, QString&& icon = "");
+    static ReviewMessageBox* create(QWidget* parent, QString&& title,
+                                    QString&& icon = "");
 
-    using ModInformation = struct {
+    using ModInformation = struct
+    {
         QString name;
         QString filename;
     };
@@ -20,13 +24,14 @@ public:
     void appendMod(ModInformation&& info);
     QStringList deselectedMods();
 
-    void setDescription(const QString &desc);
-    void setCheckLabel(const QString &desc);
+    void setDescription(const QString& desc);
+    void setCheckLabel(const QString& desc);
 
     ~ReviewMessageBox();
 
 protected:
-    ReviewMessageBox(QWidget* parent, const QString& title, const QString& icon);
+    ReviewMessageBox(QWidget* parent, const QString& title,
+                     const QString& icon);
 
     Ui::ReviewMessageBox* ui;
 };

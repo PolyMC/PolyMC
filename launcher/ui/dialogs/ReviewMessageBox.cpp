@@ -3,7 +3,8 @@
 
 #include <QPushButton>
 
-ReviewMessageBox::ReviewMessageBox(QWidget* parent, QString const& /*title*/, QString const& /*icon*/)
+ReviewMessageBox::ReviewMessageBox(QWidget* parent, QString const& /*title*/,
+                                   QString const& /*icon*/)
     : QDialog(parent), ui(new Ui::ReviewMessageBox)
 {
     ui->setupUi(this);
@@ -11,8 +12,10 @@ ReviewMessageBox::ReviewMessageBox(QWidget* parent, QString const& /*title*/, QS
     auto back_button = ui->buttonBox->button(QDialogButtonBox::Cancel);
     back_button->setText(tr("Back"));
 
-    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &ReviewMessageBox::accept);
-    connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &ReviewMessageBox::reject);
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
+            &ReviewMessageBox::accept);
+    connect(ui->buttonBox, &QDialogButtonBox::rejected, this,
+            &ReviewMessageBox::reject);
 }
 
 ReviewMessageBox::~ReviewMessageBox()
@@ -20,7 +23,8 @@ ReviewMessageBox::~ReviewMessageBox()
     delete ui;
 }
 
-ReviewMessageBox* ReviewMessageBox::create(QWidget* parent, QString&& title, QString&& icon)
+ReviewMessageBox* ReviewMessageBox::create(QWidget* parent, QString&& title,
+                                           QString&& icon)
 {
     return new ReviewMessageBox(parent, title, icon);
 }
@@ -34,7 +38,7 @@ void ReviewMessageBox::appendMod(ModInformation&& info)
     auto filenameItem = new QTreeWidgetItem(itemTop);
     filenameItem->setText(0, tr("Filename: %1").arg(info.filename));
 
-    itemTop->insertChildren(0, { filenameItem });
+    itemTop->insertChildren(0, {filenameItem});
 
     ui->modTreeWidget->addTopLevelItem(itemTop);
 }
@@ -45,8 +49,10 @@ QStringList ReviewMessageBox::deselectedMods()
 
     auto* item = ui->modTreeWidget->topLevelItem(0);
 
-    for (int i = 1; item != nullptr; ++i) {
-        if (item->checkState(0) == Qt::CheckState::Unchecked) {
+    for (int i = 1; item != nullptr; ++i)
+    {
+        if (item->checkState(0) == Qt::CheckState::Unchecked)
+        {
             list.append(item->text(0));
         }
 
@@ -56,10 +62,12 @@ QStringList ReviewMessageBox::deselectedMods()
     return list;
 }
 
-void ReviewMessageBox::setDescription(const QString& desc) {
+void ReviewMessageBox::setDescription(const QString& desc)
+{
     ui->explainLabel->setText(desc);
 }
 
-void ReviewMessageBox::setCheckLabel(const QString& desc) {
+void ReviewMessageBox::setCheckLabel(const QString& desc)
+{
     ui->onlyCheckedLabel->setText(desc);
 }

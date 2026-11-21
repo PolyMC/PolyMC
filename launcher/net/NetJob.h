@@ -45,15 +45,19 @@
 #include "net/Download.h"
 #include "net/HttpMetaCache.h"
 
-class NetJob : public ConcurrentTask {
+class NetJob : public ConcurrentTask
+{
     Q_OBJECT
 
-   public:
+public:
     using Ptr = shared_qobject_ptr<NetJob>;
 
-    explicit NetJob(QString job_name, shared_qobject_ptr<QNetworkAccessManager> network, QObject* parent = nullptr,
-                    int max_concurrent = 6)
-        : ConcurrentTask(parent, job_name, max_concurrent), m_network(network) {}
+    explicit NetJob(QString job_name,
+                    shared_qobject_ptr<QNetworkAccessManager> network,
+                    QObject* parent = nullptr, int max_concurrent = 6)
+        : ConcurrentTask(parent, job_name, max_concurrent), m_network(network)
+    {
+    }
     ~NetJob() override = default;
 
     void startNext() override;
@@ -66,14 +70,14 @@ class NetJob : public ConcurrentTask {
     QList<NetAction*> getFailedActions();
     QList<QString> getFailedFiles();
 
-   public slots:
+public slots:
     // Qt can't handle auto at the start for some reason?
     bool abort() override;
 
-   protected:
+protected:
     void updateState() override;
 
-   private:
+private:
     shared_qobject_ptr<QNetworkAccessManager> m_network;
 
     int m_try = 1;

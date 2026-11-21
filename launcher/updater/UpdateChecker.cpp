@@ -25,7 +25,8 @@
 
 #include "BuildConfig.h"
 
-UpdateChecker::UpdateChecker(shared_qobject_ptr<QNetworkAccessManager> nam, QString channelUrl, QString currentChannel)
+UpdateChecker::UpdateChecker(shared_qobject_ptr<QNetworkAccessManager> nam,
+                             QString channelUrl, QString currentChannel)
 {
     m_network = nam;
     m_channelUrl = channelUrl;
@@ -51,7 +52,8 @@ ExternalUpdater* UpdateChecker::getExternalUpdater()
     return m_externalUpdater;
 }
 
-void UpdateChecker::checkForUpdate(const QString& updateChannel, bool notifyNoUpdate)
+void UpdateChecker::checkForUpdate(const QString& updateChannel,
+                                   bool notifyNoUpdate)
 {
     if (m_externalUpdater)
     {
@@ -60,7 +62,8 @@ void UpdateChecker::checkForUpdate(const QString& updateChannel, bool notifyNoUp
         {
             qDebug() << "Checking for updates.";
             m_externalUpdater->checkForUpdates();
-        } else
+        }
+        else
         {
             // The updater library already handles automatic update checks.
             return;
@@ -69,11 +72,12 @@ void UpdateChecker::checkForUpdate(const QString& updateChannel, bool notifyNoUp
     else
     {
         qDebug() << "Checking for updates.";
-        // If the channel list hasn't loaded yet, load it and defer checking for updates until
-        // later.
+        // If the channel list hasn't loaded yet, load it and defer checking for
+        // updates until later.
         if (!m_chanListLoaded)
         {
-            qDebug() << "Channel list isn't loaded yet. Loading channel list and deferring update check.";
+            qDebug() << "Channel list isn't loaded yet. Loading channel list "
+                        "and deferring update check.";
             m_checkUpdateWaiting = true;
             m_deferredUpdateChannel = updateChannel;
             updateChanList(notifyNoUpdate);
@@ -82,15 +86,16 @@ void UpdateChecker::checkForUpdate(const QString& updateChannel, bool notifyNoUp
 
         if (m_updateChecking)
         {
-            qDebug() << "Ignoring update check request. Already checking for updates.";
+            qDebug() << "Ignoring update check request. Already checking for "
+                        "updates.";
             return;
         }
 
-        // Find the desired channel within the channel list and get its repo URL. If if cannot be
-        // found, error.
+        // Find the desired channel within the channel list and get its repo
+        // URL. If if cannot be found, error.
         QString stableUrl;
         m_newRepoUrl = "";
-        for (const ChannelListEntry &entry : std::as_const(m_channels))
+        for (const ChannelListEntry& entry : std::as_const(m_channels))
         {
             qDebug() << "channelEntry = " << entry.id;
             if (entry.id == "stable")
@@ -113,14 +118,16 @@ void UpdateChecker::checkForUpdate(const QString& updateChannel, bool notifyNoUp
 
         if (m_newRepoUrl.isEmpty())
         {
-            qWarning() << "m_repoUrl was empty. defaulting to 'stable': " << stableUrl;
+            qWarning() << "m_repoUrl was empty. defaulting to 'stable': "
+                       << stableUrl;
             m_newRepoUrl = stableUrl;
         }
 
         // If nothing applies, error
         if (m_newRepoUrl.isEmpty())
         {
-            qCritical() << "failed to select any update repository for: " << updateChannel;
+            qCritical() << "failed to select any update repository for: "
+                        << updateChannel;
             emit updateCheckFailed();
             return;
         }
@@ -130,9 +137,15 @@ void UpdateChecker::checkForUpdate(const QString& updateChannel, bool notifyNoUp
         QUrl indexUrl = QUrl(m_newRepoUrl).resolved(QUrl("index.json"));
 
         indexJob = new NetJob("GoUpdate Repository Index", m_network);
-        indexJob->addNetAction(Net::Download::makeByteArray(indexUrl, &indexData));
-        connect(indexJob.get(), &NetJob::succeeded, [this, notifyNoUpdate]() { updateCheckFinished(notifyNoUpdate); });
-        connect(indexJob.get(), &NetJob::failed, this, &UpdateChecker::updateCheckFailed);
+        indexJob->addNetAction(
+            Net::Download::makeByteArray(indexUrl, &indexData));
+        connect(indexJob.get(), &NetJob::succeeded,
+                [this, notifyNoUpdate]()
+                {
+                    updateCheckFinished(notifyNoUpdate);
+                });
+        connect(indexJob.get(), &NetJob::failed, this,
+                &UpdateChecker::updateCheckFailed);
         indexJob->start();
     }
 }
@@ -149,7 +162,8 @@ void UpdateChecker::updateCheckFinished(bool notifyNoUpdate)
     if (jsonError.error != QJsonParseError::NoError || !jsonDoc.isObject())
     {
         qCritical() << "Failed to parse GoUpdate repository index. JSON error"
-                     << jsonError.errorString() << "at offset" << jsonError.offset;
+                    << jsonError.errorString() << "at offset"
+                    << jsonError.offset;
         m_updateChecking = false;
         return;
     }
@@ -160,8 +174,9 @@ void UpdateChecker::updateCheckFinished(bool notifyNoUpdate)
     int apiVersion = object.value("ApiVersion").toVariant().toInt(&success);
     if (apiVersion != API_VERSION || !success)
     {
-        qCritical() << "Failed to check for updates. API version mismatch. We're using"
-                     << API_VERSION << "server has" << apiVersion;
+        qCritical()
+            << "Failed to check for updates. API version mismatch. We're using"
+            << API_VERSION << "server has" << apiVersion;
         m_updateChecking = false;
         return;
     }
@@ -169,7 +184,7 @@ void UpdateChecker::updateCheckFinished(bool notifyNoUpdate)
     qDebug() << "Processing repository version list.";
     QJsonObject newestVersion;
     QJsonArray versions = object.value("Versions").toArray();
-    for (const QJsonValue &versionVal : std::as_const(versions))
+    for (const QJsonValue& versionVal : std::as_const(versions))
     {
         QJsonObject version = versionVal.toObject();
         if (newestVersion.value("Id").toVariant().toInt() <
@@ -179,8 +194,8 @@ void UpdateChecker::updateCheckFinished(bool notifyNoUpdate)
         }
     }
 
-    // We've got the version with the greatest ID number. Now compare it to our current build
-    // number and update if they're different.
+    // We've got the version with the greatest ID number. Now compare it to our
+    // current build number and update if they're different.
     int newBuildNumber = newestVersion.value("Id").toVariant().toInt();
     if (newBuildNumber != m_currentBuild)
     {
@@ -216,15 +231,22 @@ void UpdateChecker::updateChanList(bool notifyNoUpdate)
 
     if (m_chanListLoading)
     {
-        qDebug() << "Ignoring channel list update request. Already grabbing channel list.";
+        qDebug() << "Ignoring channel list update request. Already grabbing "
+                    "channel list.";
         return;
     }
 
     m_chanListLoading = true;
     chanListJob = new NetJob("Update System Channel List", m_network);
-    chanListJob->addNetAction(Net::Download::makeByteArray(QUrl(m_channelUrl), &chanlistData));
-    connect(chanListJob.get(), &NetJob::succeeded, [this, notifyNoUpdate]() { chanListDownloadFinished(notifyNoUpdate); });
-    connect(chanListJob.get(), &NetJob::failed, this, &UpdateChecker::chanListDownloadFailed);
+    chanListJob->addNetAction(
+        Net::Download::makeByteArray(QUrl(m_channelUrl), &chanlistData));
+    connect(chanListJob.get(), &NetJob::succeeded,
+            [this, notifyNoUpdate]()
+            {
+                chanListDownloadFinished(notifyNoUpdate);
+            });
+    connect(chanListJob.get(), &NetJob::failed, this,
+            &UpdateChecker::chanListDownloadFailed);
     chanListJob->start();
 }
 
@@ -238,7 +260,8 @@ void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
     if (jsonError.error != QJsonParseError::NoError)
     {
         // TODO: Report errors to the user.
-        qCritical() << "Failed to parse channel list JSON:" << jsonError.errorString() << "at" << jsonError.offset;
+        qCritical() << "Failed to parse channel list JSON:"
+                    << jsonError.errorString() << "at" << jsonError.offset;
         m_chanListLoading = false;
         return;
     }
@@ -246,12 +269,13 @@ void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
     QJsonObject object = jsonDoc.object();
 
     bool success = false;
-    int formatVersion = object.value("format_version").toVariant().toInt(&success);
+    int formatVersion =
+        object.value("format_version").toVariant().toInt(&success);
     if (formatVersion != CHANLIST_FORMAT || !success)
     {
-        qCritical()
-            << "Failed to check for updates. Channel list format version mismatch. We're using"
-            << CHANLIST_FORMAT << "server has" << formatVersion;
+        qCritical() << "Failed to check for updates. Channel list format "
+                       "version mismatch. We're using"
+                    << CHANLIST_FORMAT << "server has" << formatVersion;
         m_chanListLoading = false;
         return;
     }
@@ -259,18 +283,18 @@ void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
     // Load channels into a temporary array.
     QList<ChannelListEntry> loadedChannels;
     QJsonArray channelArray = object.value("channels").toArray();
-    for (const QJsonValue &chanVal : std::as_const(channelArray))
+    for (const QJsonValue& chanVal : std::as_const(channelArray))
     {
         QJsonObject channelObj = chanVal.toObject();
-        ChannelListEntry entry {
+        ChannelListEntry entry{
             channelObj.value("id").toVariant().toString(),
             channelObj.value("name").toVariant().toString(),
             channelObj.value("description").toVariant().toString(),
-            channelObj.value("url").toVariant().toString()
-        };
+            channelObj.value("url").toVariant().toString()};
         if (entry.id.isEmpty() || entry.name.isEmpty() || entry.url.isEmpty())
         {
-            qCritical() << "Channel list entry with empty ID, name, or URL. Skipping.";
+            qCritical()
+                << "Channel list entry with empty ID, name, or URL. Skipping.";
             continue;
         }
         loadedChannels.append(entry);
@@ -284,7 +308,8 @@ void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
     qDebug() << "Successfully loaded UpdateChecker channel list.";
 
     // If we're waiting to check for updates, do that now.
-    if (m_checkUpdateWaiting) {
+    if (m_checkUpdateWaiting)
+    {
         checkForUpdate(m_deferredUpdateChannel, notifyNoUpdate);
     }
 
@@ -297,4 +322,3 @@ void UpdateChecker::chanListDownloadFailed(QString reason)
     qCritical() << QString("Failed to download channel list: %1").arg(reason);
     emit channelListLoaded();
 }
-

@@ -40,7 +40,8 @@
 #include "FlameModModel.h"
 #include "ui/dialogs/ModDownloadDialog.h"
 
-FlameModPage::FlameModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance)
+FlameModPage::FlameModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type,
+                           BaseInstance* instance)
     : ModPage(dialog, type, instance, new FlameAPI())
 {
     listModel = new FlameMod::ListModel(this);
@@ -54,16 +55,23 @@ FlameModPage::FlameModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type,
     ui->sortByBox->addItem(tr("Sort by Author"));
     ui->sortByBox->addItem(tr("Sort by Downloads"));
 
-    // sometimes Qt just ignores virtual slots and doesn't work as intended it seems,
-    // so it's best not to connect them in the parent's contructor...
-    connect(ui->sortByBox, &QComboBox::currentIndexChanged, this, &FlameModPage::triggerSearch);
-    connect(ui->packView->selectionModel(), &QItemSelectionModel::currentChanged, this, &FlameModPage::onSelectionChanged);
-    connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this, &FlameModPage::onVersionSelectionChanged);
-    connect(ui->modSelectionButton, &QPushButton::clicked, this, &FlameModPage::onModSelected);
+    // sometimes Qt just ignores virtual slots and doesn't work as intended it
+    // seems, so it's best not to connect them in the parent's contructor...
+    connect(ui->sortByBox, &QComboBox::currentIndexChanged, this,
+            &FlameModPage::triggerSearch);
+    connect(ui->packView->selectionModel(),
+            &QItemSelectionModel::currentChanged, this,
+            &FlameModPage::onSelectionChanged);
+    connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this,
+            &FlameModPage::onVersionSelectionChanged);
+    connect(ui->modSelectionButton, &QPushButton::clicked, this,
+            &FlameModPage::onModSelected);
 }
 
-bool FlameModPage::validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer,
-                                   ModAPI::ModLoaderTypes loaders) const {
+bool FlameModPage::validateVersion(ModPlatform::IndexedVersion& ver,
+                                   QString mineVer,
+                                   ModAPI::ModLoaderTypes loaders) const
+{
     Q_UNUSED(loaders);
     return ver.mcVersion.contains(mineVer) && !ver.downloadUrl.isEmpty();
 }
@@ -76,4 +84,7 @@ bool FlameModPage::optedOut(ModPlatform::IndexedVersion& ver) const
 // I don't know why, but doing this on the parent class makes it so that
 // other mod providers start loading before being selected, at least with
 // my Qt, so we need to implement this in every derived class...
-bool FlameModPage::shouldDisplay() const { return true; }
+bool FlameModPage::shouldDisplay() const
+{
+    return true;
+}

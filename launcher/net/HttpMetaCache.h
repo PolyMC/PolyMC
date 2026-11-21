@@ -42,41 +42,90 @@
 
 class HttpMetaCache;
 
-class MetaEntry {
+class MetaEntry
+{
     friend class HttpMetaCache;
 
-   protected:
+protected:
     MetaEntry() = default;
 
-   public:
-    bool isStale() { return stale; }
-    void setStale(bool new_stale) { this->stale = new_stale; }
+public:
+    bool isStale()
+    {
+        return stale;
+    }
+    void setStale(bool new_stale)
+    {
+        this->stale = new_stale;
+    }
 
     QString getFullPath();
 
-    QString getRemoteChangedTimestamp() { return remote_changed_timestamp; }
-    void setRemoteChangedTimestamp(QString new_remote_timestamp) { this->remote_changed_timestamp = new_remote_timestamp; }
-    void setLocalChangedTimestamp(qint64 new_local_timestamp) { local_changed_timestamp = new_local_timestamp; }
+    QString getRemoteChangedTimestamp()
+    {
+        return remote_changed_timestamp;
+    }
+    void setRemoteChangedTimestamp(QString new_remote_timestamp)
+    {
+        this->remote_changed_timestamp = new_remote_timestamp;
+    }
+    void setLocalChangedTimestamp(qint64 new_local_timestamp)
+    {
+        local_changed_timestamp = new_local_timestamp;
+    }
 
-    QString getETag() { return etag; }
-    void setETag(QString new_etag) { this->etag = new_etag; }
+    QString getETag()
+    {
+        return etag;
+    }
+    void setETag(QString new_etag)
+    {
+        this->etag = new_etag;
+    }
 
-    QString getMD5Sum() { return md5sum; }
-    void setMD5Sum(QString new_md5sum) { this->md5sum = new_md5sum; }
+    QString getMD5Sum()
+    {
+        return md5sum;
+    }
+    void setMD5Sum(QString new_md5sum)
+    {
+        this->md5sum = new_md5sum;
+    }
 
     /* Whether the entry expires after some time (false) or not (true). */
-    void makeEternal(bool eternal) { is_eternal = eternal; }
-    [[nodiscard]] bool isEternal() const { return is_eternal; }
+    void makeEternal(bool eternal)
+    {
+        is_eternal = eternal;
+    }
+    [[nodiscard]] bool isEternal() const
+    {
+        return is_eternal;
+    }
 
-    qint64 getCurrentAge() { return current_age; }
-    void setCurrentAge(qint64 age) { current_age = age; }
+    qint64 getCurrentAge()
+    {
+        return current_age;
+    }
+    void setCurrentAge(qint64 age)
+    {
+        current_age = age;
+    }
 
-    qint64 getMaximumAge() { return max_age; }
-    void setMaximumAge(qint64 age) { max_age = age; }
+    qint64 getMaximumAge()
+    {
+        return max_age;
+    }
+    void setMaximumAge(qint64 age)
+    {
+        max_age = age;
+    }
 
-    bool isExpired(qint64 offset) { return !is_eternal && (current_age >= max_age - offset); };
+    bool isExpired(qint64 offset)
+    {
+        return !is_eternal && (current_age >= max_age - offset);
+    };
 
-   protected:
+protected:
     QString baseId;
     QString basePath;
     QString relativePath;
@@ -94,19 +143,22 @@ class MetaEntry {
 
 using MetaEntryPtr = std::shared_ptr<MetaEntry>;
 
-class HttpMetaCache : public QObject {
+class HttpMetaCache : public QObject
+{
     Q_OBJECT
-   public:
+public:
     // supply path to the cache index file
     HttpMetaCache(QString path = QString());
     ~HttpMetaCache() override;
 
     // get the entry solely from the cache
-    // you probably don't want this, unless you have some specific caching needs.
+    // you probably don't want this, unless you have some specific caching
+    // needs.
     MetaEntryPtr getEntry(QString base, QString resource_path);
 
     // get the entry from cache and verify that it isn't stale (within reason)
-    MetaEntryPtr resolveEntry(QString base, QString resource_path, QString expected_etag = QString());
+    MetaEntryPtr resolveEntry(QString base, QString resource_path,
+                              QString expected_etag = QString());
 
     // add a previously resolved stale entry
     bool updateEntry(MetaEntryPtr stale_entry);
@@ -122,14 +174,15 @@ class HttpMetaCache : public QObject {
 
     QString getBasePath(QString base);
 
-   public slots:
+public slots:
     void SaveNow();
 
-   private:
+private:
     // create a new stale entry, given the parameters
     MetaEntryPtr staleEntry(QString base, QString resource_path);
 
-    struct EntryMap {
+    struct EntryMap
+    {
         QString base_path;
         QMap<QString, MetaEntryPtr> entry_list;
     };

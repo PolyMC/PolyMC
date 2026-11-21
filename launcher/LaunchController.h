@@ -42,44 +42,52 @@
 #include "minecraft/auth/MinecraftAccount.h"
 
 class InstanceWindow;
-class LaunchController: public Task
+class LaunchController : public Task
 {
     Q_OBJECT
 public:
     void executeTask() override;
 
-    LaunchController(QObject * parent = nullptr);
-    virtual ~LaunchController(){};
+    LaunchController(QObject* parent = nullptr);
+    virtual ~LaunchController() {};
 
-    void setInstance(InstancePtr instance) {
+    void setInstance(InstancePtr instance)
+    {
         m_instance = instance;
     }
 
-    InstancePtr instance() {
+    InstancePtr instance()
+    {
         return m_instance;
     }
 
-    void setOnline(bool online) {
+    void setOnline(bool online)
+    {
         m_online = online;
     }
 
-    void setDemo(bool demo) {
+    void setDemo(bool demo)
+    {
         m_demo = demo;
     }
 
-    void setProfiler(BaseProfilerFactory *profiler) {
+    void setProfiler(BaseProfilerFactory* profiler)
+    {
         m_profiler = profiler;
     }
 
-    void setParentWidget(QWidget * widget) {
+    void setParentWidget(QWidget* widget)
+    {
         m_parentWidget = widget;
     }
 
-    void setServerToJoin(MinecraftServerTargetPtr serverToJoin) {
+    void setServerToJoin(MinecraftServerTargetPtr serverToJoin)
+    {
         m_serverToJoin = std::move(serverToJoin);
     }
 
-    void setAccountToUse(MinecraftAccountPtr accountToUse) {
+    void setAccountToUse(MinecraftAccountPtr accountToUse)
+    {
         m_accountToUse = std::move(accountToUse);
     }
 
@@ -100,15 +108,15 @@ private slots:
 
     void onSucceeded();
     void onFailed(QString reason);
-    void onProgressRequested(Task *task);
+    void onProgressRequested(Task* task);
 
 private:
-    BaseProfilerFactory *m_profiler = nullptr;
+    BaseProfilerFactory* m_profiler = nullptr;
     bool m_online = true;
     bool m_demo = false;
     InstancePtr m_instance;
-    QWidget * m_parentWidget = nullptr;
-    InstanceWindow *m_console = nullptr;
+    QWidget* m_parentWidget = nullptr;
+    InstanceWindow* m_console = nullptr;
     MinecraftAccountPtr m_accountToUse = nullptr;
     AuthSessionPtr m_session;
     shared_qobject_ptr<LaunchTask> m_launcher;

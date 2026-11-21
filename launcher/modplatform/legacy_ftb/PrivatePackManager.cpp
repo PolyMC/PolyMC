@@ -39,27 +39,30 @@
 
 #include "FileSystem.h"
 
-namespace LegacyFTB {
+namespace LegacyFTB
+{
 
 void PrivatePackManager::load()
 {
     try
     {
-        auto foo = QString::fromUtf8(FS::read(m_filename)).split('\n', Qt::SkipEmptyParts);
+        auto foo = QString::fromUtf8(FS::read(m_filename))
+                       .split('\n', Qt::SkipEmptyParts);
         currentPacks = QSet<QString>(foo.begin(), foo.end());
 
         dirty = false;
     }
-    catch(...)
+    catch (...)
     {
         currentPacks = {};
-        qWarning() << "Failed to read third party FTB pack codes from" << m_filename;
+        qWarning() << "Failed to read third party FTB pack codes from"
+                   << m_filename;
     }
 }
 
 void PrivatePackManager::save() const
 {
-    if(!dirty)
+    if (!dirty)
     {
         return;
     }
@@ -69,10 +72,11 @@ void PrivatePackManager::save() const
         FS::write(m_filename, list.join('\n').toUtf8());
         dirty = false;
     }
-    catch(...)
+    catch (...)
     {
-        qWarning() << "Failed to write third party FTB pack codes to" << m_filename;
+        qWarning() << "Failed to write third party FTB pack codes to"
+                   << m_filename;
     }
 }
 
-}
+}  // namespace LegacyFTB

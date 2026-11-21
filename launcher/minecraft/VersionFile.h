@@ -58,8 +58,9 @@ class VersionFile : public ProblemContainer
 {
     friend class MojangVersionFormat;
     friend class OneSixVersionFormat;
+
 public: /* methods */
-    void applyTo(LaunchProfile* profile, const RuntimeContext & runtimeContext);
+    void applyTo(LaunchProfile* profile, const RuntimeContext& runtimeContext);
 
 public: /* data */
     /// PolyMC: order hint for this version file if no explicit order is set
@@ -89,7 +90,8 @@ public: /* data */
     /// PolyMC: class to launch legacy Minecraft with (embed in a custom window)
     QString appletClass;
 
-    /// Mojang: Minecraft launch arguments (may contain placeholders for variable substitution)
+    /// Mojang: Minecraft launch arguments (may contain placeholders for
+    /// variable substitution)
     QString minecraftArguments;
 
     /// PolyMC: Additional JVM launch arguments
@@ -116,7 +118,8 @@ public: /* data */
     /// Mojang: list of libraries to add to the version
     QList<LibraryPtr> libraries;
 
-    /// PolyMC: list of maven files to put in the libraries folder, but not in classpath
+    /// PolyMC: list of maven files to put in the libraries folder, but not in
+    /// classpath
     QList<LibraryPtr> mavenFiles;
 
     /// PolyMC: list of agents to add to JVM arguments
@@ -125,7 +128,8 @@ public: /* data */
     /// The main jar (Minecraft version library, normally)
     LibraryPtr mainJar;
 
-    /// PolyMC: list of attached traits of this version file - used to enable features
+    /// PolyMC: list of attached traits of this version file - used to enable
+    /// features
     QSet<QString> traits;
 
     /// PolyMC: list of jar mods added to this version
@@ -146,14 +150,15 @@ public: /* data */
      */
     Meta::RequireSet conflicts;
 
-    /// is volatile -- may be removed as soon as it is no longer needed by something else
+    /// is volatile -- may be removed as soon as it is no longer needed by
+    /// something else
     bool m_volatile = false;
 
 public:
-    // Mojang: DEPRECATED list of 'downloads' - client jar, server jar, windows server exe, maybe more.
-    QMap <QString, std::shared_ptr<MojangDownloadInfo>> mojangDownloads;
+    // Mojang: DEPRECATED list of 'downloads' - client jar, server jar, windows
+    // server exe, maybe more.
+    QMap<QString, std::shared_ptr<MojangDownloadInfo>> mojangDownloads;
 
     // Mojang: extended asset index download information
     std::shared_ptr<MojangAssetIndexInfo> mojangAssetIndex;
 };
-

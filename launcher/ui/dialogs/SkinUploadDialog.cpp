@@ -60,17 +60,19 @@ void SkinUploadDialog::on_buttonBox_accepted()
     ProgressDialog prog(this);
     SequentialTask skinUpload;
 
-    if (!input.isEmpty()) {
-        QRegularExpression urlPrefixMatcher(QRegularExpression::anchoredPattern("^([a-z]+)://.+$"));
+    if (!input.isEmpty())
+    {
+        QRegularExpression urlPrefixMatcher(
+            QRegularExpression::anchoredPattern("^([a-z]+)://.+$"));
         bool isLocalFile = false;
         // it has an URL prefix -> it is an URL
-        if(urlPrefixMatcher.match(input).hasMatch())
+        if (urlPrefixMatcher.match(input).hasMatch())
         {
             QUrl fileURL = input;
-            if(fileURL.isValid())
+            if (fileURL.isValid())
             {
                 // local?
-                if(fileURL.isLocalFile())
+                if (fileURL.isLocalFile())
                 {
                     isLocalFile = true;
                     fileName = fileURL.toLocalFile();
@@ -78,11 +80,11 @@ void SkinUploadDialog::on_buttonBox_accepted()
                 else
                 {
                     CustomMessageBox::selectable(
-                        this,
-                        tr("Skin Upload"),
-                        tr("Using remote URLs for setting skins is not implemented yet."),
-                        QMessageBox::Warning
-                        )->exec();
+                        this, tr("Skin Upload"),
+                        tr("Using remote URLs for setting skins is not "
+                           "implemented yet."),
+                        QMessageBox::Warning)
+                        ->exec();
                     close();
                     return;
                 }
@@ -90,11 +92,10 @@ void SkinUploadDialog::on_buttonBox_accepted()
             else
             {
                 CustomMessageBox::selectable(
-                    this,
-                    tr("Skin Upload"),
+                    this, tr("Skin Upload"),
                     tr("You cannot use an invalid URL for uploading skins."),
-                    QMessageBox::Warning
-                    )->exec();
+                    QMessageBox::Warning)
+                    ->exec();
                 close();
                 return;
             }
@@ -107,7 +108,10 @@ void SkinUploadDialog::on_buttonBox_accepted()
         }
         if (isLocalFile && !QFile::exists(fileName))
         {
-            CustomMessageBox::selectable(this, tr("Skin Upload"), tr("Skin file does not exist!"), QMessageBox::Warning)->exec();
+            CustomMessageBox::selectable(this, tr("Skin Upload"),
+                                         tr("Skin file does not exist!"),
+                                         QMessageBox::Warning)
+                ->exec();
             close();
             return;
         }
@@ -120,7 +124,8 @@ void SkinUploadDialog::on_buttonBox_accepted()
         {
             model = SkinUpload::ALEX;
         }
-        // FS::read() throws when the file can't be read, for example when it's a folder or locked
+        // FS::read() throws when the file can't be read, for example when it's
+        // a folder or locked
         QByteArray skinData;
         try
         {
@@ -128,31 +133,43 @@ void SkinUploadDialog::on_buttonBox_accepted()
         }
         catch (const FS::FileSystemException&)
         {
-            CustomMessageBox::selectable(this, tr("Skin Upload"), tr("Skin file could not be read!"), QMessageBox::Warning)->exec();
+            CustomMessageBox::selectable(this, tr("Skin Upload"),
+                                         tr("Skin file could not be read!"),
+                                         QMessageBox::Warning)
+                ->exec();
             close();
             return;
         }
-        skinUpload.addTask(shared_qobject_ptr<SkinUpload>(new SkinUpload(this, m_acct->accessToken(), skinData, model)));
+        skinUpload.addTask(shared_qobject_ptr<SkinUpload>(
+            new SkinUpload(this, m_acct->accessToken(), skinData, model)));
     }
 
     auto selectedCape = ui->capeCombo->currentData().toString();
-    if(selectedCape != m_acct->accountData()->minecraftProfile.currentCape) {
-        skinUpload.addTask(shared_qobject_ptr<CapeChange>(new CapeChange(this, m_acct->accessToken(), selectedCape)));
+    if (selectedCape != m_acct->accountData()->minecraftProfile.currentCape)
+    {
+        skinUpload.addTask(shared_qobject_ptr<CapeChange>(
+            new CapeChange(this, m_acct->accessToken(), selectedCape)));
     }
     if (prog.execWithTask(&skinUpload) != QDialog::Accepted)
     {
-        CustomMessageBox::selectable(this, tr("Skin Upload"), tr("Failed to upload skin!"), QMessageBox::Warning)->exec();
+        CustomMessageBox::selectable(this, tr("Skin Upload"),
+                                     tr("Failed to upload skin!"),
+                                     QMessageBox::Warning)
+            ->exec();
         close();
         return;
     }
-    CustomMessageBox::selectable(this, tr("Skin Upload"), tr("Success"), QMessageBox::Information)->exec();
+    CustomMessageBox::selectable(this, tr("Skin Upload"), tr("Success"),
+                                 QMessageBox::Information)
+        ->exec();
     close();
 }
 
 void SkinUploadDialog::on_skinBrowseBtn_clicked()
 {
     auto filter = QMimeDatabase().mimeTypeForName("image/png").filterString();
-    QString raw_path = QFileDialog::getOpenFileName(this, tr("Select Skin Texture"), QString(), filter);
+    QString raw_path = QFileDialog::getOpenFileName(
+        this, tr("Select Skin Texture"), QString(), filter);
     if (raw_path.isEmpty() || !QFileInfo::exists(raw_path))
     {
         return;
@@ -161,37 +178,43 @@ void SkinUploadDialog::on_skinBrowseBtn_clicked()
     ui->skinPathTextBox->setText(cooked_path);
 }
 
-SkinUploadDialog::SkinUploadDialog(MinecraftAccountPtr acct, QWidget *parent)
-    :QDialog(parent), m_acct(acct), ui(new Ui::SkinUploadDialog)
+SkinUploadDialog::SkinUploadDialog(MinecraftAccountPtr acct, QWidget* parent)
+    : QDialog(parent), m_acct(acct), ui(new Ui::SkinUploadDialog)
 {
     ui->setupUi(this);
 
     // FIXME: add a model for this, download/refresh the capes on demand
-    auto &accountData = *acct->accountData();
+    auto& accountData = *acct->accountData();
     int index = 0;
     ui->capeCombo->addItem(tr("No Cape"), QVariant());
     auto currentCape = accountData.minecraftProfile.currentCape;
-    if(currentCape.isEmpty()) {
+    if (currentCape.isEmpty())
+    {
         ui->capeCombo->setCurrentIndex(index);
     }
 
-    for(auto & cape: accountData.minecraftProfile.capes) {
+    for (auto& cape : accountData.minecraftProfile.capes)
+    {
         index++;
-        if(cape.data.size()) {
+        if (cape.data.size())
+        {
             QPixmap capeImage;
-            if(capeImage.loadFromData(cape.data, "PNG")) {
+            if (capeImage.loadFromData(cape.data, "PNG"))
+            {
                 QPixmap preview = QPixmap(10, 16);
                 QPainter painter(&preview);
                 painter.drawPixmap(0, 0, capeImage.copy(1, 1, 10, 16));
                 ui->capeCombo->addItem(capeImage, cape.alias, cape.id);
-                if(currentCape == cape.id) {
+                if (currentCape == cape.id)
+                {
                     ui->capeCombo->setCurrentIndex(index);
                 }
                 continue;
             }
         }
         ui->capeCombo->addItem(cape.alias, cape.id);
-        if(currentCape == cape.id) {
+        if (currentCape == cape.id)
+        {
             ui->capeCombo->setCurrentIndex(index);
         }
     }

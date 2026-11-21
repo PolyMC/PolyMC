@@ -49,8 +49,9 @@ class FlamePage;
 
 class NewInstanceDialog;
 
-namespace Flame {
-    class ListModel;
+namespace Flame
+{
+class ListModel;
 }
 
 class FlamePage : public QWidget, public BasePage
@@ -58,7 +59,7 @@ class FlamePage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit FlamePage(NewInstanceDialog* dialog, QWidget *parent = 0);
+    explicit FlamePage(NewInstanceDialog* dialog, QWidget* parent = 0);
     virtual ~FlamePage();
     virtual QString displayName() const override
     {
@@ -83,7 +84,7 @@ public:
 
     void openedImpl() override;
 
-    bool eventFilter(QObject * watched, QEvent * event) override;
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:
     void suggestCurrent();
@@ -94,7 +95,7 @@ private slots:
     void onVersionSelectionChanged(QString newData);
 
 private:
-    Ui::FlamePage *ui = nullptr;
+    Ui::FlamePage* ui = nullptr;
     NewInstanceDialog* dialog = nullptr;
     Flame::ListModel* listModel = nullptr;
     Flame::IndexedPack current;

@@ -55,7 +55,7 @@ class AccountListPage : public QMainWindow, public BasePage
 {
     Q_OBJECT
 public:
-    explicit AccountListPage(QWidget *parent = 0);
+    explicit AccountListPage(QWidget* parent = 0);
     ~AccountListPage();
 
     QString displayName() const override
@@ -65,7 +65,7 @@ public:
     QIcon icon() const override
     {
         auto icon = APPLICATION->getThemedIcon("accounts");
-        if(icon.isNull())
+        if (icon.isNull())
         {
             icon = APPLICATION->getThemedIcon("noaccount");
         }
@@ -98,11 +98,11 @@ public slots:
     void updateButtonStates();
 
 protected slots:
-    void ShowContextMenu(const QPoint &pos);
+    void ShowContextMenu(const QPoint& pos);
 
 private:
-    void changeEvent(QEvent * event) override;
-    QMenu * createPopupMenu() override;
+    void changeEvent(QEvent* event) override;
+    QMenu* createPopupMenu() override;
     shared_qobject_ptr<AccountList> m_accounts;
-    Ui::AccountListPage *ui;
+    Ui::AccountListPage* ui;
 };

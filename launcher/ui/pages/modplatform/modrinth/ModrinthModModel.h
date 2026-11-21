@@ -20,25 +20,33 @@
 
 #include "ModrinthModPage.h"
 
-namespace Modrinth {
+namespace Modrinth
+{
 
-class ListModel : public ModPlatform::ListModel {
+class ListModel : public ModPlatform::ListModel
+{
     Q_OBJECT
 
-   public:
-    ListModel(ModrinthModPage* parent) : ModPlatform::ListModel(parent){};
+public:
+    ListModel(ModrinthModPage* parent) : ModPlatform::ListModel(parent) {};
     ~ListModel() override = default;
 
-   private:
-    void loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj) override;
-    void loadExtraPackInfo(ModPlatform::IndexedPack& m, QJsonObject& obj) override;
-    void loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray& arr) override;
-    
+private:
+    void loadIndexedPack(ModPlatform::IndexedPack& m,
+                         QJsonObject& obj) override;
+    void loadExtraPackInfo(ModPlatform::IndexedPack& m,
+                           QJsonObject& obj) override;
+    void loadIndexedPackVersions(ModPlatform::IndexedPack& m,
+                                 QJsonArray& arr) override;
+
     QJsonArray documentToArray(QJsonDocument& obj) const override;
 
     // NOLINTNEXTLINE(modernize-avoid-c-arrays)
     static const char* sorts[5];
-    inline const char** getSorts() const override { return sorts; };
+    inline const char** getSorts() const override
+    {
+        return sorts;
+    };
 };
 
 }  // namespace Modrinth

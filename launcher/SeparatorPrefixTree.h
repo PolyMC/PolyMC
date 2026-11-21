@@ -19,17 +19,17 @@ public:
 
     void insert(QStringList paths)
     {
-        for(auto &path: paths)
+        for (auto& path : paths)
         {
             insert(path);
         }
     }
 
     /// insert an exact path into the tree
-    SeparatorPrefixTree & insert(QString path)
+    SeparatorPrefixTree& insert(QString path)
     {
         auto sepIndex = path.indexOf(Tseparator);
-        if(sepIndex == -1)
+        if (sepIndex == -1)
         {
             children[path] = SeparatorPrefixTree(true);
             return children[path];
@@ -37,7 +37,7 @@ public:
         else
         {
             auto prefix = path.left(sepIndex);
-            if(!children.contains(prefix))
+            if (!children.contains(prefix))
             {
                 children[prefix] = SeparatorPrefixTree(false);
             }
@@ -52,19 +52,21 @@ public:
         return node != nullptr;
     }
 
-    /// does the tree cover a path? That means the prefix of the path is contained in the tree
+    /// does the tree cover a path? That means the prefix of the path is
+    /// contained in the tree
     bool covers(QString path) const
     {
-        // if we found some valid node, it's good enough. the tree covers the path
-        if(m_contained)
+        // if we found some valid node, it's good enough. the tree covers the
+        // path
+        if (m_contained)
         {
             return true;
         }
         auto sepIndex = path.indexOf(Tseparator);
-        if(sepIndex == -1)
+        if (sepIndex == -1)
         {
             auto found = children.find(path);
-            if(found == children.end())
+            if (found == children.end())
             {
                 return false;
             }
@@ -74,7 +76,7 @@ public:
         {
             auto prefix = path.left(sepIndex);
             auto found = children.find(prefix);
-            if(found == children.end())
+            if (found == children.end())
             {
                 return false;
             }
@@ -85,55 +87,61 @@ public:
     /// return the contained path that covers the path specified
     QString cover(QString path) const
     {
-        // if we found some valid node, it's good enough. the tree covers the path
-        if(m_contained)
+        // if we found some valid node, it's good enough. the tree covers the
+        // path
+        if (m_contained)
         {
             return QString("");
         }
         auto sepIndex = path.indexOf(Tseparator);
-        if(sepIndex == -1)
+        if (sepIndex == -1)
         {
             auto found = children.find(path);
-            if(found == children.end())
+            if (found == children.end())
             {
                 return QString();
             }
             auto nested = (*found).cover(QString());
-            if(nested.isNull())
+            if (nested.isNull())
             {
                 return nested;
             }
-            if(nested.isEmpty())
+            if (nested.isEmpty())
+            {
                 return path;
+            }
             return path + Tseparator + nested;
         }
         else
         {
             auto prefix = path.left(sepIndex);
             auto found = children.find(prefix);
-            if(found == children.end())
+            if (found == children.end())
             {
                 return QString();
             }
             auto nested = (*found).cover(path.mid(sepIndex + 1));
-            if(nested.isNull())
+            if (nested.isNull())
             {
                 return nested;
             }
-            if(nested.isEmpty())
+            if (nested.isEmpty())
+            {
                 return prefix;
+            }
             return prefix + Tseparator + nested;
         }
     }
 
-    /// Does the path-specified node exist in the tree? It does not have to be contained.
+    /// Does the path-specified node exist in the tree? It does not have to be
+    /// contained.
     bool exists(QString path) const
     {
         auto sepIndex = path.indexOf(Tseparator);
-        if(sepIndex == -1)
+        if (sepIndex == -1)
         {
             auto found = children.find(path);
-            if(found == children.end())
+            if (found == children.end())
             {
                 return false;
             }
@@ -143,7 +151,7 @@ public:
         {
             auto prefix = path.left(sepIndex);
             auto found = children.find(prefix);
-            if(found == children.end())
+            if (found == children.end())
             {
                 return false;
             }
@@ -152,13 +160,13 @@ public:
     }
 
     /// find a node in the tree by name
-    const SeparatorPrefixTree * find(QString path) const
+    const SeparatorPrefixTree* find(QString path) const
     {
         auto sepIndex = path.indexOf(Tseparator);
-        if(sepIndex == -1)
+        if (sepIndex == -1)
         {
             auto found = children.find(path);
-            if(found == children.end())
+            if (found == children.end())
             {
                 return nullptr;
             }
@@ -168,7 +176,7 @@ public:
         {
             auto prefix = path.left(sepIndex);
             auto found = children.find(prefix);
-            if(found == children.end())
+            if (found == children.end())
             {
                 return nullptr;
             }
@@ -205,15 +213,15 @@ public:
         QStringList collected;
         // collecting these is more expensive.
         auto iter = children.begin();
-        while(iter != children.end())
+        while (iter != children.end())
         {
             QStringList list = iter.value().toStringList();
-            for(int i = 0; i < list.size(); i++)
+            for (int i = 0; i < list.size(); i++)
             {
                 list[i] = iter.key() + Tseparator + list[i];
             }
             collected.append(list);
-            if((*iter).m_contained)
+            if ((*iter).m_contained)
             {
                 collected.append(iter.key());
             }
@@ -221,6 +229,7 @@ public:
         }
         return collected;
     }
+
 private:
     enum Removal
     {
@@ -230,16 +239,16 @@ private:
     };
     Removal removeInternal(QString path = QString())
     {
-        if(path.isEmpty())
+        if (path.isEmpty())
         {
-            if(!m_contained)
+            if (!m_contained)
             {
                 // remove all children - we are removing a prefix
                 clear();
                 return Succeeded;
             }
             m_contained = false;
-            if(children.size())
+            if (children.size())
             {
                 return HasChildren;
             }
@@ -248,11 +257,11 @@ private:
         Removal remStatus = Failed;
         QString childToRemove;
         auto sepIndex = path.indexOf(Tseparator);
-        if(sepIndex == -1)
+        if (sepIndex == -1)
         {
             childToRemove = path;
             auto found = children.find(childToRemove);
-            if(found == children.end())
+            if (found == children.end())
             {
                 return Failed;
             }
@@ -262,7 +271,7 @@ private:
         {
             childToRemove = path.left(sepIndex);
             auto found = children.find(childToRemove);
-            if(found == children.end())
+            if (found == children.end())
             {
                 return Failed;
             }
@@ -278,11 +287,11 @@ private:
             case Succeeded:
             {
                 children.remove(childToRemove);
-                if(m_contained)
+                if (m_contained)
                 {
                     return HasChildren;
                 }
-                if(children.size())
+                if (children.size())
                 {
                     return HasChildren;
                 }
@@ -293,6 +302,6 @@ private:
     }
 
 private:
-    QMap<QString,SeparatorPrefixTree<Tseparator>> children;
+    QMap<QString, SeparatorPrefixTree<Tseparator>> children;
     bool m_contained = false;
 };

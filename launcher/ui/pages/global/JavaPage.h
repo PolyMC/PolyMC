@@ -54,7 +54,7 @@ class JavaPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit JavaPage(QWidget *parent = 0);
+    explicit JavaPage(QWidget* parent = 0);
     ~JavaPage();
 
     QString displayName() const override
@@ -80,8 +80,7 @@ private:
     void applySettings();
     void loadSettings();
 
-private
-slots:
+private slots:
     void on_javaDetectBtn_clicked();
     void on_javaTestBtn_clicked();
     void on_javaBrowseBtn_clicked();
@@ -90,6 +89,6 @@ slots:
     void normalizeMemory();
 
 private:
-    Ui::JavaPage *ui;
+    Ui::JavaPage* ui;
     unique_qobject_ptr<JavaCommon::TestCheck> checker;
 };

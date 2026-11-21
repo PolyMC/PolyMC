@@ -20,11 +20,11 @@
 
 #include <launch/LaunchStep.h>
 
-class QuitAfterGameStop: public LaunchStep
+class QuitAfterGameStop : public LaunchStep
 {
     Q_OBJECT
 public:
-    explicit QuitAfterGameStop(LaunchTask *parent) :LaunchStep(parent){};
+    explicit QuitAfterGameStop(LaunchTask* parent) : LaunchStep(parent) {};
     virtual ~QuitAfterGameStop() {};
 
     virtual void executeTask();

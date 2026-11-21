@@ -28,20 +28,22 @@ public:
     /*!
      * Constructs an empty news entry.
      */
-    explicit NewsEntry(QObject* parent=0);
+    explicit NewsEntry(QObject* parent = 0);
 
     /*!
      * Constructs a new news entry.
      * Note that content may contain HTML.
      */
-    NewsEntry(const QString& title, const QString& content, const QString& link, QObject* parent=0);
+    NewsEntry(const QString& title, const QString& content, const QString& link,
+              QObject* parent = 0);
 
     /*!
-     * Attempts to load information from the given XML element into the given news entry pointer.
-     * If this fails, the function will return false and store an error message in the errorMsg pointer.
+     * Attempts to load information from the given XML element into the given
+     * news entry pointer. If this fails, the function will return false and
+     * store an error message in the errorMsg pointer.
      */
-    static bool fromXmlElement(const QDomElement& element, NewsEntry* entry, QString* errorMsg=0);
-
+    static bool fromXmlElement(const QDomElement& element, NewsEntry* entry,
+                               QString* errorMsg = 0);
 
     //! The post title.
     QString title;
@@ -54,4 +56,3 @@ public:
 };
 
 typedef std::shared_ptr<NewsEntry> NewsEntryPtr;
-

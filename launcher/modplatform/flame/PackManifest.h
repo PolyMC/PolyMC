@@ -46,7 +46,8 @@ namespace Flame
 struct File
 {
     // NOTE: throws JSONValidationError
-    bool parseFromObject(const QJsonObject& object, bool throw_on_blocked = true);
+    bool parseFromObject(const QJsonObject& object,
+                         bool throw_on_blocked = true);
 
     int projectId = 0;
     int fileId = 0;
@@ -94,12 +95,12 @@ struct Manifest
     QString name;
     QString version;
     QString author;
-    //File id -> File
-    QMap<int,Flame::File> files;
+    // File id -> File
+    QMap<int, Flame::File> files;
     QString overrides;
 
     bool is_loaded = false;
 };
 
-void loadManifest(Flame::Manifest & m, const QString &filepath);
-}
+void loadManifest(Flame::Manifest& m, const QString& filepath);
+}  // namespace Flame

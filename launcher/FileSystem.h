@@ -41,11 +41,15 @@
 #include <QDir>
 #include <QFlags>
 
-namespace FS {
+namespace FS
+{
 
-class FileSystemException : public ::Exception {
-   public:
-    FileSystemException(const QString& message) : Exception(message) {}
+class FileSystemException : public ::Exception
+{
+public:
+    FileSystemException(const QString& message) : Exception(message)
+    {
+    }
 };
 
 /**
@@ -81,8 +85,9 @@ bool ensureFolderPathExists(const QFileInfo folderPath);
  */
 bool ensureFolderPathExists(const QString folderPathName);
 
-class copy {
-   public:
+class copy
+{
+public:
     copy(const QString& src, const QString& dst)
     {
         m_src.setPath(src);
@@ -98,12 +103,15 @@ class copy {
         m_blacklist = filter;
         return *this;
     }
-    bool operator()() { return operator()(QString()); }
+    bool operator()()
+    {
+        return operator()(QString());
+    }
 
-   private:
+private:
     bool operator()(const QString& offset);
 
-   private:
+private:
     bool m_followSymlinks = true;
     const IPathMatcher* m_blacklist = nullptr;
     QDir m_src;
@@ -118,16 +126,19 @@ bool deletePath(QString path);
 /**
  * Trash a folder / file
  */
-bool trash(QString path, QString *pathInTrash);
+bool trash(QString path, QString* pathInTrash);
 
 QString PathCombine(const QString& path1, const QString& path2);
-QString PathCombine(const QString& path1, const QString& path2, const QString& path3);
-QString PathCombine(const QString& path1, const QString& path2, const QString& path3, const QString& path4);
+QString PathCombine(const QString& path1, const QString& path2,
+                    const QString& path3);
+QString PathCombine(const QString& path1, const QString& path2,
+                    const QString& path3, const QString& path4);
 
 /**
- * Check that a relative path has no parent directory references, so it can't climb out of
- * whatever folder it gets combined with. Segments made only of dots count as such a reference,
- * since Windows ignores their trailing dots and spaces.
+ * Check that a relative path has no parent directory references, so it can't
+ * climb out of whatever folder it gets combined with. Segments made only of
+ * dots count as such a reference, since Windows ignores their trailing dots and
+ * spaces.
  */
 bool isSafeRelativePath(const QString& path);
 
@@ -148,8 +159,8 @@ QString ResolveExecutable(QString path);
 /**
  * Normalize path
  *
- * Any paths inside the current directory will be normalized to relative paths (to current)
- * Other paths will be made absolute
+ * Any paths inside the current directory will be normalized to relative paths
+ * (to current) Other paths will be made absolute
  *
  * Returns false if the path logic somehow filed (and normalizedPath in invalid)
  */
@@ -165,7 +176,8 @@ bool checkProblemticPathJava(QDir folder);
 // Get the Directory representing the User's Desktop
 QString getDesktopDir();
 
-// Overrides one folder with the contents of another, preserving items exclusive to the first folder
-// Equivalent to doing QDir::rename, but allowing for overrides
+// Overrides one folder with the contents of another, preserving items exclusive
+// to the first folder Equivalent to doing QDir::rename, but allowing for
+// overrides
 bool mergeFolders(QString dstpath, QString srcpath);
-}
+}  // namespace FS

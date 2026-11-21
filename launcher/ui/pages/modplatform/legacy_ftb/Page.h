@@ -48,7 +48,8 @@
 
 class NewInstanceDialog;
 
-namespace LegacyFTB {
+namespace LegacyFTB
+{
 
 namespace Ui
 {
@@ -66,7 +67,7 @@ class Page : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit Page(NewInstanceDialog * dialog, QWidget *parent = 0);
+    explicit Page(NewInstanceDialog* dialog, QWidget* parent = 0);
     virtual ~Page();
     QString displayName() const override
     {
@@ -90,10 +91,11 @@ public:
 
 private:
     void suggestCurrent();
-    void onPackSelectionChanged(Modpack *pack = nullptr);
+    void onPackSelectionChanged(Modpack* pack = nullptr);
 
 private slots:
-    void ftbPackDataDownloadSuccessfully(ModpackList publicPacks, ModpackList thirdPartyPacks);
+    void ftbPackDataDownloadSuccessfully(ModpackList publicPacks,
+                                         ModpackList thirdPartyPacks);
     void ftbPackDataDownloadFailed(QString reason);
     void ftbPackDataDownloadAborted();
 
@@ -104,7 +106,8 @@ private slots:
     void onVersionSelectionItemChanged(QString newData);
 
     void onPublicPackSelectionChanged(QModelIndex first, QModelIndex second);
-    void onThirdPartyPackSelectionChanged(QModelIndex first, QModelIndex second);
+    void onThirdPartyPackSelectionChanged(QModelIndex first,
+                                          QModelIndex second);
     void onPrivatePackSelectionChanged(QModelIndex first, QModelIndex second);
 
     void onTabChanged(int tab);
@@ -124,18 +127,18 @@ private:
     ListModel* publicListModel = nullptr;
     FilterModel* publicFilterModel = nullptr;
 
-    ListModel *thirdPartyModel = nullptr;
-    FilterModel *thirdPartyFilterModel = nullptr;
+    ListModel* thirdPartyModel = nullptr;
+    FilterModel* thirdPartyFilterModel = nullptr;
 
-    ListModel *privateListModel = nullptr;
-    FilterModel *privateFilterModel = nullptr;
+    ListModel* privateListModel = nullptr;
+    FilterModel* privateFilterModel = nullptr;
 
     unique_qobject_ptr<PackFetchTask> ftbFetchTask;
     std::unique_ptr<PrivatePackManager> ftbPrivatePacks;
 
     NewInstanceDialog* dialog = nullptr;
 
-    Ui::Page *ui = nullptr;
+    Ui::Page* ui = nullptr;
 };
 
-}
+}  // namespace LegacyFTB

@@ -9,16 +9,19 @@
 class Exception : public std::exception
 {
 public:
-    Exception(const QString &message) : std::exception(), m_message(message), m_what(message.toUtf8())
+    Exception(const QString& message)
+        : std::exception(), m_message(message), m_what(message.toUtf8())
     {
         qCritical() << "Exception:" << message;
     }
-    Exception(const Exception &other)
+    Exception(const Exception& other)
         : std::exception(), m_message(other.cause()), m_what(other.m_what)
     {
     }
-    virtual ~Exception() noexcept {}
-    const char *what() const noexcept
+    virtual ~Exception() noexcept
+    {
+    }
+    const char* what() const noexcept
     {
         return m_what.constData();
     }

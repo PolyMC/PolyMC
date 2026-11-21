@@ -8,13 +8,15 @@
 
 class ResourceFolderModel;
 
-namespace Ui {
+namespace Ui
+{
 class ExternalResourcesPage;
 }
 
-/* This page is used as a base for pages in which the user can manage external resources
- * related to the game, such as mods, shaders or resource packs. */
-class ExternalResourcesPage : public QMainWindow, public BasePage {
+/* This page is used as a base for pages in which the user can manage external
+ * resources related to the game, such as mods, shaders or resource packs. */
+class ExternalResourcesPage : public QMainWindow, public BasePage
+{
     Q_OBJECT
 
 public:
@@ -35,7 +37,8 @@ public:
 
     void retranslate() override;
 
-    void setFilter(const QString& filter) {
+    void setFilter(const QString& filter)
+    {
         m_fileSelectionFilter = filter;
     }
 
@@ -49,7 +52,8 @@ protected:
 public slots:
     bool current(const QModelIndex& current, const QModelIndex& previous);
 
-    virtual bool onSelectionChanged(const QModelIndex& current, const QModelIndex& previous);
+    virtual bool onSelectionChanged(const QModelIndex& current,
+                                    const QModelIndex& previous);
 
 protected slots:
     void itemActivated(const QModelIndex& index);

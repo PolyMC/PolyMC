@@ -18,7 +18,8 @@ public:
     };
 
 public:
-    explicit ComponentUpdateTask(Mode mode, Net::Mode netmode, PackProfile * list, QObject *parent = 0);
+    explicit ComponentUpdateTask(Mode mode, Net::Mode netmode,
+                                 PackProfile* list, QObject* parent = 0);
     virtual ~ComponentUpdateTask();
 
 protected:
@@ -29,7 +30,8 @@ private:
     void resolveDependencies(bool checkOnly);
 
     void remoteLoadSucceeded(size_t index);
-    void remoteLoadFailed(size_t index, const QString &msg, bool canUseLocal = false);
+    void remoteLoadFailed(size_t index, const QString& msg,
+                          bool canUseLocal = false);
     void checkIfAllFinished();
 
 private:

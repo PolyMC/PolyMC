@@ -45,7 +45,7 @@ public: /* types */
 public:
     virtual ~BaseEntity();
 
-    virtual void parse(const QJsonObject &obj) = 0;
+    virtual void parse(const QJsonObject& obj) = 0;
 
     virtual QString localFilename() const = 0;
     virtual QUrl url() const;
@@ -64,4 +64,4 @@ private:
     UpdateStatus m_updateStatus = UpdateStatus::NotDone;
     NetJob::Ptr m_updateTask;
 };
-}
+}  // namespace Meta

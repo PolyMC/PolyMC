@@ -19,9 +19,10 @@ class AuthFlow : public AccountTask
     Q_OBJECT
 
 public:
-    explicit AuthFlow(AccountData * data, QObject *parent = 0);
+    explicit AuthFlow(AccountData* data, QObject* parent = 0);
 
-    Katabasis::Validity validity() {
+    Katabasis::Validity validity()
+    {
         return m_data->validity_;
     };
 

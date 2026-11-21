@@ -3,44 +3,58 @@
 #include "BaseVersion.h"
 #include "InstanceTask.h"
 
-class InstanceCreationTask : public InstanceTask {
+class InstanceCreationTask : public InstanceTask
+{
     Q_OBJECT
-   public:
+public:
     InstanceCreationTask();
     virtual ~InstanceCreationTask() = default;
 
-   protected:
+protected:
     void executeTask() final override;
 
     /**
      * Tries to update an already existing instance.
      *
-     * This can be implemented by subclasses to provide a way of updating an already existing
-     * instance, according to that implementation's concept of 'identity' (i.e. instances that
-     * are updates / downgrades of one another).
+     * This can be implemented by subclasses to provide a way of updating an
+     * already existing instance, according to that implementation's concept of
+     * 'identity' (i.e. instances that are updates / downgrades of one another).
      *
-     * If this returns true, createInstance() will not run, so you should do all update steps in here.
-     * Otherwise, createInstance() is run as normal.
+     * If this returns true, createInstance() will not run, so you should do all
+     * update steps in here. Otherwise, createInstance() is run as normal.
      */
-    virtual bool updateInstance() { return false; };
+    virtual bool updateInstance()
+    {
+        return false;
+    };
 
     /**
      * Creates a new instance.
      *
-     * Returns whether the instance creation was successful (true) or not (false).
+     * Returns whether the instance creation was successful (true) or not
+     * (false).
      */
-    virtual bool createInstance() { return false; };
+    virtual bool createInstance()
+    {
+        return false;
+    };
 
-    QString getError() const { return m_error_message; }
+    QString getError() const
+    {
+        return m_error_message;
+    }
 
-   protected:
-    void setError(QString message) { m_error_message = message; };
+protected:
+    void setError(QString message)
+    {
+        m_error_message = message;
+    };
 
-   protected:
+protected:
     bool m_abort = false;
 
     QStringList m_files_to_remove;
 
-   private:
+private:
     QString m_error_message;
 };

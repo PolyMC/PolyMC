@@ -18,16 +18,16 @@
 #include <QDomNodeList>
 #include <QVariant>
 
-NewsEntry::NewsEntry(QObject* parent) :
-    QObject(parent)
+NewsEntry::NewsEntry(QObject* parent) : QObject(parent)
 {
     this->title = tr("Untitled");
     this->content = tr("No content.");
     this->link = "";
 }
 
-NewsEntry::NewsEntry(const QString& title, const QString& content, const QString& link, QObject* parent) :
-    QObject(parent)
+NewsEntry::NewsEntry(const QString& title, const QString& content,
+                     const QString& link, QObject* parent)
+    : QObject(parent)
 {
     this->title = title;
     this->content = content;
@@ -37,7 +37,8 @@ NewsEntry::NewsEntry(const QString& title, const QString& content, const QString
 /*!
  * Gets the text content of the given child element as a QVariant.
  */
-inline QString childValue(const QDomElement& element, const QString& childName, QString defaultVal="")
+inline QString childValue(const QDomElement& element, const QString& childName,
+                          QString defaultVal = "")
 {
     QDomNodeList nodes = element.elementsByTagName(childName);
     if (nodes.count() > 0)
@@ -51,7 +52,8 @@ inline QString childValue(const QDomElement& element, const QString& childName, 
     }
 }
 
-bool NewsEntry::fromXmlElement(const QDomElement& element, NewsEntry* entry, QString* /*errorMsg*/)
+bool NewsEntry::fromXmlElement(const QDomElement& element, NewsEntry* entry,
+                               QString* /*errorMsg*/)
 {
     QString title = childValue(element, "title", tr("Untitled"));
     QString content = childValue(element, "content", tr("No content."));
@@ -62,4 +64,3 @@ bool NewsEntry::fromXmlElement(const QDomElement& element, NewsEntry* entry, QSt
     entry->link = link;
     return true;
 }
-

@@ -44,13 +44,12 @@
 
 #include "InstanceImportTask.h"
 
-
 class UrlValidator : public QValidator
 {
 public:
     using QValidator::QValidator;
 
-    State validate(QString &in, int &/*pos*/) const
+    State validate(QString& in, int& /*pos*/) const
     {
         const QUrl url(in);
         if (url.isValid() && !url.isRelative() && !url.isEmpty())
@@ -68,12 +67,13 @@ public:
     }
 };
 
-ImportPage::ImportPage(NewInstanceDialog* dialog, QWidget *parent)
+ImportPage::ImportPage(NewInstanceDialog* dialog, QWidget* parent)
     : QWidget(parent), ui(new Ui::ImportPage), dialog(dialog)
 {
     ui->setupUi(this);
     ui->modpackEdit->setValidator(new UrlValidator(ui->modpackEdit));
-    connect(ui->modpackEdit, &QLineEdit::textChanged, this, &ImportPage::updateState);
+    connect(ui->modpackEdit, &QLineEdit::textChanged, this,
+            &ImportPage::updateState);
 }
 
 ImportPage::~ImportPage()
@@ -98,41 +98,46 @@ void ImportPage::openedImpl()
 
 void ImportPage::updateState()
 {
-    if(!isOpened)
+    if (!isOpened)
     {
         return;
     }
-    if(ui->modpackEdit->hasAcceptableInput())
+    if (ui->modpackEdit->hasAcceptableInput())
     {
         QString input = ui->modpackEdit->text();
         auto url = QUrl::fromUserInput(input);
-        if(url.isLocalFile())
+        if (url.isLocalFile())
         {
-            // FIXME: actually do some validation of what's inside here... this is fake AF
+            // FIXME: actually do some validation of what's inside here... this
+            // is fake AF
             QFileInfo fi(input);
 
             // Allow non-latin people to use ZIP files!
-            bool isZip = QMimeDatabase().mimeTypeForUrl(url).suffixes().contains("zip");
+            bool isZip =
+                QMimeDatabase().mimeTypeForUrl(url).suffixes().contains("zip");
             // mrpack is a modrinth pack
             bool isMRPack = fi.suffix() == "mrpack";
 
-            if(fi.exists() && (isZip || isMRPack))
+            if (fi.exists() && (isZip || isMRPack))
             {
                 QFileInfo urlFileInfo(url.fileName());
-                dialog->setSuggestedPack(urlFileInfo.completeBaseName(), new InstanceImportTask(url,this));
+                dialog->setSuggestedPack(urlFileInfo.completeBaseName(),
+                                         new InstanceImportTask(url, this));
                 dialog->setSuggestedIcon("default");
             }
         }
         else
         {
-            if(input.endsWith("?client=y")) {
+            if (input.endsWith("?client=y"))
+            {
                 input.chop(9);
                 input.append("/file");
                 url = QUrl::fromUserInput(input);
             }
             // hook, line and sinker.
             QFileInfo fi(url.fileName());
-            dialog->setSuggestedPack(fi.completeBaseName(), new InstanceImportTask(url,this));
+            dialog->setSuggestedPack(fi.completeBaseName(),
+                                     new InstanceImportTask(url, this));
             dialog->setSuggestedIcon("default");
         }
     }
@@ -150,10 +155,12 @@ void ImportPage::setUrl(const QString& url)
 
 void ImportPage::on_modpackBtn_clicked()
 {
-    auto filter = QMimeDatabase().mimeTypeForName("application/zip").filterString();
+    auto filter =
+        QMimeDatabase().mimeTypeForName("application/zip").filterString();
     //: Option for filtering for *.mrpack files when importing
     filter += ";;" + tr("Modrinth pack") + " (*.mrpack)";
-    const QUrl url = QFileDialog::getOpenFileUrl(this, tr("Choose modpack"), modpackUrl(), filter);
+    const QUrl url = QFileDialog::getOpenFileUrl(this, tr("Choose modpack"),
+                                                 modpackUrl(), filter);
     if (url.isValid())
     {
         if (url.isLocalFile())
@@ -166,7 +173,6 @@ void ImportPage::on_modpackBtn_clicked()
         }
     }
 }
-
 
 QUrl ImportPage::modpackUrl() const
 {

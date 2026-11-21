@@ -27,7 +27,8 @@
 class MinecraftInstance;
 class DataPackPage;
 
-class WorldDataPacksDialog : public QDialog {
+class WorldDataPacksDialog : public QDialog
+{
     Q_OBJECT
 public:
     WorldDataPacksDialog(MinecraftInstance* inst, const QString& worldName,
@@ -37,6 +38,6 @@ public:
 
 private:
     const std::shared_ptr<DataPackFolderModel> m_model;
-    QVBoxLayout *m_verticalLayout;
-    DataPackPage *m_page;
+    QVBoxLayout* m_verticalLayout;
+    DataPackPage* m_page;
 };

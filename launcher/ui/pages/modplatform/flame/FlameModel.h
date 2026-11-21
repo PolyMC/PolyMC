@@ -17,8 +17,8 @@
 
 #include <modplatform/flame/FlamePackIndex.h>
 
-namespace Flame {
-
+namespace Flame
+{
 
 typedef QMap<QString, QIcon> LogoMap;
 typedef std::function<void(QString)> LogoCallback;
@@ -28,19 +28,21 @@ class ListModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    ListModel(QObject *parent);
+    ListModel(QObject* parent);
     virtual ~ListModel();
 
-    int rowCount(const QModelIndex &parent) const override;
-    int columnCount(const QModelIndex &parent) const override;
-    QVariant data(const QModelIndex &index, int role) const override;
-    bool setData(const QModelIndex &index, const QVariant &value, int role) override;
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
-    bool canFetchMore(const QModelIndex & parent) const override;
-    void fetchMore(const QModelIndex & parent) override;
+    int rowCount(const QModelIndex& parent) const override;
+    int columnCount(const QModelIndex& parent) const override;
+    QVariant data(const QModelIndex& index, int role) const override;
+    bool setData(const QModelIndex& index, const QVariant& value,
+                 int role) override;
+    Qt::ItemFlags flags(const QModelIndex& index) const override;
+    bool canFetchMore(const QModelIndex& parent) const override;
+    void fetchMore(const QModelIndex& parent) override;
 
-    void getLogo(const QString &logo, const QString &logoUrl, LogoCallback callback);
-    void searchWithTerm(const QString & term, const int sort);
+    void getLogo(const QString& logo, const QString& logoUrl,
+                 LogoCallback callback);
+    void searchWithTerm(const QString& term, const int sort);
 
 private slots:
     void performPaginatedSearch();
@@ -64,7 +66,8 @@ private:
     QString currentSearchTerm;
     int currentSort = 0;
     int nextSearchOffset = 0;
-    enum SearchState {
+    enum SearchState
+    {
         None,
         CanPossiblyFetchMore,
         ResetRequested,
@@ -74,4 +77,4 @@ private:
     QByteArray response;
 };
 
-}
+}  // namespace Flame

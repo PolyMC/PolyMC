@@ -37,7 +37,7 @@ class Version : public QObject, public BaseVersion, public BaseEntity
     Q_OBJECT
 
 public: /* con/des */
-    explicit Version(const QString &uid, const QString &version);
+    explicit Version(const QString& uid, const QString& version);
     virtual ~Version();
 
     QString descriptor() override;
@@ -61,7 +61,7 @@ public: /* con/des */
     {
         return m_time;
     }
-    const Meta::RequireSet &required() const
+    const Meta::RequireSet& required() const
     {
         return m_requires;
     }
@@ -78,20 +78,21 @@ public: /* con/des */
         return m_data != nullptr;
     }
 
-    void merge(const VersionPtr &other);
-    void mergeFromList(const VersionPtr &other);
-    void parse(const QJsonObject &obj) override;
+    void merge(const VersionPtr& other);
+    void mergeFromList(const VersionPtr& other);
+    void parse(const QJsonObject& obj) override;
 
     QString localFilename() const override;
 
-public: // for usage by format parsers only
-    void setType(const QString &type);
+public:  // for usage by format parsers only
+    void setType(const QString& type);
     void setTime(const qint64 time);
-    void setRequires(const Meta::RequireSet &required, const Meta::RequireSet &conflicts);
+    void setRequires(const Meta::RequireSet& required,
+                     const Meta::RequireSet& conflicts);
     void setVolatile(bool volatile_);
     void setRecommended(bool recommended);
     void setProvidesRecommendations();
-    void setData(const VersionFilePtr &data);
+    void setData(const VersionFilePtr& data);
 
 signals:
     void typeChanged();
@@ -111,6 +112,6 @@ private:
     bool m_volatile = false;
     VersionFilePtr m_data;
 };
-}
+}  // namespace Meta
 
 Q_DECLARE_METATYPE(Meta::VersionPtr)

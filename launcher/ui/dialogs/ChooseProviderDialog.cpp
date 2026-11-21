@@ -8,7 +8,8 @@
 
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
-ChooseProviderDialog::ChooseProviderDialog(QWidget* parent, bool single_choice, bool allow_skipping)
+ChooseProviderDialog::ChooseProviderDialog(QWidget* parent, bool single_choice,
+                                           bool allow_skipping)
     : QDialog(parent), ui(new Ui::ChooseProviderDialog)
 {
     ui->setupUi(this);
@@ -16,18 +17,24 @@ ChooseProviderDialog::ChooseProviderDialog(QWidget* parent, bool single_choice, 
     addProviders();
     m_providers.button(0)->click();
 
-    connect(ui->skipOneButton, &QPushButton::clicked, this, &ChooseProviderDialog::skipOne);
-    connect(ui->skipAllButton, &QPushButton::clicked, this, &ChooseProviderDialog::skipAll);
+    connect(ui->skipOneButton, &QPushButton::clicked, this,
+            &ChooseProviderDialog::skipOne);
+    connect(ui->skipAllButton, &QPushButton::clicked, this,
+            &ChooseProviderDialog::skipAll);
 
-    connect(ui->confirmOneButton, &QPushButton::clicked, this, &ChooseProviderDialog::confirmOne);
-    connect(ui->confirmAllButton, &QPushButton::clicked, this, &ChooseProviderDialog::confirmAll);
+    connect(ui->confirmOneButton, &QPushButton::clicked, this,
+            &ChooseProviderDialog::confirmOne);
+    connect(ui->confirmAllButton, &QPushButton::clicked, this,
+            &ChooseProviderDialog::confirmAll);
 
-    if (single_choice) {
+    if (single_choice)
+    {
         ui->providersLayout->removeWidget(ui->skipAllButton);
         ui->providersLayout->removeWidget(ui->confirmAllButton);
     }
 
-    if (!allow_skipping) {
+    if (!allow_skipping)
+    {
         ui->providersLayout->removeWidget(ui->skipOneButton);
         ui->providersLayout->removeWidget(ui->skipAllButton);
     }
@@ -77,7 +84,9 @@ void ChooseProviderDialog::addProviders()
     int btn_index = 0;
     QRadioButton* btn;
 
-    for (auto& provider : { ModPlatform::Provider::MODRINTH, ModPlatform::Provider::FLAME }) {
+    for (auto& provider :
+         {ModPlatform::Provider::MODRINTH, ModPlatform::Provider::FLAME})
+    {
         btn = new QRadioButton(ProviderCaps.readableName(provider), this);
         m_providers.addButton(btn, btn_index++);
         ui->providersLayout->addWidget(btn);
@@ -87,7 +96,9 @@ void ChooseProviderDialog::addProviders()
 void ChooseProviderDialog::disableInput()
 {
     for (auto& btn : m_providers.buttons())
+    {
         btn->setEnabled(false);
+    }
 
     ui->skipOneButton->setEnabled(false);
     ui->skipAllButton->setEnabled(false);

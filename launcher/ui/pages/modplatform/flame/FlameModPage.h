@@ -38,27 +38,51 @@
 #include "modplatform/ModAPI.h"
 #include "ui/pages/modplatform/ModPage.h"
 
-class FlameModPage : public ModPage {
+class FlameModPage : public ModPage
+{
     Q_OBJECT
 
-   public:
-    static FlameModPage* create(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance)
+public:
+    static FlameModPage* create(ModDownloadDialog* dialog,
+                                ModAPI::ResourceType type,
+                                BaseInstance* instance)
     {
         return ModPage::create<FlameModPage>(dialog, type, instance);
     }
 
-    FlameModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance);
+    FlameModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type,
+                 BaseInstance* instance);
     ~FlameModPage() override = default;
 
-    inline QString displayName() const override { return "CurseForge"; }
-    inline QIcon icon() const override { return APPLICATION->getThemedIcon("flame"); }
-    inline QString id() const override { return "curseforge"; }
-    inline QString helpPage() const override { return "Mod-platform"; }
+    inline QString displayName() const override
+    {
+        return "CurseForge";
+    }
+    inline QIcon icon() const override
+    {
+        return APPLICATION->getThemedIcon("flame");
+    }
+    inline QString id() const override
+    {
+        return "curseforge";
+    }
+    inline QString helpPage() const override
+    {
+        return "Mod-platform";
+    }
 
-    inline QString debugName() const override { return "Flame"; }
-    inline QString metaEntryBase() const override { return "FlameMods"; };
+    inline QString debugName() const override
+    {
+        return "Flame";
+    }
+    inline QString metaEntryBase() const override
+    {
+        return "FlameMods";
+    };
 
-    bool validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const override;
+    bool validateVersion(
+        ModPlatform::IndexedVersion& ver, QString mineVer,
+        ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const override;
     bool optedOut(ModPlatform::IndexedVersion& ver) const override;
 
     bool shouldDisplay() const override;

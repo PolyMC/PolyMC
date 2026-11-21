@@ -35,60 +35,79 @@
 #include "ui/pages/modplatform/modrinth/ModrinthModPage.h"
 #include "ui/widgets/PageContainer.h"
 
-ModDownloadDialog::ModDownloadDialog(const std::shared_ptr<ResourceFolderModel>& mods,
-                                     QWidget* parent, ModAPI::ResourceType type,
-                                     BaseInstance* instance)
-    : QDialog(parent), mods(mods), m_verticalLayout(new QVBoxLayout(this)), m_type(type),
-      m_typeString(m_type == ModAPI::Mod ? tr("mods") : tr("packs")), m_instance(instance) {
+ModDownloadDialog::ModDownloadDialog(
+    const std::shared_ptr<ResourceFolderModel>& mods, QWidget* parent,
+    ModAPI::ResourceType type, BaseInstance* instance)
+    : QDialog(parent),
+      mods(mods),
+      m_verticalLayout(new QVBoxLayout(this)),
+      m_type(type),
+      m_typeString(m_type == ModAPI::Mod ? tr("mods") : tr("packs")),
+      m_instance(instance)
+{
     setObjectName(QStringLiteral("ModDownloadDialog"));
     m_verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
 
-    resize(std::max(0.5 * parent->width(), 400.0), std::max(0.75 * parent->height(), 400.0));
+    resize(std::max(0.5 * parent->width(), 400.0),
+           std::max(0.75 * parent->height(), 400.0));
 
     setWindowIcon(APPLICATION->getThemedIcon("new"));
-    // NOTE: m_buttons must be initialized before PageContainer, because it indirectly accesses m_buttons through setSuggestedPack! Do not
-    // move this below.
-    m_buttons = new QDialogButtonBox(QDialogButtonBox::Help | QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    // NOTE: m_buttons must be initialized before PageContainer, because it
+    // indirectly accesses m_buttons through setSuggestedPack! Do not move this
+    // below.
+    m_buttons =
+        new QDialogButtonBox(QDialogButtonBox::Help | QDialogButtonBox::Ok |
+                             QDialogButtonBox::Cancel);
 
     m_container = new PageContainer(this);
-    m_container->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Expanding);
+    m_container->setSizePolicy(QSizePolicy::Policy::Preferred,
+                               QSizePolicy::Policy::Expanding);
     m_container->layout()->setContentsMargins(0, 0, 0, 0);
     m_verticalLayout->addWidget(m_container);
 
     m_container->addButtons(m_buttons);
 
-    connect(m_container, &PageContainer::selectedPageChanged, this, &ModDownloadDialog::selectedPageChanged);
+    connect(m_container, &PageContainer::selectedPageChanged, this,
+            &ModDownloadDialog::selectedPageChanged);
 
-    // Bonk Qt over its stupid head and make sure it understands which button is the default one...
-    // See: https://stackoverflow.com/questions/24556831/qbuttonbox-set-default-button
+    // Bonk Qt over its stupid head and make sure it understands which button is
+    // the default one... See:
+    // https://stackoverflow.com/questions/24556831/qbuttonbox-set-default-button
     auto OkButton = m_buttons->button(QDialogButtonBox::Ok);
     OkButton->setEnabled(false);
     OkButton->setDefault(true);
     OkButton->setAutoDefault(true);
     OkButton->setText(tr("Review and confirm"));
     OkButton->setShortcut(tr("Ctrl+Return"));
-    OkButton->setToolTip(tr("Opens a new popup to review your selected %1 and confirm your "
-                            "selection. Shortcut: Ctrl+Return")
-                             .arg(m_typeString));
+    OkButton->setToolTip(
+        tr("Opens a new popup to review your selected %1 and confirm your "
+           "selection. Shortcut: Ctrl+Return")
+            .arg(m_typeString));
     connect(OkButton, &QPushButton::clicked, this, &ModDownloadDialog::confirm);
 
     auto CancelButton = m_buttons->button(QDialogButtonBox::Cancel);
     CancelButton->setDefault(false);
     CancelButton->setAutoDefault(false);
-    connect(CancelButton, &QPushButton::clicked, this, &ModDownloadDialog::reject);
+    connect(CancelButton, &QPushButton::clicked, this,
+            &ModDownloadDialog::reject);
 
     auto HelpButton = m_buttons->button(QDialogButtonBox::Help);
     HelpButton->setDefault(false);
     HelpButton->setAutoDefault(false);
-    connect(HelpButton, &QPushButton::clicked, m_container, &PageContainer::help);
+    connect(HelpButton, &QPushButton::clicked, m_container,
+            &PageContainer::help);
 
     QMetaObject::connectSlotsByName(this);
     setWindowModality(Qt::WindowModal);
     setWindowTitle(dialogTitle());
 
-    restoreGeometry(QByteArray::fromBase64(APPLICATION->settings()->get("ModDownloadGeometry").toByteArray()));
+    restoreGeometry(QByteArray::fromBase64(
+        APPLICATION->settings()->get("ModDownloadGeometry").toByteArray()));
 
-    m_container->selectPage(APPLICATION->settings()->get("DefaultModPlatform").toString().toLower());
+    m_container->selectPage(APPLICATION->settings()
+                                ->get("DefaultModPlatform")
+                                .toString()
+                                .toLower());
 }
 
 QString ModDownloadDialog::dialogTitle()
@@ -98,7 +117,8 @@ QString ModDownloadDialog::dialogTitle()
 
 void ModDownloadDialog::reject()
 {
-    APPLICATION->settings()->set("ModDownloadGeometry", saveGeometry().toBase64());
+    APPLICATION->settings()->set("ModDownloadGeometry",
+                                 saveGeometry().toBase64());
     QDialog::reject();
 }
 
@@ -107,18 +127,24 @@ void ModDownloadDialog::confirm()
     auto keys = modTask.keys();
     keys.sort(Qt::CaseInsensitive);
 
-    auto confirm_dialog =
-        ReviewMessageBox::create(this, tr("Confirm %1 to download").arg(m_typeString));
-    confirm_dialog->setDescription(tr("You're about to download the following %1:").arg(m_typeString));
-    confirm_dialog->setCheckLabel(tr("Only %1 with a check will be downloaded!").arg(m_typeString));
+    auto confirm_dialog = ReviewMessageBox::create(
+        this, tr("Confirm %1 to download").arg(m_typeString));
+    confirm_dialog->setDescription(
+        tr("You're about to download the following %1:").arg(m_typeString));
+    confirm_dialog->setCheckLabel(
+        tr("Only %1 with a check will be downloaded!").arg(m_typeString));
 
-    for (auto& task : keys) {
-        confirm_dialog->appendMod({ task, modTask.find(task).value()->getFilename() });
+    for (auto& task : keys)
+    {
+        confirm_dialog->appendMod(
+            {task, modTask.find(task).value()->getFilename()});
     }
 
-    if (confirm_dialog->exec()) {
+    if (confirm_dialog->exec())
+    {
         auto deselected = confirm_dialog->deselectedMods();
-        for (const auto &name : std::as_const(deselected)) {
+        for (const auto& name : std::as_const(deselected))
+        {
             delete modTask.take(name);
         }
 
@@ -128,7 +154,8 @@ void ModDownloadDialog::confirm()
 
 void ModDownloadDialog::accept()
 {
-    APPLICATION->settings()->set("ModDownloadGeometry", saveGeometry().toBase64());
+    APPLICATION->settings()->set("ModDownloadGeometry",
+                                 saveGeometry().toBase64());
     QDialog::accept();
 }
 
@@ -138,7 +165,9 @@ QList<BasePage*> ModDownloadDialog::getPages()
 
     pages.append(ModrinthModPage::create(this, m_type, m_instance));
     if (APPLICATION->capabilities() & Application::SupportsFlame)
+    {
         pages.append(FlameModPage::create(this, m_type, m_instance));
+    }
 
     return pages;
 }
@@ -154,7 +183,9 @@ void ModDownloadDialog::addSelectedMod(QString name, ModDownloadTask* task)
 void ModDownloadDialog::removeSelectedMod(QString name)
 {
     if (modTask.contains(name))
+    {
         delete modTask.find(name).value();
+    }
     modTask.remove(name);
 
     m_buttons->button(QDialogButtonBox::Ok)->setEnabled(!modTask.isEmpty());
@@ -163,7 +194,8 @@ void ModDownloadDialog::removeSelectedMod(QString name)
 bool ModDownloadDialog::isModSelected(QString name, QString filename) const
 {
     // FIXME: Is there a way to check for versions without checking the filename
-    //        as a heuristic, other than adding such info to ModDownloadTask itself?
+    //        as a heuristic, other than adding such info to ModDownloadTask
+    //        itself?
     auto iter = modTask.find(name);
     return iter != modTask.end() && (iter.value()->getFilename() == filename);
 }
@@ -181,21 +213,28 @@ const QList<ModDownloadTask*> ModDownloadDialog::getTasks()
     return tasks;
 }
 
-void ModDownloadDialog::selectedPageChanged(BasePage* previous, BasePage* selected)
+void ModDownloadDialog::selectedPageChanged(BasePage* previous,
+                                            BasePage* selected)
 {
     // There is no previous page when the first page gets selected
     if (!previous || !selected)
+    {
         return;
+    }
 
     auto* prev_page = dynamic_cast<ModPage*>(previous);
-    if (!prev_page) {
-        qCritical() << "Page '" << previous->displayName() << "' in ModDownloadDialog is not a ModPage!";
+    if (!prev_page)
+    {
+        qCritical() << "Page '" << previous->displayName()
+                    << "' in ModDownloadDialog is not a ModPage!";
         return;
     }
 
     auto* selected_page = dynamic_cast<ModPage*>(selected);
-    if (!selected_page) {
-        qCritical() << "Page '" << selected->displayName() << "' in ModDownloadDialog is not a ModPage!";
+    if (!selected_page)
+    {
+        qCritical() << "Page '" << selected->displayName()
+                    << "' in ModDownloadDialog is not a ModPage!";
         return;
     }
 

@@ -23,7 +23,7 @@ Setting::Setting(QStringList synonyms, QVariant defVal)
 
 QVariant Setting::get() const
 {
-    SettingsObject *sbase = m_storage;
+    SettingsObject* sbase = m_storage;
     if (!sbase)
     {
         return defValue();
@@ -32,7 +32,9 @@ QVariant Setting::get() const
     {
         QVariant test = sbase->retrieveValue(*this);
         if (!test.isValid())
+        {
             return defValue();
+        }
         return test;
     }
 }

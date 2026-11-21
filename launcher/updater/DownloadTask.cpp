@@ -26,12 +26,9 @@
 namespace GoUpdate
 {
 
-DownloadTask::DownloadTask(
-    shared_qobject_ptr<QNetworkAccessManager> network,
-    Status status,
-    QString target,
-    QObject *parent
-) : Task(parent), m_updateFilesDir(target), m_network(network)
+DownloadTask::DownloadTask(shared_qobject_ptr<QNetworkAccessManager> network,
+                           Status status, QString target, QObject* parent)
+    : Task(parent), m_updateFilesDir(target), m_network(network)
 {
     m_status = status;
 
@@ -47,24 +44,33 @@ void DownloadTask::loadVersionInfo()
 {
     setStatus(tr("Loading version information..."));
 
-    NetJob *netJob = new NetJob("Version Info", m_network);
+    NetJob* netJob = new NetJob("Version Info", m_network);
 
     // Find the index URL.
-    QUrl newIndexUrl = QUrl(m_status.newRepoUrl).resolved(QString::number(m_status.newVersionId) + ".json");
+    QUrl newIndexUrl =
+        QUrl(m_status.newRepoUrl)
+            .resolved(QString::number(m_status.newVersionId) + ".json");
     qDebug() << m_status.newRepoUrl << " turns into " << newIndexUrl;
 
-    netJob->addNetAction(m_newVersionFileListDownload = Net::Download::makeByteArray(newIndexUrl, &newVersionFileListData));
+    netJob->addNetAction(
+        m_newVersionFileListDownload =
+            Net::Download::makeByteArray(newIndexUrl, &newVersionFileListData));
 
     // If we have a current version URL, get that one too.
     if (!m_status.currentRepoUrl.isEmpty())
     {
-        QUrl cIndexUrl = QUrl(m_status.currentRepoUrl).resolved(QString::number(m_status.currentVersionId) + ".json");
-        netJob->addNetAction(m_currentVersionFileListDownload = Net::Download::makeByteArray(cIndexUrl, &currentVersionFileListData));
+        QUrl cIndexUrl =
+            QUrl(m_status.currentRepoUrl)
+                .resolved(QString::number(m_status.currentVersionId) + ".json");
+        netJob->addNetAction(m_currentVersionFileListDownload =
+                                 Net::Download::makeByteArray(
+                                     cIndexUrl, &currentVersionFileListData));
         qDebug() << m_status.currentRepoUrl << " turns into " << cIndexUrl;
     }
 
     // connect signals and start the job
-    connect(netJob, &NetJob::succeeded, this, &DownloadTask::processDownloadedVersionInfo);
+    connect(netJob, &NetJob::succeeded, this,
+            &DownloadTask::processDownloadedVersionInfo);
     connect(netJob, &NetJob::failed, this, &DownloadTask::vinfoDownloadFailed);
     m_vinfoNetJob.reset(netJob);
     netJob->start();
@@ -72,8 +78,8 @@ void DownloadTask::loadVersionInfo()
 
 void DownloadTask::vinfoDownloadFailed()
 {
-    // Something failed. We really need the second download (current version info), so parse
-    // downloads anyways as long as the first one succeeded.
+    // Something failed. We really need the second download (current version
+    // info), so parse downloads anyways as long as the first one succeeded.
     if (m_newVersionFileListDownload->wasSuccessful())
     {
         processDownloadedVersionInfo();
@@ -101,13 +107,15 @@ void DownloadTask::processDownloadedVersionInfo()
     }
 
     // if we have the current version info, use it.
-    if (m_currentVersionFileListDownload && m_currentVersionFileListDownload->wasSuccessful())
+    if (m_currentVersionFileListDownload &&
+        m_currentVersionFileListDownload->wasSuccessful())
     {
         setStatus(tr("Reading file list for current version..."));
         qDebug() << "Reading file list for current version...";
         // if this fails, it's not a complete loss.
         QString versionParseError;
-        if(!parseVersionInfo( currentVersionFileListData, m_currentVersionFileList, versionParseError))
+        if (!parseVersionInfo(currentVersionFileListData,
+                              m_currentVersionFileList, versionParseError))
         {
             qDebug() << versionParseError << "This is not a fatal error.";
         }
@@ -118,30 +126,38 @@ void DownloadTask::processDownloadedVersionInfo()
     m_newVersionFileListDownload.reset();
     m_vinfoNetJob.reset();
 
-    setStatus(tr("Processing file lists - figuring out how to install the update..."));
+    setStatus(tr(
+        "Processing file lists - figuring out how to install the update..."));
 
     // make a new netjob for the actual update files
     NetJob::Ptr netJob = new NetJob("Update Files", m_network);
 
     // fill netJob and operationList
-    if (!processFileLists(m_currentVersionFileList, m_newVersionFileList, m_status.rootPath, m_updateFilesDir.path(), netJob, m_operations))
+    if (!processFileLists(m_currentVersionFileList, m_newVersionFileList,
+                          m_status.rootPath, m_updateFilesDir.path(), netJob,
+                          m_operations))
     {
         emitFailed(tr("Failed to process update lists..."));
         return;
     }
 
     // Now start the download.
-    QObject::connect(netJob.get(), &NetJob::succeeded, this, &DownloadTask::fileDownloadFinished);
-    QObject::connect(netJob.get(), &NetJob::progress, this, &DownloadTask::fileDownloadProgressChanged);
-    QObject::connect(netJob.get(), &NetJob::failed, this, &DownloadTask::fileDownloadFailed);
+    QObject::connect(netJob.get(), &NetJob::succeeded, this,
+                     &DownloadTask::fileDownloadFinished);
+    QObject::connect(netJob.get(), &NetJob::progress, this,
+                     &DownloadTask::fileDownloadProgressChanged);
+    QObject::connect(netJob.get(), &NetJob::failed, this,
+                     &DownloadTask::fileDownloadFailed);
 
-    if(netJob->size() == 1) // Translation issues... see https://github.com/MultiMC/Launcher/issues/1701
+    if (netJob->size() == 1)  // Translation issues... see
+                              // https://github.com/MultiMC/Launcher/issues/1701
     {
         setStatus(tr("Downloading one update file."));
     }
     else
     {
-        setStatus(tr("Downloading %1 update files.").arg(QString::number(netJob->size())));
+        setStatus(tr("Downloading %1 update files.")
+                      .arg(QString::number(netJob->size())));
     }
     qDebug() << "Begin downloading update files to" << m_updateFilesDir.path();
     m_filesNetJob = netJob;
@@ -174,4 +190,4 @@ OperationList DownloadTask::operations()
     return m_operations;
 }
 
-}
+}  // namespace GoUpdate

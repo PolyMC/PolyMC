@@ -30,7 +30,8 @@ public:
     /*!
      * Constructs a news reader to read from the given RSS feed URL.
      */
-    NewsChecker(shared_qobject_ptr<QNetworkAccessManager> network, const QString& feedUrl);
+    NewsChecker(shared_qobject_ptr<QNetworkAccessManager> network,
+                const QString& feedUrl);
 
     /*!
      * Returns the error message for the last time the news was loaded.
@@ -43,7 +44,8 @@ public:
      */
     bool isNewsLoaded() const;
 
-    //! True if the news is currently loading. If true, reloadNews() will do nothing.
+    //! True if the news is currently loading. If true, reloadNews() will do
+    //! nothing.
     bool isLoadingNews() const;
 
     /*!
@@ -102,4 +104,3 @@ protected slots:
     /// Emits newsLoadingFailed() and sets m_lastLoadError to the given message.
     void fail(const QString& errorMsg);
 };
-

@@ -21,18 +21,18 @@
 #include <QStringList>
 
 class LaunchTask;
-class LaunchStep: public Task
+class LaunchStep : public Task
 {
     Q_OBJECT
 public: /* methods */
-    explicit LaunchStep(LaunchTask *parent):Task(nullptr), m_parent(parent)
+    explicit LaunchStep(LaunchTask* parent) : Task(nullptr), m_parent(parent)
     {
         bind(parent);
     };
     virtual ~LaunchStep() {};
 
 private: /* methods */
-    void bind(LaunchTask *parent);
+    void bind(LaunchTask* parent);
 
 signals:
     void logLines(QStringList lines, MessageLevel::Enum level);
@@ -42,16 +42,29 @@ signals:
     void suspendStateChanged();
 
 public:
-    virtual bool canSuspend() const { return false; }
-    virtual bool isSuspended() const { return false; }
+    virtual bool canSuspend() const
+    {
+        return false;
+    }
+    virtual bool isSuspended() const
+    {
+        return false;
+    }
 
 public slots:
     virtual void proceed() {};
-    virtual bool suspend() { return false; }
-    virtual bool resume() { return false; }
-    // called in the opposite order than the Task launch(), used to clean up or otherwise undo things after the launch ends
+    virtual bool suspend()
+    {
+        return false;
+    }
+    virtual bool resume()
+    {
+        return false;
+    }
+    // called in the opposite order than the Task launch(), used to clean up or
+    // otherwise undo things after the launch ends
     virtual void finalize() {};
 
 protected: /* data */
-    LaunchTask *m_parent;
+    LaunchTask* m_parent;
 };

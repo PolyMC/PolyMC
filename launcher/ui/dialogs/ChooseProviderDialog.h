@@ -3,11 +3,13 @@
 #include <QButtonGroup>
 #include <QDialog>
 
-namespace Ui {
+namespace Ui
+{
 class ChooseProviderDialog;
 }
 
-namespace ModPlatform {
+namespace ModPlatform
+{
 enum class Provider;
 }
 
@@ -15,10 +17,12 @@ class Mod;
 class NetJob;
 class ModUpdateDialog;
 
-class ChooseProviderDialog : public QDialog {
+class ChooseProviderDialog : public QDialog
+{
     Q_OBJECT
 
-    struct Response {
+    struct Response
+    {
         bool skip_all = false;
         bool confirm_all = false;
 
@@ -27,27 +31,31 @@ class ChooseProviderDialog : public QDialog {
         ModPlatform::Provider chosen;
     };
 
-   public:
-    explicit ChooseProviderDialog(QWidget* parent, bool single_choice = false, bool allow_skipping = true);
+public:
+    explicit ChooseProviderDialog(QWidget* parent, bool single_choice = false,
+                                  bool allow_skipping = true);
     ~ChooseProviderDialog();
 
-    Response getResponse() const { return m_response; }
+    Response getResponse() const
+    {
+        return m_response;
+    }
 
     void setDescription(QString desc);
 
-   private slots:
+private slots:
     void skipOne();
     void skipAll();
     void confirmOne();
     void confirmAll();
 
-   private:
+private:
     void addProviders();
     void disableInput();
 
     ModPlatform::Provider getSelectedProvider() const;
 
-   private:
+private:
     Ui::ChooseProviderDialog* ui;
 
     QButtonGroup m_providers;

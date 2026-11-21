@@ -7,7 +7,7 @@ class AssetUpdateTask : public Task
 {
     Q_OBJECT
 public:
-    AssetUpdateTask(MinecraftInstance * inst);
+    AssetUpdateTask(MinecraftInstance* inst);
     virtual ~AssetUpdateTask();
 
     void executeTask() override;
@@ -23,6 +23,6 @@ public slots:
     bool abort() override;
 
 private:
-    MinecraftInstance *m_inst;
+    MinecraftInstance* m_inst;
     NetJob::Ptr downloadJob;
 };

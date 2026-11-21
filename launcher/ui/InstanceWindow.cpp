@@ -51,7 +51,7 @@
 
 #include "icons/IconList.h"
 
-InstanceWindow::InstanceWindow(InstancePtr instance, QWidget *parent)
+InstanceWindow::InstanceWindow(InstancePtr instance, QWidget* parent)
     : QMainWindow(parent), m_instance(instance)
 {
     setAttribute(Qt::WA_DeleteOnClose);
@@ -83,18 +83,22 @@ InstanceWindow::InstanceWindow(InstancePtr instance, QWidget *parent)
         auto btnHelp = new QPushButton();
         btnHelp->setText(tr("Help"));
         horizontalLayout->addWidget(btnHelp);
-        connect(btnHelp, &QPushButton::clicked, m_container, &PageContainer::help);
+        connect(btnHelp, &QPushButton::clicked, m_container,
+                &PageContainer::help);
 
-        auto spacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+        auto spacer = new QSpacerItem(40, 20, QSizePolicy::Expanding,
+                                      QSizePolicy::Minimum);
         horizontalLayout->addSpacerItem(spacer);
 
         m_killButton = new QPushButton();
         horizontalLayout->addWidget(m_killButton);
-        connect(m_killButton, &QPushButton::clicked, this, &InstanceWindow::on_btnKillMinecraft_clicked);
+        connect(m_killButton, &QPushButton::clicked, this,
+                &InstanceWindow::on_btnKillMinecraft_clicked);
 
         m_pauseButton = new QPushButton();
         horizontalLayout->addWidget(m_pauseButton);
-        connect(m_pauseButton, &QPushButton::clicked, this, &InstanceWindow::on_btnPauseMinecraft_clicked);
+        connect(m_pauseButton, &QPushButton::clicked, this,
+                &InstanceWindow::on_btnPauseMinecraft_clicked);
 
         m_launchOfflineButton = new QPushButton();
         horizontalLayout->addWidget(m_launchOfflineButton);
@@ -105,22 +109,27 @@ InstanceWindow::InstanceWindow(InstancePtr instance, QWidget *parent)
         m_launchDemoButton->setText(tr("Launch Demo"));
 
         updateLaunchButtons();
-        connect(m_launchOfflineButton, &QPushButton::clicked, this, &InstanceWindow::on_btnLaunchMinecraftOffline_clicked);
-        connect(m_launchDemoButton, &QPushButton::clicked, this, &InstanceWindow::on_btnLaunchMinecraftDemo_clicked);
+        connect(m_launchOfflineButton, &QPushButton::clicked, this,
+                &InstanceWindow::on_btnLaunchMinecraftOffline_clicked);
+        connect(m_launchDemoButton, &QPushButton::clicked, this,
+                &InstanceWindow::on_btnLaunchMinecraftDemo_clicked);
 
         m_closeButton = new QPushButton();
         m_closeButton->setText(tr("Close"));
         horizontalLayout->addWidget(m_closeButton);
-        connect(m_closeButton, &QPushButton::clicked, this, &InstanceWindow::on_closeButton_clicked);
+        connect(m_closeButton, &QPushButton::clicked, this,
+                &InstanceWindow::on_closeButton_clicked);
 
         m_container->addButtons(horizontalLayout);
     }
 
     // restore window state
     {
-        auto base64State = APPLICATION->settings()->get("ConsoleWindowState").toByteArray();
+        auto base64State =
+            APPLICATION->settings()->get("ConsoleWindowState").toByteArray();
         restoreState(QByteArray::fromBase64(base64State));
-        auto base64Geometry = APPLICATION->settings()->get("ConsoleWindowGeometry").toByteArray();
+        auto base64Geometry =
+            APPLICATION->settings()->get("ConsoleWindowGeometry").toByteArray();
         restoreGeometry(QByteArray::fromBase64(base64Geometry));
     }
 
@@ -128,21 +137,26 @@ InstanceWindow::InstanceWindow(InstancePtr instance, QWidget *parent)
     {
         auto launchTask = m_instance->getLaunchTask();
         instanceLaunchTaskChanged(launchTask);
-        connect(m_instance.get(), &BaseInstance::launchTaskChanged, this, &InstanceWindow::instanceLaunchTaskChanged);
-        connect(m_instance.get(), &BaseInstance::runningStatusChanged, this, &InstanceWindow::runningStateChanged);
-        connect(m_instance.get(), &BaseInstance::suspendStatusChanged, this, &InstanceWindow::updateLaunchButtons);
+        connect(m_instance.get(), &BaseInstance::launchTaskChanged, this,
+                &InstanceWindow::instanceLaunchTaskChanged);
+        connect(m_instance.get(), &BaseInstance::runningStatusChanged, this,
+                &InstanceWindow::runningStateChanged);
+        connect(m_instance.get(), &BaseInstance::suspendStatusChanged, this,
+                &InstanceWindow::updateLaunchButtons);
     }
 
     // set up instance destruction detection
     {
-        connect(m_instance.get(), &BaseInstance::statusChanged, this, &InstanceWindow::on_instanceStatusChanged);
+        connect(m_instance.get(), &BaseInstance::statusChanged, this,
+                &InstanceWindow::on_instanceStatusChanged);
     }
     show();
 }
 
-void InstanceWindow::on_instanceStatusChanged(BaseInstance::Status, BaseInstance::Status newStatus)
+void InstanceWindow::on_instanceStatusChanged(BaseInstance::Status,
+                                              BaseInstance::Status newStatus)
 {
-    if(newStatus == BaseInstance::Status::Gone)
+    if (newStatus == BaseInstance::Status::Gone)
     {
         m_doNotSave = true;
         close();
@@ -151,7 +165,7 @@ void InstanceWindow::on_instanceStatusChanged(BaseInstance::Status, BaseInstance
 
 void InstanceWindow::updateLaunchButtons()
 {
-    if(m_instance->isRunning())
+    if (m_instance->isRunning())
     {
         m_launchOfflineButton->setEnabled(false);
         m_launchDemoButton->setEnabled(false);
@@ -159,7 +173,7 @@ void InstanceWindow::updateLaunchButtons()
         m_killButton->setObjectName("killButton");
         m_killButton->setToolTip(tr("Kill the running instance"));
     }
-    else if(!m_instance->canLaunch())
+    else if (!m_instance->canLaunch())
     {
         m_launchOfflineButton->setEnabled(false);
         m_launchDemoButton->setEnabled(false);
@@ -174,7 +188,8 @@ void InstanceWindow::updateLaunchButtons()
 
         // Disable demo-mode if not available.
         auto instance = dynamic_cast<MinecraftInstance*>(m_instance.get());
-        if (instance) {
+        if (instance)
+        {
             m_launchDemoButton->setEnabled(instance->supportsDemo());
         }
 
@@ -183,7 +198,7 @@ void InstanceWindow::updateLaunchButtons()
         m_killButton->setToolTip(tr("Launch the instance"));
     }
     m_pauseButton->setVisible(m_instance->canSuspend());
-    if(m_instance->isSuspended())
+    if (m_instance->isSuspended())
     {
         m_pauseButton->setText(tr("Resume"));
         m_pauseButton->setToolTip(tr("Resume the paused instance"));
@@ -208,7 +223,8 @@ void InstanceWindow::on_btnLaunchMinecraftDemo_clicked()
     APPLICATION->launch(m_instance, false, true, nullptr);
 }
 
-void InstanceWindow::instanceLaunchTaskChanged(shared_qobject_ptr<LaunchTask> proc)
+void InstanceWindow::instanceLaunchTaskChanged(
+    shared_qobject_ptr<LaunchTask> proc)
 {
     m_proc = proc;
 }
@@ -217,7 +233,8 @@ void InstanceWindow::runningStateChanged(bool running)
 {
     updateLaunchButtons();
     m_container->refreshContainer();
-    if(running) {
+    if (running)
+    {
         selectPage("log");
     }
 }
@@ -227,23 +244,25 @@ void InstanceWindow::on_closeButton_clicked()
     close();
 }
 
-void InstanceWindow::closeEvent(QCloseEvent *event)
+void InstanceWindow::closeEvent(QCloseEvent* event)
 {
     bool proceed = true;
-    if(!m_doNotSave)
+    if (!m_doNotSave)
     {
         proceed &= m_container->prepareToClose();
     }
 
-    if(!proceed)
+    if (!proceed)
     {
-        // Close events are accepted by default, so this has to be explicit to keep the window open
+        // Close events are accepted by default, so this has to be explicit to
+        // keep the window open
         event->ignore();
         return;
     }
 
     APPLICATION->settings()->set("ConsoleWindowState", saveState().toBase64());
-    APPLICATION->settings()->set("ConsoleWindowGeometry", saveGeometry().toBase64());
+    APPLICATION->settings()->set("ConsoleWindowGeometry",
+                                 saveGeometry().toBase64());
     emit isClosing();
     event->accept();
 }
@@ -256,11 +275,11 @@ bool InstanceWindow::saveAll()
 void InstanceWindow::on_btnPauseMinecraft_clicked()
 {
     auto launchTask = m_instance->getLaunchTask();
-    if(!launchTask || !m_instance->canSuspend())
+    if (!launchTask || !m_instance->canSuspend())
     {
         return;
     }
-    if(m_instance->isSuspended())
+    if (m_instance->isSuspended())
     {
         launchTask->resume();
     }
@@ -272,7 +291,7 @@ void InstanceWindow::on_btnPauseMinecraft_clicked()
 
 void InstanceWindow::on_btnKillMinecraft_clicked()
 {
-    if(m_instance->isRunning())
+    if (m_instance->isRunning())
     {
         APPLICATION->kill(m_instance);
     }
@@ -303,7 +322,7 @@ InstanceWindow::~InstanceWindow()
 
 bool InstanceWindow::requestClose()
 {
-    if(m_container->prepareToClose())
+    if (m_container->prepareToClose())
     {
         close();
         return true;

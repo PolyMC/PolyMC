@@ -22,7 +22,7 @@ QString timeToS3Time(QDateTime time)
     int offsetMinutes = offsetAbs % 3600;
     offsetAbs -= offsetMinutes;
     offsetMinutes /= 60;
-    
+
     int offsetHours = offsetAbs / 3600;
 
     QString raw = time.toString("yyyy-MM-ddTHH:mm:ss");

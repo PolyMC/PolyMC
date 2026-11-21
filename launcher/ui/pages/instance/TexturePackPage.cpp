@@ -21,23 +21,33 @@
 #include "ui/dialogs/ModDownloadDialog.h"
 
 TexturePackPage::TexturePackPage(MinecraftInstance* instance,
-                                   std::shared_ptr<TexturePackFolderModel> model, QWidget* parent)
-    : DownloadableResourcesPage(instance, model, parent) {
+                                 std::shared_ptr<TexturePackFolderModel> model,
+                                 QWidget* parent)
+    : DownloadableResourcesPage(instance, model, parent)
+{
     ui->actionViewConfigs->setVisible(false);
 
     setupDownloadAction(tr("Download Texture Packs"),
                         tr("Download texture packs from online mod platforms"));
-    connect(ui->actionDownloadItem, &QAction::triggered, this, &TexturePackPage::installTexturePacks);
+    connect(ui->actionDownloadItem, &QAction::triggered, this,
+            &TexturePackPage::installTexturePacks);
 }
 
-void TexturePackPage::installTexturePacks() {
+void TexturePackPage::installTexturePacks()
+{
     if (!m_controlsEnabled)
+    {
         return;
+    }
     if (m_instance->typeName() != "Minecraft")
+    {
         return;  // this is a null instance or a legacy instance
+    }
 
-    ModDownloadDialog mdownload(m_model, this, ModAPI::ResourcePack, m_instance);
-    if (mdownload.exec()) {
+    ModDownloadDialog mdownload(m_model, this, ModAPI::ResourcePack,
+                                m_instance);
+    if (mdownload.exec())
+    {
         runTasks(mdownload.getTasks());
     }
 }

@@ -53,7 +53,7 @@ class ImportPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit ImportPage(NewInstanceDialog* dialog, QWidget *parent = 0);
+    explicit ImportPage(NewInstanceDialog* dialog, QWidget* parent = 0);
     virtual ~ImportPage();
     virtual QString displayName() const override
     {
@@ -74,7 +74,7 @@ public:
     virtual bool shouldDisplay() const override;
     void retranslate() override;
 
-    void setUrl(const QString & url);
+    void setUrl(const QString& url);
     void openedImpl() override;
 
 private slots:
@@ -85,7 +85,6 @@ private:
     QUrl modpackUrl() const;
 
 private:
-    Ui::ImportPage *ui = nullptr;
+    Ui::ImportPage* ui = nullptr;
     NewInstanceDialog* dialog = nullptr;
 };
-

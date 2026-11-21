@@ -41,11 +41,13 @@
 #include "modplatform/atlauncher/ATLPackIndex.h"
 #include "net/NetJob.h"
 
-namespace Ui {
+namespace Ui
+{
 class AtlOptionalModDialog;
 }
 
-class AtlOptionalModListModel : public QAbstractListModel {
+class AtlOptionalModListModel : public QAbstractListModel
+{
     Q_OBJECT
 
 public:
@@ -56,19 +58,22 @@ public:
         DescriptionColumn,
     };
 
-    AtlOptionalModListModel(QWidget *parent, ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods);
+    AtlOptionalModListModel(QWidget* parent, ATLauncher::PackVersion version,
+                            QVector<ATLauncher::VersionMod> mods);
     ~AtlOptionalModListModel() override;
 
     QVector<QString> getResult();
 
-    int rowCount(const QModelIndex &parent) const override;
-    int columnCount(const QModelIndex &parent) const override;
+    int rowCount(const QModelIndex& parent) const override;
+    int columnCount(const QModelIndex& parent) const override;
 
-    QVariant data(const QModelIndex &index, int role) const override;
-    bool setData(const QModelIndex &index, const QVariant &value, int role) override;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+    QVariant data(const QModelIndex& index, int role) const override;
+    bool setData(const QModelIndex& index, const QVariant& value,
+                 int role) override;
+    QVariant headerData(int section, Qt::Orientation orientation,
+                        int role) const override;
 
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    Qt::ItemFlags flags(const QModelIndex& index) const override;
 
     void useShareCode(const QString& code);
 
@@ -81,7 +86,8 @@ public slots:
 
 private:
     void toggleMod(ATLauncher::VersionMod mod, int index);
-    void setMod(ATLauncher::VersionMod mod, int index, bool enable, bool shouldEmit = true);
+    void setMod(ATLauncher::VersionMod mod, int index, bool enable,
+                bool shouldEmit = true);
 
 private:
     NetJob::Ptr m_jobPtr;
@@ -95,21 +101,24 @@ private:
     QMap<QString, QVector<QString>> m_dependants;
 };
 
-class AtlOptionalModDialog : public QDialog {
+class AtlOptionalModDialog : public QDialog
+{
     Q_OBJECT
 
 public:
-    AtlOptionalModDialog(QWidget *parent, ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods);
+    AtlOptionalModDialog(QWidget* parent, ATLauncher::PackVersion version,
+                         QVector<ATLauncher::VersionMod> mods);
     ~AtlOptionalModDialog() override;
 
-    QVector<QString> getResult() {
+    QVector<QString> getResult()
+    {
         return listModel->getResult();
     }
 
     void useShareCode();
 
 private:
-    Ui::AtlOptionalModDialog *ui;
+    Ui::AtlOptionalModDialog* ui;
 
-    AtlOptionalModListModel *listModel;
+    AtlOptionalModListModel* listModel;
 };

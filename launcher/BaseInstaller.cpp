@@ -20,15 +20,14 @@
 
 BaseInstaller::BaseInstaller()
 {
-
 }
 
-bool BaseInstaller::isApplied(MinecraftInstance *on)
+bool BaseInstaller::isApplied(MinecraftInstance* on)
 {
     return QFile::exists(filename(on->instanceRoot()));
 }
 
-bool BaseInstaller::add(MinecraftInstance *to)
+bool BaseInstaller::add(MinecraftInstance* to)
 {
     if (!patchesDir(to->instanceRoot()).exists())
     {
@@ -46,16 +45,16 @@ bool BaseInstaller::add(MinecraftInstance *to)
     return true;
 }
 
-bool BaseInstaller::remove(MinecraftInstance *from)
+bool BaseInstaller::remove(MinecraftInstance* from)
 {
     return QFile::remove(filename(from->instanceRoot()));
 }
 
-QString BaseInstaller::filename(const QString &root) const
+QString BaseInstaller::filename(const QString& root) const
 {
     return patchesDir(root).absoluteFilePath(id() + ".json");
 }
-QDir BaseInstaller::patchesDir(const QString &root) const
+QDir BaseInstaller::patchesDir(const QString& root) const
 {
     return QDir(root + "/patches/");
 }

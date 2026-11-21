@@ -58,8 +58,12 @@ void ImgurUpload::executeTask()
     finished = false;
     m_state = Task::State::Running;
     QNetworkRequest request(m_url);
-    request.setHeader(QNetworkRequest::UserAgentHeader, APPLICATION->getUserAgentUncached().toUtf8());
-    request.setRawHeader("Authorization", QString("Client-ID %1").arg(BuildConfig.IMGUR_CLIENT_ID).toStdString().c_str());
+    request.setHeader(QNetworkRequest::UserAgentHeader,
+                      APPLICATION->getUserAgentUncached().toUtf8());
+    request.setRawHeader("Authorization", QString("Client-ID %1")
+                                              .arg(BuildConfig.IMGUR_CLIENT_ID)
+                                              .toStdString()
+                                              .c_str());
     request.setRawHeader("Accept", "application/json");
 
     QFile f(m_shot->m_file.absoluteFilePath());
@@ -69,46 +73,57 @@ void ImgurUpload::executeTask()
         return;
     }
 
-    QHttpMultiPart *multipart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+    QHttpMultiPart* multipart =
+        new QHttpMultiPart(QHttpMultiPart::FormDataType);
     QHttpPart filePart;
     filePart.setBody(f.readAll().toBase64());
     filePart.setHeader(QNetworkRequest::ContentTypeHeader, "image/png");
-    filePart.setHeader(QNetworkRequest::ContentDispositionHeader, "form-data; name=\"image\"");
+    filePart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                       "form-data; name=\"image\"");
     multipart->append(filePart);
     QHttpPart typePart;
-    typePart.setHeader(QNetworkRequest::ContentDispositionHeader, "form-data; name=\"type\"");
+    typePart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                       "form-data; name=\"type\"");
     typePart.setBody("base64");
     multipart->append(typePart);
     QHttpPart namePart;
-    namePart.setHeader(QNetworkRequest::ContentDispositionHeader, "form-data; name=\"name\"");
+    namePart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                       "form-data; name=\"name\"");
     namePart.setBody(m_shot->m_file.baseName().toUtf8());
     multipart->append(namePart);
 
-    QNetworkReply *rep = m_network->post(request, multipart);
-    // The reply needs the data until it's done, so let it own (and later delete) it
+    QNetworkReply* rep = m_network->post(request, multipart);
+    // The reply needs the data until it's done, so let it own (and later
+    // delete) it
     multipart->setParent(rep);
 
     m_reply.reset(rep);
-    connect(rep, &QNetworkReply::uploadProgress, this, &ImgurUpload::downloadProgress);
-    connect(rep, &QNetworkReply::finished, this, &ImgurUpload::downloadFinished);
-    connect(rep, &QNetworkReply::errorOccurred, this, &ImgurUpload::downloadError);
+    connect(rep, &QNetworkReply::uploadProgress, this,
+            &ImgurUpload::downloadProgress);
+    connect(rep, &QNetworkReply::finished, this,
+            &ImgurUpload::downloadFinished);
+    connect(rep, &QNetworkReply::errorOccurred, this,
+            &ImgurUpload::downloadError);
 }
 void ImgurUpload::downloadError(QNetworkReply::NetworkError /*error*/)
 {
-    qCritical() << "ImgurUpload failed with error" << m_reply->errorString() << "Server reply:\n" << m_reply->readAll();
-    if(finished)
+    qCritical() << "ImgurUpload failed with error" << m_reply->errorString()
+                << "Server reply:\n"
+                << m_reply->readAll();
+    if (finished)
     {
         qCritical() << "Double finished ImgurUpload!";
         return;
     }
-    // Don't set the state here, emitFailed() does nothing if the task isn't running anymore
+    // Don't set the state here, emitFailed() does nothing if the task isn't
+    // running anymore
     finished = true;
     m_reply.reset();
     emitFailed();
 }
 void ImgurUpload::downloadFinished()
 {
-    if(finished)
+    if (finished)
     {
         qCritical() << "Double finished ImgurUpload!";
         return;
@@ -119,7 +134,8 @@ void ImgurUpload::downloadFinished()
     QJsonDocument doc = QJsonDocument::fromJson(data, &jsonError);
     if (jsonError.error != QJsonParseError::NoError)
     {
-        qDebug() << "imgur server did not reply with JSON" << jsonError.errorString();
+        qDebug() << "imgur server did not reply with JSON"
+                 << jsonError.errorString();
         finished = true;
         m_reply.reset();
         emitFailed();
@@ -136,7 +152,8 @@ void ImgurUpload::downloadFinished()
     }
     m_shot->m_imgurId = object.value("data").toObject().value("id").toString();
     m_shot->m_url = object.value("data").toObject().value("link").toString();
-    m_shot->m_imgurDeleteHash = object.value("data").toObject().value("deletehash").toString();
+    m_shot->m_imgurDeleteHash =
+        object.value("data").toObject().value("deletehash").toString();
     m_state = Task::State::Succeeded;
     finished = true;
     emit succeeded();

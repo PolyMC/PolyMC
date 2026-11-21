@@ -10,7 +10,8 @@
 namespace GoUpdate
 {
 
-bool parseVersionInfo(const QByteArray &data, VersionFileList &list, QString &error)
+bool parseVersionInfo(const QByteArray& data, VersionFileList& list,
+                      QString& error)
 {
     QJsonParseError jsonError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(data, &jsonError);
@@ -28,25 +29,30 @@ bool parseVersionInfo(const QByteArray &data, VersionFileList &list, QString &er
     qDebug() << data;
     qDebug() << "Loading version info from JSON.";
     QJsonArray filesArray = json.value("Files").toArray();
-    for (const QJsonValue &fileValue : std::as_const(filesArray))
+    for (const QJsonValue& fileValue : std::as_const(filesArray))
     {
         QJsonObject fileObj = fileValue.toObject();
 
         QString file_path = fileObj.value("Path").toString();
 
-        VersionFileEntry file{file_path,        fileObj.value("Perms").toVariant().toInt(),
-                              FileSourceList(), fileObj.value("MD5").toString(), };
+        VersionFileEntry file{
+            file_path,
+            fileObj.value("Perms").toVariant().toInt(),
+            FileSourceList(),
+            fileObj.value("MD5").toString(),
+        };
         qDebug() << "File" << file.path << "with perms" << file.mode;
 
         QJsonArray sourceArray = fileObj.value("Sources").toArray();
-        for (const QJsonValue &val : std::as_const(sourceArray))
+        for (const QJsonValue& val : std::as_const(sourceArray))
         {
             QJsonObject sourceObj = val.toObject();
 
             QString type = sourceObj.value("SourceType").toString();
             if (type == "http")
             {
-                file.sources.append(FileSource("http", sourceObj.value("Url").toString()));
+                file.sources.append(
+                    FileSource("http", sourceObj.value("Url").toString()));
             }
             else
             {
@@ -62,53 +68,53 @@ bool parseVersionInfo(const QByteArray &data, VersionFileList &list, QString &er
     return true;
 }
 
-bool processFileLists
-(
-    const VersionFileList &currentVersion,
-    const VersionFileList &newVersion,
-    const QString &rootPath,
-    const QString &tempPath,
-    NetJob::Ptr job,
-    OperationList &ops
-)
+bool processFileLists(const VersionFileList& currentVersion,
+                      const VersionFileList& newVersion,
+                      const QString& rootPath, const QString& tempPath,
+                      NetJob::Ptr job, OperationList& ops)
 {
-    // First, if we've loaded the current version's file list, we need to iterate through it and
-    // delete anything in the current one version's list that isn't in the new version's list.
-    for (const VersionFileEntry &entry : currentVersion)
+    // First, if we've loaded the current version's file list, we need to
+    // iterate through it and delete anything in the current one version's list
+    // that isn't in the new version's list.
+    for (const VersionFileEntry& entry : currentVersion)
     {
         QFileInfo toDelete(FS::PathCombine(rootPath, entry.path));
         if (!toDelete.exists())
         {
             qCritical() << "Expected file " << toDelete.absoluteFilePath()
-                         << " doesn't exist!";
+                        << " doesn't exist!";
         }
         bool keep = false;
 
         //
-        for (const VersionFileEntry &newEntry : newVersion)
+        for (const VersionFileEntry& newEntry : newVersion)
         {
             if (newEntry.path == entry.path)
             {
                 qDebug() << "Not deleting" << entry.path
-                             << "because it is still present in the new version.";
+                         << "because it is still present in the new version.";
                 keep = true;
                 break;
             }
         }
 
-        // If the loop reaches the end and we didn't find a match, delete the file.
+        // If the loop reaches the end and we didn't find a match, delete the
+        // file.
         if (!keep)
         {
             if (toDelete.exists())
+            {
                 ops.append(Operation::DeleteOp(entry.path));
+            }
         }
     }
 
-    // Next, check each file in PolyMC's folder and see if we need to update them.
-    for (const VersionFileEntry &entry : newVersion)
+    // Next, check each file in PolyMC's folder and see if we need to update
+    // them.
+    for (const VersionFileEntry& entry : newVersion)
     {
-        // TODO: Let's not MD5sum a ton of files on the GUI thread. We should probably find a
-        // way to do this in the background.
+        // TODO: Let's not MD5sum a ton of files on the GUI thread. We should
+        // probably find a way to do this in the background.
         QString fileMD5;
         QString realEntryPath = FS::PathCombine(rootPath, entry.path);
         QFile entryFile(realEntryPath);
@@ -134,7 +140,8 @@ bool processFileLists
             }
             if (!entryFile.open(QFile::ReadOnly))
             {
-                qCritical() << "File " << realEntryPath << " cannot be opened for reading.";
+                qCritical() << "File " << realEntryPath
+                            << " cannot be opened for reading.";
                 pass = false;
             }
             if (!pass)
@@ -144,7 +151,7 @@ bool processFileLists
             }
         }
 
-        if(!needs_upgrade)
+        if (!needs_upgrade)
         {
             QCryptographicHash hash(QCryptographicHash::Md5);
             auto foo = entryFile.readAll();
@@ -171,24 +178,28 @@ bool processFileLists
         qDebug() << "Found file" << realEntryPath << " that needs updating.";
 
         // Go through the sources list and find one to use.
-        // TODO: Make a NetAction that takes a source list and tries each of them until one
-        // works. For now, we'll just use the first http one.
-        for (const FileSource &source : std::as_const(entry.sources))
+        // TODO: Make a NetAction that takes a source list and tries each of
+        // them until one works. For now, we'll just use the first http one.
+        for (const FileSource& source : std::as_const(entry.sources))
         {
             if (source.type != "http")
+            {
                 continue;
+            }
 
             qDebug() << "Will download" << entry.path << "from" << source.url;
 
-            // Download it to updatedir/<filepath>-<md5> where filepath is the file's
-            // path with slashes replaced by underscores.
-            QString dlPath = FS::PathCombine(tempPath, QString(entry.path).replace("/", "_"));
+            // Download it to updatedir/<filepath>-<md5> where filepath is the
+            // file's path with slashes replaced by underscores.
+            QString dlPath = FS::PathCombine(
+                tempPath, QString(entry.path).replace("/", "_"));
 
-            // We need to download the file to the updatefiles folder and add a task
-            // to copy it to its install path.
+            // We need to download the file to the updatefiles folder and add a
+            // task to copy it to its install path.
             auto download = Net::Download::makeFile(source.url, dlPath);
             auto rawMd5 = QByteArray::fromHex(entry.md5.toLatin1());
-            download->addValidator(new Net::ChecksumValidator(QCryptographicHash::Md5, rawMd5));
+            download->addValidator(
+                new Net::ChecksumValidator(QCryptographicHash::Md5, rawMd5));
             job->addNetAction(download);
             ops.append(Operation::CopyOp(dlPath, entry.path, entry.mode));
             break;
@@ -196,4 +207,4 @@ bool processFileLists
     }
     return true;
 }
-}
+}  // namespace GoUpdate

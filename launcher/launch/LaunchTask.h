@@ -44,7 +44,7 @@
 #include "LoggedProcess.h"
 #include "LaunchStep.h"
 
-class LaunchTask: public Task
+class LaunchTask : public Task
 {
     Q_OBJECT
 protected:
@@ -113,8 +113,8 @@ public: /* methods */
     shared_qobject_ptr<LogModel> getLogModel();
 
 public:
-    void substituteVariables(QStringList &args) const;
-    void substituteVariables(QString &cmd) const;
+    void substituteVariables(QStringList& args) const;
+    void substituteVariables(QString& cmd) const;
     QString censorPrivateInfo(QString in);
 
 protected: /* methods */
@@ -127,25 +127,27 @@ signals:
      */
     void readyForLaunch();
 
-    void requestProgress(Task *task);
+    void requestProgress(Task* task);
 
     void requestLogging();
 
 public slots:
-    void onLogLines(const QStringList& lines, MessageLevel::Enum defaultLevel = MessageLevel::Launcher);
-    void onLogLine(QString line, MessageLevel::Enum defaultLevel = MessageLevel::Launcher);
+    void onLogLines(const QStringList& lines,
+                    MessageLevel::Enum defaultLevel = MessageLevel::Launcher);
+    void onLogLine(QString line,
+                   MessageLevel::Enum defaultLevel = MessageLevel::Launcher);
     void onReadyForLaunch();
     void onStepFinished();
     void onProgressReportingRequested();
     void onSuspendStateChanged();
 
 private: /*methods */
-    void finalizeSteps(bool successful, const QString & error);
+    void finalizeSteps(bool successful, const QString& error);
 
 protected: /* data */
     InstancePtr m_instance;
     shared_qobject_ptr<LogModel> m_logModel;
-    QList <shared_qobject_ptr<LaunchStep>> m_steps;
+    QList<shared_qobject_ptr<LaunchStep>> m_steps;
     QMap<QString, QString> m_censorFilter;
     int currentStep = -1;
     State state = NotStarted;

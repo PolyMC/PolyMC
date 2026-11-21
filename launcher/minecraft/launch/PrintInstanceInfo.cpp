@@ -20,9 +20,10 @@
 #include <launch/LaunchTask.h>
 
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-namespace {
+namespace
+{
 #if defined(Q_OS_LINUX)
-void probeProcCpuinfo(QStringList &log)
+void probeProcCpuinfo(QStringList& log)
 {
     std::ifstream cpuin("/proc/cpuinfo");
     for (std::string line; std::getline(cpuin, line);)
@@ -31,19 +32,20 @@ void probeProcCpuinfo(QStringList &log)
         {
             // substr() throws when starting past the end
             if (line.size() > 13)
-                log << QString::fromStdString(line.substr(13, std::string::npos));
+                log << QString::fromStdString(
+                    line.substr(13, std::string::npos));
             break;
         }
     }
 }
 
-void runLspci(QStringList &log)
+void runLspci(QStringList& log)
 {
     // FIXME: fixed size buffers...
     char buff[512];
     int gpuline = -1;
     int cline = 0;
-    FILE * lspci = popen("lspci -k", "r");
+    FILE* lspci = popen("lspci -k", "r");
 
     if (!lspci)
         return;
@@ -57,7 +59,8 @@ void runLspci(QStringList &log)
         {
             gpuline = cline;
             // substr() throws when starting past the end
-            log << QString::fromStdString(str.size() > 35 ? str.substr(35, std::string::npos) : str);
+            log << QString::fromStdString(
+                str.size() > 35 ? str.substr(35, std::string::npos) : str);
         }
         if (gpuline > -1 && gpuline != cline)
         {
@@ -71,51 +74,55 @@ void runLspci(QStringList &log)
     pclose(lspci);
 }
 #elif defined(Q_OS_FREEBSD)
-void runSysctlHwModel(QStringList &log)
+void runSysctlHwModel(QStringList& log)
 {
     char buff[512];
-    FILE *hwmodel = popen("sysctl hw.model", "r");
+    FILE* hwmodel = popen("sysctl hw.model", "r");
     if (!hwmodel)
         return;
     while (fgets(buff, 512, hwmodel) != NULL)
     {
-	log << QString::fromUtf8(buff);
-	break;
+        log << QString::fromUtf8(buff);
+        break;
     }
     pclose(hwmodel);
 }
 
-void runPciconf(QStringList &log)
+void runPciconf(QStringList& log)
 {
     char buff[512];
     std::string strcard;
-    FILE *pciconf = popen("pciconf -lv -a vgapci0", "r");
+    FILE* pciconf = popen("pciconf -lv -a vgapci0", "r");
     if (!pciconf)
         return;
     while (fgets(buff, 512, pciconf) != NULL)
     {
-	if (strncmp(buff, "    vendor", 10) == 0)
-	{
-	    std::string str(buff);
-	    strcard.append(str.substr(str.find_first_of("'") + 1, str.find_last_not_of("'") - (str.find_first_of("'") + 2)));
-	    strcard.append(" ");
-	}
-	else if (strncmp(buff, "    device", 10) == 0)
-	{
-	    std::string str2(buff);
-	    strcard.append(str2.substr(str2.find_first_of("'") + 1, str2.find_last_not_of("'") - (str2.find_first_of("'") + 2)));
-	}
-	log << QString::fromStdString(strcard);
-	break;
+        if (strncmp(buff, "    vendor", 10) == 0)
+        {
+            std::string str(buff);
+            strcard.append(str.substr(
+                str.find_first_of("'") + 1,
+                str.find_last_not_of("'") - (str.find_first_of("'") + 2)));
+            strcard.append(" ");
+        }
+        else if (strncmp(buff, "    device", 10) == 0)
+        {
+            std::string str2(buff);
+            strcard.append(str2.substr(
+                str2.find_first_of("'") + 1,
+                str2.find_last_not_of("'") - (str2.find_first_of("'") + 2)));
+        }
+        log << QString::fromStdString(strcard);
+        break;
     }
     pclose(pciconf);
 }
 #endif
-void runGlxinfo(QStringList & log)
+void runGlxinfo(QStringList& log)
 {
     // FIXME: fixed size buffers...
     char buff[512];
-    FILE *glxinfo = popen("glxinfo", "r");
+    FILE* glxinfo = popen("glxinfo", "r");
     if (!glxinfo)
         return;
 
@@ -130,7 +137,7 @@ void runGlxinfo(QStringList & log)
     pclose(glxinfo);
 }
 
-}
+}  // namespace
 #endif
 
 void PrintInstanceInfo::executeTask()
@@ -149,6 +156,7 @@ void PrintInstanceInfo::executeTask()
 #endif
 
     logLines(log, MessageLevel::Launcher);
-    logLines(instance->verboseDescription(m_serverToJoin), MessageLevel::Launcher);
+    logLines(instance->verboseDescription(m_serverToJoin),
+             MessageLevel::Launcher);
     emitSucceeded();
 }

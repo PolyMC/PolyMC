@@ -21,7 +21,8 @@
 #include "ExternalResourcesPage.h"
 #include "ModDownloadTask.h"
 
-class DownloadableResourcesPage : public ExternalResourcesPage {
+class DownloadableResourcesPage : public ExternalResourcesPage
+{
     Q_OBJECT
 public:
     DownloadableResourcesPage(BaseInstance* instance,

@@ -17,11 +17,12 @@
 
 namespace CustomMessageBox
 {
-QMessageBox *selectable(QWidget *parent, const QString &title, const QString &text,
-                        QMessageBox::Icon icon, QMessageBox::StandardButtons buttons,
+QMessageBox* selectable(QWidget* parent, const QString& title,
+                        const QString& text, QMessageBox::Icon icon,
+                        QMessageBox::StandardButtons buttons,
                         QMessageBox::StandardButton defaultButton)
 {
-    QMessageBox *messageBox = new QMessageBox(parent);
+    QMessageBox* messageBox = new QMessageBox(parent);
     messageBox->setWindowTitle(title);
     messageBox->setText(text);
     messageBox->setStandardButtons(buttons);
@@ -29,8 +30,9 @@ QMessageBox *selectable(QWidget *parent, const QString &title, const QString &te
     messageBox->setTextInteractionFlags(Qt::TextSelectableByMouse);
     messageBox->setIcon(icon);
     messageBox->setTextInteractionFlags(Qt::TextBrowserInteraction);
-    QObject::connect(messageBox, &QDialog::finished, messageBox, &QObject::deleteLater);
+    QObject::connect(messageBox, &QDialog::finished, messageBox,
+                     &QObject::deleteLater);
 
     return messageBox;
 }
-}
+}  // namespace CustomMessageBox

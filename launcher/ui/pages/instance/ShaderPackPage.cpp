@@ -21,23 +21,32 @@
 #include "ui/dialogs/ModDownloadDialog.h"
 
 ShaderPackPage::ShaderPackPage(MinecraftInstance* instance,
-                               std::shared_ptr<ShaderPackFolderModel> model, QWidget* parent)
-    : DownloadableResourcesPage(instance, model, parent) {
+                               std::shared_ptr<ShaderPackFolderModel> model,
+                               QWidget* parent)
+    : DownloadableResourcesPage(instance, model, parent)
+{
     ui->actionViewConfigs->setVisible(false);
 
     setupDownloadAction(tr("Download Shader Packs"),
                         tr("Download shader packs from online mod platforms"));
-    connect(ui->actionDownloadItem, &QAction::triggered, this, &ShaderPackPage::installShaderPacks);
+    connect(ui->actionDownloadItem, &QAction::triggered, this,
+            &ShaderPackPage::installShaderPacks);
 }
 
-void ShaderPackPage::installShaderPacks() {
+void ShaderPackPage::installShaderPacks()
+{
     if (!m_controlsEnabled)
+    {
         return;
+    }
     if (m_instance->typeName() != "Minecraft")
+    {
         return;  // this is a null instance or a legacy instance
+    }
 
     ModDownloadDialog mdownload(m_model, this, ModAPI::ShaderPack, m_instance);
-    if (mdownload.exec()) {
+    if (mdownload.exec())
+    {
         runTasks(mdownload.getTasks());
     }
 }

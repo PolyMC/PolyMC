@@ -47,9 +47,11 @@
 
 class MinecraftInstance;
 
-namespace Modrinth {
+namespace Modrinth
+{
 
-struct File {
+struct File
+{
     QString path;
 
     QCryptographicHash::Algorithm hashAlgorithm;
@@ -57,13 +59,15 @@ struct File {
     QQueue<QUrl> downloads;
 };
 
-struct DonationData {
+struct DonationData
+{
     QString id;
     QString platform;
     QString url;
 };
 
-struct ModpackExtra {
+struct ModpackExtra
+{
     QString body;
 
     QString projectUrl;
@@ -74,10 +78,10 @@ struct ModpackExtra {
     QString discordUrl;
 
     QList<DonationData> donate;
-
 };
 
-struct ModpackVersion {
+struct ModpackVersion
+{
     QString name;
     QString version;
 
@@ -89,17 +93,18 @@ struct ModpackVersion {
     QString download_url;
 };
 
-struct Modpack {
+struct Modpack
+{
     QString id;
 
     QString name;
     QString description;
     std::tuple<QString, QUrl> author;
     QString iconName;
-    QUrl    iconUrl;
+    QUrl iconUrl;
 
-    bool    versionsLoaded = false;
-    bool    extraInfoLoaded = false;
+    bool versionsLoaded = false;
+    bool extraInfoLoaded = false;
 
     ModpackExtra extra;
     QVector<ModpackVersion> versions;
@@ -112,7 +117,7 @@ ModpackVersion loadIndexedVersion(QJsonObject&);
 
 bool validateDownloadUrl(QUrl);
 
-}
+}  // namespace Modrinth
 
 Q_DECLARE_METATYPE(Modrinth::Modpack)
 Q_DECLARE_METATYPE(Modrinth::ModpackVersion)

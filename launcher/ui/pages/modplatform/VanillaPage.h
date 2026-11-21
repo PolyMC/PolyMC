@@ -52,7 +52,7 @@ class VanillaPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit VanillaPage(NewInstanceDialog *dialog, QWidget *parent = 0);
+    explicit VanillaPage(NewInstanceDialog* dialog, QWidget* parent = 0);
     virtual ~VanillaPage();
     virtual QString displayName() const override
     {
@@ -95,8 +95,8 @@ private:
 
 private:
     bool initialized = false;
-    NewInstanceDialog *dialog = nullptr;
-    Ui::VanillaPage *ui = nullptr;
+    NewInstanceDialog* dialog = nullptr;
+    Ui::VanillaPage* ui = nullptr;
     bool m_versionSetByUser = false;
     BaseVersionPtr m_selectedVersion;
     BaseVersionPtr m_selectedLoaderVersion;

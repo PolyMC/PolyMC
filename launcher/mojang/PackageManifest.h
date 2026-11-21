@@ -6,26 +6,33 @@
 #include <QStringList>
 #include "tasks/Task.h"
 
-namespace mojang_files {
+namespace mojang_files
+{
 
 using Hash = QString;
 extern const Hash empty_hash;
 
-// simple-ish path implementation. assumes always relative and does not allow '..' entries
+// simple-ish path implementation. assumes always relative and does not allow
+// '..' entries
 class Path
 {
 public:
     using parts_type = QStringList;
 
     Path() = default;
-    Path(QString string) {
+    Path(QString string)
+    {
         auto parts_in = string.split('/');
-        for(auto & part: parts_in) {
-            if(part.isEmpty() || part == ".") {
+        for (auto& part : parts_in)
+        {
+            if (part.isEmpty() || part == ".")
+            {
                 continue;
             }
-            if(part == "..") {
-                if(parts.size()) {
+            if (part == "..")
+            {
+                if (parts.size())
+                {
                     parts.pop_back();
                 }
                 continue;
@@ -42,7 +49,11 @@ public:
     Path parent_path() const
     {
         if (parts.empty())
-            return Path();
+        {
+            {
+                return Path();
+            }
+        }
         return Path(parts.begin(), std::prev(parts.end()));
     }
 
@@ -56,11 +67,13 @@ public:
         return parts.length();
     }
 
-    bool operator==(const Path & rhs) const {
+    bool operator==(const Path& rhs) const
+    {
         return parts == rhs.parts;
     }
 
-    bool operator!=(const Path & rhs) const {
+    bool operator!=(const Path& rhs) const
+    {
         return parts != rhs.parts;
     }
 
@@ -79,14 +92,18 @@ public:
         return parts.end();
     }
 
-    QString toString() const {
+    QString toString() const
+    {
         return parts.join("/");
     }
 
 private:
-    Path(const parts_type::const_iterator & start, const parts_type::const_iterator & end) {
+    Path(const parts_type::const_iterator& start,
+         const parts_type::const_iterator& end)
+    {
         auto cursor = start;
-        while(cursor != end) {
+        while (cursor != end)
+        {
             parts.push_back(*cursor);
             cursor++;
         }
@@ -96,13 +113,12 @@ private:
     parts_type parts;
 };
 
-
-enum class Compression {
+enum class Compression
+{
     Raw,
     Lzma,
     Unknown
 };
-
 
 struct FileSource
 {
@@ -110,12 +126,15 @@ struct FileSource
     Hash hash;
     QString url;
     std::size_t size = 0;
-    void upgrade(const FileSource & other) {
-        if(compression == Compression::Unknown || other.size < size) {
+    void upgrade(const FileSource& other)
+    {
+        if (compression == Compression::Unknown || other.size < size)
+        {
             *this = other;
         }
     }
-    bool isBad() const {
+    bool isBad() const
+    {
         return compression == Compression::Unknown;
     }
 };
@@ -127,9 +146,10 @@ struct File
     std::uint64_t size = 0;
 };
 
-struct Package {
-    static Package fromInspectedFolder(const QString &folderPath);
-    static Package fromManifestFile(const QString &path);
+struct Package
+{
+    static Package fromInspectedFolder(const QString& folderPath);
+    static Package fromManifestFile(const QString& path);
     static Package fromManifestContents(const QByteArray& contents);
 
     explicit operator bool() const
@@ -137,9 +157,9 @@ struct Package {
         return valid;
     }
     void addFolder(Path folder);
-    void addFile(const Path & path, const File & file);
-    void addLink(const Path & path, const Path & target);
-    void addSource(const FileSource & source);
+    void addFile(const Path& path, const File& file);
+    void addLink(const Path& path, const Path& target);
+    void addSource(const FileSource& source);
 
     std::map<Hash, FileSource> sources;
     bool valid = true;
@@ -150,15 +170,17 @@ struct Package {
 
 struct FileDownload : FileSource
 {
-    FileDownload(const FileSource& source, bool executable) {
-        static_cast<FileSource &> (*this) = source;
+    FileDownload(const FileSource& source, bool executable)
+    {
+        static_cast<FileSource&>(*this) = source;
         this->executable = executable;
     }
     bool executable = false;
 };
 
-struct UpdateOperations {
-    static UpdateOperations resolve(const Package & from, const Package & to);
+struct UpdateOperations
+{
+    static UpdateOperations resolve(const Package& from, const Package& to);
     bool valid = false;
     std::vector<Path> deletes;
     std::vector<Path> rmdirs;
@@ -168,4 +190,4 @@ struct UpdateOperations {
     std::map<Path, bool> executable_fixes;
 };
 
-}
+}  // namespace mojang_files

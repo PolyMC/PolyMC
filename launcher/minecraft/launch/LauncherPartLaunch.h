@@ -21,11 +21,11 @@
 
 #include "MinecraftServerTarget.h"
 
-class LauncherPartLaunch: public LaunchStep
+class LauncherPartLaunch : public LaunchStep
 {
     Q_OBJECT
 public:
-    explicit LauncherPartLaunch(LaunchTask *parent);
+    explicit LauncherPartLaunch(LaunchTask* parent);
     virtual ~LauncherPartLaunch() {};
 
     virtual void executeTask();
@@ -51,7 +51,7 @@ public:
     {
         return m_process.resume();
     }
-    void setWorkingDirectory(const QString &wd);
+    void setWorkingDirectory(const QString& wd);
     void setAuthSession(AuthSessionPtr session)
     {
         m_session = session;

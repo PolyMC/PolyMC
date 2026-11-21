@@ -48,7 +48,7 @@
 
 #include <assert.h>
 
-Component::Component(PackProfile * parent, const QString& uid)
+Component::Component(PackProfile* parent, const QString& uid)
 {
     assert(parent);
     m_parent = parent;
@@ -56,7 +56,8 @@ Component::Component(PackProfile * parent, const QString& uid)
     m_uid = uid;
 }
 
-Component::Component(PackProfile * parent, std::shared_ptr<Meta::Version> version)
+Component::Component(PackProfile* parent,
+                     std::shared_ptr<Meta::Version> version)
 {
     assert(parent);
     m_parent = parent;
@@ -68,7 +69,8 @@ Component::Component(PackProfile * parent, std::shared_ptr<Meta::Version> versio
     m_loaded = version->isLoaded();
 }
 
-Component::Component(PackProfile * parent, const QString& uid, std::shared_ptr<VersionFile> file)
+Component::Component(PackProfile* parent, const QString& uid,
+                     std::shared_ptr<VersionFile> file)
 {
     assert(parent);
     m_parent = parent;
@@ -88,12 +90,12 @@ std::shared_ptr<Meta::Version> Component::getMeta()
 void Component::applyTo(LaunchProfile* profile)
 {
     // do not apply disabled components
-    if(!isEnabled())
+    if (!isEnabled())
     {
         return;
     }
     auto vfile = getVersionFile();
-    if(vfile)
+    if (vfile)
     {
         vfile->applyTo(profile, m_parent->runtimeContext());
     }
@@ -105,9 +107,9 @@ void Component::applyTo(LaunchProfile* profile)
 
 std::shared_ptr<class VersionFile> Component::getVersionFile() const
 {
-    if(m_metaVersion)
+    if (m_metaVersion)
     {
-        if(!m_metaVersion->isLoaded())
+        if (!m_metaVersion->isLoaded())
         {
             m_metaVersion->load(Net::Mode::Online);
         }
@@ -122,7 +124,7 @@ std::shared_ptr<class VersionFile> Component::getVersionFile() const
 std::shared_ptr<class Meta::VersionList> Component::getVersionList() const
 {
     // FIXME: what if the metadata index isn't loaded yet?
-    if(APPLICATION->metadataIndex()->hasUid(m_uid))
+    if (APPLICATION->metadataIndex()->hasUid(m_uid))
     {
         return APPLICATION->metadataIndex()->get(m_uid);
     }
@@ -131,11 +133,13 @@ std::shared_ptr<class Meta::VersionList> Component::getVersionList() const
 
 int Component::getOrder()
 {
-    if(m_orderOverride)
+    if (m_orderOverride)
+    {
         return m_order;
+    }
 
     auto vfile = getVersionFile();
-    if(vfile)
+    if (vfile)
     {
         return vfile->order;
     }
@@ -153,7 +157,9 @@ QString Component::getID()
 QString Component::getName()
 {
     if (!m_cachedName.isEmpty())
+    {
         return m_cachedName;
+    }
     return m_uid;
 }
 QString Component::getVersion()
@@ -166,12 +172,12 @@ QString Component::getFilename()
 }
 QDateTime Component::getReleaseDateTime()
 {
-    if(m_metaVersion)
+    if (m_metaVersion)
     {
         return m_metaVersion->time();
     }
     auto vfile = getVersionFile();
-    if(vfile)
+    if (vfile)
     {
         return vfile->releaseTime;
     }
@@ -196,7 +202,7 @@ bool Component::setEnabled(bool state)
     {
         intendedDisabled = false;
     }
-    if(intendedDisabled != m_disabled)
+    if (intendedDisabled != m_disabled)
     {
         m_disabled = intendedDisabled;
         emit dataChanged();
@@ -212,9 +218,9 @@ bool Component::isCustom()
 
 bool Component::isCustomizable()
 {
-    if(m_metaVersion)
+    if (m_metaVersion)
     {
-        if(getVersionFile())
+        if (getVersionFile())
         {
             return true;
         }
@@ -229,7 +235,7 @@ bool Component::isRevertible()
 {
     if (isCustom())
     {
-        if(APPLICATION->metadataIndex()->hasUid(m_uid))
+        if (APPLICATION->metadataIndex()->hasUid(m_uid))
         {
             return true;
         }
@@ -238,15 +244,16 @@ bool Component::isRevertible()
 }
 bool Component::isMoveable()
 {
-    // HACK, FIXME: this was too dumb and wouldn't follow dependency constraints anyway. For now hardcoded to 'true'.
+    // HACK, FIXME: this was too dumb and wouldn't follow dependency constraints
+    // anyway. For now hardcoded to 'true'.
     return true;
 }
 bool Component::isVersionChangeable()
 {
     auto list = getVersionList();
-    if(list)
+    if (list)
     {
-        if(!list->isLoaded())
+        if (!list->isLoaded())
         {
             list->load(Net::Mode::Online);
         }
@@ -257,7 +264,7 @@ bool Component::isVersionChangeable()
 
 void Component::setImportant(bool state)
 {
-    if(m_important != state)
+    if (m_important != state)
     {
         m_important = state;
         emit dataChanged();
@@ -267,7 +274,7 @@ void Component::setImportant(bool state)
 ProblemSeverity Component::getProblemSeverity() const
 {
     auto file = getVersionFile();
-    if(file)
+    if (file)
     {
         return file->getProblemSeverity();
     }
@@ -277,7 +284,7 @@ ProblemSeverity Component::getProblemSeverity() const
 const QList<PatchProblem> Component::getProblems() const
 {
     auto file = getVersionFile();
-    if(file)
+    if (file)
     {
         return file->getProblems();
     }
@@ -286,25 +293,27 @@ const QList<PatchProblem> Component::getProblems() const
 
 void Component::setVersion(const QString& version)
 {
-    if(version == m_version)
+    if (version == m_version)
     {
         return;
     }
     m_version = version;
-    if(m_loaded)
+    if (m_loaded)
     {
         // we are loaded and potentially have state to invalidate
-        if(m_file)
+        if (m_file)
         {
-            // we have a file... explicit version has been changed and there is nothing else to do.
+            // we have a file... explicit version has been changed and there is
+            // nothing else to do.
         }
         else
         {
             // we don't have a file, therefore we are loaded with metadata
             m_cachedVersion = version;
             // see if the meta version is loaded
-            auto metaVersion = APPLICATION->metadataIndex()->get(m_uid, version);
-            if(metaVersion->isLoaded())
+            auto metaVersion =
+                APPLICATION->metadataIndex()->get(m_uid, version);
+            if (metaVersion->isLoaded())
             {
                 // if yes, we can continue with that.
                 m_metaVersion = metaVersion;
@@ -327,13 +336,13 @@ void Component::setVersion(const QString& version)
 
 bool Component::customize()
 {
-    if(isCustom())
+    if (isCustom())
     {
         return false;
     }
 
     auto filename = getFilename();
-    if(!FS::ensureFilePathExists(filename))
+    if (!FS::ensureFilePathExists(filename))
     {
         return false;
     }
@@ -341,18 +350,18 @@ bool Component::customize()
     try
     {
         QSaveFile jsonFile(filename);
-        if(!jsonFile.open(QIODevice::WriteOnly))
+        if (!jsonFile.open(QIODevice::WriteOnly))
         {
             return false;
         }
         auto vfile = getVersionFile();
-        if(!vfile)
+        if (!vfile)
         {
             return false;
         }
         auto document = OneSixVersionFormat::versionFileToJson(vfile);
         jsonFile.write(document.toJson());
-        if(!jsonFile.commit())
+        if (!jsonFile.commit())
         {
             return false;
         }
@@ -360,7 +369,7 @@ bool Component::customize()
         m_metaVersion.reset();
         emit dataChanged();
     }
-    catch (const Exception &error)
+    catch (const Exception& error)
     {
         qWarning() << "Version could not be loaded:" << error.cause();
     }
@@ -369,7 +378,7 @@ bool Component::customize()
 
 bool Component::revert()
 {
-    if(!isCustom())
+    if (!isCustom())
     {
         // already not custom
         return true;
@@ -377,18 +386,18 @@ bool Component::revert()
     auto filename = getFilename();
     bool result = true;
     // just kill the file and reload
-    if(QFile::exists(filename))
+    if (QFile::exists(filename))
     {
         result = QFile::remove(filename);
     }
-    if(result)
+    if (result)
     {
         // file gone...
         m_file.reset();
 
         // check local cache for metadata...
         auto version = APPLICATION->metadataIndex()->get(m_uid, m_version);
-        if(version->isLoaded())
+        if (version->isLoaded())
         {
             m_metaVersion = version;
         }
@@ -407,22 +416,23 @@ bool Component::revert()
  * By default, only uids are compared for set operations.
  * This compares all fields of the Require structs in the sets.
  */
-static bool deepCompare(const std::set<Meta::Require> & a, const std::set<Meta::Require> & b)
+static bool deepCompare(const std::set<Meta::Require>& a,
+                        const std::set<Meta::Require>& b)
 {
     // NOTE: this needs to be rewritten if the type of Meta::RequireSet changes
-    if(a.size() != b.size())
+    if (a.size() != b.size())
     {
         return false;
     }
-    for(const auto & reqA :a)
+    for (const auto& reqA : a)
     {
-        const auto &iter2 = b.find(reqA);
-        if(iter2 == b.cend())
+        const auto& iter2 = b.find(reqA);
+        if (iter2 == b.cend())
         {
             return false;
         }
-        const auto & reqB = *iter2;
-        if(!reqA.deepEquals(reqB))
+        const auto& reqB = *iter2;
+        if (!reqA.deepEquals(reqB))
         {
             return false;
         }
@@ -433,35 +443,35 @@ static bool deepCompare(const std::set<Meta::Require> & a, const std::set<Meta::
 void Component::updateCachedData()
 {
     auto file = getVersionFile();
-    if(file)
+    if (file)
     {
         bool changed = false;
-        if(m_cachedName != file->name)
+        if (m_cachedName != file->name)
         {
             m_cachedName = file->name;
             changed = true;
         }
-        if(m_cachedVersion != file->version)
+        if (m_cachedVersion != file->version)
         {
             m_cachedVersion = file->version;
             changed = true;
         }
-        if(m_cachedVolatile != file->m_volatile)
+        if (m_cachedVolatile != file->m_volatile)
         {
             m_cachedVolatile = file->m_volatile;
             changed = true;
         }
-        if(!deepCompare(m_cachedRequires, file->required))
+        if (!deepCompare(m_cachedRequires, file->required))
         {
             m_cachedRequires = file->required;
             changed = true;
         }
-        if(!deepCompare(m_cachedConflicts, file->conflicts))
+        if (!deepCompare(m_cachedConflicts, file->conflicts))
         {
             m_cachedConflicts = file->conflicts;
             changed = true;
         }
-        if(changed)
+        if (changed)
         {
             emit dataChanged();
         }

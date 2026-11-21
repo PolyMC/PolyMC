@@ -21,11 +21,11 @@
 
 #include "MinecraftServerTarget.h"
 
-class DirectJavaLaunch: public LaunchStep
+class DirectJavaLaunch : public LaunchStep
 {
     Q_OBJECT
 public:
-    explicit DirectJavaLaunch(LaunchTask *parent);
+    explicit DirectJavaLaunch(LaunchTask* parent);
     virtual ~DirectJavaLaunch() {};
 
     virtual void executeTask();
@@ -51,7 +51,7 @@ public:
     {
         return m_process.resume();
     }
-    void setWorkingDirectory(const QString &wd);
+    void setWorkingDirectory(const QString& wd);
     void setAuthSession(AuthSessionPtr session)
     {
         m_session = session;
@@ -71,4 +71,3 @@ private:
     AuthSessionPtr m_session;
     MinecraftServerTargetPtr m_serverToJoin;
 };
-

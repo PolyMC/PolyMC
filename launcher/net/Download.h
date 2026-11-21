@@ -43,44 +43,58 @@
 
 #include "QObjectPtr.h"
 
-namespace Net {
-class Download : public NetAction {
+namespace Net
+{
+class Download : public NetAction
+{
     Q_OBJECT
 
-   public:
+public:
     using Ptr = shared_qobject_ptr<class Download>;
-    enum class Option { NoOptions = 0, AcceptLocalFiles = 1, MakeEternal = 2, AllowHttp2 = 4 };
+    enum class Option
+    {
+        NoOptions = 0,
+        AcceptLocalFiles = 1,
+        MakeEternal = 2,
+        AllowHttp2 = 4
+    };
     Q_DECLARE_FLAGS(Options, Option)
 
-   protected:
+protected:
     explicit Download();
 
-   public:
+public:
     ~Download() override = default;
 
-    static Download::Ptr makeCached(QUrl url, MetaEntryPtr entry, Options options = Option::NoOptions);
-    static Download::Ptr makeByteArray(QUrl url, QByteArray* output, Options options = Option::NoOptions);
-    static Download::Ptr makeFile(QUrl url, QString path, Options options = Option::NoOptions);
+    static Download::Ptr makeCached(QUrl url, MetaEntryPtr entry,
+                                    Options options = Option::NoOptions);
+    static Download::Ptr makeByteArray(QUrl url, QByteArray* output,
+                                       Options options = Option::NoOptions);
+    static Download::Ptr makeFile(QUrl url, QString path,
+                                  Options options = Option::NoOptions);
 
-   public:
+public:
     void addValidator(Validator* v);
     bool abort() override;
-    bool canAbort() const override { return true; };
+    bool canAbort() const override
+    {
+        return true;
+    };
 
-   private:
+private:
     bool handleRedirect();
 
-   protected slots:
+protected slots:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal) override;
     void downloadError(QNetworkReply::NetworkError error) override;
     void sslErrors(const QList<QSslError>& errors);
     void downloadFinished() override;
     void downloadReadyRead() override;
 
-   public slots:
+public slots:
     void executeTask() override;
 
-   private:
+private:
     std::unique_ptr<Sink> m_sink;
     Options m_options;
 };

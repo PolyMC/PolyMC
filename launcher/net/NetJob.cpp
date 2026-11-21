@@ -50,17 +50,27 @@ void NetJob::startNext()
 {
     // Don't retry the downloads abort() moved into m_failed
     if (m_aborted)
+    {
         return;
+    }
 
-    if (m_queue.isEmpty() && m_doing.isEmpty()) {
-        // We're finished, check for failures and retry if we can (up to 3 times)
-        if (!m_failed.isEmpty() && m_try < 3) {
+    if (m_queue.isEmpty() && m_doing.isEmpty())
+    {
+        // We're finished, check for failures and retry if we can (up to 3
+        // times)
+        if (!m_failed.isEmpty() && m_try < 3)
+        {
             m_try += 1;
             while (!m_failed.isEmpty())
+            {
                 m_queue.enqueue(m_failed.take(*m_failed.keyBegin()));
-        } else if (!m_failed.isEmpty() && isRunning() && !m_aborted) {
+            }
+        }
+        else if (!m_failed.isEmpty() && isRunning() && !m_aborted)
+        {
             // Out of retries, tell everyone which files couldn't be downloaded
-            emitFailed(tr("Job '%1' failed to process:\n%2").arg(objectName(), getFailedFiles().join("\n")));
+            emitFailed(tr("Job '%1' failed to process:\n%2")
+                           .arg(objectName(), getFailedFiles().join("\n")));
             return;
         }
     }
@@ -78,12 +88,16 @@ bool NetJob::canAbort() const
     bool canFullyAbort = true;
 
     // can abort the downloads on the queue?
-    for (const auto &part : m_queue)
+    for (const auto& part : m_queue)
+    {
         canFullyAbort &= part->canAbort();
+    }
 
     // can abort the active downloads?
-    for (const auto &part : m_doing)
+    for (const auto& part : m_doing)
+    {
         canFullyAbort &= part->canAbort();
+    }
 
     return canFullyAbort;
 }
@@ -92,24 +106,32 @@ bool NetJob::abort()
 {
     bool fullyAborted = true;
 
-    // Stop any startNext() calls that are still queued from starting more downloads
+    // Stop any startNext() calls that are still queued from starting more
+    // downloads
     m_aborted = true;
 
     // fail all downloads on the queue
-    for (const auto &task : std::as_const(m_queue))
+    for (const auto& task : std::as_const(m_queue))
+    {
         m_failed.insert(task.get(), task);
+    }
     m_queue.clear();
 
     // abort active downloads
     auto toKill = m_doing.values();
-    for (auto part : std::as_const(toKill)) {
+    for (auto part : std::as_const(toKill))
+    {
         fullyAborted &= part->abort();
     }
 
     if (fullyAborted)
+    {
         emitAborted();
+    }
     else
+    {
         emitFailed(tr("Failed to abort all tasks in the NetJob!"));
+    }
 
     return fullyAborted;
 }
@@ -117,7 +139,8 @@ bool NetJob::abort()
 QList<NetAction*> NetJob::getFailedActions()
 {
     QList<NetAction*> failed;
-    for (const auto &index : std::as_const(m_failed)) {
+    for (const auto& index : std::as_const(m_failed))
+    {
         failed.push_back(dynamic_cast<NetAction*>(index.get()));
     }
     return failed;
@@ -126,7 +149,8 @@ QList<NetAction*> NetJob::getFailedActions()
 QList<QString> NetJob::getFailedFiles()
 {
     QList<QString> failed;
-    for (const auto &index : std::as_const(m_failed)) {
+    for (const auto& index : std::as_const(m_failed))
+    {
         failed.append(static_cast<NetAction*>(index.get())->url().toString());
     }
     return failed;
@@ -136,5 +160,7 @@ void NetJob::updateState()
 {
     emit progress(m_done.count(), m_total_size);
     setStatus(tr("Executing %1 task(s) (%2 out of %3 are done)")
-                  .arg(QString::number(m_doing.count()), QString::number(m_done.count()), QString::number(m_total_size)));
+                  .arg(QString::number(m_doing.count()),
+                       QString::number(m_done.count()),
+                       QString::number(m_total_size)));
 }

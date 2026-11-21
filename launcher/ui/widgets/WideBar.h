@@ -6,10 +6,11 @@
 
 class QMenu;
 
-class WideBar : public QToolBar {
+class WideBar : public QToolBar
+{
     Q_OBJECT
 
-   public:
+public:
     explicit WideBar(const QString& title, QWidget* parent = nullptr);
     explicit WideBar(QWidget* parent = nullptr);
     virtual ~WideBar();
@@ -22,13 +23,14 @@ class WideBar : public QToolBar {
     void insertActionBefore(QAction* before, QAction* action);
     void insertActionAfter(QAction* after, QAction* action);
 
-    QMenu* createContextMenu(QWidget* parent = nullptr, const QString& title = QString());
+    QMenu* createContextMenu(QWidget* parent = nullptr,
+                             const QString& title = QString());
 
-   private:
+private:
     struct BarEntry;
 
     QList<BarEntry*>::iterator getMatching(QAction* act);
 
-   private:
+private:
     QList<BarEntry*> m_entries;
 };

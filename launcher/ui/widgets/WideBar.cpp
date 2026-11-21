@@ -6,14 +6,17 @@ class ActionButton : public QToolButton
 {
     Q_OBJECT
 public:
-    ActionButton(QAction * action, QWidget * parent = 0) : QToolButton(parent), m_action(action) {
+    ActionButton(QAction* action, QWidget* parent = 0)
+        : QToolButton(parent), m_action(action)
+    {
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         connect(action, &QAction::changed, this, &ActionButton::actionChanged);
         connect(this, &ActionButton::clicked, action, &QAction::trigger);
         actionChanged();
     };
 private slots:
-    void actionChanged() {
+    void actionChanged()
+    {
         setEnabled(m_action->isEnabled());
         setChecked(m_action->isChecked());
         setCheckable(m_action->isCheckable());
@@ -23,12 +26,13 @@ private slots:
         setHidden(!m_action->isVisible());
         setFocusPolicy(Qt::NoFocus);
     }
+
 private:
-    QAction * m_action;
+    QAction* m_action;
 };
 
-
-WideBar::WideBar(const QString& title, QWidget* parent) : QToolBar(title, parent)
+WideBar::WideBar(const QString& title, QWidget* parent)
+    : QToolBar(title, parent)
 {
     setFloatable(false);
     setMovable(false);
@@ -40,21 +44,23 @@ WideBar::WideBar(QWidget* parent) : QToolBar(parent)
     setMovable(false);
 }
 
-struct WideBar::BarEntry {
-    enum Type {
+struct WideBar::BarEntry
+{
+    enum Type
+    {
         None,
         Action,
         Separator,
         Spacer
     } type = None;
-    QAction *qAction = nullptr;
-    QAction *wideAction = nullptr;
+    QAction* qAction = nullptr;
+    QAction* wideAction = nullptr;
 };
-
 
 WideBar::~WideBar()
 {
-    for (auto *iter : std::as_const(m_entries)) {
+    for (auto* iter : std::as_const(m_entries))
+    {
         delete iter;
     }
 }
@@ -78,33 +84,44 @@ void WideBar::addSeparator()
 
 QList<WideBar::BarEntry*>::iterator WideBar::getMatching(QAction* act)
 {
-    auto iter = std::find_if(m_entries.begin(), m_entries.end(), [act](BarEntry * entry) {
-        return entry->wideAction == act;
-    });
-    
+    auto iter = std::find_if(m_entries.begin(), m_entries.end(),
+                             [act](BarEntry* entry)
+                             {
+                                 return entry->wideAction == act;
+                             });
+
     return iter;
 }
 
-void WideBar::insertActionBefore(QAction* before, QAction* action){
+void WideBar::insertActionBefore(QAction* before, QAction* action)
+{
     auto iter = getMatching(before);
-    if(iter == m_entries.end())
+    if (iter == m_entries.end())
+    {
         return;
+    }
 
     auto entry = new BarEntry();
-    entry->qAction = insertWidget((*iter)->qAction, new ActionButton(action, this));
+    entry->qAction =
+        insertWidget((*iter)->qAction, new ActionButton(action, this));
     entry->wideAction = action;
     entry->type = BarEntry::Action;
     m_entries.insert(iter, entry);
 }
 
-void WideBar::insertActionAfter(QAction* after, QAction* action){
+void WideBar::insertActionAfter(QAction* after, QAction* action)
+{
     auto iter = getMatching(after);
-    if(iter == m_entries.end())
+    if (iter == m_entries.end())
+    {
         return;
+    }
 
     auto entry = new BarEntry();
     auto button = new ActionButton(action, this);
-    entry->qAction = iter + 1 == m_entries.end() ? addWidget(button) : insertWidget((*(iter + 1))->qAction, button);
+    entry->qAction = iter + 1 == m_entries.end()
+                         ? addWidget(button)
+                         : insertWidget((*(iter + 1))->qAction, button);
     entry->wideAction = action;
     entry->type = BarEntry::Action;
     m_entries.insert(iter + 1, entry);
@@ -113,8 +130,10 @@ void WideBar::insertActionAfter(QAction* after, QAction* action){
 void WideBar::insertSpacer(QAction* action)
 {
     auto iter = getMatching(action);
-    if(iter == m_entries.end())
+    if (iter == m_entries.end())
+    {
         return;
+    }
 
     QWidget* spacer = new QWidget();
     spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -128,8 +147,10 @@ void WideBar::insertSpacer(QAction* action)
 void WideBar::insertSeparator(QAction* before)
 {
     auto iter = getMatching(before);
-    if(iter == m_entries.end())
+    if (iter == m_entries.end())
+    {
         return;
+    }
 
     auto entry = new BarEntry();
     entry->qAction = QToolBar::insertSeparator(before);
@@ -137,11 +158,13 @@ void WideBar::insertSeparator(QAction* before)
     m_entries.insert(iter, entry);
 }
 
-QMenu * WideBar::createContextMenu(QWidget *parent, const QString & title)
+QMenu* WideBar::createContextMenu(QWidget* parent, const QString& title)
 {
-    QMenu *contextMenu = new QMenu(title, parent);
-    for(auto & item: m_entries) {
-        switch(item->type) {
+    QMenu* contextMenu = new QMenu(title, parent);
+    for (auto& item : m_entries)
+    {
+        switch (item->type)
+        {
             default:
             case BarEntry::None:
                 break;

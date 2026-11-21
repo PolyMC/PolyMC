@@ -49,18 +49,21 @@
 static QList<World> loadWorlds(const QString& path)
 {
     QDir dir(path);
-    dir.setFilter(QDir::Readable | QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
+    dir.setFilter(QDir::Readable | QDir::NoDotAndDotDot | QDir::Files |
+                  QDir::Dirs);
     dir.setSorting(QDir::Name | QDir::IgnoreCase | QDir::LocaleAware);
 
     QList<World> worlds;
     auto folderContents = dir.entryInfoList();
-    for (const QFileInfo &entry : std::as_const(folderContents))
+    for (const QFileInfo& entry : std::as_const(folderContents))
     {
-        if(!entry.isDir())
+        if (!entry.isDir())
+        {
             continue;
+        }
 
         World w(entry);
-        if(w.isValid())
+        if (w.isValid())
         {
             worlds.append(w);
         }
@@ -68,30 +71,33 @@ static QList<World> loadWorlds(const QString& path)
     return worlds;
 }
 
-WorldList::WorldList(const QString &dir)
-    : QAbstractListModel(), m_dir(dir)
+WorldList::WorldList(const QString& dir) : QAbstractListModel(), m_dir(dir)
 {
     FS::ensureFolderPathExists(m_dir.absolutePath());
-    m_dir.setFilter(QDir::Readable | QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
+    m_dir.setFilter(QDir::Readable | QDir::NoDotAndDotDot | QDir::Files |
+                    QDir::Dirs);
     m_dir.setSorting(QDir::Name | QDir::IgnoreCase | QDir::LocaleAware);
     m_watcher = new QFileSystemWatcher(this);
     is_watching = false;
-    connect(m_watcher, &QFileSystemWatcher::directoryChanged, this, &WorldList::directoryChanged);
-    connect(&m_update_watcher, &QFutureWatcher<QList<World>>::finished, this, [this] {
-        beginResetModel();
-        worlds = m_update_watcher.result();
-        endResetModel();
-        if (m_update_pending)
-        {
-            m_update_pending = false;
-            update();
-        }
-    });
+    connect(m_watcher, &QFileSystemWatcher::directoryChanged, this,
+            &WorldList::directoryChanged);
+    connect(&m_update_watcher, &QFutureWatcher<QList<World>>::finished, this,
+            [this]
+            {
+                beginResetModel();
+                worlds = m_update_watcher.result();
+                endResetModel();
+                if (m_update_pending)
+                {
+                    m_update_pending = false;
+                    update();
+                }
+            });
 }
 
 void WorldList::startWatching()
 {
-    if(is_watching)
+    if (is_watching)
     {
         return;
     }
@@ -109,7 +115,7 @@ void WorldList::startWatching()
 
 void WorldList::stopWatching()
 {
-    if(!is_watching)
+    if (!is_watching)
     {
         return;
     }
@@ -127,14 +133,17 @@ void WorldList::stopWatching()
 bool WorldList::update()
 {
     if (!isValid())
+    {
         return false;
+    }
 
     if (m_update_watcher.isRunning())
     {
         m_update_pending = true;
         return true;
     }
-    m_update_watcher.setFuture(QtConcurrent::run(loadWorlds, m_dir.absolutePath()));
+    m_update_watcher.setFuture(
+        QtConcurrent::run(loadWorlds, m_dir.absolutePath()));
     return true;
 }
 
@@ -151,8 +160,10 @@ bool WorldList::isValid()
 bool WorldList::deleteWorld(int index)
 {
     if (index >= worlds.size() || index < 0)
+    {
         return false;
-    World &m = worlds[index];
+    }
+    World& m = worlds[index];
     if (m.destroy())
     {
         beginRemoveRows(QModelIndex(), index, index);
@@ -168,7 +179,7 @@ bool WorldList::deleteWorlds(int first, int last)
 {
     for (int i = first; i <= last; i++)
     {
-        World &m = worlds[i];
+        World& m = worlds[i];
         m.destroy();
     }
     beginRemoveRows(QModelIndex(), first, last);
@@ -181,139 +192,147 @@ bool WorldList::deleteWorlds(int first, int last)
 bool WorldList::resetIcon(int row)
 {
     if (row >= worlds.size() || row < 0)
+    {
         return false;
-    World &m = worlds[row];
-    if(m.resetIcon()) {
+    }
+    World& m = worlds[row];
+    if (m.resetIcon())
+    {
         emit dataChanged(index(row), index(row), {WorldList::IconFileRole});
         return true;
     }
     return false;
 }
 
-
-int WorldList::columnCount(const QModelIndex &/*parent*/) const
+int WorldList::columnCount(const QModelIndex& /*parent*/) const
 {
     return 4;
 }
 
-QVariant WorldList::data(const QModelIndex &index, int role) const
+QVariant WorldList::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid())
+    {
         return QVariant();
+    }
 
     int row = index.row();
     int column = index.column();
 
     if (row < 0 || row >= worlds.size())
+    {
         return QVariant();
+    }
 
     QLocale locale;
 
-    auto & world = worlds[row];
+    auto& world = worlds[row];
     switch (role)
     {
-    case Qt::DisplayRole:
-        switch (column)
+        case Qt::DisplayRole:
+            switch (column)
+            {
+                case NameColumn:
+                    return world.name();
+
+                case GameModeColumn:
+                    return world.gameType().toTranslatedString();
+
+                case LastPlayedColumn:
+                    return world.lastPlayed();
+
+                case SizeColumn:
+                    return locale.formattedDataSize(world.bytes());
+
+                default:
+                    return QVariant();
+            }
+
+        case Qt::UserRole:
+            switch (column)
+            {
+                case SizeColumn:
+                    return QVariant::fromValue<qlonglong>(world.bytes());
+
+                default:
+                    return data(index, Qt::DisplayRole);
+            }
+
+        case Qt::ToolTipRole:
         {
-        case NameColumn:
+            return world.folderName();
+        }
+        case ObjectRole:
+        {
+            return QVariant::fromValue<void*>((void*)&world);
+        }
+        case FolderRole:
+        {
+            return QDir::toNativeSeparators(
+                dir().absoluteFilePath(world.folderName()));
+        }
+        case SeedRole:
+        {
+            return QVariant::fromValue<qlonglong>(world.seed());
+        }
+        case NameRole:
+        {
             return world.name();
-
-        case GameModeColumn:
-            return world.gameType().toTranslatedString();
-
-        case LastPlayedColumn:
+        }
+        case LastPlayedRole:
+        {
             return world.lastPlayed();
-
-        case SizeColumn:
-            return locale.formattedDataSize(world.bytes());
-
+        }
+        case SizeRole:
+        {
+            return QVariant::fromValue<qlonglong>(world.bytes());
+        }
+        case IconFileRole:
+        {
+            return world.iconFile();
+        }
         default:
             return QVariant();
-        }
-
-    case Qt::UserRole:
-        switch (column)
-        {
-            case SizeColumn:
-                return QVariant::fromValue<qlonglong>(world.bytes());
-
-            default:
-                return data(index, Qt::DisplayRole);
-        }
-
-    case Qt::ToolTipRole:
-    {
-        return world.folderName();
-    }
-    case ObjectRole:
-    {
-        return QVariant::fromValue<void *>((void *)&world);
-    }
-    case FolderRole:
-    {
-        return QDir::toNativeSeparators(dir().absoluteFilePath(world.folderName()));
-    }
-    case SeedRole:
-    {
-        return QVariant::fromValue<qlonglong>(world.seed());
-    }
-    case NameRole:
-    {
-        return world.name();
-    }
-    case LastPlayedRole:
-    {
-        return world.lastPlayed();
-    }
-    case SizeRole:
-    {
-        return QVariant::fromValue<qlonglong>(world.bytes());
-    }
-    case IconFileRole:
-    {
-        return world.iconFile();
-    }
-    default:
-        return QVariant();
     }
 }
 
-QVariant WorldList::headerData(int section, Qt::Orientation /*orientation*/, int role) const
+QVariant WorldList::headerData(int section, Qt::Orientation /*orientation*/,
+                               int role) const
 {
     switch (role)
     {
-    case Qt::DisplayRole:
-        switch (section)
-        {
-        case NameColumn:
-            return tr("Name");
-        case GameModeColumn:
-            return tr("Game Mode");
-        case LastPlayedColumn:
-            return tr("Last Played");
-        case SizeColumn:
-            //: World size on disk
-            return tr("Size");
-        default:
-            return QVariant();
-        }
+        case Qt::DisplayRole:
+            switch (section)
+            {
+                case NameColumn:
+                    return tr("Name");
+                case GameModeColumn:
+                    return tr("Game Mode");
+                case LastPlayedColumn:
+                    return tr("Last Played");
+                case SizeColumn:
+                    //: World size on disk
+                    return tr("Size");
+                default:
+                    return QVariant();
+            }
 
-    case Qt::ToolTipRole:
-        switch (section)
-        {
-        case NameColumn:
-            return tr("The name of the world.");
-        case GameModeColumn:
-            return tr("Game mode of the world.");
-        case LastPlayedColumn:
-            return tr("Date and time the world was last played.");
-        case SizeColumn:
-            return tr("Size of the world on disk.");
+        case Qt::ToolTipRole:
+            switch (section)
+            {
+                case NameColumn:
+                    return tr("The name of the world.");
+                case GameModeColumn:
+                    return tr("Game mode of the world.");
+                case LastPlayedColumn:
+                    return tr("Date and time the world was last played.");
+                case SizeColumn:
+                    return tr("Size of the world on disk.");
+                default:
+                    return QVariant();
+            }
         default:
             return QVariant();
-        }
-    default:
-        return QVariant();
     }
 }
 
@@ -326,13 +345,12 @@ QStringList WorldList::mimeTypes() const
 
 class WorldMimeData : public QMimeData
 {
-Q_OBJECT
+    Q_OBJECT
 
 public:
     WorldMimeData(QList<World> worlds)
     {
         m_worlds = worlds;
-
     }
     QStringList formats() const
     {
@@ -340,13 +358,15 @@ public:
     }
 
 protected:
-    QVariant retrieveData(const QString &mimetype, QMetaType type) const
+    QVariant retrieveData(const QString& mimetype, QMetaType type) const
     {
         QList<QUrl> urls;
-        for(auto &world: m_worlds)
+        for (auto& world : m_worlds)
         {
-            if(!world.isValid() || !world.isOnFS())
+            if (!world.isValid() || !world.isOnFS())
+            {
                 continue;
+            }
             QString worldPath = world.container().absoluteFilePath();
             qDebug() << worldPath;
             urls.append(QUrl::fromLocalFile(worldPath));
@@ -354,40 +374,51 @@ protected:
         const_cast<WorldMimeData*>(this)->setUrls(urls);
         return QMimeData::retrieveData(mimetype, type);
     }
+
 private:
     QList<World> m_worlds;
 };
 
-QMimeData *WorldList::mimeData(const QModelIndexList &indexes) const
+QMimeData* WorldList::mimeData(const QModelIndexList& indexes) const
 {
     if (indexes.size() == 0)
+    {
         return new QMimeData();
+    }
 
     QList<World> selectedWorlds;
-    for(auto idx : indexes)
+    for (auto idx : indexes)
     {
-        if(idx.column() != 0)
+        if (idx.column() != 0)
+        {
             continue;
+        }
         int row = idx.row();
         if (row < 0 || row >= this->worlds.size())
+        {
             continue;
+        }
         selectedWorlds.append(this->worlds[row]);
     }
-    if(!selectedWorlds.size())
+    if (!selectedWorlds.size())
     {
         return new QMimeData();
     }
     return new WorldMimeData(selectedWorlds);
 }
 
-Qt::ItemFlags WorldList::flags(const QModelIndex &index) const
+Qt::ItemFlags WorldList::flags(const QModelIndex& index) const
 {
     Qt::ItemFlags defaultFlags = QAbstractListModel::flags(index);
     if (index.isValid())
-        return Qt::ItemIsUserCheckable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled |
-               defaultFlags;
+    {
+        return Qt::ItemIsUserCheckable | Qt::ItemIsDragEnabled |
+               Qt::ItemIsDropEnabled | defaultFlags;
+    }
     else
+    {
         return Qt::ItemIsDropEnabled | defaultFlags;
+    }
 }
 
 Qt::DropActions WorldList::supportedDragActions() const
@@ -406,44 +437,55 @@ void WorldList::installWorld(QFileInfo filename)
 {
     qDebug() << "installing: " << filename.absoluteFilePath();
     World w(filename);
-    if(!w.isValid())
+    if (!w.isValid())
     {
         return;
     }
     w.install(m_dir.absolutePath());
 }
 
-bool WorldList::dropMimeData(const QMimeData *data, Qt::DropAction action, int /*row*/, int /*column*/,
-                             const QModelIndex &/*parent*/)
+bool WorldList::dropMimeData(const QMimeData* data, Qt::DropAction action,
+                             int /*row*/, int /*column*/,
+                             const QModelIndex& /*parent*/)
 {
     if (action == Qt::IgnoreAction)
+    {
         return true;
+    }
     // check if the action is supported
     if (!data || !(action & supportedDropActions()))
+    {
         return false;
+    }
     // files dropped from outside?
     if (data->hasUrls())
     {
         bool was_watching = is_watching;
         if (was_watching)
+        {
             stopWatching();
+        }
         auto urls = data->urls();
-        for (const auto &url : std::as_const(urls))
+        for (const auto& url : std::as_const(urls))
         {
             // only local files may be dropped...
             if (!url.isLocalFile())
+            {
                 continue;
+            }
             QString filename = url.toLocalFile();
 
             QFileInfo worldInfo(filename);
 
-            if(!m_dir.entryInfoList().contains(worldInfo))
+            if (!m_dir.entryInfoList().contains(worldInfo))
             {
                 installWorld(worldInfo);
             }
         }
         if (was_watching)
+        {
             startWatching();
+        }
         return true;
     }
     return false;

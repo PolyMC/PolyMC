@@ -3,7 +3,8 @@
 #include <QByteArray>
 #include <QString>
 
-namespace Markdown {
+namespace Markdown
+{
 
 QString toHtml(const QByteArray& markdown);
 

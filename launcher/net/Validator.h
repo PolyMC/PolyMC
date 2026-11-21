@@ -36,7 +36,8 @@
 
 #include "net/NetAction.h"
 
-namespace Net {
+namespace Net
+{
 class Validator
 {
 public: /* con/des */
@@ -44,9 +45,9 @@ public: /* con/des */
     virtual ~Validator() {};
 
 public: /* methods */
-    virtual bool init(QNetworkRequest & request) = 0;
-    virtual bool write(QByteArray & data) = 0;
+    virtual bool init(QNetworkRequest& request) = 0;
+    virtual bool write(QByteArray& data) = 0;
     virtual bool abort() = 0;
-    virtual bool validate(QNetworkReply & reply) = 0;
+    virtual bool validate(QNetworkReply& reply) = 0;
 };
-}
+}  // namespace Net

@@ -55,10 +55,12 @@ void LaunchProfile::clear()
     m_problemSeverity = ProblemSeverity::None;
 }
 
-static void applyString(const QString & from, QString & to)
+static void applyString(const QString& from, QString& to)
 {
-    if(from.isEmpty())
+    if (from.isEmpty())
+    {
         return;
+    }
     to = from;
 }
 
@@ -94,7 +96,7 @@ void LaunchProfile::applyMinecraftVersionType(const QString& type)
 
 void LaunchProfile::applyMinecraftAssets(MojangAssetIndexInfo::Ptr assets)
 {
-    if(assets)
+    if (assets)
     {
         m_minecraftAssets = assets;
     }
@@ -107,9 +109,10 @@ void LaunchProfile::applyTraits(const QSet<QString>& traits)
 
 void LaunchProfile::applyTweakers(const QStringList& tweakers)
 {
-    // if the applied tweakers override an existing one, skip it. this effectively moves it later in the sequence
+    // if the applied tweakers override an existing one, skip it. this
+    // effectively moves it later in the sequence
     QStringList newTweakers;
-    for(auto & tweaker: m_tweakers)
+    for (auto& tweaker : m_tweakers)
     {
         if (tweakers.contains(tweaker))
         {
@@ -127,7 +130,8 @@ void LaunchProfile::applyJarMods(const QList<LibraryPtr>& jarMods)
     this->m_jarMods.append(jarMods);
 }
 
-static int findLibraryByName(QList<LibraryPtr> *haystack, const GradleSpecifier &needle)
+static int findLibraryByName(QList<LibraryPtr>* haystack,
+                             const GradleSpecifier& needle)
 {
     int retval = -1;
     for (int i = 0; i < haystack->size(); ++i)
@@ -136,7 +140,9 @@ static int findLibraryByName(QList<LibraryPtr> *haystack, const GradleSpecifier 
         {
             // only one is allowed.
             if (retval != -1)
+            {
                 return -1;
+            }
             retval = i;
         }
     }
@@ -145,8 +151,8 @@ static int findLibraryByName(QList<LibraryPtr> *haystack, const GradleSpecifier 
 
 void LaunchProfile::applyMods(const QList<LibraryPtr>& mods)
 {
-    QList<LibraryPtr> * list = &m_mods;
-    for(auto & mod: mods)
+    QList<LibraryPtr>* list = &m_mods;
+    for (auto& mod : mods)
     {
         auto modCopy = Library::limitedCopy(mod);
 
@@ -174,15 +180,16 @@ void LaunchProfile::applyCompatibleJavaMajors(QList<int>& javaMajor)
     m_compatibleJavaMajors.append(javaMajor);
 }
 
-void LaunchProfile::applyLibrary(LibraryPtr library, const RuntimeContext & runtimeContext)
+void LaunchProfile::applyLibrary(LibraryPtr library,
+                                 const RuntimeContext& runtimeContext)
 {
-    if(!library->isActive(runtimeContext))
+    if (!library->isActive(runtimeContext))
     {
         return;
     }
 
-    QList<LibraryPtr> * list = &m_libraries;
-    if(library->isNative())
+    QList<LibraryPtr>* list = &m_libraries;
+    if (library->isNative())
     {
         list = &m_nativeLibraries;
     }
@@ -206,14 +213,15 @@ void LaunchProfile::applyLibrary(LibraryPtr library, const RuntimeContext & runt
     }
 }
 
-void LaunchProfile::applyMavenFile(LibraryPtr mavenFile, const RuntimeContext & runtimeContext)
+void LaunchProfile::applyMavenFile(LibraryPtr mavenFile,
+                                   const RuntimeContext& runtimeContext)
 {
-    if(!mavenFile->isActive(runtimeContext))
+    if (!mavenFile->isActive(runtimeContext))
     {
         return;
     }
 
-    if(mavenFile->isNative())
+    if (mavenFile->isNative())
     {
         return;
     }
@@ -222,15 +230,16 @@ void LaunchProfile::applyMavenFile(LibraryPtr mavenFile, const RuntimeContext & 
     m_mavenFiles.append(Library::limitedCopy(mavenFile));
 }
 
-void LaunchProfile::applyAgent(AgentPtr agent, const RuntimeContext & runtimeContext)
+void LaunchProfile::applyAgent(AgentPtr agent,
+                               const RuntimeContext& runtimeContext)
 {
     auto lib = agent->library();
-    if(!lib->isActive(runtimeContext))
+    if (!lib->isActive(runtimeContext))
     {
         return;
     }
 
-    if(lib->isNative())
+    if (lib->isNative())
     {
         return;
     }
@@ -245,7 +254,7 @@ const LibraryPtr LaunchProfile::getMainJar() const
 
 void LaunchProfile::applyMainJar(LibraryPtr jar)
 {
-    if(jar)
+    if (jar)
     {
         m_mainJar = jar;
     }
@@ -280,12 +289,12 @@ QString LaunchProfile::getMainClass() const
     return m_mainClass;
 }
 
-const QSet<QString> &LaunchProfile::getTraits() const
+const QSet<QString>& LaunchProfile::getTraits() const
 {
     return m_traits;
 }
 
-const QStringList & LaunchProfile::getTweakers() const
+const QStringList& LaunchProfile::getTweakers() const
 {
     return m_tweakers;
 }
@@ -307,7 +316,7 @@ QString LaunchProfile::getMinecraftVersionType() const
 
 std::shared_ptr<MojangAssetIndexInfo> LaunchProfile::getMinecraftAssets() const
 {
-    if(!m_minecraftAssets)
+    if (!m_minecraftAssets)
     {
         return std::make_shared<MojangAssetIndexInfo>("legacy");
     }
@@ -319,79 +328,79 @@ QString LaunchProfile::getMinecraftArguments() const
     return m_minecraftArguments;
 }
 
-const QStringList & LaunchProfile::getAddnJvmArguments() const
+const QStringList& LaunchProfile::getAddnJvmArguments() const
 {
     return m_addnJvmArguments;
 }
 
-const QList<LibraryPtr> & LaunchProfile::getJarMods() const
+const QList<LibraryPtr>& LaunchProfile::getJarMods() const
 {
     return m_jarMods;
 }
 
-const QList<LibraryPtr> & LaunchProfile::getLibraries() const
+const QList<LibraryPtr>& LaunchProfile::getLibraries() const
 {
     return m_libraries;
 }
 
-const QList<LibraryPtr> & LaunchProfile::getNativeLibraries() const
+const QList<LibraryPtr>& LaunchProfile::getNativeLibraries() const
 {
     return m_nativeLibraries;
 }
 
-const QList<LibraryPtr> & LaunchProfile::getMavenFiles() const
+const QList<LibraryPtr>& LaunchProfile::getMavenFiles() const
 {
     return m_mavenFiles;
 }
 
-const QList<AgentPtr> & LaunchProfile::getAgents() const
+const QList<AgentPtr>& LaunchProfile::getAgents() const
 {
     return m_agents;
 }
 
-const QList<int> & LaunchProfile::getCompatibleJavaMajors() const
+const QList<int>& LaunchProfile::getCompatibleJavaMajors() const
 {
     return m_compatibleJavaMajors;
 }
 
-void LaunchProfile::getLibraryFiles(
-    const RuntimeContext & runtimeContext,
-    QStringList& jars,
-    QStringList& nativeJars,
-    const QString& overridePath,
-    const QString& tempPath
-) const
+void LaunchProfile::getLibraryFiles(const RuntimeContext& runtimeContext,
+                                    QStringList& jars, QStringList& nativeJars,
+                                    const QString& overridePath,
+                                    const QString& tempPath) const
 {
     QStringList native32, native64;
     jars.clear();
     nativeJars.clear();
-    for (const auto &lib : getLibraries())
+    for (const auto& lib : getLibraries())
     {
-        lib->getApplicableFiles(runtimeContext, jars, nativeJars, native32, native64, overridePath);
+        lib->getApplicableFiles(runtimeContext, jars, nativeJars, native32,
+                                native64, overridePath);
     }
     // NOTE: order is important here, add main jar last to the lists
-    if(m_mainJar)
+    if (m_mainJar)
     {
         // FIXME: HACK!! jar modding is weird and unsystematic!
-        if(m_jarMods.size())
+        if (m_jarMods.size())
         {
             QDir tempDir(tempPath);
             jars.append(tempDir.absoluteFilePath("minecraft.jar"));
         }
         else
         {
-            m_mainJar->getApplicableFiles(runtimeContext, jars, nativeJars, native32, native64, overridePath);
+            m_mainJar->getApplicableFiles(runtimeContext, jars, nativeJars,
+                                          native32, native64, overridePath);
         }
     }
-    for (const auto &lib : getNativeLibraries())
+    for (const auto& lib : getNativeLibraries())
     {
-        lib->getApplicableFiles(runtimeContext, jars, nativeJars, native32, native64, overridePath);
+        lib->getApplicableFiles(runtimeContext, jars, nativeJars, native32,
+                                native64, overridePath);
     }
-    if(runtimeContext.javaArchitecture == "32")
+    if (runtimeContext.javaArchitecture == "32")
     {
         nativeJars.append(native32);
     }
-    else if(runtimeContext.javaArchitecture == "64")
+    else if (runtimeContext.javaArchitecture == "64")
     {
         nativeJars.append(native64);
     }

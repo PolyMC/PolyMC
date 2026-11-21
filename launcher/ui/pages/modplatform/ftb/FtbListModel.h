@@ -22,9 +22,11 @@
 #include "net/NetJob.h"
 #include <QIcon>
 
-namespace Ftb {
+namespace Ftb
+{
 
-struct Logo {
+struct Logo
+{
     QString fullpath;
     NetJob::Ptr downloadJob;
     QIcon result;
@@ -39,16 +41,17 @@ class ListModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    ListModel(QObject *parent);
+    ListModel(QObject* parent);
     virtual ~ListModel();
 
-    int rowCount(const QModelIndex &parent) const override;
-    int columnCount(const QModelIndex &parent) const override;
-    QVariant data(const QModelIndex &index, int role) const override;
+    int rowCount(const QModelIndex& parent) const override;
+    int columnCount(const QModelIndex& parent) const override;
+    QVariant data(const QModelIndex& index, int role) const override;
 
     void request();
 
-    void getLogo(const QString &logo, const QString &logoUrl, LogoCallback callback);
+    void getLogo(const QString& logo, const QString& logoUrl,
+                 LogoCallback callback);
 
 private slots:
     void requestFinished();
@@ -58,7 +61,7 @@ private slots:
     void logoLoaded(QString logo, bool stale);
 
 private:
-    void packRequestFinished(const QByteArray &packResponse);
+    void packRequestFinished(const QByteArray& packResponse);
     void requestLogo(QString file, QString url);
 
 private:
@@ -69,4 +72,4 @@ private:
     QByteArray response;
 };
 
-}
+}  // namespace Ftb

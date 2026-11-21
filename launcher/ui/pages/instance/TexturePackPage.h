@@ -43,23 +43,41 @@
 #include "minecraft/mod/TexturePack.h"
 
 class TexturePackPage : public DownloadableResourcesPage
-{ Q_OBJECT
+{
+    Q_OBJECT
 public:
-    explicit TexturePackPage(MinecraftInstance *instance, std::shared_ptr<TexturePackFolderModel> model, QWidget *parent = 0);
-    virtual ~TexturePackPage() {}
+    explicit TexturePackPage(MinecraftInstance* instance,
+                             std::shared_ptr<TexturePackFolderModel> model,
+                             QWidget* parent = 0);
+    virtual ~TexturePackPage()
+    {
+    }
 
-    QString displayName() const override { return tr("Texture packs"); }
-    QIcon icon() const override { return APPLICATION->getThemedIcon("resourcepacks"); }
-    QString id() const override { return "texturepacks"; }
-    QString helpPage() const override { return "Texture-packs"; }
+    QString displayName() const override
+    {
+        return tr("Texture packs");
+    }
+    QIcon icon() const override
+    {
+        return APPLICATION->getThemedIcon("resourcepacks");
+    }
+    QString id() const override
+    {
+        return "texturepacks";
+    }
+    QString helpPage() const override
+    {
+        return "Texture-packs";
+    }
 
     virtual bool shouldDisplay() const override
     {
         return m_instance->traits().contains("texturepacks");
     }
 
-   public slots:
-    bool onSelectionChanged(const QModelIndex& current, const QModelIndex& /*previous*/) override
+public slots:
+    bool onSelectionChanged(const QModelIndex& current,
+                            const QModelIndex& /*previous*/) override
     {
         auto sourceCurrent = m_filterModel->mapToSource(current);
         int row = sourceCurrent.row();

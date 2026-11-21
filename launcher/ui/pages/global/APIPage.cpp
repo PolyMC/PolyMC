@@ -53,51 +53,62 @@
 
 #include "ui/GuiUtil.h"
 
-APIPage::APIPage(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::APIPage)
+APIPage::APIPage(QWidget* parent) : QWidget(parent), ui(new Ui::APIPage)
 {
-    // This is here so you can reorder the entries in the combobox without messing stuff up
+    // This is here so you can reorder the entries in the combobox without
+    // messing stuff up
     int comboBoxEntries[] = {
-        PasteUpload::PasteType::Mclogs,
-        PasteUpload::PasteType::NullPointer,
-        PasteUpload::PasteType::PasteGG,
-        PasteUpload::PasteType::Hastebin
-    };
+        PasteUpload::PasteType::Mclogs, PasteUpload::PasteType::NullPointer,
+        PasteUpload::PasteType::PasteGG, PasteUpload::PasteType::Hastebin};
 
     static QRegularExpression validUrlRegExp("https?://.+");
-    static QRegularExpression validMSAClientID(QRegularExpression::anchoredPattern(
-                "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"));
-    static QRegularExpression validFlameKey(QRegularExpression::anchoredPattern(
-                "\\$2[ayb]\\$.{56}"));
+    static QRegularExpression validMSAClientID(
+        QRegularExpression::anchoredPattern(
+            "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{"
+            "12}"));
+    static QRegularExpression validFlameKey(
+        QRegularExpression::anchoredPattern("\\$2[ayb]\\$.{56}"));
 
     ui->setupUi(this);
 
-    for (auto pasteType : comboBoxEntries) {
-        ui->pasteTypeComboBox->addItem(PasteUpload::PasteTypes.at(pasteType).name, pasteType);
+    for (auto pasteType : comboBoxEntries)
+    {
+        ui->pasteTypeComboBox->addItem(
+            PasteUpload::PasteTypes.at(pasteType).name, pasteType);
     }
 
-    void (QComboBox::*currentIndexChangedSignal)(int) (&QComboBox::currentIndexChanged);
-    connect(ui->pasteTypeComboBox, currentIndexChangedSignal, this, &APIPage::updateBaseURLPlaceholder);
-    // This function needs to be called even when the ComboBox's index is still in its default state.
+    void (QComboBox::*currentIndexChangedSignal)(int)(
+        &QComboBox::currentIndexChanged);
+    connect(ui->pasteTypeComboBox, currentIndexChangedSignal, this,
+            &APIPage::updateBaseURLPlaceholder);
+    // This function needs to be called even when the ComboBox's index is still
+    // in its default state.
     updateBaseURLPlaceholder(ui->pasteTypeComboBox->currentIndex());
-    ui->baseURLEntry->setValidator(new TrimmedRegExValidator(validUrlRegExp, ui->baseURLEntry));
-    ui->msaClientID->setValidator(new TrimmedRegExValidator(validMSAClientID, ui->msaClientID));
-    ui->flameKey->setValidator(new TrimmedRegExValidator(validFlameKey, ui->flameKey));
+    ui->baseURLEntry->setValidator(
+        new TrimmedRegExValidator(validUrlRegExp, ui->baseURLEntry));
+    ui->msaClientID->setValidator(
+        new TrimmedRegExValidator(validMSAClientID, ui->msaClientID));
+    ui->flameKey->setValidator(
+        new TrimmedRegExValidator(validFlameKey, ui->flameKey));
 
     ui->metaURL->setPlaceholderText(BuildConfig.META_URL);
     ui->userAgentLineEdit->setPlaceholderText(BuildConfig.USER_AGENT);
 
     if (BuildConfig.FLAME_API_KEY_API_URL.isEmpty())
+    {
         ui->fetchKeyButton->hide();
+    }
 
     loadSettings();
 
     resetBaseURLNote();
-    connect(ui->pasteTypeComboBox, currentIndexChangedSignal, this, &APIPage::updateBaseURLNote);
-    connect(ui->baseURLEntry, &QLineEdit::textEdited, this, &APIPage::resetBaseURLNote);
+    connect(ui->pasteTypeComboBox, currentIndexChangedSignal, this,
+            &APIPage::updateBaseURLNote);
+    connect(ui->baseURLEntry, &QLineEdit::textEdited, this,
+            &APIPage::resetBaseURLNote);
 
-    connect(ui->fetchKeyButton, &QPushButton::clicked, this, &APIPage::fetchKeyButtonPressed);
+    connect(ui->fetchKeyButton, &QPushButton::clicked, this,
+            &APIPage::fetchKeyButtonPressed);
 }
 
 APIPage::~APIPage()
@@ -141,7 +152,8 @@ void APIPage::loadSettings()
     int pasteTypeIndex = ui->pasteTypeComboBox->findData(pasteType);
     if (pasteTypeIndex == -1)
     {
-        pasteTypeIndex = ui->pasteTypeComboBox->findData(PasteUpload::PasteType::Mclogs);
+        pasteTypeIndex =
+            ui->pasteTypeComboBox->findData(PasteUpload::PasteType::Mclogs);
         ui->baseURLEntry->clear();
     }
 
@@ -174,11 +186,11 @@ void APIPage::applySettings()
         path.append('/');
         metaURL.setPath(path);
     }
-    // Don't allow HTTP for remote metadata, since meta is basically RCE with all the jar files.
-    // Local HTTP is useful for development and offline metadata mirrors.
-    if(!metaURL.isEmpty()
-        && metaURL.scheme() == "http"
-        && !AssetsUtils::isLocalMetadataHost(metaURL.host()))
+    // Don't allow HTTP for remote metadata, since meta is basically RCE with
+    // all the jar files. Local HTTP is useful for development and offline
+    // metadata mirrors.
+    if (!metaURL.isEmpty() && metaURL.scheme() == "http" &&
+        !AssetsUtils::isLocalMetadataHost(metaURL.host()))
     {
         metaURL.setScheme("https");
     }
@@ -196,7 +208,9 @@ void APIPage::fetchKeyButtonPressed()
     QString apiKey = GuiUtil::fetchFlameKey(parentWidget());
 
     if (!apiKey.isEmpty())
+    {
         ui->flameKey->setText(apiKey);
+    }
 }
 
 bool APIPage::apply()

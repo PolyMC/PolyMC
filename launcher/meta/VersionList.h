@@ -31,7 +31,7 @@ class VersionList : public BaseVersionList, public BaseEntity
     Q_PROPERTY(QString uid READ uid CONSTANT)
     Q_PROPERTY(QString name READ name NOTIFY nameChanged)
 public:
-    explicit VersionList(const QString &uid, QObject *parent = nullptr);
+    explicit VersionList(const QString& uid, QObject* parent = nullptr);
 
     enum Roles
     {
@@ -48,7 +48,7 @@ public:
 
     BaseVersionPtr getRecommended() const override;
 
-    QVariant data(const QModelIndex &index, int role) const override;
+    QVariant data(const QModelIndex& index, int role) const override;
     RoleList providesRoles() const override;
     QHash<int, QByteArray> roleNames() const override;
 
@@ -64,7 +64,7 @@ public:
     }
     QString humanReadable() const;
 
-    VersionPtr getVersion(const QString &version);
+    VersionPtr getVersion(const QString& version);
     bool hasVersion(QString version) const;
 
     QVector<VersionPtr> versions() const
@@ -72,15 +72,15 @@ public:
         return m_versions;
     }
 
-public: // for usage only by parsers
-    void setName(const QString &name);
-    void setVersions(const QVector<VersionPtr> &versions);
-    void merge(const VersionListPtr &other);
-    void mergeFromIndex(const VersionListPtr &other);
-    void parse(const QJsonObject &obj) override;
+public:  // for usage only by parsers
+    void setName(const QString& name);
+    void setVersions(const QVector<VersionPtr>& versions);
+    void merge(const VersionListPtr& other);
+    void mergeFromIndex(const VersionListPtr& other);
+    void parse(const QJsonObject& obj) override;
 
 signals:
-    void nameChanged(const QString &name);
+    void nameChanged(const QString& name);
 
 protected slots:
     void updateListData(QList<BaseVersionPtr>) override
@@ -95,7 +95,7 @@ private:
 
     VersionPtr m_recommended;
 
-    void setupAddedVersion(const int row, const VersionPtr &version);
+    void setupAddedVersion(const int row, const VersionPtr& version);
 };
-}
+}  // namespace Meta
 Q_DECLARE_METATYPE(Meta::VersionListPtr)

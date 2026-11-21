@@ -38,81 +38,105 @@
 #include "minecraft/mod/tasks/BasicFolderLoadTask.h"
 #include "minecraft/mod/tasks/LocalResourcePackParseTask.h"
 
-DataPackFolderModel::DataPackFolderModel(const QString& dir) : ResourceFolderModel(QDir(dir))
+DataPackFolderModel::DataPackFolderModel(const QString& dir)
+    : ResourceFolderModel(QDir(dir))
 {
-    m_column_sort_keys = { SortType::ENABLED, SortType::NAME, SortType::PACK_FORMAT, SortType::DATE };
+    m_column_sort_keys = {SortType::ENABLED, SortType::NAME,
+                          SortType::PACK_FORMAT, SortType::DATE};
 }
 
 QVariant DataPackFolderModel::data(const QModelIndex& index, int role) const
 {
     if (!validateIndex(index))
+    {
         return {};
+    }
 
     int row = index.row();
     int column = index.column();
 
-    switch (role) {
-    case Qt::DisplayRole:
-        switch (column) {
-        case NameColumn:
-            return m_resources[row]->name();
-        case PackFormatColumn:
-            return at(row)->toString();
-        case DateColumn:
-            return m_resources[row]->dateTimeChanged();
+    switch (role)
+    {
+        case Qt::DisplayRole:
+            switch (column)
+            {
+                case NameColumn:
+                    return m_resources[row]->name();
+                case PackFormatColumn:
+                    return at(row)->toString();
+                case DateColumn:
+                    return m_resources[row]->dateTimeChanged();
+                default:
+                    return {};
+            }
+
+        case Qt::ToolTipRole:
+        {
+            if (column == PackFormatColumn)
+            {
+                //: The string being explained by this is in the format: ID
+                //: (Lower version - Upper version)
+                return tr(
+                    "The data pack format ID, as well as the Minecraft "
+                    "versions it was designed for.");
+            }
+            return m_resources[row]->internal_id();
+        }
+        case Qt::CheckStateRole:
+            if (column == ActiveColumn)
+            {
+                return at(row)->enabled() ? Qt::Checked : Qt::Unchecked;
+            }
+            return {};
         default:
             return {};
-        }
-
-    case Qt::ToolTipRole: {
-        if (column == PackFormatColumn) {
-            //: The string being explained by this is in the format: ID (Lower version - Upper version)
-            return tr("The data pack format ID, as well as the Minecraft versions it was designed for.");
-        }
-        return m_resources[row]->internal_id();
-    }
-    case Qt::CheckStateRole:
-        if (column == ActiveColumn)
-            return at(row)->enabled() ? Qt::Checked : Qt::Unchecked;
-        return {};
-    default:
-        return {};
     }
 }
 
-QVariant DataPackFolderModel::headerData(int section, Qt::Orientation /*orientation*/, int role) const
+QVariant DataPackFolderModel::headerData(int section,
+                                         Qt::Orientation /*orientation*/,
+                                         int role) const
 {
-    switch (role) {
-    case Qt::DisplayRole:
-        switch (section) {
-        case ActiveColumn:
-            return QString();
-        case NameColumn:
-            return tr("Name");
-        case PackFormatColumn:
-            return tr("Pack Format");
-        case DateColumn:
-            return tr("Last changed");
-        default:
-            return {};
-        }
+    switch (role)
+    {
+        case Qt::DisplayRole:
+            switch (section)
+            {
+                case ActiveColumn:
+                    return QString();
+                case NameColumn:
+                    return tr("Name");
+                case PackFormatColumn:
+                    return tr("Pack Format");
+                case DateColumn:
+                    return tr("Last changed");
+                default:
+                    return {};
+            }
 
-    case Qt::ToolTipRole:
-        switch (section) {
-        case ActiveColumn:
-            return tr("Is the data pack enabled? (Only valid for ZIPs)");
-        case NameColumn:
-            return tr("The name of the data pack.");
-        case PackFormatColumn:
-            //: The string being explained by this is in the format: ID (Lower version - Upper version)
-            return tr("The data pack format ID, as well as the Minecraft versions it was designed for.");
-        case DateColumn:
-            return tr("The date and time this data pack was last changed (or added).");
+        case Qt::ToolTipRole:
+            switch (section)
+            {
+                case ActiveColumn:
+                    return tr(
+                        "Is the data pack enabled? (Only valid for ZIPs)");
+                case NameColumn:
+                    return tr("The name of the data pack.");
+                case PackFormatColumn:
+                    //: The string being explained by this is in the format: ID
+                    //: (Lower version - Upper version)
+                    return tr(
+                        "The data pack format ID, as well as the Minecraft "
+                        "versions it was designed for.");
+                case DateColumn:
+                    return tr(
+                        "The date and time this data pack was last changed (or "
+                        "added).");
+                default:
+                    return {};
+            }
         default:
             return {};
-        }
-    default:
-        return {};
     }
 }
 
@@ -123,10 +147,15 @@ int DataPackFolderModel::columnCount(const QModelIndex& /*parent*/) const
 
 Task* DataPackFolderModel::createUpdateTask()
 {
-    return new BasicFolderLoadTask(m_dir, [](QFileInfo const& entry) { return new DataPack(entry); });
+    return new BasicFolderLoadTask(m_dir,
+                                   [](QFileInfo const& entry)
+                                   {
+                                       return new DataPack(entry);
+                                   });
 }
 
 Task* DataPackFolderModel::createParseTask(Resource& resource)
 {
-    return new LocalResourcePackParseTask(m_next_resolution_ticket, static_cast<DataPack&>(resource));
+    return new LocalResourcePackParseTask(m_next_resolution_ticket,
+                                          static_cast<DataPack&>(resource));
 }

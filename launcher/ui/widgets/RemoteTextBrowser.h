@@ -9,34 +9,36 @@
 
 class QTextDocument;
 
-class RemoteTextBrowser : public QTextBrowser {
+class RemoteTextBrowser : public QTextBrowser
+{
     Q_OBJECT
 public:
-    RemoteTextBrowser(QWidget *parent = nullptr);
+    RemoteTextBrowser(QWidget* parent = nullptr);
 
 protected:
     static constexpr int Marked = QTextFormat::UserProperty + 1;
     static constexpr int AuthorSize = QTextFormat::UserProperty + 2;
 
-    QVariant loadResource(int type, const QUrl &name) override;
+    QVariant loadResource(int type, const QUrl& name) override;
 
 public slots:
-    void setHtml(const QString &text);
+    void setHtml(const QString& text);
 
 private:
-    void rerender(QTextDocument *doc, const QUrl &url, const QSize &imageSize);
-    QSize fittedSize(const QSize &imageSize, const QSizeF &authorSize) const;
-    QImage loadScaled(const QString &path);
+    void rerender(QTextDocument* doc, const QUrl& url, const QSize& imageSize);
+    QSize fittedSize(const QSize& imageSize, const QSizeF& authorSize) const;
+    QImage loadScaled(const QString& path);
 
-    struct ImageFragment {
+    struct ImageFragment
+    {
         int pos;
         QUrl url;
         QTextImageFormat fmt;
     };
 
     static QList<ImageFragment> collectFragments(const QTextDocument* doc);
-    static void applyFormat(const QSize& size, const QVariant& mark, QTextDocument* doc, int pos,
-                            QTextImageFormat fmt);
+    static void applyFormat(const QSize& size, const QVariant& mark,
+                            QTextDocument* doc, int pos, QTextImageFormat fmt);
 
     QSet<QUrl> m_loading;
     QSet<QUrl> m_failed;

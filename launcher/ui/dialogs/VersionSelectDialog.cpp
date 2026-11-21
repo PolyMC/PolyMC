@@ -28,7 +28,8 @@
 #include "BaseVersionList.h"
 #include "java/JavaInstallList.h"
 
-VersionSelectDialog::VersionSelectDialog(BaseVersionList *vlist, QString title, QWidget *parent, bool cancelable)
+VersionSelectDialog::VersionSelectDialog(BaseVersionList* vlist, QString title,
+                                         QWidget* parent, bool cancelable)
     : QDialog(parent)
 {
     setObjectName(QStringLiteral("VersionSelectDialog"));
@@ -49,7 +50,8 @@ VersionSelectDialog::VersionSelectDialog(BaseVersionList *vlist, QString title, 
     m_buttonBox = new QDialogButtonBox(this);
     m_buttonBox->setObjectName(QStringLiteral("buttonBox"));
     m_buttonBox->setOrientation(Qt::Horizontal);
-    m_buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+    m_buttonBox->setStandardButtons(QDialogButtonBox::Cancel |
+                                    QDialogButtonBox::Ok);
     m_horizontalLayout->addWidget(m_buttonBox);
 
     m_verticalLayout->addLayout(m_horizontalLayout);
@@ -107,7 +109,7 @@ int VersionSelectDialog::exec()
     QDialog::open();
     bool isJava = dynamic_cast<JavaInstallList*>(m_vlist) != nullptr;
     m_versionWidget->initialize(m_vlist, isJava);
-    if(resizeOnColumn != -1)
+    if (resizeOnColumn != -1)
     {
         m_versionWidget->setResizeOn(resizeOnColumn);
     }
@@ -129,12 +131,14 @@ void VersionSelectDialog::on_refreshButton_clicked()
     m_versionWidget->loadList();
 }
 
-void VersionSelectDialog::setExactFilter(BaseVersionList::ModelRoles role, QString filter)
+void VersionSelectDialog::setExactFilter(BaseVersionList::ModelRoles role,
+                                         QString filter)
 {
     m_versionWidget->setExactFilter(role, filter);
 }
 
-void VersionSelectDialog::setFuzzyFilter(BaseVersionList::ModelRoles role, QString filter)
+void VersionSelectDialog::setFuzzyFilter(BaseVersionList::ModelRoles role,
+                                         QString filter)
 {
     m_versionWidget->setFuzzyFilter(role, filter);
 }

@@ -55,20 +55,24 @@ class NewInstanceDialog : public QDialog, public BasePageProvider
     Q_OBJECT
 
 public:
-    explicit NewInstanceDialog(const QString & initialGroup, const QString & url = QString(), QWidget *parent = 0);
+    explicit NewInstanceDialog(const QString& initialGroup,
+                               const QString& url = QString(),
+                               QWidget* parent = 0);
     ~NewInstanceDialog();
 
     void updateDialogState();
 
-    void setSuggestedPack(const QString& name = QString(), InstanceTask * task = nullptr);
-    void setSuggestedPack(const QString& name, QString version, InstanceTask * task = nullptr);
-    void setSuggestedIconFromFile(const QString &path, const QString &name);
-    void setSuggestedIcon(const QString &key);
+    void setSuggestedPack(const QString& name = QString(),
+                          InstanceTask* task = nullptr);
+    void setSuggestedPack(const QString& name, QString version,
+                          InstanceTask* task = nullptr);
+    void setSuggestedIconFromFile(const QString& path, const QString& name);
+    void setSuggestedIcon(const QString& key);
 
-    InstanceTask * extractTask();
+    InstanceTask* extractTask();
 
     QString dialogTitle() override;
-    QList<BasePage *> getPages() override;
+    QList<BasePage*> getPages() override;
 
     QString instName() const;
     QString instGroup() const;
@@ -80,15 +84,15 @@ public slots:
 
 private slots:
     void on_iconButton_clicked();
-    void on_instNameTextBox_textChanged(const QString &arg1);
+    void on_instNameTextBox_textChanged(const QString& arg1);
 
 private:
-    Ui::NewInstanceDialog *ui = nullptr;
-    PageContainer * m_container = nullptr;
-    QDialogButtonBox * m_buttons = nullptr;
+    Ui::NewInstanceDialog* ui = nullptr;
+    PageContainer* m_container = nullptr;
+    QDialogButtonBox* m_buttons = nullptr;
 
     QString InstIconKey;
-    ImportPage *importPage = nullptr;
+    ImportPage* importPage = nullptr;
     std::unique_ptr<InstanceTask> creationTask;
 
     bool importIcon = false;

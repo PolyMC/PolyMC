@@ -20,10 +20,12 @@
 
 #include <QtWidgets/QPushButton>
 
-LoginDialog::LoginDialog(QWidget *parent, AccountType type) : QDialog(parent), ui(new Ui::LoginDialog), m_accountType{type}
+LoginDialog::LoginDialog(QWidget* parent, AccountType type)
+    : QDialog(parent), ui(new Ui::LoginDialog), m_accountType{type}
 {
     ui->setupUi(this);
-    ui->authlibInjectorBaseTextBox->setVisible(m_accountType == AccountType::AuthlibInjector);
+    ui->authlibInjectorBaseTextBox->setVisible(m_accountType ==
+                                               AccountType::AuthlibInjector);
     ui->progressBar->setVisible(false);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 
@@ -45,13 +47,16 @@ void LoginDialog::accept()
     // Setup the login task and start it
     if (m_accountType == AccountType::AuthlibInjector)
     {
-        m_account = MinecraftAccount::createAuthlibInjectorFromUsername(ui->userTextBox->text(), ui->authlibInjectorBaseTextBox->text());
+        m_account = MinecraftAccount::createAuthlibInjectorFromUsername(
+            ui->userTextBox->text(), ui->authlibInjectorBaseTextBox->text());
     }
     m_loginTask = m_account->login(ui->passTextBox->text());
     connect(m_loginTask.get(), &Task::failed, this, &LoginDialog::onTaskFailed);
-    connect(m_loginTask.get(), &Task::succeeded, this, &LoginDialog::onTaskSucceeded);
+    connect(m_loginTask.get(), &Task::succeeded, this,
+            &LoginDialog::onTaskSucceeded);
     connect(m_loginTask.get(), &Task::status, this, &LoginDialog::onTaskStatus);
-    connect(m_loginTask.get(), &Task::progress, this, &LoginDialog::onTaskProgress);
+    connect(m_loginTask.get(), &Task::progress, this,
+            &LoginDialog::onTaskProgress);
     m_loginTask->start();
 }
 
@@ -63,27 +68,30 @@ void LoginDialog::setUserInputsEnabled(bool enable)
 }
 
 // Enable the OK button only when both textboxes contain something.
-void LoginDialog::on_userTextBox_textEdited(const QString &newText)
+void LoginDialog::on_userTextBox_textEdited(const QString& newText)
 {
     ui->buttonBox->button(QDialogButtonBox::Ok)
         ->setEnabled(!newText.isEmpty() && !ui->passTextBox->text().isEmpty());
 }
-void LoginDialog::on_passTextBox_textEdited(const QString &newText)
+void LoginDialog::on_passTextBox_textEdited(const QString& newText)
 {
     ui->buttonBox->button(QDialogButtonBox::Ok)
         ->setEnabled(!newText.isEmpty() && !ui->userTextBox->text().isEmpty());
 }
 
-void LoginDialog::onTaskFailed(const QString &reason)
+void LoginDialog::onTaskFailed(const QString& reason)
 {
     // Set message
     auto lines = reason.split('\n');
     QString processed;
-    for (const auto &line : std::as_const(lines)) {
-        if(line.size()) {
+    for (const auto& line : std::as_const(lines))
+    {
+        if (line.size())
+        {
             processed += "<font color='red'>" + line + "</font><br />";
         }
-        else {
+        else
+        {
             processed += "<br />";
         }
     }
@@ -99,7 +107,7 @@ void LoginDialog::onTaskSucceeded()
     QDialog::accept();
 }
 
-void LoginDialog::onTaskStatus(const QString &status)
+void LoginDialog::onTaskStatus(const QString& status)
 {
     ui->label->setText(status);
 }
@@ -110,7 +118,8 @@ void LoginDialog::onTaskProgress(qint64 current, qint64 total)
     ui->progressBar->setValue(current);
 }
 
-MinecraftAccountPtr LoginDialog::newAccount(QWidget *parent, QString msg, AccountType type)
+MinecraftAccountPtr LoginDialog::newAccount(QWidget* parent, QString msg,
+                                            AccountType type)
 {
     LoginDialog dlg(parent, type);
     dlg.ui->label->setText(msg);

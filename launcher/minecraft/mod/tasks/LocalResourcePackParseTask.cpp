@@ -26,11 +26,13 @@
 
 #include <QCryptographicHash>
 
-namespace ResourcePackUtils {
+namespace ResourcePackUtils
+{
 
 bool process(ResourcePack& pack)
 {
-    switch (pack.type()) {
+    switch (pack.type())
+    {
         case ResourceType::FOLDER:
             ResourcePackUtils::processFolder(pack);
             return true;
@@ -47,11 +49,15 @@ void processFolder(ResourcePack& pack)
 {
     Q_ASSERT(pack.type() == ResourceType::FOLDER);
 
-    QFileInfo mcmeta_file_info(FS::PathCombine(pack.fileinfo().filePath(), "pack.mcmeta"));
-    if (mcmeta_file_info.isFile()) {
+    QFileInfo mcmeta_file_info(
+        FS::PathCombine(pack.fileinfo().filePath(), "pack.mcmeta"));
+    if (mcmeta_file_info.isFile())
+    {
         QFile mcmeta_file(mcmeta_file_info.filePath());
         if (!mcmeta_file.open(QIODevice::ReadOnly))
+        {
             return;
+        }
 
         auto data = mcmeta_file.readAll();
 
@@ -60,11 +66,15 @@ void processFolder(ResourcePack& pack)
         mcmeta_file.close();
     }
 
-    QFileInfo image_file_info(FS::PathCombine(pack.fileinfo().filePath(), "pack.png"));
-    if (image_file_info.isFile()) {
+    QFileInfo image_file_info(
+        FS::PathCombine(pack.fileinfo().filePath(), "pack.png"));
+    if (image_file_info.isFile())
+    {
         QFile mcmeta_file(image_file_info.filePath());
         if (!mcmeta_file.open(QIODevice::ReadOnly))
+        {
             return;
+        }
 
         auto data = mcmeta_file.readAll();
 
@@ -80,13 +90,19 @@ void processZIP(ResourcePack& pack)
 
     QuaZip zip(pack.fileinfo().filePath());
     if (!zip.open(QuaZip::mdUnzip))
+    {
         return;
+    }
 
     if (auto mcmeta = MMCZip::readFile(&zip, "pack.mcmeta"))
+    {
         ResourcePackUtils::processMCMeta(pack, std::move(*mcmeta));
+    }
 
     if (auto packPng = MMCZip::readFile(&zip, "pack.png"))
+    {
         ResourcePackUtils::processPackPNG(pack, std::move(*packPng));
+    }
 
     zip.close();
 }
@@ -95,25 +111,37 @@ void processZIP(ResourcePack& pack)
 static std::pair<int, int> parsePackFormatVersion(const QJsonValue& value)
 {
     if (value.isDouble())
-        return { value.toInt(), 0 };
+    {
+        return {value.toInt(), 0};
+    }
 
     std::pair<int, int> version;
-    if (value.isArray()) {
+    if (value.isArray())
+    {
         const auto array = value.toArray();
         if (array.size() >= 1)
+        {
             version.first = array.at(0).toInt();
+        }
         if (array.size() >= 2)
+        {
             version.second = array.at(1).toInt();
+        }
     }
     return version;
 }
 
-static QString parsePackDescription(const QJsonValue &value) {
+static QString parsePackDescription(const QJsonValue& value)
+{
     if (value.isString())
+    {
         return value.toString();
+    }
 
     if (value.isObject())
+    {
         return Json::ensureString(value.toObject().value("fallback"), "");
+    }
 
     return "";
 }
@@ -121,24 +149,34 @@ static QString parsePackDescription(const QJsonValue &value) {
 // https://minecraft.wiki/w/Tutorials/Creating_a_resource_pack#Formatting_pack.mcmeta
 void processMCMeta(ResourcePack& pack, QByteArray&& raw_data)
 {
-    try {
+    try
+    {
         auto json_doc = QJsonDocument::fromJson(raw_data);
         auto pack_obj = Json::requireObject(json_doc.object(), "pack", {});
 
-        pack.setDescription(parsePackDescription(pack_obj.value("description")));
+        pack.setDescription(
+            parsePackDescription(pack_obj.value("description")));
 
         int packFormat = 0;
         std::pair<int, int> minFormat;
         std::pair<int, int> maxFormat;
         if (pack_obj.contains("pack_format"))
+        {
             packFormat = Json::ensureInteger(pack_obj, "pack_format", 0);
+        }
         if (pack_obj.contains("min_format"))
+        {
             minFormat = parsePackFormatVersion(pack_obj.value("min_format"));
+        }
         if (pack_obj.contains("max_format"))
+        {
             maxFormat = parsePackFormatVersion(pack_obj.value("max_format"));
+        }
 
         pack.setPackFormat(packFormat, minFormat, maxFormat);
-    } catch (Json::JsonException& e) {
+    }
+    catch (Json::JsonException& e)
+    {
         qWarning() << "JsonException: " << e.what() << e.cause();
     }
 }
@@ -146,17 +184,22 @@ void processMCMeta(ResourcePack& pack, QByteArray&& raw_data)
 void processPackPNG(ResourcePack& pack, QByteArray&& raw_data)
 {
     auto img = QImage::fromData(raw_data);
-    if (!img.isNull()) {
+    if (!img.isNull())
+    {
         pack.setImage(img);
-    } else {
+    }
+    else
+    {
         qWarning() << "Failed to parse pack.png.";
     }
 }
 }  // namespace ResourcePackUtils
 
-LocalResourcePackParseTask::LocalResourcePackParseTask(int token, ResourcePack& rp)
+LocalResourcePackParseTask::LocalResourcePackParseTask(int token,
+                                                       ResourcePack& rp)
     : Task(nullptr, false), m_token(token), m_resource_pack(rp)
-{}
+{
+}
 
 bool LocalResourcePackParseTask::abort()
 {
@@ -169,10 +212,16 @@ void LocalResourcePackParseTask::executeTask()
     Q_ASSERT(m_resource_pack.valid());
 
     if (!ResourcePackUtils::process(m_resource_pack))
+    {
         return;
+    }
 
     if (m_aborted)
+    {
         emitAborted();
+    }
     else
+    {
         emitSucceeded();
+    }
 }

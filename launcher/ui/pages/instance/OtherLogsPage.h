@@ -53,7 +53,8 @@ class OtherLogsPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit OtherLogsPage(QString path, IPathMatcher::Ptr fileFilter, QWidget *parent = 0);
+    explicit OtherLogsPage(QString path, IPathMatcher::Ptr fileFilter,
+                           QWidget* parent = 0);
     ~OtherLogsPage();
 
     QString id() const override
@@ -95,9 +96,9 @@ private:
     void setControlsEnabled(const bool enabled);
 
 private:
-    Ui::OtherLogsPage *ui;
+    Ui::OtherLogsPage* ui;
     QString m_path;
     QString m_currentFile;
     IPathMatcher::Ptr m_fileFilter;
-    RecursiveFileSystemWatcher *m_watcher;
+    RecursiveFileSystemWatcher* m_watcher;
 };

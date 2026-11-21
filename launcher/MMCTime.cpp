@@ -19,14 +19,15 @@
 
 #include <QObject>
 
-QString Time::prettifyDuration(int64_t duration) {
-    int seconds = (int) (duration % 60);
+QString Time::prettifyDuration(int64_t duration)
+{
+    int seconds = (int)(duration % 60);
     duration /= 60;
-    int minutes = (int) (duration % 60);
+    int minutes = (int)(duration % 60);
     duration /= 60;
-    int hours = (int) (duration % 24);
-    int days = (int) (duration / 24);
-    if((hours == 0)&&(days == 0))
+    int hours = (int)(duration % 24);
+    int days = (int)(duration / 24);
+    if ((hours == 0) && (days == 0))
     {
         return QObject::tr("%1m %2s").arg(minutes).arg(seconds);
     }

@@ -4,9 +4,11 @@
 #include "Application.h"
 #include "minecraft/auth/AccountList.h"
 
-ClaimAccount::ClaimAccount(LaunchTask* parent, AuthSessionPtr session): LaunchStep(parent)
+ClaimAccount::ClaimAccount(LaunchTask* parent, AuthSessionPtr session)
+    : LaunchStep(parent)
 {
-    if(session->status == AuthSession::Status::PlayableOnline && !session->demo)
+    if (session->status == AuthSession::Status::PlayableOnline &&
+        !session->demo)
     {
         auto accounts = APPLICATION->accounts();
         m_account = accounts->getAccountByProfileId(session->uuid);
@@ -15,7 +17,7 @@ ClaimAccount::ClaimAccount(LaunchTask* parent, AuthSessionPtr session): LaunchSt
 
 void ClaimAccount::executeTask()
 {
-    if(m_account)
+    if (m_account)
     {
         lock.reset(new UseLock(m_account));
         emitSucceeded();

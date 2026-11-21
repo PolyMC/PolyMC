@@ -21,10 +21,11 @@
 
 #include "minecraft/launch/MinecraftServerTarget.h"
 
-class LookupServerAddress: public LaunchStep {
-Q_OBJECT
+class LookupServerAddress : public LaunchStep
+{
+    Q_OBJECT
 public:
-    explicit LookupServerAddress(LaunchTask *parent);
+    explicit LookupServerAddress(LaunchTask* parent);
     virtual ~LookupServerAddress() {};
 
     virtual void executeTask();
@@ -34,16 +35,16 @@ public:
         return true;
     }
 
-    void setLookupAddress(const QString &lookupAddress);
+    void setLookupAddress(const QString& lookupAddress);
     void setOutputAddressPtr(MinecraftServerTargetPtr output);
 
 private slots:
     void on_dnsLookupFinished();
 
 private:
-    void resolve(const QString &address, quint16 port);
+    void resolve(const QString& address, quint16 port);
 
-    QDnsLookup *m_dnsLookup;
+    QDnsLookup* m_dnsLookup;
     QString m_lookupAddress;
     MinecraftServerTargetPtr m_output;
 };

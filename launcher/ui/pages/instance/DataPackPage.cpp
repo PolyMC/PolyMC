@@ -21,23 +21,32 @@
 #include "ui/dialogs/ModDownloadDialog.h"
 
 DataPackPage::DataPackPage(MinecraftInstance* instance,
-                                   std::shared_ptr<DataPackFolderModel> model, QWidget* parent)
-    : DownloadableResourcesPage(instance, model, parent) {
+                           std::shared_ptr<DataPackFolderModel> model,
+                           QWidget* parent)
+    : DownloadableResourcesPage(instance, model, parent)
+{
     ui->actionViewConfigs->setVisible(false);
 
     setupDownloadAction(tr("Download Data Packs"),
                         tr("Download data packs from online mod platforms"));
-    connect(ui->actionDownloadItem, &QAction::triggered, this, &DataPackPage::installDataPacks);
+    connect(ui->actionDownloadItem, &QAction::triggered, this,
+            &DataPackPage::installDataPacks);
 }
 
-void DataPackPage::installDataPacks() {
+void DataPackPage::installDataPacks()
+{
     if (!m_controlsEnabled)
+    {
         return;
+    }
     if (m_instance->typeName() != "Minecraft")
+    {
         return;  // this is a null instance or a legacy instance
+    }
 
     ModDownloadDialog mdownload(m_model, this, ModAPI::DataPack, m_instance);
-    if (mdownload.exec()) {
+    if (mdownload.exec())
+    {
         runTasks(mdownload.getTasks());
     }
 }

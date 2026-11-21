@@ -40,7 +40,9 @@
 #include "ModrinthModModel.h"
 #include "ui/dialogs/ModDownloadDialog.h"
 
-ModrinthModPage::ModrinthModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance)
+ModrinthModPage::ModrinthModPage(ModDownloadDialog* dialog,
+                                 ModAPI::ResourceType type,
+                                 BaseInstance* instance)
     : ModPage(dialog, type, instance, new ModrinthAPI())
 {
     listModel = new Modrinth::ListModel(this);
@@ -53,26 +55,35 @@ ModrinthModPage::ModrinthModPage(ModDownloadDialog* dialog, ModAPI::ResourceType
     ui->sortByBox->addItem(tr("Sort by Last Updated"));
     ui->sortByBox->addItem(tr("Sort by Newest"));
 
-    // sometimes Qt just ignores virtual slots and doesn't work as intended it seems,
-    // so it's best not to connect them in the parent's constructor...
-    connect(ui->sortByBox, &QComboBox::currentIndexChanged, this, &ModrinthModPage::triggerSearch);
-    connect(ui->packView->selectionModel(), &QItemSelectionModel::currentChanged, this, &ModrinthModPage::onSelectionChanged);
-    connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this, &ModrinthModPage::onVersionSelectionChanged);
-    connect(ui->modSelectionButton, &QPushButton::clicked, this, &ModrinthModPage::onModSelected);
+    // sometimes Qt just ignores virtual slots and doesn't work as intended it
+    // seems, so it's best not to connect them in the parent's constructor...
+    connect(ui->sortByBox, &QComboBox::currentIndexChanged, this,
+            &ModrinthModPage::triggerSearch);
+    connect(ui->packView->selectionModel(),
+            &QItemSelectionModel::currentChanged, this,
+            &ModrinthModPage::onSelectionChanged);
+    connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this,
+            &ModrinthModPage::onVersionSelectionChanged);
+    connect(ui->modSelectionButton, &QPushButton::clicked, this,
+            &ModrinthModPage::onModSelected);
 }
 
-bool ModrinthModPage::validateVersion(ModPlatform::IndexedVersion& ver, QString mineVer, ModAPI::ModLoaderTypes loaders) const
+bool ModrinthModPage::validateVersion(ModPlatform::IndexedVersion& ver,
+                                      QString mineVer,
+                                      ModAPI::ModLoaderTypes loaders) const
 {
-    if (m_resourceType != ModAPI::Mod) {
+    if (m_resourceType != ModAPI::Mod)
+    {
         return ver.mcVersion.contains(mineVer);
     }
 
     auto loaderStrings = ModrinthAPI::getModLoaderStrings(loaders);
 
     auto loaderCompatible = false;
-    for (const auto &remoteLoader : std::as_const(ver.loaders))
+    for (const auto& remoteLoader : std::as_const(ver.loaders))
     {
-        if (loaderStrings.contains(remoteLoader)) {
+        if (loaderStrings.contains(remoteLoader))
+        {
             loaderCompatible = true;
             break;
         }
@@ -83,4 +94,7 @@ bool ModrinthModPage::validateVersion(ModPlatform::IndexedVersion& ver, QString 
 // I don't know why, but doing this on the parent class makes it so that
 // other mod providers start loading before being selected, at least with
 // my Qt, so we need to implement this in every derived class...
-bool ModrinthModPage::shouldDisplay() const { return true; }
+bool ModrinthModPage::shouldDisplay() const
+{
+    return true;
+}

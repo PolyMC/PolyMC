@@ -71,37 +71,37 @@ struct AccountProfile
 /**
  * Object that stores information about a certain Mojang account.
  *
- * Said information may include things such as that account's username, client token, and access
- * token if the user chose to stay logged in.
+ * Said information may include things such as that account's username, client
+ * token, and access token if the user chose to stay logged in.
  */
-class MinecraftAccount :
-    public QObject,
-    public Usable
+class MinecraftAccount : public QObject, public Usable
 {
     Q_OBJECT
 public: /* construction */
     //! Do not copy accounts. ever.
-    explicit MinecraftAccount(const MinecraftAccount &other, QObject *parent) = delete;
+    explicit MinecraftAccount(const MinecraftAccount& other,
+                              QObject* parent) = delete;
 
     //! Default constructor
-    explicit MinecraftAccount(QObject *parent = 0);
+    explicit MinecraftAccount(QObject* parent = 0);
 
-    static MinecraftAccountPtr createAuthlibInjectorFromUsername(const QString &username, QString baseUrl);
+    static MinecraftAccountPtr createAuthlibInjectorFromUsername(
+        const QString& username, QString baseUrl);
 
     static MinecraftAccountPtr createBlankMSA();
 
-    static MinecraftAccountPtr createOffline(const QString &username);
+    static MinecraftAccountPtr createOffline(const QString& username);
 
-    static MinecraftAccountPtr loadFromJsonV3(const QJsonObject &json);
+    static MinecraftAccountPtr loadFromJsonV3(const QJsonObject& json);
 
     //! Saves a MinecraftAccount to a JSON object and returns it.
     QJsonObject saveToJson() const;
 
 public: /* manipulation */
-
     /**
      * Attempt to login. Empty password means we use the token.
-     * If the attempt fails because we already are performing some task, it returns false.
+     * If the attempt fails because we already are performing some task, it
+     * returns false.
      */
     shared_qobject_ptr<AccountTask> login(QString password);
 
@@ -114,67 +114,84 @@ public: /* manipulation */
     shared_qobject_ptr<AccountTask> currentTask();
 
 public: /* queries */
-    QString internalId() const {
+    QString internalId() const
+    {
         return data.internalId;
     }
 
-    QString accountDisplayString() const {
+    QString accountDisplayString() const
+    {
         return data.accountDisplayString();
     }
 
-    QString mojangUserName() const {
+    QString mojangUserName() const
+    {
         return data.userName();
     }
 
-    QString accessToken() const {
+    QString accessToken() const
+    {
         return data.accessToken();
     }
 
-    QString profileId() const {
+    QString profileId() const
+    {
         return data.profileId();
     }
 
-    QString profileName() const {
+    QString profileName() const
+    {
         return data.profileName();
     }
 
     bool isActive() const;
 
-    bool canMigrate() const {
+    bool canMigrate() const
+    {
         return data.canMigrateToMSA;
     }
 
-    bool isMSA() const {
+    bool isMSA() const
+    {
         return data.type == AccountType::MSA;
     }
 
-    bool isOffline() const {
+    bool isOffline() const
+    {
         return data.type == AccountType::Offline;
     }
 
-    bool ownsMinecraft() const {
+    bool ownsMinecraft() const
+    {
         return data.minecraftEntitlement.ownsMinecraft;
     }
 
-    bool hasProfile() const {
+    bool hasProfile() const
+    {
         return data.profileId().size() != 0;
     }
 
-    QString typeString() const {
-        switch(data.type) {
-            case AccountType::MSA: {
+    QString typeString() const
+    {
+        switch (data.type)
+        {
+            case AccountType::MSA:
+            {
                 return "msa";
             }
             break;
-            case AccountType::AuthlibInjector: {
-              return "authlib-injector";
+            case AccountType::AuthlibInjector:
+            {
+                return "authlib-injector";
             }
             break;
-            case AccountType::Offline: {
+            case AccountType::Offline:
+            {
                 return "offline";
             }
             break;
-            default: {
+            default:
+            {
                 return "unknown";
             }
         }
@@ -185,7 +202,8 @@ public: /* queries */
     //! Returns the current state of the account
     AccountState accountState() const;
 
-    AccountData * accountData() {
+    AccountData* accountData()
+    {
         return &data;
     }
 
@@ -193,7 +211,8 @@ public: /* queries */
 
     void fillSession(AuthSessionPtr session);
 
-    QString lastError() const {
+    QString lastError() const
+    {
         return data.lastError();
     }
 
@@ -205,7 +224,8 @@ signals:
 
     void activityChanged(bool active);
 
-    // TODO: better signalling for the various possible state changes - especially errors
+    // TODO: better signalling for the various possible state changes -
+    // especially errors
 
 protected: /* variables */
     AccountData data;
@@ -214,13 +234,10 @@ protected: /* variables */
     shared_qobject_ptr<AccountTask> m_currentTask;
 
 protected: /* methods */
-
     void incrementUses() override;
     void decrementUses() override;
 
-private
-slots:
+private slots:
     void authSucceeded();
     void authFailed(QString reason);
 };
-

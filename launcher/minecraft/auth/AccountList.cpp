@@ -54,11 +54,13 @@
 
 #include <chrono>
 
-enum AccountListVersion {
+enum AccountListVersion
+{
     MojangMSA = 3
 };
 
-AccountList::AccountList(QObject *parent) : QAbstractListModel(parent) {
+AccountList::AccountList(QObject* parent) : QAbstractListModel(parent)
+{
     m_refreshTimer = new QTimer(this);
     m_refreshTimer->setSingleShot(true);
     connect(m_refreshTimer, &QTimer::timeout, this, &AccountList::fillQueue);
@@ -67,31 +69,43 @@ AccountList::AccountList(QObject *parent) : QAbstractListModel(parent) {
     connect(m_nextTimer, &QTimer::timeout, this, &AccountList::tryNext);
 }
 
-AccountList::~AccountList() noexcept {}
+AccountList::~AccountList() noexcept
+{
+}
 
-int AccountList::findAccountByProfileId(const QString& profileId) const {
-    for (int i = 0; i < count(); i++) {
+int AccountList::findAccountByProfileId(const QString& profileId) const
+{
+    for (int i = 0; i < count(); i++)
+    {
         MinecraftAccountPtr account = at(i);
-        if (account->profileId() == profileId) {
+        if (account->profileId() == profileId)
+        {
             return i;
         }
     }
     return -1;
 }
 
-MinecraftAccountPtr AccountList::getAccountByProfileName(const QString& profileName) const {
-    for (int i = 0; i < count(); i++) {
+MinecraftAccountPtr AccountList::getAccountByProfileName(
+    const QString& profileName) const
+{
+    for (int i = 0; i < count(); i++)
+    {
         MinecraftAccountPtr account = at(i);
-        if (account->profileName() == profileName) {
+        if (account->profileName() == profileName)
+        {
             return account;
         }
     }
     return nullptr;
 }
 
-MinecraftAccountPtr AccountList::getAccountByProfileId(const QString& profileId) const {
+MinecraftAccountPtr AccountList::getAccountByProfileId(
+    const QString& profileId) const
+{
     int idx = findAccountByProfileId(profileId);
-    if(idx == -1) {
+    if (idx == -1)
+    {
         return nullptr;
     }
     return at(idx);
@@ -102,11 +116,14 @@ const MinecraftAccountPtr AccountList::at(int i) const
     return MinecraftAccountPtr(m_accounts.at(i));
 }
 
-QStringList AccountList::profileNames() const {
+QStringList AccountList::profileNames() const
+{
     QStringList out;
-    for(auto & account: m_accounts) {
-        auto profileName =  account->profileName();
-        if(profileName.isEmpty()) {
+    for (auto& account : m_accounts)
+    {
+        auto profileName = account->profileName();
+        if (profileName.isEmpty())
+        {
             continue;
         }
         out.append(profileName);
@@ -116,48 +133,71 @@ QStringList AccountList::profileNames() const {
 
 void AccountList::addAccount(const MinecraftAccountPtr account)
 {
-    // NOTE: Do not allow adding something that's already there. We shouldn't let it continue
-    // because of the signal / slot connections after this.
-    if (m_accounts.contains(account)) {
+    // NOTE: Do not allow adding something that's already there. We shouldn't
+    // let it continue because of the signal / slot connections after this.
+    if (m_accounts.contains(account))
+    {
         qDebug() << "Tried to add account that's already on the accounts list!";
         return;
     }
 
     // hook up notifications for changes in the account
-    connect(account.get(), &MinecraftAccount::changed, this, &AccountList::accountChanged);
-    connect(account.get(), &MinecraftAccount::activityChanged, this, &AccountList::accountActivityChanged);
+    connect(account.get(), &MinecraftAccount::changed, this,
+            &AccountList::accountChanged);
+    connect(account.get(), &MinecraftAccount::activityChanged, this,
+            &AccountList::accountActivityChanged);
 
-    // override/replace existing account with the same profileId AND account type
+    // override/replace existing account with the same profileId AND account
+    // type
     auto profileId = account->profileId();
-    if(profileId.size()) {
+    if (profileId.size())
+    {
         auto existingAccount = findAccountByProfileId(profileId);
-        if(existingAccount != -1) {
-            MinecraftAccountPtr existingAccountPtr = m_accounts[existingAccount];
+        if (existingAccount != -1)
+        {
+            MinecraftAccountPtr existingAccountPtr =
+                m_accounts[existingAccount];
             bool shouldReplace = false;
-            
+
             // Check if account types match
-            if(existingAccountPtr->accountData()->type == account->accountData()->type) {
+            if (existingAccountPtr->accountData()->type ==
+                account->accountData()->type)
+            {
                 // For authlib injector accounts, also check the server URL
-                if(account->accountData()->type == AccountType::AuthlibInjector) {
-                    if(existingAccountPtr->accountData()->authlibInjectorBaseUrl == account->accountData()->authlibInjectorBaseUrl) {
+                if (account->accountData()->type ==
+                    AccountType::AuthlibInjector)
+                {
+                    if (existingAccountPtr->accountData()
+                            ->authlibInjectorBaseUrl ==
+                        account->accountData()->authlibInjectorBaseUrl)
+                    {
                         shouldReplace = true;
                     }
-                } else {
+                }
+                else
+                {
                     // For other account types, matching type is enough
                     shouldReplace = true;
                 }
             }
-            
-            if(shouldReplace) {
-                qDebug() << "Replacing old account with a new one with the same profile ID, account type, and server!";
+
+            if (shouldReplace)
+            {
+                qDebug() << "Replacing old account with a new one with the "
+                            "same profile ID, account type, and server!";
 
                 m_accounts[existingAccount] = account;
-                if(m_defaultAccount == existingAccountPtr) {
+                if (m_defaultAccount == existingAccountPtr)
+                {
                     m_defaultAccount = account;
                 }
-                // disconnect notifications for changes in the account being replaced
-                disconnect(existingAccountPtr.get(), &MinecraftAccount::changed, this, &AccountList::accountChanged);
-                emit dataChanged(index(existingAccount), index(existingAccount, columnCount(QModelIndex()) - 1));
+                // disconnect notifications for changes in the account being
+                // replaced
+                disconnect(existingAccountPtr.get(), &MinecraftAccount::changed,
+                           this, &AccountList::accountChanged);
+                emit dataChanged(
+                    index(existingAccount),
+                    index(existingAccount, columnCount(QModelIndex()) - 1));
                 onListChanged();
                 return;
             }
@@ -178,10 +218,10 @@ void AccountList::addAccount(const MinecraftAccountPtr account)
 void AccountList::removeAccount(QModelIndex index)
 {
     int row = index.row();
-    if(index.isValid() && row >= 0 && row < m_accounts.size())
+    if (index.isValid() && row >= 0 && row < m_accounts.size())
     {
-        auto & account = m_accounts[row];
-        if(account == m_defaultAccount)
+        auto& account = m_accounts[row];
+        if (account == m_defaultAccount)
         {
             m_defaultAccount = nullptr;
             onDefaultAccountChanged();
@@ -207,13 +247,14 @@ void AccountList::setDefaultAccount(MinecraftAccountPtr newAccount)
         int idx = 0;
         auto previousDefaultAccount = m_defaultAccount;
         m_defaultAccount = nullptr;
-        for (const MinecraftAccountPtr &account : std::as_const(m_accounts))
+        for (const MinecraftAccountPtr& account : std::as_const(m_accounts))
         {
             if (account == previousDefaultAccount)
             {
-                emit dataChanged(index(idx), index(idx, columnCount(QModelIndex()) - 1));
+                emit dataChanged(index(idx),
+                                 index(idx, columnCount(QModelIndex()) - 1));
             }
-            idx ++;
+            idx++;
         }
         onDefaultAccountChanged();
     }
@@ -224,23 +265,27 @@ void AccountList::setDefaultAccount(MinecraftAccountPtr newAccount)
         auto newDefaultAccount = m_defaultAccount;
         int newDefaultAccountIdx = -1;
         int idx = 0;
-        for (const MinecraftAccountPtr &account : std::as_const(m_accounts))
+        for (const MinecraftAccountPtr& account : std::as_const(m_accounts))
         {
             if (account == newAccount)
             {
                 newDefaultAccount = account;
                 newDefaultAccountIdx = idx;
             }
-            if(currentDefaultAccount == account)
+            if (currentDefaultAccount == account)
             {
                 currentDefaultAccountIdx = idx;
             }
             idx++;
         }
-        if(currentDefaultAccount != newDefaultAccount)
+        if (currentDefaultAccount != newDefaultAccount)
         {
-            emit dataChanged(index(currentDefaultAccountIdx), index(currentDefaultAccountIdx, columnCount(QModelIndex()) - 1));
-            emit dataChanged(index(newDefaultAccountIdx), index(newDefaultAccountIdx, columnCount(QModelIndex()) - 1));
+            emit dataChanged(index(currentDefaultAccountIdx),
+                             index(currentDefaultAccountIdx,
+                                   columnCount(QModelIndex()) - 1));
+            emit dataChanged(
+                index(newDefaultAccountIdx),
+                index(newDefaultAccountIdx, columnCount(QModelIndex()) - 1));
             m_defaultAccount = newDefaultAccount;
             onDefaultAccountChanged();
         }
@@ -255,28 +300,34 @@ void AccountList::accountChanged()
 
 void AccountList::accountActivityChanged(bool active)
 {
-    MinecraftAccount *account = qobject_cast<MinecraftAccount *>(sender());
-    for (int i = 0; i < count(); i++) {
-        if (at(i).get() == account) {
-            emit dataChanged(index(i),  index(i, columnCount(QModelIndex()) - 1));
+    MinecraftAccount* account = qobject_cast<MinecraftAccount*>(sender());
+    for (int i = 0; i < count(); i++)
+    {
+        if (at(i).get() == account)
+        {
+            emit dataChanged(index(i),
+                             index(i, columnCount(QModelIndex()) - 1));
             break;
         }
     }
     emit listActivityChanged();
-    if(active) {
+    if (active)
+    {
         beginActivity();
     }
-    else {
+    else
+    {
         endActivity();
     }
 }
 
-
 void AccountList::onListChanged()
 {
     if (m_autosave)
+    {
         // TODO: Alert the user if this fails.
         saveList();
+    }
 
     emit listChanged();
 }
@@ -284,7 +335,9 @@ void AccountList::onListChanged()
 void AccountList::onDefaultAccountChanged()
 {
     if (m_autosave)
+    {
         saveList();
+    }
 
     emit defaultAccountChanged();
 }
@@ -294,13 +347,17 @@ int AccountList::count() const
     return m_accounts.count();
 }
 
-QVariant AccountList::data(const QModelIndex &index, int role) const
+QVariant AccountList::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid())
+    {
         return QVariant();
+    }
 
     if (index.row() >= count())
+    {
         return QVariant();
+    }
 
     MinecraftAccountPtr account = at(index.row());
 
@@ -309,69 +366,86 @@ QVariant AccountList::data(const QModelIndex &index, int role) const
         case Qt::DisplayRole:
             switch (index.column())
             {
-            case ProfileNameColumn: {
-                return account->profileName();
-            }
-
-            case NameColumn:
-                return account->accountDisplayString();
-
-            case TypeColumn: {
-                auto typeStr = account->typeString();
-                typeStr[0] = typeStr[0].toUpper();
-                return typeStr;
-            }
-
-            case StatusColumn: {
-                switch(account->accountState()) {
-                    case AccountState::Unchecked: {
-                        return tr("Unchecked", "Account status");
-                    }
-                    case AccountState::Offline: {
-                        return tr("Offline", "Account status");
-                    }
-                    case AccountState::Online: {
-                        return tr("Ready", "Account status");
-                    }
-                    case AccountState::Working: {
-                        return tr("Working", "Account status");
-                    }
-                    case AccountState::Errored: {
-                        return tr("Errored", "Account status");
-                    }
-                    case AccountState::Expired: {
-                        return tr("Expired", "Account status");
-                    }
-                    case AccountState::Disabled: {
-                        return tr("Disabled", "Account status");
-                    }
-                    case AccountState::Gone: {
-                        return tr("Gone", "Account status");
-                    }
-                    case AccountState::Queued: {
-                        qWarning() << "Unhandled account state Queued";
-                        [[fallthrough]];
-                    }
-                    default:
-                        return tr("Unknown", "Account status");
+                case ProfileNameColumn:
+                {
+                    return account->profileName();
                 }
-            }
 
-            case MigrationColumn: {
-                if(account->isMSA() || account->isOffline()) {
-                    return tr("N/A", "Can Migrate?");
+                case NameColumn:
+                    return account->accountDisplayString();
+
+                case TypeColumn:
+                {
+                    auto typeStr = account->typeString();
+                    typeStr[0] = typeStr[0].toUpper();
+                    return typeStr;
                 }
-                if (account->canMigrate()) {
-                    return tr("Yes", "Can Migrate?");
+
+                case StatusColumn:
+                {
+                    switch (account->accountState())
+                    {
+                        case AccountState::Unchecked:
+                        {
+                            return tr("Unchecked", "Account status");
+                        }
+                        case AccountState::Offline:
+                        {
+                            return tr("Offline", "Account status");
+                        }
+                        case AccountState::Online:
+                        {
+                            return tr("Ready", "Account status");
+                        }
+                        case AccountState::Working:
+                        {
+                            return tr("Working", "Account status");
+                        }
+                        case AccountState::Errored:
+                        {
+                            return tr("Errored", "Account status");
+                        }
+                        case AccountState::Expired:
+                        {
+                            return tr("Expired", "Account status");
+                        }
+                        case AccountState::Disabled:
+                        {
+                            return tr("Disabled", "Account status");
+                        }
+                        case AccountState::Gone:
+                        {
+                            return tr("Gone", "Account status");
+                        }
+                        case AccountState::Queued:
+                        {
+                            qWarning() << "Unhandled account state Queued";
+                            [[fallthrough]];
+                        }
+                        default:
+                            return tr("Unknown", "Account status");
+                    }
                 }
-                else {
-                    return tr("No", "Can Migrate?");
+
+                case MigrationColumn:
+                {
+                    if (account->isMSA() || account->isOffline())
+                    {
+                        return tr("N/A", "Can Migrate?");
+                    }
+                    if (account->canMigrate())
+                    {
+                        return tr("Yes", "Can Migrate?");
+                    }
+                    else
+                    {
+                        return tr("No", "Can Migrate?");
+                    }
+                    qWarning() << "Unhandled case in MigrationColumn";
+                    [[fallthrough]];
                 }
-                qWarning() << "Unhandled case in MigrationColumn";
-                [[fallthrough]];
-            }
-            default:
-                return QVariant();
+                default:
+                    return QVariant();
             }
 
         case Qt::ToolTipRole:
@@ -384,7 +458,8 @@ QVariant AccountList::data(const QModelIndex &index, int role) const
             switch (index.column())
             {
                 case ProfileNameColumn:
-                    return account == m_defaultAccount ? Qt::Checked : Qt::Unchecked;
+                    return account == m_defaultAccount ? Qt::Checked
+                                                       : Qt::Unchecked;
             }
             [[fallthrough]];
         default:
@@ -392,61 +467,64 @@ QVariant AccountList::data(const QModelIndex &index, int role) const
     }
 }
 
-QVariant AccountList::headerData(int section, Qt::Orientation /*orientation*/, int role) const
+QVariant AccountList::headerData(int section, Qt::Orientation /*orientation*/,
+                                 int role) const
 {
     switch (role)
     {
-    case Qt::DisplayRole:
-        switch (section)
-        {
-        case ProfileNameColumn:
-            return tr("Username");
-        case NameColumn:
-            return tr("Account");
-        case TypeColumn:
-            return tr("Type");
-        case StatusColumn:
-            return tr("Status");
-        case MigrationColumn:
-            return tr("Can Migrate?");
+        case Qt::DisplayRole:
+            switch (section)
+            {
+                case ProfileNameColumn:
+                    return tr("Username");
+                case NameColumn:
+                    return tr("Account");
+                case TypeColumn:
+                    return tr("Type");
+                case StatusColumn:
+                    return tr("Status");
+                case MigrationColumn:
+                    return tr("Can Migrate?");
+                default:
+                    return QVariant();
+            }
+
+        case Qt::ToolTipRole:
+            switch (section)
+            {
+                case ProfileNameColumn:
+                    return tr(
+                        "Minecraft username associated with the account.");
+                case NameColumn:
+                    return tr("User name of the account.");
+                case TypeColumn:
+                    return tr("Type of the account - Mojang or MSA.");
+                case StatusColumn:
+                    return tr("Current status of the account.");
+                case MigrationColumn:
+                    return tr(
+                        "Can this account migrate to a Microsoft account?");
+                default:
+                    return QVariant();
+            }
+
         default:
             return QVariant();
-        }
-
-    case Qt::ToolTipRole:
-        switch (section)
-        {
-        case ProfileNameColumn:
-            return tr("Minecraft username associated with the account.");
-        case NameColumn:
-            return tr("User name of the account.");
-        case TypeColumn:
-            return tr("Type of the account - Mojang or MSA.");
-        case StatusColumn:
-            return tr("Current status of the account.");
-        case MigrationColumn:
-            return tr("Can this account migrate to a Microsoft account?");
-        default:
-            return QVariant();
-        }
-
-    default:
-        return QVariant();
     }
 }
 
-int AccountList::rowCount(const QModelIndex &) const
+int AccountList::rowCount(const QModelIndex&) const
 {
     // Return count
     return count();
 }
 
-int AccountList::columnCount(const QModelIndex &) const
+int AccountList::columnCount(const QModelIndex&) const
 {
     return NUM_COLUMNS;
 }
 
-Qt::ItemFlags AccountList::flags(const QModelIndex &index) const
+Qt::ItemFlags AccountList::flags(const QModelIndex& index) const
 {
     if (index.row() < 0 || index.row() >= rowCount(index) || !index.isValid())
     {
@@ -456,16 +534,17 @@ Qt::ItemFlags AccountList::flags(const QModelIndex &index) const
     return Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-bool AccountList::setData(const QModelIndex &idx, const QVariant &value, int role)
+bool AccountList::setData(const QModelIndex& idx, const QVariant& value,
+                          int role)
 {
     if (idx.row() < 0 || idx.row() >= rowCount(idx) || !idx.isValid())
     {
         return false;
     }
 
-    if(role == Qt::CheckStateRole)
+    if (role == Qt::CheckStateRole)
     {
-        if(value == Qt::Checked)
+        if (value == Qt::Checked)
         {
             MinecraftAccountPtr account = at(idx.row());
             setDefaultAccount(account);
@@ -480,7 +559,8 @@ bool AccountList::loadList()
 {
     if (m_listFilePath.isEmpty())
     {
-        qCritical() << "Can't load Mojang account list. No file path given and no default set.";
+        qCritical() << "Can't load Mojang account list. No file path given and "
+                       "no default set.";
         return false;
     }
 
@@ -490,7 +570,9 @@ bool AccountList::loadList()
     // TODO: We should probably report this error to the user.
     if (!file.open(QIODevice::ReadOnly))
     {
-        qCritical() << QString("Failed to read the account list file (%1).").arg(m_listFilePath).toUtf8();
+        qCritical() << QString("Failed to read the account list file (%1).")
+                           .arg(m_listFilePath)
+                           .toUtf8();
         return false;
     }
 
@@ -504,9 +586,11 @@ bool AccountList::loadList()
     // Fail if the JSON is invalid.
     if (parseError.error != QJsonParseError::NoError)
     {
-        qCritical() << QString("Failed to parse account list file: %1 at offset %2")
-                            .arg(parseError.errorString(), QString::number(parseError.offset))
-                            .toUtf8();
+        qCritical() << QString(
+                           "Failed to parse account list file: %1 at offset %2")
+                           .arg(parseError.errorString(),
+                                QString::number(parseError.offset))
+                           .toUtf8();
         return false;
     }
 
@@ -521,14 +605,19 @@ bool AccountList::loadList()
 
     // Make sure the format version matches.
     auto listVersion = root.value("formatVersion").toVariant().toInt();
-    switch(listVersion) {
-        case AccountListVersion::MojangMSA: {
+    switch (listVersion)
+    {
+        case AccountListVersion::MojangMSA:
+        {
             return loadV3(root);
         }
         break;
-        default: {
+        default:
+        {
             QString newName = "accounts-old.json";
-            qWarning() << "Unknown format version when loading account list. Existing one will be renamed to" << newName;
+            qWarning() << "Unknown format version when loading account list. "
+                          "Existing one will be renamed to"
+                       << newName;
             // Attempt to rename the old version.
             file.rename(newName);
             return false;
@@ -536,25 +625,32 @@ bool AccountList::loadList()
     }
 }
 
-bool AccountList::loadV3(QJsonObject& root) {
+bool AccountList::loadV3(QJsonObject& root)
+{
     beginResetModel();
     QJsonArray accounts = root.value("accounts").toArray();
-    for (const QJsonValue &accountVal : std::as_const(accounts))
+    for (const QJsonValue& accountVal : std::as_const(accounts))
     {
         QJsonObject accountObj = accountVal.toObject();
-        MinecraftAccountPtr account = MinecraftAccount::loadFromJsonV3(accountObj);
+        MinecraftAccountPtr account =
+            MinecraftAccount::loadFromJsonV3(accountObj);
         if (account.get() != nullptr)
         {
             auto profileId = account->profileId();
-            if(profileId.size()) {
-                if(findAccountByProfileId(profileId) != -1) {
+            if (profileId.size())
+            {
+                if (findAccountByProfileId(profileId) != -1)
+                {
                     continue;
                 }
             }
-            connect(account.get(), &MinecraftAccount::changed, this, &AccountList::accountChanged);
-            connect(account.get(), &MinecraftAccount::activityChanged, this, &AccountList::accountActivityChanged);
+            connect(account.get(), &MinecraftAccount::changed, this,
+                    &AccountList::accountChanged);
+            connect(account.get(), &MinecraftAccount::activityChanged, this,
+                    &AccountList::accountActivityChanged);
             m_accounts.append(account);
-            if(accountObj.value("active").toBool(false)) {
+            if (accountObj.value("active").toBool(false))
+            {
                 m_defaultAccount = account;
             }
         }
@@ -567,22 +663,24 @@ bool AccountList::loadV3(QJsonObject& root) {
     return true;
 }
 
-
 bool AccountList::saveList()
 {
     if (m_listFilePath.isEmpty())
     {
-        qCritical() << "Can't save Mojang account list. No file path given and no default set.";
+        qCritical() << "Can't save Mojang account list. No file path given and "
+                       "no default set.";
         return false;
     }
 
     // make sure the parent folder exists
-    if(!FS::ensureFilePathExists(m_listFilePath))
+    if (!FS::ensureFilePathExists(m_listFilePath))
+    {
         return false;
+    }
 
     // make sure the file wasn't overwritten with a folder before (fixes a bug)
     QFileInfo finfo(m_listFilePath);
-    if(finfo.isDir())
+    if (finfo.isDir())
     {
         QDir badDir(m_listFilePath);
         badDir.removeRecursively();
@@ -599,10 +697,11 @@ bool AccountList::saveList()
     // Build a list of accounts.
     qDebug() << "Building account array.";
     QJsonArray accounts;
-    for (const MinecraftAccountPtr &account : std::as_const(m_accounts))
+    for (const MinecraftAccountPtr& account : std::as_const(m_accounts))
     {
         QJsonObject accountObj = account->saveToJson();
-        if(m_defaultAccount == account) {
+        if (m_defaultAccount == account)
+        {
             accountObj["active"] = true;
         }
         accounts.append(accountObj);
@@ -614,7 +713,8 @@ bool AccountList::saveList()
     // Create a JSON document object to convert our JSON to bytes.
     QJsonDocument doc(root);
 
-    // Now that we're done building the JSON object, we can write it to the file.
+    // Now that we're done building the JSON object, we can write it to the
+    // file.
     qDebug() << "Writing account list to file.";
     QSaveFile file(m_listFilePath);
 
@@ -622,18 +722,23 @@ bool AccountList::saveList()
     // TODO: We should probably report this error to the user.
     if (!file.open(QIODevice::WriteOnly))
     {
-        qCritical() << QString("Failed to read the account list file (%1).").arg(m_listFilePath).toUtf8();
+        qCritical() << QString("Failed to read the account list file (%1).")
+                           .arg(m_listFilePath)
+                           .toUtf8();
         return false;
     }
 
     // Write the JSON to the file.
     file.write(doc.toJson());
-    file.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ReadUser|QFile::WriteUser);
-    if(file.commit()) {
+    file.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ReadUser |
+                        QFile::WriteUser);
+    if (file.commit())
+    {
         qDebug() << "Saved account list to" << m_listFilePath;
         return true;
     }
-    else {
+    else
+    {
         qDebug() << "Failed to save accounts to" << m_listFilePath;
         return false;
     }
@@ -647,30 +752,36 @@ void AccountList::setListFilePath(QString path, bool autosave)
 
 bool AccountList::anyAccountIsValid()
 {
-    for (const auto &account : std::as_const(m_accounts))
+    for (const auto& account : std::as_const(m_accounts))
     {
-        if(account->ownsMinecraft()) {
+        if (account->ownsMinecraft())
+        {
             return true;
         }
     }
     return false;
 }
 
-void AccountList::fillQueue() {
-
-    if(m_defaultAccount && m_defaultAccount->shouldRefresh()) {
+void AccountList::fillQueue()
+{
+    if (m_defaultAccount && m_defaultAccount->shouldRefresh())
+    {
         auto idToRefresh = m_defaultAccount->internalId();
         m_refreshQueue.push_back(idToRefresh);
-        qDebug() << "AccountList: Queued default account with internal ID " << idToRefresh << " to refresh first";
+        qDebug() << "AccountList: Queued default account with internal ID "
+                 << idToRefresh << " to refresh first";
     }
 
-    for(int i = 0; i < count(); i++) {
+    for (int i = 0; i < count(); i++)
+    {
         auto account = at(i);
-        if(account == m_defaultAccount) {
+        if (account == m_defaultAccount)
+        {
             continue;
         }
 
-        if(account->shouldRefresh()) {
+        if (account->shouldRefresh())
+        {
             auto idToRefresh = account->internalId();
             queueRefresh(idToRefresh);
         }
@@ -678,85 +789,111 @@ void AccountList::fillQueue() {
     tryNext();
 }
 
-void AccountList::requestRefresh(QString accountId) {
+void AccountList::requestRefresh(QString accountId)
+{
     auto index = m_refreshQueue.indexOf(accountId);
-    if(index != -1) {
+    if (index != -1)
+    {
         m_refreshQueue.removeAt(index);
     }
     m_refreshQueue.push_front(accountId);
-    qDebug() << "AccountList: Pushed account with internal ID " << accountId << " to the front of the queue";
-    if(!isActive()) {
+    qDebug() << "AccountList: Pushed account with internal ID " << accountId
+             << " to the front of the queue";
+    if (!isActive())
+    {
         tryNext();
     }
 }
 
-void AccountList::queueRefresh(QString accountId) {
-    if(m_refreshQueue.indexOf(accountId) != -1) {
+void AccountList::queueRefresh(QString accountId)
+{
+    if (m_refreshQueue.indexOf(accountId) != -1)
+    {
         return;
     }
     m_refreshQueue.push_back(accountId);
-    qDebug() << "AccountList: Queued account with internal ID " << accountId << " to refresh";
+    qDebug() << "AccountList: Queued account with internal ID " << accountId
+             << " to refresh";
 }
 
-
-void AccountList::tryNext() {
-    while (m_refreshQueue.length()) {
+void AccountList::tryNext()
+{
+    while (m_refreshQueue.length())
+    {
         auto accountId = m_refreshQueue.front();
         m_refreshQueue.pop_front();
-        for(int i = 0; i < count(); i++) {
+        for (int i = 0; i < count(); i++)
+        {
             auto account = at(i);
-            if(account->internalId() == accountId) {
+            if (account->internalId() == accountId)
+            {
                 m_currentTask = account->refresh();
-                if(m_currentTask) {
+                if (m_currentTask)
+                {
                     m_currentAccount = account;
-                    connect(m_currentTask.get(), &AccountTask::succeeded, this, &AccountList::authSucceeded);
-                    connect(m_currentTask.get(), &AccountTask::failed, this, &AccountList::authFailed);
+                    connect(m_currentTask.get(), &AccountTask::succeeded, this,
+                            &AccountList::authSucceeded);
+                    connect(m_currentTask.get(), &AccountTask::failed, this,
+                            &AccountList::authFailed);
                     m_currentTask->start();
-                    qDebug() << "RefreshSchedule: Processing account " << account->accountDisplayString() << " with internal ID " << accountId;
+                    qDebug() << "RefreshSchedule: Processing account "
+                             << account->accountDisplayString()
+                             << " with internal ID " << accountId;
                     return;
                 }
             }
         }
-        qDebug() << "RefreshSchedule: Account with with internal ID " << accountId << " not found.";
+        qDebug() << "RefreshSchedule: Account with with internal ID "
+                 << accountId << " not found.";
     }
-    // if we get here, no account needed refreshing. Schedule refresh in an hour.
+    // if we get here, no account needed refreshing. Schedule refresh in an
+    // hour.
     m_refreshTimer->start(1000 * 3600);
 }
 
-void AccountList::authSucceeded() {
+void AccountList::authSucceeded()
+{
     qDebug() << "RefreshSchedule: Background account refresh succeeded";
     m_currentTask.reset();
     m_currentAccount.reset();
     m_nextTimer->start(1000 * 20);
 }
 
-void AccountList::authFailed(QString reason) {
-    qDebug() << "RefreshSchedule: Background account refresh failed: " << reason;
+void AccountList::authFailed(QString reason)
+{
+    qDebug() << "RefreshSchedule: Background account refresh failed: "
+             << reason;
     m_currentTask.reset();
     m_currentAccount.reset();
     m_nextTimer->start(1000 * 20);
 }
 
-bool AccountList::isActive() const {
+bool AccountList::isActive() const
+{
     return m_activityCount != 0;
 }
 
-void AccountList::beginActivity() {
+void AccountList::beginActivity()
+{
     bool activating = m_activityCount == 0;
     m_activityCount++;
-    if(activating) {
+    if (activating)
+    {
         emit activityChanged(true);
     }
 }
 
-void AccountList::endActivity() {
-    if(m_activityCount == 0) {
+void AccountList::endActivity()
+{
+    if (m_activityCount == 0)
+    {
         qWarning() << "AccountList: Activity count would become below zero";
         return;
     }
     bool deactivating = m_activityCount == 1;
     m_activityCount--;
-    if(deactivating) {
+    if (deactivating)
+    {
         emit activityChanged(false);
     }
 }

@@ -24,19 +24,20 @@
 
 #include "ui/dialogs/ProgressDialog.h"
 
-ProfileSelectDialog::ProfileSelectDialog(const QString &message, int flags, QWidget *parent)
+ProfileSelectDialog::ProfileSelectDialog(const QString& message, int flags,
+                                         QWidget* parent)
     : QDialog(parent), ui(new Ui::ProfileSelectDialog)
 {
     ui->setupUi(this);
 
     m_accounts = APPLICATION->accounts();
     auto view = ui->listView;
-    //view->setModel(m_accounts.get());
-    //view->hideColumn(AccountList::ActiveColumn);
+    // view->setModel(m_accounts.get());
+    // view->hideColumn(AccountList::ActiveColumn);
     view->setColumnCount(1);
     view->setRootIsDecorated(false);
     // FIXME: use a real model, not this
-    if(QTreeWidgetItem* header = view->headerItem())
+    if (QTreeWidgetItem* header = view->headerItem())
     {
         header->setText(0, tr("Name"));
     }
@@ -44,21 +45,24 @@ ProfileSelectDialog::ProfileSelectDialog(const QString &message, int flags, QWid
     {
         view->setHeaderLabel(tr("Name"));
     }
-    QList <QTreeWidgetItem *> items;
+    QList<QTreeWidgetItem*> items;
     for (int i = 0; i < m_accounts->count(); i++)
     {
         MinecraftAccountPtr account = m_accounts->at(i);
         QString profileLabel;
-        if(account->isInUse()) {
+        if (account->isInUse())
+        {
             profileLabel = tr("%1 (in use)").arg(account->profileName());
         }
-        else {
+        else
+        {
             profileLabel = account->profileName();
         }
         auto item = new QTreeWidgetItem(view);
         item->setText(0, profileLabel);
         item->setIcon(0, account->getFace());
-        item->setData(0, AccountList::PointerRole, QVariant::fromValue(account));
+        item->setData(0, AccountList::PointerRole,
+                      QVariant::fromValue(account));
         items.append(item);
     }
     view->addTopLevelItems(items);
@@ -75,7 +79,8 @@ ProfileSelectDialog::ProfileSelectDialog(const QString &message, int flags, QWid
     // Select the first entry in the list.
     ui->listView->setCurrentIndex(ui->listView->model()->index(0, 0));
 
-    connect(ui->listView, &QAbstractItemView::doubleClicked, this, &ProfileSelectDialog::on_buttonBox_accepted);
+    connect(ui->listView, &QAbstractItemView::doubleClicked, this,
+            &ProfileSelectDialog::on_buttonBox_accepted);
 }
 
 ProfileSelectDialog::~ProfileSelectDialog()
@@ -100,11 +105,13 @@ bool ProfileSelectDialog::useAsInstDefaullt() const
 
 void ProfileSelectDialog::on_buttonBox_accepted()
 {
-    QModelIndexList selection = ui->listView->selectionModel()->selectedIndexes();
+    QModelIndexList selection =
+        ui->listView->selectionModel()->selectedIndexes();
     if (selection.size() > 0)
     {
         QModelIndex selected = selection.first();
-        m_selected = selected.data(AccountList::PointerRole).value<MinecraftAccountPtr>();
+        m_selected = selected.data(AccountList::PointerRole)
+                         .value<MinecraftAccountPtr>();
     }
     close();
 }

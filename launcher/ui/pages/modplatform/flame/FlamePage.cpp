@@ -44,15 +44,18 @@
 #include "Json.h"
 #include "ui/dialogs/NewInstanceDialog.h"
 
-FlamePage::FlamePage(NewInstanceDialog* dialog, QWidget* parent) : QWidget(parent), ui(new Ui::FlamePage), dialog(dialog)
+FlamePage::FlamePage(NewInstanceDialog* dialog, QWidget* parent)
+    : QWidget(parent), ui(new Ui::FlamePage), dialog(dialog)
 {
     ui->setupUi(this);
-    connect(ui->searchButton, &QPushButton::clicked, this, &FlamePage::triggerSearch);
+    connect(ui->searchButton, &QPushButton::clicked, this,
+            &FlamePage::triggerSearch);
     ui->searchEdit->installEventFilter(this);
     listModel = new Flame::ListModel(this);
     ui->packView->setModel(listModel);
 
-    ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(
+        Qt::ScrollBarAsNeeded);
     ui->versionSelectionBox->view()->parentWidget()->setMaximumHeight(300);
 
     // index is used to set the sorting with the curseforge api
@@ -63,9 +66,13 @@ FlamePage::FlamePage(NewInstanceDialog* dialog, QWidget* parent) : QWidget(paren
     ui->sortByBox->addItem(tr("Sort by Author"));
     ui->sortByBox->addItem(tr("Sort by Total Downloads"));
 
-    connect(ui->sortByBox, &QComboBox::currentIndexChanged, this, &FlamePage::triggerSearch);
-    connect(ui->packView->selectionModel(), &QItemSelectionModel::currentChanged, this, &FlamePage::onSelectionChanged);
-    connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this, &FlamePage::onVersionSelectionChanged);
+    connect(ui->sortByBox, &QComboBox::currentIndexChanged, this,
+            &FlamePage::triggerSearch);
+    connect(ui->packView->selectionModel(),
+            &QItemSelectionModel::currentChanged, this,
+            &FlamePage::onSelectionChanged);
+    connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this,
+            &FlamePage::onVersionSelectionChanged);
 }
 
 FlamePage::~FlamePage()
@@ -75,9 +82,11 @@ FlamePage::~FlamePage()
 
 bool FlamePage::eventFilter(QObject* watched, QEvent* event)
 {
-    if (watched == ui->searchEdit && event->type() == QEvent::KeyPress) {
+    if (watched == ui->searchEdit && event->type() == QEvent::KeyPress)
+    {
         QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-        if (keyEvent->key() == Qt::Key_Return) {
+        if (keyEvent->key() == Qt::Key_Return)
+        {
             triggerSearch();
             keyEvent->accept();
             return true;
@@ -104,15 +113,18 @@ void FlamePage::openedImpl()
 
 void FlamePage::triggerSearch()
 {
-    listModel->searchWithTerm(ui->searchEdit->text(), ui->sortByBox->currentIndex());
+    listModel->searchWithTerm(ui->searchEdit->text(),
+                              ui->sortByBox->currentIndex());
 }
 
 void FlamePage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
 {
     ui->versionSelectionBox->clear();
 
-    if (!curr.isValid()) {
-        if (isOpened) {
+    if (!curr.isValid())
+    {
+        if (isOpened)
+        {
             dialog->setSuggestedPack();
         }
         return;
@@ -120,67 +132,106 @@ void FlamePage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
 
     current = listModel->data(curr, Qt::UserRole).value<Flame::IndexedPack>();
 
-    if (current.versionsLoaded == false) {
+    if (current.versionsLoaded == false)
+    {
         qDebug() << "Loading flame modpack versions";
-        auto netJob = new NetJob(QString("Flame::PackVersions(%1)").arg(current.name), APPLICATION->network());
+        auto netJob =
+            new NetJob(QString("Flame::PackVersions(%1)").arg(current.name),
+                       APPLICATION->network());
         auto response = new QByteArray();
         int addonId = current.addonId;
-        netJob->addNetAction(Net::Download::makeByteArray(QString("https://api.curseforge.com/v1/mods/%1/files").arg(addonId), response));
+        netJob->addNetAction(Net::Download::makeByteArray(
+            QString("https://api.curseforge.com/v1/mods/%1/files").arg(addonId),
+            response));
 
-        QObject::connect(netJob, &NetJob::succeeded, this, [this, response, addonId, curr] {
-            if (addonId != current.addonId) {
-                return;  // wrong request
-            }
-            QJsonParseError parse_error;
-            QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-            if (parse_error.error != QJsonParseError::NoError) {
-                qWarning() << "Error while parsing JSON response from CurseForge at " << parse_error.offset
-                           << " reason: " << parse_error.errorString();
-                qWarning() << *response;
-                return;
-            }
-            auto arr = Json::ensureArray(doc.object(), "data");
-            try {
-                Flame::loadIndexedPackVersions(current, arr);
-            } catch (const JSONValidationError& e) {
-                qDebug() << *response;
-                qWarning() << "Error while reading flame modpack version: " << e.cause();
-            }
+        QObject::connect(
+            netJob, &NetJob::succeeded, this,
+            [this, response, addonId, curr]
+            {
+                if (addonId != current.addonId)
+                {
+                    return;  // wrong request
+                }
+                QJsonParseError parse_error;
+                QJsonDocument doc =
+                    QJsonDocument::fromJson(*response, &parse_error);
+                if (parse_error.error != QJsonParseError::NoError)
+                {
+                    qWarning() << "Error while parsing JSON response from "
+                                  "CurseForge at "
+                               << parse_error.offset
+                               << " reason: " << parse_error.errorString();
+                    qWarning() << *response;
+                    return;
+                }
+                auto arr = Json::ensureArray(doc.object(), "data");
+                try
+                {
+                    Flame::loadIndexedPackVersions(current, arr);
+                }
+                catch (const JSONValidationError& e)
+                {
+                    qDebug() << *response;
+                    qWarning() << "Error while reading flame modpack version: "
+                               << e.cause();
+                }
 
-            for (const auto &version : std::as_const(current.versions)) {
-                ui->versionSelectionBox->addItem(version.version, QVariant(version.downloadUrl));
-            }
+                for (const auto& version : std::as_const(current.versions))
+                {
+                    ui->versionSelectionBox->addItem(
+                        version.version, QVariant(version.downloadUrl));
+                }
 
-            // Only cache it if the row still holds this pack, a new search may have put another one there meanwhile
-            if (listModel->data(curr, Qt::UserRole).value<Flame::IndexedPack>().addonId == addonId) {
-                QVariant current_updated;
-                current_updated.setValue(current);
+                // Only cache it if the row still holds this pack, a new search
+                // may have put another one there meanwhile
+                if (listModel->data(curr, Qt::UserRole)
+                        .value<Flame::IndexedPack>()
+                        .addonId == addonId)
+                {
+                    QVariant current_updated;
+                    current_updated.setValue(current);
 
-                if (!listModel->setData(curr, current_updated, Qt::UserRole))
-                    qWarning() << "Failed to cache versions for the current pack!";
-            }
+                    if (!listModel->setData(curr, current_updated,
+                                            Qt::UserRole))
+                    {
+                        qWarning()
+                            << "Failed to cache versions for the current pack!";
+                    }
+                }
 
-            // TODO: Check whether it's a connection issue or the project disabled 3rd-party distribution.
-            if (current.versionsLoaded && ui->versionSelectionBox->count() < 1) {
-                ui->versionSelectionBox->addItem(tr("No version is available!"), -1);
-            }
-            suggestCurrent();
-        });
-        QObject::connect(netJob, &NetJob::finished, netJob, [response, netJob] {
-            netJob->deleteLater();
-            delete response;
-        });
+                // TODO: Check whether it's a connection issue or the project
+                // disabled 3rd-party distribution.
+                if (current.versionsLoaded &&
+                    ui->versionSelectionBox->count() < 1)
+                {
+                    ui->versionSelectionBox->addItem(
+                        tr("No version is available!"), -1);
+                }
+                suggestCurrent();
+            });
+        QObject::connect(netJob, &NetJob::finished, netJob,
+                         [response, netJob]
+                         {
+                             netJob->deleteLater();
+                             delete response;
+                         });
         netJob->start();
-    } else {
-        for (const auto &version : std::as_const(current.versions)) {
-            ui->versionSelectionBox->addItem(version.version, QVariant(version.downloadUrl));
+    }
+    else
+    {
+        for (const auto& version : std::as_const(current.versions))
+        {
+            ui->versionSelectionBox->addItem(version.version,
+                                             QVariant(version.downloadUrl));
         }
 
         suggestCurrent();
     }
 
-    // TODO: Check whether it's a connection issue or the project disabled 3rd-party distribution.
-    if (current.versionsLoaded && ui->versionSelectionBox->count() < 1) {
+    // TODO: Check whether it's a connection issue or the project disabled
+    // 3rd-party distribution.
+    if (current.versionsLoaded && ui->versionSelectionBox->count() < 1)
+    {
         ui->versionSelectionBox->addItem(tr("No version is available!"), -1);
     }
 
@@ -189,25 +240,33 @@ void FlamePage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
 
 void FlamePage::suggestCurrent()
 {
-    if (!isOpened) {
+    if (!isOpened)
+    {
         return;
     }
 
-    if (selectedVersion.isEmpty() || selectedVersion == "-1") {
+    if (selectedVersion.isEmpty() || selectedVersion == "-1")
+    {
         dialog->setSuggestedPack();
         return;
     }
 
-    dialog->setSuggestedPack(current.name, new InstanceImportTask(selectedVersion,this));
+    dialog->setSuggestedPack(current.name,
+                             new InstanceImportTask(selectedVersion, this));
     QString editedLogoName;
     editedLogoName = "curseforge_" + current.logoName.section(".", 0, 0);
     listModel->getLogo(current.logoName, current.logoUrl,
-                       [this, editedLogoName](QString logo) { dialog->setSuggestedIconFromFile(logo, editedLogoName); });
+                       [this, editedLogoName](QString logo)
+                       {
+                           dialog->setSuggestedIconFromFile(logo,
+                                                            editedLogoName);
+                       });
 }
 
 void FlamePage::onVersionSelectionChanged(QString newData)
 {
-    if (newData.isNull() || newData.isEmpty()) {
+    if (newData.isNull() || newData.isEmpty())
+    {
         selectedVersion = "";
         return;
     }
@@ -221,36 +280,61 @@ void FlamePage::updateUi()
     QString name = current.name;
 
     if (current.extra.websiteUrl.isEmpty())
+    {
         text = name;
+    }
     else
+    {
         text = "<a href=\"" + current.extra.websiteUrl + "\">" + name + "</a>";
-    if (!current.authors.empty()) {
-        auto authorToStr = [](Flame::ModpackAuthor& author) {
-            if (author.url.isEmpty()) {
+    }
+    if (!current.authors.empty())
+    {
+        auto authorToStr = [](Flame::ModpackAuthor& author)
+        {
+            if (author.url.isEmpty())
+            {
                 return author.name;
             }
-            return QString("<a href=\"%1\">%2</a>").arg(author.url, author.name);
+            return QString("<a href=\"%1\">%2</a>")
+                .arg(author.url, author.name);
         };
         QStringList authorStrs;
-        for (auto& author : current.authors) {
+        for (auto& author : current.authors)
+        {
             authorStrs.push_back(authorToStr(author));
         }
         text += "<br>" + tr(" by ") + authorStrs.join(", ");
     }
 
-    if(current.extraInfoLoaded) {
-        if (!current.extra.issuesUrl.isEmpty()
-         || !current.extra.sourceUrl.isEmpty()
-         || !current.extra.wikiUrl.isEmpty()) {
+    if (current.extraInfoLoaded)
+    {
+        if (!current.extra.issuesUrl.isEmpty() ||
+            !current.extra.sourceUrl.isEmpty() ||
+            !current.extra.wikiUrl.isEmpty())
+        {
             text += "<br><br>" + tr("External links:") + "<br>";
         }
 
         if (!current.extra.issuesUrl.isEmpty())
-            text += "- " + tr("Issues: <a href=%1>%1</a>").arg(current.extra.issuesUrl) + "<br>";
+        {
+            text +=
+                "- " +
+                tr("Issues: <a href=%1>%1</a>").arg(current.extra.issuesUrl) +
+                "<br>";
+        }
         if (!current.extra.wikiUrl.isEmpty())
-            text += "- " + tr("Wiki: <a href=%1>%1</a>").arg(current.extra.wikiUrl) + "<br>";
+        {
+            text += "- " +
+                    tr("Wiki: <a href=%1>%1</a>").arg(current.extra.wikiUrl) +
+                    "<br>";
+        }
         if (!current.extra.sourceUrl.isEmpty())
-            text += "- " + tr("Source code: <a href=%1>%1</a>").arg(current.extra.sourceUrl) + "<br>";
+        {
+            text += "- " +
+                    tr("Source code: <a href=%1>%1</a>")
+                        .arg(current.extra.sourceUrl) +
+                    "<br>";
+        }
     }
 
     text += "<hr>";

@@ -20,11 +20,11 @@
 #include <minecraft/auth/AuthSession.h>
 
 // Create the main .minecraft for the instance and any other necessary folders
-class CreateGameFolders: public LaunchStep
+class CreateGameFolders : public LaunchStep
 {
     Q_OBJECT
 public:
-    explicit CreateGameFolders(LaunchTask *parent);
+    explicit CreateGameFolders(LaunchTask* parent);
     virtual ~CreateGameFolders() {};
 
     virtual void executeTask();
@@ -33,5 +33,3 @@ public:
         return false;
     }
 };
-
-

@@ -46,7 +46,7 @@
  */
 class LoggedProcess : public QProcess
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     enum State
     {
@@ -88,7 +88,6 @@ public slots:
     bool suspend();
     bool resume();
 
-
 private slots:
     void on_stdErr();
     void on_stdOut();
@@ -100,8 +99,10 @@ private:
     void changeState(LoggedProcess::State state);
 
 private:
-    PolyMCTextDecoder m_err_decoder = PolyMCTextDecoder(PolyMCTextCodec::codecForLocale());
-    PolyMCTextDecoder m_out_decoder = PolyMCTextDecoder(PolyMCTextCodec::codecForLocale());
+    PolyMCTextDecoder m_err_decoder =
+        PolyMCTextDecoder(PolyMCTextCodec::codecForLocale());
+    PolyMCTextDecoder m_out_decoder =
+        PolyMCTextDecoder(PolyMCTextCodec::codecForLocale());
     QString m_err_leftover;
     QString m_out_leftover;
     bool m_killed = false;

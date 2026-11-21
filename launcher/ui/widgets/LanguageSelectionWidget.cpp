@@ -9,8 +9,8 @@
 #include "translations/TranslationsModel.h"
 #include "settings/Setting.h"
 
-LanguageSelectionWidget::LanguageSelectionWidget(QWidget *parent) :
-    QWidget(parent)
+LanguageSelectionWidget::LanguageSelectionWidget(QWidget* parent)
+    : QWidget(parent)
 {
     verticalLayout = new QVBoxLayout(this);
     verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
@@ -37,28 +37,33 @@ LanguageSelectionWidget::LanguageSelectionWidget(QWidget *parent) :
     languageView->setCurrentIndex(index);
     languageView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     languageView->header()->setSectionResizeMode(0, QHeaderView::Stretch);
-    connect(languageView->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &LanguageSelectionWidget::languageRowChanged);
-    verticalLayout->setContentsMargins(0,0,0,0);
+    connect(languageView->selectionModel(),
+            &QItemSelectionModel::currentRowChanged, this,
+            &LanguageSelectionWidget::languageRowChanged);
+    verticalLayout->setContentsMargins(0, 0, 0, 0);
 
     auto language_setting = APPLICATION->settings()->getSetting("Language");
-    connect(language_setting.get(), &Setting::SettingChanged, this, &LanguageSelectionWidget::languageSettingChanged);
+    connect(language_setting.get(), &Setting::SettingChanged, this,
+            &LanguageSelectionWidget::languageSettingChanged);
 }
 
 QString LanguageSelectionWidget::getSelectedLanguageKey() const
 {
     auto translations = APPLICATION->translations();
-    return translations->data(languageView->currentIndex(), Qt::UserRole).toString();
+    return translations->data(languageView->currentIndex(), Qt::UserRole)
+        .toString();
 }
 
 void LanguageSelectionWidget::retranslate()
 {
-    QString text = tr("Don't see your language or the quality is poor?<br/><a href=\"%1\">Help us with translations!</a>")
-        .arg(BuildConfig.TRANSLATIONS_URL);
+    QString text = tr("Don't see your language or the quality is poor?<br/><a "
+                      "href=\"%1\">Help us with translations!</a>")
+                       .arg(BuildConfig.TRANSLATIONS_URL);
     helpUsLabel->setText(text);
-
 }
 
-void LanguageSelectionWidget::languageRowChanged(const QModelIndex& current, const QModelIndex& previous)
+void LanguageSelectionWidget::languageRowChanged(const QModelIndex& current,
+                                                 const QModelIndex& previous)
 {
     if (current == previous)
     {
@@ -70,7 +75,8 @@ void LanguageSelectionWidget::languageRowChanged(const QModelIndex& current, con
     translations->updateLanguage(key);
 }
 
-void LanguageSelectionWidget::languageSettingChanged(const Setting &, const QVariant)
+void LanguageSelectionWidget::languageSettingChanged(const Setting&,
+                                                     const QVariant)
 {
     auto translations = APPLICATION->translations();
     auto index = translations->selectedIndex();

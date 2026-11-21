@@ -37,25 +37,30 @@
 
 #include "Sink.h"
 
-namespace Net {
+namespace Net
+{
 
 /*
- * Sink object for downloads that uses an external QByteArray it doesn't own as a target.
- * FIXME: It is possible that the QByteArray is freed while we're doing some operation on it,
- * causing a segmentation fault.
+ * Sink object for downloads that uses an external QByteArray it doesn't own as
+ * a target.
+ * FIXME: It is possible that the QByteArray is freed while we're doing some
+ * operation on it, causing a segmentation fault.
  */
-class ByteArraySink : public Sink {
-   public:
-    ByteArraySink(QByteArray* output) : m_output(output){};
+class ByteArraySink : public Sink
+{
+public:
+    ByteArraySink(QByteArray* output) : m_output(output) {};
 
     virtual ~ByteArraySink() = default;
 
-   public:
+public:
     Task::State init(QNetworkRequest& request) override
     {
         m_output->clear();
         if (initAllValidators(request))
+        {
             return Task::State::Running;
+        }
         return Task::State::Failed;
     };
 
@@ -63,7 +68,9 @@ class ByteArraySink : public Sink {
     {
         m_output->append(data);
         if (writeAllValidators(data))
+        {
             return Task::State::Running;
+        }
         return Task::State::Failed;
     }
 
@@ -77,13 +84,18 @@ class ByteArraySink : public Sink {
     Task::State finalize(QNetworkReply& reply) override
     {
         if (finalizeAllValidators(reply))
+        {
             return Task::State::Succeeded;
+        }
         return Task::State::Failed;
     }
 
-    bool hasLocalData() override { return false; }
+    bool hasLocalData() override
+    {
+        return false;
+    }
 
-   private:
+private:
     QByteArray* m_output;
 };
 }  // namespace Net

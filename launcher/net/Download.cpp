@@ -47,25 +47,29 @@
 #include "BuildConfig.h"
 #include "Application.h"
 
-namespace Net {
+namespace Net
+{
 
 Download::Download() : NetAction()
 {
     m_state = State::Inactive;
 }
 
-Download::Ptr Download::makeCached(QUrl url, MetaEntryPtr entry, Options options)
+Download::Ptr Download::makeCached(QUrl url, MetaEntryPtr entry,
+                                   Options options)
 {
     auto* dl = new Download();
     dl->m_url = url;
     dl->m_options = options;
     auto md5Node = new ChecksumValidator(QCryptographicHash::Md5);
-    auto cachedNode = new MetaCacheSink(entry, md5Node, options.testFlag(Option::MakeEternal));
+    auto cachedNode = new MetaCacheSink(entry, md5Node,
+                                        options.testFlag(Option::MakeEternal));
     dl->m_sink.reset(cachedNode);
     return dl;
 }
 
-Download::Ptr Download::makeByteArray(QUrl url, QByteArray* output, Options options)
+Download::Ptr Download::makeByteArray(QUrl url, QByteArray* output,
+                                      Options options)
 {
     auto* dl = new Download();
     dl->m_url = url;
@@ -92,16 +96,20 @@ void Download::executeTask()
 {
     setStatus(tr("Downloading %1").arg(m_url.toString()));
 
-    if (getState() == Task::State::AbortedByUser) {
-        qWarning() << "Attempt to start an aborted Download:" << m_url.toString();
+    if (getState() == Task::State::AbortedByUser)
+    {
+        qWarning() << "Attempt to start an aborted Download:"
+                   << m_url.toString();
         emitAborted();
         return;
     }
 
     QNetworkRequest request(m_url);
-    // Don't store the sink state yet, emitFailed() and emitAborted() only work while we're still running
+    // Don't store the sink state yet, emitFailed() and emitAborted() only work
+    // while we're still running
     auto sinkState = m_sink->init(request);
-    switch (sinkState) {
+    switch (sinkState)
+    {
         case State::Succeeded:
             m_state = State::Succeeded;
             emit succeeded();
@@ -119,22 +127,30 @@ void Download::executeTask()
             return;
     }
 
-    if (APPLICATION->capabilities() & Application::SupportsFlame
-            && (request.url().host().contains("api.curseforge.com") || request.url().host().contains("edge.forgecdn.net"))) {
-        request.setRawHeader("x-api-key", APPLICATION->getFlameAPIKey().toUtf8());
+    if (APPLICATION->capabilities() & Application::SupportsFlame &&
+        (request.url().host().contains("api.curseforge.com") ||
+         request.url().host().contains("edge.forgecdn.net")))
+    {
+        request.setRawHeader("x-api-key",
+                             APPLICATION->getFlameAPIKey().toUtf8());
     }
-    else {
-        request.setHeader(QNetworkRequest::UserAgentHeader, APPLICATION->getUserAgent().toUtf8());
+    else
+    {
+        request.setHeader(QNetworkRequest::UserAgentHeader,
+                          APPLICATION->getUserAgent().toUtf8());
     }
 
     if (!(m_options & Option::AllowHttp2))
+    {
         request.setTransferTimeout(60000);
+    }
 
     emit details(m_url.toString());
     QNetworkReply* rep = m_network->get(request);
 
     m_reply.reset(rep);
-    connect(rep, &QNetworkReply::downloadProgress, this, &Download::downloadProgress);
+    connect(rep, &QNetworkReply::downloadProgress, this,
+            &Download::downloadProgress);
     connect(rep, &QNetworkReply::finished, this, &Download::downloadFinished);
     connect(rep, &QNetworkReply::errorOccurred, this, &Download::downloadError);
     connect(rep, &QNetworkReply::sslErrors, this, &Download::sslErrors);
@@ -148,17 +164,24 @@ void Download::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 
 void Download::downloadError(QNetworkReply::NetworkError error)
 {
-    if (error == QNetworkReply::OperationCanceledError && m_state == State::AbortedByUser) {
+    if (error == QNetworkReply::OperationCanceledError &&
+        m_state == State::AbortedByUser)
+    {
         qCritical() << "Aborted " << m_url.toString();
-    } else {
-        if (m_options & Option::AcceptLocalFiles) {
-            if (m_sink->hasLocalData()) {
+    }
+    else
+    {
+        if (m_options & Option::AcceptLocalFiles)
+        {
+            if (m_sink->hasLocalData())
+            {
                 m_state = State::Succeeded;
                 return;
             }
         }
         // error happened during download.
-        qCritical() << "Failed " << m_url.toString() << " with reason " << error;
+        qCritical() << "Failed " << m_url.toString() << " with reason "
+                    << error;
         m_state = State::Failed;
     }
 }
@@ -166,8 +189,10 @@ void Download::downloadError(QNetworkReply::NetworkError error)
 void Download::sslErrors(const QList<QSslError>& errors)
 {
     int i = 1;
-    for (const auto &error : errors) {
-        qCritical() << "Download" << m_url.toString() << "SSL Error #" << i << " : " << error.errorString();
+    for (const auto& error : errors)
+    {
+        qCritical() << "Download" << m_url.toString() << "SSL Error #" << i
+                    << " : " << error.errorString();
         auto cert = error.certificate();
         qCritical() << "Certificate in question:\n" << cert.toText();
         i++;
@@ -177,27 +202,34 @@ void Download::sslErrors(const QList<QSslError>& errors)
 bool Download::handleRedirect()
 {
     QUrl redirect = m_reply->header(QNetworkRequest::LocationHeader).toUrl();
-    if (!redirect.isValid()) {
-        if (!m_reply->hasRawHeader("Location")) {
+    if (!redirect.isValid())
+    {
+        if (!m_reply->hasRawHeader("Location"))
+        {
             // no redirect -> it's fine to continue
             return false;
         }
-        // there is a Location header, but it's not correct. we need to apply some workarounds...
+        // there is a Location header, but it's not correct. we need to apply
+        // some workarounds...
         QByteArray redirectBA = m_reply->rawHeader("Location");
-        if (redirectBA.size() == 0) {
+        if (redirectBA.size() == 0)
+        {
             // empty, yet present redirect header? WTF?
             return false;
         }
         QString redirectStr = QString::fromUtf8(redirectBA);
 
-        if (redirectStr.startsWith("//")) {
+        if (redirectStr.startsWith("//"))
+        {
             /*
              * IF the URL begins with //, we need to insert the URL scheme.
              * See: https://bugreports.qt.io/browse/QTBUG-41061
              * See: http://tools.ietf.org/html/rfc3986#section-4.2
              */
             redirectStr = m_reply->url().scheme() + ":" + redirectStr;
-        } else if (redirectStr.startsWith("/")) {
+        }
+        else if (redirectStr.startsWith("/"))
+        {
             /*
              * IF the URL begins with /, we need to process it as a relative URL
              */
@@ -207,17 +239,21 @@ bool Download::handleRedirect()
         }
 
         /*
-         * Next, make sure the URL is parsed in tolerant mode. Qt doesn't parse the location header in tolerant mode, which causes issues.
+         * Next, make sure the URL is parsed in tolerant mode. Qt doesn't parse
+         * the location header in tolerant mode, which causes issues.
          * FIXME: report Qt bug for this
          */
         redirect = QUrl(redirectStr, QUrl::TolerantMode);
-        if (!redirect.isValid()) {
+        if (!redirect.isValid())
+        {
             qWarning() << "Failed to parse redirect URL:" << redirectStr;
             downloadError(QNetworkReply::ProtocolFailure);
             return false;
         }
         qDebug() << "Fixed location header:" << redirect;
-    } else {
+    }
+    else
+    {
         qDebug() << "Location header:" << redirect;
     }
 
@@ -231,26 +267,33 @@ bool Download::handleRedirect()
 void Download::downloadFinished()
 {
     // handle HTTP redirection first
-    if (m_state == State::Running && handleRedirect()) {
+    if (m_state == State::Running && handleRedirect())
+    {
         qDebug() << "Download redirected:" << m_url.toString();
         return;
     }
 
     // if the download failed before this point ...
-    if (m_state == State::Succeeded)  // pretend to succeed so we continue processing :)
+    if (m_state ==
+        State::Succeeded)  // pretend to succeed so we continue processing :)
     {
-        qDebug() << "Download failed but we are allowed to proceed:" << m_url.toString();
+        qDebug() << "Download failed but we are allowed to proceed:"
+                 << m_url.toString();
         m_sink->abort();
         m_reply.reset();
         emit succeeded();
         return;
-    } else if (m_state == State::Failed) {
+    }
+    else if (m_state == State::Failed)
+    {
         qDebug() << "Download failed in previous step:" << m_url.toString();
         m_sink->abort();
         m_reply.reset();
         emit failed("");
         return;
-    } else if (m_state == State::AbortedByUser) {
+    }
+    else if (m_state == State::AbortedByUser)
+    {
         qDebug() << "Download aborted in previous step:" << m_url.toString();
         m_sink->abort();
         m_reply.reset();
@@ -260,14 +303,16 @@ void Download::downloadFinished()
 
     // make sure we got all the remaining data, if any
     auto data = m_reply->readAll();
-    if (data.size()) {
+    if (data.size())
+    {
         qDebug() << "Writing extra" << data.size() << "bytes";
         m_state = m_sink->write(data);
     }
 
     // otherwise, finalize the whole graph
     m_state = m_sink->finalize(*m_reply.get());
-    if (m_state != State::Succeeded) {
+    if (m_state != State::Succeeded)
+    {
         qDebug() << "Download failed to finalize:" << m_url.toString();
         m_sink->abort();
         m_reply.reset();
@@ -282,15 +327,21 @@ void Download::downloadFinished()
 
 void Download::downloadReadyRead()
 {
-    if (m_state == State::Running) {
+    if (m_state == State::Running)
+    {
         auto data = m_reply->readAll();
         m_state = m_sink->write(data);
-        if (m_state == State::Failed) {
+        if (m_state == State::Failed)
+        {
             qCritical() << "Failed to process response chunk";
         }
-        // qDebug() << "Download" << m_url.toString() << "gained" << data.size() << "bytes";
-    } else {
-        qCritical() << "Cannot write download data! illegal status " << m_status;
+        // qDebug() << "Download" << m_url.toString() << "gained" << data.size()
+        // << "bytes";
+    }
+    else
+    {
+        qCritical() << "Cannot write download data! illegal status "
+                    << m_status;
     }
 }
 
@@ -299,7 +350,8 @@ void Download::downloadReadyRead()
 bool Net::Download::abort()
 {
     m_state = State::AbortedByUser;
-    if (m_reply) {
+    if (m_reply)
+    {
         m_reply->abort();
     }
     return true;
