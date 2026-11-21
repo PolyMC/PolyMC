@@ -1,3 +1,4 @@
+#include <QSignalSpy>
 #include <QTest>
 
 #include <tasks/ConcurrentTask.h>
@@ -6,8 +7,6 @@
 #include <tasks/Task.h>
 
 #include <QList>
-
-#include <functional>
 
 /* Does nothing. Only used for testing. */
 class BasicTask : public Task
@@ -56,11 +55,6 @@ void verifyFinishedTasks(const Task& task, const QList<const Task*>& succeeded,
         QVERIFY(!subtask->wasSuccessful());
     }
 }
-
-bool isTaskFinished(const Task& task)
-{
-    return task.isFinished();
-}
 }  // namespace
 
 class TaskTest : public QObject
@@ -107,14 +101,11 @@ private slots:
     void test_basicRun()
     {
         BasicTask t;
-        QObject::connect(&t, &Task::finished,
-                         std::bind(&verifyFinishedTasks, std::cref(t),
-                                   QList<const Task*>{}, QList<const Task*>{}));
+        QSignalSpy finished(&t, &Task::finished);
         t.start();
-
-        QVERIFY2(
-            QTest::qWaitFor(std::bind(&isTaskFinished, std::cref(t)), 1000),
-            "Task didn't finish as it should.");
+        QVERIFY2(!finished.isEmpty() || finished.wait(1000),
+                 "Task didn't finish as it should.");
+        verifyFinishedTasks(t, QList<const Task*>{}, QList<const Task*>{});
     }
 
     void test_basicConcurrentRun()
@@ -129,15 +120,12 @@ private slots:
         t.addTask(&t2);
         t.addTask(&t3);
 
-        QObject::connect(
-            &t, &Task::finished,
-            std::bind(&verifyFinishedTasks, std::cref(t),
-                      QList<const Task*>{&t1, &t2, &t3}, QList<const Task*>{}));
-
+        QSignalSpy finished(&t, &Task::finished);
         t.start();
-        QVERIFY2(
-            QTest::qWaitFor(std::bind(&isTaskFinished, std::cref(t)), 1000),
-            "Task didn't finish as it should.");
+        QVERIFY2(!finished.isEmpty() || finished.wait(1000),
+                 "Task didn't finish as it should.");
+        verifyFinishedTasks(t, QList<const Task*>{&t1, &t2, &t3},
+                            QList<const Task*>{});
     }
 
     // Tests if starting new tasks after the 6 initial ones is working
@@ -157,16 +145,13 @@ private slots:
         t.addTask(&t8);
         t.addTask(&t9);
 
-        QObject::connect(&t, &Task::finished,
-                         std::bind(&verifyFinishedTasks, std::cref(t),
-                                   QList<const Task*>{&t1, &t2, &t3, &t4, &t5,
-                                                      &t6, &t7, &t8, &t9},
-                                   QList<const Task*>{}));
-
+        QSignalSpy finished(&t, &Task::finished);
         t.start();
-        QVERIFY2(
-            QTest::qWaitFor(std::bind(&isTaskFinished, std::cref(t)), 1000),
-            "Task didn't finish as it should.");
+        QVERIFY2(!finished.isEmpty() || finished.wait(1000),
+                 "Task didn't finish as it should.");
+        verifyFinishedTasks(
+            t, QList<const Task*>{&t1, &t2, &t3, &t4, &t5, &t6, &t7, &t8, &t9},
+            QList<const Task*>{});
     }
 
     void test_basicSequentialRun()
@@ -181,15 +166,12 @@ private slots:
         t.addTask(&t2);
         t.addTask(&t3);
 
-        QObject::connect(
-            &t, &Task::finished,
-            std::bind(&verifyFinishedTasks, std::cref(t),
-                      QList<const Task*>{&t1, &t2, &t3}, QList<const Task*>{}));
-
+        QSignalSpy finished(&t, &Task::finished);
         t.start();
-        QVERIFY2(
-            QTest::qWaitFor(std::bind(&isTaskFinished, std::cref(t)), 1000),
-            "Task didn't finish as it should.");
+        QVERIFY2(!finished.isEmpty() || finished.wait(1000),
+                 "Task didn't finish as it should.");
+        verifyFinishedTasks(t, QList<const Task*>{&t1, &t2, &t3},
+                            QList<const Task*>{});
     }
 
     void test_basicMultipleOptionsRun()
@@ -204,15 +186,12 @@ private slots:
         t.addTask(&t2);
         t.addTask(&t3);
 
-        QObject::connect(
-            &t, &Task::finished,
-            std::bind(&verifyFinishedTasks, std::cref(t),
-                      QList<const Task*>{&t1}, QList<const Task*>{&t2, &t3}));
-
+        QSignalSpy finished(&t, &Task::finished);
         t.start();
-        QVERIFY2(
-            QTest::qWaitFor(std::bind(&isTaskFinished, std::cref(t)), 1000),
-            "Task didn't finish as it should.");
+        QVERIFY2(!finished.isEmpty() || finished.wait(1000),
+                 "Task didn't finish as it should.");
+        verifyFinishedTasks(t, QList<const Task*>{&t1},
+                            QList<const Task*>{&t2, &t3});
     }
 };
 

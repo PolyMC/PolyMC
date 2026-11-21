@@ -77,7 +77,6 @@ private slots:
     void onModDownloadFailed(QString reason);
 
 private:
-    bool isWantedVersion(const FTB::VersionInfo& info) const;
     void resolveMods();
     void downloadPack();
     void install();

@@ -523,27 +523,17 @@ int TranslationsModel::columnCount(const QModelIndex& /*parent*/) const
     return 2;
 }
 
-namespace
-{
-bool hasLanguageKey(const QString& key, Language& lang)
-{
-    return lang.key == key;
-}
-}  // namespace
-
 QVector<Language>::iterator TranslationsModel::findLanguage(const QString& key)
 {
-    auto found = std::find_if(
-        d->m_languages.begin(), d->m_languages.end(),
-        std::bind(hasLanguageKey, std::cref(key), std::placeholders::_1));
-    if (found == d->m_languages.end())
+    for (auto iter = d->m_languages.begin(); iter != d->m_languages.end();
+         ++iter)
     {
-        return {};
+        if (iter->key == key)
+        {
+            return iter;
+        }
     }
-    else
-    {
-        return found;
-    }
+    return {};
 }
 
 bool TranslationsModel::selectLanguage(QString key)

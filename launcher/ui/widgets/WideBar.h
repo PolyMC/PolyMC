@@ -30,7 +30,6 @@ private:
     struct BarEntry;
 
     QList<BarEntry*>::iterator getMatching(QAction* act);
-    static bool entryHasAction(QAction* action, BarEntry* entry);
 
 private:
     QList<BarEntry*> m_entries;

@@ -142,15 +142,22 @@ void ModUpdateDialog::checkCandidates()
     connect(&check_task, &Task::failed, this,
             &ModUpdateDialog::onCheckTaskFailed);
 
-    connect(&check_task, &Task::succeeded, this,
-            std::bind(&ModUpdateDialog::onCheckTaskSucceeded, this,
-                      std::cref(check_task)));
-
     // Check for updates
     ProgressDialog progress_dialog(m_parent);
     progress_dialog.setSkipButton(true, tr("Abort"));
     progress_dialog.setWindowTitle(tr("Checking for updates..."));
     auto ret = progress_dialog.execWithTask(&check_task);
+
+    if (check_task.wasSuccessful())
+    {
+        QStringList warnings = check_task.warnings();
+        if (warnings.count())
+        {
+            CustomMessageBox::selectable(
+                this, tr("Warnings"), warnings.join('\n'), QMessageBox::Warning)
+                ->exec();
+        }
+    }
 
     // If the dialog was skipped / some download error happened
     if (ret == QDialog::DialogCode::Rejected)
@@ -271,25 +278,6 @@ void ModUpdateDialog::onCheckTaskFailed(QString reason)
         ->exec();
 }
 
-void ModUpdateDialog::onCheckTaskSucceeded(const Task& task)
-{
-    QStringList warnings = task.warnings();
-    if (warnings.count())
-    {
-        CustomMessageBox::selectable(this, tr("Warnings"), warnings.join('\n'),
-                                     QMessageBox::Warning)
-            ->exec();
-    }
-}
-
-void ModUpdateDialog::onFirstMetadataFailed(QHash<QString, bool>& others,
-                                            ModPlatform::Provider provider,
-                                            Mod* candidate)
-{
-    onMetadataFailed(candidate, others.find(candidate->internal_id()).value(),
-                     provider);
-}
-
 // Part 1: Ensure we have a valid metadata
 bool ModUpdateDialog::ensureMetadata()
 {
@@ -361,9 +349,8 @@ bool ModUpdateDialog::ensureMetadata()
     {
         auto* modrinth_task = new EnsureMetadataTask(
             modrinth_tmp, index_dir, ModPlatform::Provider::MODRINTH);
-        connect(modrinth_task, &EnsureMetadataTask::metadataReady,
-                std::bind(&ModUpdateDialog::onMetadataEnsured, this,
-                          std::placeholders::_1));
+        connect(modrinth_task, &EnsureMetadataTask::metadataReady, this,
+                &ModUpdateDialog::onMetadataEnsured);
         connect(
             modrinth_task, &EnsureMetadataTask::metadataFailed,
             std::bind(&ModUpdateDialog::onFirstMetadataFailed, this,
@@ -382,9 +369,8 @@ bool ModUpdateDialog::ensureMetadata()
     {
         auto* flame_task = new EnsureMetadataTask(flame_tmp, index_dir,
                                                   ModPlatform::Provider::FLAME);
-        connect(flame_task, &EnsureMetadataTask::metadataReady,
-                std::bind(&ModUpdateDialog::onMetadataEnsured, this,
-                          std::placeholders::_1));
+        connect(flame_task, &EnsureMetadataTask::metadataReady, this,
+                &ModUpdateDialog::onMetadataEnsured);
         connect(flame_task, &EnsureMetadataTask::metadataFailed,
                 std::bind(&ModUpdateDialog::onFirstMetadataFailed, this,
                           std::ref(should_try_others),
@@ -440,32 +426,36 @@ ModPlatform::Provider next(ModPlatform::Provider p)
     return ModPlatform::Provider::FLAME;
 }
 
-void ModUpdateDialog::onMetadataFailed(Mod* mod, bool try_others,
-                                       ModPlatform::Provider first_choice)
+void ModUpdateDialog::onFirstMetadataFailed(QHash<QString, bool>& others,
+                                            ModPlatform::Provider provider,
+                                            Mod* candidate)
 {
-    if (try_others)
+    if (others.find(candidate->internal_id()).value())
     {
         auto index_dir = indexDir();
 
-        auto* task = new EnsureMetadataTask(mod, index_dir, next(first_choice));
-        connect(task, &EnsureMetadataTask::metadataReady,
-                std::bind(&ModUpdateDialog::onMetadataEnsured, this,
-                          std::placeholders::_1));
-        connect(task, &EnsureMetadataTask::metadataFailed,
-                std::bind(&ModUpdateDialog::onMetadataFailed, this,
-                          std::placeholders::_1, false,
-                          ModPlatform::Provider::MODRINTH));
+        auto* task =
+            new EnsureMetadataTask(candidate, index_dir, next(provider));
+        connect(task, &EnsureMetadataTask::metadataReady, this,
+                &ModUpdateDialog::onMetadataEnsured);
+        connect(task, &EnsureMetadataTask::metadataFailed, this,
+                &ModUpdateDialog::onMetadataFailed);
 
         m_second_try_metadata->addTask(task);
     }
     else
     {
-        QString reason{
-            tr("Couldn't find a valid version on the selected %1 provider(s)")
-                .arg(m_typeString)};
-
-        m_failed_metadata.append({mod, reason});
+        onMetadataFailed(candidate);
     }
+}
+
+void ModUpdateDialog::onMetadataFailed(Mod* mod)
+{
+    QString reason{
+        tr("Couldn't find a valid version on the selected %1 provider(s)")
+            .arg(m_typeString)};
+
+    m_failed_metadata.append({mod, reason});
 }
 
 void ModUpdateDialog::appendMod(CheckUpdateTask::UpdatableMod const& info)

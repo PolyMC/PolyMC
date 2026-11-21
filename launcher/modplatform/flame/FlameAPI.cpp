@@ -17,44 +17,6 @@ void deleteResponse(QByteArray* response)
     delete response;
 }
 
-void storeChangelog(QByteArray* response, QString& changelog)
-{
-    changelog = FlameAPI::parseModFileChangelog(*response);
-}
-
-void finishBlockingJob(NetJob* job, QByteArray* response, QEventLoop& loop)
-{
-    // Nothing else owns the job
-    job->deleteLater();
-    delete response;
-    loop.quit();
-}
-
-void storeDescription(NetJob* job, QByteArray* response, QString& description)
-{
-    QJsonParseError parse_error{};
-    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-    if (parse_error.error != QJsonParseError::NoError)
-    {
-        qWarning() << "Error while parsing JSON response from "
-                      "Flame::ModDescription at "
-                   << parse_error.offset
-                   << " reason: " << parse_error.errorString();
-        qWarning() << *response;
-
-        job->failed(parse_error.errorString());
-        return;
-    }
-
-    description = Json::ensureString(doc.object(), "data");
-}
-
-void storeLatestVersion(QByteArray* response,
-                        ModPlatform::IndexedVersion& version)
-{
-    version = FlameAPI::parseLatestVersion(*response);
-}
-
 void releaseJob(QByteArray* response, NetJob* job)
 {
     delete response;
@@ -122,7 +84,6 @@ QString FlameAPI::parseModFileChangelog(const QByteArray& response)
 QString FlameAPI::getModFileChangelog(int modId, int fileId)
 {
     QEventLoop lock;
-    QString changelog;
 
     auto* netJob =
         new NetJob(QString("Flame::FileChangelog"), APPLICATION->network());
@@ -130,15 +91,19 @@ QString FlameAPI::getModFileChangelog(int modId, int fileId)
     netJob->addNetAction(Net::Download::makeByteArray(
         getModFileChangelogURL(modId, fileId), response));
 
-    QObject::connect(netJob, &NetJob::succeeded,
-                     std::bind(storeChangelog, response, std::ref(changelog)));
-
-    QObject::connect(
-        netJob, &NetJob::finished,
-        std::bind(finishBlockingJob, netJob, response, std::ref(lock)));
+    QObject::connect(netJob, &NetJob::finished, &lock, &QEventLoop::quit);
 
     netJob->start();
     lock.exec();
+
+    QString changelog;
+    if (netJob->wasSuccessful())
+    {
+        changelog = parseModFileChangelog(*response);
+    }
+
+    netJob->deleteLater();
+    delete response;
 
     return changelog;
 }
@@ -146,7 +111,6 @@ QString FlameAPI::getModFileChangelog(int modId, int fileId)
 QString FlameAPI::getModDescription(int modId)
 {
     QEventLoop lock;
-    QString description;
 
     auto* netJob =
         new NetJob(QString("Flame::ModDescription"), APPLICATION->network());
@@ -156,16 +120,32 @@ QString FlameAPI::getModDescription(int modId)
             .arg(QString::number(modId)),
         response));
 
-    QObject::connect(
-        netJob, &NetJob::succeeded,
-        std::bind(storeDescription, netJob, response, std::ref(description)));
-
-    QObject::connect(
-        netJob, &NetJob::finished,
-        std::bind(finishBlockingJob, netJob, response, std::ref(lock)));
+    QObject::connect(netJob, &NetJob::finished, &lock, &QEventLoop::quit);
 
     netJob->start();
     lock.exec();
+
+    QString description;
+    if (netJob->wasSuccessful())
+    {
+        QJsonParseError parse_error{};
+        QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+        if (parse_error.error != QJsonParseError::NoError)
+        {
+            qWarning() << "Error while parsing JSON response from "
+                          "Flame::ModDescription at "
+                       << parse_error.offset
+                       << " reason: " << parse_error.errorString();
+            qWarning() << *response;
+        }
+        else
+        {
+            description = Json::ensureString(doc.object(), "data");
+        }
+    }
+
+    netJob->deleteLater();
+    delete response;
 
     return description;
 }
@@ -230,16 +210,19 @@ ModPlatform::IndexedVersion FlameAPI::getLatestVersion(VersionSearchArgs&& args)
     netJob->addNetAction(
         Net::Download::makeByteArray(getVersionsURL(args), response));
 
-    QObject::connect(netJob, &NetJob::succeeded,
-                     std::bind(storeLatestVersion, response, std::ref(ver)));
-
-    QObject::connect(
-        netJob, &NetJob::finished,
-        std::bind(finishBlockingJob, netJob, response, std::ref(loop)));
+    QObject::connect(netJob, &NetJob::finished, &loop, &QEventLoop::quit);
 
     netJob->start();
 
     loop.exec();
+
+    if (netJob->wasSuccessful())
+    {
+        ver = parseLatestVersion(*response);
+    }
+
+    netJob->deleteLater();
+    delete response;
 
     return ver;
 }

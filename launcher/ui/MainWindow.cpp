@@ -1271,9 +1271,9 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Update the menu when the active account changes.
     connect(APPLICATION->accounts().get(), &AccountList::defaultAccountChanged,
-            std::bind(&MainWindow::defaultAccountChanged, this));
-    connect(APPLICATION->accounts().get(), &AccountList::listChanged,
-            std::bind(&MainWindow::repopulateAccountsMenu, this));
+            this, &MainWindow::defaultAccountChanged);
+    connect(APPLICATION->accounts().get(), &AccountList::listChanged, this,
+            &MainWindow::repopulateAccountsMenu);
 
     // Show initial account
     defaultAccountChanged();
@@ -1501,9 +1501,19 @@ void MainWindow::clearInstanceSearch()
     }
 }
 
-void MainWindow::launchSelectedInstance(bool online, bool demo)
+void MainWindow::launchSelectedInstance()
 {
-    APPLICATION->launch(m_selectedInstance, online, demo);
+    APPLICATION->launch(m_selectedInstance, true, false);
+}
+
+void MainWindow::launchSelectedInstanceOffline()
+{
+    APPLICATION->launch(m_selectedInstance, false, false);
+}
+
+void MainWindow::launchSelectedInstanceDemo()
+{
+    APPLICATION->launch(m_selectedInstance, false, true);
 }
 
 void MainWindow::launchSelectedInstanceWithProfiler(
@@ -1550,15 +1560,12 @@ void MainWindow::updateToolsMenu()
         normalLaunchOffline->setEnabled(m_selectedInstance->canLaunch());
         normalLaunchDemo->setEnabled(m_selectedInstance->canLaunch());
 
-        connect(
-            normalLaunch, &QAction::triggered,
-            std::bind(&MainWindow::launchSelectedInstance, this, true, false));
-        connect(
-            normalLaunchOffline, &QAction::triggered,
-            std::bind(&MainWindow::launchSelectedInstance, this, false, false));
-        connect(
-            normalLaunchDemo, &QAction::triggered,
-            std::bind(&MainWindow::launchSelectedInstance, this, false, true));
+        connect(normalLaunch, &QAction::triggered, this,
+                &MainWindow::launchSelectedInstance);
+        connect(normalLaunchOffline, &QAction::triggered, this,
+                &MainWindow::launchSelectedInstanceOffline);
+        connect(normalLaunchDemo, &QAction::triggered, this,
+                &MainWindow::launchSelectedInstanceDemo);
     }
     else
     {
@@ -2039,54 +2046,37 @@ InstanceView
     }
 }
 
-void MainWindow::onModalTaskFailed(ProgressDialog& dialog, QString reason)
-{
-    // FIXME:
-    // HACK: I don't know why calling show() on this
-    // CustomMessageBox causes loadDialog to not close, but this
-    // forces it to close BEFORE the CustomMessageBox gets opened...
-    // I think this is a bad fix
-    dialog.close();
-    CustomMessageBox::selectable(this, tr("Error"), reason,
-                                 QMessageBox::Critical)
-        ->show();
-}
-
-void MainWindow::onModalTaskSucceeded(Task* task)
-{
-    QStringList warnings = task->warnings();
-    if (warnings.count())
-    {
-        CustomMessageBox::selectable(this, tr("Warnings"), warnings.join('\n'),
-                                     QMessageBox::Warning)
-            ->show();
-    }
-}
-
-void MainWindow::onModalTaskAborted(ProgressDialog& dialog)
-{
-    // HACK: Same bad hack as above slot for Task::failed
-    dialog.close();
-    CustomMessageBox::selectable(this, tr("Task aborted"),
-                                 tr("The task has been aborted by the user."),
-                                 QMessageBox::Information)
-        ->show();
-}
-
 void MainWindow::runModalTask(Task* task)
 {
     ProgressDialog loadDialog(this);
-
-    connect(task, &Task::failed,
-            std::bind(&MainWindow::onModalTaskFailed, this,
-                      std::ref(loadDialog), std::placeholders::_1));
-    connect(task, &Task::succeeded,
-            std::bind(&MainWindow::onModalTaskSucceeded, this, task));
-    connect(
-        task, &Task::aborted,
-        std::bind(&MainWindow::onModalTaskAborted, this, std::ref(loadDialog)));
     loadDialog.setSkipButton(true, tr("Abort"));
     loadDialog.execWithTask(task);
+
+    if (task->getState() == Task::State::Failed)
+    {
+        CustomMessageBox::selectable(this, tr("Error"), task->failReason(),
+                                     QMessageBox::Critical)
+            ->show();
+    }
+    else if (task->wasSuccessful())
+    {
+        QStringList warnings = task->warnings();
+        if (warnings.count())
+        {
+            CustomMessageBox::selectable(
+                this, tr("Warnings"), warnings.join('\n'), QMessageBox::Warning)
+                ->show();
+        }
+    }
+    else if (task->getState() == Task::State::AbortedByUser)
+    {
+        CustomMessageBox::selectable(
+            this, tr("Task aborted"),
+            tr("The task has been aborted by the user."),
+            QMessageBox::Information)
+            ->show();
+    }
+
     qDebug() << "MainWindow::runModalTask: execWithTask exited properly";
 }
 
@@ -2136,9 +2126,8 @@ void MainWindow::finalizeInstance(InstancePtr inst)
     {
         ProgressDialog loadDialog(this);
         auto update = inst->createUpdateTask(Net::Mode::Online);
-        connect(update.get(), &Task::failed,
-                std::bind(&MainWindow::onInstanceUpdateFailed, this,
-                          std::placeholders::_1));
+        connect(update.get(), &Task::failed, this,
+                &MainWindow::onInstanceUpdateFailed);
         if (update)
         {
             loadDialog.setSkipButton(true, tr("Abort"));

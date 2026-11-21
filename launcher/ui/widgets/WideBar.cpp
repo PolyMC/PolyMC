@@ -2,8 +2,6 @@
 #include <QToolButton>
 #include <QMenu>
 
-#include <functional>
-
 class ActionButton : public QToolButton
 {
     Q_OBJECT
@@ -84,17 +82,13 @@ void WideBar::addSeparator()
     m_entries.push_back(entry);
 }
 
-bool WideBar::entryHasAction(QAction* action, BarEntry* entry)
-{
-    return entry->wideAction == action;
-}
-
 QList<WideBar::BarEntry*>::iterator WideBar::getMatching(QAction* act)
 {
-    auto iter = std::find_if(
-        m_entries.begin(), m_entries.end(),
-        std::bind(&WideBar::entryHasAction, act, std::placeholders::_1));
-
+    auto iter = m_entries.begin();
+    while (iter != m_entries.end() && (*iter)->wideAction != act)
+    {
+        ++iter;
+    }
     return iter;
 }
 

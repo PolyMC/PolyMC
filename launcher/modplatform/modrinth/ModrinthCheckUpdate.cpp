@@ -15,29 +15,6 @@
 static ModrinthAPI api;
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
-namespace
-{
-
-void storeHash(QStringList& hashes, QHash<QString, Mod*>& mappings,
-               Hashing::Hasher* hasher, Mod* mod)
-{
-    QString hash(hasher->getResult());
-    hashes.append(hash);
-    mappings.insert(hash, mod);
-}
-
-void storeError(QString& error, QString reason)
-{
-    error = reason;
-}
-
-void markAborted(bool& aborted)
-{
-    aborted = true;
-}
-
-}  // namespace
-
 bool ModrinthCheckUpdate::abort()
 {
     if (m_net_job)
@@ -66,6 +43,7 @@ void ModrinthCheckUpdate::executeTask()
 
     // Create all hashes
     QStringList hashes;
+    QList<QPair<Mod*, Hashing::Hasher::Ptr>> hashers;
     auto best_hash_type =
         ProviderCaps.hashType(ModPlatform::Provider::MODRINTH).first();
 
@@ -88,13 +66,7 @@ void ModrinthCheckUpdate::executeTask()
         {
             auto hash_task = Hashing::createModrinthHasher(
                 mod->fileinfo().absoluteFilePath());
-            // This runs after the loop is over, so don't capture the loop's
-            // variables by reference. The hashing task below keeps the hasher
-            // alive until we're done.
-            auto* hasher = hash_task.get();
-            connect(hash_task.get(), &Task::succeeded,
-                    std::bind(storeHash, std::ref(hashes), std::ref(mappings),
-                              hasher, mod));
+            hashers.append({mod, hash_task});
             // Only this mod can't be checked, the others are fine
             connect(hash_task.get(), &Task::failed,
                     std::bind(&ModrinthCheckUpdate::onHashFailed, this, mod));
@@ -108,10 +80,19 @@ void ModrinthCheckUpdate::executeTask()
     }
 
     QEventLoop loop;
-    connect(&hashing_task, &Task::finished,
-            std::bind(&QEventLoop::quit, &loop));
+    connect(&hashing_task, &Task::finished, &loop, &QEventLoop::quit);
     hashing_task.start();
     loop.exec();
+
+    for (const auto& [mod, hasher] : std::as_const(hashers))
+    {
+        if (hasher->wasSuccessful())
+        {
+            QString hash(hasher->getResult());
+            hashes.append(hash);
+            mappings.insert(hash, mod);
+        }
+    }
 
     // Collect errors here and report them once at the end, emitting failed()
     // directly would be followed by emitSucceeded()
@@ -128,11 +109,6 @@ void ModrinthCheckUpdate::executeTask()
                       response, std::ref(mappings), std::ref(error),
                       best_hash_type, job));
 
-    connect(job.get(), &Task::failed, this,
-            std::bind(storeError, std::ref(error), std::placeholders::_1));
-    bool aborted = false;
-    connect(job.get(), &Task::aborted, this,
-            std::bind(markAborted, std::ref(aborted)));
     connect(job.get(), &Task::finished, &lock, &QEventLoop::quit);
 
     setStatus(tr("Waiting for the API response from Modrinth..."));
@@ -144,10 +120,14 @@ void ModrinthCheckUpdate::executeTask()
     lock.exec();
 
     // abort() only aborts the request, report it from here
-    if (aborted)
+    if (job->getState() == Task::State::AbortedByUser)
     {
         emitAborted();
         return;
+    }
+    if (job->getState() == Task::State::Failed)
+    {
+        error = job->failReason();
     }
     if (!error.isEmpty())
     {

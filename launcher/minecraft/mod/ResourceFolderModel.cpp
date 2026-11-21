@@ -7,6 +7,8 @@
 #include <QThreadPool>
 #include <QUrl>
 
+#include <functional>
+
 #include "FileSystem.h"
 
 #include "minecraft/mod/tasks/BasicFolderLoadTask.h"
@@ -396,12 +398,6 @@ void ResourceFolderModel::parseTaskFinished(
     int ticket, [[maybe_unused]] Resource::Ptr resource)
 {
     m_active_parse_tasks.remove(ticket);
-}
-
-bool ResourceFolderModel::hasInternalId(const QString& id,
-                                        Resource::Ptr const& resource)
-{
-    return resource->internal_id() == id;
 }
 
 void ResourceFolderModel::onUpdateSucceeded()

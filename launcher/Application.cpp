@@ -818,9 +818,8 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
                                    ":/icons/multimc/128x128/instances/",
                                    ":/icons/multimc/scalable/instances/"};
         m_icons.reset(new IconList(instFolders, setting->get().toString()));
-        connect(setting.get(), &Setting::SettingChanged,
-                std::bind(&Application::onIconsDirChanged, this,
-                          std::placeholders::_1, std::placeholders::_2));
+        connect(setting.get(), &Setting::SettingChanged, this,
+                &Application::onIconsDirChanged);
         qDebug() << "<> Instance icons intialized.";
     }
 
@@ -939,8 +938,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
             std::bind(&Application::showMainWindow, this, false));
 #endif
 
-    connect(this, &Application::aboutToQuit,
-            std::bind(&Application::onAboutToQuit, this));
+    connect(this, &Application::aboutToQuit, this, &Application::onAboutToQuit);
 
     {
         setIconTheme(settings()->get("IconTheme").toString());
