@@ -33,6 +33,10 @@ public:
         QList<BasePage *> values;
         values.append(new LogPage(inst));
         std::shared_ptr<MinecraftInstance> onesix = std::dynamic_pointer_cast<MinecraftInstance>(inst);
+        if(!onesix)
+        {
+            return values;
+        }
         values.append(new VersionPage(onesix.get()));
         auto modsPage = new ModFolderPage(onesix.get(), onesix->loaderModList());
         modsPage->setFilter("%1 (*.zip *.jar *.litemod)");
