@@ -105,11 +105,19 @@ void Index::merge(const std::shared_ptr<Index> &other)
     if (m_lists.isEmpty())
     {
         beginResetModel();
-        m_lists = lists;
-        for (int i = 0; i < lists.size(); ++i)
+        for (const VersionListPtr &list : lists)
         {
-            m_uids.insert(lists.at(i)->uid(), lists.at(i));
-            connectVersionList(i, lists.at(i));
+            VersionListPtr existing = m_uids.value(list->uid());
+            if (existing)
+            {
+                existing->mergeFromIndex(list);
+            }
+            else
+            {
+                m_uids.insert(list->uid(), list);
+            }
+            m_lists.append(existing ? existing : list);
+            connectVersionList(m_lists.size() - 1, m_lists.last());
         }
         endResetModel();
     }
