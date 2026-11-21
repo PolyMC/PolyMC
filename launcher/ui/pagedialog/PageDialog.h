@@ -33,7 +33,7 @@ protected:
     void keyPressEvent(QKeyEvent* event) override;
 
 private slots:
-    virtual void closeEvent(QCloseEvent* event);
+    void closeEvent(QCloseEvent* event) override;
 
 private:
     PageContainer* m_container;

@@ -59,8 +59,8 @@ private slots:
     void on_skipButton_clicked(bool checked);
 
 protected:
-    virtual void keyPressEvent(QKeyEvent* e);
-    virtual void closeEvent(QCloseEvent* e);
+    void keyPressEvent(QKeyEvent* e) override;
+    void closeEvent(QCloseEvent* e) override;
 
 private:
     bool handleImmediateResult(QDialog::DialogCode& result);
