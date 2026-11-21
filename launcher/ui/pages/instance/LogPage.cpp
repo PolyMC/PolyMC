@@ -40,6 +40,7 @@
 #include "Application.h"
 
 #include <QIcon>
+#include <QPointer>
 #include <QScrollBar>
 #include <QShortcut>
 
@@ -286,7 +287,10 @@ void LogPage::on_btnPaste_clicked()
             BuildConfig.LAUNCHER_NAME
         )
     );
+    QPointer<LogPage> self(this);
     auto url = GuiUtil::uploadPaste(m_model->toPlainText(), this);
+    if (!self)
+        return;
     if(!url.isEmpty())
     {
         m_model->append(
