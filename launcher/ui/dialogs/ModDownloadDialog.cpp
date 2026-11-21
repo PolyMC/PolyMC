@@ -119,7 +119,7 @@ void ModDownloadDialog::confirm()
     if (confirm_dialog->exec()) {
         auto deselected = confirm_dialog->deselectedMods();
         for (const auto &name : std::as_const(deselected)) {
-            modTask.remove(name);
+            delete modTask.take(name);
         }
 
         this->accept();
@@ -176,7 +176,9 @@ bool ModDownloadDialog::isModSelected(QString name) const
 
 const QList<ModDownloadTask*> ModDownloadDialog::getTasks()
 {
-    return modTask.values();
+    auto tasks = modTask.values();
+    modTask.clear();
+    return tasks;
 }
 
 void ModDownloadDialog::selectedPageChanged(BasePage* previous, BasePage* selected)
