@@ -42,6 +42,7 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMessageBox>
+#include <QScopeGuard>
 #include <QSortFilterProxyModel>
 
 #include "ui/dialogs/CustomMessageBox.h"
@@ -154,6 +155,12 @@ void ModFolderPage::installMods() {
 
 void ModFolderPage::updateMods()
 {
+    bool was_watching = m_model->stopWatching();
+    auto resume_watching = qScopeGuard([this, was_watching] {
+        if (was_watching)
+            m_model->startWatching();
+    });
+
     auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection()).indexes();
     auto mods_list = m_model->selectedMods(selection);
 
@@ -198,6 +205,12 @@ void ModFolderPage::updateMods()
 
 void ModFolderPage::disableUpdates()
 {
+    bool was_watching = m_model->stopWatching();
+    auto resume_watching = qScopeGuard([this, was_watching] {
+        if (was_watching)
+            m_model->startWatching();
+    });
+
     auto selection = m_filterModel->mapSelectionToSource(ui->treeView->selectionModel()->selection()).indexes();
     auto mods_list = m_model->selectedMods(selection);
 
