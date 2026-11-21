@@ -392,7 +392,8 @@ const QList<ModDownloadTask*> ModUpdateDialog::getTasks()
 
     for (int i = 1; item != nullptr; ++i) {
         if (item->checkState(0) == Qt::CheckState::Checked) {
-            list.push_back(m_tasks.find(item->text(0)).value());
+            if (auto* task = m_tasks.take(item->text(0)))
+                list.push_back(task);
         }
 
         item = ui->modTreeWidget->topLevelItem(i);

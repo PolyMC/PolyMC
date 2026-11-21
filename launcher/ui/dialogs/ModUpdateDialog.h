@@ -19,6 +19,7 @@ public:
     explicit ModUpdateDialog(QWidget* parent, ModAPI::ResourceType type, BaseInstance* instance,
                              const std::shared_ptr<ModFolderModel> mod_model,
                              QList<Mod*>& search_for, bool update_mods = true);
+    ~ModUpdateDialog() override { qDeleteAll(m_tasks); }
 
     void checkCandidates();
 

@@ -44,7 +44,7 @@ class ModDownloadDialog final : public QDialog, public BasePageProvider
 public:
     explicit ModDownloadDialog(const std::shared_ptr<ResourceFolderModel>& mods, QWidget* parent,
                                ModAPI::ResourceType type, BaseInstance* instance);
-    ~ModDownloadDialog() override = default;
+    ~ModDownloadDialog() override { qDeleteAll(modTask); }
 
     QString dialogTitle() override;
     QList<BasePage*> getPages() override;
