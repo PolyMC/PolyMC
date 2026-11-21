@@ -139,7 +139,8 @@ public:
 
 inline bool operator<(const LocaleString &lhs, const LocaleString &rhs)
 {
-    return (QString::localeAwareCompare(lhs, rhs) < 0);
+    const int res = QString::localeAwareCompare(lhs, rhs);
+    return res != 0 ? res < 0 : lhs.compare(rhs) < 0;
 }
 
 void InstanceView::updateScrollbar()
