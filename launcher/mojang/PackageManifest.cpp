@@ -131,10 +131,10 @@ void fromJson(QJsonDocument & doc, Package & out) {
                 bestSource.upgrade(source);
             }
             if(bestSource.isBad()) {
-                throw JSONValidationError("No valid compression method for file " + iter.key());
+                throw JSONValidationError("No valid compression method for file " + objectPath.toString());
             }
             out.addFile(objectPath, file);
-            out.addSource(bestSource);
+            out.sources[file.hash] = bestSource;
         }
         else if(type == "link") {
             auto target = Json::requireString(fileObject, "target");
