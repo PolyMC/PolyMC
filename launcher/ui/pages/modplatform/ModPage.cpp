@@ -247,6 +247,7 @@ void ModPage::updateModVersions(int prev_count)
 
     QString mcVersion = packProfile->getComponentVersion("net.minecraft");
 
+    ui->versionSelectionBox->clear();
     for (int i = 0; i < current.versions.size(); i++) {
         auto version = current.versions[i];
         bool valid = false;
