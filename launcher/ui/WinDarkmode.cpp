@@ -70,20 +70,26 @@ void setWindowDarkModeEnabled(HWND hWnd, bool Enabled)
 #ifdef _WIN64
     if (IsWindows10_Only() || IsWindows11())
     {
-        ((fnSetWindowCompositionAttribute)(PVOID)GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetWindowCompositionAttribute"))
-            (hWnd, &data);
+        auto setCompositionAttribute = (fnSetWindowCompositionAttribute)(PVOID)GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetWindowCompositionAttribute");
+        if (setCompositionAttribute)
+            setCompositionAttribute(hWnd, &data);
         // Verified this ordinal is the same through Win11 22H2 (5/8/2023)
-        ((fnSetPreferredAppMode)(PVOID)GetProcAddress(GetModuleHandleW(L"uxtheme.dll"), MAKEINTRESOURCEA(135)))
-            (AppMode_AllowDark);
+        HMODULE uxtheme = GetModuleHandleW(L"uxtheme.dll");
+        auto setPreferredAppMode = uxtheme ? (fnSetPreferredAppMode)(PVOID)GetProcAddress(uxtheme, MAKEINTRESOURCEA(135)) : nullptr;
+        if (setPreferredAppMode)
+            setPreferredAppMode(AppMode_AllowDark);
     }
 #else
     if (IsWindows10_Only())
     {
-        ((fnSetWindowCompositionAttribute)(PVOID)GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetWindowCompositionAttribute"))
-            (hWnd, &data);
+        auto setCompositionAttribute = (fnSetWindowCompositionAttribute)(PVOID)GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetWindowCompositionAttribute");
+        if (setCompositionAttribute)
+            setCompositionAttribute(hWnd, &data);
         // Verified this ordinal is the same through Win11 22H2 (5/8/2023)
-        ((fnSetPreferredAppMode)(PVOID)GetProcAddress(GetModuleHandleW(L"uxtheme.dll"), MAKEINTRESOURCEA(135)))
-            (AppMode_AllowDark);
+        HMODULE uxtheme = GetModuleHandleW(L"uxtheme.dll");
+        auto setPreferredAppMode = uxtheme ? (fnSetPreferredAppMode)(PVOID)GetProcAddress(uxtheme, MAKEINTRESOURCEA(135)) : nullptr;
+        if (setPreferredAppMode)
+            setPreferredAppMode(AppMode_AllowDark);
     }
 #endif
 
