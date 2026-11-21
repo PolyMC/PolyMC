@@ -142,6 +142,8 @@ ModPlatform::IndexedVersion Modrinth::loadIndexedPackVersion(QJsonObject &obj, Q
     file.changelog = Json::ensureString(obj, "changelog", "");
 
     auto files = Json::requireArray(obj, "files");
+    if (files.isEmpty())
+        return {};
     int i = 0;
 
     // Find correct file (needed in cases where one version may have multiple files)
