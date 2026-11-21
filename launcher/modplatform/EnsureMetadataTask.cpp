@@ -54,7 +54,7 @@ EnsureMetadataTask::EnsureMetadataTask(Mod* mod, QDir dir, ModPlatform::Provider
 EnsureMetadataTask::EnsureMetadataTask(QList<Mod*>& mods, QDir dir, ModPlatform::Provider prov)
     : Task(nullptr), m_index_dir(dir), m_provider(prov), m_current_task(nullptr)
 {
-    m_hashing_task = new HashingTask(this, "MakeHashesTask", 10);
+    m_hashing_task.reset(new HashingTask(nullptr, "MakeHashesTask", 10));
     for (auto* mod : mods) {
         auto hash_task = createNewHash(mod);
         if (!hash_task)
