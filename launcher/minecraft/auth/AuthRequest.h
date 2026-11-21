@@ -60,8 +60,8 @@ protected:
 
     QNetworkRequest request_;
     QByteArray data_;
-    QNetworkReply *reply_;
-    Status status_;
+    QNetworkReply *reply_ = nullptr;
+    Status status_ = Idle;
     QNetworkAccessManager::Operation operation_;
     QUrl url_;
     Katabasis::ReplyList timedReplies_;
