@@ -1,7 +1,9 @@
 #include "NetworkModAPI.h"
 
+#include <QUrl>
+
 #include "Application.h"
-#include "net/NetJob.h"
+#include "net/Download.h"
 
 NetJob::Ptr NetworkModAPI::searchMods(SearchArgs&& args, QByteArray* response,
                                       const QString& caller) const

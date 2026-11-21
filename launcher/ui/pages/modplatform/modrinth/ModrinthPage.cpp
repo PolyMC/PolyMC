@@ -42,14 +42,24 @@
 #include "BuildConfig.h"
 #include "InstanceImportTask.h"
 #include "Json.h"
+#include "net/Download.h"
 
 #include "ui/widgets/ProjectItem.h"
 
 #include "Markdown.h"
 
 #include <QComboBox>
+#include <QDebug>
+#include <QItemSelectionModel>
+#include <QJsonDocument>
+#include <QJsonParseError>
 #include <QKeyEvent>
 #include <QPushButton>
+#include <QStringList>
+#include <QVariant>
+
+#include <tuple>
+#include <utility>
 
 namespace
 {

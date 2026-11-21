@@ -15,7 +15,14 @@
 
 #pragma once
 
+#include <QByteArray>
+#include <QNetworkAccessManager>
+#include <QString>
+#include <QTemporaryDir>
+
+#include "QObjectPtr.h"
 #include "tasks/Task.h"
+#include "net/Download.h"
 #include "net/NetJob.h"
 #include "GoUpdate.h"
 

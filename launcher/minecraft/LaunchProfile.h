@@ -35,8 +35,13 @@
 
 #pragma once
 #include <QString>
+#include <QStringList>
+#include <QSet>
+#include <QList>
 #include "Library.h"
 #include "Agent.h"
+#include "MojangDownloadInfo.h"
+#include "RuntimeContext.h"
 #include <ProblemProvider.h>
 
 class LaunchProfile : public ProblemProvider

@@ -1,7 +1,14 @@
 #include "GoUpdate.h"
 #include <QDebug>
-#include <QDomDocument>
 #include <QFile>
+#include <QFileInfo>
+#include <QCryptographicHash>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
+#include <QJsonValue>
+#include <utility>
 #include <FileSystem.h>
 
 #include "net/Download.h"

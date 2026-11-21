@@ -36,9 +36,13 @@
 #pragma once
 
 #include <QWidget>
+#include <QIcon>
+#include <QString>
 
 #include "BaseInstance.h"
+#include "QObjectPtr.h"
 #include "launch/LaunchTask.h"
+#include "launch/LogModel.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 

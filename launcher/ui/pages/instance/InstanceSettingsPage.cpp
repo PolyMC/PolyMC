@@ -40,20 +40,23 @@
 #include <QFileDialog>
 #include <QDialog>
 #include <QStyle>
+#include <QCommandLinkButton>
+#include <QFileInfo>
+#include <QPixmap>
+#include <QSpinBox>
 
 #include <sys.h>
 
 #include "ui/dialogs/VersionSelectDialog.h"
 #include "ui/widgets/CustomCommands.h"
 
-#include "JavaCommon.h"
-#include "Application.h"
-
+#include "java/JavaInstall.h"
+#include "java/JavaInstallList.h"
 #include "java/JavaUtils.h"
-#include "java/JavaVersion.h"
 #include "FileSystem.h"
 
 #include "minecraft/auth/AccountList.h"
+#include "minecraft/auth/MinecraftAccount.h"
 
 InstanceSettingsPage::InstanceSettingsPage(BaseInstance* inst, QWidget* parent)
     : QWidget(parent), ui(new Ui::InstanceSettingsPage), m_instance(inst)

@@ -17,12 +17,9 @@
 
 #include <QObject>
 #include <QList>
-#include <QUrl>
+#include <QString>
 
-#include "net/NetJob.h"
 #include "tasks/Task.h"
-#include "minecraft/VersionFilterData.h"
-#include <quazip/quazip.h>
 
 class MinecraftVersion;
 class MinecraftInstance;

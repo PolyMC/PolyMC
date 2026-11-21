@@ -38,16 +38,15 @@
 #include <QAbstractListModel>
 
 #include <QString>
-#include <QList>
+#include <QStringList>
 #include <memory>
 
 #include "Library.h"
 #include "LaunchProfile.h"
 #include "Component.h"
-#include "ProfileUtils.h"
-#include "BaseVersion.h"
-#include "MojangDownloadInfo.h"
+#include "RuntimeContext.h"
 #include "net/Mode.h"
+#include "tasks/Task.h"
 #include "modplatform/ModAPI.h"
 
 class MinecraftInstance;

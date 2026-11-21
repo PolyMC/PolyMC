@@ -1,9 +1,22 @@
 #include "FileResolvingTask.h"
 
 #include "Json.h"
+#include "net/Download.h"
 #include "net/Upload.h"
 
+#include <QDebug>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QString>
+#include <QUrl>
+#include <QVariantList>
+
+#include <algorithm>
 #include <functional>
+#include <iterator>
+#include <numeric>
+#include <utility>
 
 namespace
 {

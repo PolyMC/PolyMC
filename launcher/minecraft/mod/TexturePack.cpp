@@ -19,12 +19,6 @@
 
 #include "TexturePack.h"
 
-#include <QDebug>
-#include <QMap>
-#include <QRegularExpression>
-
-#include "minecraft/mod/tasks/LocalTexturePackParseTask.h"
-
 void TexturePack::setDescription(QString new_description)
 {
     QMutexLocker locker(&m_data_lock);

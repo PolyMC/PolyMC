@@ -2,23 +2,9 @@
 #include "Application.h"
 
 #include <QVBoxLayout>
-#include <QGroupBox>
-#include <QSpinBox>
-#include <QLabel>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QToolButton>
-#include <QFileDialog>
 
-#include <sys.h>
+#include "settings/SettingsObject.h"
 
-#include "FileSystem.h"
-#include "java/JavaInstall.h"
-#include "java/JavaUtils.h"
-#include "JavaCommon.h"
-
-#include "ui/widgets/VersionSelectWidget.h"
-#include "ui/dialogs/CustomMessageBox.h"
 #include "ui/widgets/JavaSettingsWidget.h"
 
 JavaWizardPage::JavaWizardPage(QWidget* parent) : BaseWizardPage(parent)

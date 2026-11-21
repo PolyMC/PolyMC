@@ -3,6 +3,7 @@
 #include "FileSystem.h"
 #include "NullInstance.h"
 #include "pathmatcher/RegexpMatcher.h"
+#include <QThreadPool>
 #include <QtConcurrentRun>
 
 InstanceCopyTask::InstanceCopyTask(InstancePtr origInstance, bool copySaves,

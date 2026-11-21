@@ -37,6 +37,9 @@
 
 #include <QWidget>
 #include <QString>
+#include <QIcon>
+
+#include <memory>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>

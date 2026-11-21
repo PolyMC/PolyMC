@@ -36,8 +36,14 @@
 #pragma once
 
 #include <QWidget>
+#include <QIcon>
+#include <QString>
+
+#include <memory>
 
 #include "java/JavaChecker.h"
+#include "java/JavaVersion.h"
+#include "settings/SettingsObject.h"
 #include "BaseInstance.h"
 #include <QObjectPtr.h>
 #include "ui/pages/BasePage.h"

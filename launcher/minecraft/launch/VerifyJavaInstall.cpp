@@ -35,6 +35,11 @@
 
 #include "VerifyJavaInstall.h"
 
+#include <QString>
+#include <memory>
+#include <utility>
+
+#include "launch/LaunchTask.h"
 #include "java/JavaVersion.h"
 #include "minecraft/PackProfile.h"
 #include "minecraft/MinecraftInstance.h"

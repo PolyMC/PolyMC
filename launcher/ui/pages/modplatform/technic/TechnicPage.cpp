@@ -36,7 +36,14 @@
 #include "TechnicPage.h"
 #include "ui_TechnicPage.h"
 
+#include <QDebug>
+#include <QItemSelectionModel>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
+#include <QJsonValueRef>
 #include <QKeyEvent>
+#include <QUrl>
 
 #include "ui/dialogs/NewInstanceDialog.h"
 
@@ -45,6 +52,7 @@
 #include "modplatform/technic/SingleZipPackInstallTask.h"
 #include "modplatform/technic/SolderPackInstallTask.h"
 #include "Json.h"
+#include "net/Download.h"
 
 #include "Application.h"
 #include "modplatform/technic/SolderPackManifest.h"

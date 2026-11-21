@@ -37,6 +37,10 @@
 #include "modplatform/flame/FlameAPI.h"
 #include "ui_ModPage.h"
 
+#include <QComboBox>
+#include <QItemSelectionModel>
+#include <QPushButton>
+
 #include "FlameModModel.h"
 #include "ui/dialogs/ModDownloadDialog.h"
 

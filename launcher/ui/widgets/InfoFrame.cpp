@@ -34,6 +34,10 @@
  */
 
 #include <QMessageBox>
+#include <QChar>
+#include <QLabel>
+#include <QList>
+#include <QMap>
 
 #include "InfoFrame.h"
 #include "ui_InfoFrame.h"

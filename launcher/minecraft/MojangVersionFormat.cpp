@@ -34,8 +34,14 @@
  */
 
 #include "MojangVersionFormat.h"
-#include "OneSixVersionFormat.h"
 #include "MojangDownloadInfo.h"
+#include "Rule.h"
+
+#include <QDebug>
+#include <QJsonArray>
+#include <QObject>
+#include <memory>
+#include <utility>
 
 #include "Json.h"
 using namespace Json;

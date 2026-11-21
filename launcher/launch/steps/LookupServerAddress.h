@@ -16,7 +16,6 @@
 #pragma once
 
 #include <launch/LaunchStep.h>
-#include <QObjectPtr.h>
 #include <QDnsLookup>
 
 #include "minecraft/launch/MinecraftServerTarget.h"

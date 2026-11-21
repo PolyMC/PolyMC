@@ -39,17 +39,21 @@
 #include "PageContainer_p.h"
 
 #include <QStackedLayout>
-#include <QPushButton>
 #include <QSortFilterProxyModel>
 #include <QUrl>
-#include <QStyledItemDelegate>
 #include <QListView>
-#include <QLineEdit>
 #include <QLabel>
-#include <QDialogButtonBox>
 #include <QGridLayout>
+#include <QHBoxLayout>
+#include <QSpacerItem>
+#include <QStyle>
+#include <QFont>
+#include <QIcon>
+#include <QSize>
+#include <QItemSelectionModel>
+#include <QEvent>
 
-#include "settings/SettingsObject.h"
+#include <utility>
 
 #include "ui/widgets/IconLabel.h"
 

@@ -1,16 +1,19 @@
 #include "ConfigureLoki.h"
 
 #include <launch/LaunchTask.h>
-#include <QDir>
+#include <QDebug>
+#include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonParseError>
+#include <QJsonValue>
+#include <QUrl>
 #include <Qt>
+#include <utility>
 
 #include "Application.h"
-#include "minecraft/auth/AccountList.h"
-#include "net/ChecksumValidator.h"
 #include "net/Download.h"
 #include "net/HttpMetaCache.h"
 #include "net/NetAction.h"

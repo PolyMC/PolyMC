@@ -5,6 +5,12 @@
 #include "minecraft/PackProfile.h"
 #include "modplatform/flame/FlameAPI.h"
 
+#include <QString>
+#include <QVector>
+
+#include <algorithm>
+#include <utility>
+
 static FlameAPI api;
 static ModPlatform::ProviderCapabilities ProviderCaps;
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <QWidget>
 #include <QIcon>
+#include <QSize>
 
 class QStyleOption;
 

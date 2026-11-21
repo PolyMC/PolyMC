@@ -2,13 +2,22 @@
 
 #include "InstanceCreationTask.h"
 
-#include <optional>
+#include <QString>
+#include <QWeakPointer>
+#include <QWidget>
 
-#include "minecraft/MinecraftInstance.h"
+#include <optional>
+#include <utility>
+#include <vector>
+
+#include "BaseInstance.h"
 
 #include "modplatform/modrinth/ModrinthPackManifest.h"
 
+#include "net/Download.h"
 #include "net/NetJob.h"
+
+#include "settings/SettingsObject.h"
 
 class ModrinthCreationTask final : public InstanceCreationTask
 {

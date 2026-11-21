@@ -37,16 +37,7 @@
 
 #include "launch/LaunchTask.h"
 #include "MessageLevel.h"
-#include "MMCStrings.h"
-#include "java/JavaChecker.h"
 #include "tasks/Task.h"
-#include <QDebug>
-#include <QDir>
-#include <QEventLoop>
-#include <QRegularExpression>
-#include <QCoreApplication>
-#include <QStandardPaths>
-#include <assert.h>
 
 void LaunchTask::init()
 {

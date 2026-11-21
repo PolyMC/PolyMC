@@ -37,12 +37,11 @@
 
 #include <tasks/Task.h>
 
+#include <QObject>
 #include <QString>
-#include <QJsonObject>
-#include <QTimer>
-#include <qsslerror.h>
+#include <QUrl>
 
-#include "MinecraftAccount.h"
+#include "AccountData.h"
 
 class QNetworkReply;
 

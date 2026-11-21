@@ -35,6 +35,9 @@
 
 #pragma once
 
+#include <QNetworkReply>
+
+#include "QObjectPtr.h"
 #include "net/NetAction.h"
 #include "Screenshot.h"
 

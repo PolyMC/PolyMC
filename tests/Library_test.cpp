@@ -34,12 +34,22 @@
  */
 
 #include <QTest>
+#include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QStringList>
+#include <QUrl>
+
+#include <memory>
 
 #include <minecraft/MojangVersionFormat.h>
-#include <minecraft/OneSixVersionFormat.h>
 #include <minecraft/Library.h>
 #include <net/HttpMetaCache.h>
+#include <net/NetAction.h>
 #include <FileSystem.h>
+#include <ProblemProvider.h>
 #include <RuntimeContext.h>
 
 class LibraryTest : public QObject

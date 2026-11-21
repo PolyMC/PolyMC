@@ -19,11 +19,22 @@
 #include "BuildConfig.h"
 #include "Application.h"
 #include "Json.h"
+#include "net/Download.h"
+#include "net/HttpMetaCache.h"
 
+#include <QDebug>
+#include <QFileInfo>
+#include <QImage>
+#include <QJsonDocument>
+#include <QJsonParseError>
 #include <QPainter>
+#include <QPoint>
+#include <QSize>
+#include <QUrl>
 
 #include <functional>
 #include <memory>
+#include <utility>
 
 namespace Ftb
 {

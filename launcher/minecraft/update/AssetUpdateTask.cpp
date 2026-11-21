@@ -3,12 +3,16 @@
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "net/ChecksumValidator.h"
+#include "net/Download.h"
 #include "minecraft/AssetsUtils.h"
 
 #include "Application.h"
 
+#include <QByteArray>
 #include <QCryptographicHash>
+#include <QDebug>
 #include <QFile>
+#include <QUrl>
 
 static bool localFileMatches(const QString& path, const QByteArray& rawSha1)
 {

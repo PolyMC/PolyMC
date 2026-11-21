@@ -35,7 +35,10 @@
 
 #include "LauncherPartLaunch.h"
 
+#include <QDebug>
+#include <QRegularExpression>
 #include <QStandardPaths>
+#include <memory>
 
 #include "launch/LaunchTask.h"
 #include "minecraft/MinecraftInstance.h"

@@ -39,12 +39,14 @@
 
 #include "BuildConfig.h"
 
-#include "AtlOptionalModDialog.h"
 #include "AtlUserInteractionSupportImpl.h"
 #include "modplatform/atlauncher/ATLPackInstallTask.h"
 #include "ui/dialogs/NewInstanceDialog.h"
 
-#include <QMessageBox>
+#include <QComboBox>
+#include <QItemSelectionModel>
+#include <QLineEdit>
+#include <utility>
 
 AtlPage::AtlPage(NewInstanceDialog* dialog, QWidget* parent)
     : QWidget(parent), ui(new Ui::AtlPage), dialog(dialog)

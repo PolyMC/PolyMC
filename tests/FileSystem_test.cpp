@@ -1,6 +1,8 @@
 #include <QTest>
 #include <QTemporaryDir>
 #include <QStandardPaths>
+#include <QDir>
+#include <QDebug>
 
 #include <FileSystem.h>
 

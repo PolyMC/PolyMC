@@ -16,7 +16,6 @@
 #pragma once
 
 #include <launch/LaunchStep.h>
-#include <memory>
 #include "minecraft/auth/AuthSession.h"
 #include "minecraft/launch/MinecraftServerTarget.h"
 

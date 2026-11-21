@@ -37,17 +37,12 @@
 #pragma once
 
 #include <QList>
-#include <QMap>
-#include <QSet>
 #include <QString>
 #include <QDir>
-#include <QAbstractListModel>
+#include <QVariant>
 
 #include "Mod.h"
 #include "ResourceFolderModel.h"
-
-#include "minecraft/mod/tasks/ModFolderLoadTask.h"
-#include "minecraft/mod/tasks/LocalModParseTask.h"
 
 class LegacyInstance;
 class BaseInstance;

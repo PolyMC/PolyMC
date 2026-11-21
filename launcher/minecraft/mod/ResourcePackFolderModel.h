@@ -1,5 +1,8 @@
 #pragma once
 
+#include <QString>
+#include <QVariant>
+
 #include "ResourceFolderModel.h"
 
 #include "ResourcePack.h"

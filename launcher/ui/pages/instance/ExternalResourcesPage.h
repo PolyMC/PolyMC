@@ -1,9 +1,15 @@
 #pragma once
 
+#include <QIcon>
 #include <QMainWindow>
+#include <QModelIndex>
+#include <QPoint>
 #include <QSortFilterProxyModel>
+#include <QString>
 
-#include "minecraft/MinecraftInstance.h"
+#include <memory>
+
+#include "BaseInstance.h"
 #include "ui/pages/BasePage.h"
 
 class ResourceFolderModel;

@@ -15,13 +15,12 @@
 
 #include "DownloadTask.h"
 
-#include "updater/UpdateChecker.h"
 #include "GoUpdate.h"
 #include "net/NetJob.h"
 
-#include <QFile>
+#include <QDebug>
 #include <QTemporaryDir>
-#include <QCryptographicHash>
+#include <QUrl>
 
 namespace GoUpdate
 {

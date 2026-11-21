@@ -16,7 +16,6 @@
 #pragma once
 
 #include <QStyledItemDelegate>
-#include <QCache>
 
 class ListViewDelegate : public QStyledItemDelegate
 {

@@ -16,23 +16,15 @@
 #include "MinecraftUpdate.h"
 #include "MinecraftInstance.h"
 
-#include <QFile>
-#include <QFileInfo>
-#include <QTextStream>
-#include <QDataStream>
+#include <QDebug>
 
-#include "BaseInstance.h"
 #include "minecraft/PackProfile.h"
-#include "minecraft/Library.h"
-#include <FileSystem.h>
+#include "net/Mode.h"
 
 #include "update/FoldersTask.h"
 #include "update/LibrariesTask.h"
 #include "update/FMLLibrariesTask.h"
 #include "update/AssetUpdateTask.h"
-
-#include <meta/Index.h>
-#include <meta/Version.h>
 
 MinecraftUpdate::MinecraftUpdate(MinecraftInstance* inst, QObject* parent)
     : Task(parent), m_inst(inst)

@@ -15,10 +15,12 @@
 
 #pragma once
 
-#include <QStringList>
+#include <QList>
+#include <QObject>
+#include <QProcessEnvironment>
+#include <QString>
 
-#include "JavaChecker.h"
-#include "JavaInstallList.h"
+#include "JavaInstall.h"
 
 #ifdef Q_OS_WIN
 #include <windows.h>

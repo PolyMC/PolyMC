@@ -35,6 +35,8 @@
 
 #include "Application.h"
 
+#include <QGuiApplication>
+
 // #define BREAK_INFINITE_LOOP
 // #define BREAK_EXCEPTION
 // #define BREAK_RETURN
@@ -45,7 +47,9 @@
 #endif
 
 #ifdef __APPLE__
+#include <QFont>
 #include <QFontDatabase>
+#include <QString>
 #endif
 
 int main(int argc, char* argv[])

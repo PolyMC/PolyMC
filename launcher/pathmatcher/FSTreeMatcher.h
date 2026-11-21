@@ -2,7 +2,6 @@
 
 #include "IPathMatcher.h"
 #include <SeparatorPrefixTree.h>
-#include <QRegularExpression>
 
 class FSTreeMatcher : public IPathMatcher
 {

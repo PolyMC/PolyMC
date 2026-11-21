@@ -17,6 +17,13 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QByteArray>
+#include <QList>
+#include <QMap>
+#include <QString>
+#include <QVariant>
+
+#include <memory>
 
 #include "modplatform/ftb/FTBPackManifest.h"
 #include "net/NetJob.h"

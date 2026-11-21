@@ -1,5 +1,6 @@
 #include "VanillaInstanceCreationTask.h"
 
+#include <memory>
 #include <utility>
 
 #include "FileSystem.h"

@@ -34,15 +34,12 @@
  */
 
 #include "ListModel.h"
-#include "Application.h"
 
 #include <MMCStrings.h>
 #include <Version.h>
 
-#include <QtMath>
-#include <QLabel>
-
-#include <RWStorage.h>
+#include <QColor>
+#include <QDebug>
 
 #include <BuildConfig.h>
 

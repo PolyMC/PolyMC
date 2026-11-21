@@ -6,18 +6,31 @@
 #include "ui_ReviewMessageBox.h"
 
 #include "tasks/ConcurrentTask.h"
+#include "tasks/SequentialTask.h"
+#include "tasks/Task.h"
 
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
+#include "minecraft/mod/Mod.h"
+#include "minecraft/mod/ModDetails.h"
 
 #include "modplatform/EnsureMetadataTask.h"
 #include "modplatform/flame/FlameCheckUpdate.h"
 #include "modplatform/modrinth/ModrinthCheckUpdate.h"
 
 #include "Markdown.h"
+#include "Version.h"
 #include "ui/widgets/RemoteTextBrowser.h"
 
+#include <QDebug>
+#include <QFontMetrics>
+#include <QMessageBox>
+#include <QRegularExpression>
+#include <QStringList>
+#include <QTextBrowser>
 #include <QTreeWidgetItem>
+#include <list>
+#include <utility>
 
 static ModPlatform::ProviderCapabilities ProviderCaps;
 

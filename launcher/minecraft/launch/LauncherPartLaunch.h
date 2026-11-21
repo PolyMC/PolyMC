@@ -15,6 +15,10 @@
 
 #pragma once
 
+#include <QString>
+#include <QStringList>
+#include <utility>
+
 #include <launch/LaunchStep.h>
 #include <LoggedProcess.h>
 #include <minecraft/auth/AuthSession.h>

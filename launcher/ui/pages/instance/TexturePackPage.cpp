@@ -18,7 +18,10 @@
  */
 
 #include "TexturePackPage.h"
+#include "modplatform/ModAPI.h"
 #include "ui/dialogs/ModDownloadDialog.h"
+
+#include <QAction>
 
 TexturePackPage::TexturePackPage(MinecraftInstance* instance,
                                  std::shared_ptr<TexturePackFolderModel> model,

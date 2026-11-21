@@ -3,9 +3,14 @@
 #include "Resource.h"
 
 #include <QImage>
+#include <QMap>
 #include <QMutex>
 #include <QPixmap>
 #include <QPixmapCache>
+#include <QSize>
+#include <QString>
+
+#include <utility>
 
 class Version;
 

@@ -46,9 +46,14 @@
 #include <QCache>
 #include <QScrollBar>
 #include <QAccessible>
+#include <QDropEvent>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QMap>
+#include <QStyle>
+#include <QStyleOption>
 
 #include "VisualGroup.h"
-#include <QDebug>
 
 #include <Application.h>
 #include <InstanceList.h>

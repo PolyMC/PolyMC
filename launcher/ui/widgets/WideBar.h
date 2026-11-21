@@ -1,7 +1,8 @@
 #pragma once
 
 #include <QAction>
-#include <QMap>
+#include <QList>
+#include <QString>
 #include <QToolBar>
 
 class QMenu;

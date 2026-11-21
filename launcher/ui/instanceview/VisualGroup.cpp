@@ -40,6 +40,15 @@
 #include <QtMath>
 #include <QApplication>
 #include <QDebug>
+#include <QColor>
+#include <QFont>
+#include <QFontMetrics>
+#include <QLinearGradient>
+#include <QPointF>
+#include <QRectF>
+#include <QSize>
+#include <QSizeF>
+#include <utility>
 
 #include "InstanceView.h"
 

@@ -1,5 +1,7 @@
 #include <QTest>
 #include <QDebug>
+#include <QFile>
+#include <QJsonDocument>
 
 #include <minecraft/MojangVersionFormat.h>
 

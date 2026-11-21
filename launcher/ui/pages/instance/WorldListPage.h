@@ -36,8 +36,15 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QIcon>
+#include <QModelIndex>
+#include <QPoint>
+#include <QString>
 
-#include "minecraft/MinecraftInstance.h"
+#include <memory>
+
+#include "BaseInstance.h"
+#include "QObjectPtr.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 #include <LoggedProcess.h>

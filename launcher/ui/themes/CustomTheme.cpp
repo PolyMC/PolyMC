@@ -1,7 +1,10 @@
 #include "CustomTheme.h"
-#include <QDir>
+#include <QDebug>
+#include <QFileInfo>
+#include <QJsonObject>
 #include <Json.h>
 #include <FileSystem.h>
+#include <Exception.h>
 
 const char* themeFile = "theme.json";
 const char* styleFile = "themeStyle.css";

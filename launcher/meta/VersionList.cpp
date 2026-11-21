@@ -15,13 +15,14 @@
 
 #include "VersionList.h"
 
-#include <QDateTime>
+#include <QDebug>
 
+#include <algorithm>
 #include <functional>
+#include <utility>
 
 #include "Version.h"
 #include "JsonFormat.h"
-#include "Version.h"
 
 namespace Meta
 {

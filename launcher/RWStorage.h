@@ -1,6 +1,7 @@
 #pragma once
 #include <QWriteLocker>
 #include <QReadLocker>
+#include <QReadWriteLock>
 #include <QMap>
 #include <QSet>
 

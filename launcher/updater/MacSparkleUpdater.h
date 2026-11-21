@@ -21,6 +21,7 @@
 
 #include <QObject>
 #include <QSet>
+#include <QString>
 #include "ExternalUpdater.h"
 
 /*!

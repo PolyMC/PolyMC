@@ -1,10 +1,13 @@
 #pragma once
 
-#include <QDebug>
+#include <QFileInfo>
 #include <QObject>
 
-#include "minecraft/mod/Mod.h"
+#include <atomic>
+#include <memory>
+
 #include "minecraft/mod/ModDetails.h"
+#include "minecraft/mod/Resource.h"
 
 #include "tasks/Task.h"
 

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QLabel>
+#include <QList>
+#include <QUrl>
 
 class DropLabel : public QLabel
 {

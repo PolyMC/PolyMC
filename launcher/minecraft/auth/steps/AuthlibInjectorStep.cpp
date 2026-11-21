@@ -1,10 +1,9 @@
 #include "AuthlibInjectorStep.h"
 #include "Application.h"
 
-#include <iostream>
-
+#include <QDebug>
 #include <QNetworkRequest>
-#include <QUuid>
+#include <QUrl>
 
 AuthlibInjectorStep::AuthlibInjectorStep(AccountData* data) : AuthStep(data)
 {

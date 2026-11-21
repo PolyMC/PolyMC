@@ -38,7 +38,10 @@
 #include "FtbPage.h"
 #include "ui_FtbPage.h"
 
+#include <QItemSelectionModel>
 #include <QKeyEvent>
+
+#include <utility>
 
 #include "ui/dialogs/NewInstanceDialog.h"
 #include "modplatform/ftb/FTBPackInstallTask.h"

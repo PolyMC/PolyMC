@@ -37,8 +37,10 @@
 #include "ModFolderLoadTask.h"
 
 #include "minecraft/mod/MetadataHandler.h"
+#include "minecraft/mod/ModDetails.h"
 
 #include <QThread>
+#include <utility>
 
 ModFolderLoadTask::ModFolderLoadTask(QDir mods_dir, QDir index_dir,
                                      bool is_indexed, bool clean_orphan)

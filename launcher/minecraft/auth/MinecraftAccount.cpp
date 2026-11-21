@@ -39,10 +39,10 @@
 
 #include <QUuid>
 #include <QJsonObject>
-#include <QJsonArray>
 #include <QRegularExpression>
-#include <QStringList>
-#include <QJsonDocument>
+#include <QByteArray>
+#include <QCryptographicHash>
+#include <QDateTime>
 
 #include <QDebug>
 
@@ -52,6 +52,8 @@
 #include "flows/AuthlibInjector.h"
 #include "flows/Offline.h"
 #include "minecraft/auth/AccountData.h"
+#include "minecraft/auth/AccountTask.h"
+#include "tasks/Task.h"
 
 // Basically the same as
 // https://github.com/qt/qtbase/blob/5.12/src/corelib/plugin/quuid.cpp#L152C1-L173C2,

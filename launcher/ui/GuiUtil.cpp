@@ -40,6 +40,14 @@
 #include <QApplication>
 #include <QFileDialog>
 #include <QPointer>
+#include <QStandardPaths>
+#include <QFileInfo>
+#include <QSet>
+#include <QMap>
+#include <QList>
+#include <QUrl>
+#include <QMessageBox>
+#include <memory>
 
 #include "net/FetchFlameAPIKey.h"
 #include "ui/dialogs/ProgressDialog.h"
@@ -48,7 +56,6 @@
 
 #include "Application.h"
 #include <settings/SettingsObject.h>
-#include <DesktopServices.h>
 #include <BuildConfig.h>
 
 QString GuiUtil::fetchFlameKey(QWidget* parentWidget)

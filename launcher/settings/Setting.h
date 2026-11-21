@@ -16,9 +16,9 @@
 #pragma once
 
 #include <QObject>
+#include <QString>
 #include <QVariant>
 #include <QStringList>
-#include <memory>
 
 class SettingsObject;
 

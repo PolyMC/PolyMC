@@ -1,11 +1,19 @@
 #pragma once
 
+#include <QByteArray>
+#include <QDir>
+#include <QHash>
+#include <QList>
+#include <QString>
+
 #include "ModIndex.h"
+#include "QObjectPtr.h"
 #include "net/NetJob.h"
 
 #include "modplatform/helpers/HashUtils.h"
 
 #include "tasks/ConcurrentTask.h"
+#include "tasks/Task.h"
 
 class Mod;
 class QDir;

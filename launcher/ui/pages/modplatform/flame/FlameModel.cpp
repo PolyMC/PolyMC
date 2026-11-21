@@ -2,11 +2,14 @@
 #include <Json.h>
 #include "Application.h"
 
-#include <MMCStrings.h>
-#include <Version.h>
+#include <QDebug>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QUrl>
 
-#include <QtMath>
+#include <utility>
 
+#include "net/Download.h"
 #include "ui/pages/modplatform/LogoCache.h"
 
 namespace Flame

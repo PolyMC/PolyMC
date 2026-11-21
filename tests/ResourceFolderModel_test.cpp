@@ -36,10 +36,14 @@
 #include <QTest>
 #include <QTemporaryDir>
 #include <QTimer>
+#include <QDebug>
+#include <QDir>
+#include <QEventLoop>
 
 #include <FileSystem.h>
 
 #include <minecraft/mod/ModFolderModel.h>
+#include <minecraft/mod/Resource.h>
 #include <minecraft/mod/ResourceFolderModel.h>
 
 #define EXEC_UPDATE_TASK(EXEC, VERIFY)                           \

@@ -19,6 +19,9 @@
 #include "MacSparkleUpdater.h"
 
 #include "Application.h"
+#include "settings/SettingsObject.h"
+
+#include <QStringList>
 
 #include <Cocoa/Cocoa.h>
 #include <Sparkle/Sparkle.h>

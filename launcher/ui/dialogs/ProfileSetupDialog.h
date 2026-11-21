@@ -19,8 +19,10 @@
 #include <QIcon>
 #include <QTimer>
 #include <QNetworkReply>
+#include <QByteArray>
+#include <QList>
+#include <QString>
 
-#include <memory>
 #include <minecraft/auth/MinecraftAccount.h>
 
 namespace Ui

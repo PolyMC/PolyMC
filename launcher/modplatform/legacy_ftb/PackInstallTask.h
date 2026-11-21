@@ -2,14 +2,16 @@
 #include "InstanceTask.h"
 #include "net/NetJob.h"
 #include <quazip/quazip.h>
-#include <quazip/quazipdir.h>
-#include "meta/Index.h"
-#include "meta/Version.h"
-#include "meta/VersionList.h"
 #include "PackHelpers.h"
+#include "QObjectPtr.h"
 
-#include "net/NetJob.h"
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QNetworkAccessManager>
+#include <QString>
+#include <QStringList>
 
+#include <memory>
 #include <optional>
 
 namespace LegacyFTB

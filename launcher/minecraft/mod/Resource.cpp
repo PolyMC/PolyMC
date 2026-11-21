@@ -1,5 +1,6 @@
 #include "Resource.h"
 
+#include <QFile>
 #include <QRegularExpression>
 
 #include "FileSystem.h"

@@ -1,13 +1,9 @@
 #include "SetupWizard.h"
 
-#include "LanguageWizardPage.h"
-#include "JavaWizardPage.h"
-
-#include "translations/TranslationsModel.h"
-#include <Application.h>
-#include <FileSystem.h>
+#include "BaseWizardPage.h"
 
 #include <QAbstractButton>
+#include <QEvent>
 #include <BuildConfig.h>
 
 SetupWizard::SetupWizard(QWidget* parent) : QWizard(parent)

@@ -1,6 +1,7 @@
 #include "Common.h"
 
 #include <QFontMetrics>
+#include <QString>
 
 // Origin: Qt
 // More specifically, this is a trimmed down version on the algorithm in:

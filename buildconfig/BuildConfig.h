@@ -37,7 +37,7 @@
 
 #pragma once
 #include <QString>
-#include <QList>
+#include <QStringList>
 
 /**
  * \brief The Config class holds all the build-time information passed from the

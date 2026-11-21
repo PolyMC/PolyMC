@@ -36,13 +36,20 @@
 #include "ProfileUtils.h"
 #include "minecraft/VersionFilterData.h"
 #include "minecraft/OneSixVersionFormat.h"
+#include "minecraft/Library.h"
+#include "Exception.h"
+#include "ProblemProvider.h"
 #include "Json.h"
 #include <QDebug>
 
-#include <QJsonDocument>
+#include <QFile>
 #include <QJsonArray>
-#include <QRegularExpression>
+#include <QJsonParseError>
+#include <QList>
+#include <QObject>
 #include <QSaveFile>
+#include <memory>
+#include <utility>
 
 namespace ProfileUtils
 {

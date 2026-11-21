@@ -5,6 +5,10 @@
 #include <QNetworkAccessManager>
 #include <QUrl>
 #include <QByteArray>
+#include <QString>
+#include <QList>
+#include <QSslError>
+#include <QTimer>
 
 #include "katabasis/Reply.h"
 

@@ -38,6 +38,7 @@
 
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QStandardPaths>
 #include <QTabBar>
 

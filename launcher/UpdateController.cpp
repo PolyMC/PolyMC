@@ -1,11 +1,20 @@
+#include <QDebug>
+#include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QMessageBox>
+#include <QProcess>
+#include <QString>
+#include <QStringList>
+#include <QTextStream>
+#include <Exception.h>
 #include <FileSystem.h>
 #include <updater/GoUpdate.h>
 #include "UpdateController.h"
 #include <QApplication>
 #include <thread>
 #include <chrono>
+#include <utility>
 #include <LocalPeer.h>
 
 #include "BuildConfig.h"

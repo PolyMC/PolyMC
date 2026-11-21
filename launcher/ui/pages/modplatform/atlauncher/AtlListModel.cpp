@@ -20,6 +20,14 @@
 #include <Application.h>
 #include <Json.h>
 
+#include <QDebug>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QUrl>
+
+#include <utility>
+
+#include "net/Download.h"
 #include "ui/pages/modplatform/LogoCache.h"
 
 namespace Atl

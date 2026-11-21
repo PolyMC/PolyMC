@@ -1,9 +1,11 @@
 #include "ConcurrentTask.h"
 
 #include <QDebug>
-#include <QCoreApplication>
+#include <QStringList>
 
+#include <algorithm>
 #include <functional>
+#include <utility>
 
 ConcurrentTask::ConcurrentTask(QObject* parent, QString task_name,
                                int max_concurrent)

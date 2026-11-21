@@ -36,11 +36,15 @@
 #pragma once
 
 #include <QWidget>
+#include <QByteArray>
+#include <QIcon>
+#include <QModelIndex>
+#include <QPersistentModelIndex>
+#include <QString>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 #include "net/NetJob.h"
-#include "tasks/Task.h"
 #include <modplatform/flame/FlamePackIndex.h>
 
 namespace Ui

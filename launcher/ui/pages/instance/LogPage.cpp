@@ -37,15 +37,23 @@
 #include "LogPage.h"
 #include "ui_LogPage.h"
 
-#include "Application.h"
-
-#include <QIcon>
+#include <QApplication>
+#include <QDateTime>
+#include <QFont>
+#include <QIdentityProxyModel>
+#include <QKeySequence>
+#include <QLineEdit>
+#include <QModelIndex>
 #include <QPointer>
-#include <QScrollBar>
 #include <QShortcut>
+#include <QString>
+#include <QTabBar>
+#include <QVariant>
 
-#include "launch/LaunchTask.h"
-#include "settings/Setting.h"
+#include <memory>
+
+#include "MessageLevel.h"
+#include "settings/SettingsObject.h"
 
 #include "ui/GuiUtil.h"
 #include "ui/ColorCache.h"

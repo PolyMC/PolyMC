@@ -36,13 +36,9 @@
 #pragma once
 #include <QString>
 #include <net/NetAction.h>
-#include <QPair>
 #include <QList>
-#include <QString>
 #include <QStringList>
 #include <QMap>
-#include <QDir>
-#include <QUrl>
 #include <memory>
 
 #include "Rule.h"

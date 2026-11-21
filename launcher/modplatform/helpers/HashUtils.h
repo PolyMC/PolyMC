@@ -3,6 +3,7 @@
 #include <QFutureWatcher>
 #include <QString>
 
+#include "QObjectPtr.h"
 #include "modplatform/ModIndex.h"
 #include "tasks/Task.h"
 

@@ -21,8 +21,10 @@
 #include <BuildConfig.h>
 #include <Json.h>
 
-#include <ui/dialogs/ProgressDialog.h>
-#include <ui/dialogs/CustomMessageBox.h>
+#include <QDebug>
+#include <QJsonDocument>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
 
 FetchFlameAPIKey::FetchFlameAPIKey(QObject* parent) : Task{parent}
 {

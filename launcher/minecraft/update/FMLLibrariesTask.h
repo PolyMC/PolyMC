@@ -1,4 +1,6 @@
 #pragma once
+#include <QList>
+#include <QString>
 #include "tasks/Task.h"
 #include "net/NetJob.h"
 #include "minecraft/VersionFilterData.h"

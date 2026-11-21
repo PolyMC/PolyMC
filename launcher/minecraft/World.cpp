@@ -33,7 +33,9 @@
  *      limitations under the License.
  */
 
+#include <QByteArray>
 #include <QDir>
+#include <QFile>
 #include <QString>
 #include <QDebug>
 #include <QSaveFile>
@@ -45,15 +47,25 @@
 #include <FileSystem.h>
 #include <sstream>
 #include <io/stream_reader.h>
+#include <io/stream_writer.h>
+#include <tag_compound.h>
 #include <tag_string.h>
 #include <tag_primitive.h>
+#include <value.h>
+#include <value_initializer.h>
 #include <quazip/quazip.h>
 #include <quazip/quazipfile.h>
-#include <quazip/quazipdir.h>
+#include <quazip/quazipfileinfo.h>
 
 #include <QCoreApplication>
 
+#include <exception>
+#include <memory>
 #include <optional>
+#include <stdexcept>
+#include <string>
+#include <typeinfo>
+#include <utility>
 
 using std::nullopt;
 using std::optional;

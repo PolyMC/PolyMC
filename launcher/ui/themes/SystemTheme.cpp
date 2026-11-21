@@ -3,6 +3,8 @@
 #include <QStyle>
 #include <QStyleFactory>
 #include <QDebug>
+#include <QObject>
+#include <QStringList>
 
 SystemTheme::SystemTheme()
 {

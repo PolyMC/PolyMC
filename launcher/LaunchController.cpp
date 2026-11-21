@@ -42,20 +42,24 @@
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ProfileSelectDialog.h"
 #include "ui/dialogs/ProgressDialog.h"
-#include "ui/dialogs/EditAccountDialog.h"
 #include "ui/dialogs/ProfileSetupDialog.h"
 
+#include <QDebug>
+#include <QDialog>
 #include <QLineEdit>
 #include <QInputDialog>
+#include <QMessageBox>
 #include <QStringList>
 #include <QHostInfo>
-#include <QList>
 #include <QHostAddress>
 #include <QPushButton>
 
+#include <memory>
+
 #include "BuildConfig.h"
 #include "JavaCommon.h"
-#include "tasks/Task.h"
+#include "MessageLevel.h"
+#include "minecraft/auth/AccountData.h"
 #include "minecraft/auth/AccountTask.h"
 #include "launch/steps/TextPrint.h"
 

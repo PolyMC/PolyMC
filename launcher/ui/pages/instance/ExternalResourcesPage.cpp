@@ -3,11 +3,20 @@
 #include "ui_ExternalResourcesPage.h"
 
 #include "DesktopServices.h"
+#include "minecraft/mod/Resource.h"
 #include "minecraft/mod/ResourceFolderModel.h"
 #include "ui/GuiUtil.h"
+#include "ui/widgets/ModListView.h"
 
+#include <QAction>
+#include <QEvent>
+#include <QItemSelectionModel>
 #include <QKeyEvent>
+#include <QLineEdit>
 #include <QMenu>
+#include <QWidget>
+
+#include <utility>
 
 ExternalResourcesPage::ExternalResourcesPage(
     BaseInstance* instance, std::shared_ptr<ResourceFolderModel> model,

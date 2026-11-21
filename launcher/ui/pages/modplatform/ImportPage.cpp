@@ -39,6 +39,10 @@
 
 #include <QFileDialog>
 #include <QValidator>
+#include <QFile>
+#include <QFileInfo>
+#include <QMimeDatabase>
+#include <QLineEdit>
 
 #include "ui/dialogs/NewInstanceDialog.h"
 

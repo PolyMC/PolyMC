@@ -16,6 +16,7 @@
 #pragma once
 
 #include <QPixmap>
+#include <QString>
 
 namespace SkinUtils
 {

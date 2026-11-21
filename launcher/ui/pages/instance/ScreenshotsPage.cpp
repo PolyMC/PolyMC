@@ -38,10 +38,7 @@
 #include "ui_ScreenshotsPage.h"
 
 #include <QModelIndex>
-#include <QMutableListIterator>
-#include <QMap>
 #include <QSet>
-#include <QFileIconProvider>
 #include <QFileSystemModel>
 #include <QStyledItemDelegate>
 #include <QLineEdit>
@@ -51,13 +48,38 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QRegularExpression>
+#include <QAbstractItemView>
+#include <QApplication>
+#include <QDialog>
+#include <QDir>
+#include <QFileInfo>
+#include <QFileSystemWatcher>
+#include <QIdentityProxyModel>
+#include <QImage>
+#include <QItemSelectionModel>
+#include <QKeySequence>
+#include <QList>
+#include <QListView>
+#include <QMessageBox>
+#include <QMimeData>
+#include <QObject>
+#include <QPixmap>
+#include <QRunnable>
+#include <QSize>
+#include <QStyleOptionViewItem>
+#include <QThread>
+#include <QThreadPool>
+#include <QVariant>
+#include <QWidget>
 
-#include <Application.h>
+#include <memory>
+#include <utility>
 
 #include "ui/dialogs/ProgressDialog.h"
 #include "ui/dialogs/CustomMessageBox.h"
 
 #include "net/NetJob.h"
+#include "screenshots/Screenshot.h"
 #include "screenshots/ImgurUpload.h"
 #include "screenshots/ImgurAlbumCreation.h"
 #include "tasks/SequentialTask.h"

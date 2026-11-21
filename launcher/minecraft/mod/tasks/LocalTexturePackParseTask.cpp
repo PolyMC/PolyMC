@@ -24,10 +24,17 @@
 
 #include <quazip/quazip.h>
 
-#include <QCryptographicHash>
+#include <QDebug>
+#include <QFile>
+#include <QFileInfo>
+#include <QImage>
 #include <QJsonDocument>
 #include <QJsonParseError>
 #include <QJsonObject>
+#include <QString>
+#include <QStringList>
+
+#include <utility>
 
 namespace TexturePackUtils
 {

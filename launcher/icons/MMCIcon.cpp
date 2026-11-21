@@ -34,7 +34,6 @@
  */
 
 #include "MMCIcon.h"
-#include <QFileInfo>
 #include <QIcon>
 
 IconType operator--(IconType& t, int)

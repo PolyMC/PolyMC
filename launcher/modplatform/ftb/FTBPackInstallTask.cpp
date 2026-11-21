@@ -44,11 +44,26 @@
 #include "minecraft/PackProfile.h"
 #include "modplatform/flame/PackManifest.h"
 #include "net/ChecksumValidator.h"
+#include "net/Download.h"
 #include "settings/INISettingsObject.h"
 
 #include "Application.h"
 #include "BuildConfig.h"
 #include "ui/dialogs/BlockedModsDialog.h"
+
+#include <QCoreApplication>
+#include <QCryptographicHash>
+#include <QDebug>
+#include <QDialog>
+#include <QDir>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QStringList>
+#include <QUrl>
+
+#include <memory>
+#include <utility>
 
 namespace FTB
 {

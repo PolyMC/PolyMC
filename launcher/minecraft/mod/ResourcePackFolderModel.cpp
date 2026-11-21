@@ -36,6 +36,9 @@
 
 #include "ResourcePackFolderModel.h"
 
+#include <QDir>
+#include <QFileInfo>
+
 #include "minecraft/mod/tasks/BasicFolderLoadTask.h"
 #include "minecraft/mod/tasks/LocalResourcePackParseTask.h"
 

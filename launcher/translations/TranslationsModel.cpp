@@ -42,11 +42,21 @@
 #include <QDir>
 #include <QLibraryInfo>
 #include <QDebug>
+#include <QFileSystemWatcher>
+#include <QMap>
+#include <QByteArray>
+#include <QUrl>
+#include <QCryptographicHash>
 
+#include <algorithm>
+#include <cstddef>
 #include <functional>
 
 #include "FileSystem.h"
+#include "Exception.h"
 #include "net/NetJob.h"
+#include "net/Download.h"
+#include "net/HttpMetaCache.h"
 #include "net/ChecksumValidator.h"
 #include "BuildConfig.h"
 #include "Json.h"

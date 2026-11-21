@@ -15,6 +15,13 @@
 
 #pragma once
 
+#include <QByteArray>
+#include <QList>
+#include <QNetworkAccessManager>
+#include <QObject>
+#include <QString>
+
+#include "QObjectPtr.h"
 #include "net/NetJob.h"
 #include "GoUpdate.h"
 #include "ExternalUpdater.h"

@@ -18,6 +18,8 @@
 
 #include "ATLShareCode.h"
 
+#include <utility>
+
 #include "Json.h"
 
 namespace ATLauncher

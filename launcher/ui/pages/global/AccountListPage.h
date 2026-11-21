@@ -37,9 +37,9 @@
 #pragma once
 
 #include <QMainWindow>
-#include <memory>
 
 #include "ui/pages/BasePage.h"
+#include "QObjectPtr.h"
 
 #include "minecraft/auth/AccountList.h"
 #include "Application.h"

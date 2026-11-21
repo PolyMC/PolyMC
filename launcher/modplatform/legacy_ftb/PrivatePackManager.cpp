@@ -36,6 +36,7 @@
 #include "PrivatePackManager.h"
 
 #include <QDebug>
+#include <QStringList>
 
 #include "FileSystem.h"
 

@@ -33,10 +33,9 @@
  *      limitations under the License.
  */
 #include "DesktopServices.h"
-#include <QDir>
+#include <QDebug>
 #include <QDesktopServices>
 #include <QProcess>
-#include "Application.h"
 #include "FileSystem.h"
 
 namespace DesktopServices

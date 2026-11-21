@@ -20,10 +20,17 @@
 #include <QSet>
 #include <QList>
 #include <QStack>
-#include <QPair>
+#include <QMap>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
+
+#include <utility>
 
 #include "BaseInstance.h"
 #include "settings/Setting.h"
+#include "settings/SettingsObject.h"
+#include "tasks/Task.h"
 
 class QFileSystemWatcher;
 class InstanceTask;

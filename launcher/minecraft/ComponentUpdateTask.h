@@ -3,6 +3,8 @@
 #include "tasks/Task.h"
 #include "net/Mode.h"
 
+#include <QString>
+#include <cstddef>
 #include <memory>
 class PackProfile;
 struct ComponentUpdateTaskData;

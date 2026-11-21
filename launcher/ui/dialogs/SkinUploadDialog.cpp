@@ -36,8 +36,17 @@
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QPainter>
+#include <QFile>
+#include <QMessageBox>
+#include <QMimeDatabase>
+#include <QPixmap>
+#include <QRegularExpression>
+#include <QString>
+#include <QUrl>
+#include <QVariant>
 
 #include <FileSystem.h>
+#include <QObjectPtr.h>
 
 #include <minecraft/services/SkinUpload.h>
 #include <minecraft/services/CapeChange.h>

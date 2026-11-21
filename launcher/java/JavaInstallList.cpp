@@ -33,13 +33,17 @@
  *      limitations under the License.
  */
 
-#include <QtNetwork>
-#include <QtXml>
-
+#include <QDir>
+#include <QSet>
+#include <QString>
 #include <QDebug>
+#include <algorithm>
+#include <memory>
+#include <utility>
 
 #include "java/JavaInstallList.h"
 #include "Application.h"
+#include "java/JavaChecker.h"
 #include "java/JavaCheckerJob.h"
 #include "java/JavaUtils.h"
 #include "FileSystem.h"

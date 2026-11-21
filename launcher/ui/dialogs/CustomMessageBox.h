@@ -16,6 +16,7 @@
 #pragma once
 
 #include <QMessageBox>
+#include <QString>
 
 namespace CustomMessageBox
 {

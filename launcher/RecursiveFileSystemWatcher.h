@@ -2,6 +2,9 @@
 
 #include <QFileSystemWatcher>
 #include <QDir>
+#include <QObject>
+#include <QString>
+#include <QStringList>
 #include "pathmatcher/IPathMatcher.h"
 
 class RecursiveFileSystemWatcher : public QObject

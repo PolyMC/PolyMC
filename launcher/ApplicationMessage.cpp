@@ -35,7 +35,6 @@
 
 #include "ApplicationMessage.h"
 
-#include <QJsonDocument>
 #include <QJsonObject>
 #include "Json.h"
 

@@ -2,8 +2,13 @@
 
 #include "Common.h"
 
-#include <QIcon>
 #include <QPainter>
+#include <QStyle>
+#include <QPoint>
+#include <QRect>
+#include <QFontMetrics>
+#include <QTextOption>
+#include <QTextLayout>
 
 #include <algorithm>
 

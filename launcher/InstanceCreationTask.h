@@ -1,6 +1,8 @@
 #pragma once
 
-#include "BaseVersion.h"
+#include <QString>
+#include <QStringList>
+
 #include "InstanceTask.h"
 
 class InstanceCreationTask : public InstanceTask

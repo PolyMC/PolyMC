@@ -2,6 +2,7 @@
 
 #include <QButtonGroup>
 #include <QDialog>
+#include <QString>
 
 namespace Ui
 {

@@ -18,8 +18,11 @@
 
 #pragma once
 
-#include <memory>
+#include <QDir>
+#include <QString>
+#include <QVariant>
 
+#include "modplatform/ModIndex.h"
 #include "modplatform/packwiz/Packwiz.h"
 
 // launcher/minecraft/mod/Mod.h

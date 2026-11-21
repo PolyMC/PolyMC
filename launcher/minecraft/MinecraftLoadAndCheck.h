@@ -16,13 +16,9 @@
 #pragma once
 
 #include <QObject>
-#include <QList>
-#include <QUrl>
+#include <QString>
 
 #include "tasks/Task.h"
-#include <quazip/quazip.h>
-
-#include "QObjectPtr.h"
 
 class MinecraftVersion;
 class MinecraftInstance;

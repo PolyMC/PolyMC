@@ -3,6 +3,7 @@
 #pragma once
 
 #include <QWidget>
+#include <QString>
 #include <memory>
 
 class Task;

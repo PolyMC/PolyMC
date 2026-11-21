@@ -35,9 +35,10 @@
 
 #include "Json.h"
 
-#include <QFile>
+#include <QJsonParseError>
 
 #include "FileSystem.h"
+#include <cstring>
 #include <math.h>
 
 namespace Json

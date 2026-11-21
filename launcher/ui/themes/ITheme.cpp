@@ -1,5 +1,6 @@
 #include "ITheme.h"
 #include "rainbow.h"
+#include <QApplication>
 #include <QStyleFactory>
 #include <QDir>
 #include "Application.h"

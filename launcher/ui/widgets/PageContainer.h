@@ -37,7 +37,9 @@
 
 #include <QWidget>
 #include <QModelIndex>
+#include <QString>
 
+#include "ui/pages/BasePage.h"
 #include "ui/pages/BasePageProvider.h"
 #include "ui/pages/BasePageContainer.h"
 

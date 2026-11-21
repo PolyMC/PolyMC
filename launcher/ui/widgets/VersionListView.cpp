@@ -33,11 +33,14 @@
  *      limitations under the License.
  */
 
-#include <QHeaderView>
 #include <QApplication>
-#include <QMouseEvent>
-#include <QDrag>
 #include <QPainter>
+#include <QPaintEvent>
+#include <QFont>
+#include <QRect>
+#include <QColor>
+#include <QPalette>
+#include <QBrush>
 #include "VersionListView.h"
 
 VersionListView::VersionListView(QWidget* parent) : QTreeView(parent)

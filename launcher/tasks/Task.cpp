@@ -36,6 +36,7 @@
 #include "Task.h"
 
 #include <QDebug>
+#include <QTextStream>
 
 Task::Task(QObject* parent, bool show_debug)
     : QObject(parent), m_show_debug(show_debug)

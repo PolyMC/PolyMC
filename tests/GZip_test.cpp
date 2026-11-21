@@ -1,7 +1,9 @@
 #include <QTest>
+#include <QByteArray>
 
 #include <GZip.h>
 #include <random>
+#include <cstdint>
 
 void fib(int& prev, int& cur)
 {

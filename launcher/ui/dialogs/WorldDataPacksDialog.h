@@ -21,6 +21,9 @@
 
 #include <QDialog>
 #include <QVBoxLayout>
+#include <QString>
+
+#include <memory>
 
 #include "minecraft/mod/DataPackFolderModel.h"
 

@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <QString>
+
 #include "ResourceFolderModel.h"
 
 class TexturePackFolderModel : public ResourceFolderModel

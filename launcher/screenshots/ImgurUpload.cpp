@@ -42,8 +42,10 @@
 #include <QHttpMultiPart>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonParseError>
 #include <QHttpPart>
 #include <QFile>
+#include <QByteArray>
 #include <QUrl>
 #include <QDebug>
 

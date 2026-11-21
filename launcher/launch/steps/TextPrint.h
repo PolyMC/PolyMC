@@ -16,8 +16,6 @@
 #pragma once
 
 #include <launch/LaunchStep.h>
-#include <LoggedProcess.h>
-#include <java/JavaChecker.h>
 
 /*
  * FIXME: maybe do not export

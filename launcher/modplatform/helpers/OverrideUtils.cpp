@@ -1,6 +1,9 @@
 #include "OverrideUtils.h"
 
+#include <QDir>
 #include <QDirIterator>
+#include <QFile>
+#include <QFileInfo>
 
 #include "FileSystem.h"
 

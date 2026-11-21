@@ -16,6 +16,11 @@
 #include <QKeyEvent>
 #include <QPushButton>
 #include <QFileDialog>
+#include <QAbstractItemView>
+#include <QDialogButtonBox>
+#include <QListView>
+#include <QSize>
+#include <QStringList>
 
 #include "Application.h"
 

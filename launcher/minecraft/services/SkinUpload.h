@@ -1,9 +1,10 @@
 #pragma once
 
-#include <QFile>
-#include <QtNetwork/QtNetwork>
-#include <memory>
+#include <QString>
+#include <QByteArray>
+#include <QNetworkReply>
 #include "tasks/Task.h"
+#include "QObjectPtr.h"
 
 typedef shared_qobject_ptr<class SkinUpload> SkinUploadPtr;
 

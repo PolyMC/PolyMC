@@ -34,12 +34,16 @@
  */
 
 #include "AccountData.h"
-#include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QJsonValue>
+#include <QDateTime>
+#include <QObject>
 #include <QDebug>
 #include <QUuid>
 #include <QRegularExpression>
+#include <cstdint>
+#include <utility>
 
 namespace
 {

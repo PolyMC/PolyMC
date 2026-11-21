@@ -2,6 +2,7 @@
 
 #include <QFileInfo>
 #include <QString>
+#include <QStringList>
 #include <QUrl>
 
 /**

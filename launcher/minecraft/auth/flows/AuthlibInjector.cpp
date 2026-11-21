@@ -3,8 +3,6 @@
 #include "minecraft/auth/steps/AuthlibInjectorStep.h"
 #include "minecraft/auth/steps/MinecraftProfileStepMojang.h"
 #include "minecraft/auth/steps/YggdrasilStep.h"
-#include "minecraft/auth/steps/MinecraftProfileStep.h"
-#include "minecraft/auth/steps/MigrationEligibilityStep.h"
 #include "minecraft/auth/steps/GetSkinStep.h"
 
 AuthlibInjectorRefresh::AuthlibInjectorRefresh(AccountData* data,

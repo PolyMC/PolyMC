@@ -16,8 +16,11 @@
 #pragma once
 
 #include <QFrame>
+#include <QString>
+#include <QPixmap>
 
 #include "minecraft/mod/Mod.h"
+#include "minecraft/mod/Resource.h"
 #include "minecraft/mod/ResourcePack.h"
 #include "minecraft/mod/TexturePack.h"
 

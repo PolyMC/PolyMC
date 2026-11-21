@@ -1,9 +1,15 @@
 #pragma once
 
-#include "QtCore/qpointer.h"
-#include <QtGui/qaccessible.h>
-#include <QAccessibleWidget>
+#include <QPointer>
+#include <QAccessible>
+#include <QAccessibleObject>
 #include <QAbstractItemView>
+#include <QHash>
+#include <QList>
+#include <QPersistentModelIndex>
+#include <QRect>
+#include <QString>
+#include <QStringList>
 #ifndef QT_NO_ACCESSIBILITY
 #include "InstanceView.h"
 // #include <QHeaderView>

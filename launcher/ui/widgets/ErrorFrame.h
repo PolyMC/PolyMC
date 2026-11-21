@@ -16,6 +16,7 @@
 #pragma once
 
 #include <QFrame>
+#include <QString>
 
 namespace Ui
 {

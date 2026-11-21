@@ -17,8 +17,11 @@
 #include "ui_ProgressDialog.h"
 
 #include <QDebug>
+#include <QCloseEvent>
 #include <QKeyEvent>
 #include <QProgressBar>
+#include <QPushButton>
+#include <QSize>
 
 #include <limits>
 

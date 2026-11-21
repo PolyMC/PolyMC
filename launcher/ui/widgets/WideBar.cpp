@@ -1,6 +1,9 @@
 #include "WideBar.h"
 #include <QToolButton>
 #include <QMenu>
+#include <QWidget>
+
+#include <utility>
 
 class ActionButton : public QToolButton
 {

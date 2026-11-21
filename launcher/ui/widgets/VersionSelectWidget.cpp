@@ -3,9 +3,13 @@
 #include <QProgressBar>
 #include <QVBoxLayout>
 #include <QHeaderView>
+#include <QItemSelectionModel>
+#include <QMessageBox>
 
 #include "Application.h"
+#include "Filter.h"
 #include "VersionProxyModel.h"
+#include "settings/SettingsObject.h"
 
 #include "ui/dialogs/CustomMessageBox.h"
 

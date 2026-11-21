@@ -46,19 +46,27 @@
 #include <QVariant>
 #include <QUrl>
 #include <QDir>
-#include <QFileInfo>
+#include <QFile>
+#include <QTextStream>
+#include <QStandardPaths>
+#include <QDateTime>
+#include <QItemSelectionModel>
+#include <QStringList>
+#include <QList>
+#include <QDebug>
 
 #include <QKeyEvent>
 #include <QAction>
+#include <QKeySequence>
+#include <QIcon>
+#include <QSize>
 
 #include <QApplication>
-#include <QButtonGroup>
-#include <QHBoxLayout>
-#include <QHeaderView>
 #include <QMainWindow>
 #include <QStatusBar>
 #include <QToolBar>
 #include <QWidget>
+#include <QSizePolicy>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -68,30 +76,25 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QWidgetAction>
-#include <QProgressDialog>
 #include <QShortcut>
 
 #include <BaseInstance.h>
 #include <InstanceList.h>
-#include <MMCZip.h>
+#include <FileSystem.h>
 #include <icons/IconList.h>
-#include <java/JavaUtils.h>
-#include <java/JavaInstallList.h>
 #include <launch/LaunchTask.h>
+#include <minecraft/MinecraftInstance.h>
 #include <minecraft/auth/AccountList.h>
-#include <SkinUtils.h>
-#include <BuildConfig.h>
-#include <net/NetJob.h>
-#include <net/Download.h>
+#include <minecraft/auth/MinecraftAccount.h>
+#include <net/Mode.h>
 #include <news/NewsChecker.h>
+#include <news/NewsEntry.h>
+#include <settings/SettingsObject.h>
 #include <tools/BaseProfiler.h>
 #include <updater/DownloadTask.h>
+#include <updater/ExternalUpdater.h>
 #include <updater/UpdateChecker.h>
 #include <DesktopServices.h>
-#include "InstanceWindow.h"
-#include "InstancePageProvider.h"
-#include "JavaCommon.h"
-#include "LaunchController.h"
 
 #include "ui/instanceview/InstanceProxyModel.h"
 #include "ui/instanceview/InstanceView.h"
@@ -101,23 +104,21 @@
 #include "ui/dialogs/NewsDialog.h"
 #include "ui/dialogs/ProgressDialog.h"
 #include "ui/dialogs/AboutDialog.h"
-#include "ui/dialogs/VersionSelectDialog.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/IconPickerDialog.h"
 #include "ui/dialogs/CopyInstanceDialog.h"
 #include "ui/dialogs/UpdateDialog.h"
-#include "ui/dialogs/EditAccountDialog.h"
 #include "ui/dialogs/ExportInstanceDialog.h"
 
 #include "UpdateController.h"
 #include "KonamiCode.h"
 
-#include "InstanceImportTask.h"
 #include "InstanceCopyTask.h"
 
 #include "MMCTime.h"
 
 #include <functional>
+#include <utility>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 // For .lnk creation

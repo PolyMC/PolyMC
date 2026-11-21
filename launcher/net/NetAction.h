@@ -35,6 +35,7 @@
 
 #pragma once
 
+#include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QUrl>
 

@@ -35,10 +35,17 @@
 
 #pragma once
 
+#include <QIcon>
+#include <QModelIndex>
+#include <QString>
+
+#include <memory>
+
 #include "Application.h"
 #include "ui/pages/instance/DownloadableResourcesPage.h"
 #include "ui_ExternalResourcesPage.h"
 
+#include "minecraft/MinecraftInstance.h"
 #include "minecraft/mod/TexturePackFolderModel.h"
 #include "minecraft/mod/TexturePack.h"
 

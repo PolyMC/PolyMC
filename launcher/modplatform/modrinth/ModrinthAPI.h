@@ -19,11 +19,17 @@
 #pragma once
 
 #include "BuildConfig.h"
+#include "Version.h"
 #include "modplatform/ModAPI.h"
 #include "modplatform/helpers/NetworkModAPI.h"
+#include "net/NetJob.h"
 
 #include <QDebug>
+#include <QString>
+#include <QStringList>
 #include <QUrl>
+
+#include <list>
 
 class ModrinthAPI : public NetworkModAPI
 {

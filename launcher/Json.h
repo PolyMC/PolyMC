@@ -38,12 +38,17 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QJsonValue>
+#include <QByteArray>
+#include <QString>
+#include <QStringList>
+#include <QList>
+#include <QVector>
 #include <QDateTime>
 #include <QUrl>
 #include <QDir>
 #include <QUuid>
 #include <QVariant>
-#include <memory>
 
 #include "Exception.h"
 

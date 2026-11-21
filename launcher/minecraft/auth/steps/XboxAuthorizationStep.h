@@ -1,8 +1,13 @@
 #pragma once
 #include <QObject>
+#include <QString>
+#include <QByteArray>
+#include <QList>
+#include <QNetworkReply>
 
-#include "QObjectPtr.h"
 #include "minecraft/auth/AuthStep.h"
+
+#include <katabasis/Bits.h>
 
 class XboxAuthorizationStep : public AuthStep
 {

@@ -36,6 +36,10 @@
 #pragma once
 
 #include <QDialog>
+#include <QList>
+#include <QString>
+
+#include <memory>
 
 #include "ui/pages/BasePageProvider.h"
 #include "InstanceTask.h"

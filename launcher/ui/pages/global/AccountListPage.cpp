@@ -39,10 +39,10 @@
 
 #include <QItemSelectionModel>
 #include <QMenu>
+#include <QHeaderView>
+#include <QMessageBox>
 
-#include <QDebug>
-
-#include "net/NetJob.h"
+#include <memory>
 
 #include "ui/dialogs/ProgressDialog.h"
 #include "ui/dialogs/OfflineLoginDialog.h"
@@ -52,7 +52,8 @@
 #include "ui/dialogs/SkinUploadDialog.h"
 
 #include "tasks/Task.h"
-#include "minecraft/auth/AccountTask.h"
+#include "minecraft/auth/AccountData.h"
+#include "minecraft/auth/MinecraftAccount.h"
 #include "minecraft/services/SkinDelete.h"
 
 #include "Application.h"

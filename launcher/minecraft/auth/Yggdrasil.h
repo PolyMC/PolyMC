@@ -20,9 +20,13 @@
 #include <QString>
 #include <QJsonObject>
 #include <QTimer>
-#include <qsslerror.h>
+#include <QSslError>
+#include <QList>
+#include <QUrl>
+#include <QByteArray>
+#include <memory>
 
-#include "MinecraftAccount.h"
+#include "AccountData.h"
 
 class QNetworkAccessManager;
 class QNetworkReply;

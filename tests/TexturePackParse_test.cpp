@@ -18,7 +18,7 @@
  */
 
 #include <QTest>
-#include <QTimer>
+#include <QFileInfo>
 
 #include "FileSystem.h"
 

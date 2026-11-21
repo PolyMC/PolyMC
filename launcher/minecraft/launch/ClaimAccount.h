@@ -15,8 +15,12 @@
 
 #pragma once
 
+#include <memory>
+
 #include <launch/LaunchStep.h>
+#include <minecraft/auth/AuthSession.h>
 #include <minecraft/auth/MinecraftAccount.h>
+#include <Usable.h>
 
 class ClaimAccount : public LaunchStep
 {

@@ -36,6 +36,13 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QIcon>
+#include <QItemSelection>
+#include <QModelIndex>
+#include <QPoint>
+#include <QString>
+
+#include <memory>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>

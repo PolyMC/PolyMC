@@ -19,6 +19,8 @@
 #include "minecraft/auth/AccountTask.h"
 
 #include <QtWidgets/QPushButton>
+#include <QDialogButtonBox>
+#include <utility>
 
 LoginDialog::LoginDialog(QWidget* parent, AccountType type)
     : QDialog(parent), ui(new Ui::LoginDialog), m_accountType{type}

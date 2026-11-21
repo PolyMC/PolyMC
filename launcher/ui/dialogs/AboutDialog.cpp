@@ -38,10 +38,13 @@
 #include "ui_AboutDialog.h"
 #include <QIcon>
 #include "Application.h"
-#include "BuildConfig.h"
 
-#include <net/NetJob.h>
-#include <qobject.h>
+#include <QApplication>
+#include <QFile>
+#include <QObject>
+#include <QPushButton>
+#include <QString>
+#include <QTextStream>
 
 #include "Markdown.h"
 

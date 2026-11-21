@@ -38,6 +38,8 @@
 #include "ui/dialogs/WorldDataPacksDialog.h"
 #include "ui_WorldListPage.h"
 #include "minecraft/WorldList.h"
+#include "minecraft/World.h"
+#include "minecraft/MinecraftInstance.h"
 
 #include <QEvent>
 #include <QMenu>
@@ -48,6 +50,19 @@
 #include <QInputDialog>
 #include <QProcess>
 #include <Qt>
+#include <QDebug>
+#include <QFileInfo>
+#include <QHeaderView>
+#include <QItemSelectionModel>
+#include <QLineEdit>
+#include <QPersistentModelIndex>
+#include <QSize>
+#include <QSortFilterProxyModel>
+#include <QVariant>
+
+#include <cstdint>
+#include <memory>
+#include <utility>
 
 #include "tools/MCEditTool.h"
 #include "FileSystem.h"

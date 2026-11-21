@@ -35,11 +35,10 @@
 
 #include "MSAStep.h"
 
-#include <QNetworkRequest>
+#include <QVariantMap>
+#include <QDebug>
 
-#include "BuildConfig.h"
-#include "minecraft/auth/AuthRequest.h"
-#include "minecraft/auth/Parsers.h"
+#include "minecraft/auth/AccountData.h"
 
 #include "Application.h"
 

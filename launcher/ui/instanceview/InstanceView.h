@@ -35,12 +35,22 @@
 
 #pragma once
 
+#include <QAbstractItemView>
 #include <QListView>
-#include <QLineEdit>
-#include <QScrollBar>
 #include <QCache>
+#include <QItemSelectionModel>
+#include <QList>
+#include <QPersistentModelIndex>
+#include <QPixmap>
+#include <QPoint>
+#include <QRect>
+#include <QRegion>
+#include <QString>
+#include <QUrl>
+#include <QVector>
 #include "VisualGroup.h"
 #include <functional>
+#include <utility>
 
 struct InstanceViewRoles
 {

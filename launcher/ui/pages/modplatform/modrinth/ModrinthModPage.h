@@ -35,7 +35,12 @@
 
 #pragma once
 
+#include <QIcon>
+#include <QString>
+
+#include "Application.h"
 #include "modplatform/ModAPI.h"
+#include "modplatform/ModIndex.h"
 #include "ui/pages/modplatform/ModPage.h"
 
 class ModrinthModPage : public ModPage

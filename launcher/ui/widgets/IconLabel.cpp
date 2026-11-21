@@ -1,10 +1,8 @@
 #include "IconLabel.h"
 
-#include <QStyle>
-#include <QStyleOption>
-#include <QLayout>
 #include <QPainter>
 #include <QRect>
+#include <QSizePolicy>
 
 IconLabel::IconLabel(QWidget* parent, QIcon icon, QSize size)
     : QWidget(parent), m_size(size), m_icon(icon)

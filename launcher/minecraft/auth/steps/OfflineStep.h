@@ -1,10 +1,8 @@
 #pragma once
 #include <QObject>
+#include <QString>
 
-#include "QObjectPtr.h"
 #include "minecraft/auth/AuthStep.h"
-
-#include <katabasis/DeviceFlow.h>
 
 class OfflineStep : public AuthStep
 {

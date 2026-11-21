@@ -17,6 +17,8 @@
 #pragma once
 
 #include <QtCore/QSortFilterProxyModel>
+#include <QMap>
+#include <QString>
 
 namespace Ftb
 {

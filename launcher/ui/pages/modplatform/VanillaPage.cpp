@@ -37,14 +37,22 @@
 #include "ui_VanillaPage.h"
 
 #include <QTabBar>
+#include <QCheckBox>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QRadioButton>
+#include <QStringList>
 
 #include "Application.h"
+#include "BaseVersionList.h"
 #include "Filter.h"
 #include "Version.h"
 #include "meta/Index.h"
 #include "meta/VersionList.h"
 #include "minecraft/VanillaInstanceCreationTask.h"
 #include "ui/dialogs/NewInstanceDialog.h"
+#include "ui/widgets/VersionListView.h"
+#include "ui/widgets/VersionSelectWidget.h"
 
 VanillaPage::VanillaPage(NewInstanceDialog* dialog, QWidget* parent)
     : QWidget(parent), dialog(dialog), ui(new Ui::VanillaPage)

@@ -1,6 +1,7 @@
 #include "LanguageWizardPage.h"
 #include <Application.h>
 #include <translations/TranslationsModel.h>
+#include <settings/SettingsObject.h>
 
 #include "ui/widgets/LanguageSelectionWidget.h"
 #include <QVBoxLayout>

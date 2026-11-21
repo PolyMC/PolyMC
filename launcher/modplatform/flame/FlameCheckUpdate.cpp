@@ -2,14 +2,23 @@
 #include "FlameAPI.h"
 #include "FlameModIndex.h"
 
-#include <MurmurHash2.h>
-
-#include "FileSystem.h"
+#include "Application.h"
 #include "Json.h"
+#include "minecraft/mod/ModDetails.h"
+#include "modplatform/ModIndex.h"
+#include "net/Download.h"
 
 #include "ModDownloadTask.h"
 
+#include <QByteArray>
+#include <QDebug>
+#include <QEventLoop>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QString>
+
 #include <memory>
+#include <utility>
 #include <vector>
 
 static FlameAPI api;

@@ -1,12 +1,9 @@
 #include "ResourcePack.h"
 
-#include <QDebug>
 #include <QMap>
 #include <QRegularExpression>
 
 #include "Version.h"
-
-#include "minecraft/mod/tasks/LocalResourcePackParseTask.h"
 
 namespace
 {

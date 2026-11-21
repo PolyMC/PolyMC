@@ -36,8 +36,13 @@
 #pragma once
 
 #include <QObject>
+#include <QString>
+#include <QVector>
+#include <QWidget>
 
+#include "meta/VersionList.h"
 #include "modplatform/atlauncher/ATLPackInstallTask.h"
+#include "modplatform/atlauncher/ATLPackManifest.h"
 
 class AtlUserInteractionSupportImpl : public QObject,
                                       public ATLauncher::UserInteractionSupport

@@ -16,6 +16,9 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QString>
+#include <QVariant>
+#include <QVector>
 #include <memory>
 
 struct Language;

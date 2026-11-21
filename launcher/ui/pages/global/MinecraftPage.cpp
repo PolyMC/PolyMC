@@ -36,10 +36,6 @@
 #include "MinecraftPage.h"
 #include "ui_MinecraftPage.h"
 
-#include <QMessageBox>
-#include <QDir>
-#include <QTabBar>
-
 #include "settings/SettingsObject.h"
 #include "Application.h"
 

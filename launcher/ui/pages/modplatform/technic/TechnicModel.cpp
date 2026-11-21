@@ -37,8 +37,15 @@
 #include "Application.h"
 #include "BuildConfig.h"
 #include "Json.h"
+#include "net/Download.h"
 
+#include <QDebug>
 #include <QIcon>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QUrl>
+
+#include <utility>
 
 #include "ui/pages/modplatform/LogoCache.h"
 

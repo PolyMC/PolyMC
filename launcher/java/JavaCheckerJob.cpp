@@ -16,6 +16,7 @@
 #include "JavaCheckerJob.h"
 
 #include <QDebug>
+#include <utility>
 
 void JavaCheckerJob::partFinished(JavaCheckResult result)
 {

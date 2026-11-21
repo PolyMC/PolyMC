@@ -20,6 +20,8 @@
 #include "WorldDataPacksDialog.h"
 #include "ui/pages/instance/DataPackPage.h"
 
+#include <algorithm>
+
 WorldDataPacksDialog::WorldDataPacksDialog(MinecraftInstance* inst,
                                            const QString& worldName,
                                            const QString& datapacksDir,

@@ -1,9 +1,11 @@
 #include "Parsers.h"
-#include "Json.h"
 
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QJsonParseError>
+#include <QMap>
 #include <QDebug>
+#include <utility>
 
 namespace Parsers
 {

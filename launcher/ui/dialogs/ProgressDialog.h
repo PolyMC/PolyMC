@@ -16,6 +16,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QString>
 #include <memory>
 
 class Task;

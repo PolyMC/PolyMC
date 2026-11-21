@@ -2,6 +2,10 @@
 
 #include "Application.h"
 #include "net/NetJob.h"
+#include "net/Download.h"
+#include "net/HttpMetaCache.h"
+
+#include <QUrl>
 
 #include <functional>
 #include <utility>

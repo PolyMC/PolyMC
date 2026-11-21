@@ -1,16 +1,10 @@
 #pragma once
 
-#include <RWStorage.h>
-
 #include <QAbstractListModel>
-#include <QSortFilterProxyModel>
-#include <QThreadPool>
-#include <QIcon>
-#include <QStyledItemDelegate>
+#include <QByteArray>
 #include <QList>
 #include <QString>
-#include <QStringList>
-#include <QMetaType>
+#include <QVariant>
 
 #include <net/NetJob.h>
 

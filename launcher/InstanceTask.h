@@ -1,5 +1,8 @@
 #pragma once
 
+#include <QString>
+#include <utility>
+
 #include "settings/SettingsObject.h"
 #include "tasks/Task.h"
 

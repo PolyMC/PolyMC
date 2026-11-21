@@ -40,10 +40,15 @@
 
 #include <QByteArray>
 #include <QCryptographicHash>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QList>
 #include <QQueue>
 #include <QString>
 #include <QUrl>
 #include <QVector>
+
+#include <tuple>
 
 class MinecraftInstance;
 

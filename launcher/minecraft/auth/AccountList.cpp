@@ -39,12 +39,14 @@
 
 #include <QIODevice>
 #include <QFile>
-#include <QTextStream>
+#include <QByteArray>
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QJsonValue>
 #include <QJsonParseError>
 #include <QDir>
+#include <QFileInfo>
 #include <QTimer>
 
 #include <QDebug>
@@ -52,7 +54,7 @@
 #include <FileSystem.h>
 #include <QSaveFile>
 
-#include <chrono>
+#include <utility>
 
 enum AccountListVersion
 {

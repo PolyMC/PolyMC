@@ -1,5 +1,7 @@
 #include <QTest>
 
+#include <memory>
+
 #include <meta/Index.h>
 #include <meta/VersionList.h>
 

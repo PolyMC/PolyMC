@@ -1,7 +1,7 @@
 #include "KonamiCode.h"
 
 #include <array>
-#include <QDebug>
+#include <QKeyEvent>
 
 namespace
 {

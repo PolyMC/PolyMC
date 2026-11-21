@@ -37,6 +37,9 @@
 
 #include <QNetworkRequest>
 #include <QHttpMultiPart>
+#include <QUrl>
+#include <QVariant>
+#include <QDebug>
 
 #include "Application.h"
 

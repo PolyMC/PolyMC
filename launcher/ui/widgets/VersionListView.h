@@ -15,6 +15,7 @@
 
 #pragma once
 #include <QTreeView>
+#include <QString>
 
 class VersionListView : public QTreeView
 {

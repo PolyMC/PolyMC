@@ -23,11 +23,11 @@
 #pragma once
 
 #include <QByteArray>
+#include <QString>
 #include <QtGlobal>
 
 #include <QStringConverter>
 #include <QStringDecoder>
-#include <QStringEncoder>
 
 class PolyMCTextCodec
 {

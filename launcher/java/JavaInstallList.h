@@ -17,7 +17,10 @@
 
 #include <QObject>
 #include <QAbstractListModel>
+#include <QList>
+#include <QVariant>
 
+#include "BaseVersion.h"
 #include "BaseVersionList.h"
 #include "tasks/Task.h"
 

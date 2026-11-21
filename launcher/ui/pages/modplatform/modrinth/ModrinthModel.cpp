@@ -36,14 +36,20 @@
 
 #include "ModrinthModel.h"
 
+#include "Application.h"
 #include "BuildConfig.h"
 #include "Json.h"
-#include "minecraft/MinecraftInstance.h"
-#include "minecraft/PackProfile.h"
-#include "ui/dialogs/ModDownloadDialog.h"
+#include "net/Download.h"
 #include "ui/widgets/ProjectItem.h"
 
+#include <QDebug>
+#include <QJsonParseError>
 #include <QMessageBox>
+#include <QNetworkRequest>
+#include <QSize>
+#include <QUrl>
+
+#include <utility>
 
 #include "ui/pages/modplatform/LogoCache.h"
 

@@ -1,6 +1,8 @@
 #include "LauncherLoginStep.h"
 
 #include <QNetworkRequest>
+#include <QUrl>
+#include <QDebug>
 
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"

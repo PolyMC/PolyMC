@@ -39,10 +39,10 @@
 
 #include "modplatform/modrinth/ModrinthAPI.h"
 
-#include "minecraft/MinecraftInstance.h"
-#include "minecraft/PackProfile.h"
+#include <QString>
 
-#include <QSet>
+#include <algorithm>
+#include <utility>
 
 static ModrinthAPI api;
 

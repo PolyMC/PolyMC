@@ -1,4 +1,5 @@
 #pragma once
+#include <QString>
 #include "tasks/Task.h"
 #include "net/NetJob.h"
 class MinecraftInstance;

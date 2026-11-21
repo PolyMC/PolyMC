@@ -35,7 +35,12 @@
 
 #pragma once
 
+#include <QAbstractListModel>
+#include <QByteArray>
+#include <QList>
 #include <QModelIndex>
+#include <QString>
+#include <QVariant>
 
 #include "TechnicData.h"
 #include "net/NetJob.h"

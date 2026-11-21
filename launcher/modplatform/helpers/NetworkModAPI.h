@@ -1,6 +1,10 @@
 #pragma once
 
+#include <QByteArray>
+#include <QString>
+
 #include "modplatform/ModAPI.h"
+#include "net/NetJob.h"
 
 class NetworkModAPI : public ModAPI
 {

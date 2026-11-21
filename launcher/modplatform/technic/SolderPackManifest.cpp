@@ -18,6 +18,8 @@
 
 #include "SolderPackManifest.h"
 
+#include <utility>
+
 #include "Json.h"
 
 namespace TechnicSolder

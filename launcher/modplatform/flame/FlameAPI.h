@@ -2,7 +2,12 @@
 
 #include "modplatform/ModIndex.h"
 #include "modplatform/helpers/NetworkModAPI.h"
+#include "net/NetJob.h"
 
+#include <QByteArray>
+#include <QList>
+#include <QString>
+#include <QStringList>
 #include <QUrl>
 
 class FlameAPI : public NetworkModAPI

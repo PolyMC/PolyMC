@@ -37,6 +37,8 @@
 
 #include <QString>
 #include <QList>
+#include <QByteArray>
+#include <QStringList>
 #include <list>
 
 #include <Version.h>

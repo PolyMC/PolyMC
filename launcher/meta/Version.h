@@ -17,9 +17,10 @@
 
 #include "BaseVersion.h"
 
+#include <QDateTime>
 #include <QJsonObject>
-#include <QStringList>
-#include <QVector>
+#include <QObject>
+#include <QString>
 #include <memory>
 
 #include "minecraft/VersionFile.h"

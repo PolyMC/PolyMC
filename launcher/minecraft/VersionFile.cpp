@@ -34,17 +34,11 @@
  *      limitations under the License.
  */
 
-#include <QJsonArray>
-#include <QJsonDocument>
-
-#include <QDebug>
+#include <utility>
 
 #include "minecraft/VersionFile.h"
 #include "minecraft/Library.h"
-#include "minecraft/PackProfile.h"
-#include "ParseUtils.h"
-
-#include <Version.h>
+#include "minecraft/LaunchProfile.h"
 
 static bool isMinecraftVersion(const QString& uid)
 {

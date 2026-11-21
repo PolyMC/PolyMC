@@ -5,11 +5,13 @@
 #include "InstanceList.h"
 #include "Json.h"
 
+#include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 
 #include "modplatform/helpers/OverrideUtils.h"
 
 #include "net/ChecksumValidator.h"
+#include "net/NetAction.h"
 
 #include "settings/INISettingsObject.h"
 
@@ -17,9 +19,20 @@
 
 #include <QAbstractButton>
 #include <QCheckBox>
+#include <QCryptographicHash>
+#include <QDebug>
+#include <QDir>
+#include <QEventLoop>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonObject>
+#include <QMessageBox>
 #include <QPushButton>
+#include <QRegularExpression>
+#include <QUrl>
 
 #include <functional>
+#include <memory>
 
 bool ModrinthCreationTask::abort()
 {

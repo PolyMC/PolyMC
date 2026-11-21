@@ -18,6 +18,11 @@
  */
 #pragma once
 
+#include <QList>
+
+#include <memory>
+
+#include "BaseInstance.h"
 #include "ExternalResourcesPage.h"
 #include "ModDownloadTask.h"
 

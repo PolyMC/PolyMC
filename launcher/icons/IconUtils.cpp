@@ -1,7 +1,10 @@
 #include "IconUtils.h"
 
 #include "FileSystem.h"
+#include <QDir>
 #include <QDirIterator>
+#include <QDebug>
+#include <QTextStream>
 
 #include <array>
 

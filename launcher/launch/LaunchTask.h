@@ -36,13 +36,16 @@
  */
 
 #pragma once
-#include <QProcess>
+#include <QList>
+#include <QMap>
+#include <QString>
+#include <QStringList>
 #include <QObjectPtr.h>
 #include "LogModel.h"
 #include "BaseInstance.h"
 #include "MessageLevel.h"
-#include "LoggedProcess.h"
 #include "LaunchStep.h"
+#include "tasks/Task.h"
 
 class LaunchTask : public Task
 {

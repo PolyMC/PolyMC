@@ -20,10 +20,13 @@
 
 #include <quazip/quazip.h>
 
+#include <QFuture>
 #include <QFutureWatcher>
+#include <QString>
 #include <QStringList>
 #include <QUrl>
 
+#include <memory>
 #include <optional>
 
 namespace Technic

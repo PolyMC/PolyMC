@@ -44,6 +44,10 @@
 #include "modplatform/flame/FileResolvingTask.h"
 #include "net/NetJob.h"
 
+#include <QByteArray>
+#include <QList>
+#include <QMap>
+#include <QString>
 #include <QWidget>
 
 namespace FTB

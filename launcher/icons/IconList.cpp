@@ -36,12 +36,15 @@
 #include "IconList.h"
 #include <FileSystem.h>
 #include <QMap>
-#include <QEventLoop>
+#include <QFile>
+#include <QFileInfo>
 #include <QMimeData>
 #include <QUrl>
 #include <QFileSystemWatcher>
 #include <QSet>
 #include <QDebug>
+#include <algorithm>
+#include <utility>
 
 #define MAX_SIZE 1024
 

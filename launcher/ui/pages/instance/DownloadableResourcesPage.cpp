@@ -19,9 +19,11 @@
 #include "DownloadableResourcesPage.h"
 #include "minecraft/mod/ResourceFolderModel.h"
 #include "tasks/ConcurrentTask.h"
+#include "tasks/Task.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ProgressDialog.h"
-#include "ui/pages/instance/ExternalResourcesPage.h"
+
+#include <QMessageBox>
 
 DownloadableResourcesPage::DownloadableResourcesPage(
     BaseInstance* instance, std::shared_ptr<ResourceFolderModel> model,

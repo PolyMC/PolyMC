@@ -1,11 +1,16 @@
 #pragma once
 
 #include <QImage>
+#include <QList>
 #include <QPointer>
 #include <QSet>
+#include <QSize>
+#include <QSizeF>
+#include <QString>
 #include <QTextBrowser>
 #include <QTextImageFormat>
 #include <QUrl>
+#include <QVariant>
 #include "net/HttpMetaCache.h"
 #include "net/NetJob.h"
 

@@ -36,9 +36,15 @@
 #pragma once
 
 #include <InstanceTask.h>
+#include <QObjectPtr.h>
 #include <net/NetJob.h>
-#include <tasks/Task.h>
 
+#include <QByteArray>
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QNetworkAccessManager>
+#include <QString>
+#include <QTemporaryDir>
 #include <QUrl>
 
 namespace Technic

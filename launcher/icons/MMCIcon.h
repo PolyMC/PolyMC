@@ -15,7 +15,6 @@
 
 #pragma once
 #include <QString>
-#include <QDateTime>
 #include <QIcon>
 
 enum IconType : unsigned

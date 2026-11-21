@@ -1,5 +1,7 @@
 #include "InstanceTask.h"
 
+#include <QMessageBox>
+
 #include "ui/dialogs/CustomMessageBox.h"
 
 InstanceNameChange askForChangingInstanceName(QWidget* parent,

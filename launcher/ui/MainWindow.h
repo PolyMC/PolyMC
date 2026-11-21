@@ -42,12 +42,15 @@
 #include <memory>
 
 #include <QMainWindow>
-#include <QProcess>
-#include <QTimer>
+#include <QList>
+#include <QUrl>
+#include <QString>
+#include <QPoint>
+#include <QModelIndex>
 
 #include "BaseInstance.h"
-#include "minecraft/auth/MinecraftAccount.h"
-#include "net/NetJob.h"
+#include "QObjectPtr.h"
+#include "tasks/Task.h"
 #include "updater/GoUpdate.h"
 
 class LaunchController;

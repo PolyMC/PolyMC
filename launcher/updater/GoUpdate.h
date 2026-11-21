@@ -1,5 +1,7 @@
 #pragma once
 #include <QByteArray>
+#include <QList>
+#include <QString>
 #include <net/NetJob.h>
 
 namespace GoUpdate

@@ -1,7 +1,12 @@
 #pragma once
 
+#include <QObject>
+#include <QString>
+
 #include "BaseExternalTool.h"
+#include "BaseInstance.h"
 #include "QObjectPtr.h"
+#include "settings/SettingsObject.h"
 
 class BaseInstance;
 class SettingsObject;

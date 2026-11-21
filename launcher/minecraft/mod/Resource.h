@@ -4,6 +4,10 @@
 #include <QFileInfo>
 #include <QObject>
 #include <QPointer>
+#include <QRegularExpression>
+#include <QString>
+
+#include <utility>
 
 #include "QObjectPtr.h"
 

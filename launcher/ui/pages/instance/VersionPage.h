@@ -36,7 +36,14 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QModelIndex>
+#include <QPoint>
+#include <QSortFilterProxyModel>
+#include <QString>
 
+#include <memory>
+
+#include "minecraft/Component.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "ui/pages/BasePage.h"

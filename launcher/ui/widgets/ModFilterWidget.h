@@ -2,7 +2,12 @@
 
 #include <QTabWidget>
 #include <QButtonGroup>
+#include <QString>
 
+#include <list>
+#include <memory>
+
+#include "QObjectPtr.h"
 #include "Version.h"
 
 #include "meta/Index.h"

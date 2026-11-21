@@ -1,5 +1,7 @@
 #pragma once
 #include <QString>
+#include <QStringList>
+#include <QColor>
 #include <QPalette>
 
 class QStyle;

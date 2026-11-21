@@ -16,6 +16,8 @@
 #pragma once
 #include <QDialog>
 #include <QItemSelection>
+#include <QModelIndex>
+#include <QString>
 
 namespace Ui
 {

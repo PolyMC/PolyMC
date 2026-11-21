@@ -1,6 +1,10 @@
 #include "XboxUserStep.h"
 
 #include <QNetworkRequest>
+#include <QUrl>
+#include <QDebug>
+
+#include <katabasis/Bits.h>
 
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"

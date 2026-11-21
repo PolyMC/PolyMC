@@ -33,26 +33,13 @@
  *      limitations under the License.
  */
 
-#include "Application.h"
 #include "NewComponentDialog.h"
 #include "ui_NewComponentDialog.h"
 
-#include <BaseVersion.h>
-#include <icons/IconList.h>
-#include <tasks/Task.h>
-#include <InstanceList.h>
-
-#include "VersionSelectDialog.h"
-#include "ProgressDialog.h"
-#include "IconPickerDialog.h"
-
-#include <QLayout>
 #include <QPushButton>
-#include <QFileDialog>
-#include <QValidator>
-
-#include <meta/Index.h>
-#include <meta/VersionList.h>
+#include <QDialogButtonBox>
+#include <QLineEdit>
+#include <QRegularExpression>
 
 NewComponentDialog::NewComponentDialog(const QString& initialName,
                                        const QString& initialUid,

@@ -11,6 +11,12 @@
 #include "ui/widgets/ProjectItem.h"
 
 #include <QMessageBox>
+#include <QDebug>
+#include <QJsonParseError>
+#include <QNetworkRequest>
+#include <QSize>
+
+#include <utility>
 
 namespace ModPlatform
 {

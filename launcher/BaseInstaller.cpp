@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+#include <QDir>
 #include <QFile>
+#include <QString>
 
 #include "BaseInstaller.h"
 #include "minecraft/MinecraftInstance.h"

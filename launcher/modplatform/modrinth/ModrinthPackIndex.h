@@ -21,7 +21,11 @@
 #include "modplatform/ModAPI.h"
 
 #include "BaseInstance.h"
+#include "QObjectPtr.h"
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QNetworkAccessManager>
+#include <QString>
 
 namespace Modrinth
 {

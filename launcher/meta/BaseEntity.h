@@ -16,11 +16,13 @@
 #pragma once
 
 #include <QJsonObject>
-#include <QObject>
-#include "QObjectPtr.h"
+#include <QString>
+#include <QUrl>
+#include <memory>
 
 #include "net/Mode.h"
 #include "net/NetJob.h"
+#include "tasks/Task.h"
 
 namespace Meta
 {

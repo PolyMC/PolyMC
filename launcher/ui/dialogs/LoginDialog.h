@@ -16,7 +16,7 @@
 #pragma once
 
 #include <QtWidgets/QDialog>
-#include <QtCore/QEventLoop>
+#include <QString>
 
 #include "minecraft/auth/AccountData.h"
 #include "minecraft/auth/MinecraftAccount.h"

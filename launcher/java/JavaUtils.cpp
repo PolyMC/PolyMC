@@ -36,15 +36,12 @@
 #include <QStringList>
 #include <QString>
 #include <QDir>
-#include <QStringList>
 
+#include <utility>
 #include <vector>
-
-#include <settings/Setting.h>
 
 #include <QDebug>
 #include "java/JavaUtils.h"
-#include "java/JavaInstallList.h"
 #include "FileSystem.h"
 #include "Application.h"
 

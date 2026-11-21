@@ -2,12 +2,12 @@
 
 #include "Application.h"
 #include "DesktopServices.h"
+#include "net/Download.h"
 
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QFile>
 #include <QImageReader>
-#include <QPointer>
 #include <QTextBlock>
 #include <QTextCursor>
 #include <QTextDocument>

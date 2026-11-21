@@ -18,6 +18,7 @@
 
 #include "ModrinthModModel.h"
 
+#include "Application.h"
 #include "modplatform/modrinth/ModrinthPackIndex.h"
 
 namespace Modrinth

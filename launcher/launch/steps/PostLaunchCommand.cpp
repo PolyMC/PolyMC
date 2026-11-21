@@ -35,6 +35,7 @@
 
 #include "PostLaunchCommand.h"
 #include <launch/LaunchTask.h>
+#include <QProcess>
 
 PostLaunchCommand::PostLaunchCommand(LaunchTask* parent) : LaunchStep(parent)
 {

@@ -18,7 +18,10 @@
  */
 
 #include "DataPackPage.h"
+#include "modplatform/ModAPI.h"
 #include "ui/dialogs/ModDownloadDialog.h"
+
+#include <QAction>
 
 DataPackPage::DataPackPage(MinecraftInstance* instance,
                            std::shared_ptr<DataPackFolderModel> model,

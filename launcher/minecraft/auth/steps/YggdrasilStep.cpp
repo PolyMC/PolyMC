@@ -1,9 +1,8 @@
 #include "YggdrasilStep.h"
 
 #include "minecraft/auth/AccountData.h"
-#include "minecraft/auth/AuthRequest.h"
-#include "minecraft/auth/Parsers.h"
 #include "minecraft/auth/Yggdrasil.h"
+#include "tasks/Task.h"
 
 YggdrasilStep::YggdrasilStep(AccountData* data, QString password)
     : AuthStep(data), m_password(password)

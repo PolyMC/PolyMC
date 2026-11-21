@@ -17,6 +17,8 @@
 
 #include <launch/LaunchTask.h>
 
+#include <utility>
+
 LookupServerAddress::LookupServerAddress(LaunchTask* parent)
     : LaunchStep(parent), m_dnsLookup(new QDnsLookup(this))
 {

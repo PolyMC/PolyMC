@@ -19,7 +19,14 @@
 #include "StoragePage.h"
 #include <QMessageBox>
 #include <QStorageInfo>
-#include <QTabBar>
+#include <QApplication>
+#include <QDir>
+#include <QDirIterator>
+#include <QEvent>
+#include <QMargins>
+#include <QPainter>
+#include <QString>
+#include <QtCharts/QPieSlice>
 #include "ui_StoragePage.h"
 
 qint64 getDirectorySize(QString path)

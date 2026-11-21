@@ -36,9 +36,13 @@
 #include "UpdateDialog.h"
 #include "ui_UpdateDialog.h"
 #include <QDebug>
+#include <QJsonObject>
+#include <QRegularExpression>
+#include <QUrl>
 #include "Application.h"
 #include <settings/SettingsObject.h>
 #include <Json.h>
+#include "net/Download.h"
 
 #include "BuildConfig.h"
 #include "Markdown.h"

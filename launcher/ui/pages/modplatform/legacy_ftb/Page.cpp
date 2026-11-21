@@ -38,6 +38,11 @@
 #include "ui_Page.h"
 
 #include <QInputDialog>
+#include <QItemSelectionModel>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QPersistentModelIndex>
+#include <QSize>
 
 #include "Application.h"
 

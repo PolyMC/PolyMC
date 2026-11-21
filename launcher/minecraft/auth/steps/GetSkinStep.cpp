@@ -2,9 +2,9 @@
 #include "GetSkinStep.h"
 
 #include <QNetworkRequest>
+#include <QUrl>
 
 #include "minecraft/auth/AuthRequest.h"
-#include "minecraft/auth/Parsers.h"
 
 GetSkinStep::GetSkinStep(AccountData* data) : AuthStep(data)
 {

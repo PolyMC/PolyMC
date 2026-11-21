@@ -40,6 +40,8 @@
 #include <FileSystem.h>
 #include <sstream>
 #include <io/stream_reader.h>
+#include <io/stream_writer.h>
+#include <value.h>
 #include <tag_string.h>
 #include <tag_primitive.h>
 #include <tag_list.h>
@@ -60,8 +62,23 @@
 #include <QQueue>
 #include <QImageReader>
 #include <QBuffer>
+#include <QAbstractListModel>
+#include <QByteArray>
+#include <QColor>
+#include <QDebug>
+#include <QFileInfo>
+#include <QItemSelectionModel>
+#include <QJsonValue>
+#include <QList>
+#include <QLocale>
+#include <QPixmap>
+#include <QSize>
+#include <QVariant>
 
 #include <functional>
+#include <memory>
+#include <string>
+#include <utility>
 
 static const int COLUMN_COUNT = 4;  // Name, Address, Players, Ping
 

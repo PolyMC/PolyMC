@@ -1,6 +1,10 @@
 #include "PackManifest.h"
 #include "Json.h"
 
+#include <QJsonArray>
+
+#include <utility>
+
 static void loadFileV1(Flame::File& f, QJsonObject& file)
 {
     f.projectId = Json::requireInteger(file, "projectID");

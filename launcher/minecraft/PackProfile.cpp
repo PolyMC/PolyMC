@@ -34,28 +34,32 @@
  */
 
 #include <QFile>
-#include <QCryptographicHash>
-#include <Version.h>
-#include <QDir>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonParseError>
 #include <QDebug>
+#include <QMap>
 #include <QSaveFile>
 #include <QUuid>
 #include <QTimer>
+#include <utility>
 
 #include "Exception.h"
 #include "minecraft/OneSixVersionFormat.h"
 #include "FileSystem.h"
-#include "meta/Index.h"
+#include "meta/JsonFormat.h"
 #include "minecraft/MinecraftInstance.h"
+#include "minecraft/VersionFile.h"
+#include "minecraft/GradleSpecifier.h"
+#include "ProblemProvider.h"
 #include "Json.h"
 
 #include "PackProfile.h"
 #include "PackProfile_p.h"
 #include "ComponentUpdateTask.h"
 
-#include "Application.h"
 #include "modplatform/ModAPI.h"
 
 static const QMap<QString, ModAPI::ModLoaderType> modloaderMapping{

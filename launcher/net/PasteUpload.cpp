@@ -36,14 +36,18 @@
  */
 
 #include "PasteUpload.h"
-#include "BuildConfig.h"
 #include "Application.h"
 
+#include <QDateTime>
 #include <QDebug>
+#include <QHttpMultiPart>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include <QFile>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QUrl>
+#include <QUrlQuery>
 
 std::array<PasteUpload::PasteTypeInfo, 4> PasteUpload::PasteTypes = {
     {{"0x0.st", "https://0x0.st", ""},

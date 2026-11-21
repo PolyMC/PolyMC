@@ -39,6 +39,8 @@
 #include <QTabWidget>
 #include <QTabBar>
 
+#include "settings/SettingsObject.h"
+
 CustomCommandsPage::CustomCommandsPage(QWidget* parent) : QWidget(parent)
 {
     auto verticalLayout = new QVBoxLayout(this);

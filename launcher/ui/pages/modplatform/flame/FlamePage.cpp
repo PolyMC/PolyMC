@@ -37,11 +37,23 @@
 #include "ui_FlamePage.h"
 
 #include <QKeyEvent>
+#include <QComboBox>
+#include <QDebug>
+#include <QEvent>
+#include <QItemSelectionModel>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QPushButton>
+#include <QStringList>
+#include <QVariant>
+
+#include <utility>
 
 #include "Application.h"
 #include "FlameModel.h"
 #include "InstanceImportTask.h"
 #include "Json.h"
+#include "net/Download.h"
 #include "ui/dialogs/NewInstanceDialog.h"
 
 namespace

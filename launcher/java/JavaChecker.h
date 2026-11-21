@@ -1,7 +1,8 @@
 #pragma once
+#include <QObject>
 #include <QProcess>
+#include <QString>
 #include <QTimer>
-#include <memory>
 
 #include "QObjectPtr.h"
 

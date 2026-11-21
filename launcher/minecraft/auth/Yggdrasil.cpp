@@ -20,8 +20,12 @@
 #include <QString>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QJsonParseError>
+#include <QJsonValue>
 #include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QByteArray>
+#include <QDateTime>
 
 #include <QDebug>
 

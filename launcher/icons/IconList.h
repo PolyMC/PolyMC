@@ -15,12 +15,14 @@
 
 #pragma once
 
-#include <QMutex>
 #include <QAbstractListModel>
-#include <QFile>
 #include <QDir>
 #include <QtGui/QIcon>
-#include <memory>
+#include <QMap>
+#include <QList>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
 
 #include "MMCIcon.h"
 #include "settings/Setting.h"

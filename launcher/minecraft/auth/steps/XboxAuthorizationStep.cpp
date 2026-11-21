@@ -3,6 +3,10 @@
 #include <QNetworkRequest>
 #include <QJsonParseError>
 #include <QJsonDocument>
+#include <QUrl>
+#include <QDebug>
+
+#include <cstdint>
 
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"

@@ -1,8 +1,15 @@
 #pragma once
 
-#include "Application.h"
+#include <QList>
+
+#include <list>
+#include <memory>
+
+#include "Version.h"
+#include "minecraft/mod/Mod.h"
 #include "minecraft/mod/ModFolderModel.h"
 #include "modplatform/CheckUpdateTask.h"
+#include "modplatform/ModAPI.h"
 #include "net/NetJob.h"
 
 class FlameCheckUpdate : public CheckUpdateTask

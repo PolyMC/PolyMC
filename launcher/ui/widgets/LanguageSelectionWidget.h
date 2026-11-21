@@ -16,6 +16,9 @@
 #pragma once
 
 #include <QWidget>
+#include <QString>
+#include <QModelIndex>
+#include <QVariant>
 
 class QVBoxLayout;
 class QTreeView;

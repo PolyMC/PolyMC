@@ -19,11 +19,14 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QKeyEvent>
+#include <QCloseEvent>
+#include <QKeySequence>
+#include <QByteArray>
+#include <QDebug>
 
 #include "Application.h"
 #include "settings/SettingsObject.h"
 
-#include "ui/widgets/IconLabel.h"
 #include "ui/widgets/PageContainer.h"
 
 PageDialog::PageDialog(BasePageProvider* pageProvider, QString defaultId,

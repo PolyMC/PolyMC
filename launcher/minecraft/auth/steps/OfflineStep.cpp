@@ -1,7 +1,5 @@
 #include "OfflineStep.h"
 
-#include "Application.h"
-
 OfflineStep::OfflineStep(AccountData* data) : AuthStep(data)
 {
 }

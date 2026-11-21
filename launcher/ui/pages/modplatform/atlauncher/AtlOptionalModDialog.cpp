@@ -38,9 +38,19 @@
 
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QColor>
+#include <QDebug>
+#include <QHeaderView>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QUrl>
+#include <utility>
 #include "BuildConfig.h"
 #include "Json.h"
 #include "modplatform/atlauncher/ATLShareCode.h"
+#include "net/Download.h"
 #include "Application.h"
 
 AtlOptionalModListModel::AtlOptionalModListModel(

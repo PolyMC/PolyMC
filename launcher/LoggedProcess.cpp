@@ -34,9 +34,9 @@
  */
 
 #include "LoggedProcess.h"
+#include <QByteArray>
+#include <QChar>
 #include <QDebug>
-#include "PolyMCTextCodec.h"
-#include "MessageLevel.h"
 
 LoggedProcess::LoggedProcess(QObject* parent) : QProcess(parent)
 {

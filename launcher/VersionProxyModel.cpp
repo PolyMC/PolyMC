@@ -36,8 +36,8 @@
 #include "VersionProxyModel.h"
 #include "Application.h"
 #include <QSortFilterProxyModel>
+#include <QPixmap>
 #include <QPixmapCache>
-#include <Version.h>
 #include <meta/VersionList.h>
 
 class VersionFilterModel : public QSortFilterProxyModel

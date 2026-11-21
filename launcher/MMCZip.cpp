@@ -36,10 +36,19 @@
 #include <quazip/quazip.h>
 #include <quazip/quazipdir.h>
 #include <quazip/quazipfile.h>
+#include <quazip/quazipfileinfo.h>
+#include <quazip/quazipnewinfo.h>
+#include <quazip/JlCompress.h>
+#include <zlib.h>
 #include "MMCZip.h"
 #include "FileSystem.h"
+#include "minecraft/mod/Resource.h"
 
 #include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QFileDevice>
+#include <QIODevice>
 #include <deque>
 
 // ours

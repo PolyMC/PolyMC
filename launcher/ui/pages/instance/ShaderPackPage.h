@@ -35,9 +35,16 @@
 
 #pragma once
 
+#include <QIcon>
+#include <QModelIndex>
+#include <QString>
+
+#include <memory>
+
 #include "Application.h"
 #include "DownloadableResourcesPage.h"
 
+#include "minecraft/MinecraftInstance.h"
 #include "minecraft/mod/ShaderPackFolderModel.h"
 #include "ui_ExternalResourcesPage.h"
 

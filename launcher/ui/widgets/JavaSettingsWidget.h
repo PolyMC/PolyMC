@@ -5,6 +5,9 @@
 #include <BaseVersion.h>
 #include <QObjectPtr.h>
 #include <QIcon>
+#include <QString>
+
+#include <cstdint>
 
 class QLineEdit;
 class VersionSelectWidget;

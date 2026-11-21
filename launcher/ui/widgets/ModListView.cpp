@@ -15,10 +15,6 @@
 
 #include "ModListView.h"
 #include <QHeaderView>
-#include <QMouseEvent>
-#include <QPainter>
-#include <QDrag>
-#include <QRect>
 
 ModListView::ModListView(QWidget* parent) : QTreeView(parent)
 {

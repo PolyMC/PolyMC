@@ -2,9 +2,14 @@
 #include "AccessibleInstanceView.h"
 #include "AccessibleInstanceView_p.h"
 
-#include <qvariant.h>
-#include <qaccessible.h>
-#include <qheaderview.h>
+#include <QVariant>
+#include <QAccessible>
+#include <QAbstractItemModel>
+#include <QDebug>
+#include <QItemSelectionModel>
+#include <QPoint>
+#include <QWidget>
+#include <utility>
 
 #ifndef QT_NO_ACCESSIBILITY
 

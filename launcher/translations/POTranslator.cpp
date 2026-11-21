@@ -1,7 +1,11 @@
 #include "POTranslator.h"
 
+#include <QByteArray>
 #include <QDebug>
-#include "FileSystem.h"
+#include <QFile>
+#include <QHash>
+#include <cctype>
+#include <utility>
 
 struct POEntry
 {

@@ -36,6 +36,8 @@
 
 #include "ATLPackManifest.h"
 
+#include <utility>
+
 #include "Json.h"
 
 static ATLauncher::DownloadType parseDownloadType(QString rawType)

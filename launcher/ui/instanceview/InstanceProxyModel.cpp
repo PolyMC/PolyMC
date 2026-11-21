@@ -18,9 +18,11 @@
 #include "InstanceList.h"
 #include "InstanceView.h"
 #include "Application.h"
+#include "BaseInstance.h"
 #include <icons/IconList.h>
 
-#include <QDebug>
+#include <QLocale>
+#include <QVariant>
 
 InstanceProxyModel::InstanceProxyModel(QObject* parent)
     : QSortFilterProxyModel(parent)

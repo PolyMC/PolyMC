@@ -1,5 +1,9 @@
 #pragma once
+#include <QList>
+#include <QString>
+#include <QStringList>
 #include "tasks/Task.h"
+#include "net/HttpMetaCache.h"
 #include "net/NetJob.h"
 #include "minecraft/Library.h"
 class MinecraftInstance;

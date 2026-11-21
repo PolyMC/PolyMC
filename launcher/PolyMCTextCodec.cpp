@@ -22,7 +22,12 @@
 
 #include "PolyMCTextCodec.h"
 
+#include <QGlobalStatic>
 #include <QHash>
+#include <QList>
+#include <QStringEncoder>
+
+#include <optional>
 
 static QHash<QStringConverter::Encoding, PolyMCTextCodec*>*
     static_hash_quazip_codecs = nullptr;

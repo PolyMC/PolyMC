@@ -1,5 +1,14 @@
 #pragma once
 
+#include <QList>
+#include <QString>
+#include <QUrl>
+#include <list>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "Version.h"
 #include "minecraft/mod/Mod.h"
 #include "minecraft/mod/ResourceFolderModel.h"
 #include "modplatform/ModAPI.h"

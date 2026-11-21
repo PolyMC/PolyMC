@@ -36,7 +36,26 @@
 
 #include "ATLPackInstallTask.h"
 
-#include <QtConcurrent>
+#include <QCryptographicHash>
+#include <QDebug>
+#include <QDir>
+#include <QDirIterator>
+#include <QEventLoop>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QRegularExpression>
+#include <QSet>
+#include <QThread>
+#include <QThreadPool>
+#include <QUrl>
+#include <QUuid>
+#include <QtConcurrentRun>
+
+#include <algorithm>
+#include <memory>
+#include <utility>
 
 #include <quazip/quazip.h>
 
@@ -44,14 +63,22 @@
 #include "minecraft/OneSixVersionFormat.h"
 #include "Version.h"
 #include "net/ChecksumValidator.h"
+#include "net/Download.h"
+#include "net/Mode.h"
 #include "FileSystem.h"
 #include "Json.h"
+#include "minecraft/Component.h"
+#include "minecraft/GradleSpecifier.h"
+#include "minecraft/Library.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
+#include "minecraft/VersionFile.h"
 #include "settings/INISettingsObject.h"
 #include "meta/Index.h"
+#include "meta/JsonFormat.h"
 #include "meta/Version.h"
 #include "meta/VersionList.h"
+#include "tasks/Task.h"
 
 #include "BuildConfig.h"
 #include "Application.h"

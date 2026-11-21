@@ -16,7 +16,6 @@
 #pragma once
 
 #include <launch/LaunchStep.h>
-#include <LoggedProcess.h>
 #include <java/JavaChecker.h>
 
 class CheckJava : public LaunchStep

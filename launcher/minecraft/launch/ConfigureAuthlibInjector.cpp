@@ -1,13 +1,18 @@
 #include "ConfigureAuthlibInjector.h"
 
 #include <launch/LaunchTask.h>
-#include <QDir>
+#include <QByteArray>
+#include <QCryptographicHash>
+#include <QDebug>
+#include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
+#include <QUrl>
 #include <Qt>
 
 #include "Application.h"
-#include "minecraft/auth/AccountList.h"
 #include "net/ChecksumValidator.h"
 #include "net/Download.h"
 #include "net/HttpMetaCache.h"

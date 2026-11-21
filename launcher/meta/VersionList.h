@@ -16,8 +16,15 @@
 #pragma once
 
 #include "BaseEntity.h"
+#include "BaseVersion.h"
 #include "BaseVersionList.h"
+#include "tasks/Task.h"
+#include <QByteArray>
+#include <QHash>
 #include <QJsonObject>
+#include <QList>
+#include <QString>
+#include <QVariant>
 #include <memory>
 
 namespace Meta

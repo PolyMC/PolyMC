@@ -3,6 +3,7 @@
 #pragma once
 
 #include <QString>
+#include <QByteArray>
 #include <QDebug>
 #include <exception>
 

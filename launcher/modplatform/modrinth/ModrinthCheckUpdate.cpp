@@ -2,7 +2,16 @@
 #include "ModrinthAPI.h"
 #include "ModrinthPackIndex.h"
 
+#include <QDebug>
+#include <QEventLoop>
+#include <QJsonDocument>
+#include <QPair>
+#include <QStringList>
+
+#include <utility>
+
 #include "Json.h"
+#include "modplatform/ModIndex.h"
 
 #include "ModDownloadTask.h"
 

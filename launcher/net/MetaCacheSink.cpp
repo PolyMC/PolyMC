@@ -34,8 +34,11 @@
  */
 
 #include "MetaCacheSink.h"
+#include <QDateTime>
+#include <QDebug>
 #include <QFile>
 #include <QFileInfo>
+#include <QRegularExpression>
 #include "Application.h"
 
 namespace Net

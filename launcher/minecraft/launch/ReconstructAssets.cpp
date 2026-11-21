@@ -14,6 +14,7 @@
  */
 
 #include "ReconstructAssets.h"
+#include <memory>
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "minecraft/AssetsUtils.h"

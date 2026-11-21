@@ -36,7 +36,12 @@
 #include <QMessageBox>
 #include "AtlUserInteractionSupportImpl.h"
 
+#include <QDialog>
+#include <algorithm>
+
 #include "AtlOptionalModDialog.h"
+#include "BaseVersionList.h"
+#include "meta/JsonFormat.h"
 #include "ui/dialogs/VersionSelectDialog.h"
 
 namespace

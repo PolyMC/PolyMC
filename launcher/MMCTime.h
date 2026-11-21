@@ -18,6 +18,8 @@
 
 #include <QString>
 
+#include <cstdint>
+
 namespace Time
 {
 

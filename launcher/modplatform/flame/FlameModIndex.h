@@ -7,6 +7,9 @@
 #include "modplatform/ModIndex.h"
 
 #include "BaseInstance.h"
+#include "QObjectPtr.h"
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QNetworkAccessManager>
 
 namespace FlameMod

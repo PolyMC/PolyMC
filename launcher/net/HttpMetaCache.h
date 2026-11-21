@@ -36,6 +36,7 @@
 #pragma once
 
 #include <QMap>
+#include <QObject>
 #include <QString>
 #include <QTimer>
 #include <memory>

@@ -37,21 +37,23 @@
 #include "ModFolderPage.h"
 #include "ui_ExternalResourcesPage.h"
 
-#include <QAbstractItemModel>
-#include <QEvent>
-#include <QKeyEvent>
-#include <QMenu>
+#include <QAction>
+#include <QDir>
+#include <QItemSelectionModel>
 #include <QMessageBox>
-#include <QSortFilterProxyModel>
+#include <QString>
+
+#include <utility>
 
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ModDownloadDialog.h"
 #include "ui/dialogs/ModUpdateDialog.h"
 
+#include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "minecraft/VersionFilterData.h"
+#include "minecraft/mod/MetadataHandler.h"
 #include "minecraft/mod/Mod.h"
-#include "minecraft/mod/ModFolderModel.h"
 
 #include "modplatform/ModAPI.h"
 

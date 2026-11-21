@@ -35,16 +35,16 @@
 
 #include "WorldList.h"
 
-#include "Application.h"
 #include <FileSystem.h>
 #include <Qt>
 #include <QMimeData>
 #include <QUrl>
-#include <QUuid>
+#include <QLocale>
 #include <QString>
 #include <QFileSystemWatcher>
 #include <QDebug>
 #include <QtConcurrentRun>
+#include <utility>
 
 static QList<World> loadWorlds(const QString& path)
 {

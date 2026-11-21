@@ -2,6 +2,13 @@
 
 #include "FlameModPage.h"
 
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+
+#include "modplatform/ModIndex.h"
+#include "ui/pages/modplatform/ModModel.h"
+
 namespace FlameMod
 {
 

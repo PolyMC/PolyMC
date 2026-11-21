@@ -1,5 +1,10 @@
 #pragma once
 #include <QAbstractProxyModel>
+#include <QHash>
+#include <QList>
+#include <QString>
+#include <QVariant>
+#include <memory>
 #include "BaseVersionList.h"
 
 #include <Filter.h>

@@ -38,11 +38,13 @@
 
 #include <QPushButton>
 #include <QAction>
+#include <QDialogButtonBox>
+#include <QLineEdit>
+#include <QNetworkRequest>
+#include <QRegularExpression>
 #include <QRegularExpressionValidator>
 #include <QJsonDocument>
 #include <QDebug>
-
-#include "ui/dialogs/ProgressDialog.h"
 
 #include <Application.h>
 #include "minecraft/auth/AuthRequest.h"

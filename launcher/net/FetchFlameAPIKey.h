@@ -21,6 +21,8 @@
 
 #include <QObject>
 #include <QNetworkReply>
+#include <QString>
+#include <memory>
 #include <tasks/Task.h>
 
 class FetchFlameAPIKey : public Task

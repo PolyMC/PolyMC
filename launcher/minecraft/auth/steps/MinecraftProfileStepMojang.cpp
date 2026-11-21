@@ -1,7 +1,10 @@
 #include "MinecraftProfileStepMojang.h"
 
 #include <QNetworkRequest>
+#include <QUrl>
+#include <QDebug>
 
+#include "minecraft/auth/AccountData.h"
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"
 #include "net/NetUtils.h"

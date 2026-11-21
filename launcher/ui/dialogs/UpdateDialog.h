@@ -16,6 +16,8 @@
 #pragma once
 
 #include <QDialog>
+#include <QByteArray>
+#include <QString>
 #include "net/NetJob.h"
 
 namespace Ui

@@ -1,11 +1,16 @@
 #include "EnsureMetadataTask.h"
 
-#include <MurmurHash2.h>
 #include <QDebug>
+#include <QEventLoop>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonParseError>
 #include <functional>
+#include <utility>
 
 #include "Json.h"
 
+#include "minecraft/mod/MetadataHandler.h"
 #include "minecraft/mod/Mod.h"
 #include "minecraft/mod/tasks/LocalModUpdateTask.h"
 

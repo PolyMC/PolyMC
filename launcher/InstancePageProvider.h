@@ -1,4 +1,9 @@
 #pragma once
+#include <QList>
+#include <QObject>
+#include <QString>
+#include <memory>
+#include "BaseInstance.h"
 #include "minecraft/MinecraftInstance.h"
 #include <FileSystem.h>
 #include "ui/pages/BasePage.h"
@@ -15,7 +20,6 @@
 #include "ui/pages/instance/OtherLogsPage.h"
 #include "ui/pages/instance/WorldListPage.h"
 #include "ui/pages/instance/ServersPage.h"
-#include "ui/pages/instance/GameOptionsPage.h"
 #include "ui/pages/instance/StoragePage.h"
 
 class InstancePageProvider : public QObject, public BasePageProvider

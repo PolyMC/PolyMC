@@ -18,6 +18,7 @@
 
 #include "ATLPackManifest.h"
 
+#include <QJsonObject>
 #include <QString>
 #include <QVector>
 #include <QMetaType>

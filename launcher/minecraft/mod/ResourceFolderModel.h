@@ -3,11 +3,20 @@
 #include <QAbstractListModel>
 #include <QDir>
 #include <QFileSystemWatcher>
-#include <QMutex>
+#include <QList>
+#include <QMap>
 #include <QSet>
 #include <QSortFilterProxyModel>
+#include <QString>
+#include <QStringList>
 #include <QThreadPool>
 #include <QTimer>
+#include <QVariant>
+
+#include <algorithm>
+#include <atomic>
+#include <functional>
+#include <utility>
 
 #include "Resource.h"
 

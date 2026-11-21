@@ -36,6 +36,7 @@
 #include "GZip.h"
 #include <zlib.h>
 #include <QByteArray>
+#include <cstring>
 
 bool GZip::unzip(const QByteArray& compressedBytes,
                  QByteArray& uncompressedBytes)

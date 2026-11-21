@@ -36,6 +36,8 @@
 
 #include "NetJob.h"
 
+#include <utility>
+
 bool NetJob::addNetAction(NetAction::Ptr action)
 {
     action->m_index_within_job = m_queue.size();

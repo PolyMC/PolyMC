@@ -39,7 +39,20 @@
 #include <QTextLayout>
 #include <QApplication>
 #include <QtMath>
-#include <QDebug>
+#include <QBrush>
+#include <QColor>
+#include <QEvent>
+#include <QKeyEvent>
+#include <QList>
+#include <QPalette>
+#include <QPen>
+#include <QPixmap>
+#include <QPointF>
+#include <QRect>
+#include <QSize>
+#include <QString>
+#include <QStyle>
+#include <QStyleOption>
 
 #include "InstanceView.h"
 #include "BaseInstance.h"

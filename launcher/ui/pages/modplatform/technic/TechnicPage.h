@@ -35,12 +35,15 @@
 
 #pragma once
 
+#include <QByteArray>
+#include <QIcon>
+#include <QModelIndex>
+#include <QString>
 #include <QWidget>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 #include "net/NetJob.h"
-#include "tasks/Task.h"
 #include "TechnicData.h"
 
 namespace Ui

@@ -18,11 +18,13 @@
 
 #include <QItemSelectionModel>
 #include <QDebug>
+#include <QAbstractItemView>
+#include <QList>
+#include <QModelIndex>
+#include <QTreeWidgetItem>
+#include <QVariant>
 
-#include "SkinUtils.h"
 #include "Application.h"
-
-#include "ui/dialogs/ProgressDialog.h"
 
 ProfileSelectDialog::ProfileSelectDialog(const QString& message, int flags,
                                          QWidget* parent)

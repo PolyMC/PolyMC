@@ -37,10 +37,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QList>
 #include <QJsonObject>
-#include <QPair>
-#include <QMap>
 #include <QPixmap>
 
 #include "AuthSession.h"

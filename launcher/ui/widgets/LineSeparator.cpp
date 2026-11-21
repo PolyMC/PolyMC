@@ -2,8 +2,8 @@
 
 #include <QStyle>
 #include <QStyleOption>
-#include <QLayout>
 #include <QPainter>
+#include <QSizePolicy>
 
 void LineSeparator::initStyleOption(QStyleOption* option) const
 {

@@ -33,12 +33,8 @@
  *      limitations under the License.
  */
 
-#include <cassert>
-
 #include <QDebug>
 #include <QTimer>
-#include <QBuffer>
-#include <QUrlQuery>
 
 #include "Application.h"
 #include "AuthRequest.h"

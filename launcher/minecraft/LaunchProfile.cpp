@@ -34,6 +34,9 @@
  */
 
 #include "LaunchProfile.h"
+#include <QDir>
+#include <memory>
+#include "GradleSpecifier.h"
 #include <Version.h>
 
 void LaunchProfile::clear()

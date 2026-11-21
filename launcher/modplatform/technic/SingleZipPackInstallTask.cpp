@@ -15,11 +15,16 @@
 
 #include "SingleZipPackInstallTask.h"
 
-#include <QtConcurrent>
+#include <QtConcurrentRun>
+#include <QThreadPool>
+#include <QDir>
+#include <QDebug>
 
 #include "MMCZip.h"
 #include "TechnicPackProcessor.h"
 #include "FileSystem.h"
+#include "QObjectPtr.h"
+#include "net/Download.h"
 
 #include "Application.h"
 

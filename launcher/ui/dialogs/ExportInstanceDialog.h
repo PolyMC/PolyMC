@@ -17,6 +17,7 @@
 
 #include <QDialog>
 #include <QModelIndex>
+#include <QString>
 #include <memory>
 
 class BaseInstance;

@@ -24,7 +24,16 @@
 
 #include <quazip/quazip.h>
 
-#include <QCryptographicHash>
+#include <QDebug>
+#include <QFile>
+#include <QFileInfo>
+#include <QImage>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+
+#include <utility>
 
 namespace ResourcePackUtils
 {

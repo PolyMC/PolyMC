@@ -36,13 +36,17 @@
 #pragma once
 
 #include <QString>
+#include <QStringList>
+#include <QByteArray>
+#include <QList>
 #include <QFileInfo>
 #include <QSet>
 #include "minecraft/mod/Mod.h"
 #include <functional>
 
-#include <quazip/JlCompress.h>
+#include <quazip/quazip.h>
 #include <optional>
+#include <utility>
 
 namespace MMCZip
 {

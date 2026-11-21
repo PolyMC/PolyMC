@@ -2,6 +2,7 @@
 
 #include <QAbstractListModel>
 #include <QString>
+#include <QVector>
 #include "MessageLevel.h"
 
 class LogModel : public QAbstractListModel

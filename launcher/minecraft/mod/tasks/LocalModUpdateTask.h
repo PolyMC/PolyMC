@@ -19,7 +19,9 @@
 #pragma once
 
 #include <QDir>
+#include <QString>
 
+#include "QObjectPtr.h"
 #include "modplatform/ModIndex.h"
 #include "tasks/Task.h"
 

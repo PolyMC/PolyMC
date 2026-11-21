@@ -1,8 +1,16 @@
 #pragma once
 
 #include <QWidget>
+#include <QIcon>
+#include <QModelIndex>
+#include <QString>
+#include <QTimer>
 
-#include "Application.h"
+#include <memory>
+
+#include "BaseInstance.h"
+#include "QObjectPtr.h"
+#include "minecraft/MinecraftInstance.h"
 #include "modplatform/ModAPI.h"
 #include "modplatform/ModIndex.h"
 #include "ui/pages/BasePage.h"

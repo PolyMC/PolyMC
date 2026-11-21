@@ -1,4 +1,4 @@
-#include <QWidget>
+#include <cstdint>
 
 #include "WinDarkmode.h"
 

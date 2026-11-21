@@ -34,6 +34,10 @@
  */
 
 #include "ModMinecraftJar.h"
+#include <QDir>
+#include <QFile>
+#include <QStringList>
+#include <memory>
 #include "launch/LaunchTask.h"
 #include "MMCZip.h"
 #include "FileSystem.h"

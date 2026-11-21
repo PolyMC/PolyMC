@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QSharedPointer>
 
-#include <functional>
+#include <cstddef>
 #include <memory>
 
 struct QObjectDeleteLater

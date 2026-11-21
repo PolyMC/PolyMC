@@ -3,8 +3,12 @@
 #include <QString>
 #include <map>
 #include <set>
+#include <vector>
+#include <iterator>
+#include <cstddef>
+#include <cstdint>
 #include <QStringList>
-#include "tasks/Task.h"
+#include <QByteArray>
 
 namespace mojang_files
 {

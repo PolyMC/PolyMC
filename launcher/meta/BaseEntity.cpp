@@ -15,9 +15,19 @@
 
 #include "BaseEntity.h"
 
+#include <QByteArray>
+#include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QObject>
+
 #include "net/Download.h"
 #include "net/HttpMetaCache.h"
 #include "net/NetJob.h"
+#include "net/Validator.h"
+#include "Exception.h"
 #include "Json.h"
 
 #include "BuildConfig.h"

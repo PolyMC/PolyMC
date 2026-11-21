@@ -2,6 +2,8 @@
 
 #include <QDialog>
 #include <QHash>
+#include <QList>
+#include <QString>
 
 #include "news/NewsEntry.h"
 

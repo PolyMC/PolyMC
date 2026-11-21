@@ -36,6 +36,10 @@
 
 #include "TexturePackFolderModel.h"
 
+#include <QDir>
+#include <QFileInfo>
+
+#include "minecraft/mod/TexturePack.h"
 #include "minecraft/mod/tasks/BasicFolderLoadTask.h"
 #include "minecraft/mod/tasks/LocalTexturePackParseTask.h"
 

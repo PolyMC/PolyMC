@@ -18,7 +18,10 @@
  */
 
 #include "ResourcePackPage.h"
+#include "modplatform/ModAPI.h"
 #include "ui/dialogs/ModDownloadDialog.h"
+
+#include <QAction>
 
 ResourcePackPage::ResourcePackPage(
     MinecraftInstance* instance, std::shared_ptr<ResourcePackFolderModel> model,

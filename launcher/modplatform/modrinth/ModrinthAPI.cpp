@@ -1,7 +1,11 @@
 #include "ModrinthAPI.h"
 
+#include <QJsonDocument>
+#include <QJsonObject>
+
 #include "Application.h"
 #include "Json.h"
+#include "net/Download.h"
 #include "net/Upload.h"
 
 NetJob::Ptr ModrinthAPI::currentVersions(const QStringList& hashes,

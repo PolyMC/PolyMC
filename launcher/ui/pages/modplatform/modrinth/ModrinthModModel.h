@@ -19,6 +19,12 @@
 #pragma once
 
 #include "ModrinthModPage.h"
+#include "modplatform/ModIndex.h"
+#include "ui/pages/modplatform/ModModel.h"
+
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 namespace Modrinth
 {

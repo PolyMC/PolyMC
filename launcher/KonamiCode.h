@@ -1,6 +1,7 @@
 #pragma once
 
-#include <QKeyEvent>
+#include <QEvent>
+#include <QObject>
 
 class KonamiCode : public QObject
 {

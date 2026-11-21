@@ -35,6 +35,8 @@
 
 #pragma once
 
+#include <QByteArray>
+
 #include "Sink.h"
 
 namespace Net

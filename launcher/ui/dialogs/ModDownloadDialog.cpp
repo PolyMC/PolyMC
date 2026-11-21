@@ -18,19 +18,20 @@
 
 #include "ModDownloadDialog.h"
 
-#include <BaseVersion.h>
-#include <InstanceList.h>
-#include <icons/IconList.h>
-
 #include "Application.h"
 #include "ReviewMessageBox.h"
 
+#include <QByteArray>
+#include <QDebug>
 #include <QDialogButtonBox>
 #include <QLayout>
 #include <QPushButton>
-#include <QValidator>
+#include <QSizePolicy>
+#include <algorithm>
+#include <utility>
 
 #include "ModDownloadTask.h"
+#include "ui/pages/modplatform/ModPage.h"
 #include "ui/pages/modplatform/flame/FlameModPage.h"
 #include "ui/pages/modplatform/modrinth/ModrinthModPage.h"
 #include "ui/widgets/PageContainer.h"

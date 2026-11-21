@@ -1,10 +1,13 @@
 #pragma once
 
 #include "net/NetJob.h"
-#include <QTemporaryDir>
 #include <QByteArray>
 #include <QObject>
+#include <QString>
+#include <QStringList>
+#include <QNetworkAccessManager>
 #include "PackHelpers.h"
+#include "QObjectPtr.h"
 
 namespace LegacyFTB
 {

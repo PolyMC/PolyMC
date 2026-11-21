@@ -35,7 +35,12 @@
  */
 
 #include "MinecraftInstance.h"
-#include "BuildConfig.h"
+#include <QDebug>
+#include <QFileInfo>
+#include <QRegularExpression>
+#include <QVariant>
+#include <algorithm>
+#include <utility>
 #include "minecraft/launch/CreateGameFolders.h"
 #include "minecraft/launch/ExtractNatives.h"
 #include "minecraft/launch/PrintInstanceInfo.h"
@@ -43,12 +48,12 @@
 #include "settings/SettingsObject.h"
 #include "Application.h"
 
-#include "MMCStrings.h"
 #include "pathmatcher/RegexpMatcher.h"
 #include "pathmatcher/MultiMatcher.h"
 #include "FileSystem.h"
 #include "java/JavaVersion.h"
 #include "MMCTime.h"
+#include "Version.h"
 
 #include "launch/LaunchTask.h"
 #include "launch/steps/LookupServerAddress.h"
@@ -71,9 +76,6 @@
 
 #include "java/JavaUtils.h"
 
-#include "meta/Index.h"
-#include "meta/VersionList.h"
-
 #include "icons/IconList.h"
 
 #include "mod/ModFolderModel.h"
@@ -88,7 +90,7 @@
 #include "MinecraftUpdate.h"
 #include "MinecraftLoadAndCheck.h"
 #include "minecraft/gameoptions/GameOptions.h"
-#include "minecraft/update/FoldersTask.h"
+#include "minecraft/auth/AuthSession.h"
 
 #define IBUS "@im=ibus"
 

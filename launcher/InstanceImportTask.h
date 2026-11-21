@@ -40,10 +40,12 @@
 #include <QUrl>
 #include <QFuture>
 #include <QFutureWatcher>
-#include "settings/SettingsObject.h"
-#include "QObjectPtr.h"
+#include <QString>
+#include <QStringList>
+#include <QVector>
 #include "modplatform/flame/PackManifest.h"
 
+#include <memory>
 #include <optional>
 
 class QuaZip;

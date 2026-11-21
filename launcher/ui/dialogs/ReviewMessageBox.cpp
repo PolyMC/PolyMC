@@ -2,6 +2,8 @@
 #include "ui_ReviewMessageBox.h"
 
 #include <QPushButton>
+#include <QDialogButtonBox>
+#include <QTreeWidgetItem>
 
 ReviewMessageBox::ReviewMessageBox(QWidget* parent, QString const& /*title*/,
                                    QString const& /*icon*/)

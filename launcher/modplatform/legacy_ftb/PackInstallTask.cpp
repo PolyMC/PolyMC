@@ -35,11 +35,22 @@
 
 #include "PackInstallTask.h"
 
-#include <QtConcurrent>
+#include <QtConcurrentRun>
+#include <QThreadPool>
+#include <QDir>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QDebug>
+
+#include <memory>
+#include <utility>
 
 #include "MMCZip.h"
-#include "BaseInstance.h"
 #include "FileSystem.h"
+#include "net/Download.h"
 #include "settings/INISettingsObject.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"

@@ -37,8 +37,13 @@
 
 #include <QDialog>
 #include <QAbstractListModel>
+#include <QByteArray>
+#include <QMap>
+#include <QString>
+#include <QVariant>
+#include <QVector>
 
-#include "modplatform/atlauncher/ATLPackIndex.h"
+#include "modplatform/atlauncher/ATLPackManifest.h"
 #include "net/NetJob.h"
 
 namespace Ui

@@ -35,19 +35,22 @@
  */
 
 #pragma once
-#include <cassert>
+#include <cstdint>
+#include <memory>
 
 #include <QObject>
 #include "QObjectPtr.h"
 #include <QDateTime>
+#include <QMap>
 #include <QSet>
-#include <QProcess>
+#include <QString>
+#include <QStringList>
+#include <QProcessEnvironment>
 
 #include "settings/SettingsObject.h"
 
-#include "settings/INIFile.h"
-#include "BaseVersionList.h"
-#include "minecraft/auth/MinecraftAccount.h"
+#include "tasks/Task.h"
+#include "minecraft/auth/AuthSession.h"
 #include "MessageLevel.h"
 #include "pathmatcher/IPathMatcher.h"
 

@@ -2,7 +2,6 @@
 
 #include <QSet>
 #include <QString>
-#include <QFile>
 
 namespace LegacyFTB
 {

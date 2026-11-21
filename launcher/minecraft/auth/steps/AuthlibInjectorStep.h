@@ -1,7 +1,9 @@
 #pragma once
 #include <QObject>
+#include <QString>
+#include <QNetworkReply>
+#include <memory>
 
-#include "QObjectPtr.h"
 #include "minecraft/auth/AuthStep.h"
 
 class AuthlibInjectorStep : public AuthStep

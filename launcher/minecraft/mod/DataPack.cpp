@@ -22,6 +22,8 @@
 
 #include <QMap>
 
+#include <utility>
+
 // Values taken from:
 // https://minecraft.wiki/w/Pack_format#List_of_pack_formats
 static const QMap<std::pair<int, int>, std::pair<Version, Version>>

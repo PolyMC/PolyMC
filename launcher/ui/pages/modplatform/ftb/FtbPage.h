@@ -38,11 +38,14 @@
 #include "FtbFilterModel.h"
 #include "FtbListModel.h"
 
+#include <QIcon>
+#include <QModelIndex>
+#include <QString>
 #include <QWidget>
 
 #include "Application.h"
+#include "modplatform/ftb/FTBPackManifest.h"
 #include "ui/pages/BasePage.h"
-#include "tasks/Task.h"
 
 namespace Ui
 {

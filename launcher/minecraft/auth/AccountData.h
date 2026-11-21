@@ -36,7 +36,7 @@
 #pragma once
 #include <QString>
 #include <QByteArray>
-#include <QVector>
+#include <QMap>
 #include <katabasis/Bits.h>
 #include <QJsonObject>
 

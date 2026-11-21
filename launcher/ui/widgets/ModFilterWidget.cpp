@@ -1,7 +1,10 @@
 #include "ModFilterWidget.h"
 #include "ui_ModFilterWidget.h"
 
+#include <QAbstractButton>
+
 #include "Application.h"
+#include "tasks/Task.h"
 
 unique_qobject_ptr<ModFilterWidget> ModFilterWidget::create(
     Version default_version, QWidget* parent)

@@ -17,7 +17,9 @@
 
 #include <QList>
 #include <QString>
+#include <QStringList>
 #include <QDir>
+#include <QFileInfo>
 #include <QAbstractListModel>
 #include <QFutureWatcher>
 #include <QMimeData>

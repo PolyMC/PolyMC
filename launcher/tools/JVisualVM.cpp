@@ -1,7 +1,10 @@
 #include "JVisualVM.h"
 
-#include <QDir>
+#include <QFileInfo>
+#include <QProcess>
 #include <QStandardPaths>
+#include <QString>
+#include <QStringList>
 
 #include "settings/SettingsObject.h"
 #include "launch/LaunchTask.h"

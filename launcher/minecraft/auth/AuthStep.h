@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
-#include <QList>
-#include <QNetworkReply>
+#include <QString>
+#include <QUrl>
 
 #include "QObjectPtr.h"
 #include "minecraft/auth/AccountData.h"

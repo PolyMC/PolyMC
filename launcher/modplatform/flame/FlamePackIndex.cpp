@@ -2,6 +2,9 @@
 
 #include "Json.h"
 
+#include <algorithm>
+#include <utility>
+
 namespace
 {
 

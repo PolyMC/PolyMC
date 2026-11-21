@@ -1,14 +1,11 @@
 #pragma once
 
-#include "tasks/Task.h"
-#include "net/NetJob.h"
-#include <QUrl>
 #include <QFuture>
 #include <QFutureWatcher>
-#include "settings/SettingsObject.h"
-#include "BaseVersion.h"
+#include <memory>
 #include "BaseInstance.h"
 #include "InstanceTask.h"
+#include "pathmatcher/IPathMatcher.h"
 
 class InstanceCopyTask : public InstanceTask
 {

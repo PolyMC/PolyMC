@@ -1,5 +1,14 @@
 #pragma once
 
+#include <QByteArray>
+#include <QList>
+#include <QMap>
+#include <QNetworkAccessManager>
+#include <QVector>
+
+#include <memory>
+
+#include "QObjectPtr.h"
 #include "tasks/Task.h"
 #include "net/NetJob.h"
 #include "PackManifest.h"

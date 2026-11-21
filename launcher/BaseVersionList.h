@@ -18,10 +18,13 @@
 #include <QObject>
 #include <QVariant>
 #include <QAbstractListModel>
+#include <QByteArray>
+#include <QHash>
+#include <QList>
+#include <QString>
 
 #include "BaseVersion.h"
 #include "tasks/Task.h"
-#include "QObjectPtr.h"
 
 /*!
  * \brief Class that each instance type's version list derives from.

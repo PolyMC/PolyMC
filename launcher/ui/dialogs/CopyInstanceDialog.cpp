@@ -33,8 +33,10 @@
  *      limitations under the License.
  */
 
+#include <QDialogButtonBox>
 #include <QLayout>
 #include <QPushButton>
+#include <QSet>
 
 #include "Application.h"
 #include "CopyInstanceDialog.h"
@@ -42,9 +44,7 @@
 
 #include "ui/dialogs/IconPickerDialog.h"
 
-#include "BaseVersion.h"
 #include "icons/IconList.h"
-#include "tasks/Task.h"
 #include "BaseInstance.h"
 #include "InstanceList.h"
 

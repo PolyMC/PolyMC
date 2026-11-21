@@ -35,12 +35,19 @@
 
 #pragma once
 
-#include <QDateTime>
+#include <QDir>
 #include <QFileInfo>
-#include <QList>
+#include <QPointer>
+#include <QString>
+#include <QStringList>
 
+#include <memory>
+#include <utility>
+
+#include "QObjectPtr.h"
 #include "Resource.h"
 #include "ModDetails.h"
+#include "MetadataHandler.h"
 
 class Mod : public Resource
 {

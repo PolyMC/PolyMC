@@ -20,10 +20,12 @@
 
 #include <QDebug>
 #include <QDir>
-#include <QObject>
+#include <QFile>
+#include <QTextStream>
+
+#include <string>
 
 #include <toml++/toml.h>
-#include "minecraft/mod/Mod.h"
 #include "modplatform/ModIndex.h"
 
 namespace Packwiz

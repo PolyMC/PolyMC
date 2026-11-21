@@ -34,7 +34,10 @@
  */
 
 #pragma once
-#include "Library.h"
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QString>
+#include <QStringList>
 #include "VersionFile.h"
 
 namespace ProfileUtils

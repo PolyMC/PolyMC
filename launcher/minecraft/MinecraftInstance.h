@@ -39,6 +39,12 @@
 #include "minecraft/mod/Mod.h"
 #include <QProcess>
 #include <QDir>
+#include <QString>
+#include <QStringList>
+#include <QList>
+#include <QMap>
+#include <QSet>
+#include <memory>
 #include "minecraft/launch/MinecraftServerTarget.h"
 
 class ModFolderModel;

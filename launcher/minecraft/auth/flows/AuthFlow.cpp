@@ -1,12 +1,6 @@
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
 #include <QDebug>
 
 #include "AuthFlow.h"
-#include "katabasis/Globals.h"
-
-#include <Application.h>
 
 AuthFlow::AuthFlow(AccountData* data, QObject* parent)
     : AccountTask(data, parent)

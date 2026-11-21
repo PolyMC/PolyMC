@@ -1,8 +1,10 @@
 #include "ResourceFolderModel.h"
 
-#include <QCoreApplication>
 #include <QDebug>
+#include <QFile>
+#include <QFileInfo>
 #include <QMimeData>
+#include <QMutex>
 #include <QThreadPool>
 #include <QUrl>
 

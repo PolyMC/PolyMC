@@ -1,11 +1,17 @@
 #include "PackageManifest.h"
 #include <Json.h>
+#include <Exception.h>
 #include <QDir>
 #include <QDirIterator>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QCryptographicHash>
 #include <QDebug>
+#include <utility>
 
 #ifndef Q_OS_WIN32
+#include <string>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>

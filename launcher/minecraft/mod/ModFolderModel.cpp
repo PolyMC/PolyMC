@@ -36,15 +36,10 @@
 
 #include "ModFolderModel.h"
 
-#include <FileSystem.h>
-#include <QDebug>
-#include <QFileSystemWatcher>
-#include <QMimeData>
+#include <QChar>
+#include <QSet>
 #include <QString>
-#include <QThreadPool>
-#include <QUrl>
-#include <QUuid>
-#include <algorithm>
+#include <utility>
 
 #include "minecraft/mod/tasks/LocalModParseTask.h"
 #include "minecraft/mod/tasks/ModFolderLoadTask.h"

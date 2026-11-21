@@ -37,20 +37,17 @@
 #include "NewInstanceDialog.h"
 #include "ui_NewInstanceDialog.h"
 
-#include <BaseVersion.h>
 #include <icons/IconList.h>
-#include <tasks/Task.h>
 #include <InstanceList.h>
 
-#include "VersionSelectDialog.h"
-#include "ProgressDialog.h"
 #include "IconPickerDialog.h"
 
 #include <QLayout>
 #include <QPushButton>
-#include <QFileDialog>
-#include <QValidator>
 #include <QDialogButtonBox>
+#include <QIcon>
+#include <QSet>
+#include <QUrl>
 #include <utility>
 
 #include "ui/widgets/PageContainer.h"

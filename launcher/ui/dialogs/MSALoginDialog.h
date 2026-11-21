@@ -16,10 +16,11 @@
 #pragma once
 
 #include <QtWidgets/QDialog>
-#include <QtCore/QEventLoop>
+#include <QString>
 #include <QTimer>
 #include <QUrl>
 
+#include "QObjectPtr.h"
 #include "minecraft/auth/MinecraftAccount.h"
 
 namespace Ui

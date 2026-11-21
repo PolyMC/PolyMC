@@ -45,6 +45,13 @@
 #include <QDebug>
 #include <QHostAddress>
 #include <QUrl>
+#include <QSet>
+#include <QFile>
+#include <QJsonValue>
+#include <QPair>
+#include <QByteArray>
+#include <QObject>
+#include <utility>
 
 #include "AssetsUtils.h"
 #include "FileSystem.h"

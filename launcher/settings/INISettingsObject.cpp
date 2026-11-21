@@ -16,6 +16,8 @@
 #include "INISettingsObject.h"
 #include "Setting.h"
 
+#include <utility>
+
 INISettingsObject::INISettingsObject(const QString& path, QObject* parent)
     : SettingsObject(parent)
 {

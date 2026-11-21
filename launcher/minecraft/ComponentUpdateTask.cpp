@@ -1,12 +1,21 @@
 #include "ComponentUpdateTask.h"
 
 #include <functional>
+#include <algorithm>
+#include <set>
+#include <utility>
+#include <QDebug>
+#include <QFile>
+#include <QFileInfo>
+#include <QString>
+#include <QStringList>
 
 #include "PackProfile_p.h"
 #include "PackProfile.h"
 #include "Component.h"
+#include "ProfileUtils.h"
 #include "meta/Index.h"
-#include "meta/VersionList.h"
+#include "meta/JsonFormat.h"
 #include "meta/Version.h"
 #include "ComponentUpdateTask_p.h"
 #include "cassert"

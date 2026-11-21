@@ -36,11 +36,17 @@
 #pragma once
 
 #include "MinecraftAccount.h"
+#include "QObjectPtr.h"
 
 #include <QObject>
 #include <QVariant>
 #include <QAbstractListModel>
-#include <QSharedPointer>
+#include <QString>
+#include <QStringList>
+#include <QList>
+#include <QJsonObject>
+#include <QTimer>
+#include <cstdint>
 
 /*!
  * List of available accounts.

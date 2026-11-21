@@ -1,8 +1,9 @@
 #pragma once
 
-#include <QFile>
-#include <QtNetwork/QtNetwork>
+#include <QString>
+#include <QNetworkReply>
 #include "tasks/Task.h"
+#include "QObjectPtr.h"
 
 typedef shared_qobject_ptr<class SkinDelete> SkinDeletePtr;
 

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QDialog>
+#include <QString>
+#include <QStringList>
 
 namespace Ui
 {

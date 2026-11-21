@@ -34,10 +34,19 @@
  */
 
 #include "OneSixVersionFormat.h"
+#include <QDebug>
+#include <QJsonArray>
+#include <QList>
+#include <QObject>
+#include <QUuid>
+#include <memory>
+#include <utility>
 #include <Json.h>
 #include "minecraft/Agent.h"
-#include "minecraft/ParseUtils.h"
+#include "minecraft/GradleSpecifier.h"
+#include "minecraft/MojangDownloadInfo.h"
 #include <minecraft/MojangVersionFormat.h>
+#include "meta/JsonFormat.h"
 #include "FileSystem.h"
 
 using namespace Json;

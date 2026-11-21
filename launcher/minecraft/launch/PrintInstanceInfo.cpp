@@ -17,6 +17,7 @@
 #include <string>
 
 #include "PrintInstanceInfo.h"
+#include <QStringList>
 #include <launch/LaunchTask.h>
 
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)

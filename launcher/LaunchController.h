@@ -35,10 +35,17 @@
 
 #pragma once
 #include <QObject>
+#include <QString>
+#include <QWidget>
+#include <utility>
 #include <BaseInstance.h>
 #include <tools/BaseProfiler.h>
 
+#include "QObjectPtr.h"
+#include "tasks/Task.h"
+#include "launch/LaunchTask.h"
 #include "minecraft/launch/MinecraftServerTarget.h"
+#include "minecraft/auth/AuthSession.h"
 #include "minecraft/auth/MinecraftAccount.h"
 
 class InstanceWindow;

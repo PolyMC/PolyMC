@@ -36,6 +36,9 @@
 #pragma once
 
 #include <QFile>
+#include <QString>
+
+#include <memory>
 
 #include "Sink.h"
 

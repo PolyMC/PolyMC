@@ -38,10 +38,12 @@
 #include <QString>
 #include <QStringList>
 #include <QDateTime>
+#include <QList>
+#include <QMap>
 #include <QSet>
 
 #include <memory>
-#include "minecraft/Rule.h"
+#include "RuntimeContext.h"
 #include "ProblemProvider.h"
 #include "Library.h"
 #include "Agent.h"

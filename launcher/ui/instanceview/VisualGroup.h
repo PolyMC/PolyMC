@@ -17,6 +17,9 @@
 
 #include <QString>
 #include <QRect>
+#include <QList>
+#include <QPair>
+#include <QPoint>
 #include <QVector>
 #include <QStyleOption>
 

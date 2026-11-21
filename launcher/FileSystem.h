@@ -38,8 +38,10 @@
 #include "Exception.h"
 #include "pathmatcher/IPathMatcher.h"
 
+#include <QByteArray>
 #include <QDir>
-#include <QFlags>
+#include <QFileInfo>
+#include <QString>
 
 namespace FS
 {

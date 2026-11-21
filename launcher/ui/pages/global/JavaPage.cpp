@@ -39,13 +39,19 @@
 #include "ui_JavaPage.h"
 
 #include <QFileDialog>
+#include <QFileInfo>
+#include <QSpinBox>
 #include <QStyle>
-#include <QDir>
 #include <QTabBar>
+
+#include <memory>
 
 #include "ui/dialogs/VersionSelectDialog.h"
 
+#include "java/JavaInstall.h"
+#include "java/JavaInstallList.h"
 #include "java/JavaUtils.h"
+#include "settings/SettingsObject.h"
 
 #include <FileSystem.h>
 #include "Application.h"

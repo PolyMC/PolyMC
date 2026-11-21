@@ -22,6 +22,7 @@
 #include "Application.h"
 #include "FileSystem.h"
 #include "minecraft/mod/ModFolderModel.h"
+#include "net/Download.h"
 
 ModDownloadTask::ModDownloadTask(
     const ModPlatform::IndexedPack& mod,

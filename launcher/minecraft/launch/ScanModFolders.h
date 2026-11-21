@@ -16,7 +16,6 @@
 #pragma once
 
 #include <launch/LaunchStep.h>
-#include <memory>
 
 class ScanModFolders : public LaunchStep
 {

@@ -4,6 +4,7 @@
 #include "modplatform/flame/PackManifest.h"
 
 #include "Application.h"
+#include "Exception.h"
 #include "FileSystem.h"
 #include "InstanceList.h"
 #include "Json.h"
@@ -13,12 +14,27 @@
 
 #include "modplatform/helpers/OverrideUtils.h"
 
+#include "net/Download.h"
+
 #include "settings/INISettingsObject.h"
 
 #include "ui/dialogs/BlockedModsDialog.h"
 #include "ui/dialogs/CustomMessageBox.h"
 
 #include <QAbstractButton>
+#include <QDebug>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QList>
+#include <QMessageBox>
+#include <QRegularExpression>
+#include <QUrl>
+
+#include <memory>
+#include <utility>
 
 const static QMap<QString, QString> forgemap = {{"1.2.5", "3.4.9.171"},
                                                 {"1.4.2", "6.0.1.355"},

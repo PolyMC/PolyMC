@@ -39,7 +39,9 @@
 #include <QDir>
 #include <QMap>
 #include <QObject>
-#include <QRunnable>
+#include <QString>
+#include <QThread>
+#include <atomic>
 #include <memory>
 #include "minecraft/mod/Mod.h"
 #include "tasks/Task.h"

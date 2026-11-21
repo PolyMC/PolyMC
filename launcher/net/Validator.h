@@ -34,7 +34,9 @@
 
 #pragma once
 
-#include "net/NetAction.h"
+#include <QByteArray>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 
 namespace Net
 {

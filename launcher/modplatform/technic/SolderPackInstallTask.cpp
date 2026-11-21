@@ -38,11 +38,18 @@
 #include <FileSystem.h>
 #include <Json.h>
 #include <QtConcurrentRun>
+#include <QCryptographicHash>
+#include <QDebug>
+#include <QJsonDocument>
+#include <QStringList>
 #include <MMCZip.h>
+
+#include <utility>
 
 #include "TechnicPackProcessor.h"
 #include "SolderPackManifest.h"
 #include "net/ChecksumValidator.h"
+#include "net/Download.h"
 
 Technic::SolderPackInstallTask::SolderPackInstallTask(
     shared_qobject_ptr<QNetworkAccessManager> network, const QUrl& solderUrl,

@@ -14,7 +14,8 @@
  */
 
 #include <QMessageBox>
-#include <QtGui>
+#include <QChar>
+#include <QLabel>
 
 #include "ErrorFrame.h"
 #include "ui_ErrorFrame.h"

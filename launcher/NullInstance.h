@@ -34,6 +34,11 @@
  */
 
 #pragma once
+#include <QMap>
+#include <QProcessEnvironment>
+#include <QSet>
+#include <QString>
+#include <QStringList>
 #include "BaseInstance.h"
 #include "launch/LaunchTask.h"
 

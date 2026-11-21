@@ -2,11 +2,22 @@
 
 #include "InstanceCreationTask.h"
 
+#include <QByteArray>
+#include <QDir>
+#include <QEventLoop>
+#include <QMap>
+#include <QString>
+#include <QStringList>
+#include <QWidget>
+
 #include <optional>
 
-#include "minecraft/MinecraftInstance.h"
+#include "BaseInstance.h"
+#include "QObjectPtr.h"
+#include "settings/SettingsObject.h"
 
 #include "modplatform/flame/FileResolvingTask.h"
+#include "modplatform/flame/PackManifest.h"
 
 #include "net/NetJob.h"
 

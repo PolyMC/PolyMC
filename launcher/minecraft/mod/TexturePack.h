@@ -25,6 +25,8 @@
 #include <QMutex>
 #include <QPixmap>
 #include <QPixmapCache>
+#include <QSize>
+#include <QString>
 
 class Version;
 

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <QDebug>
+#include <QByteArray>
 #include <QObject>
 
 #include "minecraft/mod/ResourcePack.h"

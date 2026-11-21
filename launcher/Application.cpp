@@ -77,23 +77,33 @@
 #include "ApplicationMessage.h"
 
 #include <iostream>
+#include <cstdio>
+#include <utility>
 
 #include <QAccessible>
+#include <QByteArray>
 #include <QCommandLineParser>
+#include <QDialog>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
+#include <QFont>
+#include <QFontInfo>
+#include <QHostInfo>
+#include <QLatin1String>
+#include <QMessageBox>
 #include <QNetworkAccessManager>
-#include <QTranslator>
-#include <QLibraryInfo>
-#include <QList>
+#include <QNetworkProxy>
+#include <QStandardPaths>
 #include <QStringList>
 #include <QDebug>
 #include <QMutex>
-#include <QStyleFactory>
+#include <QTextStream>
 #include <QWindow>
 #include <QIcon>
 
 #include "InstanceList.h"
+#include "LaunchController.h"
 
 #include <minecraft/auth/AccountList.h>
 #include "icons/IconList.h"
@@ -101,7 +111,7 @@
 
 #include "ui/GuiUtil.h"
 
-#include "java/JavaUtils.h"
+#include "java/JavaInstallList.h"
 
 #include "updater/UpdateChecker.h"
 
@@ -111,6 +121,7 @@
 
 #include "settings/INISettingsObject.h"
 #include "settings/Setting.h"
+#include "settings/SettingsObject.h"
 
 #include "translations/TranslationsModel.h"
 #include "meta/Index.h"
@@ -124,6 +135,11 @@
 #ifdef Q_OS_LINUX
 #include <dlfcn.h>
 #include "gamemode_client.h"
+#endif
+
+#ifdef Q_OS_MACOS
+#include <QApplicationStateChangeEvent>
+#include <QEvent>
 #endif
 
 #if defined Q_OS_WIN32

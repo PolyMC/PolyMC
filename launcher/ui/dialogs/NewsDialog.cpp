@@ -1,6 +1,9 @@
 #include "NewsDialog.h"
 #include "ui_NewsDialog.h"
 
+#include <QListWidget>
+#include <QPushButton>
+
 NewsDialog::NewsDialog(QList<NewsEntryPtr> entries, QWidget* parent)
     : QDialog(parent), ui(new Ui::NewsDialog())
 {

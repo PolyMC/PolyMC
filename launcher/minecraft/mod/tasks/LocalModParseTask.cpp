@@ -2,11 +2,15 @@
 
 #include <quazip/quazip.h>
 #include <toml++/toml.h>
+#include <QByteArray>
+#include <QDebug>
+#include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QString>
+#include <utility>
 
 #include "FileSystem.h"
 #include "Json.h"

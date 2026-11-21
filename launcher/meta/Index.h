@@ -16,6 +16,11 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QHash>
+#include <QJsonObject>
+#include <QList>
+#include <QString>
+#include <QVariant>
 #include <memory>
 
 #include "BaseEntity.h"

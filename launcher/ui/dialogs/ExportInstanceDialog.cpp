@@ -39,12 +39,21 @@
 #include <MMCZip.h>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <qfilesystemmodel.h>
+#include <QFileSystemModel>
 
 #include <QSortFilterProxyModel>
 #include <QDebug>
-#include <qstack.h>
-#include <QSaveFile>
+#include <QStack>
+#include <QAbstractItemModel>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QHeaderView>
+#include <QSize>
+#include <QStringList>
+#include <QVariant>
+#include <utility>
+#include "Exception.h"
 #include "MMCStrings.h"
 #include "SeparatorPrefixTree.h"
 #include "Application.h"

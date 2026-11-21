@@ -15,8 +15,10 @@
 
 #pragma once
 
-#include <QPushButton>
 #include <QToolButton>
+#include <QIcon>
+#include <QString>
+#include <QSize>
 
 class QLabel;
 

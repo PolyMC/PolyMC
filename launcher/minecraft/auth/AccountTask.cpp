@@ -34,16 +34,9 @@
  */
 
 #include "AccountTask.h"
-#include "MinecraftAccount.h"
 
 #include <QObject>
 #include <QString>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QNetworkReply>
-#include <QByteArray>
-
-#include <QDebug>
 
 AccountTask::AccountTask(AccountData* data, QObject* parent)
     : Task(parent), m_data(data)

@@ -4,6 +4,7 @@
 #include <QTreeView>
 #include <QHeaderView>
 #include <QLabel>
+#include <QItemSelectionModel>
 #include "Application.h"
 #include "BuildConfig.h"
 #include "translations/TranslationsModel.h"

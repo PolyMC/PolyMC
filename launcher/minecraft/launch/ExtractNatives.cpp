@@ -18,11 +18,14 @@
 #include <launch/LaunchTask.h>
 
 #include <quazip/quazip.h>
-#include <quazip/quazipdir.h>
-#include "MMCZip.h"
+#include <quazip/quazipfileinfo.h>
+#include <quazip/JlCompress.h>
 #include "FileSystem.h"
 #include <QDir>
 #include <QDebug>
+#include <QString>
+#include <memory>
+#include <utility>
 
 #ifdef major
 #undef major

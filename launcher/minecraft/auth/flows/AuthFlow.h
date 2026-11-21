@@ -2,14 +2,10 @@
 
 #include <QObject>
 #include <QList>
-#include <QVector>
-#include <QSet>
-#include <QNetworkReply>
-#include <QImage>
+#include <QString>
 
-#include <katabasis/DeviceFlow.h>
+#include <katabasis/Bits.h>
 
-#include "minecraft/auth/Yggdrasil.h"
 #include "minecraft/auth/AccountData.h"
 #include "minecraft/auth/AccountTask.h"
 #include "minecraft/auth/AuthStep.h"

@@ -1,6 +1,8 @@
 #include "JavaSettingsWidget.h"
 
 #include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QSpinBox>
 #include <QLabel>
@@ -9,11 +11,16 @@
 #include <QToolButton>
 #include <QFileDialog>
 #include <QStyle>
+#include <QFileInfo>
+#include <QMessageBox>
+
+#include <memory>
 
 #include <sys.h>
 
 #include "JavaCommon.h"
 #include "java/JavaInstall.h"
+#include "java/JavaInstallList.h"
 #include "java/JavaUtils.h"
 #include "FileSystem.h"
 

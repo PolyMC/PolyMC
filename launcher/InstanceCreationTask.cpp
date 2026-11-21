@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QFile>
+#include <utility>
 
 InstanceCreationTask::InstanceCreationTask() = default;
 

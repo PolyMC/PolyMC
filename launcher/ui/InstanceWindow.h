@@ -36,9 +36,9 @@
 #pragma once
 
 #include <QMainWindow>
-#include <QSystemTrayIcon>
+#include <QString>
 
-#include "LaunchController.h"
+#include "BaseInstance.h"
 #include "launch/LaunchTask.h"
 
 #include "ui/pages/BasePageContainer.h"

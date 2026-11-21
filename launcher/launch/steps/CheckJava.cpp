@@ -39,7 +39,6 @@
 #include <FileSystem.h>
 #include <QStandardPaths>
 #include <QFileInfo>
-#include <sys.h>
 
 void CheckJava::executeTask()
 {

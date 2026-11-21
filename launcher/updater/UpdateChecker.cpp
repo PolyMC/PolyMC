@@ -15,15 +15,19 @@
 
 #include "UpdateChecker.h"
 
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QJsonParseError>
 #include <QJsonValue>
 #include <QDebug>
+#include <QUrl>
+#include <utility>
+
+#include "net/Download.h"
 
 #define API_VERSION 0
 #define CHANLIST_FORMAT 0
-
-#include "BuildConfig.h"
 
 UpdateChecker::UpdateChecker(shared_qobject_ptr<QNetworkAccessManager> nam,
                              QString channelUrl, QString currentChannel)

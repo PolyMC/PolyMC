@@ -36,7 +36,6 @@
 #pragma once
 
 #include <launch/LaunchStep.h>
-#include <launch/LaunchTask.h>
 
 class VerifyJavaInstall : public LaunchStep
 {

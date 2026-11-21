@@ -37,6 +37,7 @@
 #include "LanguagePage.h"
 
 #include "ui/widgets/LanguageSelectionWidget.h"
+#include "settings/SettingsObject.h"
 #include <QVBoxLayout>
 
 LanguagePage::LanguagePage(QWidget* parent) : QWidget(parent)

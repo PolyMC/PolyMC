@@ -37,15 +37,17 @@
 #include "Application.h"
 
 #include <QMessageBox>
-#include <QLabel>
-#include <QEvent>
-#include <QKeyEvent>
 #include <QMenu>
-#include <QAbstractItemModel>
-#include <QMessageBox>
-#include <QListView>
 #include <QString>
-#include <QUrl>
+#include <QAbstractItemView>
+#include <QAbstractProxyModel>
+#include <QDebug>
+#include <QFileInfo>
+#include <QIcon>
+#include <QIdentityProxyModel>
+#include <QItemSelectionModel>
+#include <QStringList>
+#include <QVariant>
 
 #include "VersionPage.h"
 #include "ui_VersionPage.h"
@@ -59,11 +61,14 @@
 
 #include "minecraft/PackProfile.h"
 #include "minecraft/auth/AccountList.h"
-#include "minecraft/mod/Mod.h"
 #include "icons/IconList.h"
 #include "Exception.h"
 #include "Version.h"
 #include "DesktopServices.h"
+#include "BaseVersionList.h"
+#include "ProblemProvider.h"
+#include "net/Mode.h"
+#include "tasks/Task.h"
 
 #include "meta/Index.h"
 #include "meta/VersionList.h"

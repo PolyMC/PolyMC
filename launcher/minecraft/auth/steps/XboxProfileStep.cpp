@@ -2,9 +2,10 @@
 
 #include <QNetworkRequest>
 #include <QUrlQuery>
+#include <QUrl>
+#include <QDebug>
 
 #include "minecraft/auth/AuthRequest.h"
-#include "minecraft/auth/Parsers.h"
 #include "net/NetUtils.h"
 
 XboxProfileStep::XboxProfileStep(AccountData* data) : AuthStep(data)

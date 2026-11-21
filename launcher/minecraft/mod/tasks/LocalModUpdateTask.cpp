@@ -19,10 +19,10 @@
 
 #include "LocalModUpdateTask.h"
 
-#include "Application.h"
 #include "FileSystem.h"
 #include "minecraft/mod/MetadataHandler.h"
 
+#include <QDebug>
 #include <QFile>
 
 #ifdef Q_OS_WIN32

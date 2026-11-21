@@ -14,10 +14,12 @@
  */
 
 #pragma once
+#include <cstdint>
 #include <optional>
+#include <QByteArray>
 #include <QDateTime>
 #include <QFileInfo>
-#include "FileSystem.h"
+#include <QString>
 
 struct GameType
 {

@@ -34,11 +34,12 @@
  */
 
 #include "PackFetchTask.h"
-#include "PrivatePackManager.h"
 
 #include <QDomDocument>
+#include <QUrl>
+#include <QDebug>
 #include "BuildConfig.h"
-#include "Application.h"
+#include "net/Download.h"
 
 #include <functional>
 

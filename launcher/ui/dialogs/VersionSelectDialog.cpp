@@ -15,12 +15,10 @@
 
 #include "VersionSelectDialog.h"
 
-#include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QVBoxLayout>
-#include <QDebug>
 
 #include "ui/widgets/VersionSelectWidget.h"
 

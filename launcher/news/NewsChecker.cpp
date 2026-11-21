@@ -37,8 +37,11 @@
 
 #include <QByteArray>
 #include <QDomDocument>
+#include <QDomNodeList>
 
 #include <QDebug>
+
+#include "net/Download.h"
 
 NewsChecker::NewsChecker(shared_qobject_ptr<QNetworkAccessManager> network,
                          const QString& feedUrl)

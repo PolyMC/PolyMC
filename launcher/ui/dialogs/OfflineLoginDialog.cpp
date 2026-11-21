@@ -4,9 +4,13 @@
 #include "minecraft/auth/AccountTask.h"
 
 #include <QtWidgets/QPushButton>
+#include <QDialogButtonBox>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 #include <QString>
+
+#include <climits>
+#include <utility>
 
 static bool regexDisabled = false;
 

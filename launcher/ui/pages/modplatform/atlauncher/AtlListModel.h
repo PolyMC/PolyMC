@@ -17,9 +17,12 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QByteArray>
+#include <QList>
+#include <QString>
+#include <QVariant>
 
 #include "net/NetJob.h"
-#include <QIcon>
 #include <modplatform/atlauncher/ATLPackIndex.h>
 
 class LogoCache;

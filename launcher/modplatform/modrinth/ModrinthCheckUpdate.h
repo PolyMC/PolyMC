@@ -1,9 +1,19 @@
 #pragma once
 
-#include "Application.h"
+#include "Version.h"
+#include "minecraft/mod/Mod.h"
 #include "minecraft/mod/ModFolderModel.h"
 #include "modplatform/CheckUpdateTask.h"
+#include "modplatform/ModAPI.h"
 #include "net/NetJob.h"
+
+#include <QByteArray>
+#include <QHash>
+#include <QList>
+#include <QString>
+
+#include <list>
+#include <memory>
 
 class ModrinthCheckUpdate : public CheckUpdateTask
 {

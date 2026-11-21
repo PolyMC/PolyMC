@@ -15,11 +15,13 @@
 
 #pragma once
 
+#include <QDebug>
+#include <QHash>
 #include <QJsonObject>
-#include <memory>
+#include <QMetaType>
+#include <QString>
 
 #include "Exception.h"
-#include "meta/BaseEntity.h"
 #include <set>
 
 namespace Meta

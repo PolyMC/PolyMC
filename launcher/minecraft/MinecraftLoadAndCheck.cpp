@@ -1,6 +1,8 @@
 #include "MinecraftLoadAndCheck.h"
+#include <QDebug>
 #include "MinecraftInstance.h"
 #include "PackProfile.h"
+#include "net/Mode.h"
 
 MinecraftLoadAndCheck::MinecraftLoadAndCheck(MinecraftInstance* inst,
                                              QObject* parent)

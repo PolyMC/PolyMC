@@ -17,6 +17,8 @@
 
 #include <QString>
 #include <QMap>
+#include <QUrl>
+#include <QDir>
 #include "net/NetAction.h"
 #include "net/NetJob.h"
 

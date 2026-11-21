@@ -1,6 +1,9 @@
 #include "JProfiler.h"
 
 #include <QDir>
+#include <QProcess>
+#include <QString>
+#include <QStringList>
 
 #include "settings/SettingsObject.h"
 #include "launch/LaunchTask.h"

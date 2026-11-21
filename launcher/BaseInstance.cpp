@@ -37,15 +37,11 @@
 #include "BaseInstance.h"
 
 #include <QFileInfo>
-#include <QDir>
 #include <QDebug>
 #include <QRegularExpression>
 
-#include "settings/INISettingsObject.h"
 #include "settings/Setting.h"
-#include "settings/OverrideSetting.h"
 
-#include "FileSystem.h"
 #include "Commandline.h"
 #include "BuildConfig.h"
 

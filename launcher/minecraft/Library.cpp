@@ -34,9 +34,14 @@
  */
 
 #include "Library.h"
-#include "MinecraftInstance.h"
+
+#include <QFileInfo>
+#include <QDebug>
+#include <QByteArray>
+#include <QCryptographicHash>
 
 #include <net/Download.h>
+#include <net/HttpMetaCache.h>
 #include <net/ChecksumValidator.h>
 #include <FileSystem.h>
 #include <BuildConfig.h>

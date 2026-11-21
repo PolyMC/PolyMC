@@ -17,6 +17,7 @@
 
 #include <QSortFilterProxyModel>
 #include <QCollator>
+#include <QString>
 
 class InstanceProxyModel : public QSortFilterProxyModel
 {

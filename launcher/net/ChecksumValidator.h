@@ -37,8 +37,9 @@
 
 #include "Validator.h"
 
+#include <QByteArray>
 #include <QCryptographicHash>
-#include <QFile>
+#include <QDebug>
 
 namespace Net
 {

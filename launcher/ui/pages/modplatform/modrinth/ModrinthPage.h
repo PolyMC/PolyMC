@@ -43,6 +43,11 @@
 #include "modplatform/modrinth/ModrinthPackManifest.h"
 #include "net/NetJob.h"
 
+#include <QByteArray>
+#include <QIcon>
+#include <QModelIndex>
+#include <QPersistentModelIndex>
+#include <QString>
 #include <QWidget>
 
 namespace Ui

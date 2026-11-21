@@ -18,6 +18,7 @@
 #include "ATLPackIndex.h"
 
 #include <QRegularExpression>
+#include <utility>
 
 #include "Json.h"
 

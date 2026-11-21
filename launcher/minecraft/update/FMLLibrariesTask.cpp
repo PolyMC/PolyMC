@@ -1,6 +1,13 @@
 #include "FMLLibrariesTask.h"
 
+#include <QDebug>
+#include <QFile>
+#include <QFileInfo>
+#include <QStringList>
+#include <QUrl>
+
 #include "FileSystem.h"
+#include "net/Download.h"
 #include "minecraft/VersionFilterData.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"

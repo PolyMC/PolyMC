@@ -1,5 +1,12 @@
 #pragma once
 
+#include <QByteArray>
+#include <QDateTime>
+#include <QJsonValue>
+#include <QString>
+#include <cstdint>
+#include <katabasis/Bits.h>
+
 #include "AccountData.h"
 
 namespace Parsers

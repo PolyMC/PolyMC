@@ -38,9 +38,16 @@
 #include "ui_ModPage.h"
 
 #include <QKeyEvent>
+#include <QDebug>
+#include <QEvent>
+#include <QListView>
+#include <QPushButton>
+#include <QStringList>
+#include <QVariant>
 #include <memory>
 
 #include "Markdown.h"
+#include "ModDownloadTask.h"
 
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"

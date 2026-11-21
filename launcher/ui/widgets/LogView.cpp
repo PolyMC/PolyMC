@@ -36,6 +36,13 @@
 #include "LogView.h"
 #include <QTextBlock>
 #include <QScrollBar>
+#include <QAbstractItemModel>
+#include <QTextOption>
+#include <QTextCursor>
+#include <QTextDocument>
+#include <QChar>
+#include <QColor>
+#include <QFont>
 
 LogView::LogView(QWidget* parent) : QPlainTextEdit(parent)
 {

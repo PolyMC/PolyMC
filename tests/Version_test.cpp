@@ -15,7 +15,6 @@
 
 #include <QTest>
 
-#include <TestUtil.h>
 #include <Version.h>
 
 class ModUtilsTest : public QObject

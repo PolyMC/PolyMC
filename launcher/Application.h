@@ -37,16 +37,22 @@
 
 #include <QApplication>
 #include <memory>
-#include <QDebug>
+#include <map>
+#include <vector>
 #include <QFlag>
 #include <QIcon>
 #include <QDateTime>
 #include <QUrl>
-#include <updater/GoUpdate.h>
+#include <QMap>
+#include <QSet>
+#include <QString>
+#include <QVariant>
 
 #include <BaseInstance.h>
 #include <tools/BaseProfiler.h>
 
+#include "QObjectPtr.h"
+#include "minecraft/auth/MinecraftAccount.h"
 #include "minecraft/launch/MinecraftServerTarget.h"
 
 class LaunchController;

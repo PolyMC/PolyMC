@@ -35,7 +35,14 @@
 
 #pragma once
 
-#include "net/NetAction.h"
+#include <QByteArray>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+
+#include <memory>
+#include <vector>
+
+#include "tasks/Task.h"
 
 #include "Validator.h"
 

@@ -1,4 +1,5 @@
 #include "FlameModModel.h"
+#include "Application.h"
 #include "Json.h"
 #include "modplatform/flame/FlameModIndex.h"
 

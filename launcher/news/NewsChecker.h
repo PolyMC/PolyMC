@@ -18,7 +18,10 @@
 #include <QObject>
 #include <QString>
 #include <QList>
+#include <QByteArray>
+#include <QNetworkAccessManager>
 
+#include <QObjectPtr.h>
 #include <net/NetJob.h>
 
 #include "NewsEntry.h"

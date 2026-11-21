@@ -16,10 +16,13 @@
 #pragma once
 
 #include <QCheckBox>
-#include <QSortFilterProxyModel>
+#include <QModelIndex>
+#include <QString>
 #include <QWidget>
+#include "BaseVersion.h"
 #include "BaseVersionList.h"
 #include "VersionListView.h"
+#include "tasks/Task.h"
 
 class VersionProxyModel;
 class VersionListView;

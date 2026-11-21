@@ -35,10 +35,13 @@
 
 #pragma once
 
-#include <QtNetwork>
+#include <QList>
+#include <QNetworkAccessManager>
+#include <QString>
 
 #include <QObject>
 #include "NetAction.h"
+#include "QObjectPtr.h"
 #include "tasks/ConcurrentTask.h"
 
 // Those are included so that they are also included by anyone using NetJob

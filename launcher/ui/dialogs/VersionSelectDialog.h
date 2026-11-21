@@ -16,9 +16,11 @@
 #pragma once
 
 #include <QDialog>
-#include <QSortFilterProxyModel>
+#include <QString>
 
+#include "BaseVersion.h"
 #include "BaseVersionList.h"
+#include "tasks/Task.h"
 
 class QVBoxLayout;
 class QHBoxLayout;

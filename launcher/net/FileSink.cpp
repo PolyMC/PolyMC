@@ -37,8 +37,11 @@
 
 #include "FileSystem.h"
 
+#include <QDebug>
 #include <QDir>
+#include <QFileInfo>
 #include <QRandomGenerator>
+#include <QVariant>
 
 #ifdef Q_OS_WIN
 #include <windows.h>

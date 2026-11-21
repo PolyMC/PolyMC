@@ -1,7 +1,9 @@
 #pragma once
 
 #include <QObject>
+#include <QString>
 #include <BaseInstance.h>
+#include <settings/SettingsObject.h>
 
 class BaseInstance;
 class SettingsObject;

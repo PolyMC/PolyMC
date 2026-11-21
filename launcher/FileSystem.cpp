@@ -42,8 +42,8 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QStandardPaths>
+#include <QStringList>
 #include <QTextStream>
-#include <QUrl>
 
 #include <limits>
 #include <system_error>

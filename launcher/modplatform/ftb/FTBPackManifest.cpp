@@ -38,6 +38,8 @@
 
 #include "Json.h"
 
+#include <utility>
+
 static void loadSpecs(FTB::Specs& s, QJsonObject& obj)
 {
     s.id = Json::requireInteger(obj, "id");

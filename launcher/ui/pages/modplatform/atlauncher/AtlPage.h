@@ -39,11 +39,13 @@
 #include "AtlListModel.h"
 
 #include <QWidget>
-#include <modplatform/atlauncher/ATLPackInstallTask.h>
+#include <QIcon>
+#include <QModelIndex>
+#include <QString>
+#include <modplatform/atlauncher/ATLPackIndex.h>
 
 #include "Application.h"
 #include "ui/pages/BasePage.h"
-#include "tasks/Task.h"
 
 namespace Ui
 {

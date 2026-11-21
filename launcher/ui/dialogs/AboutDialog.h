@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <QByteArray>
 #include <QDialog>
 #include <net/NetJob.h>
 

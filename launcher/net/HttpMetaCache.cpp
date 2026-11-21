@@ -34,6 +34,7 @@
  */
 
 #include "HttpMetaCache.h"
+#include "Exception.h"
 #include "FileSystem.h"
 #include "Json.h"
 
@@ -41,8 +42,14 @@
 #include <QDateTime>
 #include <QFile>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
 
 #include <QDebug>
+
+#include <utility>
 
 QString MetaEntry::getFullPath()
 {

@@ -36,10 +36,12 @@
 #pragma once
 
 #include <QWidget>
+#include <QString>
+#include <QIcon>
+#include <QUrl>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "tasks/Task.h"
 
 namespace Ui
 {

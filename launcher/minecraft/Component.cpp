@@ -38,9 +38,15 @@
 #include "Component.h"
 
 #include <QSaveFile>
+#include <QFile>
+#include <QDebug>
+#include <set>
 
 #include "meta/Version.h"
+#include "net/Mode.h"
+#include "Exception.h"
 #include "VersionFile.h"
+#include "LaunchProfile.h"
 #include "minecraft/PackProfile.h"
 #include "FileSystem.h"
 #include "OneSixVersionFormat.h"

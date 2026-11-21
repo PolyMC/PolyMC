@@ -16,10 +16,11 @@
 #pragma once
 
 #include <QDialog>
+#include <QString>
 
-#include <memory>
-
+#include "QObjectPtr.h"
 #include "minecraft/auth/AccountList.h"
+#include "minecraft/auth/MinecraftAccount.h"
 
 namespace Ui
 {

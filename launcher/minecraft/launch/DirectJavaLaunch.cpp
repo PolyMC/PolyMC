@@ -15,6 +15,8 @@
 #include "DirectJavaLaunch.h"
 
 #include <QStandardPaths>
+#include <QStringList>
+#include <memory>
 
 #include <launch/LaunchTask.h>
 #include <minecraft/MinecraftInstance.h>

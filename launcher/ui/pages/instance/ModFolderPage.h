@@ -36,9 +36,16 @@
 
 #pragma once
 
+#include <QIcon>
+#include <QModelIndex>
+#include <QString>
+
+#include <memory>
+
 #include "Application.h"
+#include "BaseInstance.h"
 #include "DownloadableResourcesPage.h"
-#include "ModDownloadTask.h"
+#include "minecraft/mod/ModFolderModel.h"
 
 class ModFolderPage : public DownloadableResourcesPage
 {

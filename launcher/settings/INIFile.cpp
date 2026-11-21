@@ -35,11 +35,11 @@
 
 #include "settings/INIFile.h"
 #include <FileSystem.h>
+#include "Exception.h"
 
 #include <QFile>
 #include <QTextStream>
 #include <QStringList>
-#include <QSaveFile>
 #include <QDebug>
 
 INIFile::INIFile()

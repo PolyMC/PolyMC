@@ -19,6 +19,14 @@
 #include <QStyledItemDelegate>
 #include <QEvent>
 #include <QScrollBar>
+#include <QAbstractListModel>
+#include <QIcon>
+#include <QList>
+#include <QPixmap>
+#include <QSize>
+#include <QVariant>
+
+#include "ui/pages/BasePage.h"
 
 class BasePage;
 const int pageIconSize = 24;

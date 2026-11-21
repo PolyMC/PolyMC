@@ -34,9 +34,8 @@
  */
 
 #include "ScanModFolders.h"
+#include <memory>
 #include "launch/LaunchTask.h"
-#include "MMCZip.h"
-#include "FileSystem.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/mod/ModFolderModel.h"
 

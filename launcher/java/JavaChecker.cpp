@@ -35,15 +35,16 @@
 
 #include "JavaChecker.h"
 
-#include <QFile>
+#include <QByteArray>
 #include <QProcess>
+#include <QProcessEnvironment>
 #include <QMap>
 #include <QDebug>
+#include <QStringList>
+#include <utility>
 
 #include "JavaUtils.h"
-#include "FileSystem.h"
 #include "Commandline.h"
-#include "Application.h"
 
 JavaChecker::JavaChecker(QObject* parent) : QObject(parent)
 {

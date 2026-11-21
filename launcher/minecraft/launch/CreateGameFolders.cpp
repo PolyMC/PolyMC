@@ -1,4 +1,5 @@
 #include "CreateGameFolders.h"
+#include <memory>
 #include "minecraft/MinecraftInstance.h"
 #include "launch/LaunchTask.h"
 #include "FileSystem.h"

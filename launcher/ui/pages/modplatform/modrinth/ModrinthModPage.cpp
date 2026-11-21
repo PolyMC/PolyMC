@@ -40,6 +40,10 @@
 #include "ModrinthModModel.h"
 #include "ui/dialogs/ModDownloadDialog.h"
 
+#include <QItemSelectionModel>
+
+#include <utility>
+
 ModrinthModPage::ModrinthModPage(ModDownloadDialog* dialog,
                                  ModAPI::ResourceType type,
                                  BaseInstance* instance)

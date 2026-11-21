@@ -16,8 +16,10 @@
 #pragma once
 
 #include "ui/pages/BasePage.h"
-#include <memory>
+#include <QList>
+#include <QString>
 #include <functional>
+#include <utility>
 
 class BasePageProvider
 {

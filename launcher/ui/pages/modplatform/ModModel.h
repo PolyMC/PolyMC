@@ -1,6 +1,15 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QByteArray>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QList>
+#include <QString>
+#include <QVariant>
+
+#include <list>
 
 #include "modplatform/ModIndex.h"
 #include "net/NetJob.h"

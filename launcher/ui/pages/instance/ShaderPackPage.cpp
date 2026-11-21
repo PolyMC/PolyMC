@@ -18,7 +18,10 @@
  */
 
 #include "ShaderPackPage.h"
+#include "modplatform/ModAPI.h"
 #include "ui/dialogs/ModDownloadDialog.h"
+
+#include <QAction>
 
 ShaderPackPage::ShaderPackPage(MinecraftInstance* instance,
                                std::shared_ptr<ShaderPackFolderModel> model,

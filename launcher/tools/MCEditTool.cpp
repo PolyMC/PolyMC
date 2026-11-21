@@ -1,12 +1,9 @@
 #include "MCEditTool.h"
 
 #include <QDir>
-#include <QProcess>
-#include <QUrl>
+#include <QObject>
 
 #include "settings/SettingsObject.h"
-#include "BaseInstance.h"
-#include "minecraft/MinecraftInstance.h"
 
 MCEditTool::MCEditTool(SettingsObjectPtr settings)
 {

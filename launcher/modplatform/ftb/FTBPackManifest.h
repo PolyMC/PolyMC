@@ -38,9 +38,10 @@
 
 #include <QString>
 #include <QVector>
-#include <QUrl>
 #include <QJsonObject>
 #include <QMetaType>
+
+#include <cstdint>
 
 namespace FTB
 {

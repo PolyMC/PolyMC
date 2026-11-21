@@ -39,9 +39,12 @@
 #include <QNetworkRequest>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonParseError>
+#include <QByteArray>
 #include <QUrl>
 #include <QStringList>
 #include <QDebug>
+#include <utility>
 
 #include "BuildConfig.h"
 #include "Application.h"

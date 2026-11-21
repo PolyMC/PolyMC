@@ -35,6 +35,7 @@
 
 #include "PreLaunchCommand.h"
 #include <launch/LaunchTask.h>
+#include <QProcess>
 
 PreLaunchCommand::PreLaunchCommand(LaunchTask* parent) : LaunchStep(parent)
 {

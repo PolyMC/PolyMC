@@ -34,12 +34,12 @@
  */
 
 #include <QLabel>
-#include <QVBoxLayout>
 #include <QResizeEvent>
 #include <QStyleOption>
+#include <QStyle>
+#include <QRect>
+#include <QSizePolicy>
 #include "LabeledToolButton.h"
-#include <QApplication>
-#include <QDebug>
 
 /*
  *

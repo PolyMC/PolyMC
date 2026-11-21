@@ -41,17 +41,23 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QTextCharFormat>
+#include <QTextCursor>
 #include <QMenuBar>
+#include <QComboBox>
+#include <QFontComboBox>
+#include <QFont>
+#include <QSpinBox>
+#include <QList>
+#include <QDebug>
 
 #include "updater/UpdateChecker.h"
 
 #include <FileSystem.h>
 #include "Application.h"
 #include "BuildConfig.h"
+#include "MessageLevel.h"
+#include "settings/SettingsObject.h"
 #include "ui/themes/ITheme.h"
-
-#include <QApplication>
-#include <QProcess>
 
 // FIXME: possibly move elsewhere
 enum InstSortMode

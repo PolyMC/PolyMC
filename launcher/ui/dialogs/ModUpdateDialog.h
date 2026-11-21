@@ -1,5 +1,13 @@
 #pragma once
 
+#include <QDir>
+#include <QHash>
+#include <QList>
+#include <QString>
+#include <QUrl>
+#include <memory>
+#include <tuple>
+
 #include "BaseInstance.h"
 #include "ModDownloadTask.h"
 #include "ReviewMessageBox.h"
@@ -7,6 +15,8 @@
 #include "minecraft/mod/ModFolderModel.h"
 
 #include "modplatform/CheckUpdateTask.h"
+#include "modplatform/ModAPI.h"
+#include "modplatform/ModIndex.h"
 
 class Mod;
 class ModrinthCheckUpdate;

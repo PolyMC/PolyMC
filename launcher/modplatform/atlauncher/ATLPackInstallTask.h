@@ -41,11 +41,19 @@
 
 #include "InstanceTask.h"
 #include "net/NetJob.h"
-#include "settings/INISettingsObject.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "meta/Version.h"
 
+#include <QByteArray>
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QMap>
+#include <QString>
+#include <QStringList>
+#include <QVector>
+
+#include <memory>
 #include <optional>
 
 namespace ATLauncher

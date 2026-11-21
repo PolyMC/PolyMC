@@ -36,7 +36,22 @@
 #include "OtherLogsPage.h"
 #include "ui_OtherLogsPage.h"
 
+#include <QApplication>
+#include <QByteArray>
+#include <QDir>
+#include <QFile>
+#include <QFont>
+#include <QKeySequence>
+#include <QLineEdit>
 #include <QMessageBox>
+#include <QPlainTextEdit>
+#include <QSignalBlocker>
+#include <QString>
+#include <QStringList>
+#include <QTabBar>
+#include <QTextDocument>
+
+#include <utility>
 
 #include "ui/GuiUtil.h"
 

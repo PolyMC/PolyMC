@@ -40,7 +40,10 @@
 #include <QString>
 #include <QTimer>
 #include <QPersistentModelIndex>
+#include <QIcon>
+#include <QPoint>
 
+#include "BaseInstance.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 

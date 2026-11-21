@@ -36,6 +36,8 @@
 #pragma once
 
 #include <QWidget>
+#include <QIcon>
+#include <QString>
 
 #include "BaseInstance.h"
 #include "ui/pages/BasePage.h"

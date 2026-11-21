@@ -1,5 +1,8 @@
 #pragma once
 
+#include <QDir>
+#include <QString>
+
 #include "ResourceFolderModel.h"
 
 class ShaderPackFolderModel : public ResourceFolderModel

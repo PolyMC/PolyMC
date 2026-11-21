@@ -15,6 +15,15 @@
 
 #include "JsonFormat.h"
 
+#include <QDateTime>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QList>
+#include <QObject>
+#include <algorithm>
+#include <iterator>
+#include <memory>
+
 // FIXME: remove this from here... somehow
 #include "minecraft/OneSixVersionFormat.h"
 #include "Json.h"

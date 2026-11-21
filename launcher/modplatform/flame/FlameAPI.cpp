@@ -2,12 +2,22 @@
 #include "FlameModIndex.h"
 
 #include "Application.h"
-#include "BuildConfig.h"
 #include "Json.h"
 
+#include "net/Download.h"
 #include "net/Upload.h"
 
+#include <QDebug>
+#include <QEventLoop>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
+#include <QObject>
+
 #include <functional>
+#include <string>
+#include <utility>
 
 namespace
 {

@@ -19,8 +19,6 @@
 #include "PassthroughSetting.h"
 #include <QDebug>
 
-#include <QVariant>
-
 SettingsObject::SettingsObject(QObject* parent) : QObject(parent)
 {
 }

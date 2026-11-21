@@ -36,7 +36,8 @@
 #pragma once
 
 #include <memory>
-#include <QDialog>
+#include <QWidget>
+#include <QString>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>

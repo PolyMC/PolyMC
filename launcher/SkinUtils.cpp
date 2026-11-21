@@ -19,9 +19,6 @@
 
 #include <QFile>
 #include <QPainter>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
 
 namespace SkinUtils
 {

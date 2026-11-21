@@ -1,5 +1,8 @@
 #include "LibrariesTask.h"
 
+#include <QDebug>
+#include <utility>
+
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 

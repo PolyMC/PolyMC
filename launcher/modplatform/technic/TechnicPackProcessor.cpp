@@ -22,7 +22,14 @@
 #include <quazip/quazip.h>
 #include <quazip/quazipdir.h>
 #include <quazip/quazipfile.h>
+#include <settings/INIFile.h>
 #include <settings/INISettingsObject.h>
+
+#include <QByteArray>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QMap>
 
 #include <memory>
 

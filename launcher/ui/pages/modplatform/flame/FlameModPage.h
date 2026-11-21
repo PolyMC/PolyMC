@@ -35,7 +35,13 @@
 
 #pragma once
 
+#include <QIcon>
+#include <QString>
+
+#include "Application.h"
+#include "BaseInstance.h"
 #include "modplatform/ModAPI.h"
+#include "modplatform/ModIndex.h"
 #include "ui/pages/modplatform/ModPage.h"
 
 class FlameModPage : public ModPage

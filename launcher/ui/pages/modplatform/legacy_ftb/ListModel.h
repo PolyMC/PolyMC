@@ -1,13 +1,12 @@
 #pragma once
 
 #include <modplatform/legacy_ftb/PackHelpers.h>
-#include <RWStorage.h>
 
 #include <QAbstractListModel>
 #include <QSortFilterProxyModel>
-#include <QThreadPool>
-#include <QIcon>
-#include <QStyledItemDelegate>
+#include <QMap>
+#include <QString>
+#include <QVariant>
 
 class LogoCache;
 

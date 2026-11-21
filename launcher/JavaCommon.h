@@ -1,8 +1,12 @@
 #pragma once
 #include <java/JavaChecker.h>
 
+#include <QObject>
 #include <QPointer>
+#include <QString>
 #include <QWidget>
+
+#include <memory>
 
 /**
  * Common UI bits for the java pages to use.

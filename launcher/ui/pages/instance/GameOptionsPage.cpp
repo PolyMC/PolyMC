@@ -38,6 +38,9 @@
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/gameoptions/GameOptions.h"
 
+#include <QHeaderView>
+#include <QTabBar>
+
 GameOptionsPage::GameOptionsPage(MinecraftInstance* inst, QWidget* parent)
     : QWidget(parent), ui(new Ui::GameOptionsPage)
 {

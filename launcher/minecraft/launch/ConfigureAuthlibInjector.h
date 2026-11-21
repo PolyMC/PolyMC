@@ -1,7 +1,10 @@
 #pragma once
 
+#include <QString>
+#include <memory>
+
 #include <launch/LaunchStep.h>
-#include <minecraft/auth/MinecraftAccount.h>
+#include "net/HttpMetaCache.h"
 #include "net/NetJob.h"
 
 class ConfigureAuthlibInjector : public LaunchStep

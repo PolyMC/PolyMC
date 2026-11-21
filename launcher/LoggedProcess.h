@@ -35,7 +35,10 @@
 
 #pragma once
 
+#include <QObject>
 #include <QProcess>
+#include <QString>
+#include <QStringList>
 #include "PolyMCTextCodec.h"
 #include "MessageLevel.h"
 #include "ProcessSuspender.h"

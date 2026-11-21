@@ -1,9 +1,10 @@
 #include "Version.h"
 
 #include <QStringList>
-#include <QUrl>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
+
+#include <utility>
 
 Version::Version(const QString& str) : m_string(str)
 {

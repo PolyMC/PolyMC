@@ -19,7 +19,11 @@
 #pragma once
 
 #include <QDialog>
+#include <QHash>
+#include <QList>
+#include <QString>
 #include <QVBoxLayout>
+#include <memory>
 
 #include "BaseInstance.h"
 #include "modplatform/ModAPI.h"

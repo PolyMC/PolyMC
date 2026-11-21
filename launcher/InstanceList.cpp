@@ -33,22 +33,27 @@
  *      limitations under the License.
  */
 
+#include <QByteArray>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
+#include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
+#include <QJsonValue>
 #include <QMimeData>
 #include <QSet>
 #include <QStack>
-#include <QPair>
-#include <QTextStream>
-#include <QThread>
 #include <QTimer>
 #include <QUuid>
-#include <QXmlStreamReader>
+
+#include <algorithm>
+#include <memory>
+#include <utility>
 
 #include "BaseInstance.h"
 #include "ExponentialSeries.h"
@@ -56,6 +61,7 @@
 #include "InstanceList.h"
 #include "InstanceTask.h"
 #include "NullInstance.h"
+#include "QObjectPtr.h"
 #include "WatchLock.h"
 #include "minecraft/MinecraftInstance.h"
 #include "settings/INISettingsObject.h"

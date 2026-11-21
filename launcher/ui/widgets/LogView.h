@@ -1,6 +1,8 @@
 #pragma once
 #include <QPlainTextEdit>
-#include <QAbstractItemView>
+#include <QModelIndex>
+#include <QString>
+#include <QTextCharFormat>
 
 class QAbstractItemModel;
 

@@ -36,18 +36,20 @@
 #include "InstanceWindow.h"
 #include "Application.h"
 
-#include <QScrollBar>
-#include <QMessageBox>
 #include <QHBoxLayout>
 #include <QPushButton>
-#include <qlayoutitem.h>
+#include <QSpacerItem>
+#include <QSizePolicy>
 #include <QCloseEvent>
+#include <QByteArray>
+#include <QString>
+#include <memory>
 
-#include "ui/dialogs/CustomMessageBox.h"
-#include "ui/dialogs/ProgressDialog.h"
 #include "ui/widgets/PageContainer.h"
 
 #include "InstancePageProvider.h"
+#include "minecraft/MinecraftInstance.h"
+#include "settings/SettingsObject.h"
 
 #include "icons/IconList.h"
 

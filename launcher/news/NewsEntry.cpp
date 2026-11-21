@@ -16,7 +16,6 @@
 #include "NewsEntry.h"
 
 #include <QDomNodeList>
-#include <QVariant>
 
 NewsEntry::NewsEntry(QObject* parent) : QObject(parent)
 {

@@ -38,10 +38,14 @@
 #include <QWidget>
 #include <QTreeView>
 #include <QTextBrowser>
+#include <QIcon>
+#include <QModelIndex>
+#include <QString>
+
+#include <memory>
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>
-#include "tasks/Task.h"
 #include "modplatform/legacy_ftb/PackHelpers.h"
 #include "modplatform/legacy_ftb/PackFetchTask.h"
 #include "QObjectPtr.h"

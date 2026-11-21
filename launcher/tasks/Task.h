@@ -35,7 +35,10 @@
 
 #pragma once
 
+#include <QObject>
 #include <QRunnable>
+#include <QString>
+#include <QStringList>
 
 #include "QObjectPtr.h"
 

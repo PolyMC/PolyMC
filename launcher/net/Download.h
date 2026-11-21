@@ -36,6 +36,14 @@
 
 #pragma once
 
+#include <QByteArray>
+#include <QList>
+#include <QSslError>
+#include <QString>
+#include <QUrl>
+
+#include <memory>
+
 #include "HttpMetaCache.h"
 #include "NetAction.h"
 #include "Sink.h"

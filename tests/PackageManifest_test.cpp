@@ -1,5 +1,6 @@
 #include <QTest>
 #include <QDebug>
+#include <QByteArray>
 
 #include <mojang/PackageManifest.h>
 

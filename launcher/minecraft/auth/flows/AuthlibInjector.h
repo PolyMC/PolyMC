@@ -1,4 +1,6 @@
 #pragma once
+#include <QString>
+
 #include "AuthFlow.h"
 
 class AuthlibInjectorRefresh : public AuthFlow

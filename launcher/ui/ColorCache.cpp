@@ -1,4 +1,5 @@
 #include "ColorCache.h"
+#include <rainbow.h>
 
 /**
  * Blend the color with the front color, adapting to the back color

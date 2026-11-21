@@ -38,14 +38,12 @@
 #include "APIPage.h"
 #include "ui_APIPage.h"
 
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QStandardPaths>
-#include <QTabBar>
-#include <QVariant>
+#include <QComboBox>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QUrl>
 
 #include "settings/SettingsObject.h"
-#include "tools/BaseProfiler.h"
 #include "Application.h"
 #include "minecraft/AssetsUtils.h"
 #include "net/PasteUpload.h"

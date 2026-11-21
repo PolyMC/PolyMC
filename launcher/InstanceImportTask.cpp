@@ -38,8 +38,12 @@
 
 #include "Application.h"
 #include "FileSystem.h"
+#include "InstanceCreationTask.h"
 #include "MMCZip.h"
 #include "NullInstance.h"
+#include "QObjectPtr.h"
+
+#include "net/Download.h"
 
 #include "icons/IconList.h"
 #include "icons/IconUtils.h"
@@ -50,9 +54,13 @@
 
 #include "settings/INISettingsObject.h"
 
+#include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QThreadPool>
 #include <QtConcurrentRun>
-#include <algorithm>
 
+#include <quazip/quazip.h>
 #include <quazip/quazipdir.h>
 
 InstanceImportTask::InstanceImportTask(const QUrl sourceUrl, QWidget* parent)

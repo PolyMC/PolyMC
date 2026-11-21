@@ -36,9 +36,12 @@
 
 #include "Upload.h"
 
+#include <QDebug>
+#include <QNetworkRequest>
+#include <QString>
+
 #include <utility>
 #include "ByteArraySink.h"
-#include "BuildConfig.h"
 #include "Application.h"
 
 namespace Net

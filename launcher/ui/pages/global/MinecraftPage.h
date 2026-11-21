@@ -35,10 +35,8 @@
 
 #pragma once
 
-#include <memory>
-#include <QDialog>
+#include <QWidget>
 
-#include "java/JavaChecker.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 

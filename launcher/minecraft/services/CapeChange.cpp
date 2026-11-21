@@ -36,7 +36,8 @@
 #include "CapeChange.h"
 
 #include <QNetworkRequest>
-#include <QHttpMultiPart>
+#include <QUrl>
+#include <QDebug>
 
 #include "Application.h"
 

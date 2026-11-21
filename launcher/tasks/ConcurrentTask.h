@@ -1,7 +1,9 @@
 #pragma once
 
+#include <QHash>
+#include <QObject>
 #include <QQueue>
-#include <QSet>
+#include <QString>
 
 #include "tasks/Task.h"
 

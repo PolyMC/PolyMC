@@ -36,15 +36,15 @@
 
 #include "Download.h"
 
-#include <QDateTime>
-#include <QFileInfo>
+#include <QCryptographicHash>
+#include <QDebug>
+#include <QNetworkRequest>
 
 #include "ByteArraySink.h"
 #include "ChecksumValidator.h"
-#include "FileSystem.h"
+#include "FileSink.h"
 #include "MetaCacheSink.h"
 
-#include "BuildConfig.h"
 #include "Application.h"
 
 namespace Net

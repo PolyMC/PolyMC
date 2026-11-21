@@ -36,9 +36,10 @@
 #pragma once
 
 #include "tasks/Task.h"
+#include <QByteArray>
 #include <QNetworkReply>
 #include <QString>
-#include <QBuffer>
+#include <QWidget>
 #include <memory>
 #include <array>
 

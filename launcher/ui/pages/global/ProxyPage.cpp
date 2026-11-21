@@ -40,6 +40,8 @@
 #include <QButtonGroup>
 #include <QTabBar>
 
+#include <cstdint>
+
 #include "settings/SettingsObject.h"
 #include "Application.h"
 

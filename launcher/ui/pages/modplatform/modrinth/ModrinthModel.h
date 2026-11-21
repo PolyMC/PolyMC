@@ -36,8 +36,16 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QByteArray>
+#include <QJsonDocument>
+#include <QList>
+#include <QString>
+#include <QVariant>
+
+#include <list>
 
 #include "modplatform/modrinth/ModrinthPackManifest.h"
+#include "net/NetJob.h"
 #include "ui/pages/modplatform/modrinth/ModrinthPage.h"
 
 class LogoCache;

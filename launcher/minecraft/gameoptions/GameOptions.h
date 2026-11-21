@@ -1,8 +1,9 @@
 #pragma once
 
-#include <map>
+#include <vector>
 #include <QString>
 #include <QAbstractListModel>
+#include <QVariant>
 
 struct GameOptionItem
 {

@@ -15,9 +15,11 @@
 
 #pragma once
 
-#include <QtNetwork>
+#include <QList>
+#include <QString>
 #include "JavaChecker.h"
 #include "tasks/Task.h"
+#include "QObjectPtr.h"
 
 class JavaCheckerJob;
 typedef shared_qobject_ptr<JavaCheckerJob> JavaCheckerJobPtr;

@@ -19,6 +19,11 @@
 
 #pragma once
 
+#include <QString>
+
+#include <memory>
+#include <tuple>
+
 #include "minecraft/mod/ResourceFolderModel.h"
 #include "net/NetJob.h"
 #include "tasks/SequentialTask.h"

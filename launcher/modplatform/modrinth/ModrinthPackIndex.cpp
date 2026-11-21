@@ -23,6 +23,12 @@
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 
+#include <QObject>
+#include <QVector>
+
+#include <algorithm>
+#include <utility>
+
 static ModrinthAPI api;
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
