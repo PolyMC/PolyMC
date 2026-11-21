@@ -29,6 +29,8 @@ class ModrinthCreationTask final : public InstanceCreationTask {
    private:
     bool parseManifest(const QString&, std::vector<Modrinth::File>&, bool set_managed_info = true, bool show_optional_dialog = true);
     QString getManagedPackID() const;
+    // Warns about files not served by cdn.modrinth.com. Returns false if the user declined.
+    bool confirmNonModrinthDownloads();
 
    private:
     QWidget* m_parent = nullptr;

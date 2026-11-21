@@ -607,6 +607,7 @@ Application::Application(int &argc, char **argv) : QApplication(argc, argv)
         // Minecraft mods
         m_settings->registerSetting("ModMetadataDisabled", false);
         m_settings->registerSetting("DefaultModPlatform", "Modrinth");
+        m_settings->registerSetting("IgnoreNonModrinthDownloadsWarning", false);
 
         // Minecraft offline player name
         m_settings->registerSetting("LastOfflinePlayerName", "");

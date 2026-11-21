@@ -122,6 +122,27 @@ void loadIndexedVersions(Modpack& pack, QJsonDocument& doc)
     pack.versionsLoaded = true;
 }
 
+bool validateDownloadUrl(const QUrl& url)
+{
+    static const QSet<QString> domainWhitelist{
+        "cdn.modrinth.com",
+        "github.com",
+        "raw.githubusercontent.com",
+        "gitlab.com"
+    };
+
+    if (!url.isValid() || url.scheme().compare("https", Qt::CaseInsensitive) != 0)
+        return false;
+
+    // Hosts must match exactly; subdomains of whitelisted domains are not allowed.
+    return domainWhitelist.contains(url.host().toLower());
+}
+
+bool isModrinthCdnUrl(const QUrl& url)
+{
+    return validateDownloadUrl(url) && url.host().toLower() == "cdn.modrinth.com";
+}
+
 ModpackVersion loadIndexedVersion(QJsonObject &obj)
 {
     ModpackVersion file;

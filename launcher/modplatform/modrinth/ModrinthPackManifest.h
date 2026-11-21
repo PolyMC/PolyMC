@@ -110,7 +110,11 @@ void loadIndexedInfo(Modpack&, QJsonObject&);
 void loadIndexedVersions(Modpack&, QJsonDocument&);
 ModpackVersion loadIndexedVersion(QJsonObject&);
 
-bool validateDownloadUrl(QUrl);
+// Whether the URL is HTTPS and on one of the domains Modrinth allows in .mrpack downloads:
+// https://support.modrinth.com/en/articles/8802351-modrinth-modpack-format-mrpack
+bool validateDownloadUrl(const QUrl&);
+// Whether the URL is served directly by Modrinth's own CDN.
+bool isModrinthCdnUrl(const QUrl&);
 
 }
 

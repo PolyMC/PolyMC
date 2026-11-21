@@ -849,6 +849,7 @@ class InstanceStaging : public Task {
 
     void childAborted()
     {
+        m_parent->destroyStagingPath(m_stagingPath);
         emitAborted();
     }
 

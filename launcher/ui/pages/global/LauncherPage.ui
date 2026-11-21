@@ -184,6 +184,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="warnNonModrinthDownloadsBtn">
+            <property name="toolTip">
+             <string>Show a warning before installing a modpack that downloads mods from outside of Modrinth.</string>
+            </property>
+            <property name="text">
+             <string>Warn when a modpack downloads mods from outside of Modrinth</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLabel" name="labelModPlatform">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The default platform to select when downloading mods.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>

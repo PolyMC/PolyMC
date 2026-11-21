@@ -372,6 +372,7 @@ void LauncherPage::applySettings()
     // Mods
     s->set("ModMetadataDisabled", ui->metadataDisableBtn->isChecked());
     s->set("DefaultModPlatform", ui->modPlatform->currentText());
+    s->set("IgnoreNonModrinthDownloadsWarning", !ui->warnNonModrinthDownloadsBtn->isChecked());
 }
 void LauncherPage::loadSettings()
 {
@@ -520,6 +521,7 @@ void LauncherPage::loadSettings()
     ui->metadataDisableBtn->setChecked(s->get("ModMetadataDisabled").toBool());
     ui->metadataWarningLabel->setHidden(!ui->metadataDisableBtn->isChecked());
     ui->modPlatform->setCurrentText(s->get("DefaultModPlatform").toString());
+    ui->warnNonModrinthDownloadsBtn->setChecked(!s->get("IgnoreNonModrinthDownloadsWarning").toBool());
 }
 
 void LauncherPage::refreshFontPreview()

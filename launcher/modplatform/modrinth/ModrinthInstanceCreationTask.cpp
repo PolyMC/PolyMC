@@ -16,6 +16,8 @@
 #include "ui/dialogs/CustomMessageBox.h"
 
 #include <QAbstractButton>
+#include <QCheckBox>
+#include <QPushButton>
 
 bool ModrinthCreationTask::abort()
 {
@@ -169,6 +171,12 @@ bool ModrinthCreationTask::createInstance()
     QString index_path = FS::PathCombine(m_stagingPath, "modrinth.index.json");
     if (m_files.empty() && !parseManifest(index_path, m_files, true, true))
         return false;
+
+    if (!confirmNonModrinthDownloads()) {
+        m_abort = true;
+        emitAborted();
+        return false;
+    }
 
     // Keep index file in case we need it some other time (like when changing versions)
     QString new_index_place(FS::PathCombine(parent_folder, "modrinth.index.json"));
@@ -360,25 +368,32 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
                 // (as Modrinth seems to incorrectly handle spaces)
 
                 auto download_arr = Json::ensureArray(modInfo, "downloads");
+                bool had_rejected_url = false;
                 for (auto download : std::as_const(download_arr)) {
-                    qWarning() << download.toString();
-                    bool is_last = download.toString() == download_arr.last().toString();
-
                     auto download_url = QUrl(download.toString());
 
                     if (!download_url.isValid()) {
-                        qDebug()
-                            << QString("Download URL (%1) for %2 is not a correctly formatted URL").arg(download_url.toString(), file.path);
-                        if (is_last && file.downloads.isEmpty())
-                            throw JSONValidationError(tr("Download URL for %1 is not a correctly formatted URL").arg(file.path));
+                        qWarning()
+                            << QString("Download URL (%1) for %2 is not a correctly formatted URL").arg(download.toString(), file.path);
+                        had_rejected_url = true;
+                    } else if (!Modrinth::validateDownloadUrl(download_url)) {
+                        qWarning() << QString("Download URL (%1) for %2 is not from a domain allowed by the .mrpack format")
+                                          .arg(download_url.toString(), file.path);
+                        had_rejected_url = true;
                     } else {
                         file.downloads.push_back(download_url);
                     }
                 }
 
                 // Downloading takes the first URL without checking, there has to be one
-                if (file.downloads.isEmpty())
+                if (file.downloads.isEmpty()) {
+                    if (had_rejected_url)
+                        throw JSONValidationError(
+                            tr("No allowed download URL found for %1. Only HTTPS URLs from cdn.modrinth.com, github.com, "
+                               "raw.githubusercontent.com and gitlab.com are allowed.")
+                                .arg(file.path));
                     throw JSONValidationError(tr("No downloads found for %1").arg(file.path));
+                }
 
                 files.push_back(file);
             }
@@ -412,6 +427,53 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path, std::vector<
     }
 
     return true;
+}
+
+bool ModrinthCreationTask::confirmNonModrinthDownloads()
+{
+    auto settings = APPLICATION->settings();
+    if (settings->get("IgnoreNonModrinthDownloadsWarning").toBool())
+        return true;
+
+    QStringList entries;
+    for (const auto& file : m_files) {
+        QStringList external_urls;
+        for (const auto& url : file.downloads) {
+            if (!Modrinth::isModrinthCdnUrl(url))
+                external_urls.append(url.toString());
+        }
+        if (!external_urls.isEmpty())
+            entries.append(QString("%1\n    %2").arg(file.path, external_urls.join("\n    ")));
+    }
+
+    if (entries.isEmpty())
+        return true;
+
+    auto dialog = CustomMessageBox::selectable(
+        m_parent, tr("Mods from outside Modrinth"),
+        tr("%n mod(s) in this modpack will be downloaded from outside of Modrinth.\n\n"
+           "Modrinth does not host or check these files, so they could be unsafe. "
+           "Only continue if you trust the creator of this modpack.\n\n"
+           "Click \"Show Details...\" to see which mods and where they come from.",
+           nullptr, entries.size()),
+        QMessageBox::Warning, QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    dialog->setDetailedText(entries.join("\n\n"));
+    dialog->button(QMessageBox::Yes)->setText(tr("Continue"));
+    dialog->button(QMessageBox::No)->setText(tr("Cancel"));
+    dialog->setEscapeButton(dialog->button(QMessageBox::No));
+    // QMessageBox lays out its check box above the button row.
+    dialog->setCheckBox(new QCheckBox(tr("Don't warn me again"), dialog));
+
+    dialog->exec();
+    bool accepted = dialog->clickedButton() == dialog->button(QMessageBox::Yes);
+    bool dont_warn_again = dialog->checkBox()->isChecked();
+    dialog->deleteLater();
+
+    // Only remember the choice when the user went ahead with the install.
+    if (accepted && dont_warn_again)
+        settings->set("IgnoreNonModrinthDownloadsWarning", true);
+
+    return accepted;
 }
 
 QString ModrinthCreationTask::getManagedPackID() const
