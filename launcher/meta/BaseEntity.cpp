@@ -15,8 +15,6 @@
 
 #include "BaseEntity.h"
 
-#include <functional>
-
 #include "net/Download.h"
 #include "net/HttpMetaCache.h"
 #include "net/NetJob.h"
@@ -55,7 +53,7 @@ public: /* methods */
         {
             auto doc = Json::requireDocument(data, fname);
             auto obj = Json::requireObject(doc, fname);
-            m_entity->parse(obj);
+            m_entity->parseRemote(obj);
             return true;
         }
         catch (const Exception& e)
@@ -142,25 +140,13 @@ void Meta::BaseEntity::load(Net::Mode loadType)
      */
     dl->addValidator(new ParsingValidator(this));
     m_updateTask->addNetAction(dl);
-    m_updateStatus = UpdateStatus::InProgress;
-    QObject::connect(m_updateTask.get(), &NetJob::succeeded,
-                     std::bind(&BaseEntity::updateSucceeded, this));
-    QObject::connect(m_updateTask.get(), &NetJob::failed,
-                     std::bind(&BaseEntity::updateFailed, this));
     m_updateTask->start();
 }
 
-void Meta::BaseEntity::updateSucceeded()
+void Meta::BaseEntity::parseRemote(const QJsonObject& obj)
 {
+    parse(obj);
     m_loadStatus = LoadStatus::Remote;
-    m_updateStatus = UpdateStatus::Succeeded;
-    m_updateTask.reset();
-}
-
-void Meta::BaseEntity::updateFailed()
-{
-    m_updateStatus = UpdateStatus::Failed;
-    m_updateTask.reset();
 }
 
 bool Meta::BaseEntity::isLoaded() const
@@ -171,12 +157,12 @@ bool Meta::BaseEntity::isLoaded() const
 bool Meta::BaseEntity::shouldStartRemoteUpdate() const
 {
     // TODO: version-locks and offline mode?
-    return m_updateStatus != UpdateStatus::InProgress;
+    return !m_updateTask || !m_updateTask->isRunning();
 }
 
 Task::Ptr Meta::BaseEntity::getCurrentTask()
 {
-    if (m_updateStatus == UpdateStatus::InProgress)
+    if (m_updateTask && m_updateTask->isRunning())
     {
         return m_updateTask;
     }

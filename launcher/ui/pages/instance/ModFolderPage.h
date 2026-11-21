@@ -91,8 +91,7 @@ private:
     void updateDisableUpdatesAction();
     bool checkAllowUpdate();
     void updateUpdateAction();
-    void onModsUpdateFinished(std::shared_ptr<ModFolderModel> mods);
-    void resumeWatching(bool watching);
+    void onModsUpdateFinished();
 
 protected:
     std::shared_ptr<ModFolderModel> m_model;

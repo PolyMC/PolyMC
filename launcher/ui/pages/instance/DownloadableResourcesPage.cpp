@@ -18,11 +18,10 @@
  */
 #include "DownloadableResourcesPage.h"
 #include "minecraft/mod/ResourceFolderModel.h"
+#include "tasks/ConcurrentTask.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ProgressDialog.h"
 #include "ui/pages/instance/ExternalResourcesPage.h"
-
-#include <functional>
 
 DownloadableResourcesPage::DownloadableResourcesPage(
     BaseInstance* instance, std::shared_ptr<ResourceFolderModel> model,
@@ -33,56 +32,39 @@ DownloadableResourcesPage::DownloadableResourcesPage(
 
 void DownloadableResourcesPage::runTasks(const QList<ModDownloadTask*>& toRun)
 {
-    auto* tasks = new ConcurrentTask(this);
-    connect(tasks, &Task::failed,
-            std::bind(&DownloadableResourcesPage::onTasksFailed, this, tasks,
-                      std::placeholders::_1));
-
-    connect(tasks, &Task::aborted,
-            std::bind(&DownloadableResourcesPage::onTasksAborted, this, tasks));
-
-    connect(
-        tasks, &Task::succeeded,
-        std::bind(&DownloadableResourcesPage::onTasksSucceeded, this, tasks));
-
+    ConcurrentTask tasks(this);
     for (auto* task : toRun)
     {
-        tasks->addTask(task);
+        tasks.addTask(task);
     }
 
     ProgressDialog loadDialog(this);
     loadDialog.setSkipButton(true, tr("Abort"));
-    loadDialog.execWithTask(tasks);
+    loadDialog.execWithTask(&tasks);
 
-    m_model->update();
-}
-
-void DownloadableResourcesPage::onTasksFailed(ConcurrentTask* tasks,
-                                              QString reason)
-{
-    CustomMessageBox::selectable(this, tr("Error"), reason,
-                                 QMessageBox::Critical)
-        ->show();
-    tasks->deleteLater();
-}
-
-void DownloadableResourcesPage::onTasksAborted(ConcurrentTask* tasks)
-{
-    CustomMessageBox::selectable(this, tr("Aborted"),
-                                 tr("Download stopped by user."),
-                                 QMessageBox::Information)
-        ->show();
-    tasks->deleteLater();
-}
-
-void DownloadableResourcesPage::onTasksSucceeded(ConcurrentTask* tasks)
-{
-    const auto warnings = tasks->warnings();
-    if (warnings.count())
+    if (tasks.wasSuccessful())
     {
-        CustomMessageBox::selectable(this, tr("Warnings"), warnings.join('\n'),
-                                     QMessageBox::Warning)
+        const auto warnings = tasks.warnings();
+        if (warnings.count())
+        {
+            CustomMessageBox::selectable(
+                this, tr("Warnings"), warnings.join('\n'), QMessageBox::Warning)
+                ->show();
+        }
+    }
+    else if (tasks.getState() == Task::State::AbortedByUser)
+    {
+        CustomMessageBox::selectable(this, tr("Aborted"),
+                                     tr("Download stopped by user."),
+                                     QMessageBox::Information)
             ->show();
     }
-    tasks->deleteLater();
+    else
+    {
+        CustomMessageBox::selectable(this, tr("Error"), tasks.failReason(),
+                                     QMessageBox::Critical)
+            ->show();
+    }
+
+    m_model->update();
 }

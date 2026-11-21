@@ -92,7 +92,7 @@ LauncherPage::LauncherPage(QWidget* parent)
         }
         else
         {
-            APPLICATION->updateChecker()->updateChanList(false);
+            APPLICATION->updateChecker()->updateChanList();
         }
 
         if (APPLICATION->updateChecker()->getExternalUpdater())

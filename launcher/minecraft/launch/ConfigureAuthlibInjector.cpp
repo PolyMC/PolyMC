@@ -1,7 +1,5 @@
 #include "ConfigureAuthlibInjector.h"
 
-#include <functional>
-
 #include <launch/LaunchTask.h>
 #include <QDir>
 #include <QFileInfo>
@@ -26,23 +24,22 @@ ConfigureAuthlibInjector::ConfigureAuthlibInjector(
 
 void ConfigureAuthlibInjector::executeTask()
 {
-    auto entry = APPLICATION->metacache()->resolveEntry("authlibinjector",
-                                                        "latest.json");
+    m_entry = APPLICATION->metacache()->resolveEntry("authlibinjector",
+                                                     "latest.json");
 
-    entry->setStale(true);
+    m_entry->setStale(true);
     m_job = std::make_unique<NetJob>("Download authlibinjector latest.json",
                                      APPLICATION->network());
     auto latestJsonDl = Net::Download::makeCached(
-        QUrl("https://authlib-injector.yushi.moe/artifact/latest.json"), entry,
-        Net::Download::Option::NoOptions);
+        QUrl("https://authlib-injector.yushi.moe/artifact/latest.json"),
+        m_entry, Net::Download::Option::NoOptions);
     m_job->addNetAction(latestJsonDl);
-    connect(
-        m_job.get(), &NetJob::succeeded, this,
-        std::bind(&ConfigureAuthlibInjector::latestJsonDownloaded, this, entry),
-        // This slot can't run instantly because it needs to wait for the
-        // netjob's code to stop running Since it will destroy the old
-        // netjob by reassigning the unique_ptr
-        Qt::QueuedConnection);
+    connect(m_job.get(), &NetJob::succeeded, this,
+            &ConfigureAuthlibInjector::latestJsonDownloaded,
+            // This slot can't run instantly because it needs to wait for the
+            // netjob's code to stop running Since it will destroy the old
+            // netjob by reassigning the unique_ptr
+            Qt::QueuedConnection);
     connect(m_job.get(), &NetJob::failed, this,
             &ConfigureAuthlibInjector::downloadFailed);
     m_job->start();
@@ -53,9 +50,9 @@ void ConfigureAuthlibInjector::downloadFailed(QString reason)
     return emitFailed(QString("Download failed: %1").arg(reason));
 }
 
-void ConfigureAuthlibInjector::latestJsonDownloaded(MetaEntryPtr entry)
+void ConfigureAuthlibInjector::latestJsonDownloaded()
 {
-    QFile authlibInjectorLatestJson{entry->getFullPath()};
+    QFile authlibInjectorLatestJson{m_entry->getFullPath()};
     if (!authlibInjectorLatestJson.open(QIODevice::ReadOnly))
     {
         return emitFailed(
@@ -100,27 +97,26 @@ void ConfigureAuthlibInjector::latestJsonDownloaded(MetaEntryPtr entry)
     auto sha256SumRaw = QByteArray::fromHex(sha256Sum.toLatin1());
 
     QString filename = QFileInfo(authlibInjectorJarUrl).fileName();
-    auto javaAgentEntry =
+    m_entry =
         APPLICATION->metacache()->resolveEntry("authlibinjector", filename);
     m_job = std::make_unique<NetJob>("Download authlibinjector java agent",
                                      APPLICATION->network());
     auto javaAgentDl =
-        Net::Download::makeCached(QUrl(authlibInjectorJarUrl), javaAgentEntry,
+        Net::Download::makeCached(QUrl(authlibInjectorJarUrl), m_entry,
                                   Net::Download::Option::MakeEternal);
     javaAgentDl->addValidator(
         new Net::ChecksumValidator(QCryptographicHash::Sha256, sha256SumRaw));
     m_job->addNetAction(javaAgentDl);
     connect(m_job.get(), &NetJob::succeeded, this,
-            std::bind(&ConfigureAuthlibInjector::javaAgentDownloaded, this,
-                      javaAgentEntry));
+            &ConfigureAuthlibInjector::javaAgentDownloaded);
     connect(m_job.get(), &NetJob::failed, this,
             &ConfigureAuthlibInjector::downloadFailed);
     m_job->start();
 }
 
-void ConfigureAuthlibInjector::javaAgentDownloaded(MetaEntryPtr entry)
+void ConfigureAuthlibInjector::javaAgentDownloaded()
 {
-    auto path = entry->getFullPath();
+    auto path = m_entry->getFullPath();
     qDebug() << path;
     *m_javaagent_arg = QString("%1=%2").arg(path).arg(m_yggdrasil_base_url);
     emitSucceeded();

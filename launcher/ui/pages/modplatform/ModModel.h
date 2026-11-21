@@ -5,14 +5,12 @@
 #include "modplatform/ModIndex.h"
 #include "net/NetJob.h"
 
+class LogoCache;
 class ModPage;
 class Version;
 
 namespace ModPlatform
 {
-
-using LogoMap = QMap<QString, QIcon>;
-using LogoCallback = std::function<void(QString)>;
 
 class ListModel : public QAbstractListModel
 {
@@ -43,10 +41,6 @@ public:
     bool setData(const QModelIndex& index, const QVariant& value,
                  int role) override;
 
-    inline void setActiveJob(NetJob::Ptr ptr)
-    {
-        jobPtr = ptr;
-    }
     inline NetJob* activeJob()
     {
         return jobPtr.get();
@@ -57,7 +51,8 @@ public:
     void refresh();
     void searchWithTerm(const QString& term, const int sort,
                         const bool filter_changed);
-    void requestModInfo(ModPlatform::IndexedPack& current, QModelIndex index);
+    void requestModInfo(const ModPlatform::IndexedPack& current,
+                        QModelIndex index);
     void requestModVersions(const ModPlatform::IndexedPack& current,
                             QModelIndex index);
 
@@ -68,53 +63,39 @@ public:
     virtual void loadIndexedPackVersions(ModPlatform::IndexedPack& m,
                                          QJsonArray& arr) = 0;
 
-    void getLogo(const QString& logo, const QString& logoUrl,
-                 LogoCallback callback);
-
     inline bool canFetchMore(const QModelIndex& /*parent*/) const override
     {
         return searchState == CanPossiblyFetchMore;
     };
 
 public slots:
-    void searchRequestFinished(QJsonDocument& doc);
+    void searchRequestSucceeded();
     void searchRequestFailed(QString reason);
     void searchRequestAborted();
 
-    void infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack& pack,
-                             const QModelIndex& index);
+    void infoRequestSucceeded();
 
-    void versionRequestSucceeded(QJsonDocument doc, QString addonId,
-                                 const QModelIndex& index);
+    void versionRequestSucceeded();
 
 protected slots:
-
-    void logoFailed(QString logo);
-    void logoLoaded(QString logo, QIcon out);
-
     void performPaginatedSearch();
 
 protected:
     virtual QJsonArray documentToArray(QJsonDocument& obj) const = 0;
     virtual const char** getSorts() const = 0;
 
-    void requestLogo(QString file, QString url);
-
     inline std::list<Version> getMineVersions() const;
 
 private:
-    void onLogoSucceeded(const QString& logo, const QString& path);
-    void onLogoFailed(const QString& logo);
+    void onLogoLoaded(const QString& logo);
+    void searchRequestFinished(QJsonDocument& doc);
 
 protected:
     ModPage* m_parent;
 
     QList<ModPlatform::IndexedPack> modpacks;
 
-    LogoMap m_logoMap;
-    QMap<QString, LogoCallback> waitingCallbacks;
-    QStringList m_failedLogos;
-    QStringList m_loadingLogos;
+    LogoCache* m_logos;
 
     QString currentSearchTerm;
     int currentSort = 0;
@@ -128,5 +109,16 @@ protected:
     } searchState = None;
 
     NetJob::Ptr jobPtr;
+    QByteArray m_search_response;
+
+    NetJob::Ptr m_info_job;
+    QByteArray m_info_response;
+    QVariant m_info_addon;
+    QPersistentModelIndex m_info_index;
+
+    NetJob::Ptr m_versions_job;
+    QByteArray m_versions_response;
+    QString m_versions_addon;
+    QPersistentModelIndex m_versions_index;
 };
 }  // namespace ModPlatform

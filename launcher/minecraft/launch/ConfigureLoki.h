@@ -21,11 +21,13 @@ public:
 
 private:
     void downloadFailed(QString reason);
-    void indexDownloaded(MetaEntryPtr entry);
-    void versionDownloaded(MetaEntryPtr entry, QString version);
-    void javaAgentDownloaded(MetaEntryPtr entry);
+    void indexDownloaded();
+    void versionDownloaded();
+    void javaAgentDownloaded();
 
     std::unique_ptr<NetJob> m_job;
+    MetaEntryPtr m_entry;
+    QString m_selected_version;
     std::shared_ptr<QString> m_javaagent_arg;
     QString m_yggdrasil_base_url;
 };

@@ -88,52 +88,36 @@ void PackFetchTask::fetchPrivate(const QStringList& toFetch)
         job->addNetAction(Net::Download::makeByteArray(
             privatePackBaseUrl.arg(packCode), data));
 
-        QObject::connect(job, &NetJob::succeeded, this,
-                         std::bind(&PackFetchTask::onPrivatePackSucceeded, this,
+        QObject::connect(job, &NetJob::finished, this,
+                         std::bind(&PackFetchTask::onPrivatePackFinished, this,
                                    job, data, packCode));
-
-        QObject::connect(job, &NetJob::failed, this,
-                         std::bind(&PackFetchTask::onPrivatePackFailed, this,
-                                   job, packCode, data, std::placeholders::_1));
-
-        QObject::connect(
-            job, &NetJob::aborted, this,
-            std::bind(&PackFetchTask::onPrivatePackAborted, this, job, data));
 
         job->start();
     }
 }
 
-void PackFetchTask::onPrivatePackSucceeded(NetJob* job, QByteArray* data,
-                                           const QString& code)
+void PackFetchTask::onPrivatePackFinished(NetJob* job, QByteArray* data,
+                                          const QString& code)
 {
-    ModpackList packs;
-    parseAndAddPacks(*data, PackType::Private, packs);
-    foreach (Modpack currentPack, packs)
+    if (job->wasSuccessful())
     {
-        currentPack.packCode = code;
-        emit privateFileDownloadFinished(currentPack);
+        ModpackList packs;
+        parseAndAddPacks(*data, PackType::Private, packs);
+        foreach (Modpack currentPack, packs)
+        {
+            currentPack.packCode = code;
+            emit privateFileDownloadFinished(currentPack);
+        }
+    }
+    else if (job->getState() == Task::State::Failed)
+    {
+        emit privateFileDownloadFailed(job->failReason(), code);
+    }
+    else if (job->getState() == Task::State::AbortedByUser)
+    {
+        emit aborted();
     }
 
-    job->deleteLater();
-
-    data->clear();
-    delete data;
-}
-
-void PackFetchTask::onPrivatePackFailed(NetJob* job, const QString& code,
-                                        QByteArray* data, QString reason)
-{
-    emit privateFileDownloadFailed(reason, code);
-    job->deleteLater();
-
-    data->clear();
-    delete data;
-}
-
-void PackFetchTask::onPrivatePackAborted(NetJob* job, QByteArray* data)
-{
-    emit aborted();
     job->deleteLater();
 
     data->clear();

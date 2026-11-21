@@ -34,18 +34,12 @@ public: /* types */
         Local,
         Remote
     };
-    enum class UpdateStatus
-    {
-        NotDone,
-        InProgress,
-        Failed,
-        Succeeded
-    };
 
 public:
     virtual ~BaseEntity();
 
     virtual void parse(const QJsonObject& obj) = 0;
+    void parseRemote(const QJsonObject& obj);
 
     virtual QString localFilename() const = 0;
     virtual QUrl url() const;
@@ -60,11 +54,7 @@ protected: /* methods */
     bool loadLocalFile();
 
 private:
-    void updateSucceeded();
-    void updateFailed();
-
     LoadStatus m_loadStatus = LoadStatus::NotLoaded;
-    UpdateStatus m_updateStatus = UpdateStatus::NotDone;
     NetJob::Ptr m_updateTask;
 };
 }  // namespace Meta

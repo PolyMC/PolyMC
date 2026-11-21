@@ -44,8 +44,6 @@
 #include <QApplication>
 #include <QClipboard>
 
-#include <functional>
-
 MSALoginDialog::MSALoginDialog(QWidget* parent)
     : QDialog(parent), ui(new Ui::MSALoginDialog)
 {
@@ -56,6 +54,8 @@ MSALoginDialog::MSALoginDialog(QWidget* parent)
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(ui->actionButton, &QPushButton::clicked, this,
+            &MSALoginDialog::openUriAndCopyCode);
 }
 
 int MSALoginDialog::exec()
@@ -102,15 +102,12 @@ void MSALoginDialog::externalLoginTick()
     }
 }
 
-namespace
+void MSALoginDialog::openUriAndCopyCode()
 {
-void openUriAndCopyCode(QUrl uri, QString code)
-{
-    DesktopServices::openUrl(uri);
+    DesktopServices::openUrl(m_verification_uri);
     QClipboard* cb = QApplication::clipboard();
-    cb->setText(code);
+    cb->setText(m_verification_code);
 }
-}  // namespace
 
 void MSALoginDialog::showVerificationUriAndCode(const QUrl& uri,
                                                 const QString& code,
@@ -132,12 +129,9 @@ void MSALoginDialog::showVerificationUriAndCode(const QUrl& uri,
     ui->label->setText(tr("<p>Please open up %1 in a browser and put in the "
                           "code <b>%2</b> to proceed with login.</p>")
                            .arg(linkString, code));
+    m_verification_uri = uri;
+    m_verification_code = code;
     ui->actionButton->setVisible(true);
-    // This runs again for every new code, don't keep the handlers for the old
-    // codes around
-    disconnect(ui->actionButton, &QPushButton::clicked, this, nullptr);
-    connect(ui->actionButton, &QPushButton::clicked, this,
-            std::bind(&openUriAndCopyCode, uri, code));
 }
 
 void MSALoginDialog::hideVerificationUriAndCode()

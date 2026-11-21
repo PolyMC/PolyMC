@@ -5,16 +5,13 @@
 class NetworkModAPI : public ModAPI
 {
 public:
-    void searchMods(CallerType* caller, SearchArgs&& args) const override;
-    void getModInfo(
-        ModPlatform::IndexedPack& pack,
-        std::function<void(QJsonDocument&, ModPlatform::IndexedPack&)> callback)
-        override;
-    void getVersions(
-        VersionSearchArgs&& args,
-        std::function<void(QJsonDocument&, QString)> callback) const override;
+    NetJob::Ptr searchMods(SearchArgs&& args, QByteArray* response,
+                           const QString& caller) const override;
+    NetJob::Ptr getVersions(VersionSearchArgs&& args,
+                            QByteArray* response) const override;
 
-    NetJob* getProject(QString addonId, QByteArray* response) const override;
+    NetJob::Ptr getProject(QString addonId,
+                           QByteArray* response) const override;
 
 protected:
     virtual QString getModSearchURL(SearchArgs& args) const = 0;

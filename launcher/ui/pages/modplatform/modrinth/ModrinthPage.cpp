@@ -51,14 +51,15 @@
 #include <QKeyEvent>
 #include <QPushButton>
 
-#include <functional>
-
 namespace
 {
-void cleanupJob(QByteArray* response, NetJob* job)
+void stopJob(NetJob* job, QObject* receiver)
 {
-    job->deleteLater();
-    delete response;
+    if (job && job->isRunning())
+    {
+        job->disconnect(receiver);
+        job->abort();
+    }
 }
 
 QString donateToStr(Modrinth::DonationData& donate)
@@ -101,6 +102,8 @@ ModrinthPage::ModrinthPage(NewInstanceDialog* dialog, QWidget* parent)
 
 ModrinthPage::~ModrinthPage()
 {
+    stopJob(m_info_job.get(), this);
+    stopJob(m_versions_job.get(), this);
     delete ui;
 }
 
@@ -143,30 +146,27 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
         return;
     }
 
+    stopJob(m_info_job.get(), this);
+    stopJob(m_versions_job.get(), this);
+
     current = m_model->data(curr, Qt::UserRole).value<Modrinth::Modpack>();
-    auto name = current.name;
 
     if (!current.extraInfoLoaded)
     {
         qDebug() << "Loading modrinth modpack information";
 
-        auto netJob = new NetJob(
+        m_info_index = curr;
+        m_info_job = new NetJob(
             QString("Modrinth::PackInformation(%1)").arg(current.name),
             APPLICATION->network());
-        auto response = new QByteArray();
+        m_info_job->addNetAction(Net::Download::makeByteArray(
+            QString("%1/project/%2")
+                .arg(BuildConfig.MODRINTH_PROD_URL, current.id),
+            &m_info_response));
 
-        QString id = current.id;
-
-        netJob->addNetAction(Net::Download::makeByteArray(
-            QString("%1/project/%2").arg(BuildConfig.MODRINTH_PROD_URL, id),
-            response));
-
-        QObject::connect(
-            netJob, &NetJob::succeeded, this,
-            std::bind(&ModrinthPage::onInfoLoaded, this, response, id, curr));
-        QObject::connect(netJob, &NetJob::finished, netJob,
-                         std::bind(cleanupJob, response, netJob));
-        netJob->start();
+        connect(m_info_job.get(), &NetJob::succeeded, this,
+                &ModrinthPage::onInfoLoaded);
+        m_info_job->start();
     }
     else
     {
@@ -177,24 +177,18 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
     {
         qDebug() << "Loading modrinth modpack versions";
 
-        auto netJob =
+        m_versions_index = curr;
+        m_versions_job =
             new NetJob(QString("Modrinth::PackVersions(%1)").arg(current.name),
                        APPLICATION->network());
-        auto response = new QByteArray();
-
-        QString id = current.id;
-
-        netJob->addNetAction(Net::Download::makeByteArray(
+        m_versions_job->addNetAction(Net::Download::makeByteArray(
             QString("%1/project/%2/version")
-                .arg(BuildConfig.MODRINTH_PROD_URL, id),
-            response));
+                .arg(BuildConfig.MODRINTH_PROD_URL, current.id),
+            &m_versions_response));
 
-        QObject::connect(netJob, &NetJob::succeeded, this,
-                         std::bind(&ModrinthPage::onVersionsLoaded, this,
-                                   response, id, curr));
-        QObject::connect(netJob, &NetJob::finished, netJob,
-                         std::bind(cleanupJob, response, netJob));
-        netJob->start();
+        connect(m_versions_job.get(), &NetJob::succeeded, this,
+                &ModrinthPage::onVersionsLoaded);
+        m_versions_job->start();
     }
     else
     {
@@ -217,22 +211,16 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
     }
 }
 
-void ModrinthPage::onInfoLoaded(QByteArray* response, const QString& id,
-                                const QModelIndex& curr)
+void ModrinthPage::onInfoLoaded()
 {
-    if (id != current.id)
-    {
-        return;  // wrong request?
-    }
-
     QJsonParseError parse_error;
-    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    QJsonDocument doc = QJsonDocument::fromJson(m_info_response, &parse_error);
     if (parse_error.error != QJsonParseError::NoError)
     {
         qWarning() << "Error while parsing JSON response from Modrinth at "
                    << parse_error.offset
                    << " reason: " << parse_error.errorString();
-        qWarning() << *response;
+        qWarning() << m_info_response;
         return;
     }
 
@@ -245,7 +233,7 @@ void ModrinthPage::onInfoLoaded(QByteArray* response, const QString& id,
     }
     catch (const JSONValidationError& e)
     {
-        qDebug() << *response;
+        qDebug() << m_info_response;
         qWarning() << "Error while reading modrinth modpack version: "
                    << e.cause();
     }
@@ -254,12 +242,14 @@ void ModrinthPage::onInfoLoaded(QByteArray* response, const QString& id,
 
     // Only cache it if the row still holds this pack, a new search
     // may have put another one there meanwhile
-    if (m_model->data(curr, Qt::UserRole).value<Modrinth::Modpack>().id == id)
+    if (m_model->data(m_info_index, Qt::UserRole)
+            .value<Modrinth::Modpack>()
+            .id == current.id)
     {
         QVariant current_updated;
         current_updated.setValue(current);
 
-        if (!m_model->setData(curr, current_updated, Qt::UserRole))
+        if (!m_model->setData(m_info_index, current_updated, Qt::UserRole))
         {
             qWarning() << "Failed to cache extra info for the "
                           "current pack!";
@@ -269,22 +259,17 @@ void ModrinthPage::onInfoLoaded(QByteArray* response, const QString& id,
     suggestCurrent();
 }
 
-void ModrinthPage::onVersionsLoaded(QByteArray* response, const QString& id,
-                                    const QModelIndex& curr)
+void ModrinthPage::onVersionsLoaded()
 {
-    if (id != current.id)
-    {
-        return;  // wrong request?
-    }
-
     QJsonParseError parse_error;
-    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    QJsonDocument doc =
+        QJsonDocument::fromJson(m_versions_response, &parse_error);
     if (parse_error.error != QJsonParseError::NoError)
     {
         qWarning() << "Error while parsing JSON response from Modrinth at "
                    << parse_error.offset
                    << " reason: " << parse_error.errorString();
-        qWarning() << *response;
+        qWarning() << m_versions_response;
         return;
     }
 
@@ -294,7 +279,7 @@ void ModrinthPage::onVersionsLoaded(QByteArray* response, const QString& id,
     }
     catch (const JSONValidationError& e)
     {
-        qDebug() << *response;
+        qDebug() << m_versions_response;
         qWarning() << "Error while reading modrinth modpack version: "
                    << e.cause();
     }
@@ -316,23 +301,20 @@ void ModrinthPage::onVersionsLoaded(QByteArray* response, const QString& id,
 
     // Only cache it if the row still holds this pack, a new search
     // may have put another one there meanwhile
-    if (m_model->data(curr, Qt::UserRole).value<Modrinth::Modpack>().id == id)
+    if (m_model->data(m_versions_index, Qt::UserRole)
+            .value<Modrinth::Modpack>()
+            .id == current.id)
     {
         QVariant current_updated;
         current_updated.setValue(current);
 
-        if (!m_model->setData(curr, current_updated, Qt::UserRole))
+        if (!m_model->setData(m_versions_index, current_updated, Qt::UserRole))
         {
             qWarning() << "Failed to cache versions for the current pack!";
         }
     }
 
     suggestCurrent();
-}
-
-void ModrinthPage::setSuggestedLogo(const QString& name, QString logo)
-{
-    dialog->setSuggestedIconFromFile(logo, name);
 }
 
 void ModrinthPage::updateUI()
@@ -433,9 +415,11 @@ void ModrinthPage::suggestCurrent()
                 current.name, ver.version,
                 new InstanceImportTask(ver.download_url, this));
             auto iconName = current.iconName;
-            m_model->getLogo(iconName, current.iconUrl.toString(),
-                             std::bind(&ModrinthPage::setSuggestedLogo, this,
-                                       iconName, std::placeholders::_1));
+            auto path = m_model->logoPath(iconName, current.iconUrl.toString());
+            if (!path.isEmpty())
+            {
+                dialog->setSuggestedIconFromFile(path, iconName);
+            }
 
             break;
         }

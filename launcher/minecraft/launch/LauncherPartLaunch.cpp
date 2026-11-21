@@ -37,8 +37,6 @@
 
 #include <QStandardPaths>
 
-#include <functional>
-
 #include "launch/LaunchTask.h"
 #include "minecraft/MinecraftInstance.h"
 #include "FileSystem.h"
@@ -49,33 +47,13 @@
 #include "gamemode_client.h"
 #endif
 
-namespace
-{
-void closeWindowsOnLogin(std::shared_ptr<QMetaObject::Connection> connection,
-                         QStringList lines)
-{
-    qDebug() << lines;
-    if (lines
-            .filter(QRegularExpression(
-                ".*Setting user.+", QRegularExpression::CaseInsensitiveOption))
-            .length() != 0)
-    {
-        APPLICATION->closeAllWindows();
-        QObject::disconnect(*connection);
-    }
-}
-}  // namespace
-
 LauncherPartLaunch::LauncherPartLaunch(LaunchTask* parent) : LaunchStep(parent)
 {
     auto instance = parent->instance();
     if (instance->settings()->get("CloseAfterLaunch").toBool())
     {
-        std::shared_ptr<QMetaObject::Connection> connection{
-            new QMetaObject::Connection};
-        *connection = connect(
-            &m_process, &LoggedProcess::log, this,
-            std::bind(closeWindowsOnLogin, connection, std::placeholders::_1));
+        connect(&m_process, &LoggedProcess::log, this,
+                &LauncherPartLaunch::closeWindowsOnLogin);
     }
 
     connect(&m_process, &LoggedProcess::log, this,
@@ -84,6 +62,20 @@ LauncherPartLaunch::LauncherPartLaunch(LaunchTask* parent) : LaunchStep(parent)
             &LauncherPartLaunch::on_state);
     connect(&m_process, &LoggedProcess::suspendStateChanged, this,
             &LauncherPartLaunch::suspendStateChanged);
+}
+
+void LauncherPartLaunch::closeWindowsOnLogin(QStringList lines)
+{
+    qDebug() << lines;
+    if (lines
+            .filter(QRegularExpression(
+                ".*Setting user.+", QRegularExpression::CaseInsensitiveOption))
+            .length() != 0)
+    {
+        APPLICATION->closeAllWindows();
+        disconnect(&m_process, &LoggedProcess::log, this,
+                   &LauncherPartLaunch::closeWindowsOnLogin);
+    }
 }
 
 #ifdef Q_OS_WIN

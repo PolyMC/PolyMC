@@ -751,6 +751,8 @@ SET(LAUNCHER_SOURCES
     ui/pages/modplatform/ModPage.h
     ui/pages/modplatform/ModModel.cpp
     ui/pages/modplatform/ModModel.h
+    ui/pages/modplatform/LogoCache.cpp
+    ui/pages/modplatform/LogoCache.h
 
     ui/pages/modplatform/atlauncher/AtlFilterModel.cpp
     ui/pages/modplatform/atlauncher/AtlFilterModel.h

@@ -49,8 +49,6 @@
 #include "Application.h"
 #include "modplatform/technic/SolderPackManifest.h"
 
-#include <functional>
-
 TechnicPage::TechnicPage(NewInstanceDialog* dialog, QWidget* parent)
     : QWidget(parent), ui(new Ui::TechnicPage), dialog(dialog)
 {
@@ -127,6 +125,12 @@ void TechnicPage::onSelectionChanged(QModelIndex first, QModelIndex /*second*/)
         return;
     }
 
+    if (jobPtr && jobPtr->isRunning())
+    {
+        jobPtr->disconnect(this);
+        jobPtr->abort();
+    }
+
     current = model->data(first, Qt::UserRole).value<Technic::Modpack>();
     suggestCurrent();
 }
@@ -144,9 +148,11 @@ void TechnicPage::suggestCurrent()
     }
 
     QString editedLogoName = "technic_" + current.logoName.section(".", 0, 0);
-    model->getLogo(current.logoName, current.logoUrl,
-                   std::bind(&TechnicPage::setSuggestedLogo, this,
-                             editedLogoName, std::placeholders::_1));
+    auto path = model->logoPath(current.logoName, current.logoUrl);
+    if (!path.isEmpty())
+    {
+        dialog->setSuggestedIconFromFile(path, editedLogoName);
+    }
 
     if (current.metadataLoaded)
     {
@@ -157,14 +163,13 @@ void TechnicPage::suggestCurrent()
     NetJob* netJob =
         new NetJob(QString("Technic::PackMeta(%1)").arg(current.name),
                    APPLICATION->network());
-    QString slug = current.slug;
     netJob->addNetAction(Net::Download::makeByteArray(
         QString("%1modpack/%2?build=%3")
-            .arg(BuildConfig.TECHNIC_API_BASE_URL, slug,
+            .arg(BuildConfig.TECHNIC_API_BASE_URL, current.slug,
                  BuildConfig.TECHNIC_API_BUILD),
         &response));
     QObject::connect(netJob, &NetJob::succeeded, this,
-                     std::bind(&TechnicPage::onPackMetaReceived, this, slug));
+                     &TechnicPage::onPackMetaReceived);
 
     if (jobPtr && jobPtr->isRunning())
     {
@@ -175,19 +180,9 @@ void TechnicPage::suggestCurrent()
     jobPtr->start();
 }
 
-void TechnicPage::setSuggestedLogo(const QString& name, QString logo)
-{
-    dialog->setSuggestedIconFromFile(logo, name);
-}
-
-void TechnicPage::onPackMetaReceived(const QString& slug)
+void TechnicPage::onPackMetaReceived()
 {
     jobPtr.reset();
-
-    if (current.slug != slug)
-    {
-        return;
-    }
 
     QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);

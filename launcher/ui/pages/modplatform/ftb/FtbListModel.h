@@ -30,11 +30,9 @@ struct Logo
     QString fullpath;
     NetJob::Ptr downloadJob;
     QIcon result;
-    bool failed = false;
 };
 
 typedef QMap<QString, Logo> LogoMap;
-typedef std::function<void(QString)> LogoCallback;
 
 class ListModel : public QAbstractListModel
 {
@@ -50,20 +48,16 @@ public:
 
     void request();
 
-    void getLogo(const QString& logo, const QString& logoUrl,
-                 LogoCallback callback);
+    QString logoPath(const QString& logo, const QString& url);
 
 private slots:
     void requestFinished();
     void requestFailed(QString reason);
-
-    void logoFailed(QString logo);
     void logoLoaded(QString logo, bool stale);
 
 private:
-    void packRequestFinished(const QByteArray& packResponse);
+    void packRequestFinished(const std::shared_ptr<QByteArray>& body);
     void requestLogo(QString file, QString url);
-    void onPackDownloaded(std::shared_ptr<QByteArray> response);
     void onPacksJobFinished();
 
 private:

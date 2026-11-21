@@ -39,6 +39,7 @@
 
 #include "ui/pages/BasePage.h"
 #include <Application.h>
+#include "net/NetJob.h"
 #include "tasks/Task.h"
 #include <modplatform/flame/FlamePackIndex.h>
 
@@ -88,9 +89,7 @@ public:
 
 private:
     void suggestCurrent();
-    void onVersionsLoaded(QByteArray* response, int addon,
-                          const QModelIndex& curr);
-    void setSuggestedLogo(const QString& name, QString logo);
+    void onVersionsLoaded();
 
 private slots:
     void triggerSearch();
@@ -104,4 +103,8 @@ private:
     Flame::IndexedPack current;
 
     QString selectedVersion;
+
+    NetJob::Ptr m_versions_job;
+    QByteArray m_versions_response;
+    QPersistentModelIndex m_versions_index;
 };

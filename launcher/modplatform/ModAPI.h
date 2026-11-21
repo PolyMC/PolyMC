@@ -42,17 +42,8 @@
 #include <Version.h>
 #include "net/NetJob.h"
 
-namespace ModPlatform
-{
-class ListModel;
-struct IndexedPack;
-}  // namespace ModPlatform
-
 class ModAPI
 {
-protected:
-    using CallerType = ModPlatform::ListModel;
-
 public:
     virtual ~ModAPI() = default;
 
@@ -86,15 +77,13 @@ public:
         ResourceType type = Mod;
     };
 
-    virtual void searchMods(CallerType* caller, SearchArgs&& args) const = 0;
-    virtual void getModInfo(
-        ModPlatform::IndexedPack& pack,
-        std::function<void(QJsonDocument&, ModPlatform::IndexedPack&)>
-            callback) = 0;
+    virtual NetJob::Ptr searchMods(SearchArgs&& args, QByteArray* response,
+                                   const QString& caller) const = 0;
 
-    virtual NetJob* getProject(QString addonId, QByteArray* response) const = 0;
-    virtual NetJob* getProjects(QStringList addonIds,
-                                QByteArray* response) const = 0;
+    virtual NetJob::Ptr getProject(QString addonId,
+                                   QByteArray* response) const = 0;
+    virtual NetJob::Ptr getProjects(QStringList addonIds,
+                                    QByteArray* response) const = 0;
 
     struct VersionSearchArgs
     {
@@ -104,9 +93,8 @@ public:
         ResourceType type = Mod;
     };
 
-    virtual void getVersions(
-        VersionSearchArgs&& args,
-        std::function<void(QJsonDocument&, QString)> callback) const = 0;
+    virtual NetJob::Ptr getVersions(VersionSearchArgs&& args,
+                                    QByteArray* response) const = 0;
 
     static const QString getModLoaderString(ModLoaderType type)
     {

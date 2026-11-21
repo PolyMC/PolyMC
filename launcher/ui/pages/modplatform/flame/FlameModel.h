@@ -12,16 +12,14 @@
 #include <QStringList>
 #include <QMetaType>
 
-#include <functional>
 #include <net/NetJob.h>
 
 #include <modplatform/flame/FlamePackIndex.h>
 
+class LogoCache;
+
 namespace Flame
 {
-
-typedef QMap<QString, QIcon> LogoMap;
-typedef std::function<void(QString)> LogoCallback;
 
 class ListModel : public QAbstractListModel
 {
@@ -40,31 +38,22 @@ public:
     bool canFetchMore(const QModelIndex& parent) const override;
     void fetchMore(const QModelIndex& parent) override;
 
-    void getLogo(const QString& logo, const QString& logoUrl,
-                 LogoCallback callback);
+    QString logoPath(const QString& logo, const QString& url);
     void searchWithTerm(const QString& term, const int sort);
 
 private slots:
     void performPaginatedSearch();
 
-    void logoFailed(QString logo);
-    void logoLoaded(QString logo, QIcon out);
-
     void searchRequestFinished();
     void searchRequestFailed(QString reason);
 
 private:
-    void requestLogo(QString file, QString url);
-    void onLogoSucceeded(const QString& logo, const QString& path);
-    void onLogoFailed(const QString& logo);
+    void onLogoLoaded(const QString& logo);
     void onSearchAborted();
 
 private:
     QList<IndexedPack> modpacks;
-    QStringList m_failedLogos;
-    QStringList m_loadingLogos;
-    LogoMap m_logoMap;
-    QMap<QString, LogoCallback> waitingCallbacks;
+    LogoCache* m_logos;
 
     QString currentSearchTerm;
     int currentSort = 0;

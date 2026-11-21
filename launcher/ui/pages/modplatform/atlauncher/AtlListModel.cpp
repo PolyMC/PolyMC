@@ -20,13 +20,18 @@
 #include <Application.h>
 #include <Json.h>
 
-#include <functional>
+#include "ui/pages/modplatform/LogoCache.h"
 
 namespace Atl
 {
 
-ListModel::ListModel(QObject* parent) : QAbstractListModel(parent)
+ListModel::ListModel(QObject* parent)
+    : QAbstractListModel(parent),
+      m_logos(new LogoCache("ATLauncherPacks", "ATLauncher Icon Download",
+                            "atlauncher-placeholder", LogoCache::Skip::Nothing,
+                            this))
 {
+    connect(m_logos, &LogoCache::logoLoaded, this, &ListModel::onLogoLoaded);
 }
 
 ListModel::~ListModel()
@@ -67,18 +72,10 @@ QVariant ListModel::data(const QModelIndex& index, int role) const
     }
     else if (role == Qt::DecorationRole)
     {
-        if (m_logoMap.contains(pack.safeName))
-        {
-            return (m_logoMap.value(pack.safeName));
-        }
-        auto icon = APPLICATION->getThemedIcon("atlauncher-placeholder");
-
         auto url =
             (BuildConfig.ATL_DOWNLOAD_SERVER_URL + "launcher/images/%1.png")
                 .arg(pack.safeName.toLower());
-        ((ListModel*)this)->requestLogo(pack.safeName, url);
-
-        return icon;
+        return m_logos->icon(pack.safeName, url);
     }
     else if (role == Qt::UserRole)
     {
@@ -180,34 +177,13 @@ void ListModel::requestFailed(QString /*reason*/)
     jobPtr.reset();
 }
 
-void ListModel::getLogo(const QString& logo, const QString& logoUrl,
-                        LogoCallback callback)
+QString ListModel::logoPath(const QString& logo, const QString& url)
 {
-    if (m_logoMap.contains(logo))
-    {
-        callback(
-            APPLICATION->metacache()
-                ->resolveEntry("ATLauncherPacks",
-                               QString("logos/%1").arg(logo.section(".", 0, 0)))
-                ->getFullPath());
-    }
-    else
-    {
-        requestLogo(logo, logoUrl);
-    }
+    return m_logos->path(logo, url);
 }
 
-void ListModel::logoFailed(QString logo)
+void ListModel::onLogoLoaded(const QString& logo)
 {
-    m_failedLogos.append(logo);
-    m_loadingLogos.removeAll(logo);
-}
-
-void ListModel::logoLoaded(QString logo, QIcon out)
-{
-    m_loadingLogos.removeAll(logo);
-    m_logoMap.insert(logo, out);
-
     for (int i = 0; i < modpacks.size(); i++)
     {
         if (modpacks[i].safeName == logo)
@@ -216,47 +192,6 @@ void ListModel::logoLoaded(QString logo, QIcon out)
                              {Qt::DecorationRole});
         }
     }
-}
-
-void ListModel::requestLogo(QString file, QString url)
-{
-    if (m_loadingLogos.contains(file) || m_failedLogos.contains(file))
-    {
-        return;
-    }
-
-    MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry(
-        "ATLauncherPacks", QString("logos/%1").arg(file.section(".", 0, 0)));
-    NetJob* job = new NetJob(QString("ATLauncher Icon Download %1").arg(file),
-                             APPLICATION->network());
-    job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
-    QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
-
-    auto fullPath = entry->getFullPath();
-    QObject::connect(
-        job, &NetJob::succeeded, this,
-        std::bind(&ListModel::onLogoSucceeded, this, file, fullPath));
-
-    QObject::connect(job, &NetJob::failed, this,
-                     std::bind(&ListModel::onLogoFailed, this, file));
-
-    job->start();
-
-    m_loadingLogos.append(file);
-}
-
-void ListModel::onLogoSucceeded(const QString& file, const QString& path)
-{
-    emit logoLoaded(file, QIcon(path));
-    if (waitingCallbacks.contains(file))
-    {
-        waitingCallbacks.value(file)(path);
-    }
-}
-
-void ListModel::onLogoFailed(const QString& file)
-{
-    emit logoFailed(file);
 }
 
 }  // namespace Atl

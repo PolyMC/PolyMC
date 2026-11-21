@@ -40,14 +40,12 @@
 #include "modplatform/modrinth/ModrinthPackManifest.h"
 #include "ui/pages/modplatform/modrinth/ModrinthPage.h"
 
+class LogoCache;
 class ModPage;
 class Version;
 
 namespace Modrinth
 {
-
-using LogoMap = QMap<QString, QIcon>;
-using LogoCallback = std::function<void(QString)>;
 
 class ModpackListModel : public QAbstractListModel
 {
@@ -88,8 +86,7 @@ public:
     void refresh();
     void searchWithTerm(const QString& term, const int sort);
 
-    void getLogo(const QString& logo, const QString& logoUrl,
-                 LogoCallback callback);
+    QString logoPath(const QString& logo, const QString& url);
 
     inline bool canFetchMore(const QModelIndex& /*parent*/) const override
     {
@@ -102,31 +99,21 @@ public slots:
     void searchRequestAborted();
 
 protected slots:
-
-    void logoFailed(QString logo);
-    void logoLoaded(QString logo, QIcon out);
-
     void performPaginatedSearch();
 
 protected:
-    void requestLogo(QString file, QString url);
-
     inline std::list<Version> getMineVersions() const;
 
 private:
     void onSearchSucceeded();
-    void onLogoSucceeded(const QString& logo, const QString& path);
-    void onLogoFailed(const QString& logo);
+    void onLogoLoaded(const QString& logo);
 
 protected:
     ModrinthPage* m_parent;
 
     QList<Modrinth::Modpack> modpacks;
 
-    LogoMap m_logoMap;
-    QMap<QString, LogoCallback> waitingCallbacks;
-    QStringList m_failedLogos;
-    QStringList m_loadingLogos;
+    LogoCache* m_logos;
 
     QString currentSearchTerm;
     QString currentSort;

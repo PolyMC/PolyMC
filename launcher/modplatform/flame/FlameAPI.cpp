@@ -12,17 +12,6 @@
 namespace
 {
 
-void deleteResponse(QByteArray* response)
-{
-    delete response;
-}
-
-void releaseJob(QByteArray* response, NetJob* job)
-{
-    delete response;
-    job->deleteLater();
-}
-
 void logBody(const QByteArray& body)
 {
     qDebug() << body;
@@ -51,9 +40,6 @@ NetJob::Ptr FlameAPI::matchFingerprints(const QList<uint>& fingerprints,
     netJob->addNetAction(Net::Upload::makeByteArray(
         QString("https://api.curseforge.com/v1/fingerprints"), response,
         body_raw));
-
-    QObject::connect(netJob, &NetJob::finished,
-                     std::bind(deleteResponse, response));
 
     return netJob;
 }
@@ -227,7 +213,8 @@ ModPlatform::IndexedVersion FlameAPI::getLatestVersion(VersionSearchArgs&& args)
     return ver;
 }
 
-NetJob* FlameAPI::getProjects(QStringList addonIds, QByteArray* response) const
+NetJob::Ptr FlameAPI::getProjects(QStringList addonIds,
+                                  QByteArray* response) const
 {
     auto* netJob =
         new NetJob(QString("Flame::GetProjects"), APPLICATION->network());
@@ -247,15 +234,13 @@ NetJob* FlameAPI::getProjects(QStringList addonIds, QByteArray* response) const
     netJob->addNetAction(Net::Upload::makeByteArray(
         QString("https://api.curseforge.com/v1/mods"), response, body_raw));
 
-    QObject::connect(netJob, &NetJob::finished,
-                     std::bind(releaseJob, response, netJob));
     QObject::connect(netJob, &NetJob::failed, std::bind(logBody, body_raw));
 
     return netJob;
 }
 
-NetJob* FlameAPI::getFiles(const QStringList& fileIds,
-                           QByteArray* response) const
+NetJob::Ptr FlameAPI::getFiles(const QStringList& fileIds,
+                               QByteArray* response) const
 {
     auto* netJob =
         new NetJob(QString("Flame::GetFiles"), APPLICATION->network());
@@ -276,8 +261,6 @@ NetJob* FlameAPI::getFiles(const QStringList& fileIds,
         QString("https://api.curseforge.com/v1/mods/files"), response,
         body_raw));
 
-    QObject::connect(netJob, &NetJob::finished,
-                     std::bind(releaseJob, response, netJob));
     QObject::connect(netJob, &NetJob::failed, std::bind(logBody, body_raw));
 
     return netJob;

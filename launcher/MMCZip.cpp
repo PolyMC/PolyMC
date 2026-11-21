@@ -219,8 +219,7 @@ bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath,
             dir.cdUp();
             QString parent_dir = dir.absolutePath();
             auto files = QFileInfoList();
-            MMCZip::collectFileListRecursively(what_to_zip, nullptr, &files,
-                                               nullptr);
+            MMCZip::collectFileListRecursively(what_to_zip, nullptr, &files);
 
             for (const auto& e : std::as_const(files))
             {
@@ -498,8 +497,7 @@ bool MMCZip::extractFile(QString fileCompressed, QString file, QString target)
 
 bool MMCZip::collectFileListRecursively(const QString& rootDir,
                                         const QString& subDir,
-                                        QFileInfoList* files,
-                                        MMCZip::FilterFunction excludeFilter)
+                                        QFileInfoList* files)
 {
     QDir rootDirectory(rootDir);
     if (!rootDirectory.exists())
@@ -527,8 +525,7 @@ bool MMCZip::collectFileListRecursively(const QString& rootDir,
         QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Hidden);
     for (const auto& e : std::as_const(entries))
     {
-        if (!collectFileListRecursively(rootDir, e.filePath(), files,
-                                        excludeFilter))
+        if (!collectFileListRecursively(rootDir, e.filePath(), files))
         {
             return false;
         }
@@ -538,14 +535,6 @@ bool MMCZip::collectFileListRecursively(const QString& rootDir,
     entries = directory.entryInfoList(QDir::Files);
     for (const auto& e : std::as_const(entries))
     {
-        QString relativeFilePath =
-            rootDirectory.relativeFilePath(e.absoluteFilePath());
-        if (excludeFilter && excludeFilter(relativeFilePath))
-        {
-            qDebug() << "Skipping file " << relativeFilePath;
-            continue;
-        }
-
         files->append(
             e);  // we want the original paths for MMCZip::compressDirFiles
     }

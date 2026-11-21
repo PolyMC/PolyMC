@@ -13,7 +13,7 @@ public:
     explicit FileResolvingTask(
         const shared_qobject_ptr<QNetworkAccessManager>& network,
         Flame::Manifest& toProcess);
-    virtual ~FileResolvingTask() {};
+    virtual ~FileResolvingTask();
 
     bool canAbort() const override
     {
@@ -39,10 +39,11 @@ private: /* data */
     NetJob::Ptr m_dljob;
 
     void modrinthCheckFinished();
-    void onModrinthJobFinished(NetJob* job);
-    void onSlugJobFinished(const QVector<QByteArray>& slugs, NetJob* job,
-                           QList<File*>* block);
+    void onSlugJobFinished();
+    bool stageAborted();
 
     QMap<File*, QByteArray*> blockedProjects;
+    QList<File*> m_blocked;
+    QVector<QByteArray> m_slugs;
 };
 }  // namespace Flame

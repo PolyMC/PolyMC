@@ -138,16 +138,12 @@ bool extractFile(QString fileCompressed, QString file, QString dir);
 std::optional<QByteArray> readFile(QuaZip* zip, const QString& file);
 
 /**
- * Populate a QFileInfoList with a directory tree recursively, while allowing to
- * excludeFilter what shouldn't be included.
+ * Populate a QFileInfoList with a directory tree recursively.
  * \param rootDir directory to start off
  * \param subDir subdirectory, should be nullptr for first invocation
  * \param files resulting list of QFileInfo
- * \param excludeFilter function to excludeFilter which files shouldn't be
- * included (returning true means to excude)
  * \return true for success or false for failure
  */
 bool collectFileListRecursively(const QString& rootDir, const QString& subDir,
-                                QFileInfoList* files,
-                                FilterFunction excludeFilter);
+                                QFileInfoList* files);
 }  // namespace MMCZip

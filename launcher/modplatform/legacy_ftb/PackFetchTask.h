@@ -30,11 +30,8 @@ private:
 
     bool parseAndAddPacks(QByteArray& data, PackType packType,
                           ModpackList& list);
-    void onPrivatePackSucceeded(NetJob* job, QByteArray* data,
-                                const QString& code);
-    void onPrivatePackFailed(NetJob* job, const QString& code, QByteArray* data,
-                             QString reason);
-    void onPrivatePackAborted(NetJob* job, QByteArray* data);
+    void onPrivatePackFinished(NetJob* job, QByteArray* data,
+                               const QString& code);
     ModpackList publicPacks;
     ModpackList thirdPartyPacks;
 

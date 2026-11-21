@@ -19,7 +19,6 @@
 #include "ui/dialogs/CustomMessageBox.h"
 
 #include <QAbstractButton>
-#include <functional>
 
 const static QMap<QString, QString> forgemap = {{"1.2.5", "3.4.9.171"},
                                                 {"1.4.2", "6.0.1.355"},
@@ -200,23 +199,25 @@ bool FlameCreationTask::updateInstance()
             fileIds.append(QString::number(file.fileId));
         }
 
-        auto* raw_response = new QByteArray;
-        auto job = api.getFiles(fileIds, raw_response);
+        QByteArray raw_response;
+        auto job = api.getFiles(fileIds, &raw_response);
 
         QEventLoop loop;
 
-        connect(job, &NetJob::succeeded, this,
-                std::bind(&FlameCreationTask::onOldFilesResolved, this,
-                          raw_response, fileIds, std::ref(old_files),
-                          old_minecraft_dir));
-        connect(job, &NetJob::finished, &loop, &QEventLoop::quit);
+        connect(job.get(), &NetJob::finished, &loop, &QEventLoop::quit);
 
-        m_process_update_file_info_job = job;
+        m_process_update_file_info_job = job.get();
         job->start();
 
         loop.exec();
 
         m_process_update_file_info_job = nullptr;
+
+        if (job->wasSuccessful())
+        {
+            onOldFilesResolved(raw_response, fileIds, old_files,
+                               old_minecraft_dir);
+        }
     }
     else
     {
@@ -245,21 +246,21 @@ bool FlameCreationTask::updateInstance()
     return false;
 }
 
-void FlameCreationTask::onOldFilesResolved(QByteArray* response,
+void FlameCreationTask::onOldFilesResolved(const QByteArray& response,
                                            const QStringList& ids,
                                            QMap<int, Flame::File>& files,
                                            const QDir& dir)
 {
     // Parse the API response
     QJsonParseError parse_error{};
-    auto doc = QJsonDocument::fromJson(*response, &parse_error);
+    auto doc = QJsonDocument::fromJson(response, &parse_error);
     if (parse_error.error != QJsonParseError::NoError)
     {
         qWarning() << "Error while parsing JSON response from "
                       "Flame files task at "
                    << parse_error.offset
                    << " reason: " << parse_error.errorString();
-        qWarning() << *response;
+        qWarning() << response;
         return;
     }
 

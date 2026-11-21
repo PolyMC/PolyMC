@@ -18,6 +18,7 @@
 #include <QtWidgets/QDialog>
 #include <QtCore/QEventLoop>
 #include <QTimer>
+#include <QUrl>
 
 #include "minecraft/auth/MinecraftAccount.h"
 
@@ -49,6 +50,7 @@ protected slots:
     void showVerificationUriAndCode(const QUrl& uri, const QString& code,
                                     int expiresIn);
     void hideVerificationUriAndCode();
+    void openUriAndCopyCode();
 
     void externalLoginTick();
 
@@ -59,4 +61,6 @@ private:
     QTimer m_externalLoginTimer;
     int m_externalLoginElapsed = 0;
     int m_externalLoginTimeout = 0;
+    QUrl m_verification_uri;
+    QString m_verification_code;
 };

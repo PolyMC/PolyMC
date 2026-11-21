@@ -52,7 +52,6 @@
 
 #include <QtConcurrentRun>
 #include <algorithm>
-#include <functional>
 
 #include <quazip/quazipdir.h>
 
@@ -251,41 +250,45 @@ void InstanceImportTask::extractAborted()
     emitAborted();
 }
 
-void InstanceImportTask::onCreationTaskSucceeded(InstanceTask* task)
+void InstanceImportTask::onCreationTaskSucceeded()
 {
-    setOverride(task->shouldOverride());
+    setOverride(m_creation_task->shouldOverride());
     emitSucceeded();
+}
+
+void InstanceImportTask::runCreationTask(InstanceCreationTask* task)
+{
+    m_creation_task = task;
+
+    m_creation_task->setName(*this);
+    m_creation_task->setIcon(m_instIcon);
+    m_creation_task->setGroup(m_instGroup);
+
+    connect(m_creation_task, &Task::succeeded, this,
+            &InstanceImportTask::onCreationTaskSucceeded);
+    connect(m_creation_task, &Task::failed, this,
+            &InstanceImportTask::emitFailed);
+    connect(m_creation_task, &Task::progress, this,
+            &InstanceImportTask::setProgress);
+    connect(m_creation_task, &Task::status, this,
+            &InstanceImportTask::setStatus);
+    connect(m_creation_task, &Task::details, this, &Task::details);
+    connect(m_creation_task, &Task::finished, m_creation_task,
+            &InstanceCreationTask::deleteLater);
+
+    connect(this, &Task::aborted, m_creation_task,
+            &InstanceCreationTask::abort);
+    connect(m_creation_task, &Task::aborted, this, &Task::abort);
+    connect(m_creation_task, &Task::abortStatusChanged, this,
+            &Task::setAbortable);
+
+    m_creation_task->start();
 }
 
 void InstanceImportTask::processFlame()
 {
-    auto* inst_creation_task =
-        new FlameCreationTask(m_stagingPath, m_globalSettings, m_parent);
-
-    inst_creation_task->setName(*this);
-    inst_creation_task->setIcon(m_instIcon);
-    inst_creation_task->setGroup(m_instGroup);
-
-    connect(inst_creation_task, &Task::succeeded, this,
-            std::bind(&InstanceImportTask::onCreationTaskSucceeded, this,
-                      inst_creation_task));
-    connect(inst_creation_task, &Task::failed, this,
-            &InstanceImportTask::emitFailed);
-    connect(inst_creation_task, &Task::progress, this,
-            &InstanceImportTask::setProgress);
-    connect(inst_creation_task, &Task::status, this,
-            &InstanceImportTask::setStatus);
-    connect(inst_creation_task, &Task::details, this, &Task::details);
-    connect(inst_creation_task, &Task::finished, inst_creation_task,
-            &InstanceCreationTask::deleteLater);
-
-    connect(this, &Task::aborted, inst_creation_task,
-            &InstanceCreationTask::abort);
-    connect(inst_creation_task, &Task::aborted, this, &Task::abort);
-    connect(inst_creation_task, &Task::abortStatusChanged, this,
-            &Task::setAbortable);
-
-    inst_creation_task->start();
+    runCreationTask(
+        new FlameCreationTask(m_stagingPath, m_globalSettings, m_parent));
 }
 
 void InstanceImportTask::processTechnic()
@@ -340,31 +343,6 @@ void InstanceImportTask::processMultiMC()
 
 void InstanceImportTask::processModrinth()
 {
-    auto* inst_creation_task = new ModrinthCreationTask(
-        m_stagingPath, m_globalSettings, m_parent, m_sourceUrl.toString());
-
-    inst_creation_task->setName(*this);
-    inst_creation_task->setIcon(m_instIcon);
-    inst_creation_task->setGroup(m_instGroup);
-
-    connect(inst_creation_task, &Task::succeeded, this,
-            std::bind(&InstanceImportTask::onCreationTaskSucceeded, this,
-                      inst_creation_task));
-    connect(inst_creation_task, &Task::failed, this,
-            &InstanceImportTask::emitFailed);
-    connect(inst_creation_task, &Task::progress, this,
-            &InstanceImportTask::setProgress);
-    connect(inst_creation_task, &Task::status, this,
-            &InstanceImportTask::setStatus);
-    connect(inst_creation_task, &Task::details, this, &Task::details);
-    connect(inst_creation_task, &Task::finished, inst_creation_task,
-            &InstanceCreationTask::deleteLater);
-
-    connect(this, &Task::aborted, inst_creation_task,
-            &InstanceCreationTask::abort);
-    connect(inst_creation_task, &Task::aborted, this, &Task::abort);
-    connect(inst_creation_task, &Task::abortStatusChanged, this,
-            &Task::setAbortable);
-
-    inst_creation_task->start();
+    runCreationTask(new ModrinthCreationTask(m_stagingPath, m_globalSettings,
+                                             m_parent, m_sourceUrl.toString()));
 }

@@ -32,7 +32,7 @@ private slots:
     void setupDownloadJob(QEventLoop&);
 
 private:
-    void onOldFilesResolved(QByteArray* response, const QStringList& ids,
+    void onOldFilesResolved(const QByteArray& response, const QStringList& ids,
                             QMap<int, Flame::File>& files, const QDir& dir);
     void onFilesJobSucceeded();
     void onFilesJobFailed(QString reason);

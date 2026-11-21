@@ -3,7 +3,6 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QMimeData>
-#include <QPointer>
 #include <QThreadPool>
 #include <QUrl>
 
@@ -357,17 +356,6 @@ void ResourceFolderModel::resolveResource(Resource::Ptr res)
     res->setResolving(true, ticket);
     m_active_parse_tasks.insert(ticket, task);
 
-    // These are queued, so the resource may have been removed from the list
-    // (and deleted) by the time they run
-    QPointer<Resource> resource = res.get();
-    connect(task, &Task::succeeded, this,
-            std::bind(&ResourceFolderModel::parseTaskSucceeded, this, ticket,
-                      resource),
-            Qt::ConnectionType::QueuedConnection);
-    connect(task, &Task::failed, this,
-            std::bind(&ResourceFolderModel::parseTaskFailed, this, ticket,
-                      resource),
-            Qt::ConnectionType::QueuedConnection);
     connect(
         task, &Task::finished, this,
         std::bind(&ResourceFolderModel::parseTaskFinished, this, ticket, res),
@@ -376,27 +364,17 @@ void ResourceFolderModel::resolveResource(Resource::Ptr res)
     m_thread_pool.start(task);
 }
 
-void ResourceFolderModel::parseTaskSucceeded(int ticket,
-                                             QPointer<Resource> resource)
+void ResourceFolderModel::parseTaskFinished(int ticket, Resource::Ptr resource)
 {
-    if (resource)
+    Task::Ptr task = m_active_parse_tasks.value(ticket);
+    if (task->wasSuccessful())
     {
         onParseSucceeded(ticket, resource->internal_id());
     }
-}
-
-void ResourceFolderModel::parseTaskFailed(int ticket,
-                                          QPointer<Resource> resource)
-{
-    if (resource)
+    else if (task->getState() == Task::State::Failed)
     {
         onParseFailed(ticket, resource->internal_id());
     }
-}
-
-void ResourceFolderModel::parseTaskFinished(
-    int ticket, [[maybe_unused]] Resource::Ptr resource)
-{
     m_active_parse_tasks.remove(ticket);
 }
 

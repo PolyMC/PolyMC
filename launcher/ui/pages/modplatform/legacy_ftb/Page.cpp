@@ -49,8 +49,6 @@
 #include "modplatform/legacy_ftb/PrivatePackManager.h"
 #include "ListModel.h"
 
-#include <functional>
-
 namespace LegacyFTB
 {
 
@@ -217,29 +215,27 @@ void Page::suggestCurrent()
 
     editedLogoName = editedLogoName.left(editedLogoName.lastIndexOf(".png"));
 
+    ListModel* model = nullptr;
     if (selected.type == PackType::Public)
     {
-        publicListModel->getLogo(
-            selected.logo, std::bind(&Page::setSuggestedLogo, this,
-                                     editedLogoName, std::placeholders::_1));
+        model = publicListModel;
     }
     else if (selected.type == PackType::ThirdParty)
     {
-        thirdPartyModel->getLogo(
-            selected.logo, std::bind(&Page::setSuggestedLogo, this,
-                                     editedLogoName, std::placeholders::_1));
+        model = thirdPartyModel;
     }
     else if (selected.type == PackType::Private)
     {
-        privateListModel->getLogo(
-            selected.logo, std::bind(&Page::setSuggestedLogo, this,
-                                     editedLogoName, std::placeholders::_1));
+        model = privateListModel;
     }
-}
-
-void Page::setSuggestedLogo(const QString& name, QString logo)
-{
-    dialog->setSuggestedIconFromFile(logo, name);
+    if (model)
+    {
+        auto path = model->logoPath(selected.logo);
+        if (!path.isEmpty())
+        {
+            dialog->setSuggestedIconFromFile(path, editedLogoName);
+        }
+    }
 }
 
 void Page::ftbPackDataDownloadSuccessfully(ModpackList publicPacks,

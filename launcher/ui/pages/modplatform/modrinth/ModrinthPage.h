@@ -41,6 +41,7 @@
 #include "ui/pages/BasePage.h"
 
 #include "modplatform/modrinth/ModrinthPackManifest.h"
+#include "net/NetJob.h"
 
 #include <QWidget>
 
@@ -106,11 +107,8 @@ private slots:
     void triggerSearch();
 
 private:
-    void onInfoLoaded(QByteArray* response, const QString& id,
-                      const QModelIndex& curr);
-    void onVersionsLoaded(QByteArray* response, const QString& id,
-                          const QModelIndex& curr);
-    void setSuggestedLogo(const QString& name, QString logo);
+    void onInfoLoaded();
+    void onVersionsLoaded();
 
     Ui::ModrinthPage* ui;
     NewInstanceDialog* dialog;
@@ -118,4 +116,12 @@ private:
 
     Modrinth::Modpack current;
     QString selectedVersion;
+
+    NetJob::Ptr m_info_job;
+    QByteArray m_info_response;
+    QPersistentModelIndex m_info_index;
+
+    NetJob::Ptr m_versions_job;
+    QByteArray m_versions_response;
+    QPersistentModelIndex m_versions_index;
 };

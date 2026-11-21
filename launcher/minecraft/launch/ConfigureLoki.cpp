@@ -1,7 +1,5 @@
 #include "ConfigureLoki.h"
 
-#include <functional>
-
 #include <launch/LaunchTask.h>
 #include <QDir>
 #include <QFileInfo>
@@ -27,20 +25,18 @@ ConfigureLoki::ConfigureLoki(LaunchTask* parent, QString yggdrasil_base_url,
 
 void ConfigureLoki::executeTask()
 {
-    auto indexEntry =
-        APPLICATION->metacache()->resolveEntry("loki", "index.json");
-    indexEntry->setStale(true);
+    m_entry = APPLICATION->metacache()->resolveEntry("loki", "index.json");
+    m_entry->setStale(true);
 
     m_job = std::make_unique<NetJob>("Download Loki index.json",
                                      APPLICATION->network());
     auto indexDl = Net::Download::makeCached(
         QUrl("https://meta.unmojang.org/v1/org.unmojang.loki/index.json"),
-        indexEntry, Net::Download::Option::NoOptions);
+        m_entry, Net::Download::Option::NoOptions);
     m_job->addNetAction(indexDl);
 
     connect(m_job.get(), &NetJob::succeeded, this,
-            std::bind(&ConfigureLoki::indexDownloaded, this, indexEntry),
-            Qt::QueuedConnection);
+            &ConfigureLoki::indexDownloaded, Qt::QueuedConnection);
 
     connect(m_job.get(), &NetJob::failed, this, &ConfigureLoki::downloadFailed);
     m_job->start();
@@ -51,9 +47,9 @@ void ConfigureLoki::downloadFailed(QString reason)
     return emitFailed(QString("Download failed: %1").arg(reason));
 }
 
-void ConfigureLoki::indexDownloaded(MetaEntryPtr entry)
+void ConfigureLoki::indexDownloaded()
 {
-    QFile indexFile{entry->getFullPath()};
+    QFile indexFile{m_entry->getFullPath()};
     if (!indexFile.open(QIODevice::ReadOnly))
     {
         return emitFailed(QString("Failed to open Loki index json: %1")
@@ -100,29 +96,28 @@ void ConfigureLoki::indexDownloaded(MetaEntryPtr entry)
             versions.first().toObject().value("version").toString();
     }
 
-    auto versionEntry = APPLICATION->metacache()->resolveEntry(
+    m_entry = APPLICATION->metacache()->resolveEntry(
         "loki", QString("%1.json").arg(selectedVersion));
+    m_selected_version = selectedVersion;
     m_job = std::make_unique<NetJob>("Download Loki version json",
                                      APPLICATION->network());
     auto versionDl = Net::Download::makeCached(
         QUrl(QString("https://meta.unmojang.org/v1/org.unmojang.loki/"
                      "%1.json")
                  .arg(selectedVersion)),
-        versionEntry, Net::Download::Option::NoOptions);
+        m_entry, Net::Download::Option::NoOptions);
     m_job->addNetAction(versionDl);
 
     connect(m_job.get(), &NetJob::succeeded, this,
-            std::bind(&ConfigureLoki::versionDownloaded, this, versionEntry,
-                      selectedVersion),
-            Qt::QueuedConnection);
+            &ConfigureLoki::versionDownloaded, Qt::QueuedConnection);
 
     connect(m_job.get(), &NetJob::failed, this, &ConfigureLoki::downloadFailed);
     m_job->start();
 }
 
-void ConfigureLoki::versionDownloaded(MetaEntryPtr entry, QString version)
+void ConfigureLoki::versionDownloaded()
 {
-    QFile versionFile{entry->getFullPath()};
+    QFile versionFile{m_entry->getFullPath()};
     if (!versionFile.open(QIODevice::ReadOnly))
     {
         return emitFailed(QString("Failed to open Loki version json: %1")
@@ -161,28 +156,26 @@ void ConfigureLoki::versionDownloaded(MetaEntryPtr entry, QString version)
     QString filename = QFileInfo(QUrl(lokiJarUrl).path()).fileName();
     if (filename.isEmpty())
     {
-        filename = QString("Loki-%1.jar").arg(version);
+        filename = QString("Loki-%1.jar").arg(m_selected_version);
     }
 
-    auto javaAgentEntry =
-        APPLICATION->metacache()->resolveEntry("loki", filename);
+    m_entry = APPLICATION->metacache()->resolveEntry("loki", filename);
     m_job = std::make_unique<NetJob>("Download Loki java agent",
                                      APPLICATION->network());
     auto javaAgentDl = Net::Download::makeCached(
-        QUrl(lokiJarUrl), javaAgentEntry, Net::Download::Option::MakeEternal);
+        QUrl(lokiJarUrl), m_entry, Net::Download::Option::MakeEternal);
 
     m_job->addNetAction(javaAgentDl);
 
-    connect(
-        m_job.get(), &NetJob::succeeded, this,
-        std::bind(&ConfigureLoki::javaAgentDownloaded, this, javaAgentEntry));
+    connect(m_job.get(), &NetJob::succeeded, this,
+            &ConfigureLoki::javaAgentDownloaded);
     connect(m_job.get(), &NetJob::failed, this, &ConfigureLoki::downloadFailed);
     m_job->start();
 }
 
-void ConfigureLoki::javaAgentDownloaded(MetaEntryPtr entry)
+void ConfigureLoki::javaAgentDownloaded()
 {
-    auto path = entry->getFullPath();
+    auto path = m_entry->getFullPath();
     qDebug() << "Configured Loki agent:" << path;
     *m_javaagent_arg = QString("%1=%2").arg(path, m_yggdrasil_base_url);
     emitSucceeded();

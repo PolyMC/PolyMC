@@ -40,10 +40,15 @@
 
 #include <QIcon>
 
-#include <functional>
+#include "ui/pages/modplatform/LogoCache.h"
 
-Technic::ListModel::ListModel(QObject* parent) : QAbstractListModel(parent)
+Technic::ListModel::ListModel(QObject* parent)
+    : QAbstractListModel(parent),
+      m_logos(new LogoCache("TechnicPacks", "Technic Icon Download",
+                            "screenshot-placeholder", LogoCache::Skip::NullName,
+                            this))
 {
+    connect(m_logos, &LogoCache::logoLoaded, this, &ListModel::onLogoLoaded);
 }
 
 Technic::ListModel::~ListModel()
@@ -70,13 +75,7 @@ QVariant Technic::ListModel::data(const QModelIndex& index, int role) const
     }
     else if (role == Qt::DecorationRole)
     {
-        if (m_logoMap.contains(pack.logoName))
-        {
-            return (m_logoMap.value(pack.logoName));
-        }
-        QIcon icon = APPLICATION->getThemedIcon("screenshot-placeholder");
-        ((ListModel*)this)->requestLogo(pack.logoName, pack.logoUrl);
-        return icon;
+        return m_logos->icon(pack.logoName, pack.logoUrl);
     }
     else if (role == Qt::UserRole)
     {
@@ -280,20 +279,9 @@ void Technic::ListModel::searchRequestFinished()
     endInsertRows();
 }
 
-void Technic::ListModel::getLogo(const QString& logo, const QString& logoUrl,
-                                 Technic::LogoCallback callback)
+QString Technic::ListModel::logoPath(const QString& logo, const QString& url)
 {
-    if (m_logoMap.contains(logo))
-    {
-        callback(
-            APPLICATION->metacache()
-                ->resolveEntry("TechnicPacks", QString("logos/%1").arg(logo))
-                ->getFullPath());
-    }
-    else
-    {
-        requestLogo(logo, logoUrl);
-    }
+    return m_logos->path(logo, url);
 }
 
 void Technic::ListModel::searchRequestFailed()
@@ -314,10 +302,8 @@ void Technic::ListModel::searchRequestFailed()
     }
 }
 
-void Technic::ListModel::logoLoaded(QString logo, QString out)
+void Technic::ListModel::onLogoLoaded(const QString& logo)
 {
-    m_loadingLogos.removeAll(logo);
-    m_logoMap.insert(logo, QIcon(out));
     for (int i = 0; i < modpacks.size(); i++)
     {
         if (modpacks[i].logoName == logo)
@@ -326,39 +312,4 @@ void Technic::ListModel::logoLoaded(QString logo, QString out)
                              {Qt::DecorationRole});
         }
     }
-}
-
-void Technic::ListModel::logoFailed(QString logo)
-{
-    m_failedLogos.append(logo);
-    m_loadingLogos.removeAll(logo);
-}
-
-void Technic::ListModel::requestLogo(QString logo, QString url)
-{
-    if (m_loadingLogos.contains(logo) || m_failedLogos.contains(logo) ||
-        logo == "null")
-    {
-        return;
-    }
-
-    MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry(
-        "TechnicPacks", QString("logos/%1").arg(logo));
-    NetJob* job = new NetJob(QString("Technic Icon Download %1").arg(logo),
-                             APPLICATION->network());
-    job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
-    QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
-
-    auto fullPath = entry->getFullPath();
-
-    QObject::connect(
-        job, &NetJob::succeeded, this,
-        std::bind(&Technic::ListModel::logoLoaded, this, logo, fullPath));
-
-    QObject::connect(job, &NetJob::failed, this,
-                     std::bind(&Technic::ListModel::logoFailed, this, logo));
-
-    job->start();
-
-    m_loadingLogos.append(logo);
 }
