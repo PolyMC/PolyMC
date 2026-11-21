@@ -1401,10 +1401,10 @@ void MainWindow::repopulateAccountsMenu()
         }
     }
 
+    ui->all_actions.removeAll(&ui->actionNoAccountsAdded);
     if (accounts->count() <= 0)
     {
-        ui->all_actions.removeAll(&ui->actionNoAccountsAdded);
-        ui->actionNoAccountsAdded = TranslatedAction(this);
+        ui->actionNoAccountsAdded = TranslatedAction(accountMenu);
         ui->actionNoAccountsAdded->setObjectName(QStringLiteral("actionNoAccountsAdded"));
         ui->actionNoAccountsAdded.setTextId(QT_TRANSLATE_NOOP("MainWindow", "No accounts added!"));
         ui->actionNoAccountsAdded->setEnabled(false);
@@ -1452,7 +1452,7 @@ void MainWindow::repopulateAccountsMenu()
     ui->profileMenu->addSeparator();
 
     ui->all_actions.removeAll(&ui->actionNoDefaultAccount);
-    ui->actionNoDefaultAccount = TranslatedAction(this);
+    ui->actionNoDefaultAccount = TranslatedAction(accountMenu);
     ui->actionNoDefaultAccount->setObjectName(QStringLiteral("actionNoDefaultAccount"));
     ui->actionNoDefaultAccount.setTextId(QT_TRANSLATE_NOOP("MainWindow", "No Default Account"));
     ui->actionNoDefaultAccount->setCheckable(true);
