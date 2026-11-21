@@ -64,6 +64,11 @@ UpdateDialog::UpdateDialog(bool hasUpdate, QWidget *parent) : QDialog(parent), u
 
 UpdateDialog::~UpdateDialog()
 {
+    if(dljob && dljob->isRunning())
+    {
+        dljob->abort();
+    }
+    delete ui;
 }
 
 void UpdateDialog::loadChangelog()
