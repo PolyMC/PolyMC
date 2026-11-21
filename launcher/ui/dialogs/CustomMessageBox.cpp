@@ -29,6 +29,7 @@ QMessageBox *selectable(QWidget *parent, const QString &title, const QString &te
     messageBox->setTextInteractionFlags(Qt::TextSelectableByMouse);
     messageBox->setIcon(icon);
     messageBox->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    QObject::connect(messageBox, &QDialog::finished, messageBox, &QObject::deleteLater);
 
     return messageBox;
 }
