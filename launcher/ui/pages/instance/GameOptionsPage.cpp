@@ -58,6 +58,7 @@ GameOptionsPage::GameOptionsPage(MinecraftInstance * inst, QWidget* parent)
 
 GameOptionsPage::~GameOptionsPage()
 {
+    delete ui;
     // m_model->save();
 }
 
