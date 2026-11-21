@@ -91,7 +91,16 @@ QJsonDocument requireDocument(const QByteArray &data, const QString &what)
 }
 QJsonDocument requireDocument(const QString &filename, const QString &what)
 {
-    return requireDocument(FS::read(filename), what);
+    QByteArray data;
+    try
+    {
+        data = FS::read(filename);
+    }
+    catch (const FS::FileSystemException &e)
+    {
+        throw JsonException(e.cause());
+    }
+    return requireDocument(data, what);
 }
 QJsonObject requireObject(const QJsonDocument &doc, const QString &what)
 {
