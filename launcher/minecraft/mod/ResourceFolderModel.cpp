@@ -26,11 +26,7 @@ ResourceFolderModel::ResourceFolderModel(QDir dir, QObject* parent) : QAbstractL
     connect(&m_watcher, &QFileSystemWatcher::directoryChanged, this, &ResourceFolderModel::directoryChanged);
 }
 
-ResourceFolderModel::~ResourceFolderModel()
-{
-    while (!QThreadPool::globalInstance()->waitForDone(100))
-        QCoreApplication::processEvents();
-}
+ResourceFolderModel::~ResourceFolderModel() = default;
 
 bool ResourceFolderModel::startWatching(const QStringList paths)
 {
@@ -256,7 +252,7 @@ bool ResourceFolderModel::update()
         }
     }, Qt::ConnectionType::QueuedConnection);
 
-    QThreadPool::globalInstance()->start(m_current_update_task.get());
+    m_thread_pool.start(m_current_update_task.get());
 
     return true;
 }
@@ -285,7 +281,7 @@ void ResourceFolderModel::resolveResource(Resource::Ptr res)
     connect(
         task, &Task::finished, this, [this, ticket, res] { m_active_parse_tasks.remove(ticket); }, Qt::ConnectionType::QueuedConnection);
 
-    QThreadPool::globalInstance()->start(task);
+    m_thread_pool.start(task);
 }
 
 void ResourceFolderModel::onUpdateSucceeded()

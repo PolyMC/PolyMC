@@ -6,6 +6,7 @@
 #include <QMutex>
 #include <QSet>
 #include <QSortFilterProxyModel>
+#include <QThreadPool>
 #include <QTimer>
 
 #include "Resource.h"
@@ -201,6 +202,8 @@ class ResourceFolderModel : public QAbstractListModel {
 
     QMap<int, Task::Ptr> m_active_parse_tasks;
     std::atomic<int> m_next_resolution_ticket = 0;
+
+    QThreadPool m_thread_pool;
 };
 
 /* A macro to define useful functions to handle Resource* -> T* more easily on derived classes */
