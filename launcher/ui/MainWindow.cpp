@@ -1783,12 +1783,13 @@ void MainWindow::on_actionCopyInstance_triggered()
 {
     if (!m_selectedInstance)
         return;
+    auto inst = m_selectedInstance;
 
-    CopyInstanceDialog copyInstDlg(m_selectedInstance, this);
+    CopyInstanceDialog copyInstDlg(inst, this);
     if (!copyInstDlg.exec())
         return;
 
-    auto copyTask = new InstanceCopyTask(m_selectedInstance, copyInstDlg.shouldCopySaves(), copyInstDlg.shouldKeepPlaytime());
+    auto copyTask = new InstanceCopyTask(inst, copyInstDlg.shouldCopySaves(), copyInstDlg.shouldKeepPlaytime());
     copyTask->setName(copyInstDlg.instName());
     copyTask->setGroup(copyInstDlg.instGroup());
     copyTask->setIcon(copyInstDlg.iconKey());
@@ -1895,12 +1896,13 @@ void MainWindow::on_actionChangeInstIcon_triggered()
 {
     if (!m_selectedInstance)
         return;
+    auto inst = m_selectedInstance;
 
     IconPickerDialog dlg(this);
-    dlg.execWithSelection(m_selectedInstance->iconKey());
+    dlg.execWithSelection(inst->iconKey());
     if (dlg.result() == QDialog::Accepted)
     {
-        m_selectedInstance->setIconKey(dlg.selectedIconKey);
+        inst->setIconKey(dlg.selectedIconKey);
         auto icon = APPLICATION->icons()->getIcon(dlg.selectedIconKey);
         ui->actionChangeInstIcon->setIcon(icon);
         ui->changeIconButton->setIcon(icon);
@@ -2148,12 +2150,13 @@ void MainWindow::on_actionDeleteInstance_triggered()
         return;
     }
 
-    auto id = m_selectedInstance->id();
+    auto inst = m_selectedInstance;
+    auto id = inst->id();
 
     auto response = CustomMessageBox::selectable(
                         this,
                         tr("CAREFUL!"),
-                        tr("About to delete: %1\nThis instance will be trashed.\nYou can recover the instance from the system trashbin.\n\nAre you sure?").arg(m_selectedInstance->name()),
+                        tr("About to delete: %1\nThis instance will be trashed.\nYou can recover the instance from the system trashbin.\n\nAre you sure?").arg(inst->name()),
                         QMessageBox::Warning,
                         QMessageBox::Yes | QMessageBox::No,
                         QMessageBox::No
@@ -2164,7 +2167,7 @@ void MainWindow::on_actionDeleteInstance_triggered()
             response = CustomMessageBox::selectable(
                            this,
                            tr("CAREFUL!"),
-                           tr("About to delete: %1\nNo suitable system trashbin was found.\nThe instance will now be deleted. This is PERMANENT, and you CANNOT get your data back.\n\nAre you sure?").arg(m_selectedInstance->name()),
+                           tr("About to delete: %1\nNo suitable system trashbin was found.\nThe instance will now be deleted. This is PERMANENT, and you CANNOT get your data back.\n\nAre you sure?").arg(inst->name()),
                            QMessageBox::Warning,
                            QMessageBox::Yes | QMessageBox::No,
                            QMessageBox::No
