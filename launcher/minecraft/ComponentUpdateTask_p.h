@@ -15,7 +15,7 @@ struct RemoteLoadStatus
         List,
         Version
     } type = Type::Version;
-    size_t PackProfileIndex = 0;
+    QString uid;
     bool finished = false;
     bool succeeded = false;
     QString error;
