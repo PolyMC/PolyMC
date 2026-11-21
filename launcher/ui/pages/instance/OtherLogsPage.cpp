@@ -179,33 +179,44 @@ void OtherLogsPage::on_btnReload_clicked()
     }
     else
     {
-        if (file.size() > (1024ll * 1024ll * 12ll))
+        QString content;
+        bool too_big = false;
+        do
+        {
+            if (file.size() > (1024ll * 1024ll * 12ll))
+            {
+                too_big = true;
+                break;
+            }
+            if (file.fileName().endsWith(".gz"))
+            {
+                QByteArray temp;
+                if (!GZip::unzip(file.readAll(), temp))
+                {
+                    content = tr("The file (%1) is not readable.")
+                                  .arg(file.fileName());
+                    break;
+                }
+                content = QString::fromUtf8(temp);
+            }
+            else
+            {
+                content = QString::fromUtf8(file.readAll());
+            }
+            if (content.size() >= 50000000ll)
+            {
+                too_big = true;
+            }
+        } while (0);
+
+        if (too_big)
         {
             showTooBig(file);
-            return;
-        }
-        QString content;
-        if (file.fileName().endsWith(".gz"))
-        {
-            QByteArray temp;
-            if (!GZip::unzip(file.readAll(), temp))
-            {
-                setPlainText(
-                    tr("The file (%1) is not readable.").arg(file.fileName()));
-                return;
-            }
-            content = QString::fromUtf8(temp);
         }
         else
         {
-            content = QString::fromUtf8(file.readAll());
+            setPlainText(content);
         }
-        if (content.size() >= 50000000ll)
-        {
-            showTooBig(file);
-            return;
-        }
-        setPlainText(content);
     }
 }
 

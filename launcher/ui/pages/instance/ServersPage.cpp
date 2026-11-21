@@ -440,89 +440,90 @@ private:
             }
 
             int packetEnd = pos + packetLen;
-            int packetId;
-            if (!tryReadVarInt(pos, packetId))
+            do
             {
-                m_buffer.remove(0, packetEnd);
-                continue;
-            }
-
-            if (m_state == WaitingStatusResponse && packetId == 0x00)
-            {
-                int jsonLen;
-                if (!tryReadVarInt(pos, jsonLen) || jsonLen <= 0 ||
-                    jsonLen > MAX_STATUS_PACKET_SIZE ||
-                    pos + jsonLen > packetEnd)
+                int packetId;
+                if (!tryReadVarInt(pos, packetId))
                 {
-                    m_buffer.remove(0, packetEnd);
-                    continue;
-                }
-                QString jsonStr =
-                    QString::fromUtf8(m_buffer.constData() + pos, jsonLen);
-
-                QJsonParseError parseError;
-                QJsonDocument doc =
-                    QJsonDocument::fromJson(jsonStr.toUtf8(), &parseError);
-                if (parseError.error != QJsonParseError::NoError ||
-                    !doc.isObject())
-                {
-                    finish(false);
-                    return;
-                }
-                QJsonObject root = doc.object();
-
-                QJsonValue desc = root["description"];
-                if (desc.isObject())
-                {
-                    m_motd = desc.toObject()["text"].toString();
-                }
-                else if (desc.isString())
-                {
-                    m_motd = desc.toString();
+                    break;
                 }
 
-                QJsonObject players = root["players"].toObject();
-                m_currentPlayers = players["online"].toInt();
-                m_maxPlayers = players["max"].toInt();
-
-                QString favicon = root["favicon"].toString();
-                if (favicon.startsWith("data:image/png;base64,"))
+                if (m_state == WaitingStatusResponse && packetId == 0x00)
                 {
-                    QByteArray decoded =
-                        QByteArray::fromBase64(favicon.mid(22).toLatin1());
-                    if (decoded.size() <= MAX_FAVICON_SIZE)
+                    int jsonLen;
+                    if (!tryReadVarInt(pos, jsonLen) || jsonLen <= 0 ||
+                        jsonLen > MAX_STATUS_PACKET_SIZE ||
+                        pos + jsonLen > packetEnd)
                     {
-                        QBuffer faviconBuf(&decoded);
-                        faviconBuf.open(QIODevice::ReadOnly);
-                        QImageReader reader(&faviconBuf, "PNG");
-                        QSize dims = reader.size();
-                        if (dims.isValid() && dims.width() <= 64 &&
-                            dims.height() <= 64 && reader.canRead())
+                        break;
+                    }
+                    QString jsonStr =
+                        QString::fromUtf8(m_buffer.constData() + pos, jsonLen);
+
+                    QJsonParseError parseError;
+                    QJsonDocument doc =
+                        QJsonDocument::fromJson(jsonStr.toUtf8(), &parseError);
+                    if (parseError.error != QJsonParseError::NoError ||
+                        !doc.isObject())
+                    {
+                        finish(false);
+                        return;
+                    }
+                    QJsonObject root = doc.object();
+
+                    QJsonValue desc = root["description"];
+                    if (desc.isObject())
+                    {
+                        m_motd = desc.toObject()["text"].toString();
+                    }
+                    else if (desc.isString())
+                    {
+                        m_motd = desc.toString();
+                    }
+
+                    QJsonObject players = root["players"].toObject();
+                    m_currentPlayers = players["online"].toInt();
+                    m_maxPlayers = players["max"].toInt();
+
+                    QString favicon = root["favicon"].toString();
+                    if (favicon.startsWith("data:image/png;base64,"))
+                    {
+                        QByteArray decoded =
+                            QByteArray::fromBase64(favicon.mid(22).toLatin1());
+                        if (decoded.size() <= MAX_FAVICON_SIZE)
                         {
-                            m_icon = decoded;
+                            QBuffer faviconBuf(&decoded);
+                            faviconBuf.open(QIODevice::ReadOnly);
+                            QImageReader reader(&faviconBuf, "PNG");
+                            QSize dims = reader.size();
+                            if (dims.isValid() && dims.width() <= 64 &&
+                                dims.height() <= 64 && reader.canRead())
+                            {
+                                m_icon = decoded;
+                            }
                         }
                     }
-                }
 
-                QByteArray pingPayload;
-                writeVarInt(pingPayload, 0x01);
-                qint64 ts = QDateTime::currentMSecsSinceEpoch();
-                for (int i = 7; i >= 0; i--)
-                {
-                    pingPayload.append(
-                        static_cast<char>((ts >> (i * 8)) & 0xFF));
+                    QByteArray pingPayload;
+                    writeVarInt(pingPayload, 0x01);
+                    qint64 ts = QDateTime::currentMSecsSinceEpoch();
+                    for (int i = 7; i >= 0; i--)
+                    {
+                        pingPayload.append(
+                            static_cast<char>((ts >> (i * 8)) & 0xFF));
+                    }
+                    m_socket->write(framePacket(pingPayload));
+                    m_pingTimer.start();
+                    m_state = WaitingPong;
                 }
-                m_socket->write(framePacket(pingPayload));
-                m_pingTimer.start();
-                m_state = WaitingPong;
-            }
-            else if (m_state == WaitingPong && packetId == 0x01)
-            {
-                int pingMs = static_cast<int>(m_pingTimer.elapsed());
-                finish(true, m_currentPlayers, m_maxPlayers, pingMs, m_motd,
-                       m_icon);
-                return;
-            }
+                else if (m_state == WaitingPong && packetId == 0x01)
+                {
+                    int pingMs = static_cast<int>(m_pingTimer.elapsed());
+                    finish(true, m_currentPlayers, m_maxPlayers, pingMs, m_motd,
+                           m_icon);
+                    return;
+                }
+            } while (0);
 
             m_buffer.remove(0, packetEnd);
         }
@@ -926,20 +927,26 @@ public:
         beginResetModel();
         QList<Server> servers;
         auto serversDat = parseServersDat(serversPath());
-        if (serversDat && serversDat->has_key("servers", nbt::tag_type::List))
+        do
         {
-            auto& serversList = serversDat->at("servers").as<nbt::tag_list>();
-            if (serversList.el_type() == nbt::tag_type::Compound)
+            if (!serversDat ||
+                !serversDat->has_key("servers", nbt::tag_type::List))
             {
-                for (auto iter = serversList.begin(); iter != serversList.end();
-                     iter++)
-                {
-                    auto& serverTag = (*iter).as<nbt::tag_compound>();
-                    Server s(serverTag);
-                    servers.append(s);
-                }
+                break;
             }
-        }
+            auto& serversList = serversDat->at("servers").as<nbt::tag_list>();
+            if (serversList.el_type() != nbt::tag_type::Compound)
+            {
+                break;
+            }
+            for (auto iter = serversList.begin(); iter != serversList.end();
+                 iter++)
+            {
+                auto& serverTag = (*iter).as<nbt::tag_compound>();
+                Server s(serverTag);
+                servers.append(s);
+            }
+        } while (0);
         m_servers.swap(servers);
         m_loaded = true;
         endResetModel();
