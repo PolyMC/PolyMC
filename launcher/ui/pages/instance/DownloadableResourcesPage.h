@@ -21,8 +21,6 @@
 #include "ExternalResourcesPage.h"
 #include "ModDownloadTask.h"
 
-class ConcurrentTask;
-
 class DownloadableResourcesPage : public ExternalResourcesPage
 {
     Q_OBJECT
@@ -34,9 +32,4 @@ public:
 protected:
     // run the given download tasks
     void runTasks(const QList<ModDownloadTask*>& toRun);
-
-private:
-    void onTasksFailed(ConcurrentTask* tasks, QString reason);
-    void onTasksAborted(ConcurrentTask* tasks);
-    void onTasksSucceeded(ConcurrentTask* tasks);
 };

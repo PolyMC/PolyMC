@@ -28,22 +28,15 @@
 class ModrinthAPI : public NetworkModAPI
 {
 public:
-    NetJob::Ptr currentVersion(QString hash, QString hash_format,
-                               QByteArray* response);
-
     NetJob::Ptr currentVersions(const QStringList& hashes, QString hash_format,
                                 QByteArray* response);
-
-    NetJob::Ptr latestVersion(QString hash, QString hash_format,
-                              std::list<Version> mcVersions,
-                              ModLoaderTypes loaders, QByteArray* response);
 
     NetJob::Ptr latestVersions(const QStringList& hashes, QString hash_format,
                                std::list<Version> mcVersions,
                                ModLoaderTypes loaders, QByteArray* response);
 
-    NetJob* getProjects(QStringList addonIds,
-                        QByteArray* response) const override;
+    NetJob::Ptr getProjects(QStringList addonIds,
+                            QByteArray* response) const override;
 
 public:
     inline QString getAuthorURL(const QString& name) const

@@ -10,8 +10,6 @@
 
 #include "tasks/ConcurrentTask.h"
 
-#include <functional>
-
 static ModrinthAPI api;
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
@@ -29,11 +27,6 @@ bool ModrinthCheckUpdate::abort()
  * - Compare hash of the latest version with the current hash
  * - If equal, no updates, else, there's updates, so add to the list
  * */
-void ModrinthCheckUpdate::onHashFailed(Mod* mod)
-{
-    emit checkFailed(mod, tr("Failed to generate hash"));
-}
-
 void ModrinthCheckUpdate::executeTask()
 {
     setStatus(tr("Preparing mods for Modrinth..."));
@@ -67,9 +60,6 @@ void ModrinthCheckUpdate::executeTask()
             auto hash_task = Hashing::createModrinthHasher(
                 mod->fileinfo().absoluteFilePath());
             hashers.append({mod, hash_task});
-            // Only this mod can't be checked, the others are fine
-            connect(hash_task.get(), &Task::failed,
-                    std::bind(&ModrinthCheckUpdate::onHashFailed, this, mod));
             hashing_task.addTask(hash_task);
         }
         else
@@ -92,22 +82,21 @@ void ModrinthCheckUpdate::executeTask()
             hashes.append(hash);
             mappings.insert(hash, mod);
         }
+        else if (hasher->getState() == Task::State::Failed)
+        {
+            emit checkFailed(mod, tr("Failed to generate hash"));
+        }
     }
 
     // Collect errors here and report them once at the end, emitting failed()
     // directly would be followed by emitSucceeded()
     QString error;
 
-    auto* response = new QByteArray();
+    QByteArray response;
     auto job = api.latestVersions(hashes, best_hash_type, m_game_versions,
-                                  m_loaders, response);
+                                  m_loaders, &response);
 
     QEventLoop lock;
-
-    connect(job.get(), &Task::succeeded, this,
-            std::bind(&ModrinthCheckUpdate::onLatestVersionsReceived, this,
-                      response, std::ref(mappings), std::ref(error),
-                      best_hash_type, job));
 
     connect(job.get(), &Task::finished, &lock, &QEventLoop::quit);
 
@@ -119,6 +108,8 @@ void ModrinthCheckUpdate::executeTask()
 
     lock.exec();
 
+    m_net_job = nullptr;
+
     // abort() only aborts the request, report it from here
     if (job->getState() == Task::State::AbortedByUser)
     {
@@ -129,6 +120,10 @@ void ModrinthCheckUpdate::executeTask()
     {
         error = job->failReason();
     }
+    else if (job->wasSuccessful())
+    {
+        error = parseLatestVersions(response, mappings, best_hash_type);
+    }
     if (!error.isEmpty())
     {
         emitFailed(error);
@@ -137,22 +132,21 @@ void ModrinthCheckUpdate::executeTask()
     emitSucceeded();
 }
 
-void ModrinthCheckUpdate::onLatestVersionsReceived(
-    QByteArray* response, QHash<QString, Mod*>& mappings, QString& error,
-    const QString& format, NetJob::Ptr)
+QString ModrinthCheckUpdate::parseLatestVersions(
+    const QByteArray& response, const QHash<QString, Mod*>& mappings,
+    const QString& format)
 {
     QJsonParseError parse_error{};
-    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
     if (parse_error.error != QJsonParseError::NoError)
     {
         qWarning() << "Error while parsing JSON response from "
                       "ModrinthCheckUpdate at "
                    << parse_error.offset
                    << " reason: " << parse_error.errorString();
-        qWarning() << *response;
+        qWarning() << response;
 
-        error = parse_error.errorString();
-        return;
+        return parse_error.errorString();
     }
 
     setStatus(tr("Parsing the API response from Modrinth..."));
@@ -262,6 +256,8 @@ void ModrinthCheckUpdate::onLatestVersionsReceived(
     }
     catch (Json::JsonException& e)
     {
-        error = e.cause() + " : " + e.what();
+        return e.cause() + " : " + e.what();
     }
+
+    return {};
 }

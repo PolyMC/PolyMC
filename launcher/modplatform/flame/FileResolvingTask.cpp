@@ -33,6 +33,15 @@ Flame::FileResolvingTask::FileResolvingTask(
 {
 }
 
+Flame::FileResolvingTask::~FileResolvingTask()
+{
+    if (m_dljob && m_dljob->isRunning())
+    {
+        disconnect(m_dljob.get(), nullptr, this, nullptr);
+        m_dljob->abort();
+    }
+}
+
 bool Flame::FileResolvingTask::abort()
 {
     if (m_dljob)
@@ -63,11 +72,29 @@ void Flame::FileResolvingTask::executeTask()
     m_dljob->start();
 }
 
+bool Flame::FileResolvingTask::stageAborted()
+{
+    if (!isRunning())
+    {
+        return true;
+    }
+    if (m_dljob->getState() != Task::State::AbortedByUser)
+    {
+        return false;
+    }
+    qDeleteAll(blockedProjects);
+    blockedProjects.clear();
+    emitAborted();
+    return true;
+}
+
 void Flame::FileResolvingTask::netJobFinished()
 {
+    if (stageAborted())
+    {
+        return;
+    }
     setProgress(1, 3);
-    // job to check modrinth for blocked projects
-    auto job = new NetJob("Modrinth check", m_network);
     blockedProjects = QMap<File*, QByteArray*>();
     QJsonDocument doc;
 
@@ -79,7 +106,6 @@ void Flame::FileResolvingTask::netJobFinished()
     {
         qDebug() << "Flame::FileResolvingTask: Json Validation error: "
                  << e.what();
-        delete job;
         emitFailed(e.what());
         return;
     }
@@ -99,11 +125,12 @@ void Flame::FileResolvingTask::netJobFinished()
     {
         qDebug() << "Flame::FileResolvingTask: Json Validation error: "
                  << e.what();
-        delete job;
         emitFailed(e.what());
         return;
     }
 
+    // job to check modrinth for blocked projects
+    m_dljob = new NetJob("Modrinth check", m_network);
     for (const auto& file : std::as_const(array))
     {
         auto fileid = Json::requireInteger(Json::requireObject(file)["id"]);
@@ -127,27 +154,23 @@ void Flame::FileResolvingTask::netJobFinished()
                 QObject::connect(dl.get(), &Net::Download::succeeded,
                                  std::bind(markResolved, std::ref(out)));
 
-                job->addNetAction(dl);
+                m_dljob->addNetAction(dl);
                 blockedProjects.insert(&out, output);
             }
         }
     }
-    connect(
-        job, &NetJob::finished, this,
-        std::bind(&Flame::FileResolvingTask::onModrinthJobFinished, this, job));
+    connect(m_dljob.get(), &NetJob::finished, this,
+            &Flame::FileResolvingTask::modrinthCheckFinished);
 
-    job->start();
-}
-
-void Flame::FileResolvingTask::onModrinthJobFinished(NetJob* job)
-{
-    // Nothing else owns the job
-    job->deleteLater();
-    modrinthCheckFinished();
+    m_dljob->start();
 }
 
 void Flame::FileResolvingTask::modrinthCheckFinished()
 {
+    if (stageAborted())
+    {
+        return;
+    }
     setProgress(2, 3);
     qDebug() << "Finished with blocked mods : " << blockedProjects.size();
 
@@ -190,50 +213,50 @@ void Flame::FileResolvingTask::modrinthCheckFinished()
         delete bytes;
     }
     // copy to an output list and filter out projects found on modrinth
-    auto block = new QList<File*>();
+    m_blocked.clear();
     auto it = blockedProjects.keys();
-    std::copy_if(it.begin(), it.end(), std::back_inserter(*block),
+    std::copy_if(it.begin(), it.end(), std::back_inserter(m_blocked),
                  isUnresolved);
+    blockedProjects.clear();
     // Display not found mods early
-    if (!block->empty())
+    if (!m_blocked.empty())
     {
         // blocked mods found, we need the slug for displaying.... we need
         // another job :D !
-        auto slugJob = new NetJob("Slug Job", m_network);
-        auto slugs = QVector<QByteArray>(block->size());
+        m_slugs = QVector<QByteArray>(m_blocked.size());
+        m_dljob = new NetJob("Slug Job", m_network);
         auto index = 0;
-        for (auto fileInfo : std::as_const(*block))
+        for (auto fileInfo : std::as_const(m_blocked))
         {
             auto projectId = fileInfo->projectId;
-            slugs[index] = QByteArray();
             auto url =
                 QString("https://api.curseforge.com/v1/mods/%1").arg(projectId);
-            auto dl = Net::Download::makeByteArray(url, &slugs[index]);
-            slugJob->addNetAction(dl);
+            auto dl = Net::Download::makeByteArray(url, &m_slugs[index]);
+            m_dljob->addNetAction(dl);
             index++;
         }
         // Use finished: the links are only used for display, one failed lookup
         // shouldn't stop everything
-        connect(slugJob, &NetJob::finished, this,
-                std::bind(&Flame::FileResolvingTask::onSlugJobFinished, this,
-                          slugs, slugJob, block));
-        slugJob->start();
+        connect(m_dljob.get(), &NetJob::finished, this,
+                &Flame::FileResolvingTask::onSlugJobFinished);
+        m_dljob->start();
     }
     else
     {
-        delete block;
         emitSucceeded();
     }
 }
 
-void Flame::FileResolvingTask::onSlugJobFinished(
-    const QVector<QByteArray>& slugs, NetJob* job, QList<File*>* block)
+void Flame::FileResolvingTask::onSlugJobFinished()
 {
-    job->deleteLater();
-    auto index = 0;
-    for (const auto& slugResult : slugs)
+    if (stageAborted())
     {
-        auto mod = block->at(index);
+        return;
+    }
+    auto index = 0;
+    for (const auto& slugResult : std::as_const(m_slugs))
+    {
+        auto mod = m_blocked.at(index);
         index++;
         try
         {
@@ -253,6 +276,5 @@ void Flame::FileResolvingTask::onSlugJobFinished(
                        << mod->fileName << ":" << e.cause();
         }
     }
-    delete block;
     emitSucceeded();
 }

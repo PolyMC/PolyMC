@@ -31,14 +31,11 @@ private:
     QSize fittedSize(const QSize& imageSize, const QSizeF& authorSize) const;
     QImage loadScaled(const QString& path);
     void onAnchorClicked(const QUrl& url);
-    void applyLoadedImage(QUrl url, QPointer<QTextDocument> requesting,
-                          const QImage& img);
-    void addLoadedImage(QUrl url, QImage img, QPointer<QTextDocument> doc);
-    void onImageDownloaded(QUrl url, QPointer<QTextDocument> requesting,
-                           MetaEntryPtr entry);
-    void onImageDownloadFailed(QUrl url, QPointer<QTextDocument> requesting,
-                               MetaEntryPtr entry, const QString& reason);
-    void onJobFinished(NetJob* job);
+    void applyLoadedImage(QUrl url, const QImage& img);
+    void addLoadedImage(QUrl url, QImage img);
+    void onImageDownloaded(QUrl url, MetaEntryPtr entry);
+    void onImageDownloadFailed(QUrl url, MetaEntryPtr entry,
+                               const QString& reason);
 
     struct ImageFragment
     {

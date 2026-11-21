@@ -45,14 +45,20 @@
 
 #include <QMessageBox>
 
-#include <functional>
+#include "ui/pages/modplatform/LogoCache.h"
 
 namespace Modrinth
 {
 
 ModpackListModel::ModpackListModel(ModrinthPage* parent)
-    : QAbstractListModel(parent), m_parent(parent)
+    : QAbstractListModel(parent),
+      m_parent(parent),
+      m_logos(new LogoCache(
+          "ModrinthPacks", parent->debugName() + " Icon Download",
+          "screenshot-placeholder", LogoCache::Skip::EmptyUrl, this))
 {
+    connect(m_logos, &LogoCache::logoLoaded, this,
+            &ModpackListModel::onLogoLoaded);
 }
 
 QString ModpackListModel::debugName() const
@@ -103,15 +109,7 @@ QVariant ModpackListModel::data(const QModelIndex& index, int role) const
         }
         case Qt::DecorationRole:
         {
-            if (m_logoMap.contains(pack.iconName))
-            {
-                return m_logoMap.value(pack.iconName);
-            }
-
-            QIcon icon = APPLICATION->getThemedIcon("screenshot-placeholder");
-            ((ModpackListModel*)this)
-                ->requestLogo(pack.iconName, pack.iconUrl.toString());
-            return icon;
+            return m_logos->icon(pack.iconName, pack.iconUrl.toString());
         }
         case Qt::UserRole:
         {
@@ -268,72 +266,15 @@ void ModpackListModel::searchWithTerm(const QString& term, const int sort)
     refresh();
 }
 
-void ModpackListModel::getLogo(const QString& logo, const QString& logoUrl,
-                               LogoCallback callback)
+QString ModpackListModel::logoPath(const QString& logo, const QString& url)
 {
-    if (m_logoMap.contains(logo))
-    {
-        callback(
-            APPLICATION->metacache()
-                ->resolveEntry("ModrinthPacks",
-                               QString("logos/%1").arg(logo.section(".", 0, 0)))
-                ->getFullPath());
-    }
-    else
-    {
-        requestLogo(logo, logoUrl);
-    }
-}
-
-void ModpackListModel::requestLogo(QString logo, QString url)
-{
-    if (m_loadingLogos.contains(logo) || m_failedLogos.contains(logo) ||
-        url.isEmpty())
-    {
-        return;
-    }
-
-    MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry(
-        "ModrinthPacks", QString("logos/%1").arg(logo.section(".", 0, 0)));
-    auto job = new NetJob(
-        QString("%1 Icon Download %2").arg(m_parent->debugName()).arg(logo),
-        APPLICATION->network());
-    job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
-
-    auto fullPath = entry->getFullPath();
-    QObject::connect(
-        job, &NetJob::succeeded, this,
-        std::bind(&ModpackListModel::onLogoSucceeded, this, logo, fullPath));
-
-    QObject::connect(job, &NetJob::failed, this,
-                     std::bind(&ModpackListModel::onLogoFailed, this, logo));
-
-    QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
-
-    job->start();
-    m_loadingLogos.append(logo);
-}
-
-void ModpackListModel::onLogoSucceeded(const QString& logo, const QString& path)
-{
-    emit logoLoaded(logo, QIcon(path));
-    if (waitingCallbacks.contains(logo))
-    {
-        waitingCallbacks.value(logo)(path);
-    }
-}
-
-void ModpackListModel::onLogoFailed(const QString& logo)
-{
-    emit logoFailed(logo);
+    return m_logos->path(logo, url);
 }
 
 /******** Request callbacks ********/
 
-void ModpackListModel::logoLoaded(QString logo, QIcon out)
+void ModpackListModel::onLogoLoaded(const QString& logo)
 {
-    m_loadingLogos.removeAll(logo);
-    m_logoMap.insert(logo, out);
     for (int i = 0; i < modpacks.size(); i++)
     {
         if (modpacks[i].iconName == logo)
@@ -342,12 +283,6 @@ void ModpackListModel::logoLoaded(QString logo, QIcon out)
                              {Qt::DecorationRole});
         }
     }
-}
-
-void ModpackListModel::logoFailed(QString logo)
-{
-    m_failedLogos.append(logo);
-    m_loadingLogos.removeAll(logo);
 }
 
 void ModpackListModel::searchRequestFinished(QJsonDocument& doc_all)

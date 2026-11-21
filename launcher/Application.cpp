@@ -76,7 +76,6 @@
 
 #include "ApplicationMessage.h"
 
-#include <functional>
 #include <iostream>
 
 #include <QAccessible>
@@ -935,8 +934,8 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
     }
 
 #ifdef Q_OS_MACOS
-    connect(this, &Application::clickedOnDock,
-            std::bind(&Application::showMainWindow, this, false));
+    connect(this, &Application::clickedOnDock, this,
+            &Application::showMainWindow);
 #endif
 
     connect(this, &Application::aboutToQuit, this, &Application::onAboutToQuit);
@@ -1159,7 +1158,7 @@ void Application::performMainStartupAction()
     if (!m_mainWindow)
     {
         // normal main window
-        showMainWindow(false);
+        showMainWindow();
         qDebug() << "<> Main window shown.";
     }
     if (!m_zipToImport.isEmpty())
@@ -1588,7 +1587,7 @@ void Application::ShowGlobalSettings(class QWidget* parent, QString open_page)
     emit globalSettingsClosed();
 }
 
-MainWindow* Application::showMainWindow(bool minimized)
+MainWindow* Application::showMainWindow()
 {
     if (m_mainWindow && m_mainWindow->isVisible())
     {
@@ -1599,16 +1598,9 @@ MainWindow* Application::showMainWindow(bool minimized)
     }
     else if (m_mainWindow)
     {
-        if (minimized)
-        {
-            m_mainWindow->showMinimized();
-        }
-        else
-        {
-            m_mainWindow->setWindowState(m_mainWindow->windowState() &
-                                         ~Qt::WindowMinimized);
-            m_mainWindow->show();
-        }
+        m_mainWindow->setWindowState(m_mainWindow->windowState() &
+                                     ~Qt::WindowMinimized);
+        m_mainWindow->show();
         m_openWindows++;
     }
     else
@@ -1631,14 +1623,7 @@ MainWindow* Application::showMainWindow(bool minimized)
                                                   false);
         }
 #endif
-        if (minimized)
-        {
-            m_mainWindow->showMinimized();
-        }
-        else
-        {
-            m_mainWindow->show();
-        }
+        m_mainWindow->show();
 
         m_mainWindow->checkInstancePathForProblems();
         connect(this, &Application::updateAllowedChanged, m_mainWindow,

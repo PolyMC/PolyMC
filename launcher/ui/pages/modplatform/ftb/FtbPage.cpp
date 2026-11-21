@@ -45,8 +45,6 @@
 
 #include "Markdown.h"
 
-#include <functional>
-
 FtbPage::FtbPage(NewInstanceDialog* dialog, QWidget* parent)
     : QWidget(parent), ui(new Ui::FtbPage), dialog(dialog)
 {
@@ -148,17 +146,14 @@ void FtbPage::suggestCurrent()
             QString editedLogoName;
             editedLogoName = selected.name;
 
-            listModel->getLogo(
-                selected.name, art.url,
-                std::bind(&FtbPage::setSuggestedLogo, this, editedLogoName,
-                          std::placeholders::_1));
+            auto path = listModel->logoPath(selected.name, art.url);
+            if (!path.isEmpty())
+            {
+                dialog->setSuggestedIconFromFile(path + ".small",
+                                                 editedLogoName);
+            }
         }
     }
-}
-
-void FtbPage::setSuggestedLogo(const QString& name, QString logo)
-{
-    dialog->setSuggestedIconFromFile(logo + ".small", name);
 }
 
 void FtbPage::triggerSearch()

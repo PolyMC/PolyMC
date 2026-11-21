@@ -24,9 +24,10 @@ public:
         const QByteArray& response);
     static QString parseModFileChangelog(const QByteArray& response);
 
-    NetJob* getProjects(QStringList addonIds,
-                        QByteArray* response) const override;
-    NetJob* getFiles(const QStringList& fileIds, QByteArray* response) const;
+    NetJob::Ptr getProjects(QStringList addonIds,
+                            QByteArray* response) const override;
+    NetJob::Ptr getFiles(const QStringList& fileIds,
+                         QByteArray* response) const;
 
 private:
     inline int getSortFieldInt(QString sortString) const

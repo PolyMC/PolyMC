@@ -9,8 +9,6 @@
 #include <QThreadPool>
 #include <QTimer>
 
-#include <QPointer>
-
 #include "Resource.h"
 
 #include "tasks/Task.h"
@@ -255,8 +253,6 @@ protected slots:
 
 private:
     void updateTaskFinished();
-    void parseTaskSucceeded(int ticket, QPointer<Resource> resource);
-    void parseTaskFailed(int ticket, QPointer<Resource> resource);
     void parseTaskFinished(int ticket, Resource::Ptr resource);
 
 protected:

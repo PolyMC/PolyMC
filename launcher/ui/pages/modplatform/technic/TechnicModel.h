@@ -40,10 +40,10 @@
 #include "TechnicData.h"
 #include "net/NetJob.h"
 
+class LogoCache;
+
 namespace Technic
 {
-
-typedef std::function<void(QString)> LogoCallback;
 
 class ListModel : public QAbstractListModel
 {
@@ -57,27 +57,20 @@ public:
     virtual int columnCount(const QModelIndex& parent) const;
     virtual int rowCount(const QModelIndex& parent) const;
 
-    void getLogo(const QString& logo, const QString& logoUrl,
-                 LogoCallback callback);
+    QString logoPath(const QString& logo, const QString& url);
     void searchWithTerm(const QString& term);
 
 private slots:
     void searchRequestFinished();
     void searchRequestFailed();
 
-    void logoFailed(QString logo);
-    void logoLoaded(QString logo, QString out);
-
 private:
     void performSearch();
-    void requestLogo(QString logo, QString url);
+    void onLogoLoaded(const QString& logo);
 
 private:
     QList<Modpack> modpacks;
-    QStringList m_failedLogos;
-    QStringList m_loadingLogos;
-    QMap<QString, QIcon> m_logoMap;
-    QMap<QString, LogoCallback> waitingCallbacks;
+    LogoCache* m_logos;
 
     QString currentSearchTerm;
     enum SearchState

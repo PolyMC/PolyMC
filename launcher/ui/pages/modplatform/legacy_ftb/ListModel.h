@@ -9,13 +9,10 @@
 #include <QIcon>
 #include <QStyledItemDelegate>
 
-#include <functional>
+class LogoCache;
 
 namespace LegacyFTB
 {
-
-typedef QMap<QString, QIcon> FTBLogoMap;
-typedef std::function<void(QString)> LogoCallback;
 
 class FilterModel : public QSortFilterProxyModel
 {
@@ -48,19 +45,10 @@ class ListModel : public QAbstractListModel
     Q_OBJECT
 private:
     ModpackList modpacks;
-    QStringList m_failedLogos;
-    QStringList m_loadingLogos;
-    FTBLogoMap m_logoMap;
-    QMap<QString, LogoCallback> waitingCallbacks;
+    LogoCache* m_logos;
 
-    void requestLogo(QString file);
     QString translatePackType(PackType type) const;
-    void onLogoSucceeded(const QString& file, const QString& path);
-    void onLogoFailed(const QString& file);
-
-private slots:
-    void logoFailed(QString logo);
-    void logoLoaded(QString logo, QIcon out);
+    void onLogoLoaded();
 
 public:
     ListModel(QObject* parent);
@@ -76,7 +64,7 @@ public:
     void remove(int row);
 
     Modpack at(int row);
-    void getLogo(const QString& logo, LogoCallback callback);
+    QString logoPath(const QString& logo);
 };
 
 }  // namespace LegacyFTB

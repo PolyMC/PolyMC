@@ -51,12 +51,11 @@ public:
 private slots:
     void onMetadataEnsured(Mod*);
     void onMetadataFailed(Mod*);
+    void onFirstMetadataFailed(Mod* mod);
 
 private:
     void onCheckFailed(Mod* mod, QString reason, QUrl recovery);
     void onCheckTaskFailed(QString reason);
-    void onFirstMetadataFailed(QHash<QString, bool>& others,
-                               ModPlatform::Provider provider, Mod* candidate);
 
     QWidget* m_parent;
 
@@ -68,6 +67,7 @@ private:
     QList<Mod*>& m_candidates;
     QList<Mod*> m_modrinth_to_update;
     QList<Mod*> m_flame_to_update;
+    QHash<QString, ModPlatform::Provider> m_fallback_provider;
 
     ConcurrentTask* m_second_try_metadata;
     QList<std::tuple<Mod*, QString>> m_failed_metadata;

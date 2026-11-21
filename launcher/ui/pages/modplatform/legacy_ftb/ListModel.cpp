@@ -46,8 +46,18 @@
 
 #include <BuildConfig.h>
 
+#include "ui/pages/modplatform/LogoCache.h"
+
 namespace LegacyFTB
 {
+
+namespace
+{
+QString logoUrl(const QString& logo)
+{
+    return (BuildConfig.LEGACY_FTB_CDN_BASE_URL + "static/%1").arg(logo);
+}
+}  // namespace
 
 FilterModel::FilterModel(QObject* parent) : QSortFilterProxyModel(parent)
 {
@@ -107,8 +117,13 @@ FilterModel::Sorting FilterModel::getCurrentSorting()
     return currentSorting;
 }
 
-ListModel::ListModel(QObject* parent) : QAbstractListModel(parent)
+ListModel::ListModel(QObject* parent)
+    : QAbstractListModel(parent),
+      m_logos(new LogoCache("FTBPacks", "FTB Icon Download for",
+                            "screenshot-placeholder", LogoCache::Skip::Nothing,
+                            this))
 {
+    connect(m_logos, &LogoCache::logoLoaded, this, &ListModel::onLogoLoaded);
 }
 
 ListModel::~ListModel()
@@ -169,13 +184,7 @@ QVariant ListModel::data(const QModelIndex& index, int role) const
     }
     else if (role == Qt::DecorationRole)
     {
-        if (m_logoMap.contains(pack.logo))
-        {
-            return (m_logoMap.value(pack.logo));
-        }
-        QIcon icon = APPLICATION->getThemedIcon("screenshot-placeholder");
-        ((ListModel*)this)->requestLogo(pack.logo);
-        return icon;
+        return m_logos->icon(pack.logo, logoUrl(pack.logo));
     }
     else if (role == Qt::ForegroundRole)
     {
@@ -239,10 +248,8 @@ void ListModel::remove(int row)
     endRemoveRows();
 }
 
-void ListModel::logoLoaded(QString logo, QIcon out)
+void ListModel::onLogoLoaded()
 {
-    m_loadingLogos.removeAll(logo);
-    m_logoMap.insert(logo, out);
     // Any of the packs may use this logo, not just the first two
     if (!modpacks.isEmpty())
     {
@@ -251,71 +258,9 @@ void ListModel::logoLoaded(QString logo, QIcon out)
     }
 }
 
-void ListModel::logoFailed(QString logo)
+QString ListModel::logoPath(const QString& logo)
 {
-    m_failedLogos.append(logo);
-    m_loadingLogos.removeAll(logo);
-}
-
-void ListModel::requestLogo(QString file)
-{
-    if (m_loadingLogos.contains(file) || m_failedLogos.contains(file))
-    {
-        return;
-    }
-
-    MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry(
-        "FTBPacks", QString("logos/%1").arg(file.section(".", 0, 0)));
-    NetJob* job = new NetJob(QString("FTB Icon Download for %1").arg(file),
-                             APPLICATION->network());
-    job->addNetAction(Net::Download::makeCached(
-        QUrl((BuildConfig.LEGACY_FTB_CDN_BASE_URL + "static/%1").arg(file)),
-        entry));
-    QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
-
-    auto fullPath = entry->getFullPath();
-    // succeeded, not finished: finished also comes after a failure, which would
-    // store an empty logo
-    QObject::connect(
-        job, &NetJob::succeeded, this,
-        std::bind(&ListModel::onLogoSucceeded, this, file, fullPath));
-
-    QObject::connect(job, &NetJob::failed, this,
-                     std::bind(&ListModel::onLogoFailed, this, file));
-
-    job->start();
-
-    m_loadingLogos.append(file);
-}
-
-void ListModel::onLogoSucceeded(const QString& file, const QString& path)
-{
-    emit logoLoaded(file, QIcon(path));
-    if (waitingCallbacks.contains(file))
-    {
-        waitingCallbacks.value(file)(path);
-    }
-}
-
-void ListModel::onLogoFailed(const QString& file)
-{
-    emit logoFailed(file);
-}
-
-void ListModel::getLogo(const QString& logo, LogoCallback callback)
-{
-    if (m_logoMap.contains(logo))
-    {
-        callback(
-            APPLICATION->metacache()
-                ->resolveEntry("FTBPacks",
-                               QString("logos/%1").arg(logo.section(".", 0, 0)))
-                ->getFullPath());
-    }
-    else
-    {
-        requestLogo(logo);
-    }
+    return m_logos->path(logo, logoUrl(logo));
 }
 
 Qt::ItemFlags ListModel::flags(const QModelIndex& index) const

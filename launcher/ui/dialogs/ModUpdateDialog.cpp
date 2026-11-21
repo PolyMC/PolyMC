@@ -19,8 +19,6 @@
 
 #include <QTreeWidgetItem>
 
-#include <functional>
-
 static ModPlatform::ProviderCapabilities ProviderCaps;
 
 static std::list<Version> mcVersions(BaseInstance* inst)
@@ -52,6 +50,19 @@ void addToTmp(QList<Mod*>& modrinth, QList<Mod*>& flame, Mod* mod,
             flame.push_back(mod);
             break;
     }
+}
+
+ModPlatform::Provider next(ModPlatform::Provider p)
+{
+    switch (p)
+    {
+        case ModPlatform::Provider::MODRINTH:
+            return ModPlatform::Provider::FLAME;
+        case ModPlatform::Provider::FLAME:
+            return ModPlatform::Provider::MODRINTH;
+    }
+
+    return ModPlatform::Provider::FLAME;
 }
 }  // namespace
 
@@ -287,8 +298,7 @@ bool ModUpdateDialog::ensureMetadata()
 
     SequentialTask seq(m_parent, tr("Looking for metadata"));
 
-    // A better use of data structures here could remove the need for this QHash
-    QHash<QString, bool> should_try_others;
+    m_fallback_provider.clear();
     QList<Mod*> modrinth_tmp;
     QList<Mod*> flame_tmp;
 
@@ -313,7 +323,11 @@ bool ModUpdateDialog::ensureMetadata()
         if (confirm_rest)
         {
             addToTmp(modrinth_tmp, flame_tmp, candidate, provider_rest);
-            should_try_others.insert(candidate->internal_id(), try_others_rest);
+            if (try_others_rest)
+            {
+                m_fallback_provider.insert(candidate->internal_id(),
+                                           next(provider_rest));
+            }
             continue;
         }
 
@@ -339,11 +353,14 @@ bool ModUpdateDialog::ensureMetadata()
             try_others_rest = response.try_others;
         }
 
-        should_try_others.insert(candidate->internal_id(), response.try_others);
-
         if (confirmed)
         {
             addToTmp(modrinth_tmp, flame_tmp, candidate, response.chosen);
+            if (response.try_others)
+            {
+                m_fallback_provider.insert(candidate->internal_id(),
+                                           next(response.chosen));
+            }
         }
     }
 
@@ -353,11 +370,8 @@ bool ModUpdateDialog::ensureMetadata()
             modrinth_tmp, index_dir, ModPlatform::Provider::MODRINTH);
         connect(modrinth_task, &EnsureMetadataTask::metadataReady, this,
                 &ModUpdateDialog::onMetadataEnsured);
-        connect(
-            modrinth_task, &EnsureMetadataTask::metadataFailed,
-            std::bind(&ModUpdateDialog::onFirstMetadataFailed, this,
-                      std::ref(should_try_others),
-                      ModPlatform::Provider::MODRINTH, std::placeholders::_1));
+        connect(modrinth_task, &EnsureMetadataTask::metadataFailed, this,
+                &ModUpdateDialog::onFirstMetadataFailed);
 
         if (modrinth_task->getHashingTask())
         {
@@ -373,10 +387,8 @@ bool ModUpdateDialog::ensureMetadata()
                                                   ModPlatform::Provider::FLAME);
         connect(flame_task, &EnsureMetadataTask::metadataReady, this,
                 &ModUpdateDialog::onMetadataEnsured);
-        connect(flame_task, &EnsureMetadataTask::metadataFailed,
-                std::bind(&ModUpdateDialog::onFirstMetadataFailed, this,
-                          std::ref(should_try_others),
-                          ModPlatform::Provider::FLAME, std::placeholders::_1));
+        connect(flame_task, &EnsureMetadataTask::metadataFailed, this,
+                &ModUpdateDialog::onFirstMetadataFailed);
 
         if (flame_task->getHashingTask())
         {
@@ -415,40 +427,22 @@ void ModUpdateDialog::onMetadataEnsured(Mod* mod)
     }
 }
 
-ModPlatform::Provider next(ModPlatform::Provider p)
+void ModUpdateDialog::onFirstMetadataFailed(Mod* mod)
 {
-    switch (p)
+    auto it = m_fallback_provider.constFind(mod->internal_id());
+    if (it == m_fallback_provider.cend())
     {
-        case ModPlatform::Provider::MODRINTH:
-            return ModPlatform::Provider::FLAME;
-        case ModPlatform::Provider::FLAME:
-            return ModPlatform::Provider::MODRINTH;
+        onMetadataFailed(mod);
+        return;
     }
 
-    return ModPlatform::Provider::FLAME;
-}
+    auto* task = new EnsureMetadataTask(mod, indexDir(), *it);
+    connect(task, &EnsureMetadataTask::metadataReady, this,
+            &ModUpdateDialog::onMetadataEnsured);
+    connect(task, &EnsureMetadataTask::metadataFailed, this,
+            &ModUpdateDialog::onMetadataFailed);
 
-void ModUpdateDialog::onFirstMetadataFailed(QHash<QString, bool>& others,
-                                            ModPlatform::Provider provider,
-                                            Mod* candidate)
-{
-    if (others.find(candidate->internal_id()).value())
-    {
-        auto index_dir = indexDir();
-
-        auto* task =
-            new EnsureMetadataTask(candidate, index_dir, next(provider));
-        connect(task, &EnsureMetadataTask::metadataReady, this,
-                &ModUpdateDialog::onMetadataEnsured);
-        connect(task, &EnsureMetadataTask::metadataFailed, this,
-                &ModUpdateDialog::onMetadataFailed);
-
-        m_second_try_metadata->addTask(task);
-    }
-    else
-    {
-        onMetadataFailed(candidate);
-    }
+    m_second_try_metadata->addTask(task);
 }
 
 void ModUpdateDialog::onMetadataFailed(Mod* mod)

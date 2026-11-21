@@ -192,7 +192,6 @@ static LoadResult loadIndex(Task::Ptr& loadTask, Net::Mode netmode)
 void ComponentUpdateTask::loadComponents()
 {
     LoadResult result = LoadResult::LoadedLocal;
-    size_t taskIndex = 0;
     d->remoteLoadSuccessful = true;
     // load the main index (it is needed to determine if components can revert)
     {
@@ -205,17 +204,7 @@ void ComponentUpdateTask::loadComponents()
             qDebug() << "Remote loading is being run for metadata index";
             RemoteLoadStatus status;
             status.type = RemoteLoadStatus::Type::Index;
-            d->remoteLoadStatusList.append(status);
-            connect(indexLoadTask.get(), &Task::succeeded, this,
-                    std::bind(&ComponentUpdateTask::remoteLoadSucceeded, this,
-                              taskIndex));
-            connect(indexLoadTask.get(), &Task::failed, this,
-                    std::bind(&ComponentUpdateTask::remoteLoadFailed, this,
-                              taskIndex, std::placeholders::_1, true));
-            connect(indexLoadTask.get(), &Task::aborted, this,
-                    std::bind(&ComponentUpdateTask::remoteLoadAborted, this,
-                              taskIndex));
-            taskIndex++;
+            watchRemoteLoad(indexLoadTask.get(), status);
         }
     }
     // load all the components OR their lists...
@@ -256,23 +245,13 @@ void ComponentUpdateTask::loadComponents()
         {
             qDebug() << "Remote loading is being run for"
                      << component->getName();
-            connect(loadTask.get(), &Task::succeeded, this,
-                    std::bind(&ComponentUpdateTask::remoteLoadSucceeded, this,
-                              taskIndex));
-            connect(loadTask.get(), &Task::failed, this,
-                    std::bind(&ComponentUpdateTask::remoteLoadFailed, this,
-                              taskIndex, std::placeholders::_1, true));
-            connect(loadTask.get(), &Task::aborted, this,
-                    std::bind(&ComponentUpdateTask::remoteLoadAborted, this,
-                              taskIndex));
             RemoteLoadStatus status;
             status.type = loadType;
             status.uid = component->getID();
-            d->remoteLoadStatusList.append(status);
-            taskIndex++;
+            watchRemoteLoad(loadTask.get(), status);
         }
     }
-    d->remoteTasksInProgress = taskIndex;
+    d->remoteTasksInProgress = d->remoteLoadStatusList.size();
     switch (result)
     {
         case LoadResult::LoadedLocal:
@@ -293,6 +272,20 @@ void ComponentUpdateTask::loadComponents()
             break;
         }
     }
+}
+
+void ComponentUpdateTask::watchRemoteLoad(Task* task,
+                                          const RemoteLoadStatus& status)
+{
+    size_t index = d->remoteLoadStatusList.size();
+    d->remoteLoadStatusList.append(status);
+    connect(task, &Task::succeeded, this,
+            std::bind(&ComponentUpdateTask::remoteLoadSucceeded, this, index));
+    connect(task, &Task::failed, this,
+            std::bind(&ComponentUpdateTask::remoteLoadFailed, this, index,
+                      std::placeholders::_1, true));
+    connect(task, &Task::aborted, this,
+            std::bind(&ComponentUpdateTask::remoteLoadAborted, this, index));
 }
 
 namespace

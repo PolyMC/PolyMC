@@ -20,7 +20,7 @@ public:
     EnsureMetadataTask(QList<Mod*>&, QDir,
                        ModPlatform::Provider = ModPlatform::Provider::MODRINTH);
 
-    ~EnsureMetadataTask() = default;
+    ~EnsureMetadataTask();
 
     Task::Ptr getHashingTask()
     {
@@ -58,14 +58,11 @@ private:
     void onHashFailed(Mod* mod);
     void invalidateLeftover();
     void onVersionTaskFinished();
-    void onProjectTaskFinished(NetJob::Ptr task);
-    void releaseVersionTask(NetJob::Ptr task);
-    void onModrinthVersionsReceived(QByteArray* response);
-    void onModrinthProjectsReceived(QByteArray* response,
-                                    const QHash<QString, QString>& addons);
-    void onFlameVersionsReceived(QByteArray* response);
-    void onFlameProjectsReceived(QByteArray* response,
-                                 const QHash<QString, QString>& addons);
+    void onProjectTaskFinished();
+    void onModrinthVersionsReceived();
+    void onModrinthProjectsReceived();
+    void onFlameVersionsReceived();
+    void onFlameProjectsReceived();
 
 private slots:
     void modrinthCallback(ModPlatform::IndexedPack& pack,
@@ -84,5 +81,7 @@ private:
 
     QHash<QString, ModPlatform::IndexedVersion> m_temp_versions;
     shared_qobject_ptr<ConcurrentTask> m_hashing_task;
-    NetJob* m_current_task;
+    NetJob::Ptr m_current_task;
+    QByteArray m_response;
+    QHash<QString, QString> m_addon_ids;
 };

@@ -973,11 +973,6 @@ public:
         setInstanceActionsEnabled(false);
     }
 
-    void keepInstanceToolbarVertical()
-    {
-        instanceToolBar->setOrientation(Qt::Vertical);
-    }
-
     void createInstanceToolbar(QMainWindow* MainWindow)
     {
         instanceToolBar = TranslatedToolbar(MainWindow);
@@ -985,10 +980,6 @@ public:
         // disabled until we have an instance selected
         instanceToolBar->setEnabled(false);
         instanceToolBar->setMovable(true);
-        // Qt doesn't like vertical moving toolbars, so we have to force them...
-        // See https://github.com/PolyMC/PolyMC/issues/493
-        connect(instanceToolBar, &QToolBar::orientationChanged,
-                std::bind(&Ui::keepInstanceToolbarVertical, this));
         instanceToolBar->setAllowedAreas(Qt::LeftToolBarArea |
                                          Qt::RightToolBarArea);
         instanceToolBar->setToolButtonStyle(Qt::ToolButtonTextOnly);
@@ -1122,6 +1113,11 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), ui(new MainWindow::Ui)
 {
     ui->setupUi(this);
+
+    // Qt doesn't like vertical moving toolbars, so we have to force them...
+    // See https://github.com/PolyMC/PolyMC/issues/493
+    connect(ui->instanceToolBar.operator->(), &QToolBar::orientationChanged,
+            this, &MainWindow::keepInstanceToolbarVertical);
 
     // OSX magic.
     setUnifiedTitleAndToolBarOnMac(true);
@@ -1346,6 +1342,11 @@ void MainWindow::keyReleaseEvent(QKeyEvent* event)
     }
 }
 #endif
+
+void MainWindow::keepInstanceToolbarVertical()
+{
+    ui->instanceToolBar->setOrientation(Qt::Vertical);
+}
 
 void MainWindow::retranslateUi()
 {

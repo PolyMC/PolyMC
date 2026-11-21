@@ -45,11 +45,7 @@ protected:
 
 EnsureMetadataTask::EnsureMetadataTask(Mod* mod, QDir dir,
                                        ModPlatform::Provider prov)
-    : Task(nullptr),
-      m_index_dir(dir),
-      m_provider(prov),
-      m_hashing_task(nullptr),
-      m_current_task(nullptr)
+    : Task(nullptr), m_index_dir(dir), m_provider(prov), m_hashing_task(nullptr)
 {
     auto hash_task = createNewHash(mod);
     if (!hash_task)
@@ -69,7 +65,7 @@ EnsureMetadataTask::EnsureMetadataTask(Mod* mod, QDir dir,
 
 EnsureMetadataTask::EnsureMetadataTask(QList<Mod*>& mods, QDir dir,
                                        ModPlatform::Provider prov)
-    : Task(nullptr), m_index_dir(dir), m_provider(prov), m_current_task(nullptr)
+    : Task(nullptr), m_index_dir(dir), m_provider(prov)
 {
     m_hashing_task.reset(new HashingTask(nullptr, "MakeHashesTask", 10));
     for (auto* mod : mods)
@@ -85,6 +81,15 @@ EnsureMetadataTask::EnsureMetadataTask(QList<Mod*>& mods, QDir dir,
         connect(hash_task.get(), &Task::failed, this,
                 std::bind(&EnsureMetadataTask::onHashFailed, this, mod));
         m_hashing_task->addTask(hash_task);
+    }
+}
+
+EnsureMetadataTask::~EnsureMetadataTask()
+{
+    if (m_current_task && m_current_task->isRunning())
+    {
+        disconnect(m_current_task.get(), nullptr, this, nullptr);
+        m_current_task->abort();
     }
 }
 
@@ -198,10 +203,6 @@ void EnsureMetadataTask::executeTask()
     connect(version_task.get(), &Task::finished, this,
             &EnsureMetadataTask::onVersionTaskFinished);
 
-    connect(
-        version_task.get(), &Task::finished,
-        std::bind(&EnsureMetadataTask::releaseVersionTask, this, version_task));
-
     if (m_mods.size() > 1)
     {
         setStatus(tr("Requesting metadata information from %1...")
@@ -214,8 +215,8 @@ void EnsureMetadataTask::executeTask()
                            m_mods.begin().value()->name()));
     }
 
-    m_current_task = version_task.get();
-    version_task->start();
+    m_current_task = version_task;
+    m_current_task->start();
 }
 
 void EnsureMetadataTask::invalidateLeftover()
@@ -245,29 +246,22 @@ void EnsureMetadataTask::onVersionTaskFinished()
 
     if (!project_task)
     {
+        m_current_task.reset();
         invalidateLeftover();
         return;
     }
 
     connect(project_task.get(), &Task::finished, this,
-            std::bind(&EnsureMetadataTask::onProjectTaskFinished, this,
-                      project_task));
+            &EnsureMetadataTask::onProjectTaskFinished);
 
-    m_current_task = project_task.get();
-    project_task->start();
+    m_current_task = project_task;
+    m_current_task->start();
 }
 
-void EnsureMetadataTask::onProjectTaskFinished(NetJob::Ptr task)
+void EnsureMetadataTask::onProjectTaskFinished()
 {
+    m_current_task.reset();
     invalidateLeftover();
-    task->deleteLater();
-    m_current_task = nullptr;
-}
-
-void EnsureMetadataTask::releaseVersionTask(NetJob::Ptr task)
-{
-    task->deleteLater();
-    m_current_task = nullptr;
 }
 
 void EnsureMetadataTask::emitReady(Mod* m, QString key, RemoveFromList remove)
@@ -329,9 +323,8 @@ NetJob::Ptr EnsureMetadataTask::modrinthVersionsTask()
     auto hash_type =
         ProviderCaps.hashType(ModPlatform::Provider::MODRINTH).first();
 
-    auto* response = new QByteArray();
     auto ver_task =
-        modrinth_api.currentVersions(m_mods.keys(), hash_type, response);
+        modrinth_api.currentVersions(m_mods.keys(), hash_type, &m_response);
 
     // Prevents unfortunate timings when aborting the task
     if (!ver_task)
@@ -340,23 +333,22 @@ NetJob::Ptr EnsureMetadataTask::modrinthVersionsTask()
     }
 
     connect(ver_task.get(), &NetJob::succeeded, this,
-            std::bind(&EnsureMetadataTask::onModrinthVersionsReceived, this,
-                      response));
+            &EnsureMetadataTask::onModrinthVersionsReceived);
 
     return ver_task;
 }
 
-void EnsureMetadataTask::onModrinthVersionsReceived(QByteArray* response)
+void EnsureMetadataTask::onModrinthVersionsReceived()
 {
     QJsonParseError parse_error{};
-    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    QJsonDocument doc = QJsonDocument::fromJson(m_response, &parse_error);
     if (parse_error.error != QJsonParseError::NoError)
     {
         qWarning() << "Error while parsing JSON response from "
                       "Modrinth::CurrentVersions at "
                    << parse_error.offset
                    << " reason: " << parse_error.errorString();
-        qWarning() << *response;
+        qWarning() << m_response;
 
         // The mods we couldn't get information about are marked as
         // failed when the task finishes, emitting failed() here would
@@ -400,26 +392,26 @@ void EnsureMetadataTask::onModrinthVersionsReceived(QByteArray* response)
 
 NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
 {
-    QHash<QString, QString> addonIds;
+    m_addon_ids.clear();
     for (auto const& data : std::as_const(m_temp_versions))
     {
-        addonIds.insert(data.addonId.toString(), data.hash);
+        m_addon_ids.insert(data.addonId.toString(), data.hash);
     }
 
-    auto response = new QByteArray();
     NetJob::Ptr proj_task;
 
-    if (addonIds.isEmpty())
+    if (m_addon_ids.isEmpty())
     {
         qWarning() << "No addonId found!";
     }
-    else if (addonIds.size() == 1)
+    else if (m_addon_ids.size() == 1)
     {
-        proj_task = modrinth_api.getProject(*addonIds.keyBegin(), response);
+        proj_task =
+            modrinth_api.getProject(*m_addon_ids.keyBegin(), &m_response);
     }
     else
     {
-        proj_task = modrinth_api.getProjects(addonIds.keys(), response);
+        proj_task = modrinth_api.getProjects(m_addon_ids.keys(), &m_response);
     }
 
     // Prevents unfortunate timings when aborting the task
@@ -429,31 +421,29 @@ NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
     }
 
     connect(proj_task.get(), &NetJob::succeeded, this,
-            std::bind(&EnsureMetadataTask::onModrinthProjectsReceived, this,
-                      response, addonIds));
+            &EnsureMetadataTask::onModrinthProjectsReceived);
 
     return proj_task;
 }
 
-void EnsureMetadataTask::onModrinthProjectsReceived(
-    QByteArray* response, const QHash<QString, QString>& addons)
+void EnsureMetadataTask::onModrinthProjectsReceived()
 {
     QJsonParseError parse_error{};
-    auto doc = QJsonDocument::fromJson(*response, &parse_error);
+    auto doc = QJsonDocument::fromJson(m_response, &parse_error);
     if (parse_error.error != QJsonParseError::NoError)
     {
         qWarning() << "Error while parsing JSON response from Modrinth "
                       "projects task at "
                    << parse_error.offset
                    << " reason: " << parse_error.errorString();
-        qWarning() << *response;
+        qWarning() << m_response;
         return;
     }
 
     try
     {
         QJsonArray entries;
-        if (addons.size() == 1)
+        if (m_addon_ids.size() == 1)
         {
             entries = {doc.object()};
         }
@@ -469,8 +459,8 @@ void EnsureMetadataTask::onModrinthProjectsReceived(
             ModPlatform::IndexedPack pack;
             Modrinth::loadIndexedPack(pack, entry_obj);
 
-            auto hash_iter = addons.find(pack.addonId.toString());
-            if (hash_iter == addons.end())
+            auto hash_iter = m_addon_ids.constFind(pack.addonId.toString());
+            if (hash_iter == m_addon_ids.constEnd())
             {
                 qWarning() << "Invalid project id from the API response.";
                 continue;
@@ -512,34 +502,31 @@ void EnsureMetadataTask::onModrinthProjectsReceived(
 // Flame
 NetJob::Ptr EnsureMetadataTask::flameVersionsTask()
 {
-    auto* response = new QByteArray();
-
     QList<uint> fingerprints;
     for (auto& murmur : m_mods.keys())
     {
         fingerprints.push_back(murmur.toUInt());
     }
 
-    auto ver_task = flame_api.matchFingerprints(fingerprints, response);
+    auto ver_task = flame_api.matchFingerprints(fingerprints, &m_response);
 
     connect(ver_task.get(), &Task::succeeded, this,
-            std::bind(&EnsureMetadataTask::onFlameVersionsReceived, this,
-                      response));
+            &EnsureMetadataTask::onFlameVersionsReceived);
 
     return ver_task;
 }
 
-void EnsureMetadataTask::onFlameVersionsReceived(QByteArray* response)
+void EnsureMetadataTask::onFlameVersionsReceived()
 {
     QJsonParseError parse_error{};
-    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+    QJsonDocument doc = QJsonDocument::fromJson(m_response, &parse_error);
     if (parse_error.error != QJsonParseError::NoError)
     {
         qWarning() << "Error while parsing JSON response from "
                       "Modrinth::CurrentVersions at "
                    << parse_error.offset
                    << " reason: " << parse_error.errorString();
-        qWarning() << *response;
+        qWarning() << m_response;
 
         // The mods we couldn't get information about are marked as
         // failed when the task finishes, emitting failed() here would
@@ -597,7 +584,7 @@ void EnsureMetadataTask::onFlameVersionsReceived(QByteArray* response)
 
 NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
 {
-    QHash<QString, QString> addonIds;
+    m_addon_ids.clear();
     for (auto const& hash : m_mods.keys())
     {
         if (m_temp_versions.contains(hash))
@@ -608,25 +595,24 @@ NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
             auto id_str = data.addonId.toString();
             if (!id_str.isEmpty())
             {
-                addonIds.insert(data.addonId.toString(), hash);
+                m_addon_ids.insert(data.addonId.toString(), hash);
             }
         }
     }
 
-    auto response = new QByteArray();
     NetJob::Ptr proj_task;
 
-    if (addonIds.isEmpty())
+    if (m_addon_ids.isEmpty())
     {
         qWarning() << "No addonId found!";
     }
-    else if (addonIds.size() == 1)
+    else if (m_addon_ids.size() == 1)
     {
-        proj_task = flame_api.getProject(*addonIds.keyBegin(), response);
+        proj_task = flame_api.getProject(*m_addon_ids.keyBegin(), &m_response);
     }
     else
     {
-        proj_task = flame_api.getProjects(addonIds.keys(), response);
+        proj_task = flame_api.getProjects(m_addon_ids.keys(), &m_response);
     }
 
     // Prevents unfortunate timings when aborting the task
@@ -636,31 +622,29 @@ NetJob::Ptr EnsureMetadataTask::flameProjectsTask()
     }
 
     connect(proj_task.get(), &NetJob::succeeded, this,
-            std::bind(&EnsureMetadataTask::onFlameProjectsReceived, this,
-                      response, addonIds));
+            &EnsureMetadataTask::onFlameProjectsReceived);
 
     return proj_task;
 }
 
-void EnsureMetadataTask::onFlameProjectsReceived(
-    QByteArray* response, const QHash<QString, QString>& addons)
+void EnsureMetadataTask::onFlameProjectsReceived()
 {
     QJsonParseError parse_error{};
-    auto doc = QJsonDocument::fromJson(*response, &parse_error);
+    auto doc = QJsonDocument::fromJson(m_response, &parse_error);
     if (parse_error.error != QJsonParseError::NoError)
     {
         qWarning() << "Error while parsing JSON response from Modrinth "
                       "projects task at "
                    << parse_error.offset
                    << " reason: " << parse_error.errorString();
-        qWarning() << *response;
+        qWarning() << m_response;
         return;
     }
 
     try
     {
         QJsonArray entries;
-        if (addons.size() == 1)
+        if (m_addon_ids.size() == 1)
         {
             entries = {Json::requireObject(Json::requireObject(doc), "data")};
         }
@@ -674,8 +658,8 @@ void EnsureMetadataTask::onFlameProjectsReceived(
             auto entry_obj = Json::requireObject(entry);
 
             auto id = QString::number(Json::requireInteger(entry_obj, "id"));
-            auto hash_iter = addons.find(id);
-            if (hash_iter == addons.end())
+            auto hash_iter = m_addon_ids.constFind(id);
+            if (hash_iter == m_addon_ids.constEnd())
             {
                 qWarning() << "Invalid project id from the API response.";
                 continue;

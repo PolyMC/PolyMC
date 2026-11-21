@@ -42,10 +42,7 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMessageBox>
-#include <QScopeGuard>
 #include <QSortFilterProxyModel>
-
-#include <functional>
 
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ModDownloadDialog.h"
@@ -96,7 +93,7 @@ ModFolderPage::ModFolderPage(BaseInstance* inst,
                 &ModFolderPage::updateUpdateAction);
 
         connect(mods.get(), &ModFolderModel::updateFinished, this,
-                std::bind(&ModFolderPage::onModsUpdateFinished, this, mods));
+                &ModFolderPage::onModsUpdateFinished);
 
         ModFolderPage::runningStateChanged(m_instance &&
                                            m_instance->isRunning());
@@ -122,21 +119,13 @@ void ModFolderPage::updateUpdateAction()
     ui->actionUpdateItem->setEnabled(checkAllowUpdate());
 }
 
-void ModFolderPage::onModsUpdateFinished(std::shared_ptr<ModFolderModel> mods)
+void ModFolderPage::onModsUpdateFinished()
 {
     ui->actionUpdateItem->setEnabled(checkAllowUpdate());
 
     // Prevent a weird crash when trying to open the mods page
     // twice in a session o.O
-    disconnect(mods.get(), &ModFolderModel::updateFinished, this, 0);
-}
-
-void ModFolderPage::resumeWatching(bool watching)
-{
-    if (watching)
-    {
-        m_model->startWatching();
-    }
+    disconnect(m_model.get(), &ModFolderModel::updateFinished, this, 0);
 }
 
 void ModFolderPage::runningStateChanged(bool running)
@@ -207,8 +196,6 @@ void ModFolderPage::installMods()
 void ModFolderPage::updateMods()
 {
     bool was_watching = m_model->stopWatching();
-    auto resume_watching = qScopeGuard(
-        std::bind(&ModFolderPage::resumeWatching, this, was_watching));
 
     auto selection =
         m_filterModel
@@ -242,9 +229,8 @@ void ModFolderPage::updateMods()
                                      tr("The mod updater was aborted!"),
                                      QMessageBox::Warning)
             ->show();
-        return;
     }
-    if (update_dialog.noUpdates())
+    else if (update_dialog.noUpdates())
     {
         // The list can be empty here, when updates are disabled for all the
         // mods
@@ -264,20 +250,21 @@ void ModFolderPage::updateMods()
         }
         CustomMessageBox::selectable(this, tr("Update checker"), message)
             ->exec();
-        return;
     }
-
-    if (update_dialog.exec())
+    else if (update_dialog.exec())
     {
         runTasks(update_dialog.getTasks());
+    }
+
+    if (was_watching)
+    {
+        m_model->startWatching();
     }
 }
 
 void ModFolderPage::disableUpdates()
 {
     bool was_watching = m_model->stopWatching();
-    auto resume_watching = qScopeGuard(
-        std::bind(&ModFolderPage::resumeWatching, this, was_watching));
 
     auto selection =
         m_filterModel
@@ -310,6 +297,11 @@ void ModFolderPage::disableUpdates()
     }
 
     onDisableUpdatesChange();
+
+    if (was_watching)
+    {
+        m_model->startWatching();
+    }
 }
 
 void ModFolderPage::onDisableUpdatesChange()

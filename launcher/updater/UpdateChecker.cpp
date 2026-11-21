@@ -20,8 +20,6 @@
 #include <QJsonValue>
 #include <QDebug>
 
-#include <functional>
-
 #define API_VERSION 0
 #define CHANLIST_FORMAT 0
 
@@ -82,7 +80,8 @@ void UpdateChecker::checkForUpdate(const QString& updateChannel,
                         "and deferring update check.";
             m_checkUpdateWaiting = true;
             m_deferredUpdateChannel = updateChannel;
-            updateChanList(notifyNoUpdate);
+            m_deferred_notify_no_update = notifyNoUpdate;
+            updateChanList();
             return;
         }
 
@@ -135,22 +134,22 @@ void UpdateChecker::checkForUpdate(const QString& updateChannel,
         }
 
         m_updateChecking = true;
+        m_notify_no_update = notifyNoUpdate;
 
         QUrl indexUrl = QUrl(m_newRepoUrl).resolved(QUrl("index.json"));
 
         indexJob = new NetJob("GoUpdate Repository Index", m_network);
         indexJob->addNetAction(
             Net::Download::makeByteArray(indexUrl, &indexData));
-        connect(indexJob.get(), &NetJob::succeeded,
-                std::bind(&UpdateChecker::updateCheckFinished, this,
-                          notifyNoUpdate));
+        connect(indexJob.get(), &NetJob::succeeded, this,
+                &UpdateChecker::updateCheckFinished);
         connect(indexJob.get(), &NetJob::failed, this,
                 &UpdateChecker::updateCheckFailed);
         indexJob->start();
     }
 }
 
-void UpdateChecker::updateCheckFinished(bool notifyNoUpdate)
+void UpdateChecker::updateCheckFinished()
 {
     qDebug() << "Finished downloading repo index. Checking for new versions.";
 
@@ -209,7 +208,7 @@ void UpdateChecker::updateCheckFinished(bool notifyNoUpdate)
         updateStatus.newRepoUrl = m_newRepoUrl;
         emit updateAvailable(updateStatus);
     }
-    else if (notifyNoUpdate)
+    else if (m_notify_no_update)
     {
         emit noUpdateFound();
     }
@@ -225,7 +224,7 @@ void UpdateChecker::updateCheckFailed()
     indexData.clear();
 }
 
-void UpdateChecker::updateChanList(bool notifyNoUpdate)
+void UpdateChecker::updateChanList()
 {
     qDebug() << "Loading the channel list.";
 
@@ -240,15 +239,14 @@ void UpdateChecker::updateChanList(bool notifyNoUpdate)
     chanListJob = new NetJob("Update System Channel List", m_network);
     chanListJob->addNetAction(
         Net::Download::makeByteArray(QUrl(m_channelUrl), &chanlistData));
-    connect(chanListJob.get(), &NetJob::succeeded,
-            std::bind(&UpdateChecker::chanListDownloadFinished, this,
-                      notifyNoUpdate));
+    connect(chanListJob.get(), &NetJob::succeeded, this,
+            &UpdateChecker::chanListDownloadFinished);
     connect(chanListJob.get(), &NetJob::failed, this,
             &UpdateChecker::chanListDownloadFailed);
     chanListJob->start();
 }
 
-void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
+void UpdateChecker::chanListDownloadFinished()
 {
     chanListJob.reset();
 
@@ -308,7 +306,8 @@ void UpdateChecker::chanListDownloadFinished(bool notifyNoUpdate)
     // If we're waiting to check for updates, do that now.
     if (m_checkUpdateWaiting)
     {
-        checkForUpdate(m_deferredUpdateChannel, notifyNoUpdate);
+        m_checkUpdateWaiting = false;
+        checkForUpdate(m_deferredUpdateChannel, m_deferred_notify_no_update);
     }
 
     emit channelListLoaded();

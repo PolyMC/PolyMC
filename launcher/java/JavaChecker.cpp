@@ -35,8 +35,6 @@
 
 #include "JavaChecker.h"
 
-#include <functional>
-
 #include <QFile>
 #include <QProcess>
 #include <QMap>
@@ -62,12 +60,8 @@ void JavaChecker::performCheck()
         // Still report a result, everything waiting on this check would hang
         // otherwise. Queue it, callers don't expect to get the result before
         // performCheck() returns.
-        JavaCheckResult result;
-        result.path = m_path;
-        result.id = m_id;
-        QMetaObject::invokeMethod(
-            this, std::bind(&JavaChecker::emitCheckFinished, this, result),
-            Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, &JavaChecker::reportMissingChecker,
+                                  Qt::QueuedConnection);
         return;
     }
 
@@ -112,8 +106,11 @@ void JavaChecker::performCheck()
     process->start();
 }
 
-void JavaChecker::emitCheckFinished(const JavaCheckResult& result)
+void JavaChecker::reportMissingChecker()
 {
+    JavaCheckResult result;
+    result.path = m_path;
+    result.id = m_id;
     emit checkFinished(result);
 }
 

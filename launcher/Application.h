@@ -217,7 +217,7 @@ public:
 
     InstanceWindow* showInstanceWindow(InstancePtr instance,
                                        QString page = QString());
-    MainWindow* showMainWindow(bool minimized = false);
+    MainWindow* showMainWindow();
 
     void updateIsRunning(bool running);
     bool updatesAreAllowed();

@@ -6,6 +6,7 @@
 #include <memory>
 class PackProfile;
 struct ComponentUpdateTaskData;
+struct RemoteLoadStatus;
 
 class ComponentUpdateTask : public Task
 {
@@ -28,6 +29,7 @@ protected:
 private:
     void loadComponents();
     void resolveDependencies(bool checkOnly);
+    void watchRemoteLoad(Task* task, const RemoteLoadStatus& status);
 
     void remoteLoadSucceeded(size_t index);
     void remoteLoadFailed(size_t index, const QString& msg,

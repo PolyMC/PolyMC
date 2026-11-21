@@ -47,9 +47,10 @@ public:
 signals:
     void checkFinished(JavaCheckResult result);
 
-private:
-    void emitCheckFinished(const JavaCheckResult& result);
+private slots:
+    void reportMissingChecker();
 
+private:
     QProcessPtr process;
     QTimer killTimer;
     QString m_stdout;

@@ -64,6 +64,7 @@ public:
 
 private slots:
     void on_state(LoggedProcess::State state);
+    void closeWindowsOnLogin(QStringList lines);
 
 private:
     LoggedProcess m_process;

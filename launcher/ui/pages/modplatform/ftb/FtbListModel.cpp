@@ -103,21 +103,17 @@ QVariant ListModel::data(const QModelIndex& index, int role) const
     return QVariant();
 }
 
-void ListModel::getLogo(const QString& logo, const QString& logoUrl,
-                        LogoCallback callback)
+QString ListModel::logoPath(const QString& logo, const QString& url)
 {
     if (m_logoMap.contains(logo))
     {
-        callback(
-            APPLICATION->metacache()
-                ->resolveEntry("FTBPacks",
-                               QString("logos/%1").arg(logo.section(".", 0, 0)))
-                ->getFullPath());
+        return APPLICATION->metacache()
+            ->resolveEntry("FTBPacks",
+                           QString("logos/%1").arg(logo.section(".", 0, 0)))
+            ->getFullPath();
     }
-    else
-    {
-        requestLogo(logo, logoUrl);
-    }
+    requestLogo(logo, url);
+    return {};
 }
 
 void ListModel::request()
@@ -168,7 +164,7 @@ void ListModel::requestFinished()
             Net::Download::makeByteArray(QUrl(packUrl), packResponse.get());
         QObject::connect(
             dl.get(), &Net::Download::succeeded, this,
-            std::bind(&ListModel::onPackDownloaded, this, packResponse));
+            std::bind(&ListModel::packRequestFinished, this, packResponse));
         netJob->addNetAction(dl);
     }
     jobPtr = netJob;
@@ -176,11 +172,6 @@ void ListModel::requestFinished()
     QObject::connect(netJob, &NetJob::finished, this,
                      &ListModel::onPacksJobFinished);
     jobPtr->start();
-}
-
-void ListModel::onPackDownloaded(std::shared_ptr<QByteArray> response)
-{
-    packRequestFinished(*response);
 }
 
 void ListModel::onPacksJobFinished()
@@ -193,17 +184,17 @@ void ListModel::requestFailed(QString /*reason*/)
     jobPtr.reset();
 }
 
-void ListModel::packRequestFinished(const QByteArray& packResponse)
+void ListModel::packRequestFinished(const std::shared_ptr<QByteArray>& body)
 {
     QJsonParseError parse_error;
-    QJsonDocument doc = QJsonDocument::fromJson(packResponse, &parse_error);
+    QJsonDocument doc = QJsonDocument::fromJson(*body, &parse_error);
 
     if (parse_error.error != QJsonParseError::NoError)
     {
         qWarning() << "Error while parsing JSON response from FTB at "
                    << parse_error.offset
                    << " reason: " << parse_error.errorString();
-        qWarning() << packResponse;
+        qWarning() << *body;
         return;
     }
 
@@ -216,7 +207,7 @@ void ListModel::packRequestFinished(const QByteArray& packResponse)
     }
     catch (const JSONValidationError& e)
     {
-        qDebug() << QString::fromUtf8(packResponse);
+        qDebug() << QString::fromUtf8(*body);
         qWarning() << "Error while reading pack manifest from FTB: "
                    << e.cause();
         return;
@@ -250,7 +241,6 @@ void ListModel::logoLoaded(QString logo, bool stale)
         QImage image(logoObj.fullpath);
         if (image.isNull())
         {
-            logoObj.failed = true;
             return;
         }
         QImage small;
@@ -286,12 +276,6 @@ void ListModel::logoLoaded(QString logo, bool stale)
     }
 }
 
-void ListModel::logoFailed(QString logo)
-{
-    m_logoMap[logo].failed = true;
-    m_logoMap[logo].downloadJob.reset();
-}
-
 void ListModel::requestLogo(QString logo, QString url)
 {
     if (m_logoMap.contains(logo))
@@ -311,9 +295,6 @@ void ListModel::requestLogo(QString logo, QString url)
     auto fullPath = entry->getFullPath();
     QObject::connect(job, &NetJob::finished, this,
                      std::bind(&ListModel::logoLoaded, this, logo, stale));
-
-    QObject::connect(job, &NetJob::failed, this,
-                     std::bind(&ListModel::logoFailed, this, logo));
 
     auto& newLogoEntry = m_logoMap[logo];
     newLogoEntry.downloadJob = job;

@@ -7,13 +7,18 @@
 
 #include <QtMath>
 
-#include <functional>
+#include "ui/pages/modplatform/LogoCache.h"
 
 namespace Flame
 {
 
-ListModel::ListModel(QObject* parent) : QAbstractListModel(parent)
+ListModel::ListModel(QObject* parent)
+    : QAbstractListModel(parent),
+      m_logos(new LogoCache("FlamePacks", "Flame Icon Download",
+                            "screenshot-placeholder", LogoCache::Skip::Nothing,
+                            this))
 {
+    connect(m_logos, &LogoCache::logoLoaded, this, &ListModel::onLogoLoaded);
 }
 
 ListModel::~ListModel()
@@ -59,13 +64,7 @@ QVariant ListModel::data(const QModelIndex& index, int role) const
     }
     else if (role == Qt::DecorationRole)
     {
-        if (m_logoMap.contains(pack.logoName))
-        {
-            return (m_logoMap.value(pack.logoName));
-        }
-        QIcon icon = APPLICATION->getThemedIcon("screenshot-placeholder");
-        ((ListModel*)this)->requestLogo(pack.logoName, pack.logoUrl);
-        return icon;
+        return m_logos->icon(pack.logoName, pack.logoUrl);
     }
     else if (role == Qt::UserRole)
     {
@@ -91,10 +90,8 @@ bool ListModel::setData(const QModelIndex& index, const QVariant& value,
     return true;
 }
 
-void ListModel::logoLoaded(QString logo, QIcon out)
+void ListModel::onLogoLoaded(const QString& logo)
 {
-    m_loadingLogos.removeAll(logo);
-    m_logoMap.insert(logo, out);
     for (int i = 0; i < modpacks.size(); i++)
     {
         if (modpacks[i].logoName == logo)
@@ -105,69 +102,9 @@ void ListModel::logoLoaded(QString logo, QIcon out)
     }
 }
 
-void ListModel::logoFailed(QString logo)
+QString ListModel::logoPath(const QString& logo, const QString& url)
 {
-    m_failedLogos.append(logo);
-    m_loadingLogos.removeAll(logo);
-}
-
-void ListModel::requestLogo(QString logo, QString url)
-{
-    if (m_loadingLogos.contains(logo) || m_failedLogos.contains(logo))
-    {
-        return;
-    }
-
-    MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry(
-        "FlamePacks", QString("logos/%1").arg(logo.section(".", 0, 0)));
-    auto job = new NetJob(QString("Flame Icon Download %1").arg(logo),
-                          APPLICATION->network());
-    job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
-
-    auto fullPath = entry->getFullPath();
-    QObject::connect(
-        job, &NetJob::succeeded, this,
-        std::bind(&ListModel::onLogoSucceeded, this, logo, fullPath));
-
-    QObject::connect(job, &NetJob::failed, this,
-                     std::bind(&ListModel::onLogoFailed, this, logo));
-
-    QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
-
-    job->start();
-
-    m_loadingLogos.append(logo);
-}
-
-void ListModel::onLogoSucceeded(const QString& logo, const QString& path)
-{
-    emit logoLoaded(logo, QIcon(path));
-    if (waitingCallbacks.contains(logo))
-    {
-        waitingCallbacks.value(logo)(path);
-    }
-}
-
-void ListModel::onLogoFailed(const QString& logo)
-{
-    emit logoFailed(logo);
-}
-
-void ListModel::getLogo(const QString& logo, const QString& logoUrl,
-                        LogoCallback callback)
-{
-    if (m_logoMap.contains(logo))
-    {
-        callback(
-            APPLICATION->metacache()
-                ->resolveEntry("FlamePacks",
-                               QString("logos/%1").arg(logo.section(".", 0, 0)))
-                ->getFullPath());
-    }
-    else
-    {
-        requestLogo(logo, logoUrl);
-    }
+    return m_logos->path(logo, url);
 }
 
 Qt::ItemFlags ListModel::flags(const QModelIndex& index) const

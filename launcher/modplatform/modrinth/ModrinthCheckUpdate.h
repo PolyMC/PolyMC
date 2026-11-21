@@ -24,11 +24,9 @@ protected slots:
     void executeTask() override;
 
 private:
-    void onHashFailed(Mod* mod);
-    void onLatestVersionsReceived(QByteArray* response,
-                                  QHash<QString, Mod*>& mappings,
-                                  QString& error, const QString& format,
-                                  NetJob::Ptr job);
+    QString parseLatestVersions(const QByteArray& response,
+                                const QHash<QString, Mod*>& mappings,
+                                const QString& format);
 
     NetJob* m_net_job = nullptr;
 };

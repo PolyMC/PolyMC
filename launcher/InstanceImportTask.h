@@ -47,6 +47,7 @@
 #include <optional>
 
 class QuaZip;
+class InstanceCreationTask;
 namespace Flame
 {
 class FileResolvingTask;
@@ -75,7 +76,8 @@ private:
     void processTechnic();
     void processFlame();
     void processModrinth();
-    void onCreationTaskSucceeded(InstanceTask* task);
+    void onCreationTaskSucceeded();
+    void runCreationTask(InstanceCreationTask* task);
 
 private slots:
     void downloadSucceeded();
@@ -105,4 +107,5 @@ private: /* data */
 
     // FIXME: nuke
     QWidget* m_parent;
+    InstanceCreationTask* m_creation_task = nullptr;
 };

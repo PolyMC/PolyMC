@@ -61,9 +61,7 @@ void RemoteTextBrowser::onAnchorClicked(const QUrl& url)
     }
 }
 
-void RemoteTextBrowser::applyLoadedImage(QUrl url,
-                                         QPointer<QTextDocument> requesting,
-                                         const QImage& img)
+void RemoteTextBrowser::applyLoadedImage(QUrl url, const QImage& img)
 {
     m_loading.remove(url);
     if (img.isNull())
@@ -71,59 +69,35 @@ void RemoteTextBrowser::applyLoadedImage(QUrl url,
         m_failed.insert(url);
 
         // don't render this image at all
-        if (requesting && document() == requesting)
-        {
-            rerender(requesting, url, QSize(0, 0));
-        }
+        rerender(document(), url, QSize(0, 0));
 
         return;
     }
 
-    // another doc was navigated to during download
-    if (!requesting || document() != requesting)
-    {
-        return;
-    }
-
-    QTimer::singleShot(0, this,
-                       std::bind(&RemoteTextBrowser::addLoadedImage, this, url,
-                                 img, QPointer<QTextDocument>(document())));
+    QTimer::singleShot(
+        0, this, std::bind(&RemoteTextBrowser::addLoadedImage, this, url, img));
 
     viewport()->update();
 }
 
-void RemoteTextBrowser::addLoadedImage(QUrl url, QImage img,
-                                       QPointer<QTextDocument> doc)
+void RemoteTextBrowser::addLoadedImage(QUrl url, QImage img)
 {
-    if (!doc || document() != doc)
-    {
-        return;
-    }
-    doc->addResource(QTextDocument::ImageResource, url, img);
-    rerender(doc, url, img.size());
+    document()->addResource(QTextDocument::ImageResource, url, img);
+    rerender(document(), url, img.size());
 }
 
-void RemoteTextBrowser::onImageDownloaded(QUrl url,
-                                          QPointer<QTextDocument> requesting,
-                                          MetaEntryPtr entry)
+void RemoteTextBrowser::onImageDownloaded(QUrl url, MetaEntryPtr entry)
 {
-    applyLoadedImage(url, requesting, loadScaled(entry->getFullPath()));
+    applyLoadedImage(url, loadScaled(entry->getFullPath()));
 }
 
-void RemoteTextBrowser::onImageDownloadFailed(
-    QUrl url, QPointer<QTextDocument> requesting, MetaEntryPtr entry,
-    const QString& reason)
+void RemoteTextBrowser::onImageDownloadFailed(QUrl url, MetaEntryPtr entry,
+                                              const QString& reason)
 {
     qDebug() << "Failed to load image from" << url << "at"
              << entry->getFullPath() << "because:" << reason;
 
-    applyLoadedImage(url, requesting, QImage{});
-}
-
-void RemoteTextBrowser::onJobFinished(NetJob* job)
-{
-    m_jobs.removeAll(job);
-    job->deleteLater();
+    applyLoadedImage(url, QImage{});
 }
 
 QVariant RemoteTextBrowser::loadResource(int type, const QUrl& url)
@@ -134,8 +108,6 @@ QVariant RemoteTextBrowser::loadResource(int type, const QUrl& url)
         return {};
     }
 
-    // load an img to the doc
-    QPointer<QTextDocument> requestingDoc = document();
     // do not attempt reload
     if (m_loading.contains(url) || m_failed.contains(url))
     {
@@ -154,7 +126,7 @@ QVariant RemoteTextBrowser::loadResource(int type, const QUrl& url)
         QImage img = loadScaled(entry->getFullPath());
         if (!img.isNull())
         {
-            applyLoadedImage(url, requestingDoc, img);
+            applyLoadedImage(url, img);
             return placeholderImage();
         }
     }
@@ -166,15 +138,13 @@ QVariant RemoteTextBrowser::loadResource(int type, const QUrl& url)
     job->addNetAction(Net::Download::makeCached(url, entry));
 
     connect(job, &NetJob::succeeded, this,
-            std::bind(&RemoteTextBrowser::onImageDownloaded, this, url,
-                      requestingDoc, entry));
+            std::bind(&RemoteTextBrowser::onImageDownloaded, this, url, entry));
 
     connect(job, &NetJob::failed, this,
             std::bind(&RemoteTextBrowser::onImageDownloadFailed, this, url,
-                      requestingDoc, entry, std::placeholders::_1));
+                      entry, std::placeholders::_1));
 
-    connect(job, &NetJob::finished, job,
-            std::bind(&RemoteTextBrowser::onJobFinished, this, job));
+    connect(job, &NetJob::finished, job, &QObject::deleteLater);
 
     m_loading.insert(url);
     m_jobs.append(job);
