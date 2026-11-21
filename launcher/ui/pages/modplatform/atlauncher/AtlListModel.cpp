@@ -193,6 +193,7 @@ void ListModel::requestLogo(QString file, QString url)
     MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry("ATLauncherPacks", QString("logos/%1").arg(file.section(".", 0, 0)));
     NetJob *job = new NetJob(QString("ATLauncher Icon Download %1").arg(file), APPLICATION->network());
     job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
+    QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
 
     auto fullPath = entry->getFullPath();
     QObject::connect(job, &NetJob::succeeded, this, [this, file, fullPath]
