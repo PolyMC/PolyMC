@@ -103,7 +103,8 @@ void WideBar::insertActionAfter(QAction* after, QAction* action){
         return;
 
     auto entry = new BarEntry();
-    entry->qAction = insertWidget((*(iter+1))->qAction, new ActionButton(action, this));
+    auto button = new ActionButton(action, this);
+    entry->qAction = iter + 1 == m_entries.end() ? addWidget(button) : insertWidget((*(iter + 1))->qAction, button);
     entry->wideAction = action;
     entry->type = BarEntry::Action;
     m_entries.insert(iter + 1, entry);
