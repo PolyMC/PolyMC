@@ -274,6 +274,7 @@ bool ModrinthCreationTask::createInstance()
     setStatus(tr("Downloading mods..."));
     m_files_job->start();
 
+    connect(this, &Task::aborted, &loop, &QEventLoop::quit);
     loop.exec();
 
     // Update information of the already installed instance, if any.
