@@ -21,16 +21,6 @@
 
 #include <functional>
 
-namespace
-{
-
-void markEndedWell(bool& ended)
-{
-    ended = true;
-}
-
-}  // namespace
-
 bool ModrinthCreationTask::abort()
 {
     if (!canAbort())
@@ -347,17 +337,9 @@ bool ModrinthCreationTask::createInstance()
         }
     }
 
-    bool ended_well = false;
-
-    connect(m_files_job.get(), &NetJob::succeeded, this,
-            std::bind(markEndedWell, std::ref(ended_well)));
-    connect(m_files_job.get(), &NetJob::failed,
-            std::bind(&ModrinthCreationTask::onFilesJobFailed, this,
-                      std::ref(ended_well), std::placeholders::_1));
     connect(m_files_job.get(), &NetJob::finished, &loop, &QEventLoop::quit);
-    connect(m_files_job.get(), &NetJob::progress,
-            std::bind(&ModrinthCreationTask::setProgress, this,
-                      std::placeholders::_1, std::placeholders::_2));
+    connect(m_files_job.get(), &NetJob::progress, this,
+            &ModrinthCreationTask::setProgress);
     connect(m_files_job.get(), &NetJob::details, this, &Task::details);
 
     setStatus(tr("Downloading mods..."));
@@ -365,6 +347,12 @@ bool ModrinthCreationTask::createInstance()
 
     connect(this, &Task::aborted, &loop, &QEventLoop::quit);
     loop.exec();
+
+    bool ended_well = m_files_job->wasSuccessful();
+    if (m_files_job->getState() == Task::State::Failed)
+    {
+        setError(m_files_job->failReason());
+    }
 
     // Update information of the already installed instance, if any.
     if (m_instance && ended_well)
@@ -689,10 +677,4 @@ void ModrinthCreationTask::onFileDownloadFailed(
     {
         shared->succeeded();
     }
-}
-
-void ModrinthCreationTask::onFilesJobFailed(bool& ended, const QString& reason)
-{
-    ended = false;
-    setError(reason);
 }

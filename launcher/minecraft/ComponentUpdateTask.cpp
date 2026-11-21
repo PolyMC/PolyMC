@@ -352,11 +352,6 @@ static RequireCompositionResult composeRequirement(const RequireEx& a,
     return {true, out};
 }
 
-static bool hasSameUid(const Meta::Require& needle, const Meta::Require& req)
-{
-    return req.uid == needle.uid;
-}
-
 // gather the requirements from all components, finding any obvious conflicts
 static bool gatherRequirementsFromComponents(const ComponentContainer& input,
                                              RequireExSet& output)
@@ -368,9 +363,11 @@ static bool gatherRequirementsFromComponents(const ComponentContainer& input,
         auto& componentRequires = component->m_cachedRequires;
         for (const auto& componentRequire : componentRequires)
         {
-            auto found = std::find_if(
-                output.cbegin(), output.cend(),
-                std::bind(hasSameUid, componentRequire, std::placeholders::_1));
+            auto found = output.cbegin();
+            while (found != output.cend() && found->uid != componentRequire.uid)
+            {
+                ++found;
+            }
 
             RequireEx componenRequireEx;
             componenRequireEx.uid = componentRequire.uid;

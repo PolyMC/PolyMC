@@ -50,8 +50,6 @@
 #include "BuildConfig.h"
 #include "ui/dialogs/BlockedModsDialog.h"
 
-#include <functional>
-
 namespace FTB
 {
 
@@ -83,20 +81,17 @@ bool PackInstallTask::abort()
     return aborted;
 }
 
-bool PackInstallTask::isWantedVersion(const FTB::VersionInfo& info) const
-{
-    return info.name == m_version_name;
-}
-
 void PackInstallTask::executeTask()
 {
     setStatus(tr("Getting the manifest..."));
 
     // Find pack version
-    auto version_it =
-        std::find_if(m_pack.versions.constBegin(), m_pack.versions.constEnd(),
-                     std::bind(&PackInstallTask::isWantedVersion, this,
-                               std::placeholders::_1));
+    auto version_it = m_pack.versions.constBegin();
+    while (version_it != m_pack.versions.constEnd() &&
+           version_it->name != m_version_name)
+    {
+        ++version_it;
+    }
 
     if (version_it == m_pack.versions.constEnd())
     {

@@ -15,8 +15,6 @@
 
 #include "JsonFormat.h"
 
-#include <functional>
-
 // FIXME: remove this from here... somehow
 #include "minecraft/OneSixVersionFormat.h"
 #include "Json.h"
@@ -74,13 +72,6 @@ static VersionPtr parseCommonVersion(const QString& uid, const QJsonObject& obj)
     return version;
 }
 
-static VersionPtr parseListedVersion(const QString& uid, const QJsonObject& obj)
-{
-    auto version = parseCommonVersion(uid, obj);
-    version->setProvidesRecommendations();
-    return version;
-}
-
 static std::shared_ptr<Version> parseVersionInternal(const QJsonObject& obj)
 {
     VersionPtr version = parseCommonVersion(requireString(obj, "uid"), obj);
@@ -102,9 +93,12 @@ static std::shared_ptr<VersionList> parseVersionListInternal(
         requireIsArrayOf<QJsonObject>(obj, "versions");
     QVector<VersionPtr> versions;
     versions.reserve(versionsRaw.size());
-    std::transform(versionsRaw.begin(), versionsRaw.end(),
-                   std::back_inserter(versions),
-                   std::bind(parseListedVersion, uid, std::placeholders::_1));
+    for (const QJsonObject& version_obj : versionsRaw)
+    {
+        auto version = parseCommonVersion(uid, version_obj);
+        version->setProvidesRecommendations();
+        versions.push_back(version);
+    }
 
     VersionListPtr list = std::make_shared<VersionList>(uid);
     list->setName(ensureString(obj, "name", QString()));

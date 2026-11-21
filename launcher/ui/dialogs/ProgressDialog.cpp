@@ -20,7 +20,6 @@
 #include <QKeyEvent>
 #include <QProgressBar>
 
-#include <functional>
 #include <limits>
 
 #include "tasks/Task.h"
@@ -92,8 +91,7 @@ int ProgressDialog::execWithTask(Task* newTask)
     connect(task, &Task::progress, this, &ProgressDialog::changeProgress);
     connect(task, &Task::details, this, &ProgressDialog::changeDetails);
 
-    connect(task, &Task::aborted,
-            std::bind(&ProgressDialog::onTaskAborted, this));
+    connect(task, &Task::aborted, this, &ProgressDialog::onTaskAborted);
     connect(task, &Task::abortStatusChanged, ui->skipButton,
             &QPushButton::setEnabled);
 

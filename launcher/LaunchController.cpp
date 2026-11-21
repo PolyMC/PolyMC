@@ -59,8 +59,6 @@
 #include "minecraft/auth/AccountTask.h"
 #include "launch/steps/TextPrint.h"
 
-#include <functional>
-
 LaunchController::LaunchController(QObject* parent) : Task(parent)
 {
 }
@@ -487,12 +485,10 @@ void LaunchController::readyForLaunch()
     BaseProfiler* profilerInstance =
         m_profiler->createProfiler(m_launcher->instance(), this);
 
-    connect(profilerInstance, &BaseProfiler::readyToLaunch,
-            std::bind(&LaunchController::onProfilerReady, this,
-                      std::placeholders::_1));
-    connect(profilerInstance, &BaseProfiler::abortLaunch,
-            std::bind(&LaunchController::onProfilerAborted, this,
-                      std::placeholders::_1));
+    connect(profilerInstance, &BaseProfiler::readyToLaunch, this,
+            &LaunchController::onProfilerReady);
+    connect(profilerInstance, &BaseProfiler::abortLaunch, this,
+            &LaunchController::onProfilerAborted);
     profilerInstance->beginProfiling(m_launcher);
 }
 

@@ -50,14 +50,11 @@ public:
 
 private slots:
     void onMetadataEnsured(Mod*);
-    void onMetadataFailed(
-        Mod*, bool try_others = false,
-        ModPlatform::Provider first_choice = ModPlatform::Provider::MODRINTH);
+    void onMetadataFailed(Mod*);
 
 private:
     void onCheckFailed(Mod* mod, QString reason, QUrl recovery);
     void onCheckTaskFailed(QString reason);
-    void onCheckTaskSucceeded(const Task& task);
     void onFirstMetadataFailed(QHash<QString, bool>& others,
                                ModPlatform::Provider provider, Mod* candidate);
 

@@ -32,11 +32,6 @@ bool isMinecraftRequire(const Require& req)
     return req.uid == "net.minecraft";
 }
 
-bool hasVersionString(const QString& version, Meta::VersionPtr const& entry)
-{
-    return entry->version() == version;
-}
-
 bool isNewerVersion(const VersionPtr& first, const VersionPtr& second)
 {
     return first->rawTime() > second->rawTime();
@@ -168,10 +163,14 @@ VersionPtr VersionList::getVersion(const QString& version)
 
 bool VersionList::hasVersion(QString version) const
 {
-    auto ver = std::find_if(
-        m_versions.constBegin(), m_versions.constEnd(),
-        std::bind(hasVersionString, std::cref(version), std::placeholders::_1));
-    return (ver != m_versions.constEnd());
+    for (const VersionPtr& entry : m_versions)
+    {
+        if (entry->version() == version)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void VersionList::setName(const QString& name)

@@ -29,13 +29,11 @@ public:
     bool createInstance() override;
 
 private slots:
-    void idResolverSucceeded(QEventLoop&);
     void setupDownloadJob(QEventLoop&);
 
 private:
     void onOldFilesResolved(QByteArray* response, const QStringList& ids,
                             QMap<int, Flame::File>& files, const QDir& dir);
-    void onIdResolverFailed(QEventLoop& loop, QString reason);
     void onFilesJobSucceeded();
     void onFilesJobFailed(QString reason);
 

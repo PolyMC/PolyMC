@@ -9,7 +9,6 @@
 
 #include "ModDownloadTask.h"
 
-#include <functional>
 #include <memory>
 #include <vector>
 
@@ -17,40 +16,6 @@ static FlameAPI api;
 
 namespace
 {
-
-void storeProjectInfo(QByteArray* response, ModPlatform::IndexedPack& pack)
-{
-    QJsonParseError parse_error{};
-    QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-    if (parse_error.error != QJsonParseError::NoError)
-    {
-        qWarning() << "Error while parsing JSON response from "
-                      "FlameCheckUpdate at "
-                   << parse_error.offset
-                   << " reason: " << parse_error.errorString();
-        qWarning() << *response;
-        return;
-    }
-
-    try
-    {
-        auto doc_obj = Json::requireObject(doc);
-        auto data_obj = Json::requireObject(doc_obj, "data");
-        FlameMod::loadIndexedPack(pack, data_obj);
-    }
-    catch (Json::JsonException& e)
-    {
-        qWarning() << e.cause();
-        qDebug() << doc;
-    }
-}
-
-void finishProjectJob(QEventLoop& loop, NetJob* job, QByteArray* response)
-{
-    job->deleteLater();
-    delete response;
-    loop.quit();
-}
 
 QByteArray succeededData(const Net::Download::Ptr& download,
                          const std::shared_ptr<QByteArray>& data)
@@ -87,15 +52,42 @@ ModPlatform::IndexedPack getProjectInfo(ModPlatform::IndexedVersion& ver_info)
     auto dl = Net::Download::makeByteArray(url, response);
     get_project_job->addNetAction(dl);
 
-    QObject::connect(get_project_job, &NetJob::succeeded,
-                     std::bind(storeProjectInfo, response, std::ref(pack)));
-
-    QObject::connect(
-        get_project_job, &NetJob::finished,
-        std::bind(finishProjectJob, std::ref(loop), get_project_job, response));
+    QObject::connect(get_project_job, &NetJob::finished, &loop,
+                     &QEventLoop::quit);
 
     get_project_job->start();
     loop.exec();
+
+    if (get_project_job->wasSuccessful())
+    {
+        QJsonParseError parse_error{};
+        QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
+        if (parse_error.error != QJsonParseError::NoError)
+        {
+            qWarning() << "Error while parsing JSON response from "
+                          "FlameCheckUpdate at "
+                       << parse_error.offset
+                       << " reason: " << parse_error.errorString();
+            qWarning() << *response;
+        }
+        else
+        {
+            try
+            {
+                auto doc_obj = Json::requireObject(doc);
+                auto data_obj = Json::requireObject(doc_obj, "data");
+                FlameMod::loadIndexedPack(pack, data_obj);
+            }
+            catch (Json::JsonException& e)
+            {
+                qWarning() << e.cause();
+                qDebug() << doc;
+            }
+        }
+    }
+
+    get_project_job->deleteLater();
+    delete response;
 
     return pack;
 }

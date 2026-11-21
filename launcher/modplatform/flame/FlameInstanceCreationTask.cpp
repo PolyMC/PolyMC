@@ -532,12 +532,8 @@ bool FlameCreationTask::createInstance()
 
     m_mod_id_resolver =
         new Flame::FileResolvingTask(APPLICATION->network(), m_pack);
-    connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::succeeded, this,
-            std::bind(&FlameCreationTask::idResolverSucceeded, this,
-                      std::ref(loop)));
-    connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::failed,
-            std::bind(&FlameCreationTask::onIdResolverFailed, this,
-                      std::ref(loop), std::placeholders::_1));
+    connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::finished, &loop,
+            &QEventLoop::quit);
     connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::progress, this,
             &FlameCreationTask::setProgress);
     connect(m_mod_id_resolver.get(), &Flame::FileResolvingTask::status, this,
@@ -547,6 +543,55 @@ bool FlameCreationTask::createInstance()
 
     connect(this, &Task::aborted, &loop, &QEventLoop::quit);
     loop.exec();
+
+    if (m_mod_id_resolver->wasSuccessful())
+    {
+        QString text;
+        QList<QUrl> urls;
+        for (const auto& result : m_mod_id_resolver->getResults().files)
+        {
+            if (!result.resolved || result.url.isEmpty())
+            {
+                text += QString("%1: <a href='%2'>%2</a><br/>")
+                            .arg(result.fileName, result.websiteUrl);
+                urls.append(QUrl(result.websiteUrl));
+            }
+        }
+
+        bool should_download = true;
+        if (!urls.isEmpty())
+        {
+            qWarning() << "Blocked mods found, displaying mod list";
+
+            auto message_dialog = new BlockedModsDialog(
+                m_parent, tr("Blocked mods found"),
+                tr("The following mods were blocked on third party "
+                   "launchers.<br/>"
+                   "You will need to manually download them and add them to "
+                   "the modpack"),
+                text, urls);
+            message_dialog->setModal(true);
+
+            should_download = message_dialog->exec();
+        }
+
+        if (should_download)
+        {
+            setupDownloadJob(loop);
+            loop.exec();
+        }
+        else
+        {
+            m_mod_id_resolver.reset();
+            setError("Canceled");
+        }
+    }
+    else if (m_mod_id_resolver->getState() == Task::State::Failed)
+    {
+        setError(tr("Unable to resolve mod IDs:\n") +
+                 m_mod_id_resolver->failReason());
+        m_mod_id_resolver.reset();
+    }
 
     if (m_mod_id_resolver)
     {
@@ -581,53 +626,6 @@ bool FlameCreationTask::createInstance()
     }
 
     return did_succeed;
-}
-
-void FlameCreationTask::idResolverSucceeded(QEventLoop& loop)
-{
-    auto results = m_mod_id_resolver->getResults();
-
-    // first check for blocked mods
-    QString text;
-    QList<QUrl> urls;
-    auto anyBlocked = false;
-    for (const auto& result : results.files.values())
-    {
-        if (!result.resolved || result.url.isEmpty())
-        {
-            text += QString("%1: <a href='%2'>%2</a><br/>")
-                        .arg(result.fileName, result.websiteUrl);
-            urls.append(QUrl(result.websiteUrl));
-            anyBlocked = true;
-        }
-    }
-    if (anyBlocked)
-    {
-        qWarning() << "Blocked mods found, displaying mod list";
-
-        auto message_dialog = new BlockedModsDialog(
-            m_parent, tr("Blocked mods found"),
-            tr("The following mods were blocked on third party launchers.<br/>"
-               "You will need to manually download them and add them to the "
-               "modpack"),
-            text, urls);
-        message_dialog->setModal(true);
-
-        if (message_dialog->exec())
-        {
-            setupDownloadJob(loop);
-        }
-        else
-        {
-            m_mod_id_resolver.reset();
-            setError("Canceled");
-            loop.quit();
-        }
-    }
-    else
-    {
-        setupDownloadJob(loop);
-    }
 }
 
 void FlameCreationTask::setupDownloadJob(QEventLoop& loop)
@@ -681,24 +679,15 @@ void FlameCreationTask::setupDownloadJob(QEventLoop& loop)
     m_mod_id_resolver.reset();
     connect(m_files_job.get(), &NetJob::succeeded, this,
             &FlameCreationTask::onFilesJobSucceeded);
-    connect(m_files_job.get(), &NetJob::failed,
-            std::bind(&FlameCreationTask::onFilesJobFailed, this,
-                      std::placeholders::_1));
-    connect(m_files_job.get(), &NetJob::progress,
-            std::bind(&FlameCreationTask::setProgress, this,
-                      std::placeholders::_1, std::placeholders::_2));
+    connect(m_files_job.get(), &NetJob::failed, this,
+            &FlameCreationTask::onFilesJobFailed);
+    connect(m_files_job.get(), &NetJob::progress, this,
+            &FlameCreationTask::setProgress);
     connect(m_files_job.get(), &NetJob::details, this, &Task::details);
     connect(m_files_job.get(), &NetJob::finished, &loop, &QEventLoop::quit);
 
     setStatus(tr("Downloading mods..."));
     m_files_job->start();
-}
-
-void FlameCreationTask::onIdResolverFailed(QEventLoop& loop, QString reason)
-{
-    m_mod_id_resolver.reset();
-    setError(tr("Unable to resolve mod IDs:\n") + reason);
-    loop.exit();
 }
 
 void FlameCreationTask::onFilesJobSucceeded()
