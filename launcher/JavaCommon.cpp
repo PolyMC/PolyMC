@@ -129,6 +129,8 @@ void JavaCommon::TestCheck::run()
 
 void JavaCommon::TestCheck::checkFinished(JavaCheckResult result)
 {
+    if (!m_parent)
+        return;
     if (result.validity != JavaCheckResult::Validity::Valid)
     {
         javaBinaryWasBad(m_parent, result);
@@ -150,6 +152,8 @@ void JavaCommon::TestCheck::checkFinished(JavaCheckResult result)
 
 void JavaCommon::TestCheck::checkFinishedWithArgs(JavaCheckResult result)
 {
+    if (!m_parent)
+        return;
     if (result.validity == JavaCheckResult::Validity::Valid)
     {
         javaWasOk(m_parent, result);
