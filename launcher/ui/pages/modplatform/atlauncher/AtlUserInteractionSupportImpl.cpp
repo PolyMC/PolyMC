@@ -39,7 +39,7 @@
 #include "AtlOptionalModDialog.h"
 #include "ui/dialogs/VersionSelectDialog.h"
 
-AtlUserInteractionSupportImpl::AtlUserInteractionSupportImpl(QWidget *parent) : m_parent(parent)
+AtlUserInteractionSupportImpl::AtlUserInteractionSupportImpl(QWidget *parent) : QObject(parent), m_parent(parent)
 {
 }
 
