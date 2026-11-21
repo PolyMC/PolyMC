@@ -176,7 +176,6 @@ void ComponentUpdateTask::loadComponents()
 {
     LoadResult result = LoadResult::LoadedLocal;
     size_t taskIndex = 0;
-    size_t componentIndex = 0;
     d->remoteLoadSuccessful = true;
     // load the main index (it is needed to determine if components can revert)
     {
@@ -254,11 +253,10 @@ void ComponentUpdateTask::loadComponents()
             });
             RemoteLoadStatus status;
             status.type = loadType;
-            status.PackProfileIndex = componentIndex;
+            status.uid = component->getID();
             d->remoteLoadStatusList.append(status);
             taskIndex++;
         }
-        componentIndex++;
     }
     d->remoteTasksInProgress = taskIndex;
     switch(result)
@@ -670,9 +668,12 @@ void ComponentUpdateTask::remoteLoadSucceeded(size_t taskIndex)
     // update the cached data of the component from the downloaded version file.
     if (taskSlot.type == RemoteLoadStatus::Type::Version)
     {
-        auto component = d->m_list->getComponent(static_cast<int>(taskSlot.PackProfileIndex));
-        component->m_loaded = true;
-        component->updateCachedData();
+        auto component = d->m_list->getComponent(taskSlot.uid);
+        if (component)
+        {
+            component->m_loaded = true;
+            component->updateCachedData();
+        }
     }
     checkIfAllFinished();
 }
@@ -696,7 +697,7 @@ void ComponentUpdateTask::remoteLoadFailed(size_t taskIndex, const QString& msg,
         }
         else if(taskSlot.type == RemoteLoadStatus::Type::Version)
         {
-            auto component = d->m_list->getComponent(static_cast<int>(taskSlot.PackProfileIndex));
+            auto component = d->m_list->getComponent(taskSlot.uid);
             hasLocalData = component && component->m_metaVersion && component->m_metaVersion->isLoaded();
         }
         if(hasLocalData)
