@@ -48,6 +48,11 @@ AuthRequest::AuthRequest(QObject *parent): QObject(parent) {
 }
 
 AuthRequest::~AuthRequest() {
+    if (status_ == Requesting && reply_) {
+        reply_->disconnect(this);
+        reply_->abort();
+        reply_->deleteLater();
+    }
 }
 
 void AuthRequest::get(const QNetworkRequest &req, int timeout/* = 60*1000*/) {
