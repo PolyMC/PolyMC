@@ -28,6 +28,7 @@ void NetworkModAPI::searchMods(CallerType* caller, SearchArgs&& args) const
 
         caller->searchRequestFinished(doc);
     });
+    QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
 
     netJob->start();
 }
