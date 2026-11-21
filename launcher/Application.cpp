@@ -1262,6 +1262,11 @@ bool Application::launch(
     else if(instance->canLaunch())
     {
         auto & extras = m_instanceExtras[instance->id()];
+        if(extras.controller)
+        {
+            qDebug() << "Instance" << instance->id() << "is already being launched";
+            return false;
+        }
         auto & window = extras.window;
         if(window)
         {
@@ -1386,8 +1391,11 @@ void Application::controllerSucceeded()
             extras.window->close();
         }
     }
-    extras.controller.reset();
-    subRunningInstance();
+    if(extras.controller.get() == controller)
+    {
+        extras.controller.reset();
+        subRunningInstance();
+    }
 
     // quit when there are no more windows.
     if(shouldExitNow())
@@ -1407,8 +1415,11 @@ void Application::controllerFailed(const QString& error)
     auto & extras = m_instanceExtras[id];
 
     // on failure, do... nothing
-    extras.controller.reset();
-    subRunningInstance();
+    if(extras.controller.get() == controller)
+    {
+        extras.controller.reset();
+        subRunningInstance();
+    }
 
     // quit when there are no more windows.
     if(shouldExitNow())
