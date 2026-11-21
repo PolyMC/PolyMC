@@ -8,28 +8,15 @@ unique_qobject_ptr<ModFilterWidget> ModFilterWidget::create(Version default_vers
     auto filter_widget = new ModFilterWidget(default_version, parent);
 
     if (!filter_widget->versionList()->isLoaded()) {
-        QEventLoop load_version_list_loop;
-
-        QTimer time_limit_for_list_load;
-        time_limit_for_list_load.setTimerType(Qt::TimerType::CoarseTimer);
-        time_limit_for_list_load.setSingleShot(true);
-        time_limit_for_list_load.callOnTimeout(&load_version_list_loop, &QEventLoop::quit);
-        time_limit_for_list_load.start(4000);
-
         auto task = filter_widget->versionList()->getLoadTask();
 
         // Use the widget as context, the task can outlive it when the time limit runs out
         connect(task.get(), &Task::failed, filter_widget, [filter_widget]{
             filter_widget->disableVersionButton(VersionButtonID::Major, tr("failed to get version index"));
         });
-        connect(task.get(), &Task::finished, &load_version_list_loop, &QEventLoop::quit);
 
         if (!task->isRunning())
             task->start();
-
-        load_version_list_loop.exec();
-        if (time_limit_for_list_load.isActive())
-            time_limit_for_list_load.stop();
     }
 
     return unique_qobject_ptr<ModFilterWidget>(filter_widget);
