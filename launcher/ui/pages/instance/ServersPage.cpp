@@ -85,13 +85,19 @@ struct Server
     }
     Server(nbt::tag_compound& server)
     {
-        std::string addressStr(server["ip"]);
-        m_address = QString::fromUtf8(addressStr.c_str());
+        if(server.has_key("ip", nbt::tag_type::String))
+        {
+            std::string addressStr(server["ip"]);
+            m_address = QString::fromUtf8(addressStr.c_str());
+        }
 
-        std::string nameStr(server["name"]);
-        m_name = QString::fromUtf8(nameStr.c_str());
+        if(server.has_key("name", nbt::tag_type::String))
+        {
+            std::string nameStr(server["name"]);
+            m_name = QString::fromUtf8(nameStr.c_str());
+        }
 
-        if(server["icon"])
+        if(server.has_key("icon", nbt::tag_type::String))
         {
             std::string base64str(server["icon"]);
             m_icon = QByteArray::fromBase64(base64str.c_str());
@@ -781,14 +787,17 @@ public:
         beginResetModel();
         QList<Server> servers;
         auto serversDat = parseServersDat(serversPath());
-        if(serversDat)
+        if(serversDat && serversDat->has_key("servers", nbt::tag_type::List))
         {
             auto &serversList = serversDat->at("servers").as<nbt::tag_list>();
-            for(auto iter = serversList.begin(); iter != serversList.end(); iter++)
+            if(serversList.el_type() == nbt::tag_type::Compound)
             {
-                auto & serverTag = (*iter).as<nbt::tag_compound>();
-                Server s(serverTag);
-                servers.append(s);
+                for(auto iter = serversList.begin(); iter != serversList.end(); iter++)
+                {
+                    auto & serverTag = (*iter).as<nbt::tag_compound>();
+                    Server s(serverTag);
+                    servers.append(s);
+                }
             }
         }
         m_servers.swap(servers);
