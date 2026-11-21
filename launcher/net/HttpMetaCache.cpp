@@ -110,51 +110,57 @@ MetaEntryPtr HttpMetaCache::resolveEntry(QString base, QString resource_path,
     QString real_path = FS::PathCombine(selected_base.base_path, resource_path);
     QFileInfo finfo(real_path);
 
-    // is the file really there? if not -> stale
-    if (!finfo.isFile() || !finfo.isReadable())
+    bool fresh = false;
+    do
     {
-        // if the file doesn't exist, we disown the entry
-        selected_base.entry_list.remove(resource_path);
-        return staleEntry(base, resource_path);
-    }
-
-    if (!expected_etag.isEmpty() && expected_etag != entry->etag)
-    {
-        // if the etag doesn't match expected, we disown the entry
-        selected_base.entry_list.remove(resource_path);
-        return staleEntry(base, resource_path);
-    }
-
-    // if the file changed, check md5sum
-    qint64 file_last_changed = finfo.lastModified().toUTC().toMSecsSinceEpoch();
-    if (file_last_changed != entry->local_changed_timestamp)
-    {
-        QFile input(real_path);
-        if (!input.open(QIODevice::ReadOnly))
+        // is the file really there? if not -> stale
+        if (!finfo.isFile() || !finfo.isReadable())
         {
-            selected_base.entry_list.remove(resource_path);
-            return staleEntry(base, resource_path);
-        }
-        QString md5sum =
-            QCryptographicHash::hash(input.readAll(), QCryptographicHash::Md5)
-                .toHex()
-                .constData();
-        if (entry->md5sum != md5sum)
-        {
-            selected_base.entry_list.remove(resource_path);
-            return staleEntry(base, resource_path);
+            break;
         }
 
-        // md5sums matched... keep entry and save the new state to file
-        entry->local_changed_timestamp = file_last_changed;
-        SaveEventually();
-    }
+        if (!expected_etag.isEmpty() && expected_etag != entry->etag)
+        {
+            break;
+        }
 
-    // Get rid of old entries, to prevent cache problems
-    auto current_time = QDateTime::currentSecsSinceEpoch();
-    if (entry->isExpired(current_time - (file_last_changed / 1000)))
+        // if the file changed, check md5sum
+        qint64 file_last_changed =
+            finfo.lastModified().toUTC().toMSecsSinceEpoch();
+        if (file_last_changed != entry->local_changed_timestamp)
+        {
+            QFile input(real_path);
+            if (!input.open(QIODevice::ReadOnly))
+            {
+                break;
+            }
+            QString md5sum = QCryptographicHash::hash(input.readAll(),
+                                                      QCryptographicHash::Md5)
+                                 .toHex()
+                                 .constData();
+            if (entry->md5sum != md5sum)
+            {
+                break;
+            }
+
+            // md5sums matched... keep entry and save the new state to file
+            entry->local_changed_timestamp = file_last_changed;
+            SaveEventually();
+        }
+
+        // Get rid of old entries, to prevent cache problems
+        auto current_time = QDateTime::currentSecsSinceEpoch();
+        if (entry->isExpired(current_time - (file_last_changed / 1000)))
+        {
+            qWarning() << "Removing cache entry because of old age!";
+            break;
+        }
+
+        fresh = true;
+    } while (0);
+
+    if (!fresh)
     {
-        qWarning() << "Removing cache entry because of old age!";
         selected_base.entry_list.remove(resource_path);
         return staleEntry(base, resource_path);
     }

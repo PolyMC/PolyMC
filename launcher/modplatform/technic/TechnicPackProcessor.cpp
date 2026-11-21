@@ -53,26 +53,84 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings,
     QString modpackJar = FS::PathCombine(minecraftPath, "bin", "modpack.jar");
     QString versionJson = FS::PathCombine(minecraftPath, "bin", "version.json");
     QString fmlMinecraftVersion;
-    if (QFile::exists(modpackJar))
+    QuaZip zipFile(modpackJar);
+    QString error_message;
+    bool processed = false;
+    do
     {
-        QuaZip zipFile(modpackJar);
-        if (!zipFile.open(QuaZip::mdUnzip))
+        if (QFile::exists(modpackJar))
         {
-            emit failed(tr("Unable to open \"bin/modpack.jar\" file!"));
-            return;
-        }
-        QuaZipDir zipFileRoot(&zipFile, "/");
-        if (zipFileRoot.exists("/version.json"))
-        {
+            if (!zipFile.open(QuaZip::mdUnzip))
+            {
+                error_message = tr("Unable to open \"bin/modpack.jar\" file!");
+                break;
+            }
+            QuaZipDir zipFileRoot(&zipFile, "/");
+            if (!zipFileRoot.exists("/version.json"))
+            {
+                if (minecraftVersion.isEmpty())
+                {
+                    error_message =
+                        tr("Could not find \"version.json\" inside "
+                           "\"bin/modpack.jar\", but Minecraft version is "
+                           "unknown");
+                    break;
+                }
+                components->setComponentVersion("net.minecraft",
+                                                minecraftVersion, true);
+                components->installJarMods({modpackJar});
+
+                // Forge for 1.4.7 and for 1.5.2 require extra libraries.
+                // Figure out the forge version and add it as a component
+                // (the code still comes from the jar mod installed above)
+                if (zipFileRoot.exists("/forgeversion.properties"))
+                {
+                    zipFile.setCurrentFile("forgeversion.properties",
+                                           QuaZip::csSensitive);
+                    QuaZipFile file(&zipFile);
+                    if (!file.open(QIODevice::ReadOnly))
+                    {
+                        // Really shouldn't happen, but error handling shall not
+                        // be forgotten
+                        error_message =
+                            tr("Unable to open \"forgeversion.properties\"");
+                        break;
+                    }
+                    QByteArray forgeVersionData = file.readAll();
+                    file.close();
+                    INIFile iniFile;
+                    iniFile.loadFile(forgeVersionData);
+                    QString major, minor, revision, build;
+                    major = iniFile["forge.major.number"].toString();
+                    minor = iniFile["forge.minor.number"].toString();
+                    revision = iniFile["forge.revision.number"].toString();
+                    build = iniFile["forge.build.number"].toString();
+
+                    if (major.isEmpty() || minor.isEmpty() ||
+                        revision.isEmpty() || build.isEmpty())
+                    {
+                        error_message =
+                            tr("Invalid \"forgeversion.properties\"!");
+                        break;
+                    }
+
+                    components->setComponentVersion(
+                        "net.minecraftforge",
+                        major + '.' + minor + '.' + revision + '.' + build);
+                }
+
+                processed = true;
+                break;
+            }
             if (zipFileRoot.exists("/fmlversion.properties"))
             {
                 zipFile.setCurrentFile("fmlversion.properties");
                 QuaZipFile file(&zipFile);
                 if (!file.open(QIODevice::ReadOnly))
                 {
-                    emit failed(
-                        tr("Unable to open \"fmlversion.properties\"!"));
-                    return;
+                    error_message =
+                        tr("Unable to open \"fmlversion.properties\"!");
+                    break;
                 }
                 QByteArray fmlVersionData = file.readAll();
                 file.close();
@@ -85,159 +143,116 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings,
             QuaZipFile file(&zipFile);
             if (!file.open(QIODevice::ReadOnly))
             {
-                emit failed(tr("Unable to open \"version.json\"!"));
-                return;
+                error_message = tr("Unable to open \"version.json\"!");
+                break;
+            }
+            data = file.readAll();
+            file.close();
+            zipFile.close();
+        }
+        else if (QFile::exists(versionJson))
+        {
+            QFile file(versionJson);
+            if (!file.open(QIODevice::ReadOnly))
+            {
+                error_message = tr("Unable to open \"version.json\"!");
+                break;
             }
             data = file.readAll();
             file.close();
         }
         else
         {
-            if (minecraftVersion.isEmpty())
-            {
-                emit failed(tr(
-                    "Could not find \"version.json\" inside "
-                    "\"bin/modpack.jar\", but Minecraft version is unknown"));
-                return;
-            }
-            components->setComponentVersion("net.minecraft", minecraftVersion,
-                                            true);
-            components->installJarMods({modpackJar});
+            // This is the "Vanilla" modpack, excluded by the search code
+            error_message = tr("Unable to find a \"version.json\"!");
+            break;
+        }
 
-            // Forge for 1.4.7 and for 1.5.2 require extra libraries.
-            // Figure out the forge version and add it as a component
-            // (the code still comes from the jar mod installed above)
-            if (zipFileRoot.exists("/forgeversion.properties"))
+        try
+        {
+            QJsonDocument doc = Json::requireDocument(data);
+            QJsonObject root = Json::requireObject(doc, "version.json");
+            QString jsonMinecraftVersion =
+                Json::ensureString(root, "inheritsFrom", QString(), "");
+            if (jsonMinecraftVersion.isEmpty())
             {
-                zipFile.setCurrentFile("forgeversion.properties",
-                                       QuaZip::csSensitive);
-                QuaZipFile file(&zipFile);
-                if (!file.open(QIODevice::ReadOnly))
+                if (fmlMinecraftVersion.isEmpty())
                 {
-                    // Really shouldn't happen, but error handling shall not be
-                    // forgotten
-                    emit failed(
-                        tr("Unable to open \"forgeversion.properties\""));
-                    return;
+                    error_message = tr(
+                        "Could not understand \"version.json\":\ninheritsFrom "
+                        "is missing");
+                    break;
                 }
-                QByteArray forgeVersionData = file.readAll();
-                file.close();
-                INIFile iniFile;
-                iniFile.loadFile(forgeVersionData);
-                QString major, minor, revision, build;
-                major = iniFile["forge.major.number"].toString();
-                minor = iniFile["forge.minor.number"].toString();
-                revision = iniFile["forge.revision.number"].toString();
-                build = iniFile["forge.build.number"].toString();
-
-                if (major.isEmpty() || minor.isEmpty() || revision.isEmpty() ||
-                    build.isEmpty())
+                jsonMinecraftVersion = fmlMinecraftVersion;
+            }
+            components->setComponentVersion("net.minecraft",
+                                            jsonMinecraftVersion, true);
+            for (auto library : Json::ensureArray(root, "libraries", {}))
+            {
+                if (!library.isObject())
                 {
-                    emit failed(tr("Invalid \"forgeversion.properties\"!"));
-                    return;
+                    continue;
                 }
 
-                components->setComponentVersion(
-                    "net.minecraftforge",
-                    major + '.' + minor + '.' + revision + '.' + build);
-            }
+                auto libraryObject = Json::ensureObject(library, {}, "");
+                auto libraryName =
+                    Json::ensureString(libraryObject, "name", "", "");
 
-            components->saveNow();
-            emit succeeded();
-            return;
-        }
-    }
-    else if (QFile::exists(versionJson))
-    {
-        QFile file(versionJson);
-        if (!file.open(QIODevice::ReadOnly))
-        {
-            emit failed(tr("Unable to open \"version.json\"!"));
-            return;
-        }
-        data = file.readAll();
-        file.close();
-    }
-    else
-    {
-        // This is the "Vanilla" modpack, excluded by the search code
-        emit failed(tr("Unable to find a \"version.json\"!"));
-        return;
-    }
-
-    try
-    {
-        QJsonDocument doc = Json::requireDocument(data);
-        QJsonObject root = Json::requireObject(doc, "version.json");
-        QString jsonMinecraftVersion =
-            Json::ensureString(root, "inheritsFrom", QString(), "");
-        if (jsonMinecraftVersion.isEmpty())
-        {
-            if (fmlMinecraftVersion.isEmpty())
-            {
-                emit failed(
-                    tr("Could not understand \"version.json\":\ninheritsFrom "
-                       "is missing"));
-                return;
-            }
-            jsonMinecraftVersion = fmlMinecraftVersion;
-        }
-        components->setComponentVersion("net.minecraft", jsonMinecraftVersion,
-                                        true);
-        for (auto library : Json::ensureArray(root, "libraries", {}))
-        {
-            if (!library.isObject())
-            {
-                continue;
-            }
-
-            auto libraryObject = Json::ensureObject(library, {}, "");
-            auto libraryName =
-                Json::ensureString(libraryObject, "name", "", "");
-
-            if (libraryName.startsWith("net.minecraftforge:forge:") &&
-                libraryName.contains('-'))
-            {
-                QString libraryVersion = libraryName.section(':', 2);
-                if (!libraryVersion.startsWith("1.7.10-"))
+                if (libraryName.startsWith("net.minecraftforge:forge:") &&
+                    libraryName.contains('-'))
                 {
-                    components->setComponentVersion(
-                        "net.minecraftforge", libraryName.section('-', 1));
+                    QString libraryVersion = libraryName.section(':', 2);
+                    if (!libraryVersion.startsWith("1.7.10-"))
+                    {
+                        components->setComponentVersion(
+                            "net.minecraftforge", libraryName.section('-', 1));
+                    }
+                    else
+                    {
+                        // 1.7.10 versions sometimes look
+                        // like 1.7.10-10.13.4.1614-1.7.10, this filters out
+                        // the 10.13.4.1614 part
+                        components->setComponentVersion(
+                            "net.minecraftforge",
+                            libraryName.section('-', 1, 1));
+                    }
                 }
                 else
                 {
-                    // 1.7.10 versions sometimes look
-                    // like 1.7.10-10.13.4.1614-1.7.10, this filters out
-                    // the 10.13.4.1614 part
-                    components->setComponentVersion(
-                        "net.minecraftforge", libraryName.section('-', 1, 1));
-                }
-            }
-            else
-            {
-                // <Technic library name prefix> -> <our component name>
-                static QMap<QString, QString> loaderMap{
-                    {"net.minecraftforge:minecraftforge:",
-                     "net.minecraftforge"},
-                    {"net.fabricmc:fabric-loader:",
-                     "net.fabricmc.fabric-loader"},
-                    {"org.quiltmc:quilt-loader:", "org.quiltmc.quilt-loader"}};
-                for (const auto& loader : loaderMap.keys())
-                {
-                    if (libraryName.startsWith(loader))
+                    // <Technic library name prefix> -> <our component name>
+                    static QMap<QString, QString> loaderMap{
+                        {"net.minecraftforge:minecraftforge:",
+                         "net.minecraftforge"},
+                        {"net.fabricmc:fabric-loader:",
+                         "net.fabricmc.fabric-loader"},
+                        {"org.quiltmc:quilt-loader:",
+                         "org.quiltmc.quilt-loader"}};
+                    for (const auto& loader : loaderMap.keys())
                     {
-                        components->setComponentVersion(
-                            loaderMap.value(loader),
-                            libraryName.section(':', 2));
-                        break;
+                        if (libraryName.startsWith(loader))
+                        {
+                            components->setComponentVersion(
+                                loaderMap.value(loader),
+                                libraryName.section(':', 2));
+                            break;
+                        }
                     }
                 }
             }
         }
-    }
-    catch (const JSONValidationError& e)
+        catch (const JSONValidationError& e)
+        {
+            error_message =
+                tr("Could not understand \"version.json\":\n") + e.cause();
+            break;
+        }
+
+        processed = true;
+    } while (0);
+
+    if (!processed)
     {
-        emit failed(tr("Could not understand \"version.json\":\n") + e.cause());
+        emit failed(error_message);
         return;
     }
 
