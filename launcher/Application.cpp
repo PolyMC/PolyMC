@@ -973,6 +973,8 @@ bool Application::event(QEvent* event) {
 void Application::setupWizardFinished(int status)
 {
     qDebug() << "Wizard result =" << status;
+    m_setupWizard->deleteLater();
+    m_setupWizard = nullptr;
     performMainStartupAction();
 }
 
