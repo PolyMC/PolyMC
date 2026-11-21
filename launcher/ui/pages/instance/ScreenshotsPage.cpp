@@ -463,7 +463,12 @@ void ScreenshotsPage::on_actionCopy_Image_triggered()
     auto item = selection[0];
     auto info = m_model->fileInfo(item);
     QImage image(info.absoluteFilePath());
-    Q_ASSERT(!image.isNull());
+    if(image.isNull())
+    {
+        CustomMessageBox::selectable(this, tr("Failed to copy image"),
+                                     tr("Could not read %1.").arg(info.fileName()), QMessageBox::Warning)->exec();
+        return;
+    }
     QApplication::clipboard()->setImage(image, QClipboard::Clipboard);
 }
 
