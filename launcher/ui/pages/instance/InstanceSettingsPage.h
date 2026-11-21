@@ -93,6 +93,8 @@ private slots:
     void loadSettings();
 
     void checkerFinished();
+    void on_installJavaBtn_clicked();
+    void managedJavaSelected(int index);
 
     void globalSettingsButtonClicked(bool checked);
 
@@ -101,6 +103,8 @@ private slots:
 
 private:
     void updateSecWarnVisibility(const QString& javaPath);
+    void refreshManagedJava();
+    void syncManagedJavaSelection();
 
     Ui::InstanceSettingsPage* ui;
     BaseInstance* m_instance;

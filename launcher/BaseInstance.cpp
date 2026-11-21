@@ -341,6 +341,13 @@ SettingsObjectPtr BaseInstance::settings()
     return m_settings;
 }
 
+QString BaseInstance::javaPath()
+{
+    if (!m_runtimeJavaPath.isEmpty())
+        return m_runtimeJavaPath;
+    return settings()->get("JavaPath").toString();
+}
+
 bool BaseInstance::canLaunch() const
 {
     return (!hasVersionBroken() && !isRunning());

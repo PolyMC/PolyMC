@@ -53,6 +53,8 @@
 #include "java/JavaInstall.h"
 #include "java/JavaInstallList.h"
 #include "java/JavaUtils.h"
+#include "java/download/JavaRuntime.h"
+#include "ui/dialogs/JavaInstallDialog.h"
 #include "FileSystem.h"
 
 #include "minecraft/auth/AccountList.h"
@@ -91,6 +93,9 @@ InstanceSettingsPage::InstanceSettingsPage(BaseInstance* inst, QWidget* parent)
             &InstanceSettingsPage::normalizeMemory);
 
     updateMemoryWarning();
+
+    connect(ui->managedJavaComboBox, QOverload<int>::of(&QComboBox::activated), this, &InstanceSettingsPage::managedJavaSelected);
+    connect(ui->javaPathTextBox, &QLineEdit::textChanged, this, &InstanceSettingsPage::syncManagedJavaSelection);
 
     loadSettings();
 }
@@ -432,6 +437,7 @@ void InstanceSettingsPage::loadSettings()
     bool secWarn = m_settings->get("IgnoreJavaSecWarn").toBool();
 
     ui->javaSettingsGroupBox->setChecked(overrideLocation);
+    refreshManagedJava();
     ui->javaPathTextBox->setText(m_settings->get("JavaPath").toString());
     ui->skipCompatibilityCheckbox->setChecked(
         m_settings->get("IgnoreJavaCompatibility").toBool());
@@ -628,6 +634,42 @@ void InstanceSettingsPage::on_javaTestBtn_clicked()
     connect(checker.get(), &JavaCommon::TestCheck::finished, this,
             &InstanceSettingsPage::checkerFinished);
     checker->run();
+}
+
+void InstanceSettingsPage::refreshManagedJava()
+{
+    ui->managedJavaComboBox->clear();
+    ui->managedJavaComboBox->addItem(tr("Custom path"));
+    for (auto& runtime : JavaRuntime::installedRuntimes()) {
+        ui->managedJavaComboBox->addItem(tr("%1 - Java %2").arg(runtime.displayName()).arg(runtime.major), runtime.javaPath);
+    }
+    syncManagedJavaSelection();
+}
+
+void InstanceSettingsPage::syncManagedJavaSelection()
+{
+    // index 0 ("Custom path") has no data, so a path that is not a managed runtime lands there
+    int index = ui->managedJavaComboBox->findData(ui->javaPathTextBox->text());
+    ui->managedJavaComboBox->setCurrentIndex(index > 0 ? index : 0);
+}
+
+void InstanceSettingsPage::managedJavaSelected(int index)
+{
+    auto path = ui->managedJavaComboBox->itemData(index).toString();
+    if (path.isEmpty())
+        return;
+    ui->javaPathTextBox->setText(path);
+    updateSecWarnVisibility(FS::ResolveExecutable(path));
+}
+
+void InstanceSettingsPage::on_installJavaBtn_clicked()
+{
+    auto runtime = JavaInstallDialog::pickAndInstall(this);
+    refreshManagedJava();
+    if (!runtime)
+        return;
+    ui->javaPathTextBox->setText(runtime->javaPath);
+    updateSecWarnVisibility(FS::ResolveExecutable(runtime->javaPath));
 }
 
 void InstanceSettingsPage::checkerFinished()

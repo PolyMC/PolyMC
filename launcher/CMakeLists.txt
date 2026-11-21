@@ -277,6 +277,8 @@ set(MINECRAFT_SOURCES
     minecraft/launch/ScanModFolders.h
     minecraft/launch/VerifyJavaInstall.cpp
     minecraft/launch/VerifyJavaInstall.h
+    minecraft/launch/AutoJava.cpp
+    minecraft/launch/AutoJava.h
 
     minecraft/GradleSpecifier.h
     minecraft/MinecraftInstance.cpp
@@ -424,6 +426,13 @@ set(JAVA_SOURCES
     java/JavaUtils.cpp
     java/JavaVersion.h
     java/JavaVersion.cpp
+
+    java/download/ArchiveExtractor.h
+    java/download/ArchiveExtractor.cpp
+    java/download/JavaRuntime.h
+    java/download/JavaRuntime.cpp
+    java/download/JavaRuntimeTasks.h
+    java/download/JavaRuntimeTasks.cpp
 )
 
 set(TRANSLATIONS_SOURCES
@@ -839,6 +848,8 @@ SET(LAUNCHER_SOURCES
     ui/pagedialog/PageDialog.cpp
     ui/pagedialog/PageDialog.h
     ui/dialogs/ProgressDialog.cpp
+    ui/dialogs/JavaInstallDialog.cpp
+    ui/dialogs/JavaInstallDialog.h
     ui/dialogs/ProgressDialog.h
     ui/dialogs/ReviewMessageBox.cpp
     ui/dialogs/ReviewMessageBox.h
