@@ -22,6 +22,8 @@
 
 #include <QPainter>
 
+#include <memory>
+
 namespace Ftb {
 
 ListModel::ListModel(QObject *parent) : QAbstractListModel(parent)
@@ -124,7 +126,6 @@ void ListModel::request()
 void ListModel::requestFinished()
 {
     jobPtr.reset();
-    remainingPacks.clear();
 
     QJsonParseError parse_error {};
     QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
@@ -135,48 +136,43 @@ void ListModel::requestFinished()
     }
 
     auto packs = doc.object().value("packs").toArray();
-    for (auto pack : std::as_const(packs)) {
-        auto packId = pack.toInt();
-        remainingPacks.append(packId);
+    if(packs.isEmpty()) {
+        return;
     }
 
-    if(!remainingPacks.isEmpty()) {
-        currentPack = remainingPacks.at(0);
-        requestPack();
+    auto *netJob = new NetJob("Ftb::Packs", APPLICATION->network());
+    for (auto pack : std::as_const(packs)) {
+        auto packUrl = (BuildConfig.FTB_API_BASE_URL + "/modpack/%1").arg(pack.toInt());
+        auto packResponse = std::make_shared<QByteArray>();
+        auto dl = Net::Download::makeByteArray(QUrl(packUrl), packResponse.get());
+        QObject::connect(dl.get(), &Net::Download::succeeded, this, [this, packResponse]
+        {
+            packRequestFinished(*packResponse);
+        });
+        netJob->addNetAction(dl);
     }
+    jobPtr = netJob;
+
+    QObject::connect(netJob, &NetJob::finished, this, [this]
+    {
+        jobPtr.reset();
+    });
+    jobPtr->start();
 }
 
 void ListModel::requestFailed(QString /*reason*/)
 {
     jobPtr.reset();
-    remainingPacks.clear();
 }
 
-void ListModel::requestPack()
+void ListModel::packRequestFinished(const QByteArray &packResponse)
 {
-    auto *netJob = new NetJob("Ftb::Search", APPLICATION->network());
-    auto searchUrl = (BuildConfig.FTB_API_BASE_URL + "/modpack/%1").arg(currentPack);
-    netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchUrl), &response));
-    jobPtr = netJob;
-    jobPtr->start();
-
-    QObject::connect(netJob, &NetJob::succeeded, this, &ListModel::packRequestFinished);
-    QObject::connect(netJob, &NetJob::failed, this, &ListModel::packRequestFailed);
-}
-
-void ListModel::packRequestFinished()
-{
-    jobPtr.reset();
-    remainingPacks.removeOne(currentPack);
-
     QJsonParseError parse_error;
-    QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
+    QJsonDocument doc = QJsonDocument::fromJson(packResponse, &parse_error);
 
     if(parse_error.error != QJsonParseError::NoError) {
         qWarning() << "Error while parsing JSON response from FTB at " << parse_error.offset << " reason: " << parse_error.errorString();
-        qWarning() << response;
-        // Skip this pack, but keep loading the others
-        requestNextPack();
+        qWarning() << packResponse;
         return;
     }
 
@@ -189,10 +185,8 @@ void ListModel::packRequestFinished()
     }
     catch (const JSONValidationError &e)
     {
-        qDebug() << QString::fromUtf8(response);
+        qDebug() << QString::fromUtf8(packResponse);
         qWarning() << "Error while reading pack manifest from FTB: " << e.cause();
-        // Skip this pack, but keep loading the others
-        requestNextPack();
         return;
     }
 
@@ -207,24 +201,6 @@ void ListModel::packRequestFinished()
         beginInsertRows(QModelIndex(), modpacks.size(), modpacks.size());
         modpacks.append(pack);
         endInsertRows();
-    }
-
-    requestNextPack();
-}
-
-void ListModel::packRequestFailed(QString /*reason*/)
-{
-    jobPtr.reset();
-    remainingPacks.removeOne(currentPack);
-    // Skip this pack, but keep loading the others
-    requestNextPack();
-}
-
-void ListModel::requestNextPack()
-{
-    if(!remainingPacks.isEmpty()) {
-        currentPack = remainingPacks.at(0);
-        requestPack();
     }
 }
 

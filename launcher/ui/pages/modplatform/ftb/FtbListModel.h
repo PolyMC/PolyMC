@@ -54,24 +54,18 @@ private slots:
     void requestFinished();
     void requestFailed(QString reason);
 
-    void requestPack();
-    void packRequestFinished();
-    void packRequestFailed(QString reason);
-
     void logoFailed(QString logo);
     void logoLoaded(QString logo, bool stale);
 
 private:
+    void packRequestFinished(const QByteArray &packResponse);
     void requestLogo(QString file, QString url);
-    void requestNextPack();
 
 private:
     QList<FTB::Modpack> modpacks;
     LogoMap m_logoMap;
 
     NetJob::Ptr jobPtr;
-    int currentPack;
-    QList<int> remainingPacks;
     QByteArray response;
 };
 
