@@ -255,6 +255,9 @@ void Yggdrasil::processResponse(QJsonObject responseData) {
 }
 
 void Yggdrasil::processReply() {
+    timeout_keeper.stop();
+    counter.stop();
+    m_netReply->deleteLater();
     changeState(AccountTaskState::STATE_WORKING);
 
     switch (m_netReply->error())
