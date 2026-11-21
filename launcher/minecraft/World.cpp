@@ -384,7 +384,14 @@ bool World::rename(const QString &newName)
     auto &val = worldData->at("Data");
     auto &dataCompound = val.as<nbt::tag_compound>();
     dataCompound.put("LevelName", nbt::value_initializer(newName.toUtf8().data()));
-    data = serializeLevelDat(worldData.get());
+    try {
+        data = serializeLevelDat(worldData.get());
+    }
+    catch (const std::exception &e)
+    {
+        qWarning() << "Unable to write level.dat:" << e.what();
+        return false;
+    }
 
     putLevelDatDataToFS(m_containerFile, data);
 
