@@ -1445,11 +1445,24 @@ void Application::ShowGlobalSettings(class QWidget* parent, QString open_page)
 
 MainWindow* Application::showMainWindow(bool minimized)
 {
-    if(m_mainWindow)
+    if(m_mainWindow && m_mainWindow->isVisible())
     {
         m_mainWindow->setWindowState(m_mainWindow->windowState() & ~Qt::WindowMinimized);
         m_mainWindow->raise();
         m_mainWindow->activateWindow();
+    }
+    else if(m_mainWindow)
+    {
+        if(minimized)
+        {
+            m_mainWindow->showMinimized();
+        }
+        else
+        {
+            m_mainWindow->setWindowState(m_mainWindow->windowState() & ~Qt::WindowMinimized);
+            m_mainWindow->show();
+        }
+        m_openWindows++;
     }
     else
     {
@@ -1522,11 +1535,6 @@ void Application::on_windowClose()
         {
             extras.controller->setParentWidget(m_mainWindow);
         }
-    }
-    auto mainWindow = qobject_cast<MainWindow *>(QObject::sender());
-    if(mainWindow)
-    {
-        m_mainWindow = nullptr;
     }
     // quit when there are no more windows.
     if(shouldExitNow())
