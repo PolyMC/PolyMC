@@ -160,6 +160,7 @@ protected:
     QTimer *m_refreshTimer;
     QTimer *m_nextTimer;
     shared_qobject_ptr<AccountTask> m_currentTask;
+    MinecraftAccountPtr m_currentAccount;
 
     /*!
      * Called whenever the list changes.

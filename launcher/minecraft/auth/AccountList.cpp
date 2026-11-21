@@ -156,7 +156,7 @@ void AccountList::addAccount(const MinecraftAccountPtr account)
                     m_defaultAccount = account;
                 }
                 // disconnect notifications for changes in the account being replaced
-                existingAccountPtr->disconnect(this);
+                disconnect(existingAccountPtr.get(), &MinecraftAccount::changed, this, &AccountList::accountChanged);
                 emit dataChanged(index(existingAccount), index(existingAccount, columnCount(QModelIndex()) - 1));
                 onListChanged();
                 return;
@@ -256,22 +256,18 @@ void AccountList::accountChanged()
 void AccountList::accountActivityChanged(bool active)
 {
     MinecraftAccount *account = qobject_cast<MinecraftAccount *>(sender());
-    bool found = false;
     for (int i = 0; i < count(); i++) {
         if (at(i).get() == account) {
             emit dataChanged(index(i),  index(i, columnCount(QModelIndex()) - 1));
-            found = true;
             break;
         }
     }
-    if(found) {
-        emit listActivityChanged();
-        if(active) {
-            beginActivity();
-        }
-        else {
-            endActivity();
-        }
+    emit listActivityChanged();
+    if(active) {
+        beginActivity();
+    }
+    else {
+        endActivity();
     }
 }
 
@@ -712,6 +708,7 @@ void AccountList::tryNext() {
             if(account->internalId() == accountId) {
                 m_currentTask = account->refresh();
                 if(m_currentTask) {
+                    m_currentAccount = account;
                     connect(m_currentTask.get(), &AccountTask::succeeded, this, &AccountList::authSucceeded);
                     connect(m_currentTask.get(), &AccountTask::failed, this, &AccountList::authFailed);
                     m_currentTask->start();
@@ -729,12 +726,14 @@ void AccountList::tryNext() {
 void AccountList::authSucceeded() {
     qDebug() << "RefreshSchedule: Background account refresh succeeded";
     m_currentTask.reset();
+    m_currentAccount.reset();
     m_nextTimer->start(1000 * 20);
 }
 
 void AccountList::authFailed(QString reason) {
     qDebug() << "RefreshSchedule: Background account refresh failed: " << reason;
     m_currentTask.reset();
+    m_currentAccount.reset();
     m_nextTimer->start(1000 * 20);
 }
 
