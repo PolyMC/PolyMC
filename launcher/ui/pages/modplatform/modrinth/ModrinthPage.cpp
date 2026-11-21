@@ -165,7 +165,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
 
             suggestCurrent();
         });
-        QObject::connect(netJob, &NetJob::finished, this, [response, netJob] {
+        QObject::connect(netJob, &NetJob::finished, netJob, [response, netJob] {
             netJob->deleteLater();
             delete response;
         });
@@ -223,7 +223,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
 
             suggestCurrent();
         });
-        QObject::connect(netJob, &NetJob::finished, this, [response, netJob] {
+        QObject::connect(netJob, &NetJob::finished, netJob, [response, netJob] {
             netJob->deleteLater();
             delete response;
         });
