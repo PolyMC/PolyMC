@@ -62,6 +62,14 @@ AtlOptionalModListModel::AtlOptionalModListModel(QWidget* parent, ATLauncher::Pa
     }
 }
 
+AtlOptionalModListModel::~AtlOptionalModListModel()
+{
+    if (m_jobPtr && m_jobPtr->isRunning()) {
+        m_jobPtr->disconnect(this);
+        m_jobPtr->abort();
+    }
+}
+
 QVector<QString> AtlOptionalModListModel::getResult() {
     QVector<QString> result;
 
@@ -150,6 +158,10 @@ Qt::ItemFlags AtlOptionalModListModel::flags(const QModelIndex &index) const {
 }
 
 void AtlOptionalModListModel::useShareCode(const QString& code) {
+    if (m_jobPtr && m_jobPtr->isRunning()) {
+        m_jobPtr->disconnect(this);
+        m_jobPtr->abort();
+    }
     m_jobPtr.reset(new NetJob("Atl::Request", APPLICATION->network()));
     auto url = BuildConfig.ATL_API_BASE_URL + "share-codes/" + code;
     m_jobPtr->addNetAction(Net::Download::makeByteArray(QUrl(url), &m_response));
