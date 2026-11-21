@@ -1214,7 +1214,7 @@ void MainWindow::showInstanceContextMenu(const QPoint &pos)
     QAction *actionSep = new QAction("", &myMenu);
     actionSep->setSeparator(true);
 
-    bool onInstance = view->indexAt(pos).isValid();
+    bool onInstance = view->indexAt(pos).isValid() && m_selectedInstance;
     if (onInstance)
     {
         actions = ui->instanceToolBar->actions();
