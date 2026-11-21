@@ -41,7 +41,7 @@ class StoragePage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit StoragePage(BaseInstance *inst, QWidget *parent = 0);
+    explicit StoragePage(BaseInstance* inst, QWidget* parent = 0);
     virtual ~StoragePage();
     virtual QString displayName() const override
     {
@@ -50,8 +50,12 @@ public:
     virtual QIcon icon() const override
     {
         auto icon = APPLICATION->getThemedIcon("storage");
-        if(icon.isNull())
-            icon = APPLICATION->getThemedIcon("news");
+        if (icon.isNull())
+        {
+            {
+                icon = APPLICATION->getThemedIcon("news");
+            }
+        }
         return icon;
     }
     virtual QString id() const override
@@ -73,15 +77,15 @@ public:
     void updateCalculations();
 
 protected:
-    bool eventFilter(QObject *object, QEvent *event) override;
+    bool eventFilter(QObject* object, QEvent* event) override;
 
 private:
-    Ui::StoragePage *ui;
-    BaseInstance *m_inst;
+    Ui::StoragePage* ui;
+    BaseInstance* m_inst;
 
-    QPieSeries *m_series = nullptr;
-    QChart *m_chart = nullptr;
-    QChartView *m_chart_view = nullptr;
+    QPieSeries* m_series = nullptr;
+    QChart* m_chart = nullptr;
+    QChartView* m_chart_view = nullptr;
 
-    QMessageBox *m_confirmation_box;
+    QMessageBox* m_confirmation_box;
 };

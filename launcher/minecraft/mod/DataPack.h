@@ -21,11 +21,17 @@
 
 #include "ResourcePack.h"
 
-class DataPack : public ResourcePack {
+class DataPack : public ResourcePack
+{
 public:
-    DataPack(QObject* parent = nullptr) : ResourcePack(parent) {}
-    DataPack(QFileInfo file_info) : ResourcePack(file_info) {}
+    DataPack(QObject* parent = nullptr) : ResourcePack(parent)
+    {
+    }
+    DataPack(QFileInfo file_info) : ResourcePack(file_info)
+    {
+    }
 
 protected:
-    QMap<std::pair<int, int>, std::pair<Version, Version>> versionMap() const override;
+    QMap<std::pair<int, int>, std::pair<Version, Version>> versionMap()
+        const override;
 };

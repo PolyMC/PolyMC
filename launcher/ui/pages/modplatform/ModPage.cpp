@@ -47,16 +47,25 @@
 #include "ui/dialogs/ModDownloadDialog.h"
 #include "ui/widgets/ProjectItem.h"
 
-ModPage::ModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInstance* instance,
-                 ModAPI* api)
-    : QWidget(dialog), m_instance(instance), ui(new Ui::ModPage), dialog(dialog),
-      m_fetch_progress(this, false), api(api), m_resourceType(type),
-      m_typeString(type == ModAPI::Mod ? tr("mod") : tr("pack")) {
+ModPage::ModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type,
+                 BaseInstance* instance, ModAPI* api)
+    : QWidget(dialog),
+      m_instance(instance),
+      ui(new Ui::ModPage),
+      dialog(dialog),
+      m_fetch_progress(this, false),
+      api(api),
+      m_resourceType(type),
+      m_typeString(type == ModAPI::Mod ? tr("mod") : tr("pack"))
+{
     ui->setupUi(this);
 
-    connect(ui->searchButton, &QPushButton::clicked, this, &ModPage::triggerSearch);
-    connect(ui->modFilterButton, &QPushButton::clicked, this, &ModPage::filterMods);
-    connect(ui->packView, &QListView::doubleClicked, this, &ModPage::onModSelected);
+    connect(ui->searchButton, &QPushButton::clicked, this,
+            &ModPage::triggerSearch);
+    connect(ui->modFilterButton, &QPushButton::clicked, this,
+            &ModPage::filterMods);
+    connect(ui->packView, &QListView::doubleClicked, this,
+            &ModPage::onModSelected);
 
     m_search_timer.setTimerType(Qt::TimerType::CoarseTimer);
     m_search_timer.setSingleShot(true);
@@ -65,14 +74,16 @@ ModPage::ModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type, BaseInsta
 
     ui->searchEdit->installEventFilter(this);
 
-    ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(
+        Qt::ScrollBarAsNeeded);
     ui->versionSelectionBox->view()->parentWidget()->setMaximumHeight(300);
 
     m_fetch_progress.hideIfInactive(true);
     m_fetch_progress.setFixedHeight(24);
     m_fetch_progress.progressFormat("");
 
-    ui->gridLayout_3->addWidget(&m_fetch_progress, 0, 0, 1, ui->gridLayout_3->columnCount());
+    ui->gridLayout_3->addWidget(&m_fetch_progress, 0, 0, 1,
+                                ui->gridLayout_3->columnCount());
 
     ui->packView->setItemDelegate(new ProjectItemDelegate(this));
     ui->packView->installEventFilter(this);
@@ -86,23 +97,29 @@ ModPage::~ModPage()
 void ModPage::setFilterWidget(unique_qobject_ptr<ModFilterWidget>& widget)
 {
     if (m_filter_widget)
+    {
         disconnect(m_filter_widget.get(), nullptr, nullptr, nullptr);
+    }
 
     m_filter_widget.swap(widget);
 
-    ui->gridLayout_3->addWidget(m_filter_widget.get(), 0, 0, 1, ui->gridLayout_3->columnCount());
+    ui->gridLayout_3->addWidget(m_filter_widget.get(), 0, 0, 1,
+                                ui->gridLayout_3->columnCount());
 
     m_filter_widget->setInstance(static_cast<MinecraftInstance*>(m_instance));
     m_filter = m_filter_widget->getFilter();
 
-    connect(m_filter_widget.get(), &ModFilterWidget::filterChanged, this, [&]{
-        ui->searchButton->setStyleSheet("text-decoration: underline");
-    });
-    connect(m_filter_widget.get(), &ModFilterWidget::filterUnchanged, this, [&]{
-        ui->searchButton->setStyleSheet("text-decoration: none");
-    });
+    connect(m_filter_widget.get(), &ModFilterWidget::filterChanged, this,
+            [&]
+            {
+                ui->searchButton->setStyleSheet("text-decoration: underline");
+            });
+    connect(m_filter_widget.get(), &ModFilterWidget::filterUnchanged, this,
+            [&]
+            {
+                ui->searchButton->setStyleSheet("text-decoration: none");
+            });
 }
-
 
 /******** Qt things ********/
 
@@ -114,25 +131,36 @@ void ModPage::openedImpl()
 
 bool ModPage::eventFilter(QObject* watched, QEvent* event)
 {
-    if (watched == ui->searchEdit && event->type() == QEvent::KeyPress) {
+    if (watched == ui->searchEdit && event->type() == QEvent::KeyPress)
+    {
         auto* keyEvent = dynamic_cast<QKeyEvent*>(event);
-        if (keyEvent->key() == Qt::Key_Return) {
+        if (keyEvent->key() == Qt::Key_Return)
+        {
             triggerSearch();
             keyEvent->accept();
             return true;
-        } else {
+        }
+        else
+        {
             if (m_search_timer.isActive())
+            {
                 m_search_timer.stop();
+            }
 
             m_search_timer.start(350);
         }
-    } else if (watched == ui->packView && event->type() == QEvent::KeyPress) {
+    }
+    else if (watched == ui->packView && event->type() == QEvent::KeyPress)
+    {
         auto* keyEvent = dynamic_cast<QKeyEvent*>(event);
-        if (keyEvent->key() == Qt::Key_Return) {
+        if (keyEvent->key() == Qt::Key_Return)
+        {
             onModSelected();
 
-            // To have the 'select mod' button outlined instead of the 'review and confirm' one
-            ui->modSelectionButton->setFocus(Qt::FocusReason::ShortcutFocusReason);
+            // To have the 'select mod' button outlined instead of the 'review
+            // and confirm' one
+            ui->modSelectionButton->setFocus(
+                Qt::FocusReason::ShortcutFocusReason);
             ui->packView->setFocus(Qt::FocusReason::NoFocusReason);
 
             keyEvent->accept();
@@ -142,8 +170,8 @@ bool ModPage::eventFilter(QObject* watched, QEvent* event)
     return QWidget::eventFilter(watched, event);
 }
 
-
-/******** Callbacks to events in the UI (set up in the derived classes) ********/
+/******** Callbacks to events in the UI (set up in the derived classes)
+ * ********/
 
 void ModPage::filterMods()
 {
@@ -155,14 +183,16 @@ void ModPage::triggerSearch()
     auto changed = m_filter_widget->changed();
     m_filter = m_filter_widget->getFilter();
 
-    if(changed){
+    if (changed)
+    {
         ui->packView->clearSelection();
         ui->packDescription->clear();
         ui->versionSelectionBox->clear();
         updateSelectionButton();
     }
 
-    listModel->searchWithTerm(getSearchTerm(), ui->sortByBox->currentIndex(), changed);
+    listModel->searchWithTerm(getSearchTerm(), ui->sortByBox->currentIndex(),
+                              changed);
     m_fetch_progress.watch(listModel->activeJob());
 }
 
@@ -179,22 +209,30 @@ void ModPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
 {
     ui->versionSelectionBox->clear();
 
-    if (!curr.isValid()) { return; }
+    if (!curr.isValid())
+    {
+        return;
+    }
 
-    current = listModel->data(curr, Qt::UserRole).value<ModPlatform::IndexedPack>();
+    current =
+        listModel->data(curr, Qt::UserRole).value<ModPlatform::IndexedPack>();
 
-    if (!current.versionsLoaded) {
+    if (!current.versionsLoaded)
+    {
         qDebug() << QString("Loading %1 mod versions").arg(debugName());
 
         ui->modSelectionButton->setText(tr("Loading versions..."));
         ui->modSelectionButton->setEnabled(false);
 
         listModel->requestModVersions(current, curr);
-    } else {
+    }
+    else
+    {
         updateModVersions();
     }
 
-    if(!current.extraDataLoaded){
+    if (!current.extraDataLoaded)
+    {
         qDebug() << QString("Loading %1 mod info").arg(debugName());
 
         listModel->requestModInfo(current, curr);
@@ -205,7 +243,8 @@ void ModPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
 
 void ModPage::onVersionSelectionChanged(QString newData)
 {
-    if (newData.isNull() || newData.isEmpty()) {
+    if (newData.isNull() || newData.isEmpty())
+    {
         selectedVersion = -1;
         return;
     }
@@ -216,15 +255,24 @@ void ModPage::onVersionSelectionChanged(QString newData)
 void ModPage::onModSelected()
 {
     if (selectedVersion < 0)
+    {
         return;
+    }
 
     auto& version = current.versions[selectedVersion];
-    if (dialog->isModSelected(current.name, version.fileName)) {
+    if (dialog->isModSelected(current.name, version.fileName))
+    {
         dialog->removeSelectedMod(current.name);
-    } else {
-        bool is_indexed = !APPLICATION->settings()->get("ModMetadataDisabled").toBool() &&
-                          (m_resourceType == ModAPI::Mod || m_resourceType == ModAPI::DataPack);
-        dialog->addSelectedMod(current.name, new ModDownloadTask(current, version, dialog->mods, is_indexed));
+    }
+    else
+    {
+        bool is_indexed =
+            !APPLICATION->settings()->get("ModMetadataDisabled").toBool() &&
+            (m_resourceType == ModAPI::Mod ||
+             m_resourceType == ModAPI::DataPack);
+        dialog->addSelectedMod(
+            current.name,
+            new ModDownloadTask(current, version, dialog->mods, is_indexed));
     }
 
     updateSelectionButton();
@@ -233,59 +281,75 @@ void ModPage::onModSelected()
     ui->packView->adjustSize();
 }
 
-
 /******** Make changes to the UI ********/
 
 void ModPage::retranslate()
 {
-   ui->retranslateUi(this);
+    ui->retranslateUi(this);
 }
 
 void ModPage::updateModVersions(int prev_count)
 {
-    auto packProfile = (dynamic_cast<MinecraftInstance*>(m_instance))->getPackProfile();
+    auto packProfile =
+        (dynamic_cast<MinecraftInstance*>(m_instance))->getPackProfile();
 
     QString mcVersion = packProfile->getComponentVersion("net.minecraft");
 
     ui->versionSelectionBox->clear();
-    for (int i = 0; i < current.versions.size(); i++) {
+    for (int i = 0; i < current.versions.size(); i++)
+    {
         auto version = current.versions[i];
         bool valid = false;
-        for(auto& mcVer : m_filter->versions){
-            //NOTE: Flame doesn't care about loader, so passing it changes nothing.
-            if (validateVersion(version, mcVer.toString(), packProfile->getModLoaders())) {
+        for (auto& mcVer : m_filter->versions)
+        {
+            // NOTE: Flame doesn't care about loader, so passing it changes
+            // nothing.
+            if (validateVersion(version, mcVer.toString(),
+                                packProfile->getModLoaders()))
+            {
                 valid = true;
                 break;
             }
         }
 
-        // Only add the version if it's valid or using the 'Any' filter, but never if the version is opted out
+        // Only add the version if it's valid or using the 'Any' filter, but
+        // never if the version is opted out
         if ((valid || m_filter->versions.empty()) && !optedOut(version))
+        {
             ui->versionSelectionBox->addItem(version.version, QVariant(i));
+        }
     }
-    if (ui->versionSelectionBox->count() == 0 && prev_count != 0) {
-        ui->versionSelectionBox->addItem(tr("No valid version found!"), QVariant(-1));
+    if (ui->versionSelectionBox->count() == 0 && prev_count != 0)
+    {
+        ui->versionSelectionBox->addItem(tr("No valid version found!"),
+                                         QVariant(-1));
         ui->modSelectionButton->setText(tr("Cannot select invalid version :("));
     }
 
     updateSelectionButton();
 }
 
-
 void ModPage::updateSelectionButton()
 {
-    if (!isOpened || selectedVersion < 0) {
+    if (!isOpened || selectedVersion < 0)
+    {
         ui->modSelectionButton->setEnabled(false);
-        ui->modSelectionButton->setText(tr("Select %1 for download").arg(m_typeString));
+        ui->modSelectionButton->setText(
+            tr("Select %1 for download").arg(m_typeString));
         return;
     }
 
     ui->modSelectionButton->setEnabled(true);
     auto& version = current.versions[selectedVersion];
-    if (!dialog->isModSelected(current.name, version.fileName)) {
-        ui->modSelectionButton->setText(tr("Select %1 for download").arg(m_typeString));
-    } else {
-        ui->modSelectionButton->setText(tr("Deselect %1 for download").arg(m_typeString));
+    if (!dialog->isModSelected(current.name, version.fileName))
+    {
+        ui->modSelectionButton->setText(
+            tr("Select %1 for download").arg(m_typeString));
+    }
+    else
+    {
+        ui->modSelectionButton->setText(
+            tr("Deselect %1 for download").arg(m_typeString));
     }
 }
 
@@ -295,61 +359,103 @@ void ModPage::updateUi()
     QString name = current.name;
 
     if (current.websiteUrl.isEmpty())
+    {
         text = name;
+    }
     else
+    {
         text = "<a href=\"" + current.websiteUrl + "\">" + name + "</a>";
+    }
 
-    if (!current.authors.empty()) {
-        auto authorToStr = [](ModPlatform::ModpackAuthor& author) -> QString {
-            if (author.url.isEmpty()) { return author.name; }
-            return QString("<a href=\"%1\">%2</a>").arg(author.url, author.name);
+    if (!current.authors.empty())
+    {
+        auto authorToStr = [](ModPlatform::ModpackAuthor& author) -> QString
+        {
+            if (author.url.isEmpty())
+            {
+                return author.name;
+            }
+            return QString("<a href=\"%1\">%2</a>")
+                .arg(author.url, author.name);
         };
         QStringList authorStrs;
-        for (auto& author : current.authors) {
+        for (auto& author : current.authors)
+        {
             authorStrs.push_back(authorToStr(author));
         }
         text += "<br>" + tr(" by ") + authorStrs.join(", ");
     }
 
-
-    if(current.extraDataLoaded) {
-        if (!current.extraData.donate.isEmpty()) {
+    if (current.extraDataLoaded)
+    {
+        if (!current.extraData.donate.isEmpty())
+        {
             text += "<br><br>" + tr("Donate information: ");
-            auto donateToStr = [](ModPlatform::DonationData& donate) -> QString {
-                return QString("<a href=\"%1\">%2</a>").arg(donate.url, donate.platform);
+            auto donateToStr = [](ModPlatform::DonationData& donate) -> QString
+            {
+                return QString("<a href=\"%1\">%2</a>")
+                    .arg(donate.url, donate.platform);
             };
             QStringList donates;
-            for (auto& donate : current.extraData.donate) {
+            for (auto& donate : current.extraData.donate)
+            {
                 donates.append(donateToStr(donate));
             }
             text += donates.join(", ");
         }
 
-        if (!current.extraData.issuesUrl.isEmpty()
-         || !current.extraData.sourceUrl.isEmpty()
-         || !current.extraData.wikiUrl.isEmpty()
-         || !current.extraData.discordUrl.isEmpty()) {
+        if (!current.extraData.issuesUrl.isEmpty() ||
+            !current.extraData.sourceUrl.isEmpty() ||
+            !current.extraData.wikiUrl.isEmpty() ||
+            !current.extraData.discordUrl.isEmpty())
+        {
             text += "<br><br>" + tr("External links:") + "<br>";
         }
 
         if (!current.extraData.issuesUrl.isEmpty())
-            text += "- " + tr("Issues: <a href=%1>%1</a>").arg(current.extraData.issuesUrl) + "<br>";
+        {
+            text += "- " +
+                    tr("Issues: <a href=%1>%1</a>")
+                        .arg(current.extraData.issuesUrl) +
+                    "<br>";
+        }
         if (!current.extraData.wikiUrl.isEmpty())
-            text += "- " + tr("Wiki: <a href=%1>%1</a>").arg(current.extraData.wikiUrl) + "<br>";
+        {
+            text +=
+                "- " +
+                tr("Wiki: <a href=%1>%1</a>").arg(current.extraData.wikiUrl) +
+                "<br>";
+        }
         if (!current.extraData.sourceUrl.isEmpty())
-            text += "- " + tr("Source code: <a href=%1>%1</a>").arg(current.extraData.sourceUrl) + "<br>";
+        {
+            text += "- " +
+                    tr("Source code: <a href=%1>%1</a>")
+                        .arg(current.extraData.sourceUrl) +
+                    "<br>";
+        }
         if (!current.extraData.discordUrl.isEmpty())
-            text += "- " + tr("Discord: <a href=%1>%1</a>").arg(current.extraData.discordUrl) + "<br>";
+        {
+            text += "- " +
+                    tr("Discord: <a href=%1>%1</a>")
+                        .arg(current.extraData.discordUrl) +
+                    "<br>";
+        }
     }
 
     text += "<hr>";
 
     if (current.extraData.body.isEmpty())
+    {
         text += current.description;
+    }
     else if (current.provider == ModPlatform::Provider::FLAME)
+    {
         text += Markdown::lowerHtml(current.extraData.body);
+    }
     else
+    {
         text += Markdown::toHtml(current.extraData.body.toUtf8());
+    }
 
     ui->packDescription->setHtml(text);
 }

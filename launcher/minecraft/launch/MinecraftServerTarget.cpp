@@ -17,13 +17,16 @@
 
 #include <QStringList>
 
-// FIXME: the way this is written, it can't ever do any sort of validation and can accept total junk
-MinecraftServerTarget MinecraftServerTarget::parse(const QString &fullAddress) {
+// FIXME: the way this is written, it can't ever do any sort of validation and
+// can accept total junk
+MinecraftServerTarget MinecraftServerTarget::parse(const QString& fullAddress)
+{
     QStringList split = fullAddress.split(":");
 
-    // The logic below replicates the exact logic minecraft uses for parsing server addresses.
-    // While the conversion is not lossless and eats errors, it ensures the same behavior
-    // within Minecraft and PolyMC when entering server addresses.
+    // The logic below replicates the exact logic minecraft uses for parsing
+    // server addresses. While the conversion is not lossless and eats errors,
+    // it ensures the same behavior within Minecraft and PolyMC when entering
+    // server addresses.
     if (fullAddress.startsWith("["))
     {
         int bracket = fullAddress.indexOf("]");
@@ -35,7 +38,7 @@ MinecraftServerTarget MinecraftServerTarget::parse(const QString &fullAddress) {
             if (port.startsWith(":") && !ipv6.isEmpty())
             {
                 port = port.mid(1);
-                split = QStringList({ ipv6, port });
+                split = QStringList({ipv6, port});
             }
             else
             {
@@ -55,7 +58,8 @@ MinecraftServerTarget MinecraftServerTarget::parse(const QString &fullAddress) {
     if (split.size() > 1)
     {
         bool ok;
-        // toUShort() fails for anything that isn't a valid port, toUInt() would silently wrap it around
+        // toUShort() fails for anything that isn't a valid port, toUInt() would
+        // silently wrap it around
         realPort = split[1].toUShort(&ok);
 
         if (!ok)
@@ -64,5 +68,5 @@ MinecraftServerTarget MinecraftServerTarget::parse(const QString &fullAddress) {
         }
     }
 
-    return MinecraftServerTarget { realAddress, realPort };
+    return MinecraftServerTarget{realAddress, realPort};
 }

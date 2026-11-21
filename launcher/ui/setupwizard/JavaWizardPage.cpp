@@ -21,9 +21,7 @@
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/widgets/JavaSettingsWidget.h"
 
-
-JavaWizardPage::JavaWizardPage(QWidget *parent)
-    :BaseWizardPage(parent)
+JavaWizardPage::JavaWizardPage(QWidget* parent) : BaseWizardPage(parent)
 {
     setupUi();
 }
@@ -31,7 +29,7 @@ JavaWizardPage::JavaWizardPage(QWidget *parent)
 void JavaWizardPage::setupUi()
 {
     setObjectName(QStringLiteral("javaPage"));
-    QVBoxLayout * layout = new QVBoxLayout(this);
+    QVBoxLayout* layout = new QVBoxLayout(this);
 
     m_java_widget = new JavaSettingsWidget(this);
     layout->addWidget(m_java_widget);
@@ -59,7 +57,7 @@ bool JavaWizardPage::validatePage()
 {
     auto settings = APPLICATION->settings();
     auto result = m_java_widget->validate();
-    switch(result)
+    switch (result)
     {
         default:
         case JavaSettingsWidget::ValidationStatus::Bad:
@@ -93,7 +91,8 @@ bool JavaWizardPage::validatePage()
 void JavaWizardPage::retranslate()
 {
     setTitle(tr("Java"));
-    setSubTitle(tr("You do not have a working Java set up yet or it went missing.\n"
+    setSubTitle(tr(
+        "You do not have a working Java set up yet or it went missing.\n"
         "Please select one of the following or browse for a Java executable."));
     m_java_widget->retranslate();
 }

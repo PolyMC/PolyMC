@@ -31,7 +31,7 @@ class CopyInstanceDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit CopyInstanceDialog(InstancePtr original, QWidget *parent = 0);
+    explicit CopyInstanceDialog(InstancePtr original, QWidget* parent = 0);
     ~CopyInstanceDialog();
 
     void updateDialogState();
@@ -42,15 +42,14 @@ public:
     bool shouldCopySaves() const;
     bool shouldKeepPlaytime() const;
 
-private
-slots:
+private slots:
     void on_iconButton_clicked();
-    void on_instNameTextBox_textChanged(const QString &arg1);
+    void on_instNameTextBox_textChanged(const QString& arg1);
     void on_copySavesCheckbox_stateChanged(int state);
     void on_keepPlaytimeCheckbox_stateChanged(int state);
 
 private:
-    Ui::CopyInstanceDialog *ui;
+    Ui::CopyInstanceDialog* ui;
     QString InstIconKey;
     InstancePtr m_original;
     bool m_copySaves = true;

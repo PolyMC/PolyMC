@@ -64,12 +64,19 @@ QStringList splitArgs(QString args)
         }
         else if (!inquotes.isNull())
         {
-            if (cchar == '\\' && i + 1 < args.length() && (args.at(i + 1) == inquotes || args.at(i + 1) == '\\'))
+            if (cchar == '\\' && i + 1 < args.length() &&
+                (args.at(i + 1) == inquotes || args.at(i + 1) == '\\'))
+            {
                 escape = true;
+            }
             else if (cchar == inquotes)
+            {
                 inquotes = QChar::Null;
+            }
             else
+            {
                 current += cchar;
+            }
             // otherwise
         }
         else
@@ -83,13 +90,19 @@ QStringList splitArgs(QString args)
                 }
             }
             else if (cchar == '"' || cchar == '\'')
+            {
                 inquotes = cchar;
+            }
             else
+            {
                 current += cchar;
+            }
         }
     }
     if (!current.isEmpty())
+    {
         argv << current;
+    }
     return argv;
 }
-}
+}  // namespace Commandline

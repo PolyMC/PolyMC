@@ -50,8 +50,9 @@ class TechnicPage;
 
 class NewInstanceDialog;
 
-namespace Technic {
-    class ListModel;
+namespace Technic
+{
+class ListModel;
 }
 
 class TechnicPage : public QWidget, public BasePage
@@ -59,7 +60,7 @@ class TechnicPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit TechnicPage(NewInstanceDialog* dialog, QWidget *parent = 0);
+    explicit TechnicPage(NewInstanceDialog* dialog, QWidget* parent = 0);
     virtual ~TechnicPage();
     virtual QString displayName() const override
     {
@@ -96,7 +97,7 @@ private slots:
     void onVersionSelectionChanged(QString newData);
 
 private:
-    Ui::TechnicPage *ui = nullptr;
+    Ui::TechnicPage* ui = nullptr;
     NewInstanceDialog* dialog = nullptr;
     Technic::ListModel* model = nullptr;
 

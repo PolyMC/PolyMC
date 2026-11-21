@@ -12,17 +12,24 @@
 
 #include <optional>
 
-namespace LegacyFTB {
+namespace LegacyFTB
+{
 
 class PackInstallTask : public InstanceTask
 {
     Q_OBJECT
 
 public:
-    explicit PackInstallTask(shared_qobject_ptr<QNetworkAccessManager> network, Modpack pack, QString version);
-    virtual ~PackInstallTask(){}
+    explicit PackInstallTask(shared_qobject_ptr<QNetworkAccessManager> network,
+                             Modpack pack, QString version);
+    virtual ~PackInstallTask()
+    {
+    }
 
-    bool canAbort() const override { return true; }
+    bool canAbort() const override
+    {
+        return true;
+    }
     bool abort() override;
 
 protected:
@@ -56,4 +63,4 @@ private: /* data */
     QString m_version;
 };
 
-}
+}  // namespace LegacyFTB

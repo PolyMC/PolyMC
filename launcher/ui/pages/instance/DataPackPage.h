@@ -41,33 +41,44 @@
 #include "minecraft/mod/DataPackFolderModel.h"
 #include "ui_ExternalResourcesPage.h"
 
-class DataPackPage : public DownloadableResourcesPage {
+class DataPackPage : public DownloadableResourcesPage
+{
     Q_OBJECT
 public:
     explicit DataPackPage(MinecraftInstance* instance,
-                              std::shared_ptr<DataPackFolderModel> model, QWidget* parent = 0);
-    virtual ~DataPackPage() {}
+                          std::shared_ptr<DataPackFolderModel> model,
+                          QWidget* parent = 0);
+    virtual ~DataPackPage()
+    {
+    }
 
-    QString displayName() const override {
+    QString displayName() const override
+    {
         return tr("Data packs");
     }
-    QIcon icon() const override {
+    QIcon icon() const override
+    {
         return APPLICATION->getThemedIcon("datapacks");
     }
-    QString id() const override {
+    QString id() const override
+    {
         return "datapacks";
     }
-    QString helpPage() const override {
+    QString helpPage() const override
+    {
         return "Data-packs";
     }
 
-    bool shouldDisplay() const override {
+    bool shouldDisplay() const override
+    {
         // FIXME(crueter) newer vers only?
         return true;
     }
 
 public slots:
-    bool onSelectionChanged(const QModelIndex& current, const QModelIndex& /*previous*/) override {
+    bool onSelectionChanged(const QModelIndex& current,
+                            const QModelIndex& /*previous*/) override
+    {
         auto sourceCurrent = m_filterModel->mapToSource(current);
         int row = sourceCurrent.row();
         auto& rp = static_cast<DataPack&>(m_model->at(row));

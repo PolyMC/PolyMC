@@ -60,11 +60,12 @@ class Library
     friend class OneSixVersionFormat;
     friend class MojangVersionFormat;
     friend class LibraryTest;
+
 public:
     Library()
     {
     }
-    Library(const QString &name)
+    Library(const QString& name)
     {
         m_name = name;
     }
@@ -87,17 +88,17 @@ public:
 
 public: /* methods */
     /// Returns the raw name field
-    const GradleSpecifier & rawName() const
+    const GradleSpecifier& rawName() const
     {
         return m_name;
     }
 
-    void setRawName(const GradleSpecifier & spec)
+    void setRawName(const GradleSpecifier& spec)
     {
         m_name = spec;
     }
 
-    void setClassifier(const QString & spec)
+    void setClassifier(const QString& spec)
     {
         m_name.setClassifier(spec);
     }
@@ -129,42 +130,44 @@ public: /* methods */
     void setStoragePrefix(QString prefix = QString());
 
     /// Set the url base for downloads
-    void setRepositoryURL(const QString &base_url)
+    void setRepositoryURL(const QString& base_url)
     {
         m_repositoryURL = base_url;
     }
 
-    void getApplicableFiles(const RuntimeContext & runtimeContext, QStringList & jar, QStringList & native,
-                            QStringList & native32, QStringList & native64, const QString & overridePath) const;
+    void getApplicableFiles(const RuntimeContext& runtimeContext,
+                            QStringList& jar, QStringList& native,
+                            QStringList& native32, QStringList& native64,
+                            const QString& overridePath) const;
 
-    void setAbsoluteUrl(const QString &absolute_url)
+    void setAbsoluteUrl(const QString& absolute_url)
     {
         m_absoluteURL = absolute_url;
     }
 
-    void setFilename(const QString &filename)
+    void setFilename(const QString& filename)
     {
         m_filename = filename;
     }
 
     /// Get the file name of the library
-    QString filename(const RuntimeContext & runtimeContext) const;
+    QString filename(const RuntimeContext& runtimeContext) const;
 
     // DEPRECATED: set a display name, used by jar mods only
-    void setDisplayName(const QString & displayName)
+    void setDisplayName(const QString& displayName)
     {
         m_displayname = displayName;
     }
 
     /// Get the file name of the library
-    QString displayName(const RuntimeContext & runtimeContext) const;
+    QString displayName(const RuntimeContext& runtimeContext) const;
 
     void setMojangDownloadInfo(MojangLibraryDownloadInfo::Ptr info)
     {
         m_mojangDownloads = info;
     }
 
-    void setHint(const QString &hint)
+    void setHint(const QString& hint)
     {
         m_hint = hint;
     }
@@ -175,10 +178,12 @@ public: /* methods */
         m_rules = rules;
     }
 
-    /// Returns true if the library should be loaded (or extracted, in case of natives)
-    bool isActive(const RuntimeContext & runtimeContext) const;
+    /// Returns true if the library should be loaded (or extracted, in case of
+    /// natives)
+    bool isActive(const RuntimeContext& runtimeContext) const;
 
-    /// Returns true if the library is contained in an instance and false if it is shared
+    /// Returns true if the library is contained in an instance and false if it
+    /// is shared
     bool isLocal() const;
 
     /// Returns true if the library is to always be checked for updates
@@ -188,10 +193,12 @@ public: /* methods */
     bool isForge() const;
 
     // Get a list of downloads for this library
-    QList<NetAction::Ptr> getDownloads(const RuntimeContext & runtimeContext, class HttpMetaCache * cache,
-                                     QStringList & failedLocalFiles, const QString & overridePath) const;
+    QList<NetAction::Ptr> getDownloads(const RuntimeContext& runtimeContext,
+                                       class HttpMetaCache* cache,
+                                       QStringList& failedLocalFiles,
+                                       const QString& overridePath) const;
 
-    QString getCompatibleNative(const RuntimeContext & runtimeContext) const;
+    QString getCompatibleNative(const RuntimeContext& runtimeContext) const;
 
 private: /* methods */
     /// the default storage prefix used by PolyMC
@@ -201,7 +208,7 @@ private: /* methods */
     QString storagePrefix() const;
 
     /// Get the relative file path where the library should be saved
-    QString storageSuffix(const RuntimeContext & runtimeContext) const;
+    QString storageSuffix(const RuntimeContext& runtimeContext) const;
 
     QString hint() const
     {
@@ -215,7 +222,8 @@ protected: /* data */
     /// DEPRECATED URL prefix of the maven repo where the file can be downloaded
     QString m_repositoryURL;
 
-    /// DEPRECATED: PolyMC-specific absolute URL. takes precedence over the implicit maven repo URL, if defined
+    /// DEPRECATED: PolyMC-specific absolute URL. takes precedence over the
+    /// implicit maven repo URL, if defined
     QString m_absoluteURL;
 
     /// PolyMC extension - filename override
@@ -230,8 +238,8 @@ protected: /* data */
     QString m_hint;
 
     /**
-     * storage - by default the local libraries folder in polymc, but could be elsewhere
-     * PolyMC specific, because of FTB.
+     * storage - by default the local libraries folder in polymc, but could be
+     * elsewhere PolyMC specific, because of FTB.
      */
     QString m_storagePrefix;
 
@@ -253,4 +261,3 @@ protected: /* data */
     /// MOJANG: container with Mojang style download info
     MojangLibraryDownloadInfo::Ptr m_mojangDownloads;
 };
-

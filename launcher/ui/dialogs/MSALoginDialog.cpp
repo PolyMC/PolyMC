@@ -44,7 +44,8 @@
 #include <QApplication>
 #include <QClipboard>
 
-MSALoginDialog::MSALoginDialog(QWidget *parent) : QDialog(parent), ui(new Ui::MSALoginDialog)
+MSALoginDialog::MSALoginDialog(QWidget* parent)
+    : QDialog(parent), ui(new Ui::MSALoginDialog)
 {
     ui->setupUi(this);
     ui->progressBar->setVisible(false);
@@ -55,43 +56,54 @@ MSALoginDialog::MSALoginDialog(QWidget *parent) : QDialog(parent), ui(new Ui::MS
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
-int MSALoginDialog::exec() {
+int MSALoginDialog::exec()
+{
     setUserInputsEnabled(false);
     ui->progressBar->setVisible(true);
 
     // Setup the login task and start it
     m_account = MinecraftAccount::createBlankMSA();
     m_loginTask = m_account->loginMSA();
-    connect(m_loginTask.get(), &Task::failed, this, &MSALoginDialog::onTaskFailed);
-    connect(m_loginTask.get(), &Task::succeeded, this, &MSALoginDialog::onTaskSucceeded);
-    connect(m_loginTask.get(), &Task::status, this, &MSALoginDialog::onTaskStatus);
-    connect(m_loginTask.get(), &Task::progress, this, &MSALoginDialog::onTaskProgress);
-    connect(m_loginTask.get(), &AccountTask::showVerificationUriAndCode, this, &MSALoginDialog::showVerificationUriAndCode);
-    connect(m_loginTask.get(), &AccountTask::hideVerificationUriAndCode, this, &MSALoginDialog::hideVerificationUriAndCode);
-    connect(&m_externalLoginTimer, &QTimer::timeout, this, &MSALoginDialog::externalLoginTick);
+    connect(m_loginTask.get(), &Task::failed, this,
+            &MSALoginDialog::onTaskFailed);
+    connect(m_loginTask.get(), &Task::succeeded, this,
+            &MSALoginDialog::onTaskSucceeded);
+    connect(m_loginTask.get(), &Task::status, this,
+            &MSALoginDialog::onTaskStatus);
+    connect(m_loginTask.get(), &Task::progress, this,
+            &MSALoginDialog::onTaskProgress);
+    connect(m_loginTask.get(), &AccountTask::showVerificationUriAndCode, this,
+            &MSALoginDialog::showVerificationUriAndCode);
+    connect(m_loginTask.get(), &AccountTask::hideVerificationUriAndCode, this,
+            &MSALoginDialog::hideVerificationUriAndCode);
+    connect(&m_externalLoginTimer, &QTimer::timeout, this,
+            &MSALoginDialog::externalLoginTick);
     m_loginTask->start();
 
     return QDialog::exec();
 }
-
 
 MSALoginDialog::~MSALoginDialog()
 {
     delete ui;
 }
 
-void MSALoginDialog::externalLoginTick() {
+void MSALoginDialog::externalLoginTick()
+{
     m_externalLoginElapsed++;
     ui->progressBar->setValue(m_externalLoginElapsed);
     ui->progressBar->repaint();
 
-    if(m_externalLoginElapsed >= m_externalLoginTimeout) {
+    if (m_externalLoginElapsed >= m_externalLoginTimeout)
+    {
         m_externalLoginTimer.stop();
     }
 }
 
-
-void MSALoginDialog::showVerificationUriAndCode(const QUrl& uri, const QString& code, int expiresIn) {
+void MSALoginDialog::showVerificationUriAndCode(const QUrl& uri,
+                                                const QString& code,
+                                                int expiresIn)
+{
     m_externalLoginElapsed = 0;
     m_externalLoginTimeout = expiresIn;
 
@@ -103,19 +115,26 @@ void MSALoginDialog::showVerificationUriAndCode(const QUrl& uri, const QString& 
     ui->progressBar->setValue(m_externalLoginElapsed);
 
     QString urlString = uri.toString();
-    QString linkString = QString("<a href=\"%1\">%2</a>").arg(urlString, urlString);
-    ui->label->setText(tr("<p>Please open up %1 in a browser and put in the code <b>%2</b> to proceed with login.</p>").arg(linkString, code));
+    QString linkString =
+        QString("<a href=\"%1\">%2</a>").arg(urlString, urlString);
+    ui->label->setText(tr("<p>Please open up %1 in a browser and put in the "
+                          "code <b>%2</b> to proceed with login.</p>")
+                           .arg(linkString, code));
     ui->actionButton->setVisible(true);
-    // This runs again for every new code, don't keep the handlers for the old codes around
+    // This runs again for every new code, don't keep the handlers for the old
+    // codes around
     disconnect(ui->actionButton, &QPushButton::clicked, this, nullptr);
-    connect(ui->actionButton, &QPushButton::clicked, this, [=]() {
-        DesktopServices::openUrl(uri);
-        QClipboard* cb = QApplication::clipboard();
-        cb->setText(code);
-    });
+    connect(ui->actionButton, &QPushButton::clicked, this,
+            [=]()
+            {
+                DesktopServices::openUrl(uri);
+                QClipboard* cb = QApplication::clipboard();
+                cb->setText(code);
+            });
 }
 
-void MSALoginDialog::hideVerificationUriAndCode() {
+void MSALoginDialog::hideVerificationUriAndCode()
+{
     m_externalLoginTimer.stop();
     ui->actionButton->setVisible(false);
 }
@@ -125,16 +144,19 @@ void MSALoginDialog::setUserInputsEnabled(bool enable)
     ui->buttonBox->setEnabled(enable);
 }
 
-void MSALoginDialog::onTaskFailed(const QString &reason)
+void MSALoginDialog::onTaskFailed(const QString& reason)
 {
     // Set message
     auto lines = reason.split('\n');
     QString processed;
-    for (const auto &line : std::as_const(lines)) {
-        if(line.size()) {
+    for (const auto& line : std::as_const(lines))
+    {
+        if (line.size())
+        {
             processed += "<font color='red'>" + line + "</font><br />";
         }
-        else {
+        else
+        {
             processed += "<br />";
         }
     }
@@ -151,7 +173,7 @@ void MSALoginDialog::onTaskSucceeded()
     QDialog::accept();
 }
 
-void MSALoginDialog::onTaskStatus(const QString &status)
+void MSALoginDialog::onTaskStatus(const QString& status)
 {
     ui->label->setText(status);
 }
@@ -163,7 +185,7 @@ void MSALoginDialog::onTaskProgress(qint64 current, qint64 total)
 }
 
 // Public interface
-MinecraftAccountPtr MSALoginDialog::newAccount(QWidget *parent, QString msg)
+MinecraftAccountPtr MSALoginDialog::newAccount(QWidget* parent, QString msg)
 {
     MSALoginDialog dlg(parent);
     dlg.ui->label->setText(msg);

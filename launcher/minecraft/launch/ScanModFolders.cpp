@@ -42,17 +42,22 @@
 
 void ScanModFolders::executeTask()
 {
-    auto m_inst = std::dynamic_pointer_cast<MinecraftInstance>(m_parent->instance());
+    auto m_inst =
+        std::dynamic_pointer_cast<MinecraftInstance>(m_parent->instance());
 
     auto loaders = m_inst->loaderModList();
-    connect(loaders.get(), &ModFolderModel::updateFinished, this, &ScanModFolders::modsDone);
-    if(!loaders->update()) {
+    connect(loaders.get(), &ModFolderModel::updateFinished, this,
+            &ScanModFolders::modsDone);
+    if (!loaders->update())
+    {
         m_modsDone = true;
     }
 
     auto cores = m_inst->coreModList();
-    connect(cores.get(), &ModFolderModel::updateFinished, this, &ScanModFolders::coreModsDone);
-    if(!cores->update()) {
+    connect(cores.get(), &ModFolderModel::updateFinished, this,
+            &ScanModFolders::coreModsDone);
+    if (!cores->update())
+    {
         m_coreModsDone = true;
     }
     checkDone();
@@ -72,7 +77,8 @@ void ScanModFolders::coreModsDone()
 
 void ScanModFolders::checkDone()
 {
-    if(m_modsDone && m_coreModsDone) {
+    if (m_modsDone && m_coreModsDone)
+    {
         emitSucceeded();
     }
 }

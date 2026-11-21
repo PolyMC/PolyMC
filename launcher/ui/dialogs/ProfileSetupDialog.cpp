@@ -48,9 +48,11 @@
 #include "minecraft/auth/AuthRequest.h"
 #include "minecraft/auth/Parsers.h"
 
-
-ProfileSetupDialog::ProfileSetupDialog(MinecraftAccountPtr accountToSetup, QWidget *parent)
-    : QDialog(parent), m_accountToSetup(accountToSetup), ui(new Ui::ProfileSetupDialog)
+ProfileSetupDialog::ProfileSetupDialog(MinecraftAccountPtr accountToSetup,
+                                       QWidget* parent)
+    : QDialog(parent),
+      m_accountToSetup(accountToSetup),
+      ui(new Ui::ProfileSetupDialog)
 {
     ui->setupUi(this);
     ui->errorLabel->setVisible(false);
@@ -61,13 +63,17 @@ ProfileSetupDialog::ProfileSetupDialog(MinecraftAccountPtr accountToSetup, QWidg
 
     QRegularExpression permittedNames("[a-zA-Z0-9_]{3,16}");
     auto nameEdit = ui->nameEdit;
-    nameEdit->setValidator(new QRegularExpressionValidator(permittedNames, nameEdit));
+    nameEdit->setValidator(
+        new QRegularExpressionValidator(permittedNames, nameEdit));
     nameEdit->setClearButtonEnabled(true);
-    validityAction = nameEdit->addAction(yellowIcon, QLineEdit::LeadingPosition);
-    connect(nameEdit, &QLineEdit::textEdited, this, &ProfileSetupDialog::nameEdited);
+    validityAction =
+        nameEdit->addAction(yellowIcon, QLineEdit::LeadingPosition);
+    connect(nameEdit, &QLineEdit::textEdited, this,
+            &ProfileSetupDialog::nameEdited);
 
     checkStartTimer.setSingleShot(true);
-    connect(&checkStartTimer, &QTimer::timeout, this, &ProfileSetupDialog::startCheck);
+    connect(&checkStartTimer, &QTimer::timeout, this,
+            &ProfileSetupDialog::startCheck);
 
     setNameStatus(NameStatus::NotSet, QString());
 }
@@ -87,13 +93,15 @@ void ProfileSetupDialog::on_buttonBox_rejected()
     reject();
 }
 
-void ProfileSetupDialog::setNameStatus(ProfileSetupDialog::NameStatus status, QString errorString = QString())
+void ProfileSetupDialog::setNameStatus(ProfileSetupDialog::NameStatus status,
+                                       QString errorString = QString())
 {
     nameStatus = status;
     auto okButton = ui->buttonBox->button(QDialogButtonBox::Ok);
-    switch(nameStatus)
+    switch (nameStatus)
     {
-        case NameStatus::Available: {
+        case NameStatus::Available:
+        {
             validityAction->setIcon(goodIcon);
             okButton->setEnabled(true);
         }
@@ -109,43 +117,53 @@ void ProfileSetupDialog::setNameStatus(ProfileSetupDialog::NameStatus status, QS
             okButton->setEnabled(false);
             break;
     }
-    if(!errorString.isEmpty()) {
+    if (!errorString.isEmpty())
+    {
         ui->errorLabel->setText(errorString);
         ui->errorLabel->setVisible(true);
     }
-    else {
+    else
+    {
         ui->errorLabel->setVisible(false);
     }
 }
 
 void ProfileSetupDialog::nameEdited(const QString& name)
 {
-    if(!ui->nameEdit->hasAcceptableInput()) {
-        setNameStatus(NameStatus::NotSet, tr("Name is too short - must be between 3 and 16 characters long."));
+    if (!ui->nameEdit->hasAcceptableInput())
+    {
+        setNameStatus(NameStatus::NotSet,
+                      tr("Name is too short - must be between 3 and 16 "
+                         "characters long."));
         return;
     }
     scheduleCheck(name);
 }
 
-void ProfileSetupDialog::scheduleCheck(const QString& name) {
+void ProfileSetupDialog::scheduleCheck(const QString& name)
+{
     queuedCheck = name;
     setNameStatus(NameStatus::Pending);
     checkStartTimer.start(1000);
 }
 
-void ProfileSetupDialog::startCheck() {
-    if(isChecking) {
+void ProfileSetupDialog::startCheck()
+{
+    if (isChecking)
+    {
         return;
     }
-    if(queuedCheck.isNull()) {
+    if (queuedCheck.isNull())
+    {
         return;
     }
     checkName(queuedCheck);
 }
 
-
-void ProfileSetupDialog::checkName(const QString &name) {
-    if(isChecking) {
+void ProfileSetupDialog::checkName(const QString& name)
+{
+    if (isChecking)
+    {
         return;
     }
 
@@ -154,60 +172,82 @@ void ProfileSetupDialog::checkName(const QString &name) {
 
     auto token = m_accountToSetup->accessToken();
 
-    auto url = QString("https://api.minecraftservices.com/minecraft/profile/name/%1/available").arg(name);
+    auto url = QString(
+                   "https://api.minecraftservices.com/minecraft/profile/name/"
+                   "%1/available")
+                   .arg(name);
     QNetworkRequest request = QNetworkRequest(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Accept", "application/json");
-    request.setRawHeader("Authorization", QString("Bearer %1").arg(token).toUtf8());
+    request.setRawHeader("Authorization",
+                         QString("Bearer %1").arg(token).toUtf8());
 
-    AuthRequest *requestor = new AuthRequest(this);
-    connect(requestor, &AuthRequest::finished, this, &ProfileSetupDialog::checkFinished);
+    AuthRequest* requestor = new AuthRequest(this);
+    connect(requestor, &AuthRequest::finished, this,
+            &ProfileSetupDialog::checkFinished);
     requestor->get(request);
 }
 
 void ProfileSetupDialog::checkFinished(
-    QNetworkReply::NetworkError error,
-    QByteArray replyData,
+    QNetworkReply::NetworkError error, QByteArray replyData,
     QList<QNetworkReply::RawHeaderPair> /*headers*/
-) {
-    auto requestor = qobject_cast<AuthRequest *>(QObject::sender());
+)
+{
+    auto requestor = qobject_cast<AuthRequest*>(QObject::sender());
     requestor->deleteLater();
 
-    // The name was changed while it was being checked, so this result is outdated.
-    // Don't show it (OK would create the old name), check the current name instead.
-    if(currentCheck != ui->nameEdit->text()) {
+    // The name was changed while it was being checked, so this result is
+    // outdated. Don't show it (OK would create the old name), check the current
+    // name instead.
+    if (currentCheck != ui->nameEdit->text())
+    {
         isChecking = false;
-        if(ui->nameEdit->hasAcceptableInput()) {
+        if (ui->nameEdit->hasAcceptableInput())
+        {
             startCheck();
         }
         return;
     }
 
-    if(error == QNetworkReply::NoError) {
+    if (error == QNetworkReply::NoError)
+    {
         auto doc = QJsonDocument::fromJson(replyData);
         auto root = doc.object();
         auto statusValue = root.value("status").toString("INVALID");
-        if(statusValue == "AVAILABLE") {
+        if (statusValue == "AVAILABLE")
+        {
             setNameStatus(NameStatus::Available);
         }
-        else if (statusValue == "DUPLICATE") {
-            setNameStatus(NameStatus::Exists, tr("Minecraft profile with name %1 already exists.").arg(currentCheck));
+        else if (statusValue == "DUPLICATE")
+        {
+            setNameStatus(NameStatus::Exists,
+                          tr("Minecraft profile with name %1 already exists.")
+                              .arg(currentCheck));
         }
-        else if (statusValue == "NOT_ALLOWED") {
-            setNameStatus(NameStatus::Exists, tr("The name %1 is not allowed.").arg(currentCheck));
+        else if (statusValue == "NOT_ALLOWED")
+        {
+            setNameStatus(NameStatus::Exists,
+                          tr("The name %1 is not allowed.").arg(currentCheck));
         }
-        else {
-            setNameStatus(NameStatus::Error, tr("Unhandled profile name status: %1").arg(statusValue));
+        else
+        {
+            setNameStatus(
+                NameStatus::Error,
+                tr("Unhandled profile name status: %1").arg(statusValue));
         }
     }
-    else {
-        setNameStatus(NameStatus::Error, tr("Failed to check name availability."));
+    else
+    {
+        setNameStatus(NameStatus::Error,
+                      tr("Failed to check name availability."));
     }
     isChecking = false;
 }
 
-void ProfileSetupDialog::setupProfile(const QString &profileName) {
-    if(isWorking) {
+void ProfileSetupDialog::setupProfile(const QString& profileName)
+{
+    if (isWorking)
+    {
         return;
     }
 
@@ -217,13 +257,15 @@ void ProfileSetupDialog::setupProfile(const QString &profileName) {
     QNetworkRequest request = QNetworkRequest(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Accept", "application/json");
-    request.setRawHeader("Authorization", QString("Bearer %1").arg(token).toUtf8());
+    request.setRawHeader("Authorization",
+                         QString("Bearer %1").arg(token).toUtf8());
 
     QString payloadTemplate("{\"profileName\":\"%1\"}");
     auto payload = payloadTemplate.arg(profileName).toUtf8();
 
-    AuthRequest *requestor = new AuthRequest(this);
-    connect(requestor, &AuthRequest::finished, this, &ProfileSetupDialog::setupProfileFinished);
+    AuthRequest* requestor = new AuthRequest(this);
+    connect(requestor, &AuthRequest::finished, this,
+            &ProfileSetupDialog::setupProfileFinished);
     requestor->post(request, payload);
     isWorking = true;
 
@@ -231,10 +273,13 @@ void ProfileSetupDialog::setupProfile(const QString &profileName) {
     button->setEnabled(false);
 }
 
-namespace {
+namespace
+{
 
-struct MojangError{
-    static MojangError fromJSON(QByteArray data) {
+struct MojangError
+{
+    static MojangError fromJSON(QByteArray data)
+    {
         MojangError out;
         out.error = QString::fromUtf8(data);
         auto doc = QJsonDocument::fromJson(data, &out.parseError);
@@ -243,7 +288,8 @@ struct MojangError{
         out.fullyParsed = true;
         out.fullyParsed &= Parsers::getString(object.value("path"), out.path);
         out.fullyParsed &= Parsers::getString(object.value("error"), out.error);
-        out.fullyParsed &= Parsers::getString(object.value("errorMessage"), out.errorMessage);
+        out.fullyParsed &=
+            Parsers::getString(object.value("errorMessage"), out.errorMessage);
 
         return out;
     }
@@ -257,28 +303,32 @@ struct MojangError{
     QString errorMessage;
 };
 
-}
+}  // namespace
 
 void ProfileSetupDialog::setupProfileFinished(
-    QNetworkReply::NetworkError error,
-    QByteArray replyData,
+    QNetworkReply::NetworkError error, QByteArray replyData,
     QList<QNetworkReply::RawHeaderPair> /*headers*/
-) {
-    auto requestor = qobject_cast<AuthRequest *>(QObject::sender());
+)
+{
+    auto requestor = qobject_cast<AuthRequest*>(QObject::sender());
     requestor->deleteLater();
 
     isWorking = false;
-    if(error == QNetworkReply::NoError) {
+    if (error == QNetworkReply::NoError)
+    {
         /*
          * replyData contains the profile in the response
-         * ... we could parse it and update the account, but let's just return back to the normal login flow instead...
+         * ... we could parse it and update the account, but let's just return
+         * back to the normal login flow instead...
          */
         accept();
     }
-    else {
+    else
+    {
         auto parsedError = MojangError::fromJSON(replyData);
         ui->errorLabel->setVisible(true);
-        ui->errorLabel->setText(tr("The server returned the following error:") + "\n\n" + parsedError.errorMessage);
+        ui->errorLabel->setText(tr("The server returned the following error:") +
+                                "\n\n" + parsedError.errorMessage);
         qDebug() << parsedError.rawError;
         auto button = ui->buttonBox->button(QDialogButtonBox::Cancel);
         button->setEnabled(true);

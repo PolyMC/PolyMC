@@ -32,8 +32,8 @@ class ProfileSetupDialog : public QDialog
 {
     Q_OBJECT
 public:
-
-    explicit ProfileSetupDialog(MinecraftAccountPtr accountToSetup, QWidget *parent = 0);
+    explicit ProfileSetupDialog(MinecraftAccountPtr accountToSetup,
+                                QWidget* parent = 0);
     ~ProfileSetupDialog();
 
     enum class NameStatus
@@ -49,33 +49,29 @@ private slots:
     void on_buttonBox_accepted();
     void on_buttonBox_rejected();
 
-    void nameEdited(const QString &name);
-    void checkFinished(
-        QNetworkReply::NetworkError error,
-        QByteArray replyData,
-        QList<QNetworkReply::RawHeaderPair> headers
-    );
+    void nameEdited(const QString& name);
+    void checkFinished(QNetworkReply::NetworkError error, QByteArray replyData,
+                       QList<QNetworkReply::RawHeaderPair> headers);
     void startCheck();
 
-    void setupProfileFinished(
-        QNetworkReply::NetworkError error,
-        QByteArray replyData,
-        QList<QNetworkReply::RawHeaderPair> headers
-    );
+    void setupProfileFinished(QNetworkReply::NetworkError error,
+                              QByteArray replyData,
+                              QList<QNetworkReply::RawHeaderPair> headers);
+
 protected:
-    void scheduleCheck(const QString &name);
-    void checkName(const QString &name);
+    void scheduleCheck(const QString& name);
+    void checkName(const QString& name);
     void setNameStatus(NameStatus status, QString errorString);
 
-    void setupProfile(const QString & profileName);
+    void setupProfile(const QString& profileName);
 
 private:
     MinecraftAccountPtr m_accountToSetup;
-    Ui::ProfileSetupDialog *ui;
+    Ui::ProfileSetupDialog* ui;
     QIcon goodIcon;
     QIcon yellowIcon;
     QIcon badIcon;
-    QAction * validityAction = nullptr;
+    QAction* validityAction = nullptr;
 
     QString queuedCheck;
 
@@ -85,4 +81,3 @@ private:
 
     QTimer checkStartTimer;
 };
-

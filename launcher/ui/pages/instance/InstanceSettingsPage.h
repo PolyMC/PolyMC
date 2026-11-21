@@ -55,7 +55,7 @@ class InstanceSettingsPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit InstanceSettingsPage(BaseInstance *inst, QWidget *parent = 0);
+    explicit InstanceSettingsPage(BaseInstance* inst, QWidget* parent = 0);
     virtual ~InstanceSettingsPage();
     virtual QString displayName() const override
     {
@@ -93,12 +93,11 @@ private slots:
     void updateMemoryWarning();
     void normalizeMemory();
 
-
 private:
-    void updateSecWarnVisibility(const QString &javaPath);
+    void updateSecWarnVisibility(const QString& javaPath);
 
-    Ui::InstanceSettingsPage *ui;
-    BaseInstance *m_instance;
+    Ui::InstanceSettingsPage* ui;
+    BaseInstance* m_instance;
     SettingsObjectPtr m_settings;
     shared_qobject_ptr<AccountList> m_accounts;
     unique_qobject_ptr<JavaCommon::TestCheck> checker;

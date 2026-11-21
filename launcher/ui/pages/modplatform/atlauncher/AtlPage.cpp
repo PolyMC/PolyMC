@@ -47,9 +47,7 @@
 #include <QMessageBox>
 
 AtlPage::AtlPage(NewInstanceDialog* dialog, QWidget* parent)
-    : QWidget(parent)
-    , ui(new Ui::AtlPage)
-    , dialog(dialog)
+    : QWidget(parent), ui(new Ui::AtlPage), dialog(dialog)
 {
     ui->setupUi(this);
 
@@ -62,19 +60,26 @@ AtlPage::AtlPage(NewInstanceDialog* dialog, QWidget* parent)
     ui->packView->header()->hide();
     ui->packView->setIndentation(0);
 
-    ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(
+        Qt::ScrollBarAsNeeded);
     ui->versionSelectionBox->view()->parentWidget()->setMaximumHeight(300);
 
-    for(int i = 0; i < filterModel->getAvailableSortings().size(); i++)
+    for (int i = 0; i < filterModel->getAvailableSortings().size(); i++)
     {
-        ui->sortByBox->addItem(filterModel->getAvailableSortings().keys().at(i));
+        ui->sortByBox->addItem(
+            filterModel->getAvailableSortings().keys().at(i));
     }
     ui->sortByBox->setCurrentText(filterModel->translateCurrentSorting());
 
-    connect(ui->searchEdit, &QLineEdit::textChanged, this, &AtlPage::triggerSearch);
-    connect(ui->sortByBox, &QComboBox::currentTextChanged, this, &AtlPage::onSortingSelectionChanged);
-    connect(ui->packView->selectionModel(), &QItemSelectionModel::currentChanged, this, &AtlPage::onSelectionChanged);
-    connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this, &AtlPage::onVersionSelectionChanged);
+    connect(ui->searchEdit, &QLineEdit::textChanged, this,
+            &AtlPage::triggerSearch);
+    connect(ui->sortByBox, &QComboBox::currentTextChanged, this,
+            &AtlPage::onSortingSelectionChanged);
+    connect(ui->packView->selectionModel(),
+            &QItemSelectionModel::currentChanged, this,
+            &AtlPage::onSelectionChanged);
+    connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this,
+            &AtlPage::onVersionSelectionChanged);
 }
 
 AtlPage::~AtlPage()
@@ -94,7 +99,7 @@ void AtlPage::retranslate()
 
 void AtlPage::openedImpl()
 {
-    if(!initialized)
+    if (!initialized)
     {
         listModel->request();
         initialized = true;
@@ -105,7 +110,7 @@ void AtlPage::openedImpl()
 
 void AtlPage::suggestCurrent()
 {
-    if(!isOpened)
+    if (!isOpened)
     {
         return;
     }
@@ -117,14 +122,19 @@ void AtlPage::suggestCurrent()
     }
 
     auto uiSupport = new AtlUserInteractionSupportImpl(this);
-    dialog->setSuggestedPack(selected.name, selectedVersion, new ATLauncher::PackInstallTask(uiSupport, selected.name, selectedVersion));
+    dialog->setSuggestedPack(selected.name, selectedVersion,
+                             new ATLauncher::PackInstallTask(
+                                 uiSupport, selected.name, selectedVersion));
 
     auto editedLogoName = selected.safeName;
-    auto url = (BuildConfig.ATL_DOWNLOAD_SERVER_URL + "launcher/images/%1.png").arg(selected.safeName.toLower());
-    listModel->getLogo(selected.safeName, url, [this, editedLogoName](QString logo)
-    {
-        dialog->setSuggestedIconFromFile(logo, editedLogoName);
-    });
+    auto url = (BuildConfig.ATL_DOWNLOAD_SERVER_URL + "launcher/images/%1.png")
+                   .arg(selected.safeName.toLower());
+    listModel->getLogo(selected.safeName, url,
+                       [this, editedLogoName](QString logo)
+                       {
+                           dialog->setSuggestedIconFromFile(logo,
+                                                            editedLogoName);
+                       });
 }
 
 void AtlPage::triggerSearch()
@@ -142,20 +152,22 @@ void AtlPage::onSelectionChanged(QModelIndex first, QModelIndex /*second*/)
 {
     ui->versionSelectionBox->clear();
 
-    if(!first.isValid())
+    if (!first.isValid())
     {
-        if(isOpened)
+        if (isOpened)
         {
             dialog->setSuggestedPack();
         }
         return;
     }
 
-    selected = filterModel->data(first, Qt::UserRole).value<ATLauncher::IndexedPack>();
+    selected =
+        filterModel->data(first, Qt::UserRole).value<ATLauncher::IndexedPack>();
 
     ui->packDescription->setHtml(selected.description.replace("\n", "<br>"));
 
-    for (const auto& version : std::as_const(selected.versions)) {
+    for (const auto& version : std::as_const(selected.versions))
+    {
         ui->versionSelectionBox->addItem(version.version);
     }
 
@@ -164,7 +176,7 @@ void AtlPage::onSelectionChanged(QModelIndex first, QModelIndex /*second*/)
 
 void AtlPage::onVersionSelectionChanged(QString newData)
 {
-    if(newData.isNull() || newData.isEmpty())
+    if (newData.isNull() || newData.isEmpty())
     {
         selectedVersion = "";
         return;

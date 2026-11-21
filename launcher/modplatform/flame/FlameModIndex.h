@@ -9,15 +9,17 @@
 #include "BaseInstance.h"
 #include <QNetworkAccessManager>
 
-namespace FlameMod {
+namespace FlameMod
+{
 
 void loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj);
 void loadURLs(ModPlatform::IndexedPack& m, QJsonObject& obj);
 void loadBody(ModPlatform::IndexedPack& m, QJsonObject& obj);
-void loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
-                             QJsonArray& arr,
-                             const shared_qobject_ptr<QNetworkAccessManager>& network,
-                             BaseInstance* inst);
-ModPlatform::IndexedVersion loadIndexedPackVersion(QJsonObject& obj, bool load_changelog = false);
+void loadIndexedPackVersions(
+    ModPlatform::IndexedPack& pack, QJsonArray& arr,
+    const shared_qobject_ptr<QNetworkAccessManager>& network,
+    BaseInstance* inst);
+ModPlatform::IndexedVersion loadIndexedPackVersion(QJsonObject& obj,
+                                                   bool load_changelog = false);
 
 }  // namespace FlameMod

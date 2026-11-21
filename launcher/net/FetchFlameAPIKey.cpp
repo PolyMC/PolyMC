@@ -24,22 +24,21 @@
 #include <ui/dialogs/ProgressDialog.h>
 #include <ui/dialogs/CustomMessageBox.h>
 
-FetchFlameAPIKey::FetchFlameAPIKey(QObject *parent)
-    : Task{parent}
+FetchFlameAPIKey::FetchFlameAPIKey(QObject* parent) : Task{parent}
 {
-
 }
 
 void FetchFlameAPIKey::executeTask()
 {
     QNetworkRequest req(BuildConfig.FLAME_API_KEY_API_URL);
     m_reply.reset(APPLICATION->network()->get(req));
-    connect(m_reply.get(), &QNetworkReply::downloadProgress, this, &Task::setProgress);
-    connect(m_reply.get(), &QNetworkReply::finished, this, &FetchFlameAPIKey::downloadFinished);
-    connect(m_reply.get(),
-            &QNetworkReply::errorOccurred,
-            this,
-            [this] (QNetworkReply::NetworkError error) {
+    connect(m_reply.get(), &QNetworkReply::downloadProgress, this,
+            &Task::setProgress);
+    connect(m_reply.get(), &QNetworkReply::finished, this,
+            &FetchFlameAPIKey::downloadFinished);
+    connect(m_reply.get(), &QNetworkReply::errorOccurred, this,
+            [this](QNetworkReply::NetworkError error)
+            {
                 qCritical() << "Network error: " << error;
                 emitFailed(m_reply->errorString());
             });
@@ -54,7 +53,8 @@ void FetchFlameAPIKey::downloadFinished()
 
     qDebug() << doc;
 
-    try {
+    try
+    {
         auto obj = Json::requireObject(doc);
 
         auto success = Json::requireBoolean(obj, "ok");

@@ -48,10 +48,10 @@
 #include <QFontDatabase>
 #endif
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 #ifdef BREAK_INFINITE_LOOP
-    while(true)
+    while (true)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
@@ -63,42 +63,45 @@ int main(int argc, char *argv[])
     return 42;
 #endif
 
-    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(
+        Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
     // initialize Qt
     Application app(argc, argv);
 
 #ifdef __APPLE__
     QFont f = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
-    // if this is left at the default, Apple's asinine scaling will make the font extremely small
-    // so you have to explicitly tell the stylesheet to respect the system font size
-    app.setStyleSheet(QStringLiteral("QWidget {font-size: %1pt}").arg(f.pointSizeF()));
+    // if this is left at the default, Apple's asinine scaling will make the
+    // font extremely small so you have to explicitly tell the stylesheet to
+    // respect the system font size
+    app.setStyleSheet(
+        QStringLiteral("QWidget {font-size: %1pt}").arg(f.pointSizeF()));
     app.setFont(f);
 #endif
 
     switch (app.status())
     {
-    case Application::StartingUp:
-    case Application::Initialized:
-    {
-        Q_INIT_RESOURCE(multimc);
-        Q_INIT_RESOURCE(backgrounds);
-        Q_INIT_RESOURCE(documents);
-        Q_INIT_RESOURCE(polymc);
+        case Application::StartingUp:
+        case Application::Initialized:
+        {
+            Q_INIT_RESOURCE(multimc);
+            Q_INIT_RESOURCE(backgrounds);
+            Q_INIT_RESOURCE(documents);
+            Q_INIT_RESOURCE(polymc);
 
-        Q_INIT_RESOURCE(pe_dark);
-        Q_INIT_RESOURCE(pe_light);
-        Q_INIT_RESOURCE(pe_blue);
-        Q_INIT_RESOURCE(pe_colored);
-        Q_INIT_RESOURCE(OSX);
-        Q_INIT_RESOURCE(iOS);
-        Q_INIT_RESOURCE(flat);
-        return app.exec();
-    }
-    case Application::Failed:
-        return 1;
-    case Application::Succeeded:
-        return 0;
+            Q_INIT_RESOURCE(pe_dark);
+            Q_INIT_RESOURCE(pe_light);
+            Q_INIT_RESOURCE(pe_blue);
+            Q_INIT_RESOURCE(pe_colored);
+            Q_INIT_RESOURCE(OSX);
+            Q_INIT_RESOURCE(iOS);
+            Q_INIT_RESOURCE(flat);
+            return app.exec();
+        }
+        case Application::Failed:
+            return 1;
+        case Application::Succeeded:
+            return 0;
     }
     return 0;
 }

@@ -18,7 +18,8 @@
 
 #include <QString>
 
-namespace Time {
+namespace Time
+{
 
 QString prettifyDuration(int64_t duration);
 

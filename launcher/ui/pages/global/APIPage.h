@@ -67,7 +67,7 @@ class APIPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit APIPage(QWidget *parent = 0);
+    explicit APIPage(QWidget* parent = 0);
     ~APIPage();
 
     QString displayName() const override
@@ -99,6 +99,5 @@ private:
     void fetchKeyButtonPressed();
 
 private:
-    Ui::APIPage *ui;
+    Ui::APIPage* ui;
 };
-

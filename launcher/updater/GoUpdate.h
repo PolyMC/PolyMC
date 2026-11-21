@@ -6,7 +6,8 @@ namespace GoUpdate
 {
 
 /**
- * A temporary object exchanged between updated checker and the actual update task
+ * A temporary object exchanged between updated checker and the actual update
+ * task
  */
 struct Status
 {
@@ -27,16 +28,17 @@ struct Status
  */
 struct FileSource
 {
-    FileSource(QString type, QString url, QString compression="")
+    FileSource(QString type, QString url, QString compression = "")
     {
         this->type = type;
         this->url = url;
         this->compressionType = compression;
     }
 
-    bool operator==(const FileSource &f2) const
+    bool operator==(const FileSource& f2) const
     {
-        return type == f2.type && url == f2.url && compressionType == f2.compressionType;
+        return type == f2.type && url == f2.url &&
+               compressionType == f2.compressionType;
     }
 
     QString type;
@@ -54,9 +56,10 @@ struct VersionFileEntry
     int mode;
     FileSourceList sources;
     QString md5;
-    bool operator==(const VersionFileEntry &v2) const
+    bool operator==(const VersionFileEntry& v2) const
     {
-        return path == v2.path && mode == v2.mode && sources == v2.sources && md5 == v2.md5;
+        return path == v2.path && mode == v2.mode && sources == v2.sources &&
+               md5 == v2.md5;
     }
 };
 typedef QList<VersionFileEntry> VersionFileList;
@@ -66,7 +69,7 @@ typedef QList<VersionFileEntry> VersionFileList;
  */
 struct Operation
 {
-    static Operation CopyOp(QString from, QString to, int fmode=0644)
+    static Operation CopyOp(QString from, QString to, int fmode = 0644)
     {
         return Operation{OP_REPLACE, from, to, fmode};
     }
@@ -76,12 +79,11 @@ struct Operation
     }
 
     // FIXME: for some types, some of the other fields are irrelevant!
-    bool operator==(const Operation &u2) const
+    bool operator==(const Operation& u2) const
     {
-        return type == u2.type &&
-            source == u2.source &&
-            destination == u2.destination &&
-            destinationMode == u2.destinationMode;
+        return type == u2.type && source == u2.source &&
+               destination == u2.destination &&
+               destinationMode == u2.destinationMode;
     }
 
     //! Specifies the type of operation that this is.
@@ -103,23 +105,21 @@ struct Operation
 typedef QList<Operation> OperationList;
 
 /**
- * Loads the file list from the given version info JSON object into the given list.
+ * Loads the file list from the given version info JSON object into the given
+ * list.
  */
-bool parseVersionInfo(const QByteArray &data, VersionFileList& list, QString &error);
+bool parseVersionInfo(const QByteArray& data, VersionFileList& list,
+                      QString& error);
 
 /*!
- * Takes a list of file entries for the current version's files and the new version's files
- * and populates the downloadList and operationList with information about how to download and install the update.
+ * Takes a list of file entries for the current version's files and the new
+ * version's files and populates the downloadList and operationList with
+ * information about how to download and install the update.
  */
-bool processFileLists
-(
-    const VersionFileList &currentVersion,
-    const VersionFileList &newVersion,
-    const QString &rootPath,
-    const QString &tempPath,
-    NetJob::Ptr job,
-    OperationList &ops
-);
+bool processFileLists(const VersionFileList& currentVersion,
+                      const VersionFileList& newVersion,
+                      const QString& rootPath, const QString& tempPath,
+                      NetJob::Ptr job, OperationList& ops);
 
-}
+}  // namespace GoUpdate
 Q_DECLARE_METATYPE(GoUpdate::Status)

@@ -55,8 +55,7 @@
 
 #include "minecraft/auth/AccountList.h"
 
-
-InstanceSettingsPage::InstanceSettingsPage(BaseInstance *inst, QWidget *parent)
+InstanceSettingsPage::InstanceSettingsPage(BaseInstance* inst, QWidget* parent)
     : QWidget(parent), ui(new Ui::InstanceSettingsPage), m_instance(inst)
 {
     m_settings = inst->settings();
@@ -66,21 +65,27 @@ InstanceSettingsPage::InstanceSettingsPage(BaseInstance *inst, QWidget *parent)
 
     auto sysMB = Sys::getSystemRam() / Sys::mebibyte;
     ui->maxMemSpinBox->setMaximum(sysMB);
-    connect(ui->openGlobalJavaSettingsButton, &QCommandLinkButton::clicked, this, &InstanceSettingsPage::globalSettingsButtonClicked);
-    connect(APPLICATION, &Application::globalSettingsAboutToOpen, this, &InstanceSettingsPage::applySettings);
-    connect(APPLICATION, &Application::globalSettingsClosed, this, &InstanceSettingsPage::loadSettings);
+    connect(ui->openGlobalJavaSettingsButton, &QCommandLinkButton::clicked,
+            this, &InstanceSettingsPage::globalSettingsButtonClicked);
+    connect(APPLICATION, &Application::globalSettingsAboutToOpen, this,
+            &InstanceSettingsPage::applySettings);
+    connect(APPLICATION, &Application::globalSettingsClosed, this,
+            &InstanceSettingsPage::loadSettings);
 
     // TODO(crueter): add warning theme icons.
-    ui->lowMemWarnIcon->setPixmap(style()->standardIcon(QStyle::SP_MessageBoxWarning, nullptr, this).pixmap(24));
+    ui->lowMemWarnIcon->setPixmap(
+        style()
+            ->standardIcon(QStyle::SP_MessageBoxWarning, nullptr, this)
+            .pixmap(24));
 
-    connect(ui->minMemSpinBox, &QSpinBox::editingFinished,
-            this, &InstanceSettingsPage::normalizeMemory);
+    connect(ui->minMemSpinBox, &QSpinBox::editingFinished, this,
+            &InstanceSettingsPage::normalizeMemory);
 
     connect(ui->maxMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
             this, &InstanceSettingsPage::updateMemoryWarning);
 
-    connect(ui->maxMemSpinBox, &QSpinBox::editingFinished,
-            this, &InstanceSettingsPage::normalizeMemory);
+    connect(ui->maxMemSpinBox, &QSpinBox::editingFinished, this,
+            &InstanceSettingsPage::normalizeMemory);
 
     updateMemoryWarning();
 
@@ -99,7 +104,8 @@ InstanceSettingsPage::~InstanceSettingsPage()
 
 void InstanceSettingsPage::globalSettingsButtonClicked(bool)
 {
-    switch(ui->settingsTabs->currentIndex()) {
+    switch (ui->settingsTabs->currentIndex())
+    {
         case 0:
             APPLICATION->ShowGlobalSettings(this, "java-settings");
             return;
@@ -112,24 +118,32 @@ void InstanceSettingsPage::globalSettingsButtonClicked(bool)
     }
 }
 
-void InstanceSettingsPage::updateMemoryWarning() {
+void InstanceSettingsPage::updateMemoryWarning()
+{
     int maxMem = ui->maxMemSpinBox->value();
 
-    if (maxMem < 1024) {
-        ui->lowMemWarnLabel->setText(tr("Allocating less than 1024 MiB may cause performance "
-                                        "issues on newer versions! Use with caution."));
+    if (maxMem < 1024)
+    {
+        ui->lowMemWarnLabel->setText(
+            tr("Allocating less than 1024 MiB may cause performance "
+               "issues on newer versions! Use with caution."));
         ui->lowMemWarnWidget->show();
-    } else {
+    }
+    else
+    {
         ui->lowMemWarnWidget->hide();
     }
 }
 
-void InstanceSettingsPage::normalizeMemory() {
+void InstanceSettingsPage::normalizeMemory()
+{
     int minMem = ui->minMemSpinBox->value();
     int maxMem = ui->maxMemSpinBox->value();
 
     if (minMem > maxMem)
+    {
         ui->maxMemSpinBox->setValue(minMem);
+    }
 }
 
 bool InstanceSettingsPage::apply()
@@ -147,8 +161,10 @@ void InstanceSettingsPage::applySettings()
     m_settings->set("OverrideMiscellaneous", miscellaneous);
     if (miscellaneous)
     {
-        m_settings->set("CloseAfterLaunch", ui->closeAfterLaunchCheck->isChecked());
-        m_settings->set("QuitAfterGameStop", ui->quitAfterGameStopCheck->isChecked());
+        m_settings->set("CloseAfterLaunch",
+                        ui->closeAfterLaunchCheck->isChecked());
+        m_settings->set("QuitAfterGameStop",
+                        ui->quitAfterGameStopCheck->isChecked());
     }
     else
     {
@@ -162,8 +178,10 @@ void InstanceSettingsPage::applySettings()
     if (console)
     {
         m_settings->set("ShowConsole", ui->showConsoleCheck->isChecked());
-        m_settings->set("AutoCloseConsole", ui->autoCloseConsoleCheck->isChecked());
-        m_settings->set("ShowConsoleOnError", ui->showConsoleErrorCheck->isChecked());
+        m_settings->set("AutoCloseConsole",
+                        ui->autoCloseConsoleCheck->isChecked());
+        m_settings->set("ShowConsoleOnError",
+                        ui->showConsoleErrorCheck->isChecked());
     }
     else
     {
@@ -195,7 +213,7 @@ void InstanceSettingsPage::applySettings()
     {
         int min = ui->minMemSpinBox->value();
         int max = ui->maxMemSpinBox->value();
-        if(min < max)
+        if (min < max)
         {
             m_settings->set("MinMemAlloc", min);
             m_settings->set("MaxMemAlloc", max);
@@ -220,7 +238,8 @@ void InstanceSettingsPage::applySettings()
     if (javaInstall)
     {
         m_settings->set("JavaPath", ui->javaPathTextBox->text());
-        m_settings->set("IgnoreJavaCompatibility", ui->skipCompatibilityCheckbox->isChecked());
+        m_settings->set("IgnoreJavaCompatibility",
+                        ui->skipCompatibilityCheckbox->isChecked());
         m_settings->set("IgnoreJavaSecWarn", ui->secWarnCheckbox->isChecked());
     }
     else
@@ -233,9 +252,10 @@ void InstanceSettingsPage::applySettings()
     // Java arguments
     bool javaArgs = ui->javaArgumentsGroupBox->isChecked();
     m_settings->set("OverrideJavaArgs", javaArgs);
-    if(javaArgs)
+    if (javaArgs)
     {
-        m_settings->set("JvmArgs", ui->jvmArgsTextBox->toPlainText().replace("\n", " "));
+        m_settings->set("JvmArgs",
+                        ui->jvmArgsTextBox->toPlainText().replace("\n", " "));
     }
     else
     {
@@ -250,9 +270,11 @@ void InstanceSettingsPage::applySettings()
     m_settings->set("OverrideCommands", custcmd);
     if (custcmd)
     {
-        m_settings->set("PreLaunchCommand", ui->customCommands->prelaunchCommand());
+        m_settings->set("PreLaunchCommand",
+                        ui->customCommands->prelaunchCommand());
         m_settings->set("WrapperCommand", ui->customCommands->wrapperCommand());
-        m_settings->set("PostExitCommand", ui->customCommands->postexitCommand());
+        m_settings->set("PostExitCommand",
+                        ui->customCommands->postexitCommand());
     }
     else
     {
@@ -264,9 +286,10 @@ void InstanceSettingsPage::applySettings()
     // Workarounds
     bool workarounds = ui->nativeWorkaroundsGroupBox->isChecked();
     m_settings->set("OverrideNativeWorkarounds", workarounds);
-    if(workarounds)
+    if (workarounds)
     {
-        m_settings->set("UseNativeOpenAL", ui->useNativeOpenALCheck->isChecked());
+        m_settings->set("UseNativeOpenAL",
+                        ui->useNativeOpenALCheck->isChecked());
         m_settings->set("UseNativeGLFW", ui->useNativeGLFWCheck->isChecked());
     }
     else
@@ -278,9 +301,10 @@ void InstanceSettingsPage::applySettings()
     // Performance
     bool performance = ui->perfomanceGroupBox->isChecked();
     m_settings->set("OverridePerformance", performance);
-    if(performance)
+    if (performance)
     {
-        m_settings->set("EnableFeralGamemode", ui->enableFeralGamemodeCheck->isChecked());
+        m_settings->set("EnableFeralGamemode",
+                        ui->enableFeralGamemodeCheck->isChecked());
         m_settings->set("EnableMangoHud", ui->enableMangoHud->isChecked());
         m_settings->set("UseDiscreteGpu", ui->useDiscreteGpuCheck->isChecked());
     }
@@ -310,7 +334,8 @@ void InstanceSettingsPage::applySettings()
     m_settings->set("JoinServerOnLaunch", joinServerOnLaunch);
     if (joinServerOnLaunch)
     {
-        m_settings->set("JoinServerOnLaunchAddress", ui->serverJoinAddress->text());
+        m_settings->set("JoinServerOnLaunchAddress",
+                        ui->serverJoinAddress->text());
     }
     else
     {
@@ -322,7 +347,8 @@ void InstanceSettingsPage::applySettings()
     m_settings->set("OverrideAccount", accountOverride);
     if (accountOverride && ui->accountComboBox->currentData().isValid())
     {
-        m_settings->set("OverrideAccountProfileId", ui->accountComboBox->currentData().toString());
+        m_settings->set("OverrideAccountProfileId",
+                        ui->accountComboBox->currentData().toString());
     }
     else
     {
@@ -331,9 +357,12 @@ void InstanceSettingsPage::applySettings()
 
     bool agentOverride = ui->agentGroupBox->isChecked();
     m_settings->set("OverrideAgent", agentOverride);
-    if (agentOverride) {
+    if (agentOverride)
+    {
         m_settings->set("UseLoki", ui->agentCheckbox->isChecked());
-    } else {
+    }
+    else
+    {
         m_settings->reset("UseLoki");
     }
 
@@ -344,27 +373,37 @@ void InstanceSettingsPage::applySettings()
 void InstanceSettingsPage::loadSettings()
 {
     // Miscellaneous
-    ui->miscellaneousSettingsBox->setChecked(m_settings->get("OverrideMiscellaneous").toBool());
-    ui->closeAfterLaunchCheck->setChecked(m_settings->get("CloseAfterLaunch").toBool());
-    ui->quitAfterGameStopCheck->setChecked(m_settings->get("QuitAfterGameStop").toBool());
+    ui->miscellaneousSettingsBox->setChecked(
+        m_settings->get("OverrideMiscellaneous").toBool());
+    ui->closeAfterLaunchCheck->setChecked(
+        m_settings->get("CloseAfterLaunch").toBool());
+    ui->quitAfterGameStopCheck->setChecked(
+        m_settings->get("QuitAfterGameStop").toBool());
 
     // Console
-    ui->consoleSettingsBox->setChecked(m_settings->get("OverrideConsole").toBool());
+    ui->consoleSettingsBox->setChecked(
+        m_settings->get("OverrideConsole").toBool());
     ui->showConsoleCheck->setChecked(m_settings->get("ShowConsole").toBool());
-    ui->autoCloseConsoleCheck->setChecked(m_settings->get("AutoCloseConsole").toBool());
-    ui->showConsoleErrorCheck->setChecked(m_settings->get("ShowConsoleOnError").toBool());
+    ui->autoCloseConsoleCheck->setChecked(
+        m_settings->get("AutoCloseConsole").toBool());
+    ui->showConsoleErrorCheck->setChecked(
+        m_settings->get("ShowConsoleOnError").toBool());
 
     // Window Size
-    ui->windowSizeGroupBox->setChecked(m_settings->get("OverrideWindow").toBool());
-    ui->maximizedCheckBox->setChecked(m_settings->get("LaunchMaximized").toBool());
-    ui->windowWidthSpinBox->setValue(m_settings->get("MinecraftWinWidth").toInt());
-    ui->windowHeightSpinBox->setValue(m_settings->get("MinecraftWinHeight").toInt());
+    ui->windowSizeGroupBox->setChecked(
+        m_settings->get("OverrideWindow").toBool());
+    ui->maximizedCheckBox->setChecked(
+        m_settings->get("LaunchMaximized").toBool());
+    ui->windowWidthSpinBox->setValue(
+        m_settings->get("MinecraftWinWidth").toInt());
+    ui->windowHeightSpinBox->setValue(
+        m_settings->get("MinecraftWinHeight").toInt());
 
     // Memory
     ui->memoryGroupBox->setChecked(m_settings->get("OverrideMemory").toBool());
     int min = m_settings->get("MinMemAlloc").toInt();
     int max = m_settings->get("MaxMemAlloc").toInt();
-    if(min < max)
+    if (min < max)
     {
         ui->minMemSpinBox->setValue(min);
         ui->maxMemSpinBox->setValue(max);
@@ -383,65 +422,84 @@ void InstanceSettingsPage::loadSettings()
 
     // Java Settings
     bool overrideJava = m_settings->get("OverrideJava").toBool();
-    bool overrideLocation = m_settings->get("OverrideJavaLocation").toBool() || overrideJava;
-    bool overrideArgs = m_settings->get("OverrideJavaArgs").toBool() || overrideJava;
+    bool overrideLocation =
+        m_settings->get("OverrideJavaLocation").toBool() || overrideJava;
+    bool overrideArgs =
+        m_settings->get("OverrideJavaArgs").toBool() || overrideJava;
     bool secWarn = m_settings->get("IgnoreJavaSecWarn").toBool();
 
     ui->javaSettingsGroupBox->setChecked(overrideLocation);
     ui->javaPathTextBox->setText(m_settings->get("JavaPath").toString());
-    ui->skipCompatibilityCheckbox->setChecked(m_settings->get("IgnoreJavaCompatibility").toBool());
+    ui->skipCompatibilityCheckbox->setChecked(
+        m_settings->get("IgnoreJavaCompatibility").toBool());
 
     ui->javaArgumentsGroupBox->setChecked(overrideArgs);
     ui->jvmArgsTextBox->setPlainText(m_settings->get("JvmArgs").toString());
 
     ui->secWarnCheckbox->setChecked(secWarn);
-    updateSecWarnVisibility(FS::ResolveExecutable(m_settings->get("JavaPath").toString()));
+    updateSecWarnVisibility(
+        FS::ResolveExecutable(m_settings->get("JavaPath").toString()));
 
     // Custom commands
     ui->customCommands->initialize(
-        true,
-        m_settings->get("OverrideCommands").toBool(),
+        true, m_settings->get("OverrideCommands").toBool(),
         m_settings->get("PreLaunchCommand").toString(),
         m_settings->get("WrapperCommand").toString(),
-        m_settings->get("PostExitCommand").toString()
-    );
+        m_settings->get("PostExitCommand").toString());
 
     // Workarounds
-    ui->nativeWorkaroundsGroupBox->setChecked(m_settings->get("OverrideNativeWorkarounds").toBool());
-    ui->useNativeGLFWCheck->setChecked(m_settings->get("UseNativeGLFW").toBool());
-    ui->useNativeOpenALCheck->setChecked(m_settings->get("UseNativeOpenAL").toBool());
+    ui->nativeWorkaroundsGroupBox->setChecked(
+        m_settings->get("OverrideNativeWorkarounds").toBool());
+    ui->useNativeGLFWCheck->setChecked(
+        m_settings->get("UseNativeGLFW").toBool());
+    ui->useNativeOpenALCheck->setChecked(
+        m_settings->get("UseNativeOpenAL").toBool());
 
     // Performance
-    ui->perfomanceGroupBox->setChecked(m_settings->get("OverridePerformance").toBool());
-    ui->enableFeralGamemodeCheck->setChecked(m_settings->get("EnableFeralGamemode").toBool());
+    ui->perfomanceGroupBox->setChecked(
+        m_settings->get("OverridePerformance").toBool());
+    ui->enableFeralGamemodeCheck->setChecked(
+        m_settings->get("EnableFeralGamemode").toBool());
     ui->enableMangoHud->setChecked(m_settings->get("EnableMangoHud").toBool());
-    ui->useDiscreteGpuCheck->setChecked(m_settings->get("UseDiscreteGpu").toBool());
+    ui->useDiscreteGpuCheck->setChecked(
+        m_settings->get("UseDiscreteGpu").toBool());
 
 #if !defined(Q_OS_LINUX)
-    ui->settingsTabs->setTabVisible(ui->settingsTabs->indexOf(ui->performancePage), false);
+    ui->settingsTabs->setTabVisible(
+        ui->settingsTabs->indexOf(ui->performancePage), false);
 #endif
 
-    if (!(APPLICATION->capabilities() & Application::SupportsGameMode)) {
+    if (!(APPLICATION->capabilities() & Application::SupportsGameMode))
+    {
         ui->enableFeralGamemodeCheck->setDisabled(true);
-        ui->enableFeralGamemodeCheck->setToolTip(tr("Feral Interactive's GameMode could not be found on your system."));
+        ui->enableFeralGamemodeCheck->setToolTip(tr(
+            "Feral Interactive's GameMode could not be found on your system."));
     }
 
-    if (!(APPLICATION->capabilities() & Application::SupportsMangoHud)) {
+    if (!(APPLICATION->capabilities() & Application::SupportsMangoHud))
+    {
         ui->enableMangoHud->setDisabled(true);
-        ui->enableMangoHud->setToolTip(tr("MangoHud could not be found on your system."));
+        ui->enableMangoHud->setToolTip(
+            tr("MangoHud could not be found on your system."));
     }
 
     // Miscellanous
-    ui->gameTimeGroupBox->setChecked(m_settings->get("OverrideGameTime").toBool());
+    ui->gameTimeGroupBox->setChecked(
+        m_settings->get("OverrideGameTime").toBool());
     ui->showGameTime->setChecked(m_settings->get("ShowGameTime").toBool());
     ui->recordGameTime->setChecked(m_settings->get("RecordGameTime").toBool());
 
-    ui->serverJoinGroupBox->setChecked(m_settings->get("JoinServerOnLaunch").toBool());
-    ui->serverJoinAddress->setText(m_settings->get("JoinServerOnLaunchAddress").toString());
+    ui->serverJoinGroupBox->setChecked(
+        m_settings->get("JoinServerOnLaunch").toBool());
+    ui->serverJoinAddress->setText(
+        m_settings->get("JoinServerOnLaunchAddress").toString());
 
-    ui->accountGroupBox->setChecked(m_settings->get("OverrideAccount").toBool());
-    if (m_accounts->count() > 0) {
-        for (int i = 0; i < m_accounts->count(); i++) {
+    ui->accountGroupBox->setChecked(
+        m_settings->get("OverrideAccount").toBool());
+    if (m_accounts->count() > 0)
+    {
+        for (int i = 0; i < m_accounts->count(); i++)
+        {
             MinecraftAccountPtr account = m_accounts->at(i);
 
             QString profileLabel = account->profileName();
@@ -449,28 +507,38 @@ void InstanceSettingsPage::loadSettings()
             QString profileType = account->typeString();
             profileType[0] = profileType[0].toUpper();
             QPixmap profileFace = account->getFace();
-            QIcon profileIcon = !profileFace.isNull() ? QIcon(profileFace) : APPLICATION->getThemedIcon("noaccount");
+            QIcon profileIcon = !profileFace.isNull()
+                                    ? QIcon(profileFace)
+                                    : APPLICATION->getThemedIcon("noaccount");
 
-            ui->accountComboBox->addItem(profileIcon, QString("%1 (%2)").arg(profileLabel, profileType), profileId);
+            ui->accountComboBox->addItem(
+                profileIcon, QString("%1 (%2)").arg(profileLabel, profileType),
+                profileId);
         }
 
-        QString accountProfileId = m_settings->get("OverrideAccountProfileId").toString();
+        QString accountProfileId =
+            m_settings->get("OverrideAccountProfileId").toString();
         int index = -1;
-        if (ui->accountGroupBox->isChecked()) {
+        if (ui->accountGroupBox->isChecked())
+        {
             // Try find the account by the override profile id setting
             // It'll be -1 if the account doesn't exist, which will just
             // Set the combobox to the "no option selected" state
             index = ui->accountComboBox->findData(accountProfileId);
         }
         ui->accountComboBox->setCurrentIndex(index);
-    } else {
+    }
+    else
+    {
         ui->accountComboBox->setPlaceholderText(tr("No accounts available"));
         ui->accountComboBox->setCurrentIndex(-1);
         ui->accountComboBox->setDisabled(true);
     }
 
-    // If there isn't a currently selected account, the override should show as disabled
-    if (ui->accountComboBox->currentIndex() == -1) {
+    // If there isn't a currently selected account, the override should show as
+    // disabled
+    if (ui->accountComboBox->currentIndex() == -1)
+    {
         ui->accountGroupBox->setChecked(false);
     }
 
@@ -480,23 +548,27 @@ void InstanceSettingsPage::loadSettings()
 
 void InstanceSettingsPage::on_javaDetectBtn_clicked()
 {
-    if (JavaUtils::getJavaCheckPath().isEmpty()) {
+    if (JavaUtils::getJavaCheckPath().isEmpty())
+    {
         JavaCommon::javaCheckNotFound(this);
         return;
     }
 
     JavaInstallPtr java;
 
-    VersionSelectDialog vselect(APPLICATION->javalist().get(), tr("Select a Java version"), this, true);
+    VersionSelectDialog vselect(APPLICATION->javalist().get(),
+                                tr("Select a Java version"), this, true);
     vselect.setResizeOn(2);
     vselect.exec();
 
     if (vselect.result() == QDialog::Accepted && vselect.selectedVersion())
     {
-        java = std::dynamic_pointer_cast<JavaInstall>(vselect.selectedVersion());
+        java =
+            std::dynamic_pointer_cast<JavaInstall>(vselect.selectedVersion());
         ui->javaPathTextBox->setText(java->path);
 
-        bool visible = java->id.requiresPermGen() && m_settings->get("OverrideMemory").toBool();
+        bool visible = java->id.requiresPermGen() &&
+                       m_settings->get("OverrideMemory").toBool();
         ui->permGenSpinBox->setVisible(visible);
         ui->labelPermGen->setVisible(visible);
         ui->labelPermgenNote->setVisible(visible);
@@ -505,23 +577,25 @@ void InstanceSettingsPage::on_javaDetectBtn_clicked()
         m_secWarnJavaPath = FS::ResolveExecutable(java->path);
         m_secWarnJavaVersion = java->id;
         m_secWarnJavaChecked = true;
-        ui->secWarnCheckbox->setVisible(m_secWarnJavaVersion.requiresSecBypass());
+        ui->secWarnCheckbox->setVisible(
+            m_secWarnJavaVersion.requiresSecBypass());
     }
 }
 
 void InstanceSettingsPage::on_javaBrowseBtn_clicked()
 {
-    QString raw_path = QFileDialog::getOpenFileName(this, tr("Find Java executable"));
+    QString raw_path =
+        QFileDialog::getOpenFileName(this, tr("Find Java executable"));
 
     // do not allow current dir - it's dirty. Do not allow dirs that don't exist
-    if(raw_path.isEmpty())
+    if (raw_path.isEmpty())
     {
         return;
     }
     QString cooked_path = FS::NormalizePath(raw_path);
 
     QFileInfo javaInfo(cooked_path);
-    if(!javaInfo.exists() || !javaInfo.isExecutable())
+    if (!javaInfo.exists() || !javaInfo.isExecutable())
     {
         return;
     }
@@ -539,14 +613,17 @@ void InstanceSettingsPage::on_javaBrowseBtn_clicked()
 
 void InstanceSettingsPage::on_javaTestBtn_clicked()
 {
-    if(checker)
+    if (checker)
     {
         return;
     }
     checker.reset(new JavaCommon::TestCheck(
-        this, ui->javaPathTextBox->text(), ui->jvmArgsTextBox->toPlainText().replace("\n", " "),
-        ui->minMemSpinBox->value(), ui->maxMemSpinBox->value(), ui->permGenSpinBox->value()));
-    connect(checker.get(), &JavaCommon::TestCheck::finished, this, &InstanceSettingsPage::checkerFinished);
+        this, ui->javaPathTextBox->text(),
+        ui->jvmArgsTextBox->toPlainText().replace("\n", " "),
+        ui->minMemSpinBox->value(), ui->maxMemSpinBox->value(),
+        ui->permGenSpinBox->value()));
+    connect(checker.get(), &JavaCommon::TestCheck::finished, this,
+            &InstanceSettingsPage::checkerFinished);
     checker->run();
 }
 
@@ -556,7 +633,7 @@ void InstanceSettingsPage::checkerFinished()
 }
 
 // only show the security errors checkbox if java <= 8
-void InstanceSettingsPage::updateSecWarnVisibility(const QString &javaPath)
+void InstanceSettingsPage::updateSecWarnVisibility(const QString& javaPath)
 {
     if (javaPath.isEmpty() || JavaUtils::getJavaCheckPath().isEmpty())
     {
@@ -569,7 +646,8 @@ void InstanceSettingsPage::updateSecWarnVisibility(const QString &javaPath)
 
     if (javaPath == m_secWarnJavaPath)
     {
-        ui->secWarnCheckbox->setVisible(m_secWarnJavaChecked && m_secWarnJavaVersion.requiresSecBypass());
+        ui->secWarnCheckbox->setVisible(
+            m_secWarnJavaChecked && m_secWarnJavaVersion.requiresSecBypass());
         return;
     }
 
@@ -581,13 +659,14 @@ void InstanceSettingsPage::updateSecWarnVisibility(const QString &javaPath)
     if (!m_secWarnChecker)
     {
         m_secWarnChecker.reset(new JavaChecker());
-        connect(m_secWarnChecker.get(), &JavaChecker::checkFinished, this, &InstanceSettingsPage::secWarnCheckFinished);
+        connect(m_secWarnChecker.get(), &JavaChecker::checkFinished, this,
+                &InstanceSettingsPage::secWarnCheckFinished);
         m_secWarnChecker->m_path = javaPath;
         m_secWarnChecker->performCheck();
     }
 }
 
-void InstanceSettingsPage::secWarnCheckFinished(const JavaCheckResult &result)
+void InstanceSettingsPage::secWarnCheckFinished(const JavaCheckResult& result)
 {
     m_secWarnChecker.reset();
 
@@ -610,11 +689,13 @@ void InstanceSettingsPage::secWarnCheckFinished(const JavaCheckResult &result)
         m_secWarnJavaChecked = true;
     }
 
-    ui->secWarnCheckbox->setVisible(m_secWarnJavaChecked && m_secWarnJavaVersion.requiresSecBypass());
+    ui->secWarnCheckbox->setVisible(m_secWarnJavaChecked &&
+                                    m_secWarnJavaVersion.requiresSecBypass());
 }
 
 void InstanceSettingsPage::retranslate()
 {
     ui->retranslateUi(this);
-    ui->customCommands->retranslate();  // TODO: why is this seperate from the others?
+    ui->customCommands
+        ->retranslate();  // TODO: why is this seperate from the others?
 }

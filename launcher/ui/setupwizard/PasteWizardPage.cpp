@@ -4,9 +4,8 @@
 #include "Application.h"
 #include "net/PasteUpload.h"
 
-PasteWizardPage::PasteWizardPage(QWidget *parent) :
-    BaseWizardPage(parent),
-    ui(new Ui::PasteWizardPage)
+PasteWizardPage::PasteWizardPage(QWidget* parent)
+    : BaseWizardPage(parent), ui(new Ui::PasteWizardPage)
 {
     ui->setupUi(this);
 }
@@ -27,10 +26,15 @@ bool PasteWizardPage::validatePage()
     s->reset("PastebinURL");
     if (ui->previousSettingsRadioButton->isChecked())
     {
-        bool usingDefaultBase = prevPasteURL == PasteUpload::PasteTypes.at(PasteUpload::PasteType::NullPointer).defaultBase;
+        bool usingDefaultBase =
+            prevPasteURL ==
+            PasteUpload::PasteTypes.at(PasteUpload::PasteType::NullPointer)
+                .defaultBase;
         s->set("PastebinType", PasteUpload::PasteType::NullPointer);
         if (!usingDefaultBase)
+        {
             s->set("PastebinCustomAPIBase", prevPasteURL);
+        }
     }
 
     return true;

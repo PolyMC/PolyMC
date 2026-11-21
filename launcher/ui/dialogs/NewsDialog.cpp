@@ -1,28 +1,36 @@
 #include "NewsDialog.h"
 #include "ui_NewsDialog.h"
 
-NewsDialog::NewsDialog(QList<NewsEntryPtr> entries, QWidget* parent) : QDialog(parent), ui(new Ui::NewsDialog())
+NewsDialog::NewsDialog(QList<NewsEntryPtr> entries, QWidget* parent)
+    : QDialog(parent), ui(new Ui::NewsDialog())
 {
     ui->setupUi(this);
 
-    for (const auto &entry : entries) {
+    for (const auto& entry : entries)
+    {
         ui->articleListWidget->addItem(entry->title);
         m_entries.insert(entry->title, entry);
     }
 
-    connect(ui->articleListWidget, &QListWidget::currentTextChanged, this, &NewsDialog::selectedArticleChanged);
-    connect(ui->toggleListButton, &QPushButton::clicked, this, &NewsDialog::toggleArticleList);
+    connect(ui->articleListWidget, &QListWidget::currentTextChanged, this,
+            &NewsDialog::selectedArticleChanged);
+    connect(ui->toggleListButton, &QPushButton::clicked, this,
+            &NewsDialog::toggleArticleList);
 
     m_article_list_hidden = ui->articleListWidget->isHidden();
 
     // The news may not have loaded (yet), for example when offline
     auto first_item = ui->articleListWidget->item(0);
     if (!first_item)
+    {
         return;
+    }
     first_item->setSelected(true);
 
     auto article_entry = m_entries.constFind(first_item->text()).value();
-    ui->articleTitleLabel->setText(QString("<a href='%1'>%2</a>").arg(article_entry->link, first_item->text()));
+    ui->articleTitleLabel->setText(
+        QString("<a href='%1'>%2</a>")
+            .arg(article_entry->link, first_item->text()));
     ui->currentArticleContentBrowser->setText(article_entry->content);
 }
 
@@ -35,10 +43,13 @@ void NewsDialog::selectedArticleChanged(const QString& new_title)
 {
     auto const& article_entry_ptr = m_entries.constFind(new_title);
     if (article_entry_ptr == m_entries.constEnd())
+    {
         return;
+    }
     auto const& article_entry = article_entry_ptr.value();
 
-    ui->articleTitleLabel->setText(QString("<a href='%1'>%2</a>").arg(article_entry->link, new_title));
+    ui->articleTitleLabel->setText(
+        QString("<a href='%1'>%2</a>").arg(article_entry->link, new_title));
     ui->currentArticleContentBrowser->setText(article_entry->content);
 }
 
@@ -49,7 +60,11 @@ void NewsDialog::toggleArticleList()
     ui->articleListWidget->setHidden(m_article_list_hidden);
 
     if (m_article_list_hidden)
+    {
         ui->toggleListButton->setText(tr("Show article list"));
+    }
     else
+    {
         ui->toggleListButton->setText(tr("Hide article list"));
+    }
 }

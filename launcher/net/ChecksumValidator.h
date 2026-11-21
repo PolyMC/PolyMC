@@ -40,14 +40,17 @@
 #include <QCryptographicHash>
 #include <QFile>
 
-namespace Net {
-class ChecksumValidator : public Validator {
-   public:
-    ChecksumValidator(QCryptographicHash::Algorithm algorithm, QByteArray expected = QByteArray())
-        : m_checksum(algorithm), m_expected(expected){};
+namespace Net
+{
+class ChecksumValidator : public Validator
+{
+public:
+    ChecksumValidator(QCryptographicHash::Algorithm algorithm,
+                      QByteArray expected = QByteArray())
+        : m_checksum(algorithm), m_expected(expected) {};
     virtual ~ChecksumValidator() = default;
 
-   public:
+public:
     bool init(QNetworkRequest&) override
     {
         m_checksum.reset();
@@ -60,22 +63,32 @@ class ChecksumValidator : public Validator {
         return true;
     }
 
-    bool abort() override { return true; }
+    bool abort() override
+    {
+        return true;
+    }
 
     bool validate(QNetworkReply&) override
     {
-        if (m_expected.size() && m_expected != hash()) {
+        if (m_expected.size() && m_expected != hash())
+        {
             qWarning() << "Checksum mismatch, download is bad.";
             return false;
         }
         return true;
     }
 
-    QByteArray hash() { return m_checksum.result(); }
+    QByteArray hash()
+    {
+        return m_checksum.result();
+    }
 
-    void setExpected(QByteArray expected) { m_expected = expected; }
+    void setExpected(QByteArray expected)
+    {
+        m_expected = expected;
+    }
 
-   private:
+private:
     QCryptographicHash m_checksum;
     QByteArray m_expected;
 };

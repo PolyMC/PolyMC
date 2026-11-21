@@ -55,15 +55,18 @@ class PageContainer : public QWidget, public BasePageContainer
 {
     Q_OBJECT
 public:
-    explicit PageContainer(BasePageProvider *pageProvider, QString defaultId = QString(),
-                        QWidget *parent = 0);
-    virtual ~PageContainer() {}
+    explicit PageContainer(BasePageProvider* pageProvider,
+                           QString defaultId = QString(), QWidget* parent = 0);
+    virtual ~PageContainer()
+    {
+    }
 
-    void addButtons(QWidget * buttons);
-    void addButtons(QLayout * buttons);
+    void addButtons(QWidget* buttons);
+    void addButtons(QLayout* buttons);
     /*
      * Save any unsaved state and prepare to be closed.
-     * @return true if everything can be saved, false if there is something that requires attention
+     * @return true if everything can be saved, false if there is something that
+     * requires attention
      */
     bool prepareToClose();
     bool saveAll();
@@ -71,7 +74,7 @@ public:
     /* request close - used by individual pages */
     bool requestClose() override
     {
-        if(m_container)
+        if (m_container)
         {
             return m_container->requestClose();
         }
@@ -81,7 +84,7 @@ public:
     virtual bool selectPage(QString pageId) override;
 
     void refreshContainer() override;
-    virtual void setParentContainer(BasePageContainer * container)
+    virtual void setParentContainer(BasePageContainer* container)
     {
         m_container = container;
     };
@@ -100,17 +103,17 @@ signals:
     void selectedPageChanged(BasePage* previous, BasePage* selected);
 
 private slots:
-    void currentChanged(const QModelIndex &current);
+    void currentChanged(const QModelIndex& current);
     void showPage(int row);
 
 private:
-    BasePageContainer * m_container = nullptr;
-    BasePage * m_currentPage = 0;
-    QSortFilterProxyModel *m_proxyModel;
-    PageModel *m_model;
-    QStackedLayout *m_pageStack;
-    QListView *m_pageList;
-    QLabel *m_header;
-    IconLabel *m_iconHeader;
-    QGridLayout *m_layout;
+    BasePageContainer* m_container = nullptr;
+    BasePage* m_currentPage = 0;
+    QSortFilterProxyModel* m_proxyModel;
+    PageModel* m_model;
+    QStackedLayout* m_pageStack;
+    QListView* m_pageList;
+    QLabel* m_header;
+    IconLabel* m_iconHeader;
+    QGridLayout* m_layout;
 };

@@ -49,7 +49,8 @@ enum class GroupsState
     Dirty
 };
 
-struct TrashHistoryItem {
+struct TrashHistoryItem
+{
     QString id;
     QString polyPath;
     QString trashPath;
@@ -61,22 +62,25 @@ class InstanceList : public QAbstractListModel
     Q_OBJECT
 
 public:
-    explicit InstanceList(SettingsObjectPtr settings, const QString & instDir, QObject *parent = 0);
+    explicit InstanceList(SettingsObjectPtr settings, const QString& instDir,
+                          QObject* parent = 0);
     virtual ~InstanceList();
 
 public:
-    QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const override;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex &index, int role) const override;
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    QModelIndex index(int row, int column = 0,
+                      const QModelIndex& parent = QModelIndex()) const override;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex& index, int role) const override;
+    Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-    bool setData(const QModelIndex & index, const QVariant & value, int role) override;
+    bool setData(const QModelIndex& index, const QVariant& value,
+                 int role) override;
 
     enum AdditionalRoles
     {
         GroupRole = Qt::UserRole,
-        InstancePointerRole = 0x34B1CB48, ///< Return pointer to real instance
-        InstanceIDRole = 0x34B1CB49 ///< Return id if the instance
+        InstancePointerRole = 0x34B1CB48,  ///< Return pointer to real instance
+        InstanceIDRole = 0x34B1CB49        ///< Return id if the instance
     };
     /*!
      * \brief Error codes returned by functions in the InstanceList class.
@@ -106,41 +110,45 @@ public:
     InstancePtr getInstanceById(QString id) const;
     /* O(n) */
     InstancePtr getInstanceByManagedName(const QString& managed_name) const;
-    QModelIndex getInstanceIndexById(const QString &id) const;
+    QModelIndex getInstanceIndexById(const QString& id) const;
     QStringList getGroups();
-    bool isGroupCollapsed(const QString &groupName);
+    bool isGroupCollapsed(const QString& groupName);
 
-    GroupId getInstanceGroup(const InstanceId & id) const;
-    void setInstanceGroup(const InstanceId & id, const GroupId& name);
+    GroupId getInstanceGroup(const InstanceId& id) const;
+    void setInstanceGroup(const InstanceId& id, const GroupId& name);
 
-    void deleteGroup(const GroupId & name);
-    bool trashInstance(const InstanceId &id);
+    void deleteGroup(const GroupId& name);
+    bool trashInstance(const InstanceId& id);
     bool trashedSomething();
     void undoTrashInstance();
-    void deleteInstance(const InstanceId & id);
+    void deleteInstance(const InstanceId& id);
 
-    // Wrap an instance creation task in some more task machinery and make it ready to be used
-    Task * wrapInstanceTask(InstanceTask * task);
+    // Wrap an instance creation task in some more task machinery and make it
+    // ready to be used
+    Task* wrapInstanceTask(InstanceTask* task);
 
     /**
-     * Create a new empty staging area for instance creation and @return a path/key top commit it later.
-     * Used by instance manipulation tasks.
+     * Create a new empty staging area for instance creation and @return a
+     * path/key top commit it later. Used by instance manipulation tasks.
      */
     QString getStagedInstancePath();
 
     /**
-     * Commit the staging area given by @keyPath to the provider - used when creation succeeds.
-     * Used by instance manipulation tasks.
-     * should_override is used when another similar instance already exists, and we want to override it
+     * Commit the staging area given by @keyPath to the provider - used when
+     * creation succeeds. Used by instance manipulation tasks. should_override
+     * is used when another similar instance already exists, and we want to
+     * override it
      * - for instance, when updating it.
      */
-    bool commitStagedInstance(const QString& keyPath, const InstanceName& instanceName, const QString& groupName, bool should_override);
+    bool commitStagedInstance(const QString& keyPath,
+                              const InstanceName& instanceName,
+                              const QString& groupName, bool should_override);
 
     /**
-     * Destroy a previously created staging area given by @keyPath - used when creation fails.
-     * Used by instance manipulation tasks.
+     * Destroy a previously created staging area given by @keyPath - used when
+     * creation fails. Used by instance manipulation tasks.
      */
-    bool destroyStagingPath(const QString & keyPath);
+    bool destroyStagingPath(const QString& keyPath);
 
     int getTotalPlayTime();
 
@@ -148,12 +156,14 @@ public:
 
     Qt::DropActions supportedDropActions() const override;
 
-    bool canDropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent) const override;
+    bool canDropMimeData(const QMimeData* data, Qt::DropAction action, int row,
+                         int column, const QModelIndex& parent) const override;
 
-    bool dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent) override;
+    bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row,
+                      int column, const QModelIndex& parent) override;
 
     QStringList mimeTypes() const override;
-    QMimeData *mimeData(const QModelIndexList &indexes) const override;
+    QMimeData* mimeData(const QModelIndexList& indexes) const override;
 
 signals:
     void dataIsInvalid();
@@ -162,20 +172,20 @@ signals:
     void groupsChanged(QSet<QString> groups);
 
 public slots:
-    void on_InstFolderChanged(const Setting &setting, QVariant value);
-    void on_GroupStateChanged(const QString &group, bool collapsed);
+    void on_InstFolderChanged(const Setting& setting, QVariant value);
+    void on_GroupStateChanged(const QString& group, bool collapsed);
 
 private slots:
-    void propertiesChanged(BaseInstance *inst);
+    void propertiesChanged(BaseInstance* inst);
     void providerUpdated();
-    void instanceDirContentsChanged(const QString &path);
+    void instanceDirContentsChanged(const QString& path);
 
 private:
-    int getInstIndex(BaseInstance *inst) const;
+    int getInstIndex(BaseInstance* inst) const;
     void updateTotalPlayTime();
     void suspendWatch();
     void resumeWatch();
-    void add(const QList<InstancePtr> &list);
+    void add(const QList<InstancePtr>& list);
     void loadGroupList();
     void saveGroupList();
     QList<InstanceId> discoverInstances();
@@ -190,7 +200,7 @@ private:
 
     SettingsObjectPtr m_globalSettings;
     QString m_instDir;
-    QFileSystemWatcher * m_watcher;
+    QFileSystemWatcher* m_watcher;
     // FIXME: this is so inefficient that looking at it is almost painful.
     QSet<QString> m_collapsedGroups;
     QMap<InstanceId, GroupId> m_instanceGroupIndex;

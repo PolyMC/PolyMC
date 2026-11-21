@@ -54,7 +54,9 @@
 #include <meta/Index.h>
 #include <meta/VersionList.h>
 
-NewComponentDialog::NewComponentDialog(const QString & initialName, const QString & initialUid, QWidget *parent)
+NewComponentDialog::NewComponentDialog(const QString& initialName,
+                                       const QString& initialUid,
+                                       QWidget* parent)
     : QDialog(parent), ui(new Ui::NewComponentDialog)
 {
     ui->setupUi(this);
@@ -63,8 +65,10 @@ NewComponentDialog::NewComponentDialog(const QString & initialName, const QStrin
     ui->nameTextBox->setText(initialName);
     ui->uidTextBox->setText(initialUid);
 
-    connect(ui->nameTextBox, &QLineEdit::textChanged, this, &NewComponentDialog::updateDialogState);
-    connect(ui->uidTextBox, &QLineEdit::textChanged, this, &NewComponentDialog::updateDialogState);
+    connect(ui->nameTextBox, &QLineEdit::textChanged, this,
+            &NewComponentDialog::updateDialogState);
+    connect(ui->uidTextBox, &QLineEdit::textChanged, this,
+            &NewComponentDialog::updateDialogState);
 
     ui->nameTextBox->setFocus();
 
@@ -81,7 +85,7 @@ void NewComponentDialog::updateDialogState()
 {
     auto protoUid = ui->nameTextBox->text().toLower();
     protoUid.remove(QRegularExpression("[^a-z]"));
-    if(protoUid.isEmpty())
+    if (protoUid.isEmpty())
     {
         ui->uidTextBox->setPlaceholderText(originalPlaceholderText);
     }
@@ -90,14 +94,15 @@ void NewComponentDialog::updateDialogState()
         QString suggestedUid = "org.multimc.custom." + protoUid;
         ui->uidTextBox->setPlaceholderText(suggestedUid);
     }
-    bool allowOK = !name().isEmpty() && !uid().isEmpty() && !uidBlacklist.contains(uid());
+    bool allowOK =
+        !name().isEmpty() && !uid().isEmpty() && !uidBlacklist.contains(uid());
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(allowOK);
 }
 
 QString NewComponentDialog::name() const
 {
     auto result = ui->nameTextBox->text();
-    if(result.size())
+    if (result.size())
     {
         return result.trimmed();
     }
@@ -107,12 +112,12 @@ QString NewComponentDialog::name() const
 QString NewComponentDialog::uid() const
 {
     auto result = ui->uidTextBox->text();
-    if(result.size())
+    if (result.size())
     {
         return result.trimmed();
     }
     result = ui->uidTextBox->placeholderText();
-    if(result.size() && result != originalPlaceholderText)
+    if (result.size() && result != originalPlaceholderText)
     {
         return result.trimmed();
     }

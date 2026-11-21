@@ -2,11 +2,13 @@
 
 #include "ITheme.h"
 
-class SystemTheme: public ITheme
+class SystemTheme : public ITheme
 {
 public:
     SystemTheme();
-    virtual ~SystemTheme() {}
+    virtual ~SystemTheme()
+    {
+    }
     void apply(bool initial) override;
 
     QString id() override;
@@ -18,6 +20,7 @@ public:
     QPalette colorScheme() override;
     double fadeAmount() override;
     QColor fadeColor() override;
+
 private:
     QPalette systemPalette;
     QString systemTheme;

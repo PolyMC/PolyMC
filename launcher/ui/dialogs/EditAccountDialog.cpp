@@ -18,7 +18,8 @@
 #include <DesktopServices.h>
 #include <QUrl>
 
-EditAccountDialog::EditAccountDialog(const QString &text, QWidget *parent, int flags)
+EditAccountDialog::EditAccountDialog(const QString& text, QWidget* parent,
+                                     int flags)
     : QDialog(parent), ui(new Ui::EditAccountDialog)
 {
     ui->setupUi(this);
@@ -35,12 +36,12 @@ EditAccountDialog::~EditAccountDialog()
     delete ui;
 }
 
-void EditAccountDialog::on_label_linkActivated(const QString &link)
+void EditAccountDialog::on_label_linkActivated(const QString& link)
 {
     DesktopServices::openUrl(QUrl(link));
 }
 
-void EditAccountDialog::setUsername(const QString & user) const
+void EditAccountDialog::setUsername(const QString& user) const
 {
     ui->userTextBox->setText(user);
 }
@@ -50,7 +51,7 @@ QString EditAccountDialog::username() const
     return ui->userTextBox->text();
 }
 
-void EditAccountDialog::setPassword(const QString & pass) const
+void EditAccountDialog::setPassword(const QString& pass) const
 {
     ui->passTextBox->setText(pass);
 }

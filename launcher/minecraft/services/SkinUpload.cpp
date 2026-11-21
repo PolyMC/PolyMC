@@ -40,8 +40,10 @@
 
 #include "Application.h"
 
-QByteArray getVariant(SkinUpload::Model model) {
-    switch (model) {
+QByteArray getVariant(SkinUpload::Model model)
+{
+    switch (model)
+    {
         case SkinUpload::STEVE:
             return "CLASSIC";
         case SkinUpload::ALEX:
@@ -52,37 +54,45 @@ QByteArray getVariant(SkinUpload::Model model) {
     }
 }
 
-SkinUpload::SkinUpload(QObject *parent, QString token, QByteArray skin, SkinUpload::Model model)
+SkinUpload::SkinUpload(QObject* parent, QString token, QByteArray skin,
+                       SkinUpload::Model model)
     : Task(parent), m_model(model), m_skin(skin), m_token(token)
 {
 }
 
 void SkinUpload::executeTask()
 {
-    QNetworkRequest request(QUrl("https://api.minecraftservices.com/minecraft/profile/skins"));
-    request.setRawHeader("Authorization", QString("Bearer %1").arg(m_token).toLocal8Bit());
-    QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+    QNetworkRequest request(
+        QUrl("https://api.minecraftservices.com/minecraft/profile/skins"));
+    request.setRawHeader("Authorization",
+                         QString("Bearer %1").arg(m_token).toLocal8Bit());
+    QHttpMultiPart* multiPart =
+        new QHttpMultiPart(QHttpMultiPart::FormDataType);
 
     QHttpPart skin;
     skin.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/png"));
-    skin.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"file\"; filename=\"skin.png\""));
+    skin.setHeader(QNetworkRequest::ContentDispositionHeader,
+                   QVariant("form-data; name=\"file\"; filename=\"skin.png\""));
     skin.setBody(m_skin);
 
     QHttpPart model;
-    model.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"variant\""));
+    model.setHeader(QNetworkRequest::ContentDispositionHeader,
+                    QVariant("form-data; name=\"variant\""));
     model.setBody(getVariant(m_model));
 
     multiPart->append(skin);
     multiPart->append(model);
 
-    QNetworkReply *rep = APPLICATION->network()->post(request, multiPart);
-    // The reply needs the data until it's done, so let it own (and later delete) it
+    QNetworkReply* rep = APPLICATION->network()->post(request, multiPart);
+    // The reply needs the data until it's done, so let it own (and later
+    // delete) it
     multiPart->setParent(rep);
     m_reply = shared_qobject_ptr<QNetworkReply>(rep);
 
     setStatus(tr("Uploading skin"));
     connect(rep, &QNetworkReply::uploadProgress, this, &Task::setProgress);
-    connect(rep, &QNetworkReply::errorOccurred, this, &SkinUpload::downloadError);
+    connect(rep, &QNetworkReply::errorOccurred, this,
+            &SkinUpload::downloadError);
     connect(rep, &QNetworkReply::finished, this, &SkinUpload::downloadFinished);
 }
 

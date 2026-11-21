@@ -25,43 +25,44 @@
 #include <QDebug>
 #include <QUrl>
 
-class ModrinthAPI : public NetworkModAPI {
-   public:
-    NetJob::Ptr currentVersion(QString hash,
-                        QString hash_format,
-                        QByteArray* response);
+class ModrinthAPI : public NetworkModAPI
+{
+public:
+    NetJob::Ptr currentVersion(QString hash, QString hash_format,
+                               QByteArray* response);
 
-    NetJob::Ptr currentVersions(const QStringList& hashes,
-                         QString hash_format,
-                         QByteArray* response);
+    NetJob::Ptr currentVersions(const QStringList& hashes, QString hash_format,
+                                QByteArray* response);
 
-    NetJob::Ptr latestVersion(QString hash,
-                       QString hash_format,
-                       std::list<Version> mcVersions,
-                       ModLoaderTypes loaders,
-                       QByteArray* response);
+    NetJob::Ptr latestVersion(QString hash, QString hash_format,
+                              std::list<Version> mcVersions,
+                              ModLoaderTypes loaders, QByteArray* response);
 
-    NetJob::Ptr latestVersions(const QStringList& hashes,
-                        QString hash_format,
-                        std::list<Version> mcVersions,
-                        ModLoaderTypes loaders,
-                        QByteArray* response);
+    NetJob::Ptr latestVersions(const QStringList& hashes, QString hash_format,
+                               std::list<Version> mcVersions,
+                               ModLoaderTypes loaders, QByteArray* response);
 
-    NetJob* getProjects(QStringList addonIds, QByteArray* response) const override;
+    NetJob* getProjects(QStringList addonIds,
+                        QByteArray* response) const override;
 
-   public:
-    inline QString getAuthorURL(const QString& name) const { return "https://modrinth.com/user/" + name; };
+public:
+    inline QString getAuthorURL(const QString& name) const
+    {
+        return "https://modrinth.com/user/" + name;
+    };
 
-    static inline QString getProjectType(ResourceType type) {
-        switch (type) {
-        case ResourcePack:
-            return "resourcepack";
-        case ShaderPack:
-            return "shader";
-        case DataPack:
-            return "datapack";
-        default:
-            return "mod";
+    static inline QString getProjectType(ResourceType type)
+    {
+        switch (type)
+        {
+            case ResourcePack:
+                return "resourcepack";
+            case ShaderPack:
+                return "shader";
+            case DataPack:
+                return "datapack";
+            default:
+                return "mod";
         }
     }
 
@@ -75,48 +76,67 @@ class ModrinthAPI : public NetworkModAPI {
                 l << ModAPI::getModLoaderString(loader);
             }
         }
-        if ((types & Quilt) && (~types & Fabric))  // Add Fabric if Quilt is in use, if Fabric isn't already there
-            l << ModAPI::getModLoaderString(Fabric);
+        if ((types & Quilt) && (~types & Fabric))
+        {
+            {   // Add Fabric if Quilt is in use, if Fabric
+                // isn't already there
+                l << ModAPI::getModLoaderString(Fabric);
+            }
+        }
         return l;
     }
 
     static const QString getModLoaderFilters(ModLoaderTypes types)
     {
         QStringList l;
-        for (const auto &loader : getModLoaderStrings(types))
+        for (const auto& loader : getModLoaderStrings(types))
         {
             l << QString("\"categories:%1\"").arg(loader);
         }
         return l.join(',');
     }
 
-    static QString getProjectTypeFacets(ResourceType type) {
+    static QString getProjectTypeFacets(ResourceType type)
+    {
         const auto typeStr = getProjectType(type);
         if (type == DataPack)
-            return QStringLiteral("[\"all_project_types:%1\"]").arg(typeStr);
+        {
+            {
+                return QStringLiteral("[\"all_project_types:%1\"]")
+                    .arg(typeStr);
+            }
+        }
         return QStringLiteral("[\"project_type:%1\"]").arg(typeStr);
     }
 
-   private:
+private:
     inline QString getModSearchURL(SearchArgs& args) const override
     {
-        if (args.type == Mod && !validateModLoaders(args.loaders)) {
-            qWarning() << "Modrinth only have Forge, NeoForge and Fabric-compatible mods!";
+        if (args.type == Mod && !validateModLoaders(args.loaders))
+        {
+            qWarning() << "Modrinth only have Forge, NeoForge and "
+                          "Fabric-compatible mods!";
             return "";
         }
 
         const auto off = QString::number(args.offset);
-        const auto filter = args.type == Mod ? QStringLiteral("[%1],").arg(getModLoaderFilters(args.loaders)) : "";
+        const auto filter =
+            args.type == Mod
+                ? QStringLiteral("[%1],").arg(getModLoaderFilters(args.loaders))
+                : "";
         const auto projType = getProjectTypeFacets(args.type);
-        // Characters like & or # in the search would otherwise end the parameter early
-        const auto search = QString::fromUtf8(QUrl::toPercentEncoding(args.search));
+        // Characters like & or # in the search would otherwise end the
+        // parameter early
+        const auto search =
+            QString::fromUtf8(QUrl::toPercentEncoding(args.search));
 
-        return (BuildConfig.MODRINTH_PROD_URL + "/search?"
-                                                "offset=%1&"
-                                                "limit=25&"
-                                                "query=%2&"
-                                                "index=%3&"
-                                                "facets=[%4%5%6]")
+        return (BuildConfig.MODRINTH_PROD_URL +
+                "/search?"
+                "offset=%1&"
+                "limit=25&"
+                "query=%2&"
+                "index=%3&"
+                "facets=[%4%5%6]")
             .arg(off, search, args.sorting, filter,
                  getGameVersionsArray(args.versions), projType);
     };
@@ -128,34 +148,38 @@ class ModrinthAPI : public NetworkModAPI {
 
     inline QString getMultipleModInfoURL(QStringList ids) const
     {
-        return BuildConfig.MODRINTH_PROD_URL + QString("/projects?ids=[\"%1\"]").arg(ids.join("\",\""));
+        return BuildConfig.MODRINTH_PROD_URL +
+               QString("/projects?ids=[\"%1\"]").arg(ids.join("\",\""));
     };
 
     inline QString getVersionsURL(VersionSearchArgs& args) const override
     {
-        const auto loaders = args.type == Mod
-                                 ? QStringLiteral("&loaders=[\"%1\"]")
-                                       .arg(getModLoaderStrings(args.loaders).join("\",\""))
-                                 : "";
-        return (BuildConfig.MODRINTH_PROD_URL + "/project/%1/version?"
-                                                "game_versions=[%2]"
-                                                "%3")
+        const auto loaders =
+            args.type == Mod
+                ? QStringLiteral("&loaders=[\"%1\"]")
+                      .arg(getModLoaderStrings(args.loaders).join("\",\""))
+                : "";
+        return (BuildConfig.MODRINTH_PROD_URL +
+                "/project/%1/version?"
+                "game_versions=[%2]"
+                "%3")
             .arg(args.addonId, getGameVersionsString(args.mcVersions), loaders);
     };
 
     QString getGameVersionsArray(std::list<Version> mcVersions) const
     {
         QString s;
-        for(auto& ver : mcVersions){
+        for (auto& ver : mcVersions)
+        {
             s += QString("\"versions:%1\",").arg(ver.toString());
         }
-        s.remove(s.length() - 1, 1); //remove last comma
+        s.remove(s.length() - 1, 1);  // remove last comma
         return s.isEmpty() ? QString() : QString("[%1],").arg(s);
     }
 
     inline bool validateModLoaders(ModLoaderTypes loaders) const
     {
-        return (loaders == Unspecified) || (loaders & (Forge | NeoForge | Fabric | Quilt));
+        return (loaders == Unspecified) ||
+               (loaders & (Forge | NeoForge | Fabric | Quilt));
     }
-
 };

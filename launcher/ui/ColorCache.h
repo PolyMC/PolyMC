@@ -21,7 +21,7 @@ public:
 
     void setForeground(QColor front)
     {
-        if(m_front != front)
+        if (m_front != front)
         {
             m_front = front;
             recolorAll();
@@ -30,7 +30,7 @@ public:
 
     void setBackground(QColor back)
     {
-        if(m_back != back)
+        if (m_back != back)
         {
             m_back = back;
             recolorAll();
@@ -40,7 +40,7 @@ public:
     QColor getFront(int key)
     {
         auto iter = m_colors.find(key);
-        if(iter == m_colors.end())
+        if (iter == m_colors.end())
         {
             return QColor();
         }
@@ -50,7 +50,7 @@ public:
     QColor getBack(int key)
     {
         auto iter = m_colors.find(key);
-        if(iter == m_colors.end())
+        if (iter == m_colors.end())
         {
             return QColor();
         }
@@ -88,8 +88,7 @@ protected:
 class LogColorCache : public ColorCache
 {
 public:
-    LogColorCache(QColor front, QColor back)
-        : ColorCache(front, back, 1.0)
+    LogColorCache(QColor front, QColor back) : ColorCache(front, back, 1.0)
     {
         addColor((int)MessageLevel::Launcher, QColor("purple"));
         addColor((int)MessageLevel::Debug, QColor("green"));
@@ -101,7 +100,7 @@ public:
 
     QColor getFront(MessageLevel::Enum level)
     {
-        if(!m_colors.contains((int) level))
+        if (!m_colors.contains((int)level))
         {
             return ColorCache::getFront((int)MessageLevel::Message);
         }
@@ -110,7 +109,7 @@ public:
 
     QColor getBack(MessageLevel::Enum level)
     {
-        if(level == MessageLevel::Fatal)
+        if (level == MessageLevel::Fatal)
         {
             return QColor(Qt::black);
         }

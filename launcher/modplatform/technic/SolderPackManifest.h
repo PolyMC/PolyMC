@@ -22,9 +22,11 @@
 #include <QVector>
 #include <QJsonObject>
 
-namespace TechnicSolder {
+namespace TechnicSolder
+{
 
-struct Pack {
+struct Pack
+{
     QString recommended;
     QString latest;
     QVector<QString> builds;
@@ -32,18 +34,20 @@ struct Pack {
 
 void loadPack(Pack& v, QJsonObject& obj);
 
-struct PackBuildMod {
+struct PackBuildMod
+{
     QString name;
     QString version;
     QString md5;
     QString url;
 };
 
-struct PackBuild {
+struct PackBuild
+{
     QString minecraft;
     QVector<PackBuildMod> mods;
 };
 
 void loadPackBuild(PackBuild& v, QJsonObject& obj);
 
-}
+}  // namespace TechnicSolder

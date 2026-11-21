@@ -33,7 +33,7 @@ struct VisualRow
     {
         return items.size();
     }
-    inline QModelIndex &operator[](int i)
+    inline QModelIndex& operator[](int i)
     {
         return items[i];
     }
@@ -41,24 +41,24 @@ struct VisualRow
 
 struct VisualGroup
 {
-/* constructors */
-    VisualGroup(const QString &text, InstanceView *view);
-    VisualGroup(const VisualGroup *other);
+    /* constructors */
+    VisualGroup(const QString& text, InstanceView* view);
+    VisualGroup(const VisualGroup* other);
 
-/* data */
-    InstanceView *view = nullptr;
+    /* data */
+    InstanceView* view = nullptr;
     QString text;
     bool collapsed = false;
     QVector<VisualRow> rows;
     int firstItemIndex = 0;
     int m_verticalPosition = 0;
 
-/* logic */
+    /* logic */
     /// update the internal list of items and flow them into the rows.
     void update();
 
     /// draw the header at y-position.
-    void drawHeader(QPainter *painter, const QStyleOptionViewItem &option);
+    void drawHeader(QPainter* painter, const QStyleOptionViewItem& option);
 
     /// height of the group, in total. includes a small bit of padding.
     int totalHeight() const;
@@ -79,13 +79,13 @@ struct VisualGroup
     int verticalPosition() const;
 
     /// relative geometry - top of the row of the given item
-    int rowTopOf(const QModelIndex &index) const;
+    int rowTopOf(const QModelIndex& index) const;
 
     /// height of the row of the given item
-    int rowHeightOf(const QModelIndex &index) const;
+    int rowHeightOf(const QModelIndex& index) const;
 
     /// x/y position of the given item inside the group (in items!)
-    QPair<int, int> positionOf(const QModelIndex &index) const;
+    QPair<int, int> positionOf(const QModelIndex& index) const;
 
     enum HitResult
     {
@@ -98,7 +98,7 @@ struct VisualGroup
     Q_DECLARE_FLAGS(HitResults, HitResult)
 
     /// shoot! BANG! what did we hit?
-    HitResults hitScan (const QPoint &pos) const;
+    HitResults hitScan(const QPoint& pos) const;
 
     QList<QModelIndex> items() const;
 };

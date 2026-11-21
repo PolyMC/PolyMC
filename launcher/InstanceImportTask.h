@@ -49,17 +49,18 @@
 class QuaZip;
 namespace Flame
 {
-    class FileResolvingTask;
+class FileResolvingTask;
 }
 
 class InstanceImportTask : public InstanceTask
 {
     Q_OBJECT
 public:
-    explicit InstanceImportTask(const QUrl sourceUrl, QWidget* parent = nullptr);
+    explicit InstanceImportTask(const QUrl sourceUrl,
+                                QWidget* parent = nullptr);
 
     bool abort() override;
-    const QVector<Flame::File> &getBlockedFiles() const
+    const QVector<Flame::File>& getBlockedFiles() const
     {
         return m_blockedMods;
     }
@@ -92,7 +93,8 @@ private: /* data */
     QFuture<std::optional<QStringList>> m_extractFuture;
     QFutureWatcher<std::optional<QStringList>> m_extractFutureWatcher;
     QVector<Flame::File> m_blockedMods;
-    enum class ModpackType{
+    enum class ModpackType
+    {
         Unknown,
         MultiMC,
         Technic,
@@ -100,6 +102,6 @@ private: /* data */
         Modrinth,
     } m_modpackType = ModpackType::Unknown;
 
-    //FIXME: nuke
+    // FIXME: nuke
     QWidget* m_parent;
 };

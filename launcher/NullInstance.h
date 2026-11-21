@@ -37,12 +37,13 @@
 #include "BaseInstance.h"
 #include "launch/LaunchTask.h"
 
-class NullInstance: public BaseInstance
+class NullInstance : public BaseInstance
 {
     Q_OBJECT
 public:
-    NullInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString& rootDir)
-    :BaseInstance(globalSettings, settings, rootDir)
+    NullInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings,
+                 const QString& rootDir)
+        : BaseInstance(globalSettings, settings, rootDir)
     {
         setVersionBroken(true);
     }
@@ -58,7 +59,7 @@ public:
     {
         return tr("Unknown instance type");
     };
-    QSet< QString > traits() const override
+    QSet<QString> traits() const override
     {
         return {};
     };
@@ -66,11 +67,12 @@ public:
     {
         return instanceRoot();
     };
-    shared_qobject_ptr<LaunchTask> createLaunchTask(AuthSessionPtr, MinecraftServerTargetPtr) override
+    shared_qobject_ptr<LaunchTask> createLaunchTask(
+        AuthSessionPtr, MinecraftServerTargetPtr) override
     {
         return nullptr;
     }
-    shared_qobject_ptr< Task > createUpdateTask(Net::Mode /*mode*/) override
+    shared_qobject_ptr<Task> createUpdateTask(Net::Mode /*mode*/) override
     {
         return nullptr;
     }
@@ -110,13 +112,15 @@ public:
     {
         return false;
     }
-    QStringList verboseDescription(MinecraftServerTargetPtr /*serverToJoin*/) override
+    QStringList verboseDescription(
+        MinecraftServerTargetPtr /*serverToJoin*/) override
     {
         QStringList out;
         out << "Null instance - placeholder.";
         return out;
     }
-    QString modsRoot() const override {
+    QString modsRoot() const override
+    {
         return QString();
     }
     void updateRuntimeContext()

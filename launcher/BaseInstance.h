@@ -72,18 +72,20 @@ typedef std::shared_ptr<BaseInstance> InstancePtr;
  * To create a new instance type, create a new class inheriting from this class
  * and implement the pure virtual functions.
  */
-class BaseInstance : public QObject, public std::enable_shared_from_this<BaseInstance>
+class BaseInstance : public QObject,
+                     public std::enable_shared_from_this<BaseInstance>
 {
     Q_OBJECT
 protected:
     /// no-touchy!
-    BaseInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString &rootDir);
+    BaseInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings,
+                 const QString& rootDir);
 
 public: /* types */
     enum class Status
     {
         Present,
-        Gone // either nuked or invalidated
+        Gone  // either nuked or invalidated
     };
 
 public:
@@ -93,15 +95,16 @@ public:
     virtual void saveNow() = 0;
 
     /***
-     * the instance has been invalidated - it is no longer tracked by the launcher for some reason,
-     * but it has not necessarily been deleted.
+     * the instance has been invalidated - it is no longer tracked by the
+     * launcher for some reason, but it has not necessarily been deleted.
      *
-     * Happens when the instance folder changes to some other location, or the instance is removed by external means.
+     * Happens when the instance folder changes to some other location, or the
+     * instance is removed by external means.
      */
     void invalidate();
 
-    /// The instance's ID. The ID SHALL be determined by LAUNCHER internally. The ID IS guaranteed to
-    /// be unique.
+    /// The instance's ID. The ID SHALL be determined by LAUNCHER internally.
+    /// The ID IS guaranteed to be unique.
     virtual QString id() const;
 
     void setRunning(bool running);
@@ -150,11 +153,14 @@ public:
     QString getManagedPackName() const;
     QString getManagedPackVersionID() const;
     QString getManagedPackVersionName() const;
-    void setManagedPack(const QString& type, const QString& id, const QString& name, const QString& versionId, const QString& version);
+    void setManagedPack(const QString& type, const QString& id,
+                        const QString& name, const QString& versionId,
+                        const QString& version);
     void copyManagedPack(BaseInstance& other);
 
     /// guess log level from a line of game log
-    virtual MessageLevel::Enum guessLevel(const QString &/*line*/, MessageLevel::Enum level)
+    virtual MessageLevel::Enum guessLevel(const QString& /*line*/,
+                                          MessageLevel::Enum level)
     {
         return level;
     };
@@ -162,7 +168,7 @@ public:
     virtual QStringList extraArguments();
 
     /// Traits. Normally inside the version, depends on instance implementation.
-    virtual QSet <QString> traits() const = 0;
+    virtual QSet<QString> traits() const = 0;
 
     /**
      * Gets the time that the instance was last launched.
@@ -184,7 +190,8 @@ public:
     virtual SettingsObjectPtr settings();
 
     /*!
-     * \brief Loads settings specific to an instance type if they're not already loaded.
+     * \brief Loads settings specific to an instance type if they're not already
+     * loaded.
      */
     virtual void loadSpecificSettings() = 0;
 
@@ -193,7 +200,7 @@ public:
 
     /// returns a valid launcher (task container)
     virtual shared_qobject_ptr<LaunchTask> createLaunchTask(
-            AuthSessionPtr account, MinecraftServerTargetPtr serverToJoin) = 0;
+        AuthSessionPtr account, MinecraftServerTargetPtr serverToJoin) = 0;
 
     /// returns the current launch task (if any)
     shared_qobject_ptr<LaunchTask> getLaunchTask();
@@ -205,7 +212,8 @@ public:
     virtual QProcessEnvironment createLaunchEnvironment() = 0;
 
     /*!
-     * Returns a matcher that can maps relative paths within the instance to whether they are 'log files'
+     * Returns a matcher that can maps relative paths within the instance to
+     * whether they are 'log files'
      */
     virtual IPathMatcher::Ptr getLogFileMatcher() = 0;
 
@@ -236,7 +244,7 @@ public:
     }
     void setVersionBroken(bool value)
     {
-        if(m_hasBrokenVersion != value)
+        if (m_hasBrokenVersion != value)
         {
             m_hasBrokenVersion = value;
             emit propertiesChanged(this);
@@ -249,7 +257,7 @@ public:
     }
     void setUpdateAvailable(bool value)
     {
-        if(m_hasUpdate != value)
+        if (m_hasUpdate != value)
         {
             m_hasUpdate = value;
             emit propertiesChanged(this);
@@ -262,7 +270,7 @@ public:
     }
     void setCrashed(bool value)
     {
-        if(m_crashed != value)
+        if (m_crashed != value)
         {
             m_crashed = value;
             emit propertiesChanged(this);
@@ -278,7 +286,8 @@ public:
     /**
      * 'print' a verbose description of the instance into a QStringList
      */
-    virtual QStringList verboseDescription(MinecraftServerTargetPtr serverToJoin) = 0;
+    virtual QStringList verboseDescription(
+        MinecraftServerTargetPtr serverToJoin) = 0;
 
     Status currentStatus() const;
 
@@ -288,16 +297,26 @@ public:
 protected:
     void changeStatus(Status newStatus);
 
-    SettingsObjectPtr globalSettings() const { return m_global_settings.lock(); };
+    SettingsObjectPtr globalSettings() const
+    {
+        return m_global_settings.lock();
+    };
 
-    bool isSpecificSettingsLoaded() const { return m_specific_settings_loaded; }
-    void setSpecificSettingsLoaded(bool loaded) { m_specific_settings_loaded = loaded; }
+    bool isSpecificSettingsLoaded() const
+    {
+        return m_specific_settings_loaded;
+    }
+    void setSpecificSettingsLoaded(bool loaded)
+    {
+        m_specific_settings_loaded = loaded;
+    }
 
 signals:
     /*!
-     * \brief Signal emitted when properties relevant to the instance view change
+     * \brief Signal emitted when properties relevant to the instance view
+     * change
      */
-    void propertiesChanged(BaseInstance *inst);
+    void propertiesChanged(BaseInstance* inst);
 
     void launchTaskChanged(shared_qobject_ptr<LaunchTask>);
 
@@ -329,9 +348,8 @@ private: /* data */
 
     SettingsObjectWeakPtr m_global_settings;
     bool m_specific_settings_loaded = false;
-
 };
 
 Q_DECLARE_METATYPE(shared_qobject_ptr<BaseInstance>)
-//Q_DECLARE_METATYPE(BaseInstance::InstanceFlag)
-//Q_DECLARE_OPERATORS_FOR_FLAGS(BaseInstance::InstanceFlags)
+// Q_DECLARE_METATYPE(BaseInstance::InstanceFlag)
+// Q_DECLARE_OPERATORS_FOR_FLAGS(BaseInstance::InstanceFlags)

@@ -15,7 +15,8 @@
 
 #include "OverrideSetting.h"
 
-OverrideSetting::OverrideSetting(std::shared_ptr<Setting> other, std::shared_ptr<Setting> gate)
+OverrideSetting::OverrideSetting(std::shared_ptr<Setting> other,
+                                 std::shared_ptr<Setting> gate)
     : Setting(other->configKeys(), QVariant())
 {
     Q_ASSERT(other);
@@ -36,7 +37,7 @@ QVariant OverrideSetting::defValue() const
 
 QVariant OverrideSetting::get() const
 {
-    if(isOverriding())
+    if (isOverriding())
     {
         return Setting::get();
     }

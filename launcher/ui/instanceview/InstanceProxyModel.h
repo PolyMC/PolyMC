@@ -23,16 +23,19 @@ class InstanceProxyModel : public QSortFilterProxyModel
     Q_OBJECT
 
 public:
-    InstanceProxyModel(QObject *parent = 0);
+    InstanceProxyModel(QObject* parent = 0);
 
 public slots:
-    void setSearchTerm(const QString &term);
+    void setSearchTerm(const QString& term);
 
 protected:
-    QVariant data(const QModelIndex & index, int role) const override;
-    bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
-    bool subSortLessThan(const QModelIndex &left, const QModelIndex &right) const;
-    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
+    QVariant data(const QModelIndex& index, int role) const override;
+    bool lessThan(const QModelIndex& left,
+                  const QModelIndex& right) const override;
+    bool subSortLessThan(const QModelIndex& left,
+                         const QModelIndex& right) const;
+    bool filterAcceptsRow(int sourceRow,
+                          const QModelIndex& sourceParent) const override;
 
 private:
     QCollator m_naturalSort;

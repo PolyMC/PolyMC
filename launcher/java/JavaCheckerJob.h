@@ -33,12 +33,14 @@ public:
     bool addJavaCheckerAction(JavaCheckerPtr base)
     {
         javacheckers.append(base);
-        // if this is already running, the action needs to be started right away!
+        // if this is already running, the action needs to be started right
+        // away!
         if (isRunning())
         {
             javaresults.append(JavaCheckResult());
             setProgress(num_finished, javacheckers.size());
-            connect(base.get(), &JavaChecker::checkFinished, this, &JavaCheckerJob::partFinished);
+            connect(base.get(), &JavaChecker::checkFinished, this,
+                    &JavaCheckerJob::partFinished);
             base->performCheck();
         }
         return true;

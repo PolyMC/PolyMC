@@ -9,7 +9,7 @@ class FMLLibrariesTask : public Task
 {
     Q_OBJECT
 public:
-    FMLLibrariesTask(MinecraftInstance * inst);
+    FMLLibrariesTask(MinecraftInstance* inst);
     virtual ~FMLLibrariesTask() {};
 
     void executeTask() override;
@@ -24,8 +24,7 @@ public slots:
     bool abort() override;
 
 private:
-    MinecraftInstance *m_inst;
+    MinecraftInstance* m_inst;
     NetJob::Ptr downloadJob;
     QList<FMLlib> fmlLibsToProcess;
 };
-

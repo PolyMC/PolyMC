@@ -22,14 +22,17 @@
 void ReconstructAssets::executeTask()
 {
     auto instance = m_parent->instance();
-    std::shared_ptr<MinecraftInstance> minecraftInstance = std::dynamic_pointer_cast<MinecraftInstance>(instance);
+    std::shared_ptr<MinecraftInstance> minecraftInstance =
+        std::dynamic_pointer_cast<MinecraftInstance>(instance);
     auto components = minecraftInstance->getPackProfile();
     auto profile = components->getProfile();
     auto assets = profile->getMinecraftAssets();
 
-    if(!AssetsUtils::reconstructAssets(assets->id, minecraftInstance->resourcesDir()))
+    if (!AssetsUtils::reconstructAssets(assets->id,
+                                        minecraftInstance->resourcesDir()))
     {
-        emit logLine("Failed to reconstruct Minecraft assets.", MessageLevel::Error);
+        emit logLine("Failed to reconstruct Minecraft assets.",
+                     MessageLevel::Error);
     }
 
     emitSucceeded();

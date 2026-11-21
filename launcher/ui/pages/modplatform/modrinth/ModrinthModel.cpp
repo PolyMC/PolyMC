@@ -45,9 +45,13 @@
 
 #include <QMessageBox>
 
-namespace Modrinth {
+namespace Modrinth
+{
 
-ModpackListModel::ModpackListModel(ModrinthPage* parent) : QAbstractListModel(parent), m_parent(parent) {}
+ModpackListModel::ModpackListModel(ModrinthPage* parent)
+    : QAbstractListModel(parent), m_parent(parent)
+{
+}
 
 QString ModpackListModel::debugName() const
 {
@@ -59,8 +63,11 @@ QString ModpackListModel::debugName() const
 void ModpackListModel::fetchMore(const QModelIndex& parent)
 {
     if (parent.isValid())
+    {
         return;
-    if (nextSearchOffset == 0) {
+    }
+    if (nextSearchOffset == 0)
+    {
         qWarning() << "fetchMore with 0 offset is wrong...";
         return;
     }
@@ -70,30 +77,42 @@ void ModpackListModel::fetchMore(const QModelIndex& parent)
 QVariant ModpackListModel::data(const QModelIndex& index, int role) const
 {
     int pos = index.row();
-    if (pos >= modpacks.size() || pos < 0 || !index.isValid()) {
+    if (pos >= modpacks.size() || pos < 0 || !index.isValid())
+    {
         return QString("INVALID INDEX %1").arg(pos);
     }
 
     Modrinth::Modpack pack = modpacks.at(pos);
-    switch (role) {
-        case Qt::ToolTipRole: {
-            if (pack.description.length() > 100) {
-                // some magic to prevent to long tooltips and replace html linebreaks
+    switch (role)
+    {
+        case Qt::ToolTipRole:
+        {
+            if (pack.description.length() > 100)
+            {
+                // some magic to prevent to long tooltips and replace html
+                // linebreaks
                 QString edit = pack.description.left(97);
-                edit = edit.left(edit.lastIndexOf("<br>")).left(edit.lastIndexOf(" ")).append("...");
+                edit = edit.left(edit.lastIndexOf("<br>"))
+                           .left(edit.lastIndexOf(" "))
+                           .append("...");
                 return edit;
             }
             return pack.description;
         }
-        case Qt::DecorationRole: {
+        case Qt::DecorationRole:
+        {
             if (m_logoMap.contains(pack.iconName))
+            {
                 return m_logoMap.value(pack.iconName);
+            }
 
             QIcon icon = APPLICATION->getThemedIcon("screenshot-placeholder");
-            ((ModpackListModel*)this)->requestLogo(pack.iconName, pack.iconUrl.toString());
+            ((ModpackListModel*)this)
+                ->requestLogo(pack.iconName, pack.iconUrl.toString());
             return icon;
         }
-        case Qt::UserRole: {
+        case Qt::UserRole:
+        {
             QVariant v;
             v.setValue(pack);
             return v;
@@ -114,11 +133,14 @@ QVariant ModpackListModel::data(const QModelIndex& index, int role) const
     return {};
 }
 
-bool ModpackListModel::setData(const QModelIndex &index, const QVariant &value, int /*role*/)
+bool ModpackListModel::setData(const QModelIndex& index, const QVariant& value,
+                               int /*role*/)
 {
     int pos = index.row();
     if (pos >= modpacks.size() || pos < 0 || !index.isValid())
+    {
         return false;
+    }
 
     modpacks[pos] = value.value<Modrinth::Modpack>();
 
@@ -128,38 +150,50 @@ bool ModpackListModel::setData(const QModelIndex &index, const QVariant &value, 
 void ModpackListModel::performPaginatedSearch()
 {
     // TODO: Move to standalone API
-    NetJob* netJob = new NetJob("Modrinth::SearchModpack", APPLICATION->network());
-    auto searchAllUrl = (BuildConfig.MODRINTH_PROD_URL +
-                            "/search?"
-                            "offset=%1&"
-                            "limit=%2&"
-                            "query=%3&"
-                            "index=%4&"
-                            "facets=[[\"project_type:modpack\"]]")
-                            // Encode the search, and fill everything in at once: with chained arg() calls,
-                            // something like %4 in the search would get replaced by the next one
-                            .arg(QString::number(nextSearchOffset),
-                                 QString::number(m_modpacks_per_page),
-                                 QString::fromUtf8(QUrl::toPercentEncoding(currentSearchTerm)),
-                                 currentSort);
+    NetJob* netJob =
+        new NetJob("Modrinth::SearchModpack", APPLICATION->network());
+    auto searchAllUrl =
+        (BuildConfig.MODRINTH_PROD_URL +
+         "/search?"
+         "offset=%1&"
+         "limit=%2&"
+         "query=%3&"
+         "index=%4&"
+         "facets=[[\"project_type:modpack\"]]")
+            // Encode the search, and fill everything in at once: with chained
+            // arg() calls, something like %4 in the search would get replaced
+            // by the next one
+            .arg(QString::number(nextSearchOffset),
+                 QString::number(m_modpacks_per_page),
+                 QString::fromUtf8(QUrl::toPercentEncoding(currentSearchTerm)),
+                 currentSort);
 
-    netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchAllUrl), &m_all_response));
+    netJob->addNetAction(
+        Net::Download::makeByteArray(QUrl(searchAllUrl), &m_all_response));
 
-    QObject::connect(netJob, &NetJob::succeeded, this, [this] {
-        QJsonParseError parse_error_all{};
+    QObject::connect(
+        netJob, &NetJob::succeeded, this,
+        [this]
+        {
+            QJsonParseError parse_error_all{};
 
-        QJsonDocument doc_all = QJsonDocument::fromJson(m_all_response, &parse_error_all);
-        if (parse_error_all.error != QJsonParseError::NoError) {
-            qWarning() << "Error while parsing JSON response from " << debugName() << " at " << parse_error_all.offset
-                       << " reason: " << parse_error_all.errorString();
-            qWarning() << m_all_response;
-            return;
-        }
+            QJsonDocument doc_all =
+                QJsonDocument::fromJson(m_all_response, &parse_error_all);
+            if (parse_error_all.error != QJsonParseError::NoError)
+            {
+                qWarning() << "Error while parsing JSON response from "
+                           << debugName() << " at " << parse_error_all.offset
+                           << " reason: " << parse_error_all.errorString();
+                qWarning() << m_all_response;
+                return;
+            }
 
-        searchRequestFinished(doc_all);
-    });
-    QObject::connect(netJob, &NetJob::failed, this, &ModpackListModel::searchRequestFailed);
-    QObject::connect(netJob, &NetJob::aborted, this, &ModpackListModel::searchRequestAborted);
+            searchRequestFinished(doc_all);
+        });
+    QObject::connect(netJob, &NetJob::failed, this,
+                     &ModpackListModel::searchRequestFailed);
+    QObject::connect(netJob, &NetJob::aborted, this,
+                     &ModpackListModel::searchRequestAborted);
 
     jobPtr = netJob;
     jobPtr->start();
@@ -167,13 +201,16 @@ void ModpackListModel::performPaginatedSearch()
 
 void ModpackListModel::refresh()
 {
-    // Only abort a search that is still going, a finished one never reports back.
-    // Set the state first, aborting can report back right away.
-    if (jobPtr && jobPtr->isRunning()) {
+    // Only abort a search that is still going, a finished one never reports
+    // back. Set the state first, aborting can report back right away.
+    if (jobPtr && jobPtr->isRunning())
+    {
         searchState = ResetRequested;
         jobPtr->abort();
         return;
-    } else {
+    }
+    else
+    {
         beginResetModel();
         modpacks.clear();
         endResetModel();
@@ -185,21 +222,23 @@ void ModpackListModel::refresh()
 
 static QString sortFromIndex(int index, bool& unhandled)
 {
-    switch(index){
-    case 0:
-        return "relevance";
-    case 1:
-        return "downloads";
-    case 2:
-        return "follows";
-    case 3:
-        return "newest";
-    case 4:
-        return "updated";
-    default:
-        unhandled = true;
-        qWarning() << QString("Unhandled case in sortFromIndex (%i)").arg(QString::number(index));
-        break;
+    switch (index)
+    {
+        case 0:
+            return "relevance";
+        case 1:
+            return "downloads";
+        case 2:
+            return "follows";
+        case 3:
+            return "newest";
+        case 4:
+            return "updated";
+        default:
+            unhandled = true;
+            qWarning() << QString("Unhandled case in sortFromIndex (%i)")
+                              .arg(QString::number(index));
+            break;
     }
 
     return {};
@@ -210,9 +249,13 @@ void ModpackListModel::searchWithTerm(const QString& term, const int sort)
     bool unhandled = false;
     auto sort_str = sortFromIndex(sort, unhandled);
     if (unhandled)
+    {
         return;
+    }
 
-    if (currentSearchTerm == term && currentSearchTerm.isNull() == term.isNull() && currentSort == sort_str) {
+    if (currentSearchTerm == term &&
+        currentSearchTerm.isNull() == term.isNull() && currentSort == sort_str)
+    {
         return;
     }
 
@@ -222,39 +265,54 @@ void ModpackListModel::searchWithTerm(const QString& term, const int sort)
     refresh();
 }
 
-void ModpackListModel::getLogo(const QString& logo, const QString& logoUrl, LogoCallback callback)
+void ModpackListModel::getLogo(const QString& logo, const QString& logoUrl,
+                               LogoCallback callback)
 {
-    if (m_logoMap.contains(logo)) {
-        callback(APPLICATION->metacache()
-                     ->resolveEntry("ModrinthPacks", QString("logos/%1").arg(logo.section(".", 0, 0)))
-                     ->getFullPath());
-    } else {
+    if (m_logoMap.contains(logo))
+    {
+        callback(
+            APPLICATION->metacache()
+                ->resolveEntry("ModrinthPacks",
+                               QString("logos/%1").arg(logo.section(".", 0, 0)))
+                ->getFullPath());
+    }
+    else
+    {
         requestLogo(logo, logoUrl);
     }
 }
 
 void ModpackListModel::requestLogo(QString logo, QString url)
 {
-    if (m_loadingLogos.contains(logo) || m_failedLogos.contains(logo) || url.isEmpty()) {
+    if (m_loadingLogos.contains(logo) || m_failedLogos.contains(logo) ||
+        url.isEmpty())
+    {
         return;
     }
 
-    MetaEntryPtr entry =
-        APPLICATION->metacache()->resolveEntry("ModrinthPacks", QString("logos/%1").arg(logo.section(".", 0, 0)));
-    auto job = new NetJob(QString("%1 Icon Download %2").arg(m_parent->debugName()).arg(logo), APPLICATION->network());
+    MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry(
+        "ModrinthPacks", QString("logos/%1").arg(logo.section(".", 0, 0)));
+    auto job = new NetJob(
+        QString("%1 Icon Download %2").arg(m_parent->debugName()).arg(logo),
+        APPLICATION->network());
     job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
 
     auto fullPath = entry->getFullPath();
-    QObject::connect(job, &NetJob::succeeded, this, [this, logo, fullPath] {
-        emit logoLoaded(logo, QIcon(fullPath));
-        if (waitingCallbacks.contains(logo)) {
-            waitingCallbacks.value(logo)(fullPath);
-        }
-    });
+    QObject::connect(job, &NetJob::succeeded, this,
+                     [this, logo, fullPath]
+                     {
+                         emit logoLoaded(logo, QIcon(fullPath));
+                         if (waitingCallbacks.contains(logo))
+                         {
+                             waitingCallbacks.value(logo)(fullPath);
+                         }
+                     });
 
-    QObject::connect(job, &NetJob::failed, this, [this, logo] {
-        emit logoFailed(logo);
-    });
+    QObject::connect(job, &NetJob::failed, this,
+                     [this, logo]
+                     {
+                         emit logoFailed(logo);
+                     });
 
     QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
 
@@ -268,9 +326,12 @@ void ModpackListModel::logoLoaded(QString logo, QIcon out)
 {
     m_loadingLogos.removeAll(logo);
     m_logoMap.insert(logo, out);
-    for (int i = 0; i < modpacks.size(); i++) {
-        if (modpacks[i].iconName == logo) {
-            emit dataChanged(createIndex(i, 0), createIndex(i, 0), { Qt::DecorationRole });
+    for (int i = 0; i < modpacks.size(); i++)
+    {
+        if (modpacks[i].iconName == logo)
+        {
+            emit dataChanged(createIndex(i, 0), createIndex(i, 0),
+                             {Qt::DecorationRole});
         }
     }
 }
@@ -288,31 +349,43 @@ void ModpackListModel::searchRequestFinished(QJsonDocument& doc_all)
     QList<Modrinth::Modpack> newList;
 
     auto packs_all = doc_all.object().value("hits").toArray();
-    for (auto packRaw : std::as_const(packs_all)) {
+    for (auto packRaw : std::as_const(packs_all))
+    {
         auto packObj = packRaw.toObject();
 
         Modrinth::Modpack pack;
-        try {
+        try
+        {
             Modrinth::loadIndexedPack(pack, packObj);
             newList.append(pack);
-        } catch (const JSONValidationError& e) {
-            qWarning() << "Error while loading mod from " << m_parent->debugName() << ": " << e.cause();
+        }
+        catch (const JSONValidationError& e)
+        {
+            qWarning() << "Error while loading mod from "
+                       << m_parent->debugName() << ": " << e.cause();
             continue;
         }
     }
 
-    if (packs_all.size() < m_modpacks_per_page) {
+    if (packs_all.size() < m_modpacks_per_page)
+    {
         searchState = Finished;
-    } else {
+    }
+    else
+    {
         nextSearchOffset += m_modpacks_per_page;
         searchState = CanPossiblyFetchMore;
     }
 
-    // When you have a Qt build with assertions turned on, proceeding here will abort the application
+    // When you have a Qt build with assertions turned on, proceeding here will
+    // abort the application
     if (newList.size() == 0)
+    {
         return;
+    }
 
-    beginInsertRows(QModelIndex(), modpacks.size(), modpacks.size() + newList.size() - 1);
+    beginInsertRows(QModelIndex(), modpacks.size(),
+                    modpacks.size() + newList.size() - 1);
     modpacks.append(newList);
     endInsertRows();
 }
@@ -322,27 +395,40 @@ void ModpackListModel::searchRequestFailed(QString reason)
     qWarning() << QString("searchRequestFailed reason: %1").arg(reason);
 
     auto failed_action = jobPtr->getFailedActions().at(0);
-    if (!failed_action->m_reply) {
+    if (!failed_action->m_reply)
+    {
         // Network error
-        QMessageBox::critical(nullptr, tr("Error"), tr("A network error occurred. Could not load modpacks."));
-    } else if (failed_action->m_reply && failed_action->m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 409) {
+        QMessageBox::critical(
+            nullptr, tr("Error"),
+            tr("A network error occurred. Could not load modpacks."));
+    }
+    else if (failed_action->m_reply &&
+             failed_action->m_reply
+                     ->attribute(QNetworkRequest::HttpStatusCodeAttribute)
+                     .toInt() == 409)
+    {
         // 409 Gone, notify user to update
-        QMessageBox::critical(nullptr, tr("Error"),
-                              //: %1 refers to the launcher itself
-                              QString("%1 %2")
-                                  .arg(m_parent->displayName())
-                                  .arg(tr("API version too old!\nPlease update %1!").arg(BuildConfig.LAUNCHER_NAME)));
+        QMessageBox::critical(
+            nullptr, tr("Error"),
+            //: %1 refers to the launcher itself
+            QString("%1 %2")
+                .arg(m_parent->displayName())
+                .arg(tr("API version too old!\nPlease update %1!")
+                         .arg(BuildConfig.LAUNCHER_NAME)));
     }
     jobPtr.reset();
 
-    if (searchState == ResetRequested) {
+    if (searchState == ResetRequested)
+    {
         beginResetModel();
         modpacks.clear();
         endResetModel();
 
         nextSearchOffset = 0;
         performPaginatedSearch();
-    } else {
+    }
+    else
+    {
         searchState = Finished;
     }
 }
@@ -352,14 +438,17 @@ void ModpackListModel::searchRequestAborted()
     jobPtr.reset();
 
     // refresh() aborts the running search to start a new one
-    if (searchState == ResetRequested) {
+    if (searchState == ResetRequested)
+    {
         beginResetModel();
         modpacks.clear();
         endResetModel();
 
         nextSearchOffset = 0;
         performPaginatedSearch();
-    } else {
+    }
+    else
+    {
         searchState = Finished;
     }
 }

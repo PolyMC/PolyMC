@@ -9,13 +9,18 @@ class Task;
 class QProgressBar;
 class QLabel;
 
-class ProgressWidget : public QWidget {
+class ProgressWidget : public QWidget
+{
     Q_OBJECT
-   public:
+public:
     explicit ProgressWidget(QWidget* parent = nullptr, bool show_label = true);
 
-    /** Whether to hide the widget automatically if it's watching no running task. */
-    void hideIfInactive(bool hide) { m_hide_if_inactive = hide; }
+    /** Whether to hide the widget automatically if it's watching no running
+     * task. */
+    void hideIfInactive(bool hide)
+    {
+        m_hide_if_inactive = hide;
+    }
 
     /** Reset the displayed progress to 0 */
     void reset();
@@ -25,7 +30,7 @@ class ProgressWidget : public QWidget {
      */
     void progressFormat(QString);
 
-   public slots:
+public slots:
     /** Watch the progress of a task. */
     void watch(Task* task);
 
@@ -41,13 +46,13 @@ class ProgressWidget : public QWidget {
     /** Make the widget invisible. */
     void hide();
 
-   private slots:
+private slots:
     void handleTaskFinish();
     void handleTaskStatus(const QString& status);
     void handleTaskProgress(qint64 current, qint64 total);
     void taskDestroyed();
 
-   private:
+private:
     QLabel* m_label = nullptr;
     QProgressBar* m_bar = nullptr;
     Task* m_task = nullptr;

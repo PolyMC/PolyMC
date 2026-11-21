@@ -8,7 +8,7 @@ inline void clamp(T& current, T min, T max)
     {
         current = min;
     }
-    else if(current > max)
+    else if (current > max)
     {
         current = max;
     }

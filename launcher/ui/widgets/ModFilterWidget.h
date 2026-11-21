@@ -13,7 +13,8 @@
 
 class MinecraftInstance;
 
-namespace Ui {
+namespace Ui
+{
 class ModFilterWidget;
 }
 
@@ -21,24 +22,33 @@ class ModFilterWidget : public QTabWidget
 {
     Q_OBJECT
 public:
-    enum VersionButtonID {
+    enum VersionButtonID
+    {
         Strict = 0,
         Major = 1,
         All = 2,
         Between = 3
     };
 
-    struct Filter {
+    struct Filter
+    {
         std::list<Version> versions;
 
-        bool operator==(const Filter& other) const { return versions == other.versions; }
-        bool operator!=(const Filter& other) const { return !(*this == other); }
+        bool operator==(const Filter& other) const
+        {
+            return versions == other.versions;
+        }
+        bool operator!=(const Filter& other) const
+        {
+            return !(*this == other);
+        }
     };
 
     std::shared_ptr<Filter> m_filter;
 
 public:
-    static unique_qobject_ptr<ModFilterWidget> create(Version default_version, QWidget* parent = nullptr);
+    static unique_qobject_ptr<ModFilterWidget> create(
+        Version default_version, QWidget* parent = nullptr);
     ~ModFilterWidget();
 
     void setInstance(MinecraftInstance* instance);
@@ -47,20 +57,35 @@ public:
     void disableVersionButton(VersionButtonID, QString reason = {});
 
     std::shared_ptr<Filter> getFilter();
-    bool changed() const { return m_last_version_id != m_version_id; }
+    bool changed() const
+    {
+        return m_last_version_id != m_version_id;
+    }
 
-    Meta::VersionListPtr versionList() { return m_version_list; }
+    Meta::VersionListPtr versionList()
+    {
+        return m_version_list;
+    }
 
 private:
     ModFilterWidget(Version def, QWidget* parent = nullptr);
 
-    inline QString mcVersionStr() const { return m_instance ? m_instance->getPackProfile()->getComponentVersion("net.minecraft") : ""; }
-    inline Version mcVersion() const { return { mcVersionStr() }; }
+    inline QString mcVersionStr() const
+    {
+        return m_instance ? m_instance->getPackProfile()->getComponentVersion(
+                                "net.minecraft")
+                          : "";
+    }
+    inline Version mcVersion() const
+    {
+        return {mcVersionStr()};
+    }
 
 private slots:
     void onVersionFilterChanged(int id);
 
-public: signals:
+public:
+signals:
     void filterChanged();
     void filterUnchanged();
 
@@ -69,8 +94,7 @@ private:
 
     MinecraftInstance* m_instance = nullptr;
 
-
-/* Version stuff */
+    /* Version stuff */
     QButtonGroup m_mcVersion_buttons;
 
     Meta::VersionListPtr m_version_list;

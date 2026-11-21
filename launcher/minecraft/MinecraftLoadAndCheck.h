@@ -31,7 +31,8 @@ class MinecraftLoadAndCheck : public Task
 {
     Q_OBJECT
 public:
-    explicit MinecraftLoadAndCheck(MinecraftInstance *inst, QObject *parent = 0);
+    explicit MinecraftLoadAndCheck(MinecraftInstance* inst,
+                                   QObject* parent = 0);
     virtual ~MinecraftLoadAndCheck() {};
     void executeTask() override;
 
@@ -40,9 +41,8 @@ private slots:
     void subtaskFailed(QString error);
 
 private:
-    MinecraftInstance *m_inst = nullptr;
+    MinecraftInstance* m_inst = nullptr;
     Task::Ptr m_task;
     QString m_preFailure;
     QString m_fail_reason;
 };
-

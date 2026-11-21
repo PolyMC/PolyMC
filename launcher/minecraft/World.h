@@ -19,9 +19,10 @@
 #include <QFileInfo>
 #include "FileSystem.h"
 
-struct GameType {
+struct GameType
+{
     GameType() = default;
-    GameType (std::optional<int> original);
+    GameType(std::optional<int> original);
 
     QString toTranslatedString() const;
     QString toLogString() const;
@@ -40,7 +41,7 @@ struct GameType {
 class World
 {
 public:
-    World(const QFileInfo &file);
+    World(const QFileInfo& file);
     QString folderName() const
     {
         return m_folderName;
@@ -85,25 +86,25 @@ public:
     // delete all the files of this world
     bool destroy();
     // replace this world with a copy of the other
-    bool replace(World &with);
-    // change the world's filesystem path (used by world lists for *MAGIC* purposes)
-    void repath(const QFileInfo &file);
+    bool replace(World& with);
+    // change the world's filesystem path (used by world lists for *MAGIC*
+    // purposes)
+    void repath(const QFileInfo& file);
     // remove the icon file, if any
     bool resetIcon();
 
-    bool rename(const QString &to);
-    bool install(const QString &to, const QString &name= QString());
+    bool rename(const QString& to);
+    bool install(const QString& to, const QString& name = QString());
 
     // WEAK compare operator - used for replacing worlds
-    bool operator==(const World &other) const;
+    bool operator==(const World& other) const;
 
 private:
-    void readFromZip(const QFileInfo &file);
-    void readFromFS(const QFileInfo &file);
+    void readFromZip(const QFileInfo& file);
+    void readFromFS(const QFileInfo& file);
     void loadFromLevelDat(QByteArray data);
 
 protected:
-
     QFileInfo m_containerFile;
     QString m_containerOffsetPath;
     QString m_folderName;

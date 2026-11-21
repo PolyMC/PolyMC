@@ -20,11 +20,10 @@
 
 namespace Meta
 {
-Index::Index(QObject *parent)
-    : QAbstractListModel(parent)
+Index::Index(QObject* parent) : QAbstractListModel(parent)
 {
 }
-Index::Index(const QVector<VersionListPtr> &lists, QObject *parent)
+Index::Index(const QVector<VersionListPtr>& lists, QObject* parent)
     : QAbstractListModel(parent), m_lists(lists)
 {
     for (int i = 0; i < m_lists.size(); ++i)
@@ -34,9 +33,10 @@ Index::Index(const QVector<VersionListPtr> &lists, QObject *parent)
     }
 }
 
-QVariant Index::data(const QModelIndex &index, int role) const
+QVariant Index::data(const QModelIndex& index, int role) const
 {
-    if (index.parent().isValid() || index.row() < 0 || index.row() >= m_lists.size())
+    if (index.parent().isValid() || index.row() < 0 ||
+        index.row() >= m_lists.size())
     {
         return QVariant();
     }
@@ -44,42 +44,49 @@ QVariant Index::data(const QModelIndex &index, int role) const
     VersionListPtr list = m_lists.at(index.row());
     switch (role)
     {
-    case Qt::DisplayRole:
-        if (index.column() == 0)
-            return list->humanReadable();
-        break;
-    case UidRole: return list->uid();
-    case NameRole: return list->name();
-    case ListPtrRole: return QVariant::fromValue(list);
+        case Qt::DisplayRole:
+            if (index.column() == 0)
+            {
+                return list->humanReadable();
+            }
+            break;
+        case UidRole:
+            return list->uid();
+        case NameRole:
+            return list->name();
+        case ListPtrRole:
+            return QVariant::fromValue(list);
     }
     return QVariant();
 }
-int Index::rowCount(const QModelIndex &/*parent*/) const
+int Index::rowCount(const QModelIndex& /*parent*/) const
 {
     return m_lists.size();
 }
-int Index::columnCount(const QModelIndex &/*parent*/) const
+int Index::columnCount(const QModelIndex& /*parent*/) const
 {
     return 1;
 }
-QVariant Index::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant Index::headerData(int section, Qt::Orientation orientation,
+                           int role) const
 {
-    if (orientation == Qt::Horizontal && role == Qt::DisplayRole && section == 0)
+    if (orientation == Qt::Horizontal && role == Qt::DisplayRole &&
+        section == 0)
     {
         return tr("Name");
     }
     return QVariant();
 }
 
-bool Index::hasUid(const QString &uid) const
+bool Index::hasUid(const QString& uid) const
 {
     return m_uids.contains(uid);
 }
 
-VersionListPtr Index::get(const QString &uid)
+VersionListPtr Index::get(const QString& uid)
 {
     VersionListPtr out = m_uids.value(uid, nullptr);
-    if(!out)
+    if (!out)
     {
         out = std::make_shared<VersionList>(uid);
         m_uids[uid] = out;
@@ -87,7 +94,7 @@ VersionListPtr Index::get(const QString &uid)
     return out;
 }
 
-VersionPtr Index::get(const QString &uid, const QString &version)
+VersionPtr Index::get(const QString& uid, const QString& version)
 {
     auto list = get(uid);
     return list->getVersion(version);
@@ -98,14 +105,15 @@ void Index::parse(const QJsonObject& obj)
     parseIndex(obj, this);
 }
 
-void Index::merge(const std::shared_ptr<Index> &other)
+void Index::merge(const std::shared_ptr<Index>& other)
 {
-    const QVector<VersionListPtr> lists = std::dynamic_pointer_cast<Index>(other)->m_lists;
+    const QVector<VersionListPtr> lists =
+        std::dynamic_pointer_cast<Index>(other)->m_lists;
     // initial load, no need to merge
     if (m_lists.isEmpty())
     {
         beginResetModel();
-        for (const VersionListPtr &list : lists)
+        for (const VersionListPtr& list : lists)
         {
             VersionListPtr existing = m_uids.value(list->uid());
             if (existing)
@@ -123,7 +131,7 @@ void Index::merge(const std::shared_ptr<Index> &other)
     }
     else
     {
-        for (const VersionListPtr &list : lists)
+        for (const VersionListPtr& list : lists)
         {
             if (m_uids.contains(list->uid()))
             {
@@ -141,11 +149,13 @@ void Index::merge(const std::shared_ptr<Index> &other)
     }
 }
 
-void Index::connectVersionList(const int row, const VersionListPtr &list)
+void Index::connectVersionList(const int row, const VersionListPtr& list)
 {
-    connect(list.get(), &VersionList::nameChanged, this, [this, row]()
-    {
-        emit dataChanged(index(row), index(row), QVector<int>() << Qt::DisplayRole);
-    });
+    connect(list.get(), &VersionList::nameChanged, this,
+            [this, row]()
+            {
+                emit dataChanged(index(row), index(row),
+                                 QVector<int>() << Qt::DisplayRole);
+            });
 }
-}
+}  // namespace Meta

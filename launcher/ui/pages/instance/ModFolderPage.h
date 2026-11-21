@@ -40,27 +40,46 @@
 #include "DownloadableResourcesPage.h"
 #include "ModDownloadTask.h"
 
-class ModFolderPage : public DownloadableResourcesPage {
+class ModFolderPage : public DownloadableResourcesPage
+{
     Q_OBJECT
 
-   public:
-    explicit ModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel> mods, QWidget* parent = nullptr);
+public:
+    explicit ModFolderPage(BaseInstance* inst,
+                           std::shared_ptr<ModFolderModel> mods,
+                           QWidget* parent = nullptr);
     virtual ~ModFolderPage() = default;
 
-    void setFilter(const QString& filter) { m_fileSelectionFilter = filter; }
+    void setFilter(const QString& filter)
+    {
+        m_fileSelectionFilter = filter;
+    }
 
-    virtual QString displayName() const override { return tr("Mods"); }
-    virtual QIcon icon() const override { return APPLICATION->getThemedIcon("loadermods"); }
-    virtual QString id() const override { return "mods"; }
-    virtual QString helpPage() const override { return "Loader-mods"; }
+    virtual QString displayName() const override
+    {
+        return tr("Mods");
+    }
+    virtual QIcon icon() const override
+    {
+        return APPLICATION->getThemedIcon("loadermods");
+    }
+    virtual QString id() const override
+    {
+        return "mods";
+    }
+    virtual QString helpPage() const override
+    {
+        return "Loader-mods";
+    }
 
     virtual bool shouldDisplay() const override;
     void runningStateChanged(bool running) override;
 
-   public slots:
-    bool onSelectionChanged(const QModelIndex& current, const QModelIndex& previous) override;
+public slots:
+    bool onSelectionChanged(const QModelIndex& current,
+                            const QModelIndex& previous) override;
 
-   private slots:
+private slots:
     void removeItem() override;
 
     void installMods();
@@ -68,19 +87,34 @@ class ModFolderPage : public DownloadableResourcesPage {
     void disableUpdates();
     void onDisableUpdatesChange();
 
-   protected:
+protected:
     std::shared_ptr<ModFolderModel> m_model;
 };
 
-class CoreModFolderPage : public ModFolderPage {
-   public:
-    explicit CoreModFolderPage(BaseInstance* inst, std::shared_ptr<ModFolderModel> mods, QWidget* parent = 0);
+class CoreModFolderPage : public ModFolderPage
+{
+public:
+    explicit CoreModFolderPage(BaseInstance* inst,
+                               std::shared_ptr<ModFolderModel> mods,
+                               QWidget* parent = 0);
     virtual ~CoreModFolderPage() = default;
 
-    virtual QString displayName() const override { return tr("Core mods"); }
-    virtual QIcon icon() const override { return APPLICATION->getThemedIcon("coremods"); }
-    virtual QString id() const override { return "coremods"; }
-    virtual QString helpPage() const override { return "Core-mods"; }
+    virtual QString displayName() const override
+    {
+        return tr("Core mods");
+    }
+    virtual QIcon icon() const override
+    {
+        return APPLICATION->getThemedIcon("coremods");
+    }
+    virtual QString id() const override
+    {
+        return "coremods";
+    }
+    virtual QString helpPage() const override
+    {
+        return "Core-mods";
+    }
 
     virtual bool shouldDisplay() const override;
 };

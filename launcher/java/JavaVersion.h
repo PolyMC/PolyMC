@@ -2,26 +2,28 @@
 
 #include <QString>
 
-// NOTE: apparently the GNU C library pollutes the global namespace with these... undef them.
+// NOTE: apparently the GNU C library pollutes the global namespace with
+// these... undef them.
 #ifdef major
-    #undef major
+#undef major
 #endif
 #ifdef minor
-    #undef minor
+#undef minor
 #endif
 
 class JavaVersion
 {
     friend class JavaVersionTest;
+
 public:
     JavaVersion() {};
-    JavaVersion(const QString & rhs);
+    JavaVersion(const QString& rhs);
 
-    JavaVersion & operator=(const QString & rhs);
+    JavaVersion& operator=(const QString& rhs);
 
-    bool operator<(const JavaVersion & rhs) const;
-    bool operator==(const JavaVersion & rhs) const;
-    bool operator>(const JavaVersion & rhs) const;
+    bool operator<(const JavaVersion& rhs) const;
+    bool operator==(const JavaVersion& rhs) const;
+    bool operator>(const JavaVersion& rhs) const;
 
     bool requiresPermGen();
 
@@ -43,6 +45,7 @@ public:
     {
         return m_security;
     }
+
 private:
     QString m_string;
     int m_major = 0;

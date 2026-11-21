@@ -16,7 +16,6 @@ QString AuthSession::serializeUserProperties()
     */
     QJsonDocument value(userAttrs);
     return value.toJson(QJsonDocument::Compact);
-
 }
 
 bool AuthSession::MakeOffline(QString offline_playername)
@@ -31,7 +30,8 @@ bool AuthSession::MakeOffline(QString offline_playername)
     return true;
 }
 
-void AuthSession::MakeDemo() {
+void AuthSession::MakeDemo()
+{
     player_name = "Player";
     demo = true;
 }

@@ -2,7 +2,8 @@
 
 #include "WinDarkmode.h"
 
-namespace WinDarkmode {
+namespace WinDarkmode
+{
 
 VOID ApplyStringProp(HWND hWnd, LPCWSTR lpString, WORD Property)
 {
@@ -16,7 +17,9 @@ VOID ApplyStringProp(HWND hWnd, LPCWSTR lpString, WORD Property)
     {
         ATOM v = AddAtomW(lpString);
         if (v)
+        {
             SetPropW(hWnd, (LPCWSTR)(uint64_t)Property, (HANDLE)(uint64_t)v);
+        }
     }
 }
 
@@ -32,67 +35,84 @@ VOID AllowDarkModeForWindow(HWND hWnd, BOOL Enable)
 BOOL IsWindows11()
 {
     HMODULE hKern32 = GetModuleHandleW(L"kernel32.dll");
-    return GetProcAddress(hKern32, "Wow64SetThreadDefaultGuestMachine") != NULL; // Win11 21h2+
+    return GetProcAddress(hKern32, "Wow64SetThreadDefaultGuestMachine") !=
+           NULL;  // Win11 21h2+
 }
 
 BOOL IsWindows10_Only()
 {
     HMODULE hKern32 = GetModuleHandleW(L"kernel32.dll");
     HMODULE hNtuser = GetModuleHandleW(L"ntdll.dll");
-    return GetProcAddress(hKern32, "SetThreadSelectedCpuSets") != NULL
-            && GetProcAddress(hNtuser, "ZwSetInformationCpuPartition") == NULL;
+    return GetProcAddress(hKern32, "SetThreadSelectedCpuSets") != NULL &&
+           GetProcAddress(hNtuser, "ZwSetInformationCpuPartition") == NULL;
 }
 
 BOOL IsWindows8_0_Only()
 {
     HMODULE hKern32 = GetModuleHandleW(L"kernel32.dll");
-    return GetProcAddress(hKern32, "CreateFile2") != NULL //  Export added in 6.2 (8)
-        && GetProcAddress(hKern32, "AppXFreeMemory") != NULL;  // Export added in 6.2 (8), removed in 6.3 (8.1)
+    return GetProcAddress(hKern32, "CreateFile2") !=
+               NULL  //  Export added in 6.2 (8)
+           && GetProcAddress(hKern32, "AppXFreeMemory") !=
+                  NULL;  // Export added in 6.2 (8), removed in 6.3 (8.1)
 }
 
 BOOL IsWindows8_1_Only()
 {
     HMODULE hKern32 = GetModuleHandleW(L"kernel32.dll");
-    return GetProcAddress(hKern32, "CalloutOnFiberStack") != NULL //  Export added in 6.3 (8.1), Removed in 10.0.10586
-        && GetProcAddress(hKern32, "SetThreadSelectedCpuSets") == NULL; // Export added in 10.0 (10)
+    return GetProcAddress(hKern32, "CalloutOnFiberStack") !=
+               NULL  //  Export added in 6.3 (8.1), Removed in 10.0.10586
+           && GetProcAddress(hKern32, "SetThreadSelectedCpuSets") ==
+                  NULL;  // Export added in 10.0 (10)
 }
 
 void setWindowDarkModeEnabled(HWND hWnd, bool Enabled)
 {
     AllowDarkModeForWindow(hWnd, Enabled);
     BOOL DarkEnabled = (BOOL)Enabled;
-    WINDOWCOMPOSITIONATTRIBDATA data = {
-        WCA_USEDARKMODECOLORS,
-        &DarkEnabled,
-        sizeof(DarkEnabled)
-    };
+    WINDOWCOMPOSITIONATTRIBDATA data = {WCA_USEDARKMODECOLORS, &DarkEnabled,
+                                        sizeof(DarkEnabled)};
 
 #ifdef _WIN64
     if (IsWindows10_Only() || IsWindows11())
     {
-        auto setCompositionAttribute = (fnSetWindowCompositionAttribute)(PVOID)GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetWindowCompositionAttribute");
+        auto setCompositionAttribute =
+            (fnSetWindowCompositionAttribute)(PVOID)GetProcAddress(
+                GetModuleHandleW(L"user32.dll"),
+                "SetWindowCompositionAttribute");
         if (setCompositionAttribute)
+        {
             setCompositionAttribute(hWnd, &data);
+        }
         // Verified this ordinal is the same through Win11 22H2 (5/8/2023)
         HMODULE uxtheme = GetModuleHandleW(L"uxtheme.dll");
-        auto setPreferredAppMode = uxtheme ? (fnSetPreferredAppMode)(PVOID)GetProcAddress(uxtheme, MAKEINTRESOURCEA(135)) : nullptr;
+        auto setPreferredAppMode =
+            uxtheme ? (fnSetPreferredAppMode)(PVOID)GetProcAddress(
+                          uxtheme, MAKEINTRESOURCEA(135))
+                    : nullptr;
         if (setPreferredAppMode)
+        {
             setPreferredAppMode(AppMode_AllowDark);
+        }
     }
 #else
     if (IsWindows10_Only())
     {
-        auto setCompositionAttribute = (fnSetWindowCompositionAttribute)(PVOID)GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetWindowCompositionAttribute");
+        auto setCompositionAttribute =
+            (fnSetWindowCompositionAttribute)(PVOID)GetProcAddress(
+                GetModuleHandleW(L"user32.dll"),
+                "SetWindowCompositionAttribute");
         if (setCompositionAttribute)
             setCompositionAttribute(hWnd, &data);
         // Verified this ordinal is the same through Win11 22H2 (5/8/2023)
         HMODULE uxtheme = GetModuleHandleW(L"uxtheme.dll");
-        auto setPreferredAppMode = uxtheme ? (fnSetPreferredAppMode)(PVOID)GetProcAddress(uxtheme, MAKEINTRESOURCEA(135)) : nullptr;
+        auto setPreferredAppMode =
+            uxtheme ? (fnSetPreferredAppMode)(PVOID)GetProcAddress(
+                          uxtheme, MAKEINTRESOURCEA(135))
+                    : nullptr;
         if (setPreferredAppMode)
             setPreferredAppMode(AppMode_AllowDark);
     }
 #endif
-
 }
 
-}
+}  // namespace WinDarkmode

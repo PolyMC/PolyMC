@@ -42,14 +42,19 @@ class ModDownloadDialog final : public QDialog, public BasePageProvider
     Q_OBJECT
 
 public:
-    explicit ModDownloadDialog(const std::shared_ptr<ResourceFolderModel>& mods, QWidget* parent,
-                               ModAPI::ResourceType type, BaseInstance* instance);
-    ~ModDownloadDialog() override { qDeleteAll(modTask); }
+    explicit ModDownloadDialog(const std::shared_ptr<ResourceFolderModel>& mods,
+                               QWidget* parent, ModAPI::ResourceType type,
+                               BaseInstance* instance);
+    ~ModDownloadDialog() override
+    {
+        qDeleteAll(modTask);
+    }
 
     QString dialogTitle() override;
     QList<BasePage*> getPages() override;
 
-    void addSelectedMod(QString name = QString(), ModDownloadTask* task = nullptr);
+    void addSelectedMod(QString name = QString(),
+                        ModDownloadTask* task = nullptr);
     void removeSelectedMod(QString name = QString());
     bool isModSelected(QString name, QString filename) const;
     bool isModSelected(QString name) const;
@@ -66,13 +71,13 @@ private slots:
     void selectedPageChanged(BasePage* previous, BasePage* selected);
 
 private:
-    Ui::ModDownloadDialog *ui = nullptr;
-    PageContainer * m_container = nullptr;
-    QDialogButtonBox * m_buttons = nullptr;
-    QVBoxLayout *m_verticalLayout = nullptr;
+    Ui::ModDownloadDialog* ui = nullptr;
+    PageContainer* m_container = nullptr;
+    QDialogButtonBox* m_buttons = nullptr;
+    QVBoxLayout* m_verticalLayout = nullptr;
 
     QHash<QString, ModDownloadTask*> modTask;
     ModAPI::ResourceType m_type;
     QString m_typeString;
-    BaseInstance *m_instance;
+    BaseInstance* m_instance;
 };

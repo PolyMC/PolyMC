@@ -2,11 +2,13 @@
 
 #include "ITheme.h"
 
-class CustomTheme: public ITheme
+class CustomTheme : public ITheme
 {
 public:
-    CustomTheme(ITheme * baseTheme, QString folder);
-    virtual ~CustomTheme() {}
+    CustomTheme(ITheme* baseTheme, QString folder);
+    virtual ~CustomTheme()
+    {
+    }
 
     QString id() override;
     QString name() override;
@@ -28,4 +30,3 @@ private: /* data */
     QString m_id;
     QString m_widgets;
 };
-

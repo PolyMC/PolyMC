@@ -18,11 +18,11 @@
 #include "launch/LaunchStep.h"
 #include "LoggedProcess.h"
 
-class PreLaunchCommand: public LaunchStep
+class PreLaunchCommand : public LaunchStep
 {
     Q_OBJECT
 public:
-    explicit PreLaunchCommand(LaunchTask *parent);
+    explicit PreLaunchCommand(LaunchTask* parent);
     virtual ~PreLaunchCommand() {};
 
     virtual void executeTask();
@@ -31,7 +31,7 @@ public:
     {
         return true;
     }
-    void setWorkingDirectory(const QString &wd);
+    void setWorkingDirectory(const QString& wd);
 private slots:
     void on_state(LoggedProcess::State state);
 

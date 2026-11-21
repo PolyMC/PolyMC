@@ -8,63 +8,93 @@
 class ModPage;
 class Version;
 
-namespace ModPlatform {
+namespace ModPlatform
+{
 
 using LogoMap = QMap<QString, QIcon>;
-using LogoCallback = std::function<void (QString)>;
+using LogoCallback = std::function<void(QString)>;
 
-class ListModel : public QAbstractListModel {
+class ListModel : public QAbstractListModel
+{
     Q_OBJECT
 
-   public:
+public:
     ListModel(ModPage* parent);
     ~ListModel() override;
 
-    inline int rowCount(const QModelIndex& /*parent*/) const override { return modpacks.size(); };
-    inline int columnCount(const QModelIndex& /*parent*/) const override { return 1; };
-    inline Qt::ItemFlags flags(const QModelIndex& index) const override { return QAbstractListModel::flags(index); };
+    inline int rowCount(const QModelIndex& /*parent*/) const override
+    {
+        return modpacks.size();
+    };
+    inline int columnCount(const QModelIndex& /*parent*/) const override
+    {
+        return 1;
+    };
+    inline Qt::ItemFlags flags(const QModelIndex& index) const override
+    {
+        return QAbstractListModel::flags(index);
+    };
 
     QString debugName() const;
 
-    /* Retrieve information from the model at a given index with the given role */
+    /* Retrieve information from the model at a given index with the given role
+     */
     QVariant data(const QModelIndex& index, int role) const override;
-    bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+    bool setData(const QModelIndex& index, const QVariant& value,
+                 int role) override;
 
-    inline void setActiveJob(NetJob::Ptr ptr) { jobPtr = ptr; }
-    inline NetJob* activeJob() { return jobPtr.get(); }
+    inline void setActiveJob(NetJob::Ptr ptr)
+    {
+        jobPtr = ptr;
+    }
+    inline NetJob* activeJob()
+    {
+        return jobPtr.get();
+    }
 
     /* Ask the API for more information */
     void fetchMore(const QModelIndex& parent) override;
     void refresh();
-    void searchWithTerm(const QString& term, const int sort, const bool filter_changed);
+    void searchWithTerm(const QString& term, const int sort,
+                        const bool filter_changed);
     void requestModInfo(ModPlatform::IndexedPack& current, QModelIndex index);
-    void requestModVersions(const ModPlatform::IndexedPack& current, QModelIndex index);
+    void requestModVersions(const ModPlatform::IndexedPack& current,
+                            QModelIndex index);
 
-    virtual void loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj) = 0;
-    virtual void loadExtraPackInfo(ModPlatform::IndexedPack& /*m*/, QJsonObject& /*obj*/) {};
-    virtual void loadIndexedPackVersions(ModPlatform::IndexedPack& m, QJsonArray& arr) = 0;
+    virtual void loadIndexedPack(ModPlatform::IndexedPack& m,
+                                 QJsonObject& obj) = 0;
+    virtual void loadExtraPackInfo(ModPlatform::IndexedPack& /*m*/,
+                                   QJsonObject& /*obj*/) {};
+    virtual void loadIndexedPackVersions(ModPlatform::IndexedPack& m,
+                                         QJsonArray& arr) = 0;
 
-    void getLogo(const QString& logo, const QString& logoUrl, LogoCallback callback);
+    void getLogo(const QString& logo, const QString& logoUrl,
+                 LogoCallback callback);
 
-    inline bool canFetchMore(const QModelIndex& /*parent*/) const override { return searchState == CanPossiblyFetchMore; };
+    inline bool canFetchMore(const QModelIndex& /*parent*/) const override
+    {
+        return searchState == CanPossiblyFetchMore;
+    };
 
-   public slots:
+public slots:
     void searchRequestFinished(QJsonDocument& doc);
     void searchRequestFailed(QString reason);
     void searchRequestAborted();
 
-    void infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack& pack, const QModelIndex& index);
+    void infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack& pack,
+                             const QModelIndex& index);
 
-    void versionRequestSucceeded(QJsonDocument doc, QString addonId, const QModelIndex& index);
+    void versionRequestSucceeded(QJsonDocument doc, QString addonId,
+                                 const QModelIndex& index);
 
-   protected slots:
+protected slots:
 
     void logoFailed(QString logo);
     void logoLoaded(QString logo, QIcon out);
 
     void performPaginatedSearch();
 
-   protected:
+protected:
     virtual QJsonArray documentToArray(QJsonDocument& obj) const = 0;
     virtual const char** getSorts() const = 0;
 
@@ -72,7 +102,7 @@ class ListModel : public QAbstractListModel {
 
     inline std::list<Version> getMineVersions() const;
 
-   protected:
+protected:
     ModPage* m_parent;
 
     QList<ModPlatform::IndexedPack> modpacks;
@@ -85,7 +115,13 @@ class ListModel : public QAbstractListModel {
     QString currentSearchTerm;
     int currentSort = 0;
     int nextSearchOffset = 0;
-    enum SearchState { None, CanPossiblyFetchMore, ResetRequested, Finished } searchState = None;
+    enum SearchState
+    {
+        None,
+        CanPossiblyFetchMore,
+        ResetRequested,
+        Finished
+    } searchState = None;
 
     NetJob::Ptr jobPtr;
 };

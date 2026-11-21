@@ -69,12 +69,12 @@ class MainWindow : public QMainWindow
     class Ui;
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget* parent = 0);
     ~MainWindow();
 
-    bool eventFilter(QObject *obj, QEvent *ev) override;
-    void closeEvent(QCloseEvent *event) override;
-    void changeEvent(QEvent * event) override;
+    bool eventFilter(QObject* obj, QEvent* ev) override;
+    void closeEvent(QCloseEvent* event) override;
+    void changeEvent(QEvent* event) override;
 
     void checkInstancePathForProblems();
 
@@ -85,7 +85,7 @@ signals:
     void isClosing();
 
 protected:
-    QMenu * createPopupMenu() override;
+    QMenu* createPopupMenu() override;
 
 private slots:
     void onCatToggled(bool);
@@ -179,7 +179,7 @@ private slots:
      */
     void iconUpdated(QString);
 
-    void showInstanceContextMenu(const QPoint &);
+    void showInstanceContextMenu(const QPoint&);
 
     void updateMainToolBar();
 
@@ -187,15 +187,17 @@ private slots:
 
     void instanceActivated(QModelIndex);
 
-    void instanceChanged(const QModelIndex &current, const QModelIndex &previous);
+    void instanceChanged(const QModelIndex& current,
+                         const QModelIndex& previous);
 
     void instanceSelectRequest(QString id);
 
-    void instanceDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
+    void instanceDataChanged(const QModelIndex& topLeft,
+                             const QModelIndex& bottomRight);
 
     void selectionBad();
 
-    void startTask(Task *task);
+    void startTask(Task* task);
 
     void updateAvailable(GoUpdate::Status status);
 
@@ -221,7 +223,7 @@ private slots:
     void globalSettingsClosed();
 
 #ifndef Q_OS_MAC
-    void keyReleaseEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
 #endif
 
     void refreshCurrentInstance(bool running);
@@ -233,25 +235,25 @@ private:
     void activateInstance(InstancePtr instance);
     void setCatBackground(bool enabled);
     void updateInstanceToolIcon(QString new_icon);
-    void setSelectedInstanceById(const QString &id);
+    void setSelectedInstanceById(const QString& id);
     void updateStatusCenter();
 
-    void runModalTask(Task *task);
-    void instanceFromInstanceTask(InstanceTask *task);
+    void runModalTask(Task* task);
+    void instanceFromInstanceTask(InstanceTask* task);
     void finalizeInstance(InstancePtr inst);
 
 private:
     std::unique_ptr<Ui> ui;
 
     // these are managed by Qt's memory management model!
-    InstanceView *view = nullptr;
-    InstanceProxyModel *proxymodel = nullptr;
-    QToolButton *newsLabel = nullptr;
-    QLabel *m_statusLeft = nullptr;
-    QLabel *m_statusCenter = nullptr;
-    QMenu *accountMenu = nullptr;
-    QToolButton *accountMenuButton = nullptr;
-    KonamiCode * secretEventFilter = nullptr;
+    InstanceView* view = nullptr;
+    InstanceProxyModel* proxymodel = nullptr;
+    QToolButton* newsLabel = nullptr;
+    QLabel* m_statusLeft = nullptr;
+    QLabel* m_statusCenter = nullptr;
+    QMenu* accountMenu = nullptr;
+    QToolButton* accountMenuButton = nullptr;
+    KonamiCode* secretEventFilter = nullptr;
 
     unique_qobject_ptr<NewsChecker> m_newsChecker;
 
@@ -259,6 +261,5 @@ private:
     QString m_currentInstIcon;
 
     // managed by the application object
-    Task *m_versionLoadTask = nullptr;
+    Task* m_versionLoadTask = nullptr;
 };
-

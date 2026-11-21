@@ -5,17 +5,18 @@ class RegexpMatcher : public IPathMatcher
 {
 public:
     virtual ~RegexpMatcher() {};
-    RegexpMatcher(const QString &regexp)
+    RegexpMatcher(const QString& regexp)
     {
         m_regexp.setPattern(regexp);
         m_onlyFilenamePart = !regexp.contains('/');
     }
 
-    RegexpMatcher &caseSensitive(bool cs = true)
+    RegexpMatcher& caseSensitive(bool cs = true)
     {
-        if(!cs)
+        if (!cs)
         {
-            m_regexp.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
+            m_regexp.setPatternOptions(
+                QRegularExpression::CaseInsensitiveOption);
         }
         else
         {
@@ -24,12 +25,12 @@ public:
         return *this;
     }
 
-    virtual bool matches(const QString &string) const override
+    virtual bool matches(const QString& string) const override
     {
-        if(m_onlyFilenamePart)
+        if (m_onlyFilenamePart)
         {
             auto slash = string.lastIndexOf('/');
-            if(slash != -1)
+            if (slash != -1)
             {
                 auto part = string.mid(slash + 1);
                 return m_regexp.match(part).hasMatch();

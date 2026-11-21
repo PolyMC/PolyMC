@@ -43,7 +43,8 @@
 #include "settings/SettingsObject.h"
 #include "Application.h"
 
-MinecraftPage::MinecraftPage(QWidget *parent) : QWidget(parent), ui(new Ui::MinecraftPage)
+MinecraftPage::MinecraftPage(QWidget* parent)
+    : QWidget(parent), ui(new Ui::MinecraftPage)
 {
     ui->setupUi(this);
     loadSettings();
@@ -114,18 +115,23 @@ void MinecraftPage::loadSettings()
     ui->useNativeOpenALCheck->setChecked(s->get("UseNativeOpenAL").toBool());
     ui->useNativeGLFWCheck->setChecked(s->get("UseNativeGLFW").toBool());
 
-    ui->enableFeralGamemodeCheck->setChecked(s->get("EnableFeralGamemode").toBool());
+    ui->enableFeralGamemodeCheck->setChecked(
+        s->get("EnableFeralGamemode").toBool());
     ui->enableMangoHud->setChecked(s->get("EnableMangoHud").toBool());
     ui->useDiscreteGpuCheck->setChecked(s->get("UseDiscreteGpu").toBool());
 
-    if (!(APPLICATION->capabilities() & Application::SupportsGameMode)) {
+    if (!(APPLICATION->capabilities() & Application::SupportsGameMode))
+    {
         ui->enableFeralGamemodeCheck->setDisabled(true);
-        ui->enableFeralGamemodeCheck->setToolTip(tr("Feral Interactive's GameMode could not be found on your system."));
+        ui->enableFeralGamemodeCheck->setToolTip(tr(
+            "Feral Interactive's GameMode could not be found on your system."));
     }
 
-    if (!(APPLICATION->capabilities() & Application::SupportsMangoHud)) {
+    if (!(APPLICATION->capabilities() & Application::SupportsMangoHud))
+    {
         ui->enableMangoHud->setDisabled(true);
-        ui->enableMangoHud->setToolTip(tr("MangoHud could not be found on your system."));
+        ui->enableMangoHud->setToolTip(
+            tr("MangoHud could not be found on your system."));
     }
 
     ui->showGameTime->setChecked(s->get("ShowGameTime").toBool());
@@ -133,7 +139,8 @@ void MinecraftPage::loadSettings()
     ui->recordGameTime->setChecked(s->get("RecordGameTime").toBool());
 
     ui->closeAfterLaunchCheck->setChecked(s->get("CloseAfterLaunch").toBool());
-    ui->quitAfterGameStopCheck->setChecked(s->get("QuitAfterGameStop").toBool());
+    ui->quitAfterGameStopCheck->setChecked(
+        s->get("QuitAfterGameStop").toBool());
     ui->agentCheckbox->setChecked(s->get("UseLoki").toBool());
 }
 

@@ -33,12 +33,16 @@ class JavaUtils : public QObject
 public:
     JavaUtils();
 
-    JavaInstallPtr MakeJavaPtr(QString path, QString id = "unknown", QString arch = "unknown");
+    JavaInstallPtr MakeJavaPtr(QString path, QString id = "unknown",
+                               QString arch = "unknown");
     QList<QString> FindJavaPaths();
     JavaInstallPtr GetDefaultJava();
 
 #ifdef Q_OS_WIN
-    QList<JavaInstallPtr> FindJavaFromRegistryKey(DWORD keyType, QString keyName, QString keyJavaDir, QString subkeySuffix = "");
+    QList<JavaInstallPtr> FindJavaFromRegistryKey(DWORD keyType,
+                                                  QString keyName,
+                                                  QString keyJavaDir,
+                                                  QString subkeySuffix = "");
 #endif
 
     static QString getJavaCheckPath();

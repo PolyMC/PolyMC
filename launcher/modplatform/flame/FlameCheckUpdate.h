@@ -5,21 +5,25 @@
 #include "modplatform/CheckUpdateTask.h"
 #include "net/NetJob.h"
 
-class FlameCheckUpdate : public CheckUpdateTask {
+class FlameCheckUpdate : public CheckUpdateTask
+{
     Q_OBJECT
 
-   public:
-    FlameCheckUpdate(QList<Mod*>& mods, std::list<Version>& mcVersions, ModAPI::ModLoaderTypes loaders, std::shared_ptr<ModFolderModel> mods_folder)
+public:
+    FlameCheckUpdate(QList<Mod*>& mods, std::list<Version>& mcVersions,
+                     ModAPI::ModLoaderTypes loaders,
+                     std::shared_ptr<ModFolderModel> mods_folder)
         : CheckUpdateTask(mods, mcVersions, loaders, mods_folder)
-    {}
+    {
+    }
 
-   public slots:
+public slots:
     bool abort() override;
 
-   protected slots:
+protected slots:
     void executeTask() override;
 
-   private:
+private:
     bool runJob(NetJob::Ptr job);
 
     NetJob* m_net_job = nullptr;

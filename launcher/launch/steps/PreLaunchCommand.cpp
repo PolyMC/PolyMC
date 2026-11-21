@@ -36,27 +36,30 @@
 #include "PreLaunchCommand.h"
 #include <launch/LaunchTask.h>
 
-PreLaunchCommand::PreLaunchCommand(LaunchTask *parent) : LaunchStep(parent)
+PreLaunchCommand::PreLaunchCommand(LaunchTask* parent) : LaunchStep(parent)
 {
     auto instance = m_parent->instance();
     m_command = instance->getPreLaunchCommand();
     m_process.setProcessEnvironment(instance->createEnvironment());
     connect(&m_process, &LoggedProcess::log, this, &PreLaunchCommand::logLines);
-    connect(&m_process, &LoggedProcess::stateChanged, this, &PreLaunchCommand::on_state);
+    connect(&m_process, &LoggedProcess::stateChanged, this,
+            &PreLaunchCommand::on_state);
 }
 
 void PreLaunchCommand::executeTask()
 {
-    //FIXME: where to put this?
+    // FIXME: where to put this?
     auto args = QProcess::splitCommand(m_command);
     // A command made only of whitespace has nothing to run
-    if (args.isEmpty()) {
+    if (args.isEmpty())
+    {
         emitSucceeded();
         return;
     }
     m_parent->substituteVariables(args);
 
-    emit logLine(tr("Running Pre-Launch command: %1").arg(args.join(' ')), MessageLevel::Launcher);
+    emit logLine(tr("Running Pre-Launch command: %1").arg(args.join(' ')),
+                 MessageLevel::Launcher);
     const QString program = args.takeFirst();
     m_process.start(program, args);
 }
@@ -65,9 +68,10 @@ void PreLaunchCommand::on_state(LoggedProcess::State state)
 {
     auto getError = [&]()
     {
-        return tr("Pre-Launch command failed with code %1.\n\n").arg(m_process.exitCode());
+        return tr("Pre-Launch command failed with code %1.\n\n")
+            .arg(m_process.exitCode());
     };
-    switch(state)
+    switch (state)
     {
         case LoggedProcess::Aborted:
         case LoggedProcess::Crashed:
@@ -80,7 +84,7 @@ void PreLaunchCommand::on_state(LoggedProcess::State state)
         }
         case LoggedProcess::Finished:
         {
-            if(m_process.exitCode() != 0)
+            if (m_process.exitCode() != 0)
             {
                 auto error = getError();
                 emit logLine(error, MessageLevel::Fatal);
@@ -88,7 +92,8 @@ void PreLaunchCommand::on_state(LoggedProcess::State state)
             }
             else
             {
-                emit logLine(tr("Pre-Launch command ran successfully.\n\n"), MessageLevel::Launcher);
+                emit logLine(tr("Pre-Launch command ran successfully.\n\n"),
+                             MessageLevel::Launcher);
                 emitSucceeded();
             }
         }
@@ -97,7 +102,7 @@ void PreLaunchCommand::on_state(LoggedProcess::State state)
     }
 }
 
-void PreLaunchCommand::setWorkingDirectory(const QString &wd)
+void PreLaunchCommand::setWorkingDirectory(const QString& wd)
 {
     m_process.setWorkingDirectory(wd);
 }

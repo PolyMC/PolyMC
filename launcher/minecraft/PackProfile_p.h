@@ -13,7 +13,7 @@ using ComponentIndex = QMap<QString, ComponentPtr>;
 struct PackProfileData
 {
     // the instance this belongs to
-    MinecraftInstance *m_instance;
+    MinecraftInstance* m_instance;
 
     // the launch profile (volatile, temporary thing created on demand)
     std::shared_ptr<LaunchProfile> m_profile;
@@ -27,4 +27,3 @@ struct PackProfileData
     bool loaded = false;
     bool interactionDisabled = true;
 };
-

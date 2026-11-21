@@ -58,6 +58,7 @@ class PackProfile : public QAbstractListModel
 {
     Q_OBJECT
     friend ComponentUpdateTask;
+
 public:
     enum Columns
     {
@@ -66,17 +67,22 @@ public:
         NUM_COLUMNS
     };
 
-    explicit PackProfile(MinecraftInstance * instance);
+    explicit PackProfile(MinecraftInstance* instance);
     virtual ~PackProfile();
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    virtual int columnCount(const QModelIndex &parent) const override;
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
+    virtual QVariant data(const QModelIndex& index,
+                          int role = Qt::DisplayRole) const override;
+    virtual bool setData(const QModelIndex& index, const QVariant& value,
+                         int role = Qt::EditRole) override;
+    virtual QVariant headerData(int section, Qt::Orientation orientation,
+                                int role) const override;
+    virtual int rowCount(
+        const QModelIndex& parent = QModelIndex()) const override;
+    virtual int columnCount(const QModelIndex& parent) const override;
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-    /// call this to explicitly mark the component list as loaded - this is used to build a new component list from scratch.
+    /// call this to explicitly mark the component list as loaded - this is used
+    /// to build a new component list from scratch.
     void buildingFromScratch();
 
     /// install more jar mods
@@ -85,7 +91,11 @@ public:
     /// install a jar/zip as a replacement for the main jar
     void installCustomJar(QString selectedFile);
 
-    enum MoveDirection { MoveUp, MoveDown };
+    enum MoveDirection
+    {
+        MoveUp,
+        MoveDown
+    };
     /// move component file # up or down the list
     void move(const int index, const MoveDirection direction);
 
@@ -110,16 +120,18 @@ public:
 
     std::shared_ptr<LaunchProfile> getProfile() const;
 
-    // NOTE: used ONLY by MinecraftInstance to provide legacy version mappings from instance config
-    void setOldConfigVersion(const QString &uid, const QString &version);
+    // NOTE: used ONLY by MinecraftInstance to provide legacy version mappings
+    // from instance config
+    void setOldConfigVersion(const QString& uid, const QString& version);
 
-    QString getComponentVersion(const QString &uid) const;
+    QString getComponentVersion(const QString& uid) const;
 
-    bool setComponentVersion(const QString &uid, const QString &version, bool important = false);
+    bool setComponentVersion(const QString& uid, const QString& version,
+                             bool important = false);
 
-    bool installEmpty(const QString &uid, const QString &name);
+    bool installEmpty(const QString& uid, const QString& name);
 
-    QString patchFilePathForUid(const QString &uid) const;
+    QString patchFilePathForUid(const QString& uid) const;
 
     /// if there is a save scheduled, do it now.
     void saveNow();
@@ -132,10 +144,10 @@ signals:
 
 public:
     /// get the profile component by id
-    Component * getComponent(const QString &id);
+    Component* getComponent(const QString& id);
 
     /// get the profile component by index
-    Component * getComponent(int index);
+    Component* getComponent(int index);
 
     /// Add the component to the internal list of patches
     // todo(merged): is this the best approach
@@ -147,10 +159,12 @@ private:
     void scheduleSave();
     bool saveIsScheduled() const;
 
-    /// apply the component patches. Catches all the errors and returns true/false for success/failure
+    /// apply the component patches. Catches all the errors and returns
+    /// true/false for success/failure
     void invalidateLaunchProfile();
 
-    /// insert component so that its index is ideally the specified one (returns real index)
+    /// insert component so that its index is ideally the specified one (returns
+    /// real index)
     void insertComponent(size_t index, ComponentPtr component);
 
     QString componentsFilePath() const;
@@ -159,7 +173,7 @@ private:
 private slots:
     void save_internal();
     void updateSucceeded();
-    void updateFailed(const QString & error);
+    void updateFailed(const QString& error);
     void componentDataChanged();
     void disableInteraction(bool disable);
 
@@ -170,6 +184,5 @@ private:
     bool removeComponent_internal(ComponentPtr patch);
 
 private: /* data */
-
     std::unique_ptr<PackProfileData> d;
 };

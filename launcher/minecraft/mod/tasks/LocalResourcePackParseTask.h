@@ -25,7 +25,8 @@
 
 #include "tasks/Task.h"
 
-namespace ResourcePackUtils {
+namespace ResourcePackUtils
+{
 bool process(ResourcePack& pack);
 
 void processZIP(ResourcePack& pack);
@@ -35,19 +36,26 @@ void processMCMeta(ResourcePack& pack, QByteArray&& raw_data);
 void processPackPNG(ResourcePack& pack, QByteArray&& raw_data);
 }  // namespace ResourcePackUtils
 
-class LocalResourcePackParseTask : public Task {
+class LocalResourcePackParseTask : public Task
+{
     Q_OBJECT
-   public:
+public:
     LocalResourcePackParseTask(int token, ResourcePack& rp);
 
-    [[nodiscard]] bool canAbort() const override { return true; }
+    [[nodiscard]] bool canAbort() const override
+    {
+        return true;
+    }
     bool abort() override;
 
     void executeTask() override;
 
-    [[nodiscard]] int token() const { return m_token; }
+    [[nodiscard]] int token() const
+    {
+        return m_token;
+    }
 
-   private:
+private:
     int m_token;
 
     ResourcePack& m_resource_pack;

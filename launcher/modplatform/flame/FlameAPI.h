@@ -5,24 +5,32 @@
 
 #include <QUrl>
 
-class FlameAPI : public NetworkModAPI {
+class FlameAPI : public NetworkModAPI
+{
 public:
-    NetJob::Ptr matchFingerprints(const QList<uint>& fingerprints, QByteArray* response);
+    NetJob::Ptr matchFingerprints(const QList<uint>& fingerprints,
+                                  QByteArray* response);
     QString getModFileChangelog(int modId, int fileId);
     QString getModDescription(int modId);
 
     ModPlatform::IndexedVersion getLatestVersion(VersionSearchArgs&& args);
 
-    QString getLatestVersionURL(VersionSearchArgs& args) const { return getVersionsURL(args); }
+    QString getLatestVersionURL(VersionSearchArgs& args) const
+    {
+        return getVersionsURL(args);
+    }
     QString getModFileChangelogURL(int modId, int fileId) const;
-    static ModPlatform::IndexedVersion parseLatestVersion(const QByteArray& response);
+    static ModPlatform::IndexedVersion parseLatestVersion(
+        const QByteArray& response);
     static QString parseModFileChangelog(const QByteArray& response);
 
-    NetJob* getProjects(QStringList addonIds, QByteArray* response) const override;
+    NetJob* getProjects(QStringList addonIds,
+                        QByteArray* response) const override;
     NetJob* getFiles(const QStringList& fileIds, QByteArray* response) const;
 
 private:
-    inline int getSortFieldInt(QString sortString) const {
+    inline int getSortFieldInt(QString sortString) const
+    {
         return sortString == "Featured"         ? 1
                : sortString == "Popularity"     ? 2
                : sortString == "LastUpdated"    ? 3
@@ -35,72 +43,107 @@ private:
     }
 
 private:
-    static inline auto getClassId(ResourceType type) {
+    static inline auto getClassId(ResourceType type)
+    {
         // https://api.curseforge.com/v1/categories?gameId=432&classesOnly=true
-        switch (type) {
-        case ResourcePack:
-            return 12;
-        case ShaderPack:
-            return 6552;
-        case DataPack:
-            return 6945;
-        default:
-            return 6;
+        switch (type)
+        {
+            case ResourcePack:
+                return 12;
+            case ShaderPack:
+                return 6552;
+            case DataPack:
+                return 6945;
+            default:
+                return 6;
         }
     }
 
-    inline QString getModSearchURL(SearchArgs& args) const override {
+    inline QString getModSearchURL(SearchArgs& args) const override
+    {
         auto gameVersionStr = args.versions.size() != 0
-                                  ? QString("gameVersion=%1").arg(args.versions.front().toString())
+                                  ? QString("gameVersion=%1")
+                                        .arg(args.versions.front().toString())
                                   : QString();
-        const auto loader = args.type == Mod ? QStringLiteral("modLoaderType=%1&").arg(getMappedModLoader(args.loaders)) : "";
+        const auto loader = args.type == Mod
+                                ? QStringLiteral("modLoaderType=%1&")
+                                      .arg(getMappedModLoader(args.loaders))
+                                : "";
 
         const auto off = QString::number(args.offset);
         const auto sort = QString::number(getSortFieldInt(args.sorting));
         const auto classId = QString::number(getClassId(args.type));
-        // Characters like & or # in the search would otherwise end the parameter early
-        const auto search = QString::fromUtf8(QUrl::toPercentEncoding(args.search));
+        // Characters like & or # in the search would otherwise end the
+        // parameter early
+        const auto search =
+            QString::fromUtf8(QUrl::toPercentEncoding(args.search));
 
-        return QString("https://api.curseforge.com/v1/mods/search?"
-                       "gameId=432&"
-                       "classId=%6&"
-                       "index=%1&"
-                       "pageSize=25&"
-                       "searchFilter=%2&"
-                       "sortField=%3&"
-                       "sortOrder=desc&"
-                       "%4"
-                       "%5")
+        return QString(
+                   "https://api.curseforge.com/v1/mods/search?"
+                   "gameId=432&"
+                   "classId=%6&"
+                   "index=%1&"
+                   "pageSize=25&"
+                   "searchFilter=%2&"
+                   "sortField=%3&"
+                   "sortOrder=desc&"
+                   "%4"
+                   "%5")
             .arg(off, search, sort, loader, gameVersionStr, classId);
     };
 
-    inline QString getModInfoURL(QString& id) const override {
+    inline QString getModInfoURL(QString& id) const override
+    {
         return QString("https://api.curseforge.com/v1/mods/%1").arg(id);
     };
 
-    inline QString getVersionsURL(VersionSearchArgs& args) const override {
+    inline QString getVersionsURL(VersionSearchArgs& args) const override
+    {
         QString gameVersionQuery =
             args.mcVersions.size() == 1
-                ? QString("gameVersion=%1&").arg(args.mcVersions.front().toString())
+                ? QString("gameVersion=%1&")
+                      .arg(args.mcVersions.front().toString())
                 : "";
-        QString modLoaderQuery = args.type == Mod ? QString("modLoaderType=%1&").arg(getMappedModLoader(args.loaders)) : "";
+        QString modLoaderQuery =
+            args.type == Mod ? QString("modLoaderType=%1&")
+                                   .arg(getMappedModLoader(args.loaders))
+                             : "";
 
-        return QString("https://api.curseforge.com/v1/mods/%1/files?pageSize=10000&%2%3")
+        return QString(
+                   "https://api.curseforge.com/v1/mods/%1/"
+                   "files?pageSize=10000&%2%3")
             .arg(args.addonId, gameVersionQuery, modLoaderQuery);
     };
 
 public:
-    static int getMappedModLoader(const ModLoaderTypes loaders) {
+    static int getMappedModLoader(const ModLoaderTypes loaders)
+    {
         // https://docs.curseforge.com/?http#tocS_ModLoaderType
         if (loaders & Forge)
-            return 1;
+        {
+            {
+                return 1;
+            }
+        }
         if (loaders & Fabric)
-            return 4;
+        {
+            {
+                return 4;
+            }
+        }
         // TODO: remove this once Quilt drops official Fabric support
-        if (loaders & Quilt) // NOTE: Most if not all Fabric mods should work *currently*
-            return 4;        // Quilt would probably be 5
+        if (loaders & Quilt)
+        {
+            {  // NOTE: Most if not all Fabric mods should work *currently*
+                return 4;  // Quilt would probably be 5
+            }
+        }
         if (loaders & NeoForge)
-            return 6;
+        {
+            {
+                return 6;
+            }
+        }
         return 0;
     }
 };

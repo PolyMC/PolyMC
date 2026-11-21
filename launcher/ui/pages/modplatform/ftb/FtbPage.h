@@ -46,17 +46,17 @@
 
 namespace Ui
 {
-    class FtbPage;
+class FtbPage;
 }
 
 class NewInstanceDialog;
 
 class FtbPage : public QWidget, public BasePage
 {
-Q_OBJECT
+    Q_OBJECT
 
 public:
-    explicit FtbPage(NewInstanceDialog* dialog, QWidget *parent = 0);
+    explicit FtbPage(NewInstanceDialog* dialog, QWidget* parent = 0);
     virtual ~FtbPage();
     virtual QString displayName() const override
     {
@@ -79,7 +79,7 @@ public:
 
     void openedImpl() override;
 
-    bool eventFilter(QObject * watched, QEvent * event) override;
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:
     void suggestCurrent();
@@ -92,7 +92,7 @@ private slots:
     void onVersionSelectionChanged(QString newData);
 
 private:
-    Ui::FtbPage *ui = nullptr;
+    Ui::FtbPage* ui = nullptr;
     NewInstanceDialog* dialog = nullptr;
     Ftb::ListModel* listModel = nullptr;
     Ftb::FilterModel* filterModel = nullptr;
@@ -100,5 +100,5 @@ private:
     FTB::Modpack selected;
     QString selectedVersion;
 
-    bool initialised { false };
+    bool initialised{false};
 };

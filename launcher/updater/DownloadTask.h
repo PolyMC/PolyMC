@@ -23,7 +23,8 @@ namespace GoUpdate
 {
 /*!
  * The DownloadTask is a task that takes a given version ID and repository URL,
- * downloads that version's files from the repository, and prepares to install them.
+ * downloads that version's files from the repository, and prepares to install
+ * them.
  */
 class DownloadTask : public Task
 {
@@ -33,9 +34,11 @@ public:
     /**
      * Create a download task
      *
-     * target is a template - XXXXXX at the end will be replaced with a random generated string, ensuring uniqueness
+     * target is a template - XXXXXX at the end will be replaced with a random
+     * generated string, ensuring uniqueness
      */
-    explicit DownloadTask(shared_qobject_ptr<QNetworkAccessManager> network, Status status, QString target, QObject* parent = 0);
+    explicit DownloadTask(shared_qobject_ptr<QNetworkAccessManager> network,
+                          Status status, QString target, QObject* parent = 0);
     virtual ~DownloadTask() {};
 
     /// Get the directory that will contain the update files.
@@ -53,12 +56,14 @@ protected:
 
     /*!
      * Downloads the version info files from the repository.
-     * The files for both the current build, and the build that we're updating to need to be downloaded.
-     * If the current version's info file can't be found, PolyMC will not delete files that
-     * were removed between versions. It will still replace files that have changed, however.
-     * Note that although the repository URL for the current version is not given to the update task,
-     * the task will attempt to look it up in the UpdateChecker's channel list.
-     * If an error occurs here, the function will call emitFailed and return false.
+     * The files for both the current build, and the build that we're updating
+     * to need to be downloaded. If the current version's info file can't be
+     * found, PolyMC will not delete files that were removed between versions.
+     * It will still replace files that have changed, however. Note that
+     * although the repository URL for the current version is not given to the
+     * update task, the task will attempt to look it up in the UpdateChecker's
+     * channel list. If an error occurs here, the function will call emitFailed
+     * and return false.
      */
     void loadVersionInfo();
 
@@ -76,7 +81,8 @@ protected:
 
     /*!
      * Temporary directory to store update files in.
-     * This will be set to not auto delete. Task will fail if this fails to be created.
+     * This will be set to not auto delete. Task will fail if this fails to be
+     * created.
      */
     QTemporaryDir m_updateFilesDir;
 
@@ -96,5 +102,4 @@ private:
     shared_qobject_ptr<QNetworkAccessManager> m_network;
 };
 
-}
-
+}  // namespace GoUpdate

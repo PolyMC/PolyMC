@@ -46,15 +46,18 @@
 #include <cstdio>
 #endif
 
-namespace Net {
+namespace Net
+{
 
 static bool replaceFile(const QString& from, const QString& to)
 {
 #ifdef Q_OS_WIN
-    return MoveFileExW(QDir::toNativeSeparators(from).toStdWString().c_str(), QDir::toNativeSeparators(to).toStdWString().c_str(),
+    return MoveFileExW(QDir::toNativeSeparators(from).toStdWString().c_str(),
+                       QDir::toNativeSeparators(to).toStdWString().c_str(),
                        MOVEFILE_REPLACE_EXISTING);
 #else
-    return ::rename(QFile::encodeName(from).constData(), QFile::encodeName(to).constData()) == 0;
+    return ::rename(QFile::encodeName(from).constData(),
+                    QFile::encodeName(to).constData()) == 0;
 #endif
 }
 
@@ -65,7 +68,8 @@ FileSink::~FileSink()
 
 void FileSink::discardOutput()
 {
-    if (m_output_file) {
+    if (m_output_file)
+    {
         m_output_file->close();
         QFile::remove(m_output_file->fileName());
         m_output_file.reset();
@@ -75,12 +79,14 @@ void FileSink::discardOutput()
 Task::State FileSink::init(QNetworkRequest& request)
 {
     auto result = initCache(request);
-    if (result != Task::State::Running) {
+    if (result != Task::State::Running)
+    {
         return result;
     }
 
     // create a new save file and open it for writing
-    if (!FS::ensureFilePathExists(m_filename)) {
+    if (!FS::ensureFilePathExists(m_filename))
+    {
         qCritical() << "Could not create folder for " + m_filename;
         return Task::State::Failed;
     }
@@ -89,20 +95,24 @@ Task::State FileSink::init(QNetworkRequest& request)
     discardOutput();
     auto suffix = QString::number(QRandomGenerator::global()->generate(), 16);
     m_output_file.reset(new QFile(m_filename + "." + suffix + ".part"));
-    if (!m_output_file->open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
+    if (!m_output_file->open(QIODevice::WriteOnly | QIODevice::NewOnly))
+    {
         qCritical() << "Could not open " + m_filename + " for writing";
         m_output_file.reset();
         return Task::State::Failed;
     }
 
     if (initAllValidators(request))
+    {
         return Task::State::Running;
+    }
     return Task::State::Failed;
 }
 
 Task::State FileSink::write(QByteArray& data)
 {
-    if (!writeAllValidators(data) || m_output_file->write(data) != data.size()) {
+    if (!writeAllValidators(data) || m_output_file->write(data) != data.size())
+    {
         qCritical() << "Failed writing into " + m_filename;
         discardOutput();
         wroteAnyData = false;
@@ -125,38 +135,51 @@ Task::State FileSink::finalize(QNetworkReply& reply)
 {
     // A failed write() already cancelled and got rid of the output file
     if (!m_output_file)
+    {
         return Task::State::Failed;
+    }
 
     bool gotFile = false;
-    QVariant statusCodeV = reply.attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    QVariant statusCodeV =
+        reply.attribute(QNetworkRequest::HttpStatusCodeAttribute);
     bool validStatus = false;
     int statusCode = statusCodeV.toInt(&validStatus);
-    if (validStatus) {
+    if (validStatus)
+    {
         // this leaves out 304 Not Modified
         gotFile = statusCode == 200 || statusCode == 203;
     }
 
-    // if we wrote any data to the save file, we try to commit the data to the real file.
-    // if it actually got a proper file, we write it even if it was empty
-    if (gotFile || wroteAnyData) {
+    // if we wrote any data to the save file, we try to commit the data to the
+    // real file. if it actually got a proper file, we write it even if it was
+    // empty
+    if (gotFile || wroteAnyData)
+    {
         // ask validators for data consistency
-        // we only do this for actual downloads, not 'your data is still the same' cache hits
+        // we only do this for actual downloads, not 'your data is still the
+        // same' cache hits
         if (!finalizeAllValidators(reply))
+        {
             return Task::State::Failed;
+        }
 
         // nothing went wrong...
         m_output_file->close();
         bool written = m_output_file->error() == QFileDevice::NoError;
         bool existed = QFile::exists(m_filename);
-        auto permissions = existed ? QFile::permissions(m_filename) : QFile::Permissions();
-        if (!written || !replaceFile(m_output_file->fileName(), m_filename)) {
+        auto permissions =
+            existed ? QFile::permissions(m_filename) : QFile::Permissions();
+        if (!written || !replaceFile(m_output_file->fileName(), m_filename))
+        {
             qCritical() << "Failed to commit changes to " << m_filename;
             discardOutput();
             return Task::State::Failed;
         }
         m_output_file.reset();
         if (existed)
+        {
             QFile::setPermissions(m_filename, permissions);
+        }
     }
 
     // then get rid of the save file

@@ -5,9 +5,11 @@
 
 struct JavaInstall : public BaseVersion
 {
-    JavaInstall(){}
+    JavaInstall()
+    {
+    }
     JavaInstall(QString id, QString arch, QString path)
-    : id(id), arch(arch), path(path)
+        : id(id), arch(arch), path(path)
     {
     }
     virtual QString descriptor()

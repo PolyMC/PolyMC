@@ -53,7 +53,7 @@ class ProxyPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit ProxyPage(QWidget *parent = 0);
+    explicit ProxyPage(QWidget* parent = 0);
     ~ProxyPage();
 
     QString displayName() const override
@@ -76,7 +76,7 @@ public:
     void retranslate() override;
 
 private slots:
-    void proxyGroupChanged(QAbstractButton *button);
+    void proxyGroupChanged(QAbstractButton* button);
 
 private:
     void updateCheckboxStuff();
@@ -84,5 +84,5 @@ private:
     void loadSettings();
 
 private:
-    Ui::ProxyPage *ui;
+    Ui::ProxyPage* ui;
 };

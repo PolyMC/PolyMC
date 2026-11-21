@@ -11,7 +11,8 @@
 
 #include <functional>
 
-namespace LegacyFTB {
+namespace LegacyFTB
+{
 
 typedef QMap<QString, QIcon> FTBLogoMap;
 typedef std::function<void(QString)> LogoCallback;
@@ -21,7 +22,8 @@ class FilterModel : public QSortFilterProxyModel
     Q_OBJECT
 public:
     FilterModel(QObject* parent = Q_NULLPTR);
-    enum Sorting {
+    enum Sorting
+    {
         ByName,
         ByGameVersion
     };
@@ -31,13 +33,14 @@ public:
     Sorting getCurrentSorting();
 
 protected:
-    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
-    bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
+    bool filterAcceptsRow(int sourceRow,
+                          const QModelIndex& sourceParent) const override;
+    bool lessThan(const QModelIndex& left,
+                  const QModelIndex& right) const override;
 
 private:
     QMap<QString, Sorting> sortings;
     Sorting currentSorting;
-
 };
 
 class ListModel : public QAbstractListModel
@@ -53,18 +56,17 @@ private:
     void requestLogo(QString file);
     QString translatePackType(PackType type) const;
 
-
 private slots:
     void logoFailed(QString logo);
     void logoLoaded(QString logo, QIcon out);
 
 public:
-    ListModel(QObject *parent);
+    ListModel(QObject* parent);
     ~ListModel();
-    int rowCount(const QModelIndex &parent) const override;
-    int columnCount(const QModelIndex &parent) const override;
-    QVariant data(const QModelIndex &index, int role) const override;
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    int rowCount(const QModelIndex& parent) const override;
+    int columnCount(const QModelIndex& parent) const override;
+    QVariant data(const QModelIndex& index, int role) const override;
+    Qt::ItemFlags flags(const QModelIndex& index) const override;
 
     void fill(ModpackList newModpacks);
     void addPack(Modpack modpack);
@@ -72,7 +74,7 @@ public:
     void remove(int row);
 
     Modpack at(int row);
-    void getLogo(const QString &logo, LogoCallback callback);
+    void getLogo(const QString& logo, LogoCallback callback);
 };
 
-}
+}  // namespace LegacyFTB

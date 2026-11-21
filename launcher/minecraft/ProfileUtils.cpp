@@ -49,7 +49,7 @@ namespace ProfileUtils
 
 static const int currentOrderFileVersion = 1;
 
-bool readOverrideOrders(QString path, PatchOrder &order)
+bool readOverrideOrders(QString path, PatchOrder& order)
 {
     QFile orderFile(path);
     if (!orderFile.exists())
@@ -60,7 +60,7 @@ bool readOverrideOrders(QString path, PatchOrder &order)
     if (!orderFile.open(QFile::ReadOnly))
     {
         qCritical() << "Couldn't open" << orderFile.fileName()
-                     << " for reading:" << orderFile.errorString();
+                    << " for reading:" << orderFile.errorString();
         qWarning() << "Ignoring overriden order";
         return false;
     }
@@ -70,7 +70,8 @@ bool readOverrideOrders(QString path, PatchOrder &order)
     QJsonDocument doc = QJsonDocument::fromJson(orderFile.readAll(), &error);
     if (error.error != QJsonParseError::NoError)
     {
-        qCritical() << "Couldn't parse" << orderFile.fileName() << ":" << error.errorString();
+        qCritical() << "Couldn't parse" << orderFile.fileName() << ":"
+                    << error.errorString();
         qWarning() << "Ignoring overriden order";
         return false;
     }
@@ -83,8 +84,9 @@ bool readOverrideOrders(QString path, PatchOrder &order)
         auto version = Json::requireInteger(obj.value("version"));
         if (version != currentOrderFileVersion)
         {
-            throw JSONValidationError(QObject::tr("Invalid order file version, expected %1")
-                                          .arg(currentOrderFileVersion));
+            throw JSONValidationError(
+                QObject::tr("Invalid order file version, expected %1")
+                    .arg(currentOrderFileVersion));
         }
         auto orderArray = Json::requireArray(obj.value("order"));
         for (auto item : std::as_const(orderArray))
@@ -92,9 +94,10 @@ bool readOverrideOrders(QString path, PatchOrder &order)
             order.append(Json::requireString(item));
         }
     }
-    catch (const JSONValidationError &)
+    catch (const JSONValidationError&)
     {
-        qCritical() << "Couldn't parse" << orderFile.fileName() << ": bad file format";
+        qCritical() << "Couldn't parse" << orderFile.fileName()
+                    << ": bad file format";
         qWarning() << "Ignoring overriden order";
         order.clear();
         return false;
@@ -102,7 +105,9 @@ bool readOverrideOrders(QString path, PatchOrder &order)
     return true;
 }
 
-static VersionFilePtr createErrorVersionFile(QString fileId, QString /*filepath*/, QString error)
+static VersionFilePtr createErrorVersionFile(QString fileId,
+                                             QString /*filepath*/,
+                                             QString error)
 {
     auto outError = std::make_shared<VersionFile>();
     outError->uid = outError->name = fileId;
@@ -111,25 +116,31 @@ static VersionFilePtr createErrorVersionFile(QString fileId, QString /*filepath*
     return outError;
 }
 
-static VersionFilePtr guardedParseJson(const QJsonDocument & doc,const QString &fileId,const QString &filepath,const bool &requireOrder)
+static VersionFilePtr guardedParseJson(const QJsonDocument& doc,
+                                       const QString& fileId,
+                                       const QString& filepath,
+                                       const bool& requireOrder)
 {
     try
     {
-        return OneSixVersionFormat::versionFileFromJson(doc, filepath, requireOrder);
+        return OneSixVersionFormat::versionFileFromJson(doc, filepath,
+                                                        requireOrder);
     }
-    catch (const Exception &e)
+    catch (const Exception& e)
     {
         return createErrorVersionFile(fileId, filepath, e.cause());
     }
 }
 
-VersionFilePtr parseJsonFile(const QFileInfo &fileInfo, const bool requireOrder)
+VersionFilePtr parseJsonFile(const QFileInfo& fileInfo, const bool requireOrder)
 {
     QFile file(fileInfo.absoluteFilePath());
     if (!file.open(QFile::ReadOnly))
     {
-        auto errorStr = QObject::tr("Unable to open the version file %1: %2.").arg(fileInfo.fileName(), file.errorString());
-        return createErrorVersionFile(fileInfo.completeBaseName(), fileInfo.absoluteFilePath(), errorStr);
+        auto errorStr = QObject::tr("Unable to open the version file %1: %2.")
+                            .arg(fileInfo.fileName(), file.errorString());
+        return createErrorVersionFile(fileInfo.completeBaseName(),
+                                      fileInfo.absoluteFilePath(), errorStr);
     }
     QJsonParseError error;
     auto data = file.readAll();
@@ -139,9 +150,9 @@ VersionFilePtr parseJsonFile(const QFileInfo &fileInfo, const bool requireOrder)
     {
         int line = 1;
         int column = 0;
-        for(int i = 0; i < error.offset; i++)
+        for (int i = 0; i < error.offset; i++)
         {
-            if(data[i] == '\n')
+            if (data[i] == '\n')
             {
                 line++;
                 column = 0;
@@ -149,26 +160,31 @@ VersionFilePtr parseJsonFile(const QFileInfo &fileInfo, const bool requireOrder)
             }
             column++;
         }
-        auto errorStr = QObject::tr("Unable to process the version file %1: %2 at line %3 column %4.")
-                .arg(fileInfo.fileName(), error.errorString())
-                .arg(line).arg(column);
-        return createErrorVersionFile(fileInfo.completeBaseName(), fileInfo.absoluteFilePath(), errorStr);
+        auto errorStr = QObject::tr(
+                            "Unable to process the version file %1: %2 at line "
+                            "%3 column %4.")
+                            .arg(fileInfo.fileName(), error.errorString())
+                            .arg(line)
+                            .arg(column);
+        return createErrorVersionFile(fileInfo.completeBaseName(),
+                                      fileInfo.absoluteFilePath(), errorStr);
     }
-    return guardedParseJson(doc, fileInfo.completeBaseName(), fileInfo.absoluteFilePath(), requireOrder);
+    return guardedParseJson(doc, fileInfo.completeBaseName(),
+                            fileInfo.absoluteFilePath(), requireOrder);
 }
 
-bool saveJsonFile(const QJsonDocument doc, const QString & filename)
+bool saveJsonFile(const QJsonDocument doc, const QString& filename)
 {
     auto data = doc.toJson();
     QSaveFile jsonFile(filename);
-    if(!jsonFile.open(QIODevice::WriteOnly))
+    if (!jsonFile.open(QIODevice::WriteOnly))
     {
         jsonFile.cancelWriting();
         qWarning() << "Couldn't open" << filename << "for writing";
         return false;
     }
     jsonFile.write(data);
-    if(!jsonFile.commit())
+    if (!jsonFile.commit())
     {
         qWarning() << "Couldn't save" << filename;
         return false;
@@ -181,9 +197,10 @@ void removeLwjglFromPatch(VersionFilePtr patch)
     auto filter = [](QList<LibraryPtr>& libs)
     {
         QList<LibraryPtr> filteredLibs;
-        for (const auto &lib : libs)
+        for (const auto& lib : libs)
         {
-            if (!g_VersionFilterData.lwjglWhitelist.contains(lib->artifactPrefix()))
+            if (!g_VersionFilterData.lwjglWhitelist.contains(
+                    lib->artifactPrefix()))
             {
                 filteredLibs.append(lib);
             }
@@ -192,4 +209,4 @@ void removeLwjglFromPatch(VersionFilePtr patch)
     };
     filter(patch->libraries);
 }
-}
+}  // namespace ProfileUtils

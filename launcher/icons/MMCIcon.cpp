@@ -37,23 +37,23 @@
 #include <QFileInfo>
 #include <QIcon>
 
-IconType operator--(IconType &t, int)
+IconType operator--(IconType& t, int)
 {
     IconType temp = t;
     switch (t)
     {
-    case IconType::Builtin:
-        t = IconType::ToBeDeleted;
-        break;
-    case IconType::Transient:
-        t = IconType::Builtin;
-        break;
-    case IconType::FileBased:
-        t = IconType::Transient;
-        break;
-    default:
-    {
-    }
+        case IconType::Builtin:
+            t = IconType::ToBeDeleted;
+            break;
+        case IconType::Transient:
+            t = IconType::Builtin;
+            break;
+        case IconType::FileBased:
+            t = IconType::Transient;
+            break;
+        default:
+        {
+        }
     }
     return temp;
 }
@@ -66,7 +66,9 @@ IconType MMCIcon::type() const
 QString MMCIcon::name() const
 {
     if (m_name.size())
+    {
         return m_name;
+    }
     return m_key;
 }
 
@@ -78,10 +80,14 @@ bool MMCIcon::has(IconType _type) const
 QIcon MMCIcon::icon() const
 {
     if (m_current_type == IconType::ToBeDeleted)
+    {
         return QIcon();
-    auto & icon = m_images[m_current_type].icon;
-    if(!icon.isNull())
+    }
+    auto& icon = m_images[m_current_type].icon;
+    if (!icon.isNull())
+    {
         return icon;
+    }
     // FIXME: inject this.
     return QIcon::fromTheme(m_images[m_current_type].key);
 }
@@ -125,12 +131,12 @@ void MMCIcon::replace(IconType new_type, const QString& key)
 
 QString MMCIcon::getFilePath() const
 {
-    if(m_current_type == IconType::ToBeDeleted){
+    if (m_current_type == IconType::ToBeDeleted)
+    {
         return QString();
     }
     return m_images[m_current_type].filename;
 }
-
 
 bool MMCIcon::isBuiltIn() const
 {

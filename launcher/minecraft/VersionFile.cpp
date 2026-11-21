@@ -46,12 +46,13 @@
 
 #include <Version.h>
 
-static bool isMinecraftVersion(const QString &uid)
+static bool isMinecraftVersion(const QString& uid)
 {
     return uid == "net.minecraft";
 }
 
-void VersionFile::applyTo(LaunchProfile *profile, const RuntimeContext & runtimeContext)
+void VersionFile::applyTo(LaunchProfile* profile,
+                          const RuntimeContext& runtimeContext)
 {
     // Only real Minecraft can set those. Don't let anything override them.
     if (isMinecraftVersion(uid))
@@ -75,15 +76,15 @@ void VersionFile::applyTo(LaunchProfile *profile, const RuntimeContext & runtime
     profile->applyTraits(traits);
     profile->applyCompatibleJavaMajors(compatibleJavaMajors);
 
-    for (const auto &library : std::as_const(libraries))
+    for (const auto& library : std::as_const(libraries))
     {
         profile->applyLibrary(library, runtimeContext);
     }
-    for (const auto &mavenFile : std::as_const(mavenFiles))
+    for (const auto& mavenFile : std::as_const(mavenFiles))
     {
         profile->applyMavenFile(mavenFile, runtimeContext);
     }
-    for (const auto &agent : std::as_const(agents))
+    for (const auto& agent : std::as_const(agents))
     {
         profile->applyAgent(agent, runtimeContext);
     }

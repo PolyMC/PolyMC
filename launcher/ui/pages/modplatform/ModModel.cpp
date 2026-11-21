@@ -12,9 +12,13 @@
 #include <QMessageBox>
 #include <QPointer>
 
-namespace ModPlatform {
+namespace ModPlatform
+{
 
-ListModel::ListModel(ModPage* parent) : QAbstractListModel(parent), m_parent(parent) {}
+ListModel::ListModel(ModPage* parent)
+    : QAbstractListModel(parent), m_parent(parent)
+{
+}
 
 ListModel::~ListModel() = default;
 
@@ -28,8 +32,11 @@ QString ListModel::debugName() const
 void ListModel::fetchMore(const QModelIndex& parent)
 {
     if (parent.isValid())
+    {
         return;
-    if (nextSearchOffset == 0) {
+    }
+    if (nextSearchOffset == 0)
+    {
         qWarning() << "fetchMore with 0 offset is wrong...";
         return;
     }
@@ -39,23 +46,32 @@ void ListModel::fetchMore(const QModelIndex& parent)
 QVariant ListModel::data(const QModelIndex& index, int role) const
 {
     int pos = index.row();
-    if (pos >= modpacks.size() || pos < 0 || !index.isValid()) {
+    if (pos >= modpacks.size() || pos < 0 || !index.isValid())
+    {
         return QString("INVALID INDEX %1").arg(pos);
     }
 
     ModPlatform::IndexedPack pack = modpacks.at(pos);
-    switch (role) {
-        case Qt::ToolTipRole: {
-            if (pack.description.length() > 100) {
-                // some magic to prevent to long tooltips and replace html linebreaks
+    switch (role)
+    {
+        case Qt::ToolTipRole:
+        {
+            if (pack.description.length() > 100)
+            {
+                // some magic to prevent to long tooltips and replace html
+                // linebreaks
                 QString edit = pack.description.left(97);
-                edit = edit.left(edit.lastIndexOf("<br>")).left(edit.lastIndexOf(" ")).append("...");
+                edit = edit.left(edit.lastIndexOf("<br>"))
+                           .left(edit.lastIndexOf(" "))
+                           .append("...");
                 return edit;
             }
             return pack.description;
         }
-        case Qt::DecorationRole: {
-            if (m_logoMap.contains(pack.logoName)) {
+        case Qt::DecorationRole:
+        {
+            if (m_logoMap.contains(pack.logoName))
+            {
                 return m_logoMap.value(pack.logoName);
             }
             QIcon icon = APPLICATION->getThemedIcon("screenshot-placeholder");
@@ -63,14 +79,15 @@ QVariant ListModel::data(const QModelIndex& index, int role) const
             ((ListModel*)this)->requestLogo(pack.logoName, pack.logoUrl);
             return icon;
         }
-        case Qt::SizeHintRole: 
+        case Qt::SizeHintRole:
             return QSize(0, 58);
-        case Qt::UserRole: {
+        case Qt::UserRole:
+        {
             QVariant v;
             v.setValue(pack);
             return v;
         }
-    // Custom data
+            // Custom data
         case UserDataTypes::TITLE:
             return pack.name;
         case UserDataTypes::DESCRIPTION:
@@ -84,59 +101,88 @@ QVariant ListModel::data(const QModelIndex& index, int role) const
     return {};
 }
 
-bool ListModel::setData(const QModelIndex &index, const QVariant &value, int /*role*/)
+bool ListModel::setData(const QModelIndex& index, const QVariant& value,
+                        int /*role*/)
 {
     int pos = index.row();
     if (pos >= modpacks.size() || pos < 0 || !index.isValid())
+    {
         return false;
+    }
 
     modpacks[pos] = value.value<ModPlatform::IndexedPack>();
 
     return true;
 }
 
-void ListModel::requestModVersions(ModPlatform::IndexedPack const& current, QModelIndex index)
+void ListModel::requestModVersions(ModPlatform::IndexedPack const& current,
+                                   QModelIndex index)
 {
-    auto profile = (dynamic_cast<MinecraftInstance*>((dynamic_cast<ModPage*>(parent()))->m_instance))->getPackProfile();
+    auto profile = (dynamic_cast<MinecraftInstance*>(
+                        (dynamic_cast<ModPage*>(parent()))->m_instance))
+                       ->getPackProfile();
 
-    m_parent->apiProvider()->getVersions({ current.addonId.toString(), getMineVersions(), profile->getModLoaders(), m_parent->resourceType() },
-                                         [self = QPointer<ListModel>(this), index](QJsonDocument& doc, QString addonId) {
-                                             if (!self)
-                                                 return;
-                                             self->versionRequestSucceeded(doc, addonId, index);
-                                         });
+    m_parent->apiProvider()->getVersions(
+        {current.addonId.toString(), getMineVersions(),
+         profile->getModLoaders(), m_parent->resourceType()},
+        [self = QPointer<ListModel>(this), index](QJsonDocument& doc,
+                                                  QString addonId)
+        {
+            if (!self)
+            {
+                return;
+            }
+            self->versionRequestSucceeded(doc, addonId, index);
+        });
 }
 
 void ListModel::performPaginatedSearch()
 {
-    auto profile = (dynamic_cast<MinecraftInstance*>((dynamic_cast<ModPage*>(parent()))->m_instance))->getPackProfile();
+    auto profile = (dynamic_cast<MinecraftInstance*>(
+                        (dynamic_cast<ModPage*>(parent()))->m_instance))
+                       ->getPackProfile();
 
     m_parent->apiProvider()->searchMods(
-        this, { nextSearchOffset, currentSearchTerm, getSorts()[currentSort], profile->getModLoaders(), getMineVersions(), m_parent->resourceType() });
+        this, {nextSearchOffset, currentSearchTerm, getSorts()[currentSort],
+               profile->getModLoaders(), getMineVersions(),
+               m_parent->resourceType()});
 }
 
-void ListModel::requestModInfo(ModPlatform::IndexedPack& current, QModelIndex index)
+void ListModel::requestModInfo(ModPlatform::IndexedPack& current,
+                               QModelIndex index)
 {
-    // pack is a reference to whatever the page has selected when the reply comes in, which may be another mod by then
+    // pack is a reference to whatever the page has selected when the reply
+    // comes in, which may be another mod by then
     auto requested_id = current.addonId;
-    m_parent->apiProvider()->getModInfo(current, [self = QPointer<ListModel>(this), index, requested_id](QJsonDocument& doc, ModPlatform::IndexedPack& pack) {
-        if (!self)
-            return;
-        if (pack.addonId != requested_id)
-            return;
-        self->infoRequestFinished(doc, pack, index);
-    });
+    m_parent->apiProvider()->getModInfo(
+        current,
+        [self = QPointer<ListModel>(this), index, requested_id](
+            QJsonDocument& doc, ModPlatform::IndexedPack& pack)
+        {
+            if (!self)
+            {
+                return;
+            }
+            if (pack.addonId != requested_id)
+            {
+                return;
+            }
+            self->infoRequestFinished(doc, pack, index);
+        });
 }
 
 void ListModel::refresh()
 {
-    // Only abort a search that is still going, a finished one never reports back.
-    // Set the state first, aborting can report back right away.
-    if (jobPtr && jobPtr->isRunning()) {
+    // Only abort a search that is still going, a finished one never reports
+    // back. Set the state first, aborting can report back right away.
+    if (jobPtr && jobPtr->isRunning())
+    {
         searchState = ResetRequested;
         jobPtr->abort();
         return;
-    } else {
+    }
+    else
+    {
         beginResetModel();
         modpacks.clear();
         endResetModel();
@@ -146,9 +192,13 @@ void ListModel::refresh()
     performPaginatedSearch();
 }
 
-void ListModel::searchWithTerm(const QString& term, const int sort, const bool filter_changed)
+void ListModel::searchWithTerm(const QString& term, const int sort,
+                               const bool filter_changed)
 {
-    if (currentSearchTerm == term && currentSearchTerm.isNull() == term.isNull() && currentSort == sort && !filter_changed) {
+    if (currentSearchTerm == term &&
+        currentSearchTerm.isNull() == term.isNull() && currentSort == sort &&
+        !filter_changed)
+    {
         return;
     }
 
@@ -158,39 +208,55 @@ void ListModel::searchWithTerm(const QString& term, const int sort, const bool f
     refresh();
 }
 
-void ListModel::getLogo(const QString& logo, const QString& logoUrl, LogoCallback callback)
+void ListModel::getLogo(const QString& logo, const QString& logoUrl,
+                        LogoCallback callback)
 {
-    if (m_logoMap.contains(logo)) {
-        callback(APPLICATION->metacache()
-                     ->resolveEntry(m_parent->metaEntryBase(), QString("logos/%1").arg(logo.section(".", 0, 0)))
-                     ->getFullPath());
-    } else {
+    if (m_logoMap.contains(logo))
+    {
+        callback(
+            APPLICATION->metacache()
+                ->resolveEntry(m_parent->metaEntryBase(),
+                               QString("logos/%1").arg(logo.section(".", 0, 0)))
+                ->getFullPath());
+    }
+    else
+    {
         requestLogo(logo, logoUrl);
     }
 }
 
 void ListModel::requestLogo(QString logo, QString url)
 {
-    if (m_loadingLogos.contains(logo) || m_failedLogos.contains(logo) || url.isEmpty()) {
+    if (m_loadingLogos.contains(logo) || m_failedLogos.contains(logo) ||
+        url.isEmpty())
+    {
         return;
     }
 
-    MetaEntryPtr entry =
-        APPLICATION->metacache()->resolveEntry(m_parent->metaEntryBase(), QString("logos/%1").arg(logo.section(".", 0, 0)));
-    auto job = new NetJob(QString("%1 Icon Download %2").arg(m_parent->debugName()).arg(logo), APPLICATION->network());
+    MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry(
+        m_parent->metaEntryBase(),
+        QString("logos/%1").arg(logo.section(".", 0, 0)));
+    auto job = new NetJob(
+        QString("%1 Icon Download %2").arg(m_parent->debugName()).arg(logo),
+        APPLICATION->network());
     job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
 
     auto fullPath = entry->getFullPath();
-    QObject::connect(job, &NetJob::succeeded, this, [this, logo, fullPath] {
-        emit logoLoaded(logo, QIcon(fullPath));
-        if (waitingCallbacks.contains(logo)) {
-            waitingCallbacks.value(logo)(fullPath);
-        }
-    });
+    QObject::connect(job, &NetJob::succeeded, this,
+                     [this, logo, fullPath]
+                     {
+                         emit logoLoaded(logo, QIcon(fullPath));
+                         if (waitingCallbacks.contains(logo))
+                         {
+                             waitingCallbacks.value(logo)(fullPath);
+                         }
+                     });
 
-    QObject::connect(job, &NetJob::failed, this, [this, logo] {
-        emit logoFailed(logo);
-    });
+    QObject::connect(job, &NetJob::failed, this,
+                     [this, logo]
+                     {
+                         emit logoFailed(logo);
+                     });
 
     QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
 
@@ -204,9 +270,12 @@ void ListModel::logoLoaded(QString logo, QIcon out)
 {
     m_loadingLogos.removeAll(logo);
     m_logoMap.insert(logo, out);
-    for (int i = 0; i < modpacks.size(); i++) {
-        if (modpacks[i].logoName == logo) {
-            emit dataChanged(createIndex(i, 0), createIndex(i, 0), { Qt::DecorationRole });
+    for (int i = 0; i < modpacks.size(); i++)
+    {
+        if (modpacks[i].logoName == logo)
+        {
+            emit dataChanged(createIndex(i, 0), createIndex(i, 0),
+                             {Qt::DecorationRole});
         }
     }
 }
@@ -224,31 +293,43 @@ void ListModel::searchRequestFinished(QJsonDocument& doc)
     QList<ModPlatform::IndexedPack> newList;
     auto packs = documentToArray(doc);
 
-    for (auto packRaw : std::as_const(packs)) {
+    for (auto packRaw : std::as_const(packs))
+    {
         auto packObj = packRaw.toObject();
 
         ModPlatform::IndexedPack pack;
-        try {
+        try
+        {
             loadIndexedPack(pack, packObj);
             newList.append(pack);
-        } catch (const JSONValidationError& e) {
-            qWarning() << "Error while loading mod from " << m_parent->debugName() << ": " << e.cause();
+        }
+        catch (const JSONValidationError& e)
+        {
+            qWarning() << "Error while loading mod from "
+                       << m_parent->debugName() << ": " << e.cause();
             continue;
         }
     }
 
-    if (packs.size() < 25) {
+    if (packs.size() < 25)
+    {
         searchState = Finished;
-    } else {
+    }
+    else
+    {
         nextSearchOffset += 25;
         searchState = CanPossiblyFetchMore;
     }
 
-    // When you have a Qt build with assertions turned on, proceeding here will abort the application
+    // When you have a Qt build with assertions turned on, proceeding here will
+    // abort the application
     if (newList.size() == 0)
+    {
         return;
+    }
 
-    beginInsertRows(QModelIndex(), modpacks.size(), modpacks.size() + newList.size() - 1);
+    beginInsertRows(QModelIndex(), modpacks.size(),
+                    modpacks.size() + newList.size() - 1);
     modpacks.append(newList);
     endInsertRows();
 }
@@ -256,27 +337,40 @@ void ListModel::searchRequestFinished(QJsonDocument& doc)
 void ListModel::searchRequestFailed(QString /*reason*/)
 {
     auto failed_action = jobPtr->getFailedActions().at(0);
-    if (!failed_action->m_reply) {
+    if (!failed_action->m_reply)
+    {
         // Network error
-        QMessageBox::critical(nullptr, tr("Error"), tr("A network error occurred. Could not load mods."));
-    } else if (failed_action->m_reply && failed_action->m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 409) {
+        QMessageBox::critical(
+            nullptr, tr("Error"),
+            tr("A network error occurred. Could not load mods."));
+    }
+    else if (failed_action->m_reply &&
+             failed_action->m_reply
+                     ->attribute(QNetworkRequest::HttpStatusCodeAttribute)
+                     .toInt() == 409)
+    {
         // 409 Gone, notify user to update
-        QMessageBox::critical(nullptr, tr("Error"),
-                              //: %1 refers to the launcher itself
-                              QString("%1 %2")
-                                  .arg(m_parent->displayName())
-                                  .arg(tr("API version too old!\nPlease update %1!").arg(BuildConfig.LAUNCHER_NAME)));
+        QMessageBox::critical(
+            nullptr, tr("Error"),
+            //: %1 refers to the launcher itself
+            QString("%1 %2")
+                .arg(m_parent->displayName())
+                .arg(tr("API version too old!\nPlease update %1!")
+                         .arg(BuildConfig.LAUNCHER_NAME)));
     }
     jobPtr.reset();
 
-    if (searchState == ResetRequested) {
+    if (searchState == ResetRequested)
+    {
         beginResetModel();
         modpacks.clear();
         endResetModel();
 
         nextSearchOffset = 0;
         performPaginatedSearch();
-    } else {
+    }
+    else
+    {
         searchState = Finished;
     }
 }
@@ -286,36 +380,48 @@ void ListModel::searchRequestAborted()
     jobPtr.reset();
 
     // refresh() aborts the running search to start a new one
-    if (searchState == ResetRequested) {
+    if (searchState == ResetRequested)
+    {
         beginResetModel();
         modpacks.clear();
         endResetModel();
 
         nextSearchOffset = 0;
         performPaginatedSearch();
-    } else {
+    }
+    else
+    {
         searchState = Finished;
     }
 }
 
-void ListModel::infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack& pack, const QModelIndex& index)
+void ListModel::infoRequestFinished(QJsonDocument& doc,
+                                    ModPlatform::IndexedPack& pack,
+                                    const QModelIndex& index)
 {
     qDebug() << "Loading mod info";
 
-    try {
+    try
+    {
         auto obj = Json::requireObject(doc);
         loadExtraPackInfo(pack, obj);
-    } catch (const JSONValidationError& e) {
+    }
+    catch (const JSONValidationError& e)
+    {
         qDebug() << doc;
-        qWarning() << "Error while reading " << debugName() << " mod info: " << e.cause();
+        qWarning() << "Error while reading " << debugName()
+                   << " mod info: " << e.cause();
     }
 
     // Check if the index is still valid for this mod or not
-    if (pack.addonId == data(index, Qt::UserRole).value<ModPlatform::IndexedPack>().addonId) {
+    if (pack.addonId ==
+        data(index, Qt::UserRole).value<ModPlatform::IndexedPack>().addonId)
+    {
         // Cache info :^)
         QVariant new_pack;
         new_pack.setValue(pack);
-        if (!setData(index, new_pack, Qt::UserRole)) {
+        if (!setData(index, new_pack, Qt::UserRole))
+        {
             qWarning() << "Failed to cache mod info!";
         }
     }
@@ -323,32 +429,42 @@ void ListModel::infoRequestFinished(QJsonDocument& doc, ModPlatform::IndexedPack
     m_parent->updateUi();
 }
 
-void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId, const QModelIndex& index)
+void ListModel::versionRequestSucceeded(QJsonDocument doc, QString addonId,
+                                        const QModelIndex& index)
 {
     auto& current = m_parent->getCurrent();
-    if (addonId != current.addonId) {
+    if (addonId != current.addonId)
+    {
         return;
     }
 
-    auto arr = doc.isObject() ? Json::ensureArray(doc.object(), "data") : doc.array();
+    auto arr =
+        doc.isObject() ? Json::ensureArray(doc.object(), "data") : doc.array();
 
-    try {
+    try
+    {
         loadIndexedPackVersions(current, arr);
-    } catch (const JSONValidationError& e) {
+    }
+    catch (const JSONValidationError& e)
+    {
         qDebug() << doc;
-        qWarning() << "Error while reading " << debugName() << " mod version: " << e.cause();
+        qWarning() << "Error while reading " << debugName()
+                   << " mod version: " << e.cause();
     }
 
     // Cache info :^)
-    // Only if the row still holds this mod, a new search may have put another mod there meanwhile
-    if (data(index, Qt::UserRole).value<ModPlatform::IndexedPack>().addonId == current.addonId) {
+    // Only if the row still holds this mod, a new search may have put another
+    // mod there meanwhile
+    if (data(index, Qt::UserRole).value<ModPlatform::IndexedPack>().addonId ==
+        current.addonId)
+    {
         QVariant new_pack;
         new_pack.setValue(current);
-        if (!setData(index, new_pack, Qt::UserRole)) {
+        if (!setData(index, new_pack, Qt::UserRole))
+        {
             qWarning() << "Failed to cache mod versions!";
         }
     }
-
 
     m_parent->updateModVersions();
 }

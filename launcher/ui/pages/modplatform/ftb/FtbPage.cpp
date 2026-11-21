@@ -45,8 +45,8 @@
 
 #include "Markdown.h"
 
-FtbPage::FtbPage(NewInstanceDialog* dialog, QWidget *parent)
-        : QWidget(parent), ui(new Ui::FtbPage), dialog(dialog)
+FtbPage::FtbPage(NewInstanceDialog* dialog, QWidget* parent)
+    : QWidget(parent), ui(new Ui::FtbPage), dialog(dialog)
 {
     ui->setupUi(this);
 
@@ -60,19 +60,26 @@ FtbPage::FtbPage(NewInstanceDialog* dialog, QWidget *parent)
 
     ui->searchEdit->installEventFilter(this);
 
-    ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(
+        Qt::ScrollBarAsNeeded);
     ui->versionSelectionBox->view()->parentWidget()->setMaximumHeight(300);
 
-    for(int i = 0; i < filterModel->getAvailableSortings().size(); i++)
+    for (int i = 0; i < filterModel->getAvailableSortings().size(); i++)
     {
-        ui->sortByBox->addItem(filterModel->getAvailableSortings().keys().at(i));
+        ui->sortByBox->addItem(
+            filterModel->getAvailableSortings().keys().at(i));
     }
     ui->sortByBox->setCurrentText(filterModel->translateCurrentSorting());
 
-    connect(ui->searchEdit, &QLineEdit::textChanged, this, &FtbPage::triggerSearch);
-    connect(ui->sortByBox, &QComboBox::currentTextChanged, this, &FtbPage::onSortingSelectionChanged);
-    connect(ui->packView->selectionModel(), &QItemSelectionModel::currentChanged, this, &FtbPage::onSelectionChanged);
-    connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this, &FtbPage::onVersionSelectionChanged);
+    connect(ui->searchEdit, &QLineEdit::textChanged, this,
+            &FtbPage::triggerSearch);
+    connect(ui->sortByBox, &QComboBox::currentTextChanged, this,
+            &FtbPage::onSortingSelectionChanged);
+    connect(ui->packView->selectionModel(),
+            &QItemSelectionModel::currentChanged, this,
+            &FtbPage::onSelectionChanged);
+    connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this,
+            &FtbPage::onVersionSelectionChanged);
 }
 
 FtbPage::~FtbPage()
@@ -82,9 +89,11 @@ FtbPage::~FtbPage()
 
 bool FtbPage::eventFilter(QObject* watched, QEvent* event)
 {
-    if (watched == ui->searchEdit && event->type() == QEvent::KeyPress) {
+    if (watched == ui->searchEdit && event->type() == QEvent::KeyPress)
+    {
         QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-        if (keyEvent->key() == Qt::Key_Return) {
+        if (keyEvent->key() == Qt::Key_Return)
+        {
             triggerSearch();
             keyEvent->accept();
             return true;
@@ -105,7 +114,7 @@ void FtbPage::retranslate()
 
 void FtbPage::openedImpl()
 {
-    if(!initialised)
+    if (!initialised)
     {
         listModel->request();
         initialised = true;
@@ -116,7 +125,7 @@ void FtbPage::openedImpl()
 
 void FtbPage::suggestCurrent()
 {
-    if(!isOpened)
+    if (!isOpened)
     {
         return;
     }
@@ -127,16 +136,22 @@ void FtbPage::suggestCurrent()
         return;
     }
 
-    dialog->setSuggestedPack(selected.name, selectedVersion, new FTB::PackInstallTask(selected, selectedVersion, this));
-    for (const auto &art : std::as_const(selected.art)) {
-        if(art.type == "square") {
+    dialog->setSuggestedPack(
+        selected.name, selectedVersion,
+        new FTB::PackInstallTask(selected, selectedVersion, this));
+    for (const auto& art : std::as_const(selected.art))
+    {
+        if (art.type == "square")
+        {
             QString editedLogoName;
             editedLogoName = selected.name;
 
-            listModel->getLogo(selected.name, art.url, [this, editedLogoName](QString logo)
-            {
-                dialog->setSuggestedIconFromFile(logo + ".small", editedLogoName);
-            });
+            listModel->getLogo(selected.name, art.url,
+                               [this, editedLogoName](QString logo)
+                               {
+                                   dialog->setSuggestedIconFromFile(
+                                       logo + ".small", editedLogoName);
+                               });
         }
     }
 }
@@ -156,9 +171,9 @@ void FtbPage::onSelectionChanged(QModelIndex first, QModelIndex /*second*/)
 {
     ui->versionSelectionBox->clear();
 
-    if(!first.isValid())
+    if (!first.isValid())
     {
-        if(isOpened)
+        if (isOpened)
         {
             dialog->setSuggestedPack();
         }
@@ -167,10 +182,12 @@ void FtbPage::onSelectionChanged(QModelIndex first, QModelIndex /*second*/)
 
     selected = filterModel->data(first, Qt::UserRole).value<FTB::Modpack>();
 
-    ui->packDescription->setHtml(Markdown::toHtml(selected.description.toUtf8()));
+    ui->packDescription->setHtml(
+        Markdown::toHtml(selected.description.toUtf8()));
 
     // reverse foreach, so that the newest versions are first
-    for (auto i = selected.versions.size(); i--;) {
+    for (auto i = selected.versions.size(); i--;)
+    {
         ui->versionSelectionBox->addItem(selected.versions.at(i).name);
     }
 
@@ -179,7 +196,7 @@ void FtbPage::onSelectionChanged(QModelIndex first, QModelIndex /*second*/)
 
 void FtbPage::onVersionSelectionChanged(QString newData)
 {
-    if(newData.isNull() || newData.isEmpty())
+    if (newData.isNull() || newData.isEmpty())
     {
         selectedVersion = "";
         return;

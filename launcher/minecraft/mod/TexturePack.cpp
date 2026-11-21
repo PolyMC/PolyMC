@@ -47,14 +47,19 @@ QPixmap TexturePack::image(QSize size)
     QMutexLocker locker(&m_data_lock);
 
     QPixmap cached_image;
-    if (!QPixmapCache::find(m_pack_image_cache_key, &cached_image)) {
+    if (!QPixmapCache::find(m_pack_image_cache_key, &cached_image))
+    {
         if (m_pack_image.isNull())
+        {
             return {};
+        }
         cached_image = QPixmap::fromImage(m_pack_image);
         m_pack_image_cache_key = QPixmapCache::insert(cached_image);
     }
 
     if (size.isNull())
+    {
         return cached_image;
+    }
     return cached_image.scaled(size);
 }

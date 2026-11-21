@@ -11,7 +11,8 @@ class JVisualVM : public BaseProfiler
 {
     Q_OBJECT
 public:
-    JVisualVM(SettingsObjectPtr settings, InstancePtr instance, QObject *parent = 0);
+    JVisualVM(SettingsObjectPtr settings, InstancePtr instance,
+              QObject* parent = 0);
 
 private slots:
     void profilerStarted();
@@ -21,8 +22,8 @@ protected:
     void beginProfilingImpl(shared_qobject_ptr<LaunchTask> process);
 };
 
-
-JVisualVM::JVisualVM(SettingsObjectPtr settings, InstancePtr instance, QObject *parent)
+JVisualVM::JVisualVM(SettingsObjectPtr settings, InstancePtr instance,
+                     QObject* parent)
     : BaseProfiler(settings, instance, parent)
 {
 }
@@ -47,11 +48,8 @@ void JVisualVM::profilerFinished(int /*exit*/, QProcess::ExitStatus status)
 
 void JVisualVM::beginProfilingImpl(shared_qobject_ptr<LaunchTask> process)
 {
-    QProcess *profiler = new QProcess(this);
-    QStringList profilerArgs =
-    {
-        "--openpid", QString::number(process->pid())
-    };
+    QProcess* profiler = new QProcess(this);
+    QStringList profilerArgs = {"--openpid", QString::number(process->pid())};
     auto programPath = globalSettings->get("JVisualVMPath").toString();
 
     profiler->setArguments(profilerArgs);
@@ -75,17 +73,18 @@ void JVisualVMFactory::registerSettings(SettingsObjectPtr settings)
     globalSettings = settings;
 }
 
-BaseExternalTool *JVisualVMFactory::createTool(InstancePtr instance, QObject *parent)
+BaseExternalTool* JVisualVMFactory::createTool(InstancePtr instance,
+                                               QObject* parent)
 {
     return new JVisualVM(globalSettings, instance, parent);
 }
 
-bool JVisualVMFactory::check(QString *error)
+bool JVisualVMFactory::check(QString* error)
 {
     return check(globalSettings->get("JVisualVMPath").toString(), error);
 }
 
-bool JVisualVMFactory::check(const QString &path, QString *error)
+bool JVisualVMFactory::check(const QString& path, QString* error)
 {
     if (path.isEmpty())
     {

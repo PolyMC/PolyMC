@@ -4,12 +4,12 @@
 #include "QObjectPtr.h"
 #include "minecraft/auth/AuthStep.h"
 
-
-class XboxProfileStep : public AuthStep {
+class XboxProfileStep : public AuthStep
+{
     Q_OBJECT
 
 public:
-    explicit XboxProfileStep(AccountData *data);
+    explicit XboxProfileStep(AccountData* data);
     virtual ~XboxProfileStep() noexcept;
 
     void perform() override;
@@ -18,5 +18,6 @@ public:
     QString describe() override;
 
 private slots:
-    void onRequestDone(QNetworkReply::NetworkError, QByteArray, QList<QNetworkReply::RawHeaderPair>);
+    void onRequestDone(QNetworkReply::NetworkError, QByteArray,
+                       QList<QNetworkReply::RawHeaderPair>);
 };

@@ -43,7 +43,7 @@ AllowShortLoopsOnASingleLine: false
 AllowShortNamespacesOnASingleLine: false
 AllowShortRecordOnASingleLine: Never
 
-InsertBraces: true
-
 SpaceBeforeParens: ControlStatements
+
+SortIncludes: Never
 ...

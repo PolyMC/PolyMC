@@ -40,7 +40,7 @@ class UpdateDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit UpdateDialog(bool hasUpdate = true, QWidget *parent = 0);
+    explicit UpdateDialog(bool hasUpdate = true, QWidget* parent = 0);
     ~UpdateDialog();
 
 public slots:
@@ -57,10 +57,10 @@ public slots:
     void changelogFailed(QString reason);
 
 protected:
-    void closeEvent(QCloseEvent * ) override;
+    void closeEvent(QCloseEvent*) override;
 
 private:
-    Ui::UpdateDialog *ui;
+    Ui::UpdateDialog* ui;
     QByteArray changelogData;
     NetJob::Ptr dljob;
     ChangelogType m_changelogType = CHANGELOG_MARKDOWN;

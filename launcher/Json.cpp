@@ -42,36 +42,40 @@
 
 namespace Json
 {
-void write(const QJsonDocument &doc, const QString &filename)
+void write(const QJsonDocument& doc, const QString& filename)
 {
     FS::write(filename, doc.toJson());
 }
-void write(const QJsonObject &object, const QString &filename)
+void write(const QJsonObject& object, const QString& filename)
 {
     write(QJsonDocument(object), filename);
 }
-void write(const QJsonArray &array, const QString &filename)
+void write(const QJsonArray& array, const QString& filename)
 {
     write(QJsonDocument(array), filename);
 }
 
-QByteArray toText(const QJsonObject &obj)
+QByteArray toText(const QJsonObject& obj)
 {
     return QJsonDocument(obj).toJson(QJsonDocument::Compact);
 }
-QByteArray toText(const QJsonArray &array)
+QByteArray toText(const QJsonArray& array)
 {
     return QJsonDocument(array).toJson(QJsonDocument::Compact);
 }
 
-static bool isBinaryJson(const QByteArray &data)
+static bool isBinaryJson(const QByteArray& data)
 {
-    decltype(QJsonDocument::BinaryFormatTag) tag = QJsonDocument::BinaryFormatTag;
+    decltype(QJsonDocument::BinaryFormatTag) tag =
+        QJsonDocument::BinaryFormatTag;
     if (data.size() < int(sizeof(tag)))
+    {
         return false;
-    return memcmp(data.constData(), &tag, sizeof(QJsonDocument::BinaryFormatTag)) == 0;
+    }
+    return memcmp(data.constData(), &tag,
+                  sizeof(QJsonDocument::BinaryFormatTag)) == 0;
 }
-QJsonDocument requireDocument(const QByteArray &data, const QString &what)
+QJsonDocument requireDocument(const QByteArray& data, const QString& what)
 {
     if (isBinaryJson(data))
     {
@@ -84,25 +88,26 @@ QJsonDocument requireDocument(const QByteArray &data, const QString &what)
         QJsonDocument doc = QJsonDocument::fromJson(data, &error);
         if (error.error != QJsonParseError::NoError)
         {
-            throw JsonException(what + ": Error parsing JSON: " + error.errorString());
+            throw JsonException(what +
+                                ": Error parsing JSON: " + error.errorString());
         }
         return doc;
     }
 }
-QJsonDocument requireDocument(const QString &filename, const QString &what)
+QJsonDocument requireDocument(const QString& filename, const QString& what)
 {
     QByteArray data;
     try
     {
         data = FS::read(filename);
     }
-    catch (const FS::FileSystemException &e)
+    catch (const FS::FileSystemException& e)
     {
         throw JsonException(e.cause());
     }
     return requireDocument(data, what);
 }
-QJsonObject requireObject(const QJsonDocument &doc, const QString &what)
+QJsonObject requireObject(const QJsonDocument& doc, const QString& what)
 {
     if (!doc.isObject())
     {
@@ -110,7 +115,7 @@ QJsonObject requireObject(const QJsonDocument &doc, const QString &what)
     }
     return doc.object();
 }
-QJsonArray requireArray(const QJsonDocument &doc, const QString &what)
+QJsonArray requireArray(const QJsonDocument& doc, const QString& what)
 {
     if (!doc.isArray())
     {
@@ -119,7 +124,7 @@ QJsonArray requireArray(const QJsonDocument &doc, const QString &what)
     return doc.array();
 }
 
-void writeString(QJsonObject &to, const QString &key, const QString &value)
+void writeString(QJsonObject& to, const QString& key, const QString& value)
 {
     if (!value.isEmpty())
     {
@@ -127,12 +132,13 @@ void writeString(QJsonObject &to, const QString &key, const QString &value)
     }
 }
 
-void writeStringList(QJsonObject &to, const QString &key, const QStringList &values)
+void writeStringList(QJsonObject& to, const QString& key,
+                     const QStringList& values)
 {
     if (!values.isEmpty())
     {
         QJsonArray array;
-        for (const auto &value : values)
+        for (const auto& value : values)
         {
             array.append(value);
         }
@@ -140,39 +146,40 @@ void writeStringList(QJsonObject &to, const QString &key, const QStringList &val
     }
 }
 
-template<>
-QJsonValue toJson<QUrl>(const QUrl &url)
+template <>
+QJsonValue toJson<QUrl>(const QUrl& url)
 {
     return QJsonValue(url.toString(QUrl::FullyEncoded));
 }
-template<>
-QJsonValue toJson<QByteArray>(const QByteArray &data)
+template <>
+QJsonValue toJson<QByteArray>(const QByteArray& data)
 {
     return QJsonValue(QString::fromLatin1(data.toHex()));
 }
-template<>
-QJsonValue toJson<QDateTime>(const QDateTime &datetime)
+template <>
+QJsonValue toJson<QDateTime>(const QDateTime& datetime)
 {
     return QJsonValue(datetime.toString(Qt::ISODate));
 }
-template<>
-QJsonValue toJson<QDir>(const QDir &dir)
+template <>
+QJsonValue toJson<QDir>(const QDir& dir)
 {
     return QDir::current().relativeFilePath(dir.absolutePath());
 }
-template<>
-QJsonValue toJson<QUuid>(const QUuid &uuid)
+template <>
+QJsonValue toJson<QUuid>(const QUuid& uuid)
 {
     return uuid.toString();
 }
-template<>
-QJsonValue toJson<QVariant>(const QVariant &variant)
+template <>
+QJsonValue toJson<QVariant>(const QVariant& variant)
 {
     return QJsonValue::fromVariant(variant);
 }
 
-
-template<> QByteArray requireIsType<QByteArray>(const QJsonValue &value, const QString &what)
+template <>
+QByteArray requireIsType<QByteArray>(const QJsonValue& value,
+                                     const QString& what)
 {
     const QString string = requireIsType<QString>(value, what);
     // ensure that the string can be safely cast to Latin1
@@ -183,7 +190,9 @@ template<> QByteArray requireIsType<QByteArray>(const QJsonValue &value, const Q
     return QByteArray::fromHex(string.toLatin1());
 }
 
-template<> QJsonArray requireIsType<QJsonArray>(const QJsonValue &value, const QString &what)
+template <>
+QJsonArray requireIsType<QJsonArray>(const QJsonValue& value,
+                                     const QString& what)
 {
     if (!value.isArray())
     {
@@ -192,8 +201,8 @@ template<> QJsonArray requireIsType<QJsonArray>(const QJsonValue &value, const Q
     return value.toArray();
 }
 
-
-template<> QString requireIsType<QString>(const QJsonValue &value, const QString &what)
+template <>
+QString requireIsType<QString>(const QJsonValue& value, const QString& what)
 {
     if (!value.isString())
     {
@@ -202,7 +211,8 @@ template<> QString requireIsType<QString>(const QJsonValue &value, const QString
     return value.toString();
 }
 
-template<> bool requireIsType<bool>(const QJsonValue &value, const QString &what)
+template <>
+bool requireIsType<bool>(const QJsonValue& value, const QString& what)
 {
     if (!value.isBool())
     {
@@ -211,7 +221,8 @@ template<> bool requireIsType<bool>(const QJsonValue &value, const QString &what
     return value.toBool();
 }
 
-template<> double requireIsType<double>(const QJsonValue &value, const QString &what)
+template <>
+double requireIsType<double>(const QJsonValue& value, const QString& what)
 {
     if (!value.isDouble())
     {
@@ -220,7 +231,8 @@ template<> double requireIsType<double>(const QJsonValue &value, const QString &
     return value.toDouble();
 }
 
-template<> int requireIsType<int>(const QJsonValue &value, const QString &what)
+template <>
+int requireIsType<int>(const QJsonValue& value, const QString& what)
 {
     const double doubl = requireIsType<double>(value, what);
     if (fmod(doubl, 1) != 0)
@@ -230,7 +242,8 @@ template<> int requireIsType<int>(const QJsonValue &value, const QString &what)
     return int(doubl);
 }
 
-template<> QDateTime requireIsType<QDateTime>(const QJsonValue &value, const QString &what)
+template <>
+QDateTime requireIsType<QDateTime>(const QJsonValue& value, const QString& what)
 {
     const QString string = requireIsType<QString>(value, what);
     const QDateTime datetime = QDateTime::fromString(string, Qt::ISODate);
@@ -241,7 +254,8 @@ template<> QDateTime requireIsType<QDateTime>(const QJsonValue &value, const QSt
     return datetime;
 }
 
-template<> QUrl requireIsType<QUrl>(const QJsonValue &value, const QString &what)
+template <>
+QUrl requireIsType<QUrl>(const QJsonValue& value, const QString& what)
 {
     const QString string = requireIsType<QString>(value, what);
     if (string.isEmpty())
@@ -256,25 +270,29 @@ template<> QUrl requireIsType<QUrl>(const QJsonValue &value, const QString &what
     return url;
 }
 
-template<> QDir requireIsType<QDir>(const QJsonValue &value, const QString &what)
+template <>
+QDir requireIsType<QDir>(const QJsonValue& value, const QString& what)
 {
     const QString string = requireIsType<QString>(value, what);
     // FIXME: does not handle invalid characters!
     return QDir::current().absoluteFilePath(string);
 }
 
-template<> QUuid requireIsType<QUuid>(const QJsonValue &value, const QString &what)
+template <>
+QUuid requireIsType<QUuid>(const QJsonValue& value, const QString& what)
 {
     const QString string = requireIsType<QString>(value, what);
     const QUuid uuid = QUuid(string);
-    if (uuid.toString() != string) // converts back => valid
+    if (uuid.toString() != string)  // converts back => valid
     {
         throw JsonException(what + " is not a valid UUID");
     }
     return uuid;
 }
 
-template<> QJsonObject requireIsType<QJsonObject>(const QJsonValue &value, const QString &what)
+template <>
+QJsonObject requireIsType<QJsonObject>(const QJsonValue& value,
+                                       const QString& what)
 {
     if (!value.isObject())
     {
@@ -283,7 +301,8 @@ template<> QJsonObject requireIsType<QJsonObject>(const QJsonValue &value, const
     return value.toObject();
 }
 
-template<> QVariant requireIsType<QVariant>(const QJsonValue &value, const QString &what)
+template <>
+QVariant requireIsType<QVariant>(const QJsonValue& value, const QString& what)
 {
     if (value.isNull() || value.isUndefined())
     {
@@ -292,7 +311,9 @@ template<> QVariant requireIsType<QVariant>(const QJsonValue &value, const QStri
     return value.toVariant();
 }
 
-template<> QJsonValue requireIsType<QJsonValue>(const QJsonValue &value, const QString &what)
+template <>
+QJsonValue requireIsType<QJsonValue>(const QJsonValue& value,
+                                     const QString& what)
 {
     if (value.isNull() || value.isUndefined())
     {
@@ -301,4 +322,4 @@ template<> QJsonValue requireIsType<QJsonValue>(const QJsonValue &value, const Q
     return value;
 }
 
-}
+}  // namespace Json

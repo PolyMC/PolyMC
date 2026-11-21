@@ -32,13 +32,15 @@ class MacSparkleUpdater : public ExternalUpdater
 
 public:
     /*!
-     * Start the Sparkle updater, which automatically checks for updates if necessary.
+     * Start the Sparkle updater, which automatically checks for updates if
+     * necessary.
      */
     MacSparkleUpdater();
     ~MacSparkleUpdater() override;
 
     /*!
-     * Check for updates manually, showing the user a progress bar and an alert if no updates are found.
+     * Check for updates manually, showing the user a progress bar and an alert
+     * if no updates are found.
      */
     void checkForUpdates() override;
 
@@ -53,74 +55,85 @@ public:
     double getUpdateCheckInterval() override;
 
     /*!
-     * Indicates the set of Sparkle channels the updater is allowed to find new updates from.
+     * Indicates the set of Sparkle channels the updater is allowed to find new
+     * updates from.
      */
     QSet<QString> getAllowedChannels();
 
     /*!
-     * Indicates whether or not beta updates should be checked for in addition to regular releases.
+     * Indicates whether or not beta updates should be checked for in addition
+     * to regular releases.
      */
     bool getBetaAllowed() override;
 
     /*!
      * Set whether or not to check for updates automatically.
      *
-     * As per Sparkle documentation, "By default, Sparkle asks users on second launch for permission if they want
-     * automatic update checks enabled and sets this property based on their response. If SUEnableAutomaticChecks is
+     * As per Sparkle documentation, "By default, Sparkle asks users on second
+     * launch for permission if they want automatic update checks enabled and
+     * sets this property based on their response. If SUEnableAutomaticChecks is
      * set in the Info.plist, this permission request is not performed however.
      *
-     * Setting this property will persist in the host bundle’s user defaults. Only set this property if you need
-     * dynamic behavior (e.g. user preferences).
+     * Setting this property will persist in the host bundle’s user defaults.
+     * Only set this property if you need dynamic behavior (e.g. user
+     * preferences).
      *
-     * The update schedule cycle will be reset in a short delay after the property’s new value is set. This is to allow
-     * reverting this property without kicking off a schedule change immediately."
+     * The update schedule cycle will be reset in a short delay after the
+     * property’s new value is set. This is to allow reverting this property
+     * without kicking off a schedule change immediately."
      */
     void setAutomaticallyChecksForUpdates(bool check) override;
 
     /*!
      * Set the current automatic update check interval in seconds.
      *
-     * As per Sparkle documentation, "Setting this property will persist in the host bundle’s user defaults. For this
-     * reason, only set this property if you need dynamic behavior (eg user preferences). Otherwise prefer to set
+     * As per Sparkle documentation, "Setting this property will persist in the
+     * host bundle’s user defaults. For this reason, only set this property if
+     * you need dynamic behavior (eg user preferences). Otherwise prefer to set
      * SUScheduledCheckInterval directly in your Info.plist.
      *
-     * The update schedule cycle will be reset in a short delay after the property’s new value is set. This is to allow
-     * reverting this property without kicking off a schedule change immediately."
+     * The update schedule cycle will be reset in a short delay after the
+     * property’s new value is set. This is to allow reverting this property
+     * without kicking off a schedule change immediately."
      */
     void setUpdateCheckInterval(double seconds) override;
 
     /*!
-     * Clears all allowed Sparkle channels, returning to the default updater channel behavior.
+     * Clears all allowed Sparkle channels, returning to the default updater
+     * channel behavior.
      */
     void clearAllowedChannels();
 
     /*!
-     * Set a single Sparkle channel the updater is allowed to find new updates from.
+     * Set a single Sparkle channel the updater is allowed to find new updates
+     * from.
      *
-     * Items in the default channel can always be found, regardless of this setting. If an empty string is passed,
-     * return to the default behavior.
+     * Items in the default channel can always be found, regardless of this
+     * setting. If an empty string is passed, return to the default behavior.
      */
     void setAllowedChannel(const QString& channel);
 
     /*!
-     * Set a set of Sparkle channels the updater is allowed to find new updates from.
+     * Set a set of Sparkle channels the updater is allowed to find new updates
+     * from.
      *
-     * Items in the default channel can always be found, regardless of this setting. If an empty set is passed,
-     * return to the default behavior.
+     * Items in the default channel can always be found, regardless of this
+     * setting. If an empty set is passed, return to the default behavior.
      */
     void setAllowedChannels(const QSet<QString>& channels);
 
     /*!
-     * Set whether or not beta updates should be checked for in addition to regular releases.
+     * Set whether or not beta updates should be checked for in addition to
+     * regular releases.
      */
     void setBetaAllowed(bool allowed) override;
 
 private:
     class Private;
 
-    Private *priv;
+    Private* priv;
 
     void loadChannelsFromSettings();
 };
 
-#endif //LAUNCHER_MACSPARKLEUPDATER_H
+#endif  // LAUNCHER_MACSPARKLEUPDATER_H

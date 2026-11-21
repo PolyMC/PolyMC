@@ -150,22 +150,26 @@ struct VersionMessages
     QString update;
 };
 
-struct VersionKeep {
+struct VersionKeep
+{
     QString base;
     QString target;
 };
 
-struct VersionKeeps {
+struct VersionKeeps
+{
     QVector<VersionKeep> files;
     QVector<VersionKeep> folders;
 };
 
-struct VersionDelete {
+struct VersionDelete
+{
     QString base;
     QString target;
 };
 
-struct VersionDeletes {
+struct VersionDeletes
+{
     QVector<VersionDelete> files;
     QVector<VersionDelete> folders;
 };
@@ -203,6 +207,6 @@ struct PackVersion
     VersionDeletes deletes;
 };
 
-void loadVersion(PackVersion & v, QJsonObject & obj);
+void loadVersion(PackVersion& v, QJsonObject& obj);
 
-}
+}  // namespace ATLauncher

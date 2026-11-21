@@ -43,7 +43,9 @@
 #include <deque>
 
 // ours
-bool MMCZip::mergeZipFiles(QuaZip *into, QFileInfo from, QSet<QString> &contained, const FilterFunction filter)
+bool MMCZip::mergeZipFiles(QuaZip* into, QFileInfo from,
+                           QSet<QString>& contained,
+                           const FilterFunction filter)
 {
     QuaZip modZip(from.filePath());
     modZip.open(QuaZip::mdUnzip);
@@ -56,13 +58,13 @@ bool MMCZip::mergeZipFiles(QuaZip *into, QFileInfo from, QSet<QString> &containe
         if (filter && !filter(filename))
         {
             qDebug() << "Skipping file " << filename << " from "
-                        << from.fileName() << " - filtered";
+                     << from.fileName() << " - filtered";
             continue;
         }
         if (contained.contains(filename))
         {
-            qDebug() << "Skipping already contained file " << filename << " from "
-                        << from.fileName();
+            qDebug() << "Skipping already contained file " << filename
+                     << " from " << from.fileName();
             continue;
         }
         contained.insert(filename);
@@ -70,16 +72,21 @@ bool MMCZip::mergeZipFiles(QuaZip *into, QFileInfo from, QSet<QString> &containe
         QuaZipFileInfo64 info_in;
         int method = 0;
         int level = 0;
-        if (!modZip.getCurrentFileInfo(&info_in) || !fileInsideMod.open(QIODevice::ReadOnly, &method, &level, true))
+        if (!modZip.getCurrentFileInfo(&info_in) ||
+            !fileInsideMod.open(QIODevice::ReadOnly, &method, &level, true))
         {
-            qCritical() << "Failed to open " << filename << " from " << from.fileName();
+            qCritical() << "Failed to open " << filename << " from "
+                        << from.fileName();
             return false;
         }
 
         QuaZipNewInfo info_out(fileInsideMod.getActualFileName());
-        info_out.uncompressedSize = static_cast<ulong>(info_in.uncompressedSize);
+        info_out.uncompressedSize =
+            static_cast<ulong>(info_in.uncompressedSize);
 
-        if (!zipOutFile.open(QIODevice::WriteOnly, info_out, nullptr, info_in.crc, method, method == Z_DEFLATED ? level : 0, true))
+        if (!zipOutFile.open(QIODevice::WriteOnly, info_out, nullptr,
+                             info_in.crc, method,
+                             method == Z_DEFLATED ? level : 0, true))
         {
             qCritical() << "Failed to open " << filename << " in the jar";
             fileInsideMod.close();
@@ -89,7 +96,8 @@ bool MMCZip::mergeZipFiles(QuaZip *into, QFileInfo from, QSet<QString> &containe
         {
             zipOutFile.close();
             fileInsideMod.close();
-            qCritical() << "Failed to copy data of " << filename << " into the jar";
+            qCritical() << "Failed to copy data of " << filename
+                        << " into the jar";
             return false;
         }
         zipOutFile.close();
@@ -98,24 +106,33 @@ bool MMCZip::mergeZipFiles(QuaZip *into, QFileInfo from, QSet<QString> &containe
     return true;
 }
 
-bool MMCZip::compressDirFiles(QuaZip *zip, QString dir, QFileInfoList files)
+bool MMCZip::compressDirFiles(QuaZip* zip, QString dir, QFileInfoList files)
 {
     QDir directory(dir);
-    if (!directory.exists()) return false;
+    if (!directory.exists())
+    {
+        return false;
+    }
 
-    for (const auto &e : files) {
+    for (const auto& e : files)
+    {
         auto filePath = directory.relativeFilePath(e.absoluteFilePath());
-        if( !JlCompress::compressFile(zip, e.absoluteFilePath(), filePath)) return false;
+        if (!JlCompress::compressFile(zip, e.absoluteFilePath(), filePath))
+        {
+            return false;
+        }
     }
 
     return true;
 }
 
-bool MMCZip::compressDirFiles(QString fileCompressed, QString dir, QFileInfoList files)
+bool MMCZip::compressDirFiles(QString fileCompressed, QString dir,
+                              QFileInfoList files)
 {
     QuaZip zip(fileCompressed);
     QDir().mkpath(QFileInfo(fileCompressed).absolutePath());
-    if(!zip.open(QuaZip::mdCreate)) {
+    if (!zip.open(QuaZip::mdCreate))
+    {
         QFile::remove(fileCompressed);
         return false;
     }
@@ -123,7 +140,8 @@ bool MMCZip::compressDirFiles(QString fileCompressed, QString dir, QFileInfoList
     auto result = compressDirFiles(&zip, dir, files);
 
     zip.close();
-    if(zip.getZipError()!=0) {
+    if (zip.getZipError() != 0)
+    {
         QFile::remove(fileCompressed);
         return false;
     }
@@ -132,7 +150,8 @@ bool MMCZip::compressDirFiles(QString fileCompressed, QString dir, QFileInfoList
 }
 
 // ours
-bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath, const QList<Mod*>& mods)
+bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath,
+                             const QList<Mod*>& mods)
 {
     QuaZip zipOut(targetJarPath);
     if (!zipOut.open(QuaZip::mdCreate))
@@ -146,20 +165,24 @@ bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath, const
     QSet<QString> addedFiles;
 
     // Modify the jar
-    // This needs to be done in reverse-order to ensure we respect the loading order of components
+    // This needs to be done in reverse-order to ensure we respect the loading
+    // order of components
     for (auto i = mods.crbegin(); i != mods.crend(); i++)
     {
         const auto* mod = *i;
         // do not merge disabled mods.
         if (!mod->enabled())
+        {
             continue;
+        }
         if (mod->type() == ResourceType::ZIPFILE)
         {
             if (!mergeZipFiles(&zipOut, mod->fileinfo(), addedFiles))
             {
                 zipOut.close();
                 QFile::remove(targetJarPath);
-                qCritical() << "Failed to add" << mod->fileinfo().fileName() << "to the jar.";
+                qCritical() << "Failed to add" << mod->fileinfo().fileName()
+                            << "to the jar.";
                 return false;
             }
         }
@@ -167,11 +190,13 @@ bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath, const
         {
             // FIXME: buggy - does not work with addedFiles
             auto filename = mod->fileinfo();
-            if (!JlCompress::compressFile(&zipOut, filename.absoluteFilePath(), filename.fileName()))
+            if (!JlCompress::compressFile(&zipOut, filename.absoluteFilePath(),
+                                          filename.fileName()))
             {
                 zipOut.close();
                 QFile::remove(targetJarPath);
-                qCritical() << "Failed to add" << mod->fileinfo().fileName() << "to the jar.";
+                qCritical() << "Failed to add" << mod->fileinfo().fileName()
+                            << "to the jar.";
                 return false;
             }
             addedFiles.insert(filename.fileName());
@@ -186,18 +211,23 @@ bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath, const
             dir.cdUp();
             QString parent_dir = dir.absolutePath();
             auto files = QFileInfoList();
-            MMCZip::collectFileListRecursively(what_to_zip, nullptr, &files, nullptr);
+            MMCZip::collectFileListRecursively(what_to_zip, nullptr, &files,
+                                               nullptr);
 
-            for (const auto &e : std::as_const(files)) {
+            for (const auto& e : std::as_const(files))
+            {
                 if (addedFiles.contains(e.filePath()))
+                {
                     files.removeAll(e);
+                }
             }
 
             if (!MMCZip::compressDirFiles(&zipOut, parent_dir, files))
             {
                 zipOut.close();
                 QFile::remove(targetJarPath);
-                qCritical() << "Failed to add" << mod->fileinfo().fileName() << "to the jar.";
+                qCritical() << "Failed to add" << mod->fileinfo().fileName()
+                            << "to the jar.";
                 return false;
             }
             qDebug() << "Adding folder " << filename.fileName() << " from "
@@ -205,15 +235,21 @@ bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath, const
         }
         else
         {
-            // Make sure we do not continue launching when something is missing or undefined...
+            // Make sure we do not continue launching when something is missing
+            // or undefined...
             zipOut.close();
             QFile::remove(targetJarPath);
-            qCritical() << "Failed to add unknown mod type" << mod->fileinfo().fileName() << "to the jar.";
+            qCritical() << "Failed to add unknown mod type"
+                        << mod->fileinfo().fileName() << "to the jar.";
             return false;
         }
     }
 
-    if (!mergeZipFiles(&zipOut, QFileInfo(sourceJarPath), addedFiles, [](const QString key){return !key.contains("META-INF");}))
+    if (!mergeZipFiles(&zipOut, QFileInfo(sourceJarPath), addedFiles,
+                       [](const QString key)
+                       {
+                           return !key.contains("META-INF");
+                       }))
     {
         zipOut.close();
         QFile::remove(targetJarPath);
@@ -233,7 +269,8 @@ bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath, const
 }
 
 // ours
-std::pair<QString, QString> MMCZip::findFolderOfFileInZip(QuaZip * zip, QSet<const QString> what, const QString &root)
+std::pair<QString, QString> MMCZip::findFolderOfFileInZip(
+    QuaZip* zip, QSet<const QString> what, const QString& root)
 {
     std::deque<QString> pathsToTraverse;
     pathsToTraverse.push_back(root);
@@ -243,12 +280,14 @@ std::pair<QString, QString> MMCZip::findFolderOfFileInZip(QuaZip * zip, QSet<con
         pathsToTraverse.pop_front();
         QuaZipDir rootDir(zip, currentPath);
 
-        for(auto fileName: rootDir.entryList(QDir::Files))
+        for (auto fileName : rootDir.entryList(QDir::Files))
         {
             if (what.contains(fileName))
+            {
                 return {currentPath, fileName};
+            }
         }
-        for (const auto &fileName : rootDir.entryList(QDir::Dirs))
+        for (const auto& fileName : rootDir.entryList(QDir::Dirs))
         {
             pathsToTraverse.push_back(rootDir.path() + fileName);
         }
@@ -257,38 +296,43 @@ std::pair<QString, QString> MMCZip::findFolderOfFileInZip(QuaZip * zip, QSet<con
 }
 
 // ours
-bool MMCZip::findFilesInZip(QuaZip * zip, const QString & what, QStringList & result, const QString &root)
+bool MMCZip::findFilesInZip(QuaZip* zip, const QString& what,
+                            QStringList& result, const QString& root)
 {
     QuaZipDir rootDir(zip, root);
-    for (const auto &fileName : rootDir.entryList(QDir::Files))
+    for (const auto& fileName : rootDir.entryList(QDir::Files))
     {
-        if(fileName == what)
+        if (fileName == what)
         {
             result.append(root);
             return true;
         }
     }
-    for (const auto &fileName : rootDir.entryList(QDir::Dirs))
+    for (const auto& fileName : rootDir.entryList(QDir::Dirs))
     {
         findFilesInZip(zip, what, result, root + fileName);
     }
     return !result.isEmpty();
 }
 
-
 // ours
-std::optional<QStringList> MMCZip::extractSubDir(QuaZip *zip, const QString & subdir, const QString &target)
+std::optional<QStringList> MMCZip::extractSubDir(QuaZip* zip,
+                                                 const QString& subdir,
+                                                 const QString& target)
 {
     QDir directory(target);
     QStringList extracted;
 
-    qDebug() << "Extracting subdir" << subdir << "from" << zip->getZipName() << "to" << target;
+    qDebug() << "Extracting subdir" << subdir << "from" << zip->getZipName()
+             << "to" << target;
     auto numEntries = zip->getEntriesCount();
-    if(numEntries < 0) {
+    if (numEntries < 0)
+    {
         qWarning() << "Failed to enumerate files in archive";
         return std::nullopt;
     }
-    else if(numEntries == 0) {
+    else if (numEntries == 0)
+    {
         qDebug() << "Extracting empty archives seems odd...";
         return extracted;
     }
@@ -301,39 +345,49 @@ std::optional<QStringList> MMCZip::extractSubDir(QuaZip *zip, const QString & su
     do
     {
         QString name = zip->getCurrentFileName();
-        if(!QDir::cleanPath(name).startsWith(subdir))
+        if (!QDir::cleanPath(name).startsWith(subdir))
         {
             continue;
         }
-        if (QDir::isAbsolutePath(name) || QDir::cleanPath(name).startsWith(".."))
+        if (QDir::isAbsolutePath(name) ||
+            QDir::cleanPath(name).startsWith(".."))
         {
-            qDebug() << "extractSubDir: Skipping file that tries to place itself in an absolute location or in a parent directory.";
+            qDebug()
+                << "extractSubDir: Skipping file that tries to place itself in "
+                   "an absolute location or in a parent directory.";
             continue;
         }
 
         name.remove(0, subdir.size());
         auto original_name = name;
 
-        // The checks above run on the full entry name, so make sure the path we actually write to stays inside the target
+        // The checks above run on the full entry name, so make sure the path we
+        // actually write to stays inside the target
         const QString targetRoot = QDir::cleanPath(directory.absolutePath());
-        const QString finalPath = QDir::cleanPath(directory.absoluteFilePath(name));
+        const QString finalPath =
+            QDir::cleanPath(directory.absoluteFilePath(name));
         if (finalPath != targetRoot && !finalPath.startsWith(targetRoot + '/'))
         {
-            qDebug() << "extractSubDir: Skipping file that tries to place itself outside of the target directory:" << original_name;
+            qDebug() << "extractSubDir: Skipping file that tries to place "
+                        "itself outside of the target directory:"
+                     << original_name;
             continue;
         }
 
-        // Symbolic links could point anywhere, and later entries would be written through them
+        // Symbolic links could point anywhere, and later entries would be
+        // written through them
         QuaZipFileInfo64 info;
         if (zip->getCurrentFileInfo(&info) && info.isSymbolicLink())
         {
-            qDebug() << "extractSubDir: Skipping symbolic link" << original_name;
+            qDebug() << "extractSubDir: Skipping symbolic link"
+                     << original_name;
             continue;
         }
 
         // Fix weird "folders with a single file get squashed" thing
         QString path;
-        if(name.contains('/') && !name.endsWith('/')){
+        if (name.contains('/') && !name.endsWith('/'))
+        {
             path = name.section('/', 0, -2) + "/";
             FS::ensureFolderPathExists(FS::PathCombine(target, path));
 
@@ -341,7 +395,7 @@ std::optional<QStringList> MMCZip::extractSubDir(QuaZip *zip, const QString & su
         }
 
         QString absFilePath;
-        if(name.isEmpty())
+        if (name.isEmpty())
         {
             absFilePath = directory.absoluteFilePath(name) + "/";
         }
@@ -352,13 +406,17 @@ std::optional<QStringList> MMCZip::extractSubDir(QuaZip *zip, const QString & su
 
         if (!JlCompress::extractFile(zip, "", absFilePath))
         {
-            qWarning() << "Failed to extract file" << original_name << "to" << absFilePath;
+            qWarning() << "Failed to extract file" << original_name << "to"
+                       << absFilePath;
             JlCompress::removeFile(extracted);
             return std::nullopt;
         }
 
         extracted.append(absFilePath);
-        QFile::setPermissions(absFilePath, QFileDevice::Permission::ReadUser | QFileDevice::Permission::WriteUser | QFileDevice::Permission::ExeUser);
+        QFile::setPermissions(absFilePath,
+                              QFileDevice::Permission::ReadUser |
+                                  QFileDevice::Permission::WriteUser |
+                                  QFileDevice::Permission::ExeUser);
 
         qDebug() << "Extracted file" << name << "to" << absFilePath;
     } while (zip->goToNextFile());
@@ -366,40 +424,49 @@ std::optional<QStringList> MMCZip::extractSubDir(QuaZip *zip, const QString & su
 }
 
 // ours
-bool MMCZip::extractRelFile(QuaZip *zip, const QString &file, const QString &target)
+bool MMCZip::extractRelFile(QuaZip* zip, const QString& file,
+                            const QString& target)
 {
     return JlCompress::extractFile(zip, file, target);
 }
 
 // ours
-std::optional<QStringList> MMCZip::extractDir(QString fileCompressed, QString dir)
+std::optional<QStringList> MMCZip::extractDir(QString fileCompressed,
+                                              QString dir)
 {
     QuaZip zip(fileCompressed);
     if (!zip.open(QuaZip::mdUnzip))
     {
         // check if this is a minimum size empty zip file...
         QFileInfo fileInfo(fileCompressed);
-        if(fileInfo.size() == 22) {
+        if (fileInfo.size() == 22)
+        {
             return QStringList();
         }
-        qWarning() << "Could not open archive for unzipping:" << fileCompressed << "Error:" << zip.getZipError();;
+        qWarning() << "Could not open archive for unzipping:" << fileCompressed
+                   << "Error:" << zip.getZipError();
+        ;
         return std::nullopt;
     }
     return MMCZip::extractSubDir(&zip, "", dir);
 }
 
 // ours
-std::optional<QStringList> MMCZip::extractDir(QString fileCompressed, QString subdir, QString dir)
+std::optional<QStringList> MMCZip::extractDir(QString fileCompressed,
+                                              QString subdir, QString dir)
 {
     QuaZip zip(fileCompressed);
     if (!zip.open(QuaZip::mdUnzip))
     {
         // check if this is a minimum size empty zip file...
         QFileInfo fileInfo(fileCompressed);
-        if(fileInfo.size() == 22) {
+        if (fileInfo.size() == 22)
+        {
             return QStringList();
         }
-        qWarning() << "Could not open archive for unzipping:" << fileCompressed << "Error:" << zip.getZipError();;
+        qWarning() << "Could not open archive for unzipping:" << fileCompressed
+                   << "Error:" << zip.getZipError();
+        ;
         return std::nullopt;
     }
     return MMCZip::extractSubDir(&zip, subdir, dir);
@@ -413,65 +480,97 @@ bool MMCZip::extractFile(QString fileCompressed, QString file, QString target)
     {
         // check if this is a minimum size empty zip file...
         QFileInfo fileInfo(fileCompressed);
-        if(fileInfo.size() == 22) {
+        if (fileInfo.size() == 22)
+        {
             return true;
         }
-        qWarning() << "Could not open archive for unzipping:" << fileCompressed << "Error:" << zip.getZipError();
+        qWarning() << "Could not open archive for unzipping:" << fileCompressed
+                   << "Error:" << zip.getZipError();
         return false;
     }
     return MMCZip::extractRelFile(&zip, file, target);
 }
 
-bool MMCZip::collectFileListRecursively(const QString& rootDir, const QString& subDir, QFileInfoList *files,
-                                        MMCZip::FilterFunction excludeFilter) {
+bool MMCZip::collectFileListRecursively(const QString& rootDir,
+                                        const QString& subDir,
+                                        QFileInfoList* files,
+                                        MMCZip::FilterFunction excludeFilter)
+{
     QDir rootDirectory(rootDir);
-    if (!rootDirectory.exists()) return false;
+    if (!rootDirectory.exists())
+    {
+        return false;
+    }
 
     QDir directory;
     if (subDir == nullptr)
+    {
         directory = rootDirectory;
+    }
     else
+    {
         directory = QDir(subDir);
+    }
 
-    if (!directory.exists()) return false;  // shouldn't ever happen
+    if (!directory.exists())
+    {
+        return false;  // shouldn't ever happen
+    }
 
     // recurse directories
-    QFileInfoList entries = directory.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Hidden);
-    for (const auto& e : std::as_const(entries)) {
-        if (!collectFileListRecursively(rootDir, e.filePath(), files, excludeFilter))
+    QFileInfoList entries = directory.entryInfoList(
+        QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Hidden);
+    for (const auto& e : std::as_const(entries))
+    {
+        if (!collectFileListRecursively(rootDir, e.filePath(), files,
+                                        excludeFilter))
+        {
             return false;
+        }
     }
 
     // collect files
     entries = directory.entryInfoList(QDir::Files);
-    for (const auto& e : std::as_const(entries)) {
-        QString relativeFilePath = rootDirectory.relativeFilePath(e.absoluteFilePath());
-        if (excludeFilter && excludeFilter(relativeFilePath)) {
+    for (const auto& e : std::as_const(entries))
+    {
+        QString relativeFilePath =
+            rootDirectory.relativeFilePath(e.absoluteFilePath());
+        if (excludeFilter && excludeFilter(relativeFilePath))
+        {
             qDebug() << "Skipping file " << relativeFilePath;
             continue;
         }
 
-        files->append(e);  // we want the original paths for MMCZip::compressDirFiles
+        files->append(
+            e);  // we want the original paths for MMCZip::compressDirFiles
     }
     return true;
 }
 
-std::optional<QByteArray> MMCZip::readFile(QuaZip *zip, const QString &file)
+std::optional<QByteArray> MMCZip::readFile(QuaZip* zip, const QString& file)
 {
     unzFile unz = zip->getUnzFile();
     if (!unz || unzLocateFile(unz, file.toUtf8().constData(), 1) != UNZ_OK)
+    {
         return std::nullopt;
+    }
 
     if (unzOpenCurrentFile(unz) != UNZ_OK)
+    {
         return std::nullopt;
+    }
 
     QByteArray data;
     char buffer[16384];
     int read;
     while ((read = unzReadCurrentFile(unz, buffer, sizeof(buffer))) > 0)
+    {
         data.append(buffer, read);
+    }
 
     if (unzCloseCurrentFile(unz) != UNZ_OK || read < 0)
+    {
         return std::nullopt;
+    }
     return data;
 }

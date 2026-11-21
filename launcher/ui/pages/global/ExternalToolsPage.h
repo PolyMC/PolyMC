@@ -40,7 +40,8 @@
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 
-namespace Ui {
+namespace Ui
+{
 class ExternalToolsPage;
 }
 
@@ -49,7 +50,7 @@ class ExternalToolsPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit ExternalToolsPage(QWidget *parent = 0);
+    explicit ExternalToolsPage(QWidget* parent = 0);
     ~ExternalToolsPage();
 
     QString displayName() const override
@@ -59,7 +60,7 @@ public:
     QIcon icon() const override
     {
         auto icon = APPLICATION->getThemedIcon("externaltools");
-        if(icon.isNull())
+        if (icon.isNull())
         {
             icon = APPLICATION->getThemedIcon("loadermods");
         }
@@ -81,10 +82,9 @@ private:
     void applySettings();
 
 private:
-    Ui::ExternalToolsPage *ui;
+    Ui::ExternalToolsPage* ui;
 
-private
-slots:
+private slots:
     void on_jprofilerPathBtn_clicked();
     void on_jprofilerCheckBtn_clicked();
     void on_jvisualvmPathBtn_clicked();

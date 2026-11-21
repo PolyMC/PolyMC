@@ -25,7 +25,9 @@
 class BaseVersion
 {
 public:
-    virtual ~BaseVersion() {}
+    virtual ~BaseVersion()
+    {
+    }
     /*!
      * A string used to identify this version in config files.
      * This should be unique within the version list or shenanigans will occur.

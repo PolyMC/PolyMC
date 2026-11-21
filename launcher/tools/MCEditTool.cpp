@@ -37,7 +37,9 @@ bool MCEditTool::check(const QString& toolPath, QString& error)
         error = QObject::tr("Path does not exist");
         return false;
     }
-    if (!dir.exists("mcedit.sh") && !dir.exists("mcedit.py") && !dir.exists("mcedit.exe") && !dir.exists("Contents") && !dir.exists("mcedit2.exe"))
+    if (!dir.exists("mcedit.sh") && !dir.exists("mcedit.py") &&
+        !dir.exists("mcedit.exe") && !dir.exists("Contents") &&
+        !dir.exists("mcedit2.exe"))
     {
         error = QObject::tr("Path does not seem to be a MCEdit path");
         return false;

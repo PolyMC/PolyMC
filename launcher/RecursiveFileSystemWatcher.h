@@ -8,9 +8,9 @@ class RecursiveFileSystemWatcher : public QObject
 {
     Q_OBJECT
 public:
-    RecursiveFileSystemWatcher(QObject *parent);
+    RecursiveFileSystemWatcher(QObject* parent);
 
-    void setRootDir(const QDir &root);
+    void setRootDir(const QDir& root);
     QDir rootDir() const
     {
         return m_root;
@@ -35,7 +35,7 @@ public:
 
 signals:
     void filesChanged();
-    void fileChanged(const QString &path);
+    void fileChanged(const QString& path);
 
 public slots:
     void enable();
@@ -47,15 +47,15 @@ private:
     bool m_isEnabled = false;
     IPathMatcher::Ptr m_matcher;
 
-    QFileSystemWatcher *m_watcher;
+    QFileSystemWatcher* m_watcher;
 
     QStringList m_files;
-    void setFiles(const QStringList &files);
+    void setFiles(const QStringList& files);
 
-    void addFilesToWatcherRecursive(const QDir &dir);
-    QStringList scanRecursive(const QDir &dir);
+    void addFilesToWatcherRecursive(const QDir& dir);
+    QStringList scanRecursive(const QDir& dir);
 
 private slots:
-    void fileChange(const QString &path);
-    void directoryChange(const QString &path);
+    void fileChange(const QString& path);
+    void directoryChange(const QString& path);
 };

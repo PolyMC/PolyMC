@@ -40,10 +40,12 @@
 #include <QList>
 
 /**
- * \brief The Config class holds all the build-time information passed from the build system.
+ * \brief The Config class holds all the build-time information passed from the
+ * build system.
  */
-class Config {
-   public:
+class Config
+{
+public:
     Config();
     QString LAUNCHER_NAME;
     QString LAUNCHER_DISPLAYNAME;
@@ -60,7 +62,8 @@ class Config {
 
     /**
      * The version channel
-     * This is used by the updater to determine what channel the current version came from.
+     * This is used by the updater to determine what channel the current version
+     * came from.
      */
     QString VERSION_CHANNEL;
 
@@ -72,7 +75,8 @@ class Config {
     /// The target architecture, or architectures.
     QStringList BUILD_ARCHITECTURE;
 
-    /// Whether or not this is a "legacy" build, targeting older operating systems.
+    /// Whether or not this is a "legacy" build, targeting older operating
+    /// systems.
     bool LEGACY_BUILD;
 
     /// A string containing the build timestamp
@@ -114,7 +118,8 @@ class Config {
     QString NEWS_OPEN_URL;
 
     /**
-     * URL (with arg %1 to be substituted with page-id) that gets opened when the user requests help
+     * URL (with arg %1 to be substituted with page-id) that gets opened when
+     * the user requests help
      */
     QString HELP_URL;
 
@@ -124,7 +129,8 @@ class Config {
     QString IMGUR_CLIENT_ID;
 
     /**
-     * Client ID you can get from Microsoft Identity Platform when you register an application
+     * Client ID you can get from Microsoft Identity Platform when you register
+     * an application
      */
     QString MSA_CLIENT_ID;
 
@@ -155,11 +161,13 @@ class Config {
     QString FMLLIBS_BASE_URL = "https://files.polymc.org/fmllibs/";
     QString TRANSLATIONS_BASE_URL = "https://i18n.polymc.org/";
 
-    QString FTB_API_BASE_URL = "https://api.feed-the-beast.com/v1/modpacks/public";
+    QString FTB_API_BASE_URL =
+        "https://api.feed-the-beast.com/v1/modpacks/public";
 
     QString LEGACY_FTB_CDN_BASE_URL = "https://dist.creeper.host/FTB2/";
 
-    QString ATL_DOWNLOAD_SERVER_URL = "https://download.nodecdn.net/containers/atl/";
+    QString ATL_DOWNLOAD_SERVER_URL =
+        "https://download.nodecdn.net/containers/atl/";
     QString ATL_API_BASE_URL = "https://api.atlauncher.com/v1/";
 
     QString TECHNIC_API_BASE_URL = "https://api.technicpack.net/";

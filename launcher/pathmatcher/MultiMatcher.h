@@ -9,17 +9,17 @@ public:
     MultiMatcher()
     {
     }
-    MultiMatcher &add(Ptr add)
+    MultiMatcher& add(Ptr add)
     {
         m_matchers.append(add);
         return *this;
     }
 
-    virtual bool matches(const QString &string) const override
+    virtual bool matches(const QString& string) const override
     {
-        for (const auto &iter : m_matchers)
+        for (const auto& iter : m_matchers)
         {
-            if(iter->matches(string))
+            if (iter->matches(string))
             {
                 return true;
             }

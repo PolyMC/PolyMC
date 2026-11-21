@@ -39,9 +39,8 @@
 #include <QTabWidget>
 #include <QTabBar>
 
-CustomCommandsPage::CustomCommandsPage(QWidget* parent): QWidget(parent)
+CustomCommandsPage::CustomCommandsPage(QWidget* parent) : QWidget(parent)
 {
-
     auto verticalLayout = new QVBoxLayout(this);
     verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
     verticalLayout->setContentsMargins(0, 0, 0, 0);
@@ -77,13 +76,9 @@ void CustomCommandsPage::applySettings()
 void CustomCommandsPage::loadSettings()
 {
     auto s = APPLICATION->settings();
-    commands->initialize(
-        false,
-        true,
-        s->get("PreLaunchCommand").toString(),
-        s->get("WrapperCommand").toString(),
-        s->get("PostExitCommand").toString()
-    );
+    commands->initialize(false, true, s->get("PreLaunchCommand").toString(),
+                         s->get("WrapperCommand").toString(),
+                         s->get("PostExitCommand").toString());
 }
 
 void CustomCommandsPage::retranslate()

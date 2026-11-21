@@ -34,13 +34,17 @@ class PolyMCTextCodec
 public:
     explicit PolyMCTextCodec();
 
-    QByteArray fromUnicode(const QString &str) const;
-    QString toUnicode(const QByteArray &a) const;
+    QByteArray fromUnicode(const QString& str) const;
+    QString toUnicode(const QByteArray& a) const;
 
-    QStringConverter::Encoding encoding() const { return mEncoding; }
+    QStringConverter::Encoding encoding() const
+    {
+        return mEncoding;
+    }
 
-    static PolyMCTextCodec *codecForName(const QByteArray &name);
-    static PolyMCTextCodec *codecForLocale();
+    static PolyMCTextCodec* codecForName(const QByteArray& name);
+    static PolyMCTextCodec* codecForLocale();
+
 protected:
     static void setup();
     QStringConverter::Encoding mEncoding = QStringConverter::Utf8;
@@ -51,11 +55,12 @@ protected:
 class PolyMCTextDecoder
 {
 public:
-    explicit PolyMCTextDecoder(const PolyMCTextCodec *codec);
-    explicit PolyMCTextDecoder(QStringConverter::Encoding encoding = QStringConverter::System);
+    explicit PolyMCTextDecoder(const PolyMCTextCodec* codec);
+    explicit PolyMCTextDecoder(
+        QStringConverter::Encoding encoding = QStringConverter::System);
 
-    QString toUnicode(const QByteArray &data);
+    QString toUnicode(const QByteArray& data);
+
 private:
     QStringDecoder m_decoder;
 };
-

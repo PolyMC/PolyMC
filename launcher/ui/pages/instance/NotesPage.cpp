@@ -37,7 +37,7 @@
 #include "ui_NotesPage.h"
 #include <QTabBar>
 
-NotesPage::NotesPage(BaseInstance *inst, QWidget *parent)
+NotesPage::NotesPage(BaseInstance* inst, QWidget* parent)
     : QWidget(parent), ui(new Ui::NotesPage), m_inst(inst)
 {
     ui->setupUi(this);

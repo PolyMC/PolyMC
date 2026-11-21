@@ -22,36 +22,53 @@
 #include "ui/dialogs/ProgressDialog.h"
 #include "ui/pages/instance/ExternalResourcesPage.h"
 
-DownloadableResourcesPage::DownloadableResourcesPage(BaseInstance* instance,
-                                                     std::shared_ptr<ResourceFolderModel> model,
-                                                     QWidget* parent)
-    : ExternalResourcesPage(instance, model, parent) {}
+DownloadableResourcesPage::DownloadableResourcesPage(
+    BaseInstance* instance, std::shared_ptr<ResourceFolderModel> model,
+    QWidget* parent)
+    : ExternalResourcesPage(instance, model, parent)
+{
+}
 
-void DownloadableResourcesPage::runTasks(const QList<ModDownloadTask*>& toRun) {
+void DownloadableResourcesPage::runTasks(const QList<ModDownloadTask*>& toRun)
+{
     auto* tasks = new ConcurrentTask(this);
-    connect(tasks, &Task::failed, [this, tasks](QString reason) {
-        CustomMessageBox::selectable(this, tr("Error"), reason, QMessageBox::Critical)->show();
-        tasks->deleteLater();
-    });
+    connect(tasks, &Task::failed,
+            [this, tasks](QString reason)
+            {
+                CustomMessageBox::selectable(this, tr("Error"), reason,
+                                             QMessageBox::Critical)
+                    ->show();
+                tasks->deleteLater();
+            });
 
-    connect(tasks, &Task::aborted, [this, tasks]() {
-        CustomMessageBox::selectable(this, tr("Aborted"), tr("Download stopped by user."),
-                                     QMessageBox::Information)
-            ->show();
-        tasks->deleteLater();
-    });
+    connect(tasks, &Task::aborted,
+            [this, tasks]()
+            {
+                CustomMessageBox::selectable(this, tr("Aborted"),
+                                             tr("Download stopped by user."),
+                                             QMessageBox::Information)
+                    ->show();
+                tasks->deleteLater();
+            });
 
-    connect(tasks, &Task::succeeded, [this, tasks]() {
-        const auto warnings = tasks->warnings();
-        if (warnings.count())
-            CustomMessageBox::selectable(this, tr("Warnings"), warnings.join('\n'),
-                                         QMessageBox::Warning)
-                ->show();
-        tasks->deleteLater();
-    });
+    connect(tasks, &Task::succeeded,
+            [this, tasks]()
+            {
+                const auto warnings = tasks->warnings();
+                if (warnings.count())
+                {
+                    CustomMessageBox::selectable(this, tr("Warnings"),
+                                                 warnings.join('\n'),
+                                                 QMessageBox::Warning)
+                        ->show();
+                }
+                tasks->deleteLater();
+            });
 
     for (auto* task : toRun)
+    {
         tasks->addTask(task);
+    }
 
     ProgressDialog loadDialog(this);
     loadDialog.setSkipButton(true, tr("Abort"));

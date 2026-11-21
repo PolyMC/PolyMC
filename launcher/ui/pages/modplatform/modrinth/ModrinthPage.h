@@ -44,30 +44,54 @@
 
 #include <QWidget>
 
-namespace Ui {
+namespace Ui
+{
 class ModrinthPage;
 }
 
-namespace Modrinth {
+namespace Modrinth
+{
 class ModpackListModel;
 }
 
-class ModrinthPage : public QWidget, public BasePage {
+class ModrinthPage : public QWidget, public BasePage
+{
     Q_OBJECT
 
-   public:
+public:
     explicit ModrinthPage(NewInstanceDialog* dialog, QWidget* parent = nullptr);
     ~ModrinthPage() override;
 
-    QString displayName() const override { return tr("Modrinth"); }
-    QIcon icon() const override { return APPLICATION->getThemedIcon("modrinth"); }
-    QString id() const override { return "modrinth"; }
-    QString helpPage() const override { return "Modrinth-platform"; }
+    QString displayName() const override
+    {
+        return tr("Modrinth");
+    }
+    QIcon icon() const override
+    {
+        return APPLICATION->getThemedIcon("modrinth");
+    }
+    QString id() const override
+    {
+        return "modrinth";
+    }
+    QString helpPage() const override
+    {
+        return "Modrinth-platform";
+    }
 
-    inline QString debugName() const { return "Modrinth"; }
-    inline QString metaEntryBase() const { return "ModrinthModpacks"; };
+    inline QString debugName() const
+    {
+        return "Modrinth";
+    }
+    inline QString metaEntryBase() const
+    {
+        return "ModrinthModpacks";
+    };
 
-    Modrinth::Modpack& getCurrent() { return current; }
+    Modrinth::Modpack& getCurrent()
+    {
+        return current;
+    }
     void suggestCurrent();
 
     void updateUI();
@@ -76,12 +100,12 @@ class ModrinthPage : public QWidget, public BasePage {
     void openedImpl() override;
     bool eventFilter(QObject* watched, QEvent* event) override;
 
-   private slots:
+private slots:
     void onSelectionChanged(QModelIndex first, QModelIndex second);
     void onVersionSelectionChanged(QString newData);
     void triggerSearch();
 
-   private:
+private:
     Ui::ModrinthPage* ui;
     NewInstanceDialog* dialog;
     Modrinth::ModpackListModel* m_model;

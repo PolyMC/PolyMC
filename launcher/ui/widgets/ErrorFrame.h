@@ -27,7 +27,7 @@ class ErrorFrame : public QFrame
     Q_OBJECT
 
 public:
-    explicit ErrorFrame(QWidget *parent = 0);
+    explicit ErrorFrame(QWidget* parent = 0);
     ~ErrorFrame();
 
     void setTitle(QString text);
@@ -36,14 +36,14 @@ public:
     void clear();
 
 public slots:
-    void ellipsisHandler(const QString& link );
+    void ellipsisHandler(const QString& link);
     void boxClosed(int result);
 
 private:
     void updateHiddenState();
 
 private:
-    Ui::ErrorFrame *ui;
+    Ui::ErrorFrame* ui;
     QString desc;
-    class QMessageBox * currentBox = nullptr;
+    class QMessageBox* currentBox = nullptr;
 };

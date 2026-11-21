@@ -54,7 +54,7 @@ class GameOptionsPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit GameOptionsPage(MinecraftInstance *inst, QWidget *parent = 0);
+    explicit GameOptionsPage(MinecraftInstance* inst, QWidget* parent = 0);
     virtual ~GameOptionsPage();
 
     void openedImpl() override;
@@ -78,7 +78,7 @@ public:
     }
     void retranslate() override;
 
-private: // data
-    Ui::GameOptionsPage *ui = nullptr;
+private:  // data
+    Ui::GameOptionsPage* ui = nullptr;
     std::shared_ptr<GameOptions> m_model;
 };

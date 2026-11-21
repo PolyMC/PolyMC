@@ -47,9 +47,11 @@
 
 class MinecraftInstance;
 
-namespace Modrinth {
+namespace Modrinth
+{
 
-struct File {
+struct File
+{
     QString path;
 
     QCryptographicHash::Algorithm hashAlgorithm;
@@ -57,13 +59,15 @@ struct File {
     QQueue<QUrl> downloads;
 };
 
-struct DonationData {
+struct DonationData
+{
     QString id;
     QString platform;
     QString url;
 };
 
-struct ModpackExtra {
+struct ModpackExtra
+{
     QString body;
 
     QString projectUrl;
@@ -74,10 +78,10 @@ struct ModpackExtra {
     QString discordUrl;
 
     QList<DonationData> donate;
-
 };
 
-struct ModpackVersion {
+struct ModpackVersion
+{
     QString name;
     QString version;
 
@@ -89,17 +93,18 @@ struct ModpackVersion {
     QString download_url;
 };
 
-struct Modpack {
+struct Modpack
+{
     QString id;
 
     QString name;
     QString description;
     std::tuple<QString, QUrl> author;
     QString iconName;
-    QUrl    iconUrl;
+    QUrl iconUrl;
 
-    bool    versionsLoaded = false;
-    bool    extraInfoLoaded = false;
+    bool versionsLoaded = false;
+    bool extraInfoLoaded = false;
 
     ModpackExtra extra;
     QVector<ModpackVersion> versions;
@@ -110,13 +115,14 @@ void loadIndexedInfo(Modpack&, QJsonObject&);
 void loadIndexedVersions(Modpack&, QJsonDocument&);
 ModpackVersion loadIndexedVersion(QJsonObject&);
 
-// Whether the URL is HTTPS and on one of the domains Modrinth allows in .mrpack downloads:
+// Whether the URL is HTTPS and on one of the domains Modrinth allows in .mrpack
+// downloads:
 // https://support.modrinth.com/en/articles/8802351-modrinth-modpack-format-mrpack
 bool validateDownloadUrl(const QUrl&);
 // Whether the URL is served directly by Modrinth's own CDN.
 bool isModrinthCdnUrl(const QUrl&);
 
-}
+}  // namespace Modrinth
 
 Q_DECLARE_METATYPE(Modrinth::Modpack)
 Q_DECLARE_METATYPE(Modrinth::ModpackVersion)

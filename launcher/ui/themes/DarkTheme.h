@@ -2,10 +2,12 @@
 
 #include "FusionTheme.h"
 
-class DarkTheme: public FusionTheme
+class DarkTheme : public FusionTheme
 {
 public:
-    virtual ~DarkTheme() {}
+    virtual ~DarkTheme()
+    {
+    }
 
     QString id() override;
     QString name() override;

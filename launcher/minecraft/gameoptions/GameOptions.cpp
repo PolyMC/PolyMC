@@ -3,8 +3,10 @@
 #include <QDebug>
 #include <QSaveFile>
 
-namespace {
-bool load(const QString& path, std::vector<GameOptionItem> &contents, int & version)
+namespace
+{
+bool load(const QString& path, std::vector<GameOptionItem>& contents,
+          int& version)
 {
     contents.clear();
     QFile file(path);
@@ -14,22 +16,23 @@ bool load(const QString& path, std::vector<GameOptionItem> &contents, int & vers
         return false;
     }
     version = 0;
-    while(!file.atEnd())
+    while (!file.atEnd())
     {
         auto line = file.readLine();
-        if(line.endsWith('\n'))
+        if (line.endsWith('\n'))
         {
             line.chop(1);
         }
         auto separatorIndex = line.indexOf(':');
-        if(separatorIndex == -1)
+        if (separatorIndex == -1)
         {
             continue;
         }
         auto key = QString::fromUtf8(line.data(), separatorIndex);
-        auto value = QString::fromUtf8(line.data() + separatorIndex + 1, line.size() - 1 - separatorIndex);
+        auto value = QString::fromUtf8(line.data() + separatorIndex + 1,
+                                       line.size() - 1 - separatorIndex);
         qDebug() << "!!" << key << "!!";
-        if(key == "version")
+        if (key == "version")
         {
             version = value.toInt();
             continue;
@@ -39,14 +42,15 @@ bool load(const QString& path, std::vector<GameOptionItem> &contents, int & vers
     qDebug() << "Loaded" << path << "with version:" << version;
     return true;
 }
-bool save(const QString& path, std::vector<GameOptionItem> &mapping, int version)
+bool save(const QString& path, std::vector<GameOptionItem>& mapping,
+          int version)
 {
     QSaveFile out(path);
-    if(!out.open(QIODevice::WriteOnly))
+    if (!out.open(QIODevice::WriteOnly))
     {
         return false;
     }
-    if(version != 0)
+    if (version != 0)
     {
         QString versionLine = QString("version:%1\n").arg(version);
         out.write(versionLine.toUtf8());
@@ -62,21 +66,21 @@ bool save(const QString& path, std::vector<GameOptionItem> &mapping, int version
     }
     return out.commit();
 }
-}
+}  // namespace
 
-GameOptions::GameOptions(const QString& path):
-    path(path)
+GameOptions::GameOptions(const QString& path) : path(path)
 {
     reload();
 }
 
-QVariant GameOptions::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant GameOptions::headerData(int section, Qt::Orientation orientation,
+                                 int role) const
 {
-    if(role != Qt::DisplayRole)
+    if (role != Qt::DisplayRole)
     {
         return QAbstractListModel::headerData(section, orientation, role);
     }
-    switch(section)
+    switch (section)
     {
         case 0:
             return tr("Key");
@@ -90,27 +94,31 @@ QVariant GameOptions::headerData(int section, Qt::Orientation orientation, int r
 QVariant GameOptions::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid())
+    {
         return QVariant();
+    }
 
     int row = index.row();
     int column = index.column();
 
     if (row < 0 || row >= int(contents.size()))
+    {
         return QVariant();
+    }
 
     switch (role)
     {
-    case Qt::DisplayRole:
-        if(column == 0)
-        {
-            return contents[row].key;
-        }
-        else
-        {
-            return contents[row].value;
-        }
-    default:
-        return QVariant();
+        case Qt::DisplayRole:
+            if (column == 0)
+            {
+                return contents[row].key;
+            }
+            else
+            {
+                return contents[row].value;
+            }
+        default:
+            return QVariant();
     }
     return QVariant();
 }

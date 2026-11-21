@@ -14,7 +14,8 @@ void FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj)
     pack.provider = ModPlatform::Provider::FLAME;
     pack.name = Json::requireString(obj, "name");
     pack.slug = Json::requireString(obj, "slug");
-    pack.websiteUrl = Json::ensureString(Json::ensureObject(obj, "links"), "websiteUrl", "");
+    pack.websiteUrl =
+        Json::ensureString(Json::ensureObject(obj, "links"), "websiteUrl", "");
     pack.description = Json::ensureString(obj, "summary", "");
 
     QJsonObject logo = Json::ensureObject(obj, "logo");
@@ -22,7 +23,8 @@ void FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj)
     pack.logoUrl = Json::ensureString(logo, "thumbnailUrl");
 
     auto authors = Json::ensureArray(obj, "authors");
-    for (auto authorIter : std::as_const(authors)) {
+    for (auto authorIter : std::as_const(authors))
+    {
         auto author = Json::requireObject(authorIter);
         ModPlatform::ModpackAuthor packAuthor;
         packAuthor.name = Json::requireString(author, "name");
@@ -39,82 +41,109 @@ void FlameMod::loadURLs(ModPlatform::IndexedPack& pack, QJsonObject& obj)
     auto links_obj = Json::ensureObject(obj, "links");
 
     pack.extraData.issuesUrl = Json::ensureString(links_obj, "issuesUrl");
-    if(pack.extraData.issuesUrl.endsWith('/'))
+    if (pack.extraData.issuesUrl.endsWith('/'))
+    {
         pack.extraData.issuesUrl.chop(1);
+    }
 
     pack.extraData.sourceUrl = Json::ensureString(links_obj, "sourceUrl");
-    if(pack.extraData.sourceUrl.endsWith('/'))
+    if (pack.extraData.sourceUrl.endsWith('/'))
+    {
         pack.extraData.sourceUrl.chop(1);
+    }
 
     pack.extraData.wikiUrl = Json::ensureString(links_obj, "wikiUrl");
-    if(pack.extraData.wikiUrl.endsWith('/'))
+    if (pack.extraData.wikiUrl.endsWith('/'))
+    {
         pack.extraData.wikiUrl.chop(1);
+    }
 
     if (!pack.extraData.body.isEmpty())
+    {
         pack.extraDataLoaded = true;
+    }
 }
 
 void FlameMod::loadBody(ModPlatform::IndexedPack& pack, QJsonObject& /*obj*/)
 {
-    pack.extraData.body  = api.getModDescription(pack.addonId.toInt());
+    pack.extraData.body = api.getModDescription(pack.addonId.toInt());
 
-    if (!pack.extraData.issuesUrl.isEmpty() || !pack.extraData.sourceUrl.isEmpty() || !pack.extraData.wikiUrl.isEmpty())
+    if (!pack.extraData.issuesUrl.isEmpty() ||
+        !pack.extraData.sourceUrl.isEmpty() ||
+        !pack.extraData.wikiUrl.isEmpty())
+    {
         pack.extraDataLoaded = true;
+    }
 }
 
 static QString enumToString(int hash_algorithm)
 {
-    switch(hash_algorithm){
-    default:
-    case 1:
-        return "sha1";
-    case 2:
-        return "md5";
+    switch (hash_algorithm)
+    {
+        default:
+        case 1:
+            return "sha1";
+        case 2:
+            return "md5";
     }
 }
 
-void FlameMod::loadIndexedPackVersions(ModPlatform::IndexedPack& pack,
-                                       QJsonArray& arr,
-                                       const shared_qobject_ptr<QNetworkAccessManager>& /*network*/,
-                                       BaseInstance* inst)
+void FlameMod::loadIndexedPackVersions(
+    ModPlatform::IndexedPack& pack, QJsonArray& arr,
+    const shared_qobject_ptr<QNetworkAccessManager>& /*network*/,
+    BaseInstance* inst)
 {
     QVector<ModPlatform::IndexedVersion> unsortedVersions;
     auto profile = (dynamic_cast<MinecraftInstance*>(inst))->getPackProfile();
     QString mcVersion = profile->getComponentVersion("net.minecraft");
 
-    for (auto versionIter : arr) {
+    for (auto versionIter : arr)
+    {
         auto obj = versionIter.toObject();
-        
-        auto file = loadIndexedPackVersion(obj);
-        if(!file.addonId.isValid())
-            file.addonId = pack.addonId;
 
-        if(file.fileId.isValid()) // Heuristic to check if the returned value is valid
+        auto file = loadIndexedPackVersion(obj);
+        if (!file.addonId.isValid())
+        {
+            file.addonId = pack.addonId;
+        }
+
+        if (file.fileId.isValid())
+        {  // Heuristic to check if the returned value
+           // is valid
             unsortedVersions.append(file);
+        }
     }
 
-    auto orderSortPredicate = [](const ModPlatform::IndexedVersion& a, const ModPlatform::IndexedVersion& b) -> bool {
+    auto orderSortPredicate = [](const ModPlatform::IndexedVersion& a,
+                                 const ModPlatform::IndexedVersion& b) -> bool
+    {
         // dates are in RFC 3339 format
         return a.date > b.date;
     };
-    std::sort(unsortedVersions.begin(), unsortedVersions.end(), orderSortPredicate);
+    std::sort(unsortedVersions.begin(), unsortedVersions.end(),
+              orderSortPredicate);
     pack.versions = unsortedVersions;
     pack.versionsLoaded = true;
 }
 
-ModPlatform::IndexedVersion FlameMod::loadIndexedPackVersion(QJsonObject& obj, bool load_changelog)
+ModPlatform::IndexedVersion FlameMod::loadIndexedPackVersion(
+    QJsonObject& obj, bool load_changelog)
 {
     auto versionArray = Json::requireArray(obj, "gameVersions");
-    if (versionArray.isEmpty()) {
+    if (versionArray.isEmpty())
+    {
         return {};
     }
 
     ModPlatform::IndexedVersion file;
-    for (auto mcVer : std::as_const(versionArray)) {
+    for (auto mcVer : std::as_const(versionArray))
+    {
         auto str = mcVer.toString();
 
         if (str.contains('.'))
+        {
             file.mcVersion.append(str);
+        }
     }
 
     file.addonId = Json::requireInteger(obj, "modId");
@@ -125,19 +154,25 @@ ModPlatform::IndexedVersion FlameMod::loadIndexedPackVersion(QJsonObject& obj, b
     file.fileName = Json::requireString(obj, "fileName");
 
     auto hash_list = Json::ensureArray(obj, "hashes");
-    for (auto h : std::as_const(hash_list)) {
+    for (auto h : std::as_const(hash_list))
+    {
         auto hash_entry = Json::ensureObject(h);
         auto hash_types = ProviderCaps.hashType(ModPlatform::Provider::FLAME);
-        auto hash_algo = enumToString(Json::ensureInteger(hash_entry, "algo", 1, "algorithm"));
-        if (hash_types.contains(hash_algo)) {
+        auto hash_algo = enumToString(
+            Json::ensureInteger(hash_entry, "algo", 1, "algorithm"));
+        if (hash_types.contains(hash_algo))
+        {
             file.hash = Json::requireString(hash_entry, "value");
             file.hash_type = hash_algo;
             break;
         }
     }
 
-    if(load_changelog)
-        file.changelog = api.getModFileChangelog(file.addonId.toInt(), file.fileId.toInt());
+    if (load_changelog)
+    {
+        file.changelog =
+            api.getModFileChangelog(file.addonId.toInt(), file.fileId.toInt());
+    }
 
     return file;
 }

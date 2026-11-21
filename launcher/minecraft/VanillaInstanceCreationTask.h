@@ -4,15 +4,20 @@
 
 #include <utility>
 
-class VanillaCreationTask final : public InstanceCreationTask {
+class VanillaCreationTask final : public InstanceCreationTask
+{
     Q_OBJECT
-   public:
-    VanillaCreationTask(BaseVersionPtr version) : InstanceCreationTask(), m_version(std::move(version)) {}
-    VanillaCreationTask(BaseVersionPtr version, QString loader, BaseVersionPtr loader_version);
+public:
+    VanillaCreationTask(BaseVersionPtr version)
+        : InstanceCreationTask(), m_version(std::move(version))
+    {
+    }
+    VanillaCreationTask(BaseVersionPtr version, QString loader,
+                        BaseVersionPtr loader_version);
 
     bool createInstance() override;
 
-   private:
+private:
     // Version to update to / create of the instance.
     BaseVersionPtr m_version;
 

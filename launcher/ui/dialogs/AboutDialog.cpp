@@ -45,21 +45,26 @@
 
 #include "Markdown.h"
 
-namespace {
-QString getLink(QString link, QString name) {
+namespace
+{
+QString getLink(QString link, QString name)
+{
     return QString("&lt;<a href='%1'>%2</a>&gt;").arg(link).arg(name);
 }
 
-QString getWebsite(QString link) {
+QString getWebsite(QString link)
+{
     return getLink(link, QObject::tr("Website"));
 }
 
-QString getGitHub(QString username) {
+QString getGitHub(QString username)
+{
     return getLink("https://github.com/" + username, "GitHub");
 }
 
 // Credits
-// This is a hack, but I can't think of a better way to do this easily without screwing with QTextDocument...
+// This is a hack, but I can't think of a better way to do this easily without
+// screwing with QTextDocument...
 QString getCreditsHtml()
 {
     QString output;
@@ -67,41 +72,75 @@ QString getCreditsHtml()
 
     stream << "<center>\n";
 
-    //: %1 is the name of the launcher, determined at build time, e.g. "PolyMC Developers"
-    stream << "<h3>" << QObject::tr("%1 Developers", "About Credits").arg(BuildConfig.LAUNCHER_NAME) << "</h3>\n";
-    stream << QString("<p>LennyMcLennington %1</p>\n")          .arg(getGitHub("LennyMcLennington"));
-    stream << QString("<p>Sefa Eyeoglu (Scrumplex) %1</p>\n")   .arg(getWebsite("https://scrumplex.net"));
-    stream << QString("<p>dada513 %1</p>\n")                    .arg(getGitHub("dada513"));
-    stream << QString("<p>txtsd %1</p>\n")                      .arg(getGitHub("txtsd"));
-    stream << QString("<p>timoreo %1</p>\n")                    .arg(getGitHub("timoreo22"));
-    stream << QString("<p>Ezekiel Smith (ZekeSmith) %1</p>\n")  .arg(getGitHub("ZekeSmith"));
-    stream << QString("<p>cozyGalvinism %1</p>\n")              .arg(getGitHub("cozyGalvinism"));
+    //: %1 is the name of the launcher, determined at build time, e.g. "PolyMC
+    //: Developers"
+    stream << "<h3>"
+           << QObject::tr("%1 Developers", "About Credits")
+                  .arg(BuildConfig.LAUNCHER_NAME)
+           << "</h3>\n";
+    stream << QString("<p>LennyMcLennington %1</p>\n")
+                  .arg(getGitHub("LennyMcLennington"));
+    stream << QString("<p>Sefa Eyeoglu (Scrumplex) %1</p>\n")
+                  .arg(getWebsite("https://scrumplex.net"));
+    stream << QString("<p>dada513 %1</p>\n").arg(getGitHub("dada513"));
+    stream << QString("<p>txtsd %1</p>\n").arg(getGitHub("txtsd"));
+    stream << QString("<p>timoreo %1</p>\n").arg(getGitHub("timoreo22"));
+    stream << QString("<p>Ezekiel Smith (ZekeSmith) %1</p>\n")
+                  .arg(getGitHub("ZekeSmith"));
+    stream
+        << QString("<p>cozyGalvinism %1</p>\n").arg(getGitHub("cozyGalvinism"));
     stream << "<br />\n";
 
-    //: %1 is the name of the launcher, determined at build time, e.g. "PolyMC Contributors"
-    stream << "<h3>" << QObject::tr("%1 Contributors", "About Credits").arg(BuildConfig.LAUNCHER_NAME) << "</h3>\n";
-    stream << QString("<p>DioEgizio %1</p>\n")                      .arg(getGitHub("DioEgizio"));
-    stream << QString("<p>flowln %1</p>\n")                      .arg(getGitHub("flowln"));
-    stream << QString("<p>swirl %1</p>\n")                      .arg(getWebsite("https://swurl.xyz/"));
+    //: %1 is the name of the launcher, determined at build time, e.g. "PolyMC
+    //: Contributors"
+    stream << "<h3>"
+           << QObject::tr("%1 Contributors", "About Credits")
+                  .arg(BuildConfig.LAUNCHER_NAME)
+           << "</h3>\n";
+    stream << QString("<p>DioEgizio %1</p>\n").arg(getGitHub("DioEgizio"));
+    stream << QString("<p>flowln %1</p>\n").arg(getGitHub("flowln"));
+    stream
+        << QString("<p>swirl %1</p>\n").arg(getWebsite("https://swurl.xyz/"));
     stream << "<br />\n";
 
     // TODO: possibly retrieve from git history at build time?
-    //: %1 is the name of the launcher, determined at build time, e.g. "PolyMC Developers"
-    stream << "<h3>" << QObject::tr("%1 Developers", "About Credits").arg("MultiMC") << "</h3>\n";
-    stream << "<p>Andrew Okin &lt;<a href='mailto:forkk@forkk.net'>forkk@forkk.net</a>&gt;</p>\n";
-    stream << QString("<p>Petr Mrázek &lt;<a href='mailto:peterix@gmail.com'>peterix@gmail.com</a>&gt;</p>\n");
-    stream << "<p>Sky Welch &lt;<a href='mailto:multimc@bunnies.io'>multimc@bunnies.io</a>&gt;</p>\n";
-    stream << "<p>Jan (02JanDal) &lt;<a href='mailto:02jandal@gmail.com'>02jandal@gmail.com</a>&gt;</p>\n";
-    stream << "<p>RoboSky &lt;<a href='https://twitter.com/RoboSky_'>@RoboSky_</a>&gt;</p>\n";
+    //: %1 is the name of the launcher, determined at build time, e.g. "PolyMC
+    //: Developers"
+    stream << "<h3>"
+           << QObject::tr("%1 Developers", "About Credits").arg("MultiMC")
+           << "</h3>\n";
+    stream << "<p>Andrew Okin &lt;<a "
+              "href='mailto:forkk@forkk.net'>forkk@forkk.net</a>&gt;</p>\n";
+    stream << QString(
+        "<p>Petr Mrázek &lt;<a "
+        "href='mailto:peterix@gmail.com'>peterix@gmail.com</a>&gt;</p>\n");
+    stream
+        << "<p>Sky Welch &lt;<a "
+           "href='mailto:multimc@bunnies.io'>multimc@bunnies.io</a>&gt;</p>\n";
+    stream
+        << "<p>Jan (02JanDal) &lt;<a "
+           "href='mailto:02jandal@gmail.com'>02jandal@gmail.com</a>&gt;</p>\n";
+    stream << "<p>RoboSky &lt;<a "
+              "href='https://twitter.com/RoboSky_'>@RoboSky_</a>&gt;</p>\n";
     stream << "<br />\n";
 
-    stream << "<h3>" << QObject::tr("With thanks to", "About Credits") << "</h3>\n";
-    stream << "<p>Orochimarufan &lt;<a href='mailto:orochimarufan.x3@gmail.com'>orochimarufan.x3@gmail.com</a>&gt;</p>\n";
-    stream << "<p>TakSuyu &lt;<a href='mailto:taksuyu@gmail.com'>taksuyu@gmail.com</a>&gt;</p>\n";
-    stream << "<p>Kilobyte &lt;<a href='mailto:stiepen22@gmx.de'>stiepen22@gmx.de</a>&gt;</p>\n";
-    stream << "<p>Rootbear75 &lt;<a href='https://twitter.com/rootbear75'>@rootbear75</a>&gt;</p>\n";
-    stream << "<p>Zeker Zhayard &lt;<a href='https://twitter.com/zeker_zhayard'>@Zeker_Zhayard</a>&gt;</p>\n";
-    stream << "<p>Everyone else who <a href='https://github.com/PolyMC/PolyMC/graphs/contributors'>contributed</a>!</p>\n";
+    stream << "<h3>" << QObject::tr("With thanks to", "About Credits")
+           << "</h3>\n";
+    stream << "<p>Orochimarufan &lt;<a "
+              "href='mailto:orochimarufan.x3@gmail.com'>orochimarufan.x3@gmail."
+              "com</a>&gt;</p>\n";
+    stream << "<p>TakSuyu &lt;<a "
+              "href='mailto:taksuyu@gmail.com'>taksuyu@gmail.com</a>&gt;</p>\n";
+    stream << "<p>Kilobyte &lt;<a "
+              "href='mailto:stiepen22@gmx.de'>stiepen22@gmx.de</a>&gt;</p>\n";
+    stream << "<p>Rootbear75 &lt;<a "
+              "href='https://twitter.com/rootbear75'>@rootbear75</a>&gt;</p>\n";
+    stream << "<p>Zeker Zhayard &lt;<a "
+              "href='https://twitter.com/zeker_zhayard'>@Zeker_Zhayard</"
+              "a>&gt;</p>\n";
+    stream << "<p>Everyone else who <a "
+              "href='https://github.com/PolyMC/PolyMC/graphs/"
+              "contributors'>contributed</a>!</p>\n";
     stream << "<br />\n";
 
     stream << "</center>\n";
@@ -112,13 +151,16 @@ QString getLicenseHtml()
 {
     QFile dataFile(":/documents/COPYING.md");
     if (!dataFile.open(QIODevice::ReadOnly))
+    {
         return {};
+    }
     return Markdown::toHtml(dataFile.readAll());
 }
 
-}
+}  // namespace
 
-AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent), ui(new Ui::AboutDialog)
+AboutDialog::AboutDialog(QWidget* parent)
+    : QDialog(parent), ui(new Ui::AboutDialog)
 {
     ui->setupUi(this);
 
@@ -142,24 +184,41 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent), ui(new Ui::AboutDia
     const QString legacyText = BuildConfig.LEGACY_BUILD ? tr(" (Legacy)") : "";
     const QString archText = BuildConfig.BUILD_ARCHITECTURE.join(',');
 
-    ui->platformLabel->setText(tr("Built for %1 %2%3").arg(BuildConfig.BUILD_PLATFORM, archText, legacyText));
+    ui->platformLabel->setText(
+        tr("Built for %1 %2%3")
+            .arg(BuildConfig.BUILD_PLATFORM, archText, legacyText));
 
     if (!BuildConfig.GIT_COMMIT.isEmpty())
+    {
         ui->commitLabel->setText(tr("Commit: %1").arg(BuildConfig.GIT_COMMIT));
+    }
     else
+    {
         ui->commitLabel->setVisible(false);
+    }
 
     if (!BuildConfig.BUILD_DATE.isEmpty())
-        ui->buildDateLabel->setText(tr("Build date: %1").arg(BuildConfig.BUILD_DATE));
+    {
+        ui->buildDateLabel->setText(
+            tr("Build date: %1").arg(BuildConfig.BUILD_DATE));
+    }
     else
+    {
         ui->buildDateLabel->setVisible(false);
+    }
 
     if (!BuildConfig.VERSION_CHANNEL.isEmpty())
-        ui->channelLabel->setText(tr("Channel") +": " + BuildConfig.VERSION_CHANNEL);
+    {
+        ui->channelLabel->setText(tr("Channel") + ": " +
+                                  BuildConfig.VERSION_CHANNEL);
+    }
     else
+    {
         ui->channelLabel->setVisible(false);
+    }
 
-    QString urlText("<html><head/><body><p><a href=\"%1\">%1</a></p></body></html>");
+    QString urlText(
+        "<html><head/><body><p><a href=\"%1\">%1</a></p></body></html>");
     ui->urlLabel->setText(urlText.arg(BuildConfig.LAUNCHER_GIT));
 
     QString copyText("© 2021-2024 %1");

@@ -48,27 +48,32 @@
 
 #include <optional>
 
-namespace ATLauncher {
+namespace ATLauncher
+{
 
-enum class InstallMode {
+enum class InstallMode
+{
     Install,
     Reinstall,
     Update,
 };
 
-class UserInteractionSupport {
-
+class UserInteractionSupport
+{
 public:
     /**
-     * Requests a user interaction to select which optional mods should be installed.
+     * Requests a user interaction to select which optional mods should be
+     * installed.
      */
-    virtual QVector<QString> chooseOptionalMods(PackVersion version, QVector<ATLauncher::VersionMod> mods) = 0;
+    virtual QVector<QString> chooseOptionalMods(
+        PackVersion version, QVector<ATLauncher::VersionMod> mods) = 0;
 
     /**
-     * Requests a user interaction to select a component version from a given version list
-     * and constrained to a given Minecraft version.
+     * Requests a user interaction to select a component version from a given
+     * version list and constrained to a given Minecraft version.
      */
-    virtual QString chooseVersion(Meta::VersionListPtr vlist, QString minecraftVersion) = 0;
+    virtual QString chooseVersion(Meta::VersionListPtr vlist,
+                                  QString minecraftVersion) = 0;
 
     /**
      * Requests a user interaction to display a message.
@@ -78,13 +83,20 @@ public:
 
 class PackInstallTask : public InstanceTask
 {
-Q_OBJECT
+    Q_OBJECT
 
 public:
-    explicit PackInstallTask(UserInteractionSupport *support, QString packName, QString version, InstallMode installMode = InstallMode::Install);
-    virtual ~PackInstallTask(){}
+    explicit PackInstallTask(UserInteractionSupport* support, QString packName,
+                             QString version,
+                             InstallMode installMode = InstallMode::Install);
+    virtual ~PackInstallTask()
+    {
+    }
 
-    bool canAbort() const override { return true; }
+    bool canAbort() const override
+    {
+        return true;
+    }
     bool abort() override;
 
 protected:
@@ -103,22 +115,22 @@ private:
     QString getVersionForLoader(QString uid);
     QString detectLibrary(VersionLibrary library);
 
-    bool createLibrariesComponent(QString instanceRoot, std::shared_ptr<PackProfile> profile);
-    bool createPackComponent(QString instanceRoot, std::shared_ptr<PackProfile> profile);
+    bool createLibrariesComponent(QString instanceRoot,
+                                  std::shared_ptr<PackProfile> profile);
+    bool createPackComponent(QString instanceRoot,
+                             std::shared_ptr<PackProfile> profile);
 
     void deleteExistingFiles();
     void installConfigs();
     void extractConfigs();
     void downloadMods();
-    bool extractMods(
-        const QMap<QString, VersionMod> &toExtract,
-        const QMap<QString, VersionMod> &toDecomp,
-        const QMap<QString, QString> &toCopy
-    );
+    bool extractMods(const QMap<QString, VersionMod>& toExtract,
+                     const QMap<QString, VersionMod>& toDecomp,
+                     const QMap<QString, QString>& toCopy);
     void install();
 
 private:
-    UserInteractionSupport *m_support;
+    UserInteractionSupport* m_support;
 
     bool abortable = false;
 
@@ -145,7 +157,6 @@ private:
 
     QFuture<bool> m_modExtractFuture;
     QFutureWatcher<bool> m_modExtractFutureWatcher;
-
 };
 
-}
+}  // namespace ATLauncher

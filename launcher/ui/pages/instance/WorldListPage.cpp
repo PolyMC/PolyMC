@@ -57,24 +57,29 @@
 
 #include "Application.h"
 
-
 class WorldListProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
 public:
-    WorldListProxyModel(QObject *parent) : QSortFilterProxyModel(parent) {}
+    WorldListProxyModel(QObject* parent) : QSortFilterProxyModel(parent)
+    {
+    }
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const
+    virtual QVariant data(const QModelIndex& index,
+                          int role = Qt::DisplayRole) const
     {
         QModelIndex sourceIndex = mapToSource(index);
 
         if (index.column() == 0 && role == Qt::DecorationRole)
         {
-            WorldList *worlds = qobject_cast<WorldList *>(sourceModel());
-            auto iconFile = worlds->data(sourceIndex, WorldList::IconFileRole).toString();
-            if(iconFile.isNull()) {
-                // NOTE: Minecraft uses the same placeholder for servers AND worlds
+            WorldList* worlds = qobject_cast<WorldList*>(sourceModel());
+            auto iconFile =
+                worlds->data(sourceIndex, WorldList::IconFileRole).toString();
+            if (iconFile.isNull())
+            {
+                // NOTE: Minecraft uses the same placeholder for servers AND
+                // worlds
                 return APPLICATION->getThemedIcon("unknown_server");
             }
             return QIcon(iconFile);
@@ -84,15 +89,18 @@ public:
     }
 };
 
-
-WorldListPage::WorldListPage(BaseInstance *inst, std::shared_ptr<WorldList> worlds, QWidget *parent)
-    : QMainWindow(parent), m_inst(inst), ui(new Ui::WorldListPage), m_worlds(worlds)
+WorldListPage::WorldListPage(BaseInstance* inst,
+                             std::shared_ptr<WorldList> worlds, QWidget* parent)
+    : QMainWindow(parent),
+      m_inst(inst),
+      ui(new Ui::WorldListPage),
+      m_worlds(worlds)
 {
     ui->setupUi(this);
 
     ui->toolBar->insertSpacer(ui->actionRefresh);
 
-    WorldListProxyModel * proxy = new WorldListProxyModel(this);
+    WorldListProxyModel* proxy = new WorldListProxyModel(this);
     proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
     proxy->setSourceModel(m_worlds.get());
     proxy->setSortRole(Qt::UserRole);
@@ -100,14 +108,17 @@ WorldListPage::WorldListPage(BaseInstance *inst, std::shared_ptr<WorldList> worl
     ui->worldTreeView->setModel(proxy);
     ui->worldTreeView->installEventFilter(this);
     ui->worldTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
-    ui->worldTreeView->setIconSize(QSize(64,64));
-    connect(ui->worldTreeView, &QTreeView::customContextMenuRequested, this, &WorldListPage::ShowContextMenu);
+    ui->worldTreeView->setIconSize(QSize(64, 64));
+    connect(ui->worldTreeView, &QTreeView::customContextMenuRequested, this,
+            &WorldListPage::ShowContextMenu);
 
     auto head = ui->worldTreeView->header();
     head->setSectionResizeMode(0, QHeaderView::Stretch);
     head->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 
-    connect(ui->worldTreeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &WorldListPage::worldChanged);
+    connect(ui->worldTreeView->selectionModel(),
+            &QItemSelectionModel::currentChanged, this,
+            &WorldListPage::worldChanged);
     worldChanged(QModelIndex(), QModelIndex());
 }
 
@@ -134,10 +145,10 @@ void WorldListPage::ShowContextMenu(const QPoint& pos)
     delete menu;
 }
 
-QMenu * WorldListPage::createPopupMenu()
+QMenu* WorldListPage::createPopupMenu()
 {
     QMenu* filteredMenu = QMainWindow::createPopupMenu();
-    filteredMenu->removeAction( ui->toolBar->toggleViewAction() );
+    filteredMenu->removeAction(ui->toolBar->toggleViewAction());
     return filteredMenu;
 }
 
@@ -151,28 +162,30 @@ void WorldListPage::retranslate()
     ui->retranslateUi(this);
 }
 
-bool WorldListPage::worldListFilter(QKeyEvent *keyEvent)
+bool WorldListPage::worldListFilter(QKeyEvent* keyEvent)
 {
     switch (keyEvent->key())
     {
-    case Qt::Key_Delete:
-        on_actionRemove_triggered();
-        return true;
-    default:
-        break;
+        case Qt::Key_Delete:
+            on_actionRemove_triggered();
+            return true;
+        default:
+            break;
     }
     return QWidget::eventFilter(ui->worldTreeView, keyEvent);
 }
 
-bool WorldListPage::eventFilter(QObject *obj, QEvent *ev)
+bool WorldListPage::eventFilter(QObject* obj, QEvent* ev)
 {
     if (ev->type() != QEvent::KeyPress)
     {
         return QWidget::eventFilter(obj, ev);
     }
-    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(ev);
+    QKeyEvent* keyEvent = static_cast<QKeyEvent*>(ev);
     if (obj == ui->worldTreeView)
+    {
         return worldListFilter(keyEvent);
+    }
     return QWidget::eventFilter(obj, ev);
 }
 
@@ -180,24 +193,27 @@ void WorldListPage::on_actionRemove_triggered()
 {
     auto proxiedIndex = getSelectedWorld();
 
-    if(!proxiedIndex.isValid())
-        return;
-
-    // The world list can be reloaded while the question below is shown. Remember which world was picked,
-    // so we never delete another one that ended up in its row.
-    QPersistentModelIndex worldIndex(proxiedIndex);
-
-    auto result = QMessageBox::question(this,
-                tr("Are you sure?"),
-                tr("This will remove the selected world permenantly.\n"
-                    "The world will be gone forever (A LONG TIME).\n"
-                    "\n"
-                    "Do you want to continue?"));
-    if(result != QMessageBox::Yes)
+    if (!proxiedIndex.isValid())
     {
         return;
     }
-    if(!worldIndex.isValid())
+
+    // The world list can be reloaded while the question below is shown.
+    // Remember which world was picked, so we never delete another one that
+    // ended up in its row.
+    QPersistentModelIndex worldIndex(proxiedIndex);
+
+    auto result = QMessageBox::question(
+        this, tr("Are you sure?"),
+        tr("This will remove the selected world permenantly.\n"
+           "The world will be gone forever (A LONG TIME).\n"
+           "\n"
+           "Do you want to continue?"));
+    if (result != QMessageBox::Yes)
+    {
+        return;
+    }
+    if (!worldIndex.isValid())
     {
         return;
     }
@@ -225,7 +241,8 @@ void WorldListPage::on_actionDatapacks_triggered()
     auto fullPath = m_worlds->data(index, WorldList::FolderRole).toString();
     auto worldName = m_worlds->data(index, WorldList::NameRole).toString();
 
-    WorldDataPacksDialog dialog(static_cast<MinecraftInstance*>(m_inst), worldName,
+    WorldDataPacksDialog dialog(static_cast<MinecraftInstance*>(m_inst),
+                                worldName,
                                 FS::PathCombine(fullPath, "datapacks"), this);
 
     dialog.exec();
@@ -235,20 +252,22 @@ void WorldListPage::on_actionReset_Icon_triggered()
 {
     auto proxiedIndex = getSelectedWorld();
 
-    if(!proxiedIndex.isValid())
+    if (!proxiedIndex.isValid())
+    {
         return;
+    }
 
-    if(m_worlds->resetIcon(proxiedIndex.row())) {
+    if (m_worlds->resetIcon(proxiedIndex.row()))
+    {
         ui->actionReset_Icon->setEnabled(false);
     }
 }
-
 
 QModelIndex WorldListPage::getSelectedWorld()
 {
     auto index = ui->worldTreeView->selectionModel()->currentIndex();
 
-    auto proxy = (QSortFilterProxyModel *) ui->worldTreeView->model();
+    auto proxy = (QSortFilterProxyModel*)ui->worldTreeView->model();
     return proxy->mapToSource(index);
 }
 
@@ -266,8 +285,10 @@ void WorldListPage::on_actionCopy_Seed_triggered()
 
 void WorldListPage::on_actionMCEdit_triggered()
 {
-    if(m_mceditStarting)
+    if (m_mceditStarting)
+    {
         return;
+    }
 
     auto mcedit = APPLICATION->mcedit();
 
@@ -280,23 +301,26 @@ void WorldListPage::on_actionMCEdit_triggered()
         return;
     }
 
-    if(!worldSafetyNagQuestion(tr("Open World in MCEdit")))
+    if (!worldSafetyNagQuestion(tr("Open World in MCEdit")))
+    {
         return;
+    }
 
     auto fullPath = m_worlds->data(index, WorldList::FolderRole).toString();
 
     auto program = mcedit->getProgramPath();
-    if(program.size())
+    if (program.size())
     {
 #ifdef Q_OS_WIN32
-        if(!QProcess::startDetached(program, {fullPath}, mceditPath))
+        if (!QProcess::startDetached(program, {fullPath}, mceditPath))
         {
             mceditError();
         }
 #else
         m_mceditProcess.reset(new LoggedProcess());
         m_mceditProcess->setDetachable(true);
-        connect(m_mceditProcess.get(), &LoggedProcess::stateChanged, this, &WorldListPage::mceditState);
+        connect(m_mceditProcess.get(), &LoggedProcess::stateChanged, this,
+                &WorldListPage::mceditState);
         m_mceditProcess->start(program, {fullPath});
         m_mceditProcess->setWorkingDirectory(mceditPath);
         m_mceditStarting = true;
@@ -305,25 +329,22 @@ void WorldListPage::on_actionMCEdit_triggered()
     else
     {
         QMessageBox::warning(
-            this->parentWidget(),
-            tr("No MCEdit found or set up!"),
-            tr("You do not have MCEdit set up or it was moved.\nYou can set it up in the global settings.")
-        );
+            this->parentWidget(), tr("No MCEdit found or set up!"),
+            tr("You do not have MCEdit set up or it was moved.\nYou can set it "
+               "up in the global settings."));
     }
 }
 
 void WorldListPage::mceditError()
 {
     QMessageBox::warning(
-        this->parentWidget(),
-        tr("MCEdit failed to start!"),
-        tr("MCEdit failed to start.\nIt may be necessary to reinstall it.")
-    );
+        this->parentWidget(), tr("MCEdit failed to start!"),
+        tr("MCEdit failed to start.\nIt may be necessary to reinstall it."));
 }
 
 void WorldListPage::mceditState(LoggedProcess::State state)
 {
-    switch(state)
+    switch (state)
     {
         case LoggedProcess::NotRunning:
         case LoggedProcess::Starting:
@@ -342,7 +363,8 @@ void WorldListPage::mceditState(LoggedProcess::State state)
     }
 }
 
-void WorldListPage::worldChanged(const QModelIndex &/*current*/, const QModelIndex &/*previous*/)
+void WorldListPage::worldChanged(const QModelIndex& /*current*/,
+                                 const QModelIndex& /*previous*/)
 {
     QModelIndex index = getSelectedWorld();
     bool enable = index.isValid();
@@ -358,14 +380,14 @@ void WorldListPage::worldChanged(const QModelIndex &/*current*/, const QModelInd
 
 void WorldListPage::on_actionAdd_triggered()
 {
-    auto list = GuiUtil::BrowseForFiles(
-        displayName(),
-        tr("Select a Minecraft world zip"),
-        tr("Minecraft World Zip File (*.zip)"), QString(), this->parentWidget());
+    auto list = GuiUtil::BrowseForFiles(displayName(),
+                                        tr("Select a Minecraft world zip"),
+                                        tr("Minecraft World Zip File (*.zip)"),
+                                        QString(), this->parentWidget());
     if (!list.empty())
     {
         m_worlds->stopWatching();
-        for (const auto &filename : std::as_const(list))
+        for (const auto& filename : std::as_const(list))
         {
             m_worlds->installWorld(QFileInfo(filename));
         }
@@ -378,19 +400,21 @@ bool WorldListPage::isWorldSafe(QModelIndex)
     return !m_inst->isRunning();
 }
 
-bool WorldListPage::worldSafetyNagQuestion(const QString &actionType)
+bool WorldListPage::worldSafetyNagQuestion(const QString& actionType)
 {
-    if(!isWorldSafe(getSelectedWorld()))
+    if (!isWorldSafe(getSelectedWorld()))
     {
-        auto result = QMessageBox::question(this, actionType, tr("Changing a world while Minecraft is running is potentially unsafe.\nDo you wish to proceed?"));
-        if(result == QMessageBox::No)
+        auto result = QMessageBox::question(
+            this, actionType,
+            tr("Changing a world while Minecraft is running is potentially "
+               "unsafe.\nDo you wish to proceed?"));
+        if (result == QMessageBox::No)
         {
             return false;
         }
     }
     return true;
 }
-
 
 void WorldListPage::on_actionCopy_triggered()
 {
@@ -400,14 +424,19 @@ void WorldListPage::on_actionCopy_triggered()
         return;
     }
 
-    if(!worldSafetyNagQuestion(tr("Copy World")))
+    if (!worldSafetyNagQuestion(tr("Copy World")))
+    {
         return;
+    }
 
-    // Take a copy, the world list can be reloaded while the dialog below is shown, which frees the original
+    // Take a copy, the world list can be reloaded while the dialog below is
+    // shown, which frees the original
     auto worldVariant = m_worlds->data(index, WorldList::ObjectRole);
-    World world = *(World *) worldVariant.value<void *>();
+    World world = *(World*)worldVariant.value<void*>();
     bool ok = false;
-    QString name = QInputDialog::getText(this, tr("World name"), tr("Enter a new name for the copy."), QLineEdit::Normal, world.name(), &ok);
+    QString name = QInputDialog::getText(this, tr("World name"),
+                                         tr("Enter a new name for the copy."),
+                                         QLineEdit::Normal, world.name(), &ok);
 
     if (ok && name.length() > 0)
     {
@@ -423,15 +452,20 @@ void WorldListPage::on_actionRename_triggered()
         return;
     }
 
-    if(!worldSafetyNagQuestion(tr("Rename World")))
+    if (!worldSafetyNagQuestion(tr("Rename World")))
+    {
         return;
+    }
 
-    // Take a copy, the world list can be reloaded while the dialog below is shown, which frees the original
+    // Take a copy, the world list can be reloaded while the dialog below is
+    // shown, which frees the original
     auto worldVariant = m_worlds->data(index, WorldList::ObjectRole);
-    World world = *(World *) worldVariant.value<void *>();
+    World world = *(World*)worldVariant.value<void*>();
 
     bool ok = false;
-    QString name = QInputDialog::getText(this, tr("World name"), tr("Enter a new world name."), QLineEdit::Normal, world.name(), &ok);
+    QString name = QInputDialog::getText(this, tr("World name"),
+                                         tr("Enter a new world name."),
+                                         QLineEdit::Normal, world.name(), &ok);
 
     if (ok && name.length() > 0)
     {

@@ -52,7 +52,7 @@ class InstanceWindow : public QMainWindow, public BasePageContainer
     Q_OBJECT
 
 public:
-    explicit InstanceWindow(InstancePtr proc, QWidget *parent = 0);
+    explicit InstanceWindow(InstancePtr proc, QWidget* parent = 0);
     virtual ~InstanceWindow();
 
     bool selectPage(QString pageId) override;
@@ -69,8 +69,7 @@ public:
 signals:
     void isClosing();
 
-private
-slots:
+private slots:
     void on_closeButton_clicked();
     void on_btnKillMinecraft_clicked();
     void on_btnPauseMinecraft_clicked();
@@ -79,10 +78,11 @@ slots:
 
     void instanceLaunchTaskChanged(shared_qobject_ptr<LaunchTask> proc);
     void runningStateChanged(bool running);
-    void on_instanceStatusChanged(BaseInstance::Status, BaseInstance::Status newStatus);
+    void on_instanceStatusChanged(BaseInstance::Status,
+                                  BaseInstance::Status newStatus);
 
 protected:
-    void closeEvent(QCloseEvent *) override;
+    void closeEvent(QCloseEvent*) override;
 
 private:
     void updateLaunchButtons();
@@ -91,10 +91,10 @@ private:
     shared_qobject_ptr<LaunchTask> m_proc;
     InstancePtr m_instance;
     bool m_doNotSave = false;
-    PageContainer *m_container = nullptr;
-    QPushButton *m_closeButton = nullptr;
-    QPushButton *m_killButton = nullptr;
-    QPushButton *m_pauseButton = nullptr;
-    QPushButton *m_launchOfflineButton = nullptr;
-    QPushButton *m_launchDemoButton = nullptr;
+    PageContainer* m_container = nullptr;
+    QPushButton* m_closeButton = nullptr;
+    QPushButton* m_killButton = nullptr;
+    QPushButton* m_pauseButton = nullptr;
+    QPushButton* m_launchOfflineButton = nullptr;
+    QPushButton* m_launchDemoButton = nullptr;
 };

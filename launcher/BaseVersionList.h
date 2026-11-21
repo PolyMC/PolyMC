@@ -55,7 +55,7 @@ public:
     };
     typedef QList<int> RoleList;
 
-    explicit BaseVersionList(QObject *parent = 0);
+    explicit BaseVersionList(QObject* parent = 0);
 
     /*!
      * \brief Gets a task that will reload the version list.
@@ -65,8 +65,9 @@ public:
      */
     virtual Task::Ptr getLoadTask() = 0;
 
-    //! Checks whether or not the list is loaded. If this returns false, the list should be
-    //loaded.
+    //! Checks whether or not the list is loaded. If this returns false, the
+    //! list should be
+    // loaded.
     virtual bool isLoaded() = 0;
 
     //! Gets the version at the given index.
@@ -76,9 +77,9 @@ public:
     virtual int count() const = 0;
 
     //////// List Model Functions ////////
-    QVariant data(const QModelIndex &index, int role) const override;
-    int rowCount(const QModelIndex &parent) const override;
-    int columnCount(const QModelIndex &parent) const override;
+    QVariant data(const QModelIndex& index, int role) const override;
+    int rowCount(const QModelIndex& parent) const override;
+    int columnCount(const QModelIndex& parent) const override;
     QHash<int, QByteArray> roleNames() const override;
 
     //! which roles are provided by this version list?
@@ -90,25 +91,25 @@ public:
      * \return A const pointer to the version with the given descriptor. NULL if
      * one doesn't exist.
      */
-    virtual BaseVersionPtr findVersion(const QString &descriptor);
+    virtual BaseVersionPtr findVersion(const QString& descriptor);
 
     /*!
      * \brief Gets the recommended version from this list
-     * If the list doesn't support recommended versions, this works exactly as getLatestStable
+     * If the list doesn't support recommended versions, this works exactly as
+     * getLatestStable
      */
     virtual BaseVersionPtr getRecommended() const;
 
-protected
-slots:
+protected slots:
     /*!
      * Updates this list with the given list of versions.
      * This is done by copying each version in the given list and inserting it
      * into this one.
-     * We need to do this so that we can set the parents of the versions are set to this
-     * version list. This can't be done in the load task, because the versions the load
-     * task creates are on the load task's thread and Qt won't allow their parents
-     * to be set to something created on another thread.
-     * To get around that problem, we invoke this method on the GUI thread, which
+     * We need to do this so that we can set the parents of the versions are set
+     * to this version list. This can't be done in the load task, because the
+     * versions the load task creates are on the load task's thread and Qt won't
+     * allow their parents to be set to something created on another thread. To
+     * get around that problem, we invoke this method on the GUI thread, which
      * then copies the versions and sets their parents correctly.
      * \param versions List of versions whose parents should be set.
      */

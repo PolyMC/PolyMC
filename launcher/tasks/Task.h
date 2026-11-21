@@ -39,14 +39,22 @@
 
 #include "QObjectPtr.h"
 
-class Task : public QObject, public QRunnable {
+class Task : public QObject, public QRunnable
+{
     Q_OBJECT
-   public:
+public:
     using Ptr = shared_qobject_ptr<Task>;
 
-    enum class State { Inactive, Running, Succeeded, Failed, AbortedByUser };
+    enum class State
+    {
+        Inactive,
+        Running,
+        Succeeded,
+        Failed,
+        AbortedByUser
+    };
 
-   public:
+public:
     explicit Task(QObject* parent = 0, bool show_debug_log = true);
     virtual ~Task() = default;
 
@@ -54,39 +62,66 @@ class Task : public QObject, public QRunnable {
     bool isFinished() const;
     bool wasSuccessful() const;
 
-    /*! 
-     * MultiStep tasks are combinations of multiple tasks into a single logical task. 
-     * The main usage of this is in SequencialTask.
+    /*!
+     * MultiStep tasks are combinations of multiple tasks into a single logical
+     * task. The main usage of this is in SequencialTask.
      */
-    virtual bool isMultiStep() const { return false; }
+    virtual bool isMultiStep() const
+    {
+        return false;
+    }
 
     /*!
-     * Returns the string that was passed to emitFailed as the error message when the task failed.
-     * If the task hasn't failed, returns an empty string.
+     * Returns the string that was passed to emitFailed as the error message
+     * when the task failed. If the task hasn't failed, returns an empty string.
      */
     QString failReason() const;
 
     virtual QStringList warnings() const;
 
-    virtual bool canAbort() const { return m_can_abort; }
+    virtual bool canAbort() const
+    {
+        return m_can_abort;
+    }
 
-    State getState() const { return m_state; }
+    State getState() const
+    {
+        return m_state;
+    }
 
-    QString getStatus() { return m_status; }
-    virtual QString getStepStatus() const { return m_status; }
+    QString getStatus()
+    {
+        return m_status;
+    }
+    virtual QString getStepStatus() const
+    {
+        return m_status;
+    }
 
-    qint64 getProgress() { return m_progress; }
-    qint64 getTotalProgress() { return m_progressTotal; }
-    virtual qint64 getStepProgress() const { return 0; }
-    virtual qint64 getStepTotalProgress() const { return 100; }
+    qint64 getProgress()
+    {
+        return m_progress;
+    }
+    qint64 getTotalProgress()
+    {
+        return m_progressTotal;
+    }
+    virtual qint64 getStepProgress() const
+    {
+        return 0;
+    }
+    virtual qint64 getStepTotalProgress() const
+    {
+        return 100;
+    }
 
-   protected:
+protected:
     void logWarning(const QString& line);
 
-   private:
+private:
     QString describe();
 
-   signals:
+signals:
     void started();
     void progress(qint64 current, qint64 total);
     void finished();
@@ -101,40 +136,57 @@ class Task : public QObject, public QRunnable {
      */
     void abortStatusChanged(bool can_abort);
 
-   public slots:
+public slots:
     // QRunnable's interface
-    void run() override { start(); }
+    void run() override
+    {
+        start();
+    }
 
     virtual void start();
-    virtual bool abort() { if(canAbort()) emitAborted(); return canAbort(); };
+    virtual bool abort()
+    {
+        if (canAbort())
+        {
+            {
+                emitAborted();
+            }
+        }
+        return canAbort();
+    };
 
-    void setAbortable(bool can_abort) { m_can_abort = can_abort; emit abortStatusChanged(can_abort); }
+    void setAbortable(bool can_abort)
+    {
+        m_can_abort = can_abort;
+        emit abortStatusChanged(can_abort);
+    }
 
-   protected:
+protected:
     virtual void executeTask() = 0;
 
-   protected slots:
+protected slots:
     virtual void emitSucceeded();
     virtual void emitAborted();
     virtual void emitFailed(QString reason = "");
 
-   public slots:
+public slots:
     void setStatus(const QString& status);
     void setProgress(qint64 current, qint64 total);
 
-   protected:
+protected:
     State m_state = State::Inactive;
     QStringList m_Warnings;
     QString m_failReason = "";
     QString m_status;
-    // 64 bit like setProgress(), so byte counts of large downloads aren't cut off
+    // 64 bit like setProgress(), so byte counts of large downloads aren't cut
+    // off
     qint64 m_progress = 0;
     qint64 m_progressTotal = 100;
 
     // TODO: Nuke in favor of QLoggingCategory
     bool m_show_debug = true;
 
-   private:
+private:
     // Change using setAbortStatus
     bool m_can_abort = false;
 };

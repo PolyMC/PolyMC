@@ -7,13 +7,16 @@
 
 #include "net/Upload.h"
 
-NetJob::Ptr FlameAPI::matchFingerprints(const QList<uint>& fingerprints, QByteArray* response)
+NetJob::Ptr FlameAPI::matchFingerprints(const QList<uint>& fingerprints,
+                                        QByteArray* response)
 {
-    auto* netJob = new NetJob(QString("Flame::MatchFingerprints"), APPLICATION->network());
+    auto* netJob =
+        new NetJob(QString("Flame::MatchFingerprints"), APPLICATION->network());
 
     QJsonObject body_obj;
     QJsonArray fingerprints_arr;
-    for (auto& fp : fingerprints) {
+    for (auto& fp : fingerprints)
+    {
         fingerprints_arr.append(QString("%1").arg(fp));
     }
 
@@ -22,9 +25,15 @@ NetJob::Ptr FlameAPI::matchFingerprints(const QList<uint>& fingerprints, QByteAr
     QJsonDocument body(body_obj);
     auto body_raw = body.toJson();
 
-    netJob->addNetAction(Net::Upload::makeByteArray(QString("https://api.curseforge.com/v1/fingerprints"), response, body_raw));
+    netJob->addNetAction(Net::Upload::makeByteArray(
+        QString("https://api.curseforge.com/v1/fingerprints"), response,
+        body_raw));
 
-    QObject::connect(netJob, &NetJob::finished, [response] { delete response; });
+    QObject::connect(netJob, &NetJob::finished,
+                     [response]
+                     {
+                         delete response;
+                     });
 
     return netJob;
 }
@@ -32,16 +41,19 @@ NetJob::Ptr FlameAPI::matchFingerprints(const QList<uint>& fingerprints, QByteAr
 QString FlameAPI::getModFileChangelogURL(int modId, int fileId) const
 {
     return QString("https://api.curseforge.com/v1/mods/%1/files/%2/changelog")
-        .arg(QString::fromStdString(std::to_string(modId)), QString::fromStdString(std::to_string(fileId)));
+        .arg(QString::fromStdString(std::to_string(modId)),
+             QString::fromStdString(std::to_string(fileId)));
 }
 
 QString FlameAPI::parseModFileChangelog(const QByteArray& response)
 {
     QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
-    if (parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from Flame::FileChangelog at " << parse_error.offset
-                   << " reason: " << parse_error.errorString();
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning()
+            << "Error while parsing JSON response from Flame::FileChangelog at "
+            << parse_error.offset << " reason: " << parse_error.errorString();
         qWarning() << response;
         return {};
     }
@@ -54,18 +66,26 @@ QString FlameAPI::getModFileChangelog(int modId, int fileId)
     QEventLoop lock;
     QString changelog;
 
-    auto* netJob = new NetJob(QString("Flame::FileChangelog"), APPLICATION->network());
+    auto* netJob =
+        new NetJob(QString("Flame::FileChangelog"), APPLICATION->network());
     auto* response = new QByteArray();
-    netJob->addNetAction(Net::Download::makeByteArray(getModFileChangelogURL(modId, fileId), response));
+    netJob->addNetAction(Net::Download::makeByteArray(
+        getModFileChangelogURL(modId, fileId), response));
 
-    QObject::connect(netJob, &NetJob::succeeded, [response, &changelog] { changelog = parseModFileChangelog(*response); });
+    QObject::connect(netJob, &NetJob::succeeded,
+                     [response, &changelog]
+                     {
+                         changelog = parseModFileChangelog(*response);
+                     });
 
-    QObject::connect(netJob, &NetJob::finished, [netJob, response, &lock] {
-        // Nothing else owns the job
-        netJob->deleteLater();
-        delete response;
-        lock.quit();
-    });
+    QObject::connect(netJob, &NetJob::finished,
+                     [netJob, response, &lock]
+                     {
+                         // Nothing else owns the job
+                         netJob->deleteLater();
+                         delete response;
+                         lock.quit();
+                     });
 
     netJob->start();
     lock.exec();
@@ -78,33 +98,44 @@ QString FlameAPI::getModDescription(int modId)
     QEventLoop lock;
     QString description;
 
-    auto* netJob = new NetJob(QString("Flame::ModDescription"), APPLICATION->network());
+    auto* netJob =
+        new NetJob(QString("Flame::ModDescription"), APPLICATION->network());
     auto* response = new QByteArray();
     netJob->addNetAction(Net::Download::makeByteArray(
         QString("https://api.curseforge.com/v1/mods/%1/description")
-            .arg(QString::number(modId)), response));
+            .arg(QString::number(modId)),
+        response));
 
-    QObject::connect(netJob, &NetJob::succeeded, [netJob, response, &description] {
-        QJsonParseError parse_error{};
-        QJsonDocument doc = QJsonDocument::fromJson(*response, &parse_error);
-        if (parse_error.error != QJsonParseError::NoError) {
-            qWarning() << "Error while parsing JSON response from Flame::ModDescription at " << parse_error.offset
-                       << " reason: " << parse_error.errorString();
-            qWarning() << *response;
+    QObject::connect(netJob, &NetJob::succeeded,
+                     [netJob, response, &description]
+                     {
+                         QJsonParseError parse_error{};
+                         QJsonDocument doc =
+                             QJsonDocument::fromJson(*response, &parse_error);
+                         if (parse_error.error != QJsonParseError::NoError)
+                         {
+                             qWarning()
+                                 << "Error while parsing JSON response from "
+                                    "Flame::ModDescription at "
+                                 << parse_error.offset
+                                 << " reason: " << parse_error.errorString();
+                             qWarning() << *response;
 
-            netJob->failed(parse_error.errorString());
-            return;
-        }
+                             netJob->failed(parse_error.errorString());
+                             return;
+                         }
 
-        description = Json::ensureString(doc.object(), "data");
-    });
+                         description = Json::ensureString(doc.object(), "data");
+                     });
 
-    QObject::connect(netJob, &NetJob::finished, [netJob, response, &lock] {
-        // Nothing else owns the job
-        netJob->deleteLater();
-        delete response;
-        lock.quit();
-    });
+    QObject::connect(netJob, &NetJob::finished,
+                     [netJob, response, &lock]
+                     {
+                         // Nothing else owns the job
+                         netJob->deleteLater();
+                         delete response;
+                         lock.quit();
+                     });
 
     netJob->start();
     lock.exec();
@@ -112,37 +143,45 @@ QString FlameAPI::getModDescription(int modId)
     return description;
 }
 
-ModPlatform::IndexedVersion FlameAPI::parseLatestVersion(const QByteArray& response)
+ModPlatform::IndexedVersion FlameAPI::parseLatestVersion(
+    const QByteArray& response)
 {
     ModPlatform::IndexedVersion ver;
 
     QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
-    if (parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from latest mod version at " << parse_error.offset
-                   << " reason: " << parse_error.errorString();
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning()
+            << "Error while parsing JSON response from latest mod version at "
+            << parse_error.offset << " reason: " << parse_error.errorString();
         qWarning() << response;
         return ver;
     }
 
-    try {
+    try
+    {
         auto obj = Json::requireObject(doc);
         auto arr = Json::requireArray(obj, "data");
 
         QJsonObject latest_file_obj;
         ModPlatform::IndexedVersion ver_tmp;
 
-        for (auto file : std::as_const(arr)) {
+        for (auto file : std::as_const(arr))
+        {
             auto file_obj = Json::requireObject(file);
             auto file_tmp = FlameMod::loadIndexedPackVersion(file_obj);
-            if(file_tmp.date > ver_tmp.date) {
+            if (file_tmp.date > ver_tmp.date)
+            {
                 ver_tmp = file_tmp;
                 latest_file_obj = file_obj;
             }
         }
 
         ver = FlameMod::loadIndexedPackVersion(latest_file_obj);
-    } catch (Json::JsonException& e) {
+    }
+    catch (Json::JsonException& e)
+    {
         qCritical() << "Failed to parse response from a version request.";
         qCritical() << e.what();
         qDebug() << doc;
@@ -155,19 +194,28 @@ ModPlatform::IndexedVersion FlameAPI::getLatestVersion(VersionSearchArgs&& args)
 {
     QEventLoop loop;
 
-    auto netJob = new NetJob(QString("Flame::GetLatestVersion(%1)").arg(args.addonId), APPLICATION->network());
+    auto netJob =
+        new NetJob(QString("Flame::GetLatestVersion(%1)").arg(args.addonId),
+                   APPLICATION->network());
     auto response = new QByteArray();
     ModPlatform::IndexedVersion ver;
 
-    netJob->addNetAction(Net::Download::makeByteArray(getVersionsURL(args), response));
+    netJob->addNetAction(
+        Net::Download::makeByteArray(getVersionsURL(args), response));
 
-    QObject::connect(netJob, &NetJob::succeeded, [response, &ver] { ver = parseLatestVersion(*response); });
+    QObject::connect(netJob, &NetJob::succeeded,
+                     [response, &ver]
+                     {
+                         ver = parseLatestVersion(*response);
+                     });
 
-    QObject::connect(netJob, &NetJob::finished, [response, netJob, &loop] {
-        netJob->deleteLater();
-        delete response;
-        loop.quit();
-    });
+    QObject::connect(netJob, &NetJob::finished,
+                     [response, netJob, &loop]
+                     {
+                         netJob->deleteLater();
+                         delete response;
+                         loop.quit();
+                     });
 
     netJob->start();
 
@@ -178,11 +226,13 @@ ModPlatform::IndexedVersion FlameAPI::getLatestVersion(VersionSearchArgs&& args)
 
 NetJob* FlameAPI::getProjects(QStringList addonIds, QByteArray* response) const
 {
-    auto* netJob = new NetJob(QString("Flame::GetProjects"), APPLICATION->network());
+    auto* netJob =
+        new NetJob(QString("Flame::GetProjects"), APPLICATION->network());
 
     QJsonObject body_obj;
     QJsonArray addons_arr;
-    for (auto& addonId : addonIds) {
+    for (auto& addonId : addonIds)
+    {
         addons_arr.append(addonId);
     }
 
@@ -191,21 +241,34 @@ NetJob* FlameAPI::getProjects(QStringList addonIds, QByteArray* response) const
     QJsonDocument body(body_obj);
     auto body_raw = body.toJson();
 
-    netJob->addNetAction(Net::Upload::makeByteArray(QString("https://api.curseforge.com/v1/mods"), response, body_raw));
+    netJob->addNetAction(Net::Upload::makeByteArray(
+        QString("https://api.curseforge.com/v1/mods"), response, body_raw));
 
-    QObject::connect(netJob, &NetJob::finished, [response, netJob] { delete response; netJob->deleteLater(); });
-    QObject::connect(netJob, &NetJob::failed, [body_raw] { qDebug() << body_raw; });
+    QObject::connect(netJob, &NetJob::finished,
+                     [response, netJob]
+                     {
+                         delete response;
+                         netJob->deleteLater();
+                     });
+    QObject::connect(netJob, &NetJob::failed,
+                     [body_raw]
+                     {
+                         qDebug() << body_raw;
+                     });
 
     return netJob;
 }
 
-NetJob* FlameAPI::getFiles(const QStringList& fileIds, QByteArray* response) const
+NetJob* FlameAPI::getFiles(const QStringList& fileIds,
+                           QByteArray* response) const
 {
-    auto* netJob = new NetJob(QString("Flame::GetFiles"), APPLICATION->network());
+    auto* netJob =
+        new NetJob(QString("Flame::GetFiles"), APPLICATION->network());
 
     QJsonObject body_obj;
     QJsonArray files_arr;
-    for (auto& fileId : fileIds) {
+    for (auto& fileId : fileIds)
+    {
         files_arr.append(fileId);
     }
 
@@ -214,10 +277,21 @@ NetJob* FlameAPI::getFiles(const QStringList& fileIds, QByteArray* response) con
     QJsonDocument body(body_obj);
     auto body_raw = body.toJson();
 
-    netJob->addNetAction(Net::Upload::makeByteArray(QString("https://api.curseforge.com/v1/mods/files"), response, body_raw));
+    netJob->addNetAction(Net::Upload::makeByteArray(
+        QString("https://api.curseforge.com/v1/mods/files"), response,
+        body_raw));
 
-    QObject::connect(netJob, &NetJob::finished, [response, netJob] { delete response; netJob->deleteLater(); });
-    QObject::connect(netJob, &NetJob::failed, [body_raw] { qDebug() << body_raw; });
+    QObject::connect(netJob, &NetJob::finished,
+                     [response, netJob]
+                     {
+                         delete response;
+                         netJob->deleteLater();
+                     });
+    QObject::connect(netJob, &NetJob::failed,
+                     [body_raw]
+                     {
+                         qDebug() << body_raw;
+                     });
 
     return netJob;
 }

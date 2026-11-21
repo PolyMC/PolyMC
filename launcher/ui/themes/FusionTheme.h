@@ -2,10 +2,12 @@
 
 #include "ITheme.h"
 
-class FusionTheme: public ITheme
+class FusionTheme : public ITheme
 {
 public:
-    virtual ~FusionTheme() {}
+    virtual ~FusionTheme()
+    {
+    }
 
     QString qtTheme() override;
 };

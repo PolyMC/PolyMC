@@ -51,7 +51,7 @@
 #include "Application.h"
 #include <sys.h>
 
-JavaPage::JavaPage(QWidget *parent) : QWidget(parent), ui(new Ui::JavaPage)
+JavaPage::JavaPage(QWidget* parent) : QWidget(parent), ui(new Ui::JavaPage)
 {
     ui->setupUi(this);
     ui->tabWidget->tabBar()->hide();
@@ -61,16 +61,19 @@ JavaPage::JavaPage(QWidget *parent) : QWidget(parent), ui(new Ui::JavaPage)
     ui->lowMemWarnWidget->hide();
 
     // TODO(crueter): add warning theme icons.
-    ui->lowMemWarnIcon->setPixmap(style()->standardIcon(QStyle::SP_MessageBoxWarning, nullptr, this).pixmap(24));
+    ui->lowMemWarnIcon->setPixmap(
+        style()
+            ->standardIcon(QStyle::SP_MessageBoxWarning, nullptr, this)
+            .pixmap(24));
 
-    connect(ui->minMemSpinBox, &QSpinBox::editingFinished,
-            this, &JavaPage::normalizeMemory);
+    connect(ui->minMemSpinBox, &QSpinBox::editingFinished, this,
+            &JavaPage::normalizeMemory);
 
     connect(ui->maxMemSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
             this, &JavaPage::updateMemoryWarning);
 
-    connect(ui->maxMemSpinBox, &QSpinBox::editingFinished,
-            this, &JavaPage::normalizeMemory);
+    connect(ui->maxMemSpinBox, &QSpinBox::editingFinished, this,
+            &JavaPage::normalizeMemory);
 
     updateMemoryWarning();
 
@@ -95,7 +98,7 @@ void JavaPage::applySettings()
     // Memory
     int min = ui->minMemSpinBox->value();
     int max = ui->maxMemSpinBox->value();
-    if(min < max)
+    if (min < max)
     {
         s->set("MinMemAlloc", min);
         s->set("MaxMemAlloc", max);
@@ -110,9 +113,11 @@ void JavaPage::applySettings()
     // Java Settings
     s->set("JavaPath", ui->javaPathTextBox->text());
     s->set("JvmArgs", ui->jvmArgsTextBox->toPlainText().replace("\n", " "));
-    s->set("IgnoreJavaCompatibility", ui->skipCompatibilityCheckbox->isChecked());
+    s->set("IgnoreJavaCompatibility",
+           ui->skipCompatibilityCheckbox->isChecked());
     s->set("IgnoreJavaWizard", ui->skipJavaWizardCheckbox->isChecked());
-    JavaCommon::checkJVMArgs(s->get("JvmArgs").toString(), this->parentWidget());
+    JavaCommon::checkJVMArgs(s->get("JvmArgs").toString(),
+                             this->parentWidget());
 }
 void JavaPage::loadSettings()
 {
@@ -120,7 +125,7 @@ void JavaPage::loadSettings()
     // Memory
     int min = s->get("MinMemAlloc").toInt();
     int max = s->get("MaxMemAlloc").toInt();
-    if(min < max)
+    if (min < max)
     {
         ui->minMemSpinBox->setValue(min);
         ui->maxMemSpinBox->setValue(max);
@@ -135,63 +140,77 @@ void JavaPage::loadSettings()
     // Java Settings
     ui->javaPathTextBox->setText(s->get("JavaPath").toString());
     ui->jvmArgsTextBox->setPlainText(s->get("JvmArgs").toString());
-    ui->skipCompatibilityCheckbox->setChecked(s->get("IgnoreJavaCompatibility").toBool());
+    ui->skipCompatibilityCheckbox->setChecked(
+        s->get("IgnoreJavaCompatibility").toBool());
     ui->skipJavaWizardCheckbox->setChecked(s->get("IgnoreJavaWizard").toBool());
 }
 
-void JavaPage::updateMemoryWarning() {
+void JavaPage::updateMemoryWarning()
+{
     int maxMem = ui->maxMemSpinBox->value();
 
-    if (maxMem < 1024) {
+    if (maxMem < 1024)
+    {
         ui->lowMemWarnLabel->setText(
-            tr("Allocating less than 1024 MiB may cause performance issues on newer versions! Use with caution."));
+            tr("Allocating less than 1024 MiB may cause performance issues on "
+               "newer versions! Use with caution."));
         ui->lowMemWarnWidget->show();
-    } else {
+    }
+    else
+    {
         ui->lowMemWarnWidget->hide();
     }
 }
 
-void JavaPage::normalizeMemory() {
+void JavaPage::normalizeMemory()
+{
     int minMem = ui->minMemSpinBox->value();
     int maxMem = ui->maxMemSpinBox->value();
 
     if (minMem > maxMem)
+    {
         ui->maxMemSpinBox->setValue(minMem);
+    }
 }
 
 void JavaPage::on_javaDetectBtn_clicked()
 {
-    if (JavaUtils::getJavaCheckPath().isEmpty()) {
+    if (JavaUtils::getJavaCheckPath().isEmpty())
+    {
         JavaCommon::javaCheckNotFound(this);
         return;
     }
 
     JavaInstallPtr java;
 
-    VersionSelectDialog vselect(APPLICATION->javalist().get(), tr("Select a Java version"), this, true);
+    VersionSelectDialog vselect(APPLICATION->javalist().get(),
+                                tr("Select a Java version"), this, true);
     vselect.setResizeOn(2);
     vselect.exec();
 
     if (vselect.result() == QDialog::Accepted && vselect.selectedVersion())
     {
-        java = std::dynamic_pointer_cast<JavaInstall>(vselect.selectedVersion());
+        java =
+            std::dynamic_pointer_cast<JavaInstall>(vselect.selectedVersion());
         ui->javaPathTextBox->setText(java->path);
     }
 }
 
 void JavaPage::on_javaBrowseBtn_clicked()
 {
-    QString raw_path = QFileDialog::getOpenFileName(this, tr("Find Java executable"));
+    QString raw_path =
+        QFileDialog::getOpenFileName(this, tr("Find Java executable"));
 
     // do not allow current dir - it's dirty. Do not allow dirs that don't exist
-    if(raw_path.isEmpty())
+    if (raw_path.isEmpty())
     {
         return;
     }
 
     QString cooked_path = FS::NormalizePath(raw_path);
-    QFileInfo javaInfo(cooked_path);;
-    if(!javaInfo.exists() || !javaInfo.isExecutable())
+    QFileInfo javaInfo(cooked_path);
+    ;
+    if (!javaInfo.exists() || !javaInfo.isExecutable())
     {
         return;
     }
@@ -200,14 +219,17 @@ void JavaPage::on_javaBrowseBtn_clicked()
 
 void JavaPage::on_javaTestBtn_clicked()
 {
-    if(checker)
+    if (checker)
     {
         return;
     }
     checker.reset(new JavaCommon::TestCheck(
-        this, ui->javaPathTextBox->text(), ui->jvmArgsTextBox->toPlainText().replace("\n", " "),
-        ui->minMemSpinBox->value(), ui->maxMemSpinBox->value(), ui->permGenSpinBox->value()));
-    connect(checker.get(), &JavaCommon::TestCheck::finished, this, &JavaPage::checkerFinished);
+        this, ui->javaPathTextBox->text(),
+        ui->jvmArgsTextBox->toPlainText().replace("\n", " "),
+        ui->minMemSpinBox->value(), ui->maxMemSpinBox->value(),
+        ui->permGenSpinBox->value()));
+    connect(checker.get(), &JavaCommon::TestCheck::finished, this,
+            &JavaPage::checkerFinished);
     checker->run();
 }
 

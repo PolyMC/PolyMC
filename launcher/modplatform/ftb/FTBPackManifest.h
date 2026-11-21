@@ -156,9 +156,9 @@ struct VersionChangelog
     int64_t updated;
 };
 
-void loadModpack(Modpack & m, QJsonObject & obj);
+void loadModpack(Modpack& m, QJsonObject& obj);
 
-void loadVersion(Version & m, QJsonObject & obj);
-}
+void loadVersion(Version& m, QJsonObject& obj);
+}  // namespace FTB
 
 Q_DECLARE_METATYPE(FTB::Modpack)

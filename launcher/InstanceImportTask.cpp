@@ -64,10 +64,14 @@ InstanceImportTask::InstanceImportTask(const QUrl sourceUrl, QWidget* parent)
 bool InstanceImportTask::abort()
 {
     if (!canAbort())
+    {
         return false;
+    }
 
     if (m_filesNetJob)
+    {
         m_filesNetJob->abort();
+    }
     m_extractFuture.cancel();
 
     return Task::abort();
@@ -77,10 +81,13 @@ void InstanceImportTask::executeTask()
 {
     setAbortable(true);
 
-    if (m_sourceUrl.isLocalFile()) {
+    if (m_sourceUrl.isLocalFile())
+    {
         m_archivePath = m_sourceUrl.toLocalFile();
         processZipPack();
-    } else {
+    }
+    else
+    {
         setStatus(tr("Downloading modpack:\n%1").arg(m_sourceUrl.toString()));
         m_downloadRequired = true;
 
@@ -90,13 +97,19 @@ void InstanceImportTask::executeTask()
         entry->setStale(true);
         m_archivePath = entry->getFullPath();
 
-        m_filesNetJob = new NetJob(tr("Modpack download"), APPLICATION->network());
-        m_filesNetJob->addNetAction(Net::Download::makeCached(m_sourceUrl, entry));
+        m_filesNetJob =
+            new NetJob(tr("Modpack download"), APPLICATION->network());
+        m_filesNetJob->addNetAction(
+            Net::Download::makeCached(m_sourceUrl, entry));
 
-        connect(m_filesNetJob.get(), &NetJob::succeeded, this, &InstanceImportTask::downloadSucceeded);
-        connect(m_filesNetJob.get(), &NetJob::progress, this, &InstanceImportTask::downloadProgressChanged);
-        connect(m_filesNetJob.get(), &NetJob::failed, this, &InstanceImportTask::downloadFailed);
-        connect(m_filesNetJob.get(), &NetJob::aborted, this, &InstanceImportTask::downloadAborted);
+        connect(m_filesNetJob.get(), &NetJob::succeeded, this,
+                &InstanceImportTask::downloadSucceeded);
+        connect(m_filesNetJob.get(), &NetJob::progress, this,
+                &InstanceImportTask::downloadProgressChanged);
+        connect(m_filesNetJob.get(), &NetJob::failed, this,
+                &InstanceImportTask::downloadFailed);
+        connect(m_filesNetJob.get(), &NetJob::aborted, this,
+                &InstanceImportTask::downloadAborted);
 
         m_filesNetJob->start();
     }
@@ -143,12 +156,14 @@ void InstanceImportTask::processZipPack()
 
     // https://docs.modrinth.com/docs/modpacks/format_definition/#storage
     bool modrinthFound = packZipDir.exists("/modrinth.index.json");
-    bool technicFound = packZipDir.exists("/bin/modpack.jar") || packZipDir.exists("/bin/version.json");
+    bool technicFound = packZipDir.exists("/bin/modpack.jar") ||
+                        packZipDir.exists("/bin/version.json");
     QString root;
 
     // NOTE: Prioritize modpack platforms that aren't searched for recursively.
-    // Especially Flame has a very common filename for its manifest, which may appear inside overrides for example
-    if(modrinthFound)
+    // Especially Flame has a very common filename for its manifest, which may
+    // appear inside overrides for example
+    if (modrinthFound)
     {
         // process as Modrinth pack
         qDebug() << "Modrinth:" << modrinthFound;
@@ -164,8 +179,9 @@ void InstanceImportTask::processZipPack()
     }
     else
     {
-        auto [rootDirectory, fileName] = MMCZip::findFolderOfFileInZip(m_packZip.get(), {"manifest.json", "instance.cfg"});
-        if(fileName == "manifest.json")
+        auto [rootDirectory, fileName] = MMCZip::findFolderOfFileInZip(
+            m_packZip.get(), {"manifest.json", "instance.cfg"});
+        if (fileName == "manifest.json")
         {
             // process as Flame pack
             qDebug() << "Flame:" << rootDirectory;
@@ -180,7 +196,7 @@ void InstanceImportTask::processZipPack()
             m_modpackType = ModpackType::MultiMC;
         }
     }
-    if(m_modpackType == ModpackType::Unknown)
+    if (m_modpackType == ModpackType::Unknown)
     {
         emitFailed(tr("Archive does not contain a recognized modpack type."));
         return;
@@ -189,9 +205,13 @@ void InstanceImportTask::processZipPack()
     setAbortable(false);
 
     // make sure we extract just the pack
-    m_extractFuture = QtConcurrent::run(QThreadPool::globalInstance(), MMCZip::extractSubDir, m_packZip.get(), root, extractDir.absolutePath());
-    connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::finished, this, &InstanceImportTask::extractFinished);
-    connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::canceled, this, &InstanceImportTask::extractAborted);
+    m_extractFuture =
+        QtConcurrent::run(QThreadPool::globalInstance(), MMCZip::extractSubDir,
+                          m_packZip.get(), root, extractDir.absolutePath());
+    connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::finished,
+            this, &InstanceImportTask::extractFinished);
+    connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::canceled,
+            this, &InstanceImportTask::extractAborted);
     m_extractFutureWatcher.setFuture(m_extractFuture);
 }
 
@@ -204,7 +224,7 @@ void InstanceImportTask::extractFinished()
         emitFailed(tr("Failed to extract modpack"));
         return;
     }
-    switch(m_modpackType)
+    switch (m_modpackType)
     {
         case ModpackType::MultiMC:
             processMultiMC();
@@ -219,7 +239,8 @@ void InstanceImportTask::extractFinished()
             processModrinth();
             return;
         case ModpackType::Unknown:
-            emitFailed(tr("Archive does not contain a recognized modpack type."));
+            emitFailed(
+                tr("Archive does not contain a recognized modpack type."));
             return;
     }
 }
@@ -231,34 +252,46 @@ void InstanceImportTask::extractAborted()
 
 void InstanceImportTask::processFlame()
 {
-    auto* inst_creation_task = new FlameCreationTask(m_stagingPath, m_globalSettings, m_parent);
+    auto* inst_creation_task =
+        new FlameCreationTask(m_stagingPath, m_globalSettings, m_parent);
 
     inst_creation_task->setName(*this);
     inst_creation_task->setIcon(m_instIcon);
     inst_creation_task->setGroup(m_instGroup);
-    
-    connect(inst_creation_task, &Task::succeeded, this, [this, inst_creation_task] {
-        setOverride(inst_creation_task->shouldOverride());
-        emitSucceeded();
-    });
-    connect(inst_creation_task, &Task::failed, this, &InstanceImportTask::emitFailed);
-    connect(inst_creation_task, &Task::progress, this, &InstanceImportTask::setProgress);
-    connect(inst_creation_task, &Task::status, this, &InstanceImportTask::setStatus);
-    connect(inst_creation_task, &Task::details, this, &Task::details);
-    connect(inst_creation_task, &Task::finished, inst_creation_task, &InstanceCreationTask::deleteLater);
 
-    connect(this, &Task::aborted, inst_creation_task, &InstanceCreationTask::abort);
+    connect(inst_creation_task, &Task::succeeded, this,
+            [this, inst_creation_task]
+            {
+                setOverride(inst_creation_task->shouldOverride());
+                emitSucceeded();
+            });
+    connect(inst_creation_task, &Task::failed, this,
+            &InstanceImportTask::emitFailed);
+    connect(inst_creation_task, &Task::progress, this,
+            &InstanceImportTask::setProgress);
+    connect(inst_creation_task, &Task::status, this,
+            &InstanceImportTask::setStatus);
+    connect(inst_creation_task, &Task::details, this, &Task::details);
+    connect(inst_creation_task, &Task::finished, inst_creation_task,
+            &InstanceCreationTask::deleteLater);
+
+    connect(this, &Task::aborted, inst_creation_task,
+            &InstanceCreationTask::abort);
     connect(inst_creation_task, &Task::aborted, this, &Task::abort);
-    connect(inst_creation_task, &Task::abortStatusChanged, this, &Task::setAbortable);
+    connect(inst_creation_task, &Task::abortStatusChanged, this,
+            &Task::setAbortable);
 
     inst_creation_task->start();
 }
 
 void InstanceImportTask::processTechnic()
 {
-    shared_qobject_ptr<Technic::TechnicPackProcessor> packProcessor = new Technic::TechnicPackProcessor();
-    connect(packProcessor.get(), &Technic::TechnicPackProcessor::succeeded, this, &InstanceImportTask::emitSucceeded);
-    connect(packProcessor.get(), &Technic::TechnicPackProcessor::failed, this, &InstanceImportTask::emitFailed);
+    shared_qobject_ptr<Technic::TechnicPackProcessor> packProcessor =
+        new Technic::TechnicPackProcessor();
+    connect(packProcessor.get(), &Technic::TechnicPackProcessor::succeeded,
+            this, &InstanceImportTask::emitSucceeded);
+    connect(packProcessor.get(), &Technic::TechnicPackProcessor::failed, this,
+            &InstanceImportTask::emitFailed);
     packProcessor->run(m_globalSettings, name(), m_instIcon, m_stagingPath);
 }
 
@@ -275,20 +308,27 @@ void InstanceImportTask::processMultiMC()
     // set a new nice name
     instance.setName(name());
 
-    // if the icon was specified by user, use that. otherwise pull icon from the pack
-    if (m_instIcon != "default") {
+    // if the icon was specified by user, use that. otherwise pull icon from the
+    // pack
+    if (m_instIcon != "default")
+    {
         instance.setIconKey(m_instIcon);
-    } else {
+    }
+    else
+    {
         m_instIcon = instance.iconKey();
 
-        auto importIconPath = IconUtils::findBestIconIn(instance.instanceRoot(), m_instIcon);
-        if (!importIconPath.isNull() && QFile::exists(importIconPath)) {
+        auto importIconPath =
+            IconUtils::findBestIconIn(instance.instanceRoot(), m_instIcon);
+        if (!importIconPath.isNull() && QFile::exists(importIconPath))
+        {
             // import icon
             auto iconList = APPLICATION->icons();
-            if (iconList->iconFileExists(m_instIcon)) {
+            if (iconList->iconFileExists(m_instIcon))
+            {
                 iconList->deleteIcon(m_instIcon);
             }
-            iconList->installIcons({ importIconPath });
+            iconList->installIcons({importIconPath});
         }
     }
     emitSucceeded();
@@ -296,25 +336,34 @@ void InstanceImportTask::processMultiMC()
 
 void InstanceImportTask::processModrinth()
 {
-    auto* inst_creation_task = new ModrinthCreationTask(m_stagingPath, m_globalSettings, m_parent, m_sourceUrl.toString());
+    auto* inst_creation_task = new ModrinthCreationTask(
+        m_stagingPath, m_globalSettings, m_parent, m_sourceUrl.toString());
 
     inst_creation_task->setName(*this);
     inst_creation_task->setIcon(m_instIcon);
     inst_creation_task->setGroup(m_instGroup);
-    
-    connect(inst_creation_task, &Task::succeeded, this, [this, inst_creation_task] {
-        setOverride(inst_creation_task->shouldOverride());
-        emitSucceeded();
-    });
-    connect(inst_creation_task, &Task::failed, this, &InstanceImportTask::emitFailed);
-    connect(inst_creation_task, &Task::progress, this, &InstanceImportTask::setProgress);
-    connect(inst_creation_task, &Task::status, this, &InstanceImportTask::setStatus);
-    connect(inst_creation_task, &Task::details, this, &Task::details);
-    connect(inst_creation_task, &Task::finished, inst_creation_task, &InstanceCreationTask::deleteLater);
 
-    connect(this, &Task::aborted, inst_creation_task, &InstanceCreationTask::abort);
+    connect(inst_creation_task, &Task::succeeded, this,
+            [this, inst_creation_task]
+            {
+                setOverride(inst_creation_task->shouldOverride());
+                emitSucceeded();
+            });
+    connect(inst_creation_task, &Task::failed, this,
+            &InstanceImportTask::emitFailed);
+    connect(inst_creation_task, &Task::progress, this,
+            &InstanceImportTask::setProgress);
+    connect(inst_creation_task, &Task::status, this,
+            &InstanceImportTask::setStatus);
+    connect(inst_creation_task, &Task::details, this, &Task::details);
+    connect(inst_creation_task, &Task::finished, inst_creation_task,
+            &InstanceCreationTask::deleteLater);
+
+    connect(this, &Task::aborted, inst_creation_task,
+            &InstanceCreationTask::abort);
     connect(inst_creation_task, &Task::aborted, this, &Task::abort);
-    connect(inst_creation_task, &Task::abortStatusChanged, this, &Task::setAbortable);
+    connect(inst_creation_task, &Task::abortStatusChanged, this,
+            &Task::setAbortable);
 
     inst_creation_task->start();
 }

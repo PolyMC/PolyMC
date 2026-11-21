@@ -6,46 +6,64 @@
 #include "modplatform/ModIndex.h"
 #include "tasks/Task.h"
 
-namespace Hashing {
+namespace Hashing
+{
 
-class Hasher : public Task {
-   public:
+class Hasher : public Task
+{
+public:
     using Ptr = shared_qobject_ptr<Hasher>;
     using HashFunction = QString (*)(const QString&);
 
     Hasher(QString file_path, HashFunction hash_function);
 
-    /* We can't really abort this task, but we can say we aborted and finish our thing quickly :) */
+    /* We can't really abort this task, but we can say we aborted and finish our
+     * thing quickly :) */
     bool abort() override
     {
         if (isRunning())
-            emitAborted();
+        {
+            {
+                emitAborted();
+            }
+        }
         return true;
     }
 
     void executeTask() override;
 
-    QString computeHash() const { return m_hash_function(m_path); }
+    QString computeHash() const
+    {
+        return m_hash_function(m_path);
+    }
 
-    QString getResult() const { return m_hash; };
-    QString getPath() const { return m_path; };
+    QString getResult() const
+    {
+        return m_hash;
+    };
+    QString getPath() const
+    {
+        return m_path;
+    };
 
-   protected:
+protected:
     QString m_hash;
     QString m_path;
 
-   private:
+private:
     HashFunction m_hash_function;
     QFutureWatcher<QString> m_watcher;
 };
 
-class FlameHasher : public Hasher {
-   public:
+class FlameHasher : public Hasher
+{
+public:
     FlameHasher(QString file_path);
 };
 
-class ModrinthHasher : public Hasher {
-   public:
+class ModrinthHasher : public Hasher
+{
+public:
     ModrinthHasher(QString file_path);
 };
 

@@ -4,10 +4,11 @@
 #include <QMap>
 #include <QByteArray>
 
-struct ApplicationMessage {
+struct ApplicationMessage
+{
     QString command;
     QMap<QString, QString> args;
 
     QByteArray serialize();
-    void parse(const QByteArray & input);
+    void parse(const QByteArray& input);
 };

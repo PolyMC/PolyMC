@@ -11,28 +11,33 @@ class MojangVersionFormatTest : public QObject
     {
         QFile jsonFile(path);
         if (!jsonFile.open(QIODevice::ReadOnly))
+        {
             qFatal("Couldn't open %s", qPrintable(path));
+        }
         auto data = jsonFile.readAll();
         jsonFile.close();
         return QJsonDocument::fromJson(data);
     }
-    static void writeJson(const char *file, QJsonDocument doc)
+    static void writeJson(const char* file, QJsonDocument doc)
     {
         QFile jsonFile(file);
         if (!jsonFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
             qFatal("Couldn't open %s", file);
+        }
         auto data = doc.toJson(QJsonDocument::Indented);
         qDebug() << QString::fromUtf8(data);
         jsonFile.write(data);
         jsonFile.close();
     }
 
-private
-slots:
+private slots:
     void test_Through_Simple()
     {
-        QJsonDocument doc = readJson(QFINDTESTDATA("testdata/MojangVersionFormat/1.9-simple.json"));
-        auto vfile = MojangVersionFormat::versionFileFromJson(doc, "1.9-simple.json");
+        QJsonDocument doc = readJson(
+            QFINDTESTDATA("testdata/MojangVersionFormat/1.9-simple.json"));
+        auto vfile =
+            MojangVersionFormat::versionFileFromJson(doc, "1.9-simple.json");
         auto doc2 = MojangVersionFormat::versionFileToJson(vfile);
         writeJson("1.9-simple-passthorugh.json", doc2);
 
@@ -41,7 +46,8 @@ slots:
 
     void test_Through()
     {
-        QJsonDocument doc = readJson(QFINDTESTDATA("testdata/MojangVersionFormat/1.9.json"));
+        QJsonDocument doc =
+            readJson(QFINDTESTDATA("testdata/MojangVersionFormat/1.9.json"));
         auto vfile = MojangVersionFormat::versionFileFromJson(doc, "1.9.json");
         auto doc2 = MojangVersionFormat::versionFileToJson(vfile);
         writeJson("1.9-passthorugh.json", doc2);
@@ -52,4 +58,3 @@ slots:
 QTEST_GUILESS_MAIN(MojangVersionFormatTest)
 
 #include "MojangVersionFormat_test.moc"
-

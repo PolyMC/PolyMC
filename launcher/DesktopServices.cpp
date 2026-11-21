@@ -39,11 +39,13 @@
 #include "Application.h"
 #include "FileSystem.h"
 
-namespace DesktopServices {
+namespace DesktopServices
+{
 bool openPath(const QFileInfo& path, bool ensureFolderPathExists)
 {
     qDebug() << "Opening path" << path;
-    if (ensureFolderPathExists) {
+    if (ensureFolderPathExists)
+    {
         FS::ensureFolderPathExists(path);
     }
     return openUrl(QUrl::fromLocalFile(path.absoluteFilePath()));
@@ -54,16 +56,17 @@ bool openPath(const QString& path, bool ensureFolderPathExists)
     return openPath(QFileInfo(path), ensureFolderPathExists);
 }
 
-bool run(const QString &application, const QStringList &args, const QString &workingDirectory, qint64 *pid)
+bool run(const QString& application, const QStringList& args,
+         const QString& workingDirectory, qint64* pid)
 {
     qDebug() << "Running" << application << "with args" << args.join(' ');
     return QProcess::startDetached(application, args, workingDirectory, pid);
 }
 
-bool openUrl(const QUrl &url)
+bool openUrl(const QUrl& url)
 {
     qDebug() << "Opening URL" << url.toString();
     return QDesktopServices::openUrl(url);
 }
 
-}
+}  // namespace DesktopServices

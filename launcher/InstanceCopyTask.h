@@ -14,7 +14,8 @@ class InstanceCopyTask : public InstanceTask
 {
     Q_OBJECT
 public:
-    explicit InstanceCopyTask(InstancePtr origInstance, bool copySaves, bool keepPlaytime);
+    explicit InstanceCopyTask(InstancePtr origInstance, bool copySaves,
+                              bool keepPlaytime);
 
 protected:
     //! Entry point for tasks.

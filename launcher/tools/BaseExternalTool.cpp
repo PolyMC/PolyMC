@@ -9,7 +9,8 @@
 
 #include "BaseInstance.h"
 
-BaseExternalTool::BaseExternalTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent)
+BaseExternalTool::BaseExternalTool(SettingsObjectPtr settings,
+                                   InstancePtr instance, QObject* parent)
     : QObject(parent), m_instance(instance), globalSettings(settings)
 {
 }
@@ -18,10 +19,10 @@ BaseExternalTool::~BaseExternalTool()
 {
 }
 
-BaseDetachedTool::BaseDetachedTool(SettingsObjectPtr settings, InstancePtr instance, QObject *parent)
+BaseDetachedTool::BaseDetachedTool(SettingsObjectPtr settings,
+                                   InstancePtr instance, QObject* parent)
     : BaseExternalTool(settings, instance, parent)
 {
-
 }
 
 void BaseDetachedTool::run()
@@ -29,13 +30,12 @@ void BaseDetachedTool::run()
     runImpl();
 }
 
-
 BaseExternalToolFactory::~BaseExternalToolFactory()
 {
 }
 
-BaseDetachedTool *BaseDetachedToolFactory::createDetachedTool(InstancePtr instance,
-                                                              QObject *parent)
+BaseDetachedTool* BaseDetachedToolFactory::createDetachedTool(
+    InstancePtr instance, QObject* parent)
 {
-    return qobject_cast<BaseDetachedTool *>(createTool(instance, parent));
+    return qobject_cast<BaseDetachedTool*>(createTool(instance, parent));
 }

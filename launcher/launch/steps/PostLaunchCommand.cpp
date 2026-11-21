@@ -36,27 +36,31 @@
 #include "PostLaunchCommand.h"
 #include <launch/LaunchTask.h>
 
-PostLaunchCommand::PostLaunchCommand(LaunchTask *parent) : LaunchStep(parent)
+PostLaunchCommand::PostLaunchCommand(LaunchTask* parent) : LaunchStep(parent)
 {
     auto instance = m_parent->instance();
     m_command = instance->getPostExitCommand();
     m_process.setProcessEnvironment(instance->createEnvironment());
-    connect(&m_process, &LoggedProcess::log, this, &PostLaunchCommand::logLines);
-    connect(&m_process, &LoggedProcess::stateChanged, this, &PostLaunchCommand::on_state);
+    connect(&m_process, &LoggedProcess::log, this,
+            &PostLaunchCommand::logLines);
+    connect(&m_process, &LoggedProcess::stateChanged, this,
+            &PostLaunchCommand::on_state);
 }
 
 void PostLaunchCommand::executeTask()
 {
-    //FIXME: where to put this?
+    // FIXME: where to put this?
     auto args = QProcess::splitCommand(m_command);
     // A command made only of whitespace has nothing to run
-    if (args.isEmpty()) {
+    if (args.isEmpty())
+    {
         emitSucceeded();
         return;
     }
     m_parent->substituteVariables(args);
 
-    emit logLine(tr("Running Post-Launch command: %1").arg(args.join(' ')), MessageLevel::Launcher);
+    emit logLine(tr("Running Post-Launch command: %1").arg(args.join(' ')),
+                 MessageLevel::Launcher);
     const QString program = args.takeFirst();
     m_process.start(program, args);
 }
@@ -65,9 +69,10 @@ void PostLaunchCommand::on_state(LoggedProcess::State state)
 {
     auto getError = [&]()
     {
-        return tr("Post-Launch command failed with code %1.\n\n").arg(m_process.exitCode());
+        return tr("Post-Launch command failed with code %1.\n\n")
+            .arg(m_process.exitCode());
     };
-    switch(state)
+    switch (state)
     {
         case LoggedProcess::Aborted:
         case LoggedProcess::Crashed:
@@ -80,7 +85,7 @@ void PostLaunchCommand::on_state(LoggedProcess::State state)
         }
         case LoggedProcess::Finished:
         {
-            if(m_process.exitCode() != 0)
+            if (m_process.exitCode() != 0)
             {
                 auto error = getError();
                 emit logLine(error, MessageLevel::Fatal);
@@ -88,7 +93,8 @@ void PostLaunchCommand::on_state(LoggedProcess::State state)
             }
             else
             {
-                emit logLine(tr("Post-Launch command ran successfully.\n\n"), MessageLevel::Launcher);
+                emit logLine(tr("Post-Launch command ran successfully.\n\n"),
+                             MessageLevel::Launcher);
                 emitSucceeded();
             }
         }
@@ -97,7 +103,7 @@ void PostLaunchCommand::on_state(LoggedProcess::State state)
     }
 }
 
-void PostLaunchCommand::setWorkingDirectory(const QString &wd)
+void PostLaunchCommand::setWorkingDirectory(const QString& wd)
 {
     m_process.setWorkingDirectory(wd);
 }

@@ -7,11 +7,16 @@
 
 #include <QtMath>
 
-namespace Flame {
+namespace Flame
+{
 
-ListModel::ListModel(QObject* parent) : QAbstractListModel(parent) {}
+ListModel::ListModel(QObject* parent) : QAbstractListModel(parent)
+{
+}
 
-ListModel::~ListModel() {}
+ListModel::~ListModel()
+{
+}
 
 int ListModel::rowCount(const QModelIndex& /*parent*/) const
 {
@@ -26,29 +31,42 @@ int ListModel::columnCount(const QModelIndex& /*parent*/) const
 QVariant ListModel::data(const QModelIndex& index, int role) const
 {
     int pos = index.row();
-    if (pos >= modpacks.size() || pos < 0 || !index.isValid()) {
+    if (pos >= modpacks.size() || pos < 0 || !index.isValid())
+    {
         return QString("INVALID INDEX %1").arg(pos);
     }
 
     IndexedPack pack = modpacks.at(pos);
-    if (role == Qt::DisplayRole) {
+    if (role == Qt::DisplayRole)
+    {
         return pack.name;
-    } else if (role == Qt::ToolTipRole) {
-        if (pack.description.length() > 100) {
-            // some magic to prevent to long tooltips and replace html linebreaks
+    }
+    else if (role == Qt::ToolTipRole)
+    {
+        if (pack.description.length() > 100)
+        {
+            // some magic to prevent to long tooltips and replace html
+            // linebreaks
             QString edit = pack.description.left(97);
-            edit = edit.left(edit.lastIndexOf("<br>")).left(edit.lastIndexOf(" ")).append("...");
+            edit = edit.left(edit.lastIndexOf("<br>"))
+                       .left(edit.lastIndexOf(" "))
+                       .append("...");
             return edit;
         }
         return pack.description;
-    } else if (role == Qt::DecorationRole) {
-        if (m_logoMap.contains(pack.logoName)) {
+    }
+    else if (role == Qt::DecorationRole)
+    {
+        if (m_logoMap.contains(pack.logoName))
+        {
             return (m_logoMap.value(pack.logoName));
         }
         QIcon icon = APPLICATION->getThemedIcon("screenshot-placeholder");
         ((ListModel*)this)->requestLogo(pack.logoName, pack.logoUrl);
         return icon;
-    } else if (role == Qt::UserRole) {
+    }
+    else if (role == Qt::UserRole)
+    {
         QVariant v;
         v.setValue(pack);
         return v;
@@ -57,11 +75,14 @@ QVariant ListModel::data(const QModelIndex& index, int role) const
     return QVariant();
 }
 
-bool ListModel::setData(const QModelIndex &index, const QVariant &value, int /*role*/)
+bool ListModel::setData(const QModelIndex& index, const QVariant& value,
+                        int /*role*/)
 {
     int pos = index.row();
     if (pos >= modpacks.size() || pos < 0 || !index.isValid())
+    {
         return false;
+    }
 
     modpacks[pos] = value.value<Flame::IndexedPack>();
 
@@ -72,9 +93,12 @@ void ListModel::logoLoaded(QString logo, QIcon out)
 {
     m_loadingLogos.removeAll(logo);
     m_logoMap.insert(logo, out);
-    for (int i = 0; i < modpacks.size(); i++) {
-        if (modpacks[i].logoName == logo) {
-            emit dataChanged(createIndex(i, 0), createIndex(i, 0), { Qt::DecorationRole });
+    for (int i = 0; i < modpacks.size(); i++)
+    {
+        if (modpacks[i].logoName == logo)
+        {
+            emit dataChanged(createIndex(i, 0), createIndex(i, 0),
+                             {Qt::DecorationRole});
         }
     }
 }
@@ -87,25 +111,33 @@ void ListModel::logoFailed(QString logo)
 
 void ListModel::requestLogo(QString logo, QString url)
 {
-    if (m_loadingLogos.contains(logo) || m_failedLogos.contains(logo)) {
+    if (m_loadingLogos.contains(logo) || m_failedLogos.contains(logo))
+    {
         return;
     }
 
-    MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry("FlamePacks", QString("logos/%1").arg(logo.section(".", 0, 0)));
-    auto job = new NetJob(QString("Flame Icon Download %1").arg(logo), APPLICATION->network());
+    MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry(
+        "FlamePacks", QString("logos/%1").arg(logo.section(".", 0, 0)));
+    auto job = new NetJob(QString("Flame Icon Download %1").arg(logo),
+                          APPLICATION->network());
     job->addNetAction(Net::Download::makeCached(QUrl(url), entry));
 
     auto fullPath = entry->getFullPath();
-    QObject::connect(job, &NetJob::succeeded, this, [this, logo, fullPath] {
-        emit logoLoaded(logo, QIcon(fullPath));
-        if (waitingCallbacks.contains(logo)) {
-            waitingCallbacks.value(logo)(fullPath);
-        }
-    });
+    QObject::connect(job, &NetJob::succeeded, this,
+                     [this, logo, fullPath]
+                     {
+                         emit logoLoaded(logo, QIcon(fullPath));
+                         if (waitingCallbacks.contains(logo))
+                         {
+                             waitingCallbacks.value(logo)(fullPath);
+                         }
+                     });
 
-    QObject::connect(job, &NetJob::failed, this, [this, logo] {
-        emit logoFailed(logo);
-    });
+    QObject::connect(job, &NetJob::failed, this,
+                     [this, logo]
+                     {
+                         emit logoFailed(logo);
+                     });
 
     QObject::connect(job, &NetJob::finished, job, &QObject::deleteLater);
 
@@ -114,11 +146,19 @@ void ListModel::requestLogo(QString logo, QString url)
     m_loadingLogos.append(logo);
 }
 
-void ListModel::getLogo(const QString& logo, const QString& logoUrl, LogoCallback callback)
+void ListModel::getLogo(const QString& logo, const QString& logoUrl,
+                        LogoCallback callback)
 {
-    if (m_logoMap.contains(logo)) {
-        callback(APPLICATION->metacache()->resolveEntry("FlamePacks", QString("logos/%1").arg(logo.section(".", 0, 0)))->getFullPath());
-    } else {
+    if (m_logoMap.contains(logo))
+    {
+        callback(
+            APPLICATION->metacache()
+                ->resolveEntry("FlamePacks",
+                               QString("logos/%1").arg(logo.section(".", 0, 0)))
+                ->getFullPath());
+    }
+    else
+    {
         requestLogo(logo, logoUrl);
     }
 }
@@ -136,8 +176,11 @@ bool ListModel::canFetchMore(const QModelIndex& /*parent*/) const
 void ListModel::fetchMore(const QModelIndex& parent)
 {
     if (parent.isValid())
+    {
         return;
-    if (nextSearchOffset == 0) {
+    }
+    if (nextSearchOffset == 0)
+    {
         qWarning() << "fetchMore with 0 offset is wrong...";
         return;
     }
@@ -147,43 +190,57 @@ void ListModel::fetchMore(const QModelIndex& parent)
 void ListModel::performPaginatedSearch()
 {
     NetJob* netJob = new NetJob("Flame::Search", APPLICATION->network());
-    auto searchUrl = QString(
-                         "https://api.curseforge.com/v1/mods/search?"
-                         "gameId=432&"
-                         "classId=4471&"
-                         "index=%1&"
-                         "pageSize=25&"
-                         "searchFilter=%2&"
-                         "sortField=%3&"
-                         "sortOrder=desc")
-                         // Encode the search, and fill everything in at once: with chained arg() calls,
-                         // something like %3 in the search would get replaced by the next one
-                         .arg(QString::number(nextSearchOffset),
-                              QString::fromUtf8(QUrl::toPercentEncoding(currentSearchTerm)),
-                              QString::number(currentSort + 1));
+    auto searchUrl =
+        QString(
+            "https://api.curseforge.com/v1/mods/search?"
+            "gameId=432&"
+            "classId=4471&"
+            "index=%1&"
+            "pageSize=25&"
+            "searchFilter=%2&"
+            "sortField=%3&"
+            "sortOrder=desc")
+            // Encode the search, and fill everything in at once: with chained
+            // arg() calls, something like %3 in the search would get replaced
+            // by the next one
+            .arg(QString::number(nextSearchOffset),
+                 QString::fromUtf8(QUrl::toPercentEncoding(currentSearchTerm)),
+                 QString::number(currentSort + 1));
 
-    netJob->addNetAction(Net::Download::makeByteArray(QUrl(searchUrl), &response));
+    netJob->addNetAction(
+        Net::Download::makeByteArray(QUrl(searchUrl), &response));
     jobPtr = netJob;
     jobPtr->start();
-    QObject::connect(netJob, &NetJob::succeeded, this, &ListModel::searchRequestFinished);
-    QObject::connect(netJob, &NetJob::failed, this, &ListModel::searchRequestFailed);
-    QObject::connect(netJob, &NetJob::aborted, this, [this] { searchRequestFailed({}); });
+    QObject::connect(netJob, &NetJob::succeeded, this,
+                     &ListModel::searchRequestFinished);
+    QObject::connect(netJob, &NetJob::failed, this,
+                     &ListModel::searchRequestFailed);
+    QObject::connect(netJob, &NetJob::aborted, this,
+                     [this]
+                     {
+                         searchRequestFailed({});
+                     });
 }
 
 void ListModel::searchWithTerm(const QString& term, int sort)
 {
-    if (currentSearchTerm == term && currentSearchTerm.isNull() == term.isNull() && currentSort == sort) {
+    if (currentSearchTerm == term &&
+        currentSearchTerm.isNull() == term.isNull() && currentSort == sort)
+    {
         return;
     }
     currentSearchTerm = term;
     currentSort = sort;
-    // Only abort a search that is still going, a finished one never reports back.
-    // Set the state first, aborting can report back right away.
-    if (jobPtr && jobPtr->isRunning()) {
+    // Only abort a search that is still going, a finished one never reports
+    // back. Set the state first, aborting can report back right away.
+    if (jobPtr && jobPtr->isRunning())
+    {
         searchState = ResetRequested;
         jobPtr->abort();
         return;
-    } else {
+    }
+    else
+    {
         beginResetModel();
         modpacks.clear();
         endResetModel();
@@ -199,8 +256,10 @@ void Flame::ListModel::searchRequestFinished()
 
     QJsonParseError parse_error;
     QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
-    if (parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from CurseForge at " << parse_error.offset
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from CurseForge at "
+                   << parse_error.offset
                    << " reason: " << parse_error.errorString();
         qWarning() << response;
         return;
@@ -208,30 +267,42 @@ void Flame::ListModel::searchRequestFinished()
 
     QList<Flame::IndexedPack> newList;
     auto packs = Json::ensureArray(doc.object(), "data");
-    for (auto packRaw : std::as_const(packs)) {
+    for (auto packRaw : std::as_const(packs))
+    {
         auto packObj = packRaw.toObject();
 
         Flame::IndexedPack pack;
-        try {
+        try
+        {
             Flame::loadIndexedPack(pack, packObj);
             newList.append(pack);
-        } catch (const JSONValidationError& e) {
-            qWarning() << "Error while loading pack from CurseForge: " << e.cause();
+        }
+        catch (const JSONValidationError& e)
+        {
+            qWarning() << "Error while loading pack from CurseForge: "
+                       << e.cause();
             continue;
         }
     }
-    if (packs.size() < 25) {
+    if (packs.size() < 25)
+    {
         searchState = Finished;
-    } else {
+    }
+    else
+    {
         nextSearchOffset += 25;
         searchState = CanPossiblyFetchMore;
     }
 
-    // When you have a Qt build with assertions turned on, proceeding here will abort the application
+    // When you have a Qt build with assertions turned on, proceeding here will
+    // abort the application
     if (newList.size() == 0)
+    {
         return;
+    }
 
-    beginInsertRows(QModelIndex(), modpacks.size(), modpacks.size() + newList.size() - 1);
+    beginInsertRows(QModelIndex(), modpacks.size(),
+                    modpacks.size() + newList.size() - 1);
     modpacks.append(newList);
     endInsertRows();
 }
@@ -240,14 +311,17 @@ void Flame::ListModel::searchRequestFailed(QString /*reason*/)
 {
     jobPtr.reset();
 
-    if (searchState == ResetRequested) {
+    if (searchState == ResetRequested)
+    {
         beginResetModel();
         modpacks.clear();
         endResetModel();
 
         nextSearchOffset = 0;
         performPaginatedSearch();
-    } else {
+    }
+    else
+    {
         searchState = Finished;
     }
 }

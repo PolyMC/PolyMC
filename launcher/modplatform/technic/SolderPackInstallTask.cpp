@@ -45,12 +45,10 @@
 #include "net/ChecksumValidator.h"
 
 Technic::SolderPackInstallTask::SolderPackInstallTask(
-    shared_qobject_ptr<QNetworkAccessManager> network,
-    const QUrl &solderUrl,
-    const QString &pack,
-    const QString &version,
-    const QString &minecraftVersion
-) {
+    shared_qobject_ptr<QNetworkAccessManager> network, const QUrl& solderUrl,
+    const QString& pack, const QString& version,
+    const QString& minecraftVersion)
+{
     m_solderUrl = solderUrl;
     m_pack = pack;
     m_version = version;
@@ -58,8 +56,9 @@ Technic::SolderPackInstallTask::SolderPackInstallTask(
     m_minecraftVersion = minecraftVersion;
 }
 
-bool Technic::SolderPackInstallTask::abort() {
-    if(m_abortable)
+bool Technic::SolderPackInstallTask::abort()
+{
+    if (m_abortable)
     {
         return m_filesNetJob->abort();
     }
@@ -71,13 +70,18 @@ void Technic::SolderPackInstallTask::executeTask()
     setStatus(tr("Resolving modpack files"));
 
     m_filesNetJob = new NetJob(tr("Resolving modpack files"), m_network);
-    auto sourceUrl = QString("%1/modpack/%2/%3").arg(m_solderUrl.toString(), m_pack, m_version);
-    m_filesNetJob->addNetAction(Net::Download::makeByteArray(sourceUrl, &m_response));
+    auto sourceUrl = QString("%1/modpack/%2/%3")
+                         .arg(m_solderUrl.toString(), m_pack, m_version);
+    m_filesNetJob->addNetAction(
+        Net::Download::makeByteArray(sourceUrl, &m_response));
 
     auto job = m_filesNetJob.get();
-    connect(job, &NetJob::succeeded, this, &Technic::SolderPackInstallTask::fileListSucceeded);
-    connect(job, &NetJob::failed, this, &Technic::SolderPackInstallTask::downloadFailed);
-    connect(job, &NetJob::aborted, this, &Technic::SolderPackInstallTask::downloadAborted);
+    connect(job, &NetJob::succeeded, this,
+            &Technic::SolderPackInstallTask::fileListSucceeded);
+    connect(job, &NetJob::failed, this,
+            &Technic::SolderPackInstallTask::downloadFailed);
+    connect(job, &NetJob::aborted, this,
+            &Technic::SolderPackInstallTask::downloadAborted);
     m_filesNetJob->start();
 }
 
@@ -85,10 +89,13 @@ void Technic::SolderPackInstallTask::fileListSucceeded()
 {
     setStatus(tr("Downloading modpack"));
 
-    QJsonParseError parse_error {};
+    QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(m_response, &parse_error);
-    if (parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from Solder at " << parse_error.offset << " reason: " << parse_error.errorString();
+    if (parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning() << "Error while parsing JSON response from Solder at "
+                   << parse_error.offset
+                   << " reason: " << parse_error.errorString();
         qWarning() << m_response;
         emitFailed(parse_error.errorString());
         return;
@@ -96,28 +103,35 @@ void Technic::SolderPackInstallTask::fileListSucceeded()
     auto obj = doc.object();
 
     TechnicSolder::PackBuild build;
-    try {
+    try
+    {
         TechnicSolder::loadPackBuild(build, obj);
     }
-    catch (const JSONValidationError& e) {
+    catch (const JSONValidationError& e)
+    {
         emitFailed(tr("Could not understand pack manifest:\n") + e.cause());
         m_filesNetJob.reset();
         return;
     }
 
     if (!build.minecraft.isEmpty())
+    {
         m_minecraftVersion = build.minecraft;
+    }
 
     m_filesNetJob = new NetJob(tr("Downloading modpack"), m_network);
 
     int i = 0;
-    for (const auto &mod : std::as_const(build.mods)) {
+    for (const auto& mod : std::as_const(build.mods))
+    {
         auto path = FS::PathCombine(m_outputDir.path(), QString("%1").arg(i));
 
         auto dl = Net::Download::makeFile(mod.url, path);
-        if (!mod.md5.isEmpty()) {
+        if (!mod.md5.isEmpty())
+        {
             auto rawMd5 = QByteArray::fromHex(mod.md5.toLatin1());
-            dl->addValidator(new Net::ChecksumValidator(QCryptographicHash::Md5, rawMd5));
+            dl->addValidator(
+                new Net::ChecksumValidator(QCryptographicHash::Md5, rawMd5));
         }
         m_filesNetJob->addNetAction(dl);
 
@@ -126,10 +140,14 @@ void Technic::SolderPackInstallTask::fileListSucceeded()
 
     m_modCount = build.mods.size();
 
-    connect(m_filesNetJob.get(), &NetJob::succeeded, this, &Technic::SolderPackInstallTask::downloadSucceeded);
-    connect(m_filesNetJob.get(), &NetJob::progress, this, &Technic::SolderPackInstallTask::downloadProgressChanged);
-    connect(m_filesNetJob.get(), &NetJob::failed, this, &Technic::SolderPackInstallTask::downloadFailed);
-    connect(m_filesNetJob.get(), &NetJob::aborted, this, &Technic::SolderPackInstallTask::downloadAborted);
+    connect(m_filesNetJob.get(), &NetJob::succeeded, this,
+            &Technic::SolderPackInstallTask::downloadSucceeded);
+    connect(m_filesNetJob.get(), &NetJob::progress, this,
+            &Technic::SolderPackInstallTask::downloadProgressChanged);
+    connect(m_filesNetJob.get(), &NetJob::failed, this,
+            &Technic::SolderPackInstallTask::downloadFailed);
+    connect(m_filesNetJob.get(), &NetJob::aborted, this,
+            &Technic::SolderPackInstallTask::downloadAborted);
     m_filesNetJob->start();
 }
 
@@ -139,25 +157,29 @@ void Technic::SolderPackInstallTask::downloadSucceeded()
 
     setStatus(tr("Extracting modpack"));
     m_filesNetJob.reset();
-    m_extractFuture = QtConcurrent::run([this]()
-    {
-        int i = 0;
-        QString extractDir = FS::PathCombine(m_stagingPath, ".minecraft");
-        FS::ensureFolderPathExists(extractDir);
-
-        while (m_modCount > i)
+    m_extractFuture = QtConcurrent::run(
+        [this]()
         {
-            auto path = FS::PathCombine(m_outputDir.path(), QString("%1").arg(i));
-            if (!MMCZip::extractDir(path, extractDir))
+            int i = 0;
+            QString extractDir = FS::PathCombine(m_stagingPath, ".minecraft");
+            FS::ensureFolderPathExists(extractDir);
+
+            while (m_modCount > i)
             {
-                return false;
+                auto path =
+                    FS::PathCombine(m_outputDir.path(), QString("%1").arg(i));
+                if (!MMCZip::extractDir(path, extractDir))
+                {
+                    return false;
+                }
+                i++;
             }
-            i++;
-        }
-        return true;
-    });
-    connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::finished, this, &Technic::SolderPackInstallTask::extractFinished);
-    connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::canceled, this, &Technic::SolderPackInstallTask::extractAborted);
+            return true;
+        });
+    connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::finished,
+            this, &Technic::SolderPackInstallTask::extractFinished);
+    connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::canceled,
+            this, &Technic::SolderPackInstallTask::extractAborted);
     m_extractFutureWatcher.setFuture(m_extractFuture);
 }
 
@@ -168,7 +190,8 @@ void Technic::SolderPackInstallTask::downloadFailed(QString reason)
     m_filesNetJob.reset();
 }
 
-void Technic::SolderPackInstallTask::downloadProgressChanged(qint64 current, qint64 total)
+void Technic::SolderPackInstallTask::downloadProgressChanged(qint64 current,
+                                                             qint64 total)
 {
     m_abortable = true;
     setProgress(current / 2, total);
@@ -187,14 +210,17 @@ void Technic::SolderPackInstallTask::extractFinished()
         emitFailed(tr("Failed to extract modpack"));
         return;
     }
-    shared_qobject_ptr<Technic::TechnicPackProcessor> packProcessor = new Technic::TechnicPackProcessor();
-    connect(packProcessor.get(), &Technic::TechnicPackProcessor::succeeded, this, &Technic::SolderPackInstallTask::emitSucceeded);
-    connect(packProcessor.get(), &Technic::TechnicPackProcessor::failed, this, &Technic::SolderPackInstallTask::emitFailed);
-    packProcessor->run(m_globalSettings, name(), m_instIcon, m_stagingPath, m_minecraftVersion, true);
+    shared_qobject_ptr<Technic::TechnicPackProcessor> packProcessor =
+        new Technic::TechnicPackProcessor();
+    connect(packProcessor.get(), &Technic::TechnicPackProcessor::succeeded,
+            this, &Technic::SolderPackInstallTask::emitSucceeded);
+    connect(packProcessor.get(), &Technic::TechnicPackProcessor::failed, this,
+            &Technic::SolderPackInstallTask::emitFailed);
+    packProcessor->run(m_globalSettings, name(), m_instIcon, m_stagingPath,
+                       m_minecraftVersion, true);
 }
 
 void Technic::SolderPackInstallTask::extractAborted()
 {
     emitFailed(tr("Instance import has been aborted."));
 }
-

@@ -23,14 +23,16 @@
 
 #include "Application.h"
 
-Technic::SingleZipPackInstallTask::SingleZipPackInstallTask(const QUrl &sourceUrl, const QString &minecraftVersion)
+Technic::SingleZipPackInstallTask::SingleZipPackInstallTask(
+    const QUrl& sourceUrl, const QString& minecraftVersion)
 {
     m_sourceUrl = sourceUrl;
     m_minecraftVersion = minecraftVersion;
 }
 
-bool Technic::SingleZipPackInstallTask::abort() {
-    if(m_abortable)
+bool Technic::SingleZipPackInstallTask::abort()
+{
+    if (m_abortable)
     {
         return m_filesNetJob->abort();
     }
@@ -48,14 +50,19 @@ void Technic::SingleZipPackInstallTask::executeTask()
     m_filesNetJob->addNetAction(Net::Download::makeCached(m_sourceUrl, entry));
     m_archivePath = entry->getFullPath();
     auto job = m_filesNetJob.get();
-    connect(job, &NetJob::succeeded, this, &Technic::SingleZipPackInstallTask::downloadSucceeded);
-    connect(job, &NetJob::progress, this, &Technic::SingleZipPackInstallTask::downloadProgressChanged);
-    connect(job, &NetJob::failed, this, &Technic::SingleZipPackInstallTask::downloadFailed);
-    connect(job, &NetJob::aborted, this, [this] {
-        m_abortable = false;
-        emitAborted();
-        m_filesNetJob.reset();
-    });
+    connect(job, &NetJob::succeeded, this,
+            &Technic::SingleZipPackInstallTask::downloadSucceeded);
+    connect(job, &NetJob::progress, this,
+            &Technic::SingleZipPackInstallTask::downloadProgressChanged);
+    connect(job, &NetJob::failed, this,
+            &Technic::SingleZipPackInstallTask::downloadFailed);
+    connect(job, &NetJob::aborted, this,
+            [this]
+            {
+                m_abortable = false;
+                emitAborted();
+                m_filesNetJob.reset();
+            });
     m_filesNetJob->start();
 }
 
@@ -74,9 +81,13 @@ void Technic::SingleZipPackInstallTask::downloadSucceeded()
         emitFailed(tr("Unable to open supplied modpack zip file."));
         return;
     }
-    m_extractFuture = QtConcurrent::run(QThreadPool::globalInstance(), MMCZip::extractSubDir, m_packZip.get(), QString(""), extractDir.absolutePath());
-    connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::finished, this, &Technic::SingleZipPackInstallTask::extractFinished);
-    connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::canceled, this, &Technic::SingleZipPackInstallTask::extractAborted);
+    m_extractFuture = QtConcurrent::run(QThreadPool::globalInstance(),
+                                        MMCZip::extractSubDir, m_packZip.get(),
+                                        QString(""), extractDir.absolutePath());
+    connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::finished,
+            this, &Technic::SingleZipPackInstallTask::extractFinished);
+    connect(&m_extractFutureWatcher, &QFutureWatcher<QStringList>::canceled,
+            this, &Technic::SingleZipPackInstallTask::extractAborted);
     m_extractFutureWatcher.setFuture(m_extractFuture);
     m_filesNetJob.reset();
 }
@@ -88,7 +99,8 @@ void Technic::SingleZipPackInstallTask::downloadFailed(QString reason)
     m_filesNetJob.reset();
 }
 
-void Technic::SingleZipPackInstallTask::downloadProgressChanged(qint64 current, qint64 total)
+void Technic::SingleZipPackInstallTask::downloadProgressChanged(qint64 current,
+                                                                qint64 total)
 {
     m_abortable = true;
     setProgress(current / 2, total);
@@ -102,10 +114,14 @@ void Technic::SingleZipPackInstallTask::extractFinished()
         emitFailed(tr("Failed to extract modpack"));
         return;
     }
-    shared_qobject_ptr<Technic::TechnicPackProcessor> packProcessor = new Technic::TechnicPackProcessor();
-    connect(packProcessor.get(), &Technic::TechnicPackProcessor::succeeded, this, &Technic::SingleZipPackInstallTask::emitSucceeded);
-    connect(packProcessor.get(), &Technic::TechnicPackProcessor::failed, this, &Technic::SingleZipPackInstallTask::emitFailed);
-    packProcessor->run(m_globalSettings, name(), m_instIcon, m_stagingPath, m_minecraftVersion);
+    shared_qobject_ptr<Technic::TechnicPackProcessor> packProcessor =
+        new Technic::TechnicPackProcessor();
+    connect(packProcessor.get(), &Technic::TechnicPackProcessor::succeeded,
+            this, &Technic::SingleZipPackInstallTask::emitSucceeded);
+    connect(packProcessor.get(), &Technic::TechnicPackProcessor::failed, this,
+            &Technic::SingleZipPackInstallTask::emitFailed);
+    packProcessor->run(m_globalSettings, name(), m_instIcon, m_stagingPath,
+                       m_minecraftVersion);
 }
 
 void Technic::SingleZipPackInstallTask::extractAborted()

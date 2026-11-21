@@ -23,11 +23,12 @@ struct RemoteLoadStatus
 
 struct ComponentUpdateTaskData
 {
-    PackProfile * m_list = nullptr;
+    PackProfile* m_list = nullptr;
     QList<RemoteLoadStatus> remoteLoadStatusList;
     bool remoteLoadSuccessful = true;
     size_t remoteTasksInProgress = 0;
-    // How many times dependency resolution had to start over, to stop it from going on forever
+    // How many times dependency resolution had to start over, to stop it from
+    // going on forever
     int resolutionRounds = 0;
     ComponentUpdateTask::Mode mode;
     Net::Mode netmode;

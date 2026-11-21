@@ -13,28 +13,47 @@
 
 /** Very simple task that just loads a folder's contents directly.
  */
-class BasicFolderLoadTask : public Task {
+class BasicFolderLoadTask : public Task
+{
     Q_OBJECT
-   public:
-    struct Result {
+public:
+    struct Result
+    {
         QMap<QString, Resource::Ptr> resources;
     };
     using ResultPtr = std::shared_ptr<Result>;
 
-    [[nodiscard]] ResultPtr result() const { return m_result; }
-
-   public:
-    BasicFolderLoadTask(QDir dir) : Task(nullptr, false), m_dir(dir), m_result(new Result), m_thread_to_spawn_into(thread())
+    [[nodiscard]] ResultPtr result() const
     {
-        m_create_func = [](QFileInfo const& entry) -> Resource* {
-                return new Resource(entry);
-            };
+        return m_result;
     }
-    BasicFolderLoadTask(QDir dir, std::function<Resource*(QFileInfo const&)> create_function)
-        : Task(nullptr, false), m_dir(dir), m_result(new Result), m_create_func(std::move(create_function)), m_thread_to_spawn_into(thread())
-    {}
 
-    [[nodiscard]] bool canAbort() const override { return true; }
+public:
+    BasicFolderLoadTask(QDir dir)
+        : Task(nullptr, false),
+          m_dir(dir),
+          m_result(new Result),
+          m_thread_to_spawn_into(thread())
+    {
+        m_create_func = [](QFileInfo const& entry) -> Resource*
+        {
+            return new Resource(entry);
+        };
+    }
+    BasicFolderLoadTask(
+        QDir dir, std::function<Resource*(QFileInfo const&)> create_function)
+        : Task(nullptr, false),
+          m_dir(dir),
+          m_result(new Result),
+          m_create_func(std::move(create_function)),
+          m_thread_to_spawn_into(thread())
+    {
+    }
+
+    [[nodiscard]] bool canAbort() const override
+    {
+        return true;
+    }
     bool abort() override
     {
         m_aborted.store(true);
@@ -44,19 +63,26 @@ class BasicFolderLoadTask : public Task {
     void executeTask() override
     {
         if (thread() != m_thread_to_spawn_into)
+        {
             connect(this, &Task::finished, this->thread(), &QThread::quit);
+        }
 
         m_dir.refresh();
-        for (const auto &entry : m_dir.entryInfoList()) {
+        for (const auto& entry : m_dir.entryInfoList())
+        {
             auto resource = m_create_func(entry);
             resource->moveToThread(m_thread_to_spawn_into);
             m_result->resources.insert(resource->internal_id(), resource);
         }
 
         if (m_aborted)
+        {
             emit finished();
+        }
         else
+        {
             emitSucceeded();
+        }
     }
 
 private:

@@ -20,10 +20,15 @@
 #include "WorldDataPacksDialog.h"
 #include "ui/pages/instance/DataPackPage.h"
 
-WorldDataPacksDialog::WorldDataPacksDialog(MinecraftInstance* inst, const QString& worldName,
-                                           const QString& datapacksDir, QWidget* parent)
-    : QDialog(parent), m_model(std::make_shared<DataPackFolderModel>(datapacksDir)),
-      m_verticalLayout(new QVBoxLayout(this)), m_page(new DataPackPage(inst, m_model, this)) {
+WorldDataPacksDialog::WorldDataPacksDialog(MinecraftInstance* inst,
+                                           const QString& worldName,
+                                           const QString& datapacksDir,
+                                           QWidget* parent)
+    : QDialog(parent),
+      m_model(std::make_shared<DataPackFolderModel>(datapacksDir)),
+      m_verticalLayout(new QVBoxLayout(this)),
+      m_page(new DataPackPage(inst, m_model, this))
+{
     setObjectName(QStringLiteral("WorldDataPacksDialog"));
     m_verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
 
@@ -31,7 +36,8 @@ WorldDataPacksDialog::WorldDataPacksDialog(MinecraftInstance* inst, const QStrin
     m_verticalLayout->addWidget(m_page);
     m_page->show();
 
-    resize(std::max(0.75 * parent->width(), 400.0), std::max(0.75 * parent->height(), 400.0));
+    resize(std::max(0.75 * parent->width(), 400.0),
+           std::max(0.75 * parent->height(), 400.0));
 
     setWindowTitle(tr("Datapacks - %1").arg(worldName));
     setWindowModality(Qt::WindowModal);
@@ -40,6 +46,7 @@ WorldDataPacksDialog::WorldDataPacksDialog(MinecraftInstance* inst, const QStrin
     m_page->openedImpl();
 }
 
-WorldDataPacksDialog::~WorldDataPacksDialog() {
+WorldDataPacksDialog::~WorldDataPacksDialog()
+{
     m_page->closedImpl();
 }

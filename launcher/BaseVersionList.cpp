@@ -36,16 +36,18 @@
 #include "BaseVersionList.h"
 #include "BaseVersion.h"
 
-BaseVersionList::BaseVersionList(QObject *parent) : QAbstractListModel(parent)
+BaseVersionList::BaseVersionList(QObject* parent) : QAbstractListModel(parent)
 {
 }
 
-BaseVersionPtr BaseVersionList::findVersion(const QString &descriptor)
+BaseVersionPtr BaseVersionList::findVersion(const QString& descriptor)
 {
     for (int i = 0; i < count(); i++)
     {
         if (at(i)->descriptor() == descriptor)
+        {
             return at(i);
+        }
     }
     return BaseVersionPtr();
 }
@@ -53,37 +55,45 @@ BaseVersionPtr BaseVersionList::findVersion(const QString &descriptor)
 BaseVersionPtr BaseVersionList::getRecommended() const
 {
     if (count() <= 0)
+    {
         return BaseVersionPtr();
+    }
     else
+    {
         return at(0);
+    }
 }
 
-QVariant BaseVersionList::data(const QModelIndex &index, int role) const
+QVariant BaseVersionList::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid())
+    {
         return QVariant();
+    }
 
     if (index.row() < 0 || index.row() >= count())
+    {
         return QVariant();
+    }
 
     BaseVersionPtr version = at(index.row());
 
     switch (role)
     {
-    case VersionPointerRole:
-        return QVariant::fromValue(version);
+        case VersionPointerRole:
+            return QVariant::fromValue(version);
 
-    case VersionRole:
-        return version->name();
+        case VersionRole:
+            return version->name();
 
-    case VersionIdRole:
-        return version->descriptor();
+        case VersionIdRole:
+            return version->descriptor();
 
-    case TypeRole:
-        return version->typeString();
+        case TypeRole:
+            return version->typeString();
 
-    default:
-        return QVariant();
+        default:
+            return QVariant();
     }
 }
 
@@ -92,13 +102,13 @@ BaseVersionList::RoleList BaseVersionList::providesRoles() const
     return {VersionPointerRole, VersionRole, VersionIdRole, TypeRole};
 }
 
-int BaseVersionList::rowCount(const QModelIndex &/*parent*/) const
+int BaseVersionList::rowCount(const QModelIndex& /*parent*/) const
 {
     // Return count
     return count();
 }
 
-int BaseVersionList::columnCount(const QModelIndex &/*parent*/) const
+int BaseVersionList::columnCount(const QModelIndex& /*parent*/) const
 {
     return 1;
 }

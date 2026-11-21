@@ -22,20 +22,24 @@
 #include <QVector>
 #include <QJsonObject>
 
-namespace ATLauncher {
+namespace ATLauncher
+{
 
-struct ShareCodeMod {
+struct ShareCodeMod
+{
     bool selected;
     QString name;
 };
 
-struct ShareCode {
+struct ShareCode
+{
     QString pack;
     QString version;
     QVector<ShareCodeMod> mods;
 };
 
-struct ShareCodeResponse {
+struct ShareCodeResponse
+{
     bool error;
     int code;
     QString message;
@@ -44,4 +48,4 @@ struct ShareCodeResponse {
 
 void loadShareCodeResponse(ShareCodeResponse& r, QJsonObject& obj);
 
-}
+}  // namespace ATLauncher

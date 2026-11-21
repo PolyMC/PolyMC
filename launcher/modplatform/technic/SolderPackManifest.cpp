@@ -20,7 +20,8 @@
 
 #include "Json.h"
 
-namespace TechnicSolder {
+namespace TechnicSolder
+{
 
 void loadPack(Pack& v, QJsonObject& obj)
 {
@@ -28,7 +29,8 @@ void loadPack(Pack& v, QJsonObject& obj)
     v.latest = Json::requireString(obj, "latest");
 
     auto builds = Json::requireArray(obj, "builds");
-    for (const auto buildRaw : std::as_const(builds)) {
+    for (const auto buildRaw : std::as_const(builds))
+    {
         auto build = Json::requireString(buildRaw);
         v.builds.append(build);
     }
@@ -47,7 +49,8 @@ void loadPackBuild(PackBuild& v, QJsonObject& obj)
     v.minecraft = Json::requireString(obj, "minecraft");
 
     auto mods = Json::requireArray(obj, "mods");
-    for (const auto modRaw : std::as_const(mods)) {
+    for (const auto modRaw : std::as_const(mods))
+    {
         auto modObj = Json::requireObject(modRaw);
         PackBuildMod mod;
         loadPackBuildMod(mod, modObj);
@@ -55,4 +58,4 @@ void loadPackBuild(PackBuild& v, QJsonObject& obj)
     }
 }
 
-}
+}  // namespace TechnicSolder

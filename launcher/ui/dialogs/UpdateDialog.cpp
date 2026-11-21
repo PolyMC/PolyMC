@@ -43,28 +43,33 @@
 #include "BuildConfig.h"
 #include "Markdown.h"
 
-UpdateDialog::UpdateDialog(bool hasUpdate, QWidget *parent) : QDialog(parent), ui(new Ui::UpdateDialog)
+UpdateDialog::UpdateDialog(bool hasUpdate, QWidget* parent)
+    : QDialog(parent), ui(new Ui::UpdateDialog)
 {
     ui->setupUi(this);
     auto channel = APPLICATION->settings()->get("UpdateChannel").toString();
-    if(hasUpdate)
+    if (hasUpdate)
     {
         ui->label->setText(tr("A new %1 update is available!").arg(channel));
     }
     else
     {
-        ui->label->setText(tr("No %1 updates found. You are running the latest version.").arg(channel));
+        ui->label->setText(
+            tr("No %1 updates found. You are running the latest version.")
+                .arg(channel));
         ui->btnUpdateNow->setHidden(true);
         ui->btnUpdateLater->setText(tr("Close"));
     }
-    ui->changelogBrowser->setHtml(tr("<center><h1>Loading changelog...</h1></center>"));
+    ui->changelogBrowser->setHtml(
+        tr("<center><h1>Loading changelog...</h1></center>"));
     loadChangelog();
-    restoreGeometry(QByteArray::fromBase64(APPLICATION->settings()->get("UpdateDialogGeometry").toByteArray()));
+    restoreGeometry(QByteArray::fromBase64(
+        APPLICATION->settings()->get("UpdateDialogGeometry").toByteArray()));
 }
 
 UpdateDialog::~UpdateDialog()
 {
-    if(dljob && dljob->isRunning())
+    if (dljob && dljob->isRunning())
     {
         dljob->abort();
     }
@@ -76,18 +81,25 @@ void UpdateDialog::loadChangelog()
     auto channel = APPLICATION->settings()->get("UpdateChannel").toString();
     dljob = new NetJob("Changelog", APPLICATION->network());
     QString url;
-    if(channel == "stable")
+    if (channel == "stable")
     {
-        url = QString("https://raw.githubusercontent.com/PolyMC/PolyMC/%1/changelog.md").arg(channel);
+        url = QString(
+                  "https://raw.githubusercontent.com/PolyMC/PolyMC/%1/"
+                  "changelog.md")
+                  .arg(channel);
         m_changelogType = CHANGELOG_MARKDOWN;
     }
     else
     {
-        url = QString("https://api.github.com/repos/PolyMC/PolyMC/compare/%1...%2").arg(BuildConfig.GIT_COMMIT, channel);
+        url = QString(
+                  "https://api.github.com/repos/PolyMC/PolyMC/compare/%1...%2")
+                  .arg(BuildConfig.GIT_COMMIT, channel);
         m_changelogType = CHANGELOG_COMMITS;
     }
-    dljob->addNetAction(Net::Download::makeByteArray(QUrl(url), &changelogData));
-    connect(dljob.get(), &NetJob::succeeded, this, &UpdateDialog::changelogLoaded);
+    dljob->addNetAction(
+        Net::Download::makeByteArray(QUrl(url), &changelogData));
+    connect(dljob.get(), &NetJob::succeeded, this,
+            &UpdateDialog::changelogLoaded);
     connect(dljob.get(), &NetJob::failed, this, &UpdateDialog::changelogFailed);
     dljob->start();
 }
@@ -96,7 +108,9 @@ QString reprocessMarkdown(QByteArray markdown)
 {
     QString output = Markdown::toHtml(markdown);
 
-    output.replace(QRegularExpression("GH-([0-9]+)"), "<a href=\"https://github.com/PolyMC/PolyMC/issues/\\1\">GH-\\1</a>");
+    output.replace(
+        QRegularExpression("GH-([0-9]+)"),
+        "<a href=\"https://github.com/PolyMC/PolyMC/issues/\\1\">GH-\\1</a>");
     qDebug() << output;
     return output;
 }
@@ -114,39 +128,52 @@ QString reprocessCommits(QByteArray json)
 
         auto print_commits = [&]()
         {
-            result += "<table cellspacing=0 cellpadding=2 style='border-width: 1px; border-style: solid'>";
+            result +=
+                "<table cellspacing=0 cellpadding=2 style='border-width: 1px; "
+                "border-style: solid'>";
             auto commitarray = Json::requireArray(rootobject, "commits");
-            for(int i = commitarray.size() - 1; i >= 0; i--)
+            for (int i = commitarray.size() - 1; i >= 0; i--)
             {
-                const auto & commitval = commitarray[i];
+                const auto& commitval = commitarray[i];
                 auto commitobj = Json::requireObject(commitval);
                 auto parents_info = Json::ensureArray(commitobj, "parents");
-                // NOTE: this ignores merge commits, because they have more than one parent
-                if(parents_info.size() > 1)
+                // NOTE: this ignores merge commits, because they have more than
+                // one parent
+                if (parents_info.size() > 1)
                 {
                     continue;
                 }
                 auto commit_url = Json::requireString(commitobj, "html_url");
                 auto commit_info = Json::requireObject(commitobj, "commit");
-                auto commit_message = Json::requireString(commit_info, "message");
+                auto commit_message =
+                    Json::requireString(commit_info, "message");
                 auto lines = commit_message.split('\n');
-                QRegularExpression regexp("(?<prefix>(GH-(?<issuenr>[0-9]+))|(NOISSUE)|(SCRATCH))? *(?<rest>.*) *");
-                auto match = regexp.match(lines.takeFirst(), 0, QRegularExpression::NormalMatch);
+                QRegularExpression regexp(
+                    "(?<prefix>(GH-(?<issuenr>[0-9]+))|(NOISSUE)|(SCRATCH))? "
+                    "*(?<rest>.*) *");
+                auto match = regexp.match(lines.takeFirst(), 0,
+                                          QRegularExpression::NormalMatch);
                 auto issuenr = match.captured("issuenr");
                 auto prefix = match.captured("prefix");
                 auto rest = match.captured("rest");
                 result += "<tr><td>";
-                if(issuenr.length())
+                if (issuenr.length())
                 {
-                    result += QString("<a href=\"https://github.com/PolyMC/PolyMC/issues/%1\">GH-%2</a>").arg(issuenr, issuenr);
+                    result += QString(
+                                  "<a "
+                                  "href=\"https://github.com/PolyMC/PolyMC/"
+                                  "issues/%1\">GH-%2</a>")
+                                  .arg(issuenr, issuenr);
                 }
-                else if(prefix.length())
+                else if (prefix.length())
                 {
-                    result += QString("<a href=\"%1\">%2</a>").arg(commit_url, prefix);
+                    result += QString("<a href=\"%1\">%2</a>")
+                                  .arg(commit_url, prefix);
                 }
                 else
                 {
-                    result += QString("<a href=\"%1\">NOISSUE</a>").arg(commit_url);
+                    result +=
+                        QString("<a href=\"%1\">NOISSUE</a>").arg(commit_url);
                 }
                 result += "</td>";
                 lines.prepend(rest);
@@ -155,26 +182,37 @@ QString reprocessCommits(QByteArray json)
             result += "</table>";
         };
 
-        if(status == "identical")
+        if (status == "identical")
         {
-            return QObject::tr("<p>There are no code changes between your current version and latest %1.</p>").arg(channel);
+            return QObject::tr(
+                       "<p>There are no code changes between your current "
+                       "version and latest %1.</p>")
+                .arg(channel);
         }
-        else if(status == "ahead")
+        else if (status == "ahead")
         {
-            result += QObject::tr("<p>Following commits were added since last update:</p>");
+            result += QObject::tr(
+                "<p>Following commits were added since last update:</p>");
             print_commits();
         }
-        else if(status == "diverged")
+        else if (status == "diverged")
         {
             auto commit_ahead = Json::requireInteger(rootobject, "ahead_by");
             auto commit_behind = Json::requireInteger(rootobject, "behind_by");
-            result += QObject::tr("<p>The update removes %1 commits and adds the following %2:</p>").arg(commit_behind).arg(commit_ahead);
+            result += QObject::tr(
+                          "<p>The update removes %1 commits and adds the "
+                          "following %2:</p>")
+                          .arg(commit_behind)
+                          .arg(commit_ahead);
             print_commits();
         }
-        result += QObject::tr("<p>You can <a href=\"%1\">look at the changes on github</a>.</p>").arg(diff_url);
+        result += QObject::tr(
+                      "<p>You can <a href=\"%1\">look at the changes on "
+                      "github</a>.</p>")
+                      .arg(diff_url);
         return result;
     }
-    catch (const JSONValidationError &e)
+    catch (const JSONValidationError& e)
     {
         qWarning() << "Got an unparseable commit log from github:" << e.what();
         qDebug() << json;
@@ -185,7 +223,7 @@ QString reprocessCommits(QByteArray json)
 void UpdateDialog::changelogLoaded()
 {
     QString result;
-    switch(m_changelogType)
+    switch (m_changelogType)
     {
         case CHANGELOG_COMMITS:
             result = reprocessCommits(changelogData);
@@ -200,7 +238,10 @@ void UpdateDialog::changelogLoaded()
 
 void UpdateDialog::changelogFailed(QString reason)
 {
-    ui->changelogBrowser->setHtml(tr("<p align=\"center\" <span style=\"font-size:22pt;\">Failed to fetch changelog... Error: %1</span></p>").arg(reason));
+    ui->changelogBrowser->setHtml(
+        tr("<p align=\"center\" <span style=\"font-size:22pt;\">Failed to "
+           "fetch changelog... Error: %1</span></p>")
+            .arg(reason));
 }
 
 void UpdateDialog::on_btnUpdateLater_clicked()
@@ -215,6 +256,7 @@ void UpdateDialog::on_btnUpdateNow_clicked()
 
 void UpdateDialog::closeEvent(QCloseEvent* evt)
 {
-    APPLICATION->settings()->set("UpdateDialogGeometry", saveGeometry().toBase64());
+    APPLICATION->settings()->set("UpdateDialogGeometry",
+                                 saveGeometry().toBase64());
     QDialog::closeEvent(evt);
 }

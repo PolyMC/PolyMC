@@ -9,8 +9,7 @@
 
 #include "ui/dialogs/CustomMessageBox.h"
 
-VersionSelectWidget::VersionSelectWidget(QWidget* parent)
-    : QWidget(parent)
+VersionSelectWidget::VersionSelectWidget(QWidget* parent) : QWidget(parent)
 {
     setObjectName(QStringLiteral("VersionSelectWidget"));
     verticalLayout = new QVBoxLayout(this);
@@ -33,14 +32,15 @@ VersionSelectWidget::VersionSelectWidget(QWidget* parent)
 
     ignoreDuplicates = new QCheckBox(this);
     ignoreDuplicates->setHidden(true);
-    ignoreDuplicates->setChecked(APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool());
+    ignoreDuplicates->setChecked(
+        APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool());
     connect(ignoreDuplicates,
 #if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
-        &QCheckBox::stateChanged,
+            &QCheckBox::stateChanged,
 #else
-        &QCheckBox::checkStateChanged,
+            &QCheckBox::checkStateChanged,
 #endif
-        this, &VersionSelectWidget::updateSymlinkSetting);
+            this, &VersionSelectWidget::updateSymlinkSetting);
 
     verticalLayout->addWidget(ignoreDuplicates);
 
@@ -49,11 +49,13 @@ VersionSelectWidget::VersionSelectWidget(QWidget* parent)
     sneakyProgressBar->setFormat(QStringLiteral("%p%"));
     verticalLayout->addWidget(sneakyProgressBar);
     sneakyProgressBar->setHidden(true);
-    connect(listView->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &VersionSelectWidget::currentRowChanged);
+    connect(listView->selectionModel(), &QItemSelectionModel::currentRowChanged,
+            this, &VersionSelectWidget::currentRowChanged);
 
     QMetaObject::connectSlotsByName(this);
 
-    // make checkbox the same height as the progress bar to prevent moving the listview around
+    // make checkbox the same height as the progress bar to prevent moving the
+    // listview around
     const int reserved = qMax(sneakyProgressBar->sizeHint().height(),
                               ignoreDuplicates->sizeHint().height());
     sneakyProgressBar->setMinimumHeight(reserved);
@@ -89,22 +91,26 @@ VersionSelectWidget::~VersionSelectWidget()
 
 void VersionSelectWidget::setResizeOn(int column)
 {
-    listView->header()->setSectionResizeMode(resizeOnColumn, QHeaderView::ResizeToContents);
+    listView->header()->setSectionResizeMode(resizeOnColumn,
+                                             QHeaderView::ResizeToContents);
     resizeOnColumn = column;
-    listView->header()->setSectionResizeMode(resizeOnColumn, QHeaderView::Stretch);
+    listView->header()->setSectionResizeMode(resizeOnColumn,
+                                             QHeaderView::Stretch);
 }
 
-void VersionSelectWidget::retranslate() {
+void VersionSelectWidget::retranslate()
+{
     ignoreDuplicates->setText(tr("Don't list duplicate runtimes"));
 }
 
-void VersionSelectWidget::initialize(BaseVersionList *vlist, bool isJava)
+void VersionSelectWidget::initialize(BaseVersionList* vlist, bool isJava)
 {
     m_vlist = vlist;
     m_isJava = isJava;
     m_proxyModel->setSourceModel(vlist);
     listView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    listView->header()->setSectionResizeMode(resizeOnColumn, QHeaderView::Stretch);
+    listView->header()->setSectionResizeMode(resizeOnColumn,
+                                             QHeaderView::Stretch);
 
     ignoreDuplicates->setHidden(!isJava);
 
@@ -122,7 +128,7 @@ void VersionSelectWidget::initialize(BaseVersionList *vlist, bool isJava)
     }
 }
 
-void VersionSelectWidget::closeEvent(QCloseEvent * event)
+void VersionSelectWidget::closeEvent(QCloseEvent* event)
 {
     QWidget::closeEvent(event);
 }
@@ -136,10 +142,12 @@ void VersionSelectWidget::loadList()
     }
 
     loadTask = newTask.get();
-    connect(loadTask, &Task::succeeded, this, &VersionSelectWidget::onTaskSucceeded);
+    connect(loadTask, &Task::succeeded, this,
+            &VersionSelectWidget::onTaskSucceeded);
     connect(loadTask, &Task::failed, this, &VersionSelectWidget::onTaskFailed);
-    connect(loadTask, &Task::progress, this, &VersionSelectWidget::changeProgress);
-    if(!loadTask->isRunning())
+    connect(loadTask, &Task::progress, this,
+            &VersionSelectWidget::changeProgress);
+    if (!loadTask->isRunning())
     {
         loadTask->start();
     }
@@ -163,7 +171,10 @@ void VersionSelectWidget::onTaskSucceeded()
 
 void VersionSelectWidget::onTaskFailed(const QString& reason)
 {
-    CustomMessageBox::selectable(this, tr("Error"), tr("List update failed:\n%1").arg(reason), QMessageBox::Warning)->show();
+    CustomMessageBox::selectable(this, tr("Error"),
+                                 tr("List update failed:\n%1").arg(reason),
+                                 QMessageBox::Warning)
+        ->show();
     onTaskSucceeded();
 }
 
@@ -173,38 +184,48 @@ void VersionSelectWidget::changeProgress(qint64 current, qint64 total)
     sneakyProgressBar->setValue(current);
 }
 
-void VersionSelectWidget::currentRowChanged(const QModelIndex& current, const QModelIndex&)
+void VersionSelectWidget::currentRowChanged(const QModelIndex& current,
+                                            const QModelIndex&)
 {
-    auto variant = m_proxyModel->data(current, BaseVersionList::VersionPointerRole);
+    auto variant =
+        m_proxyModel->data(current, BaseVersionList::VersionPointerRole);
     emit selectedVersionChanged(variant.value<BaseVersionPtr>());
 }
 
-void VersionSelectWidget::updateSymlinkSetting() {
-    APPLICATION->settings()->set("IgnoreJavaSymlinks", ignoreDuplicates->isChecked());
+void VersionSelectWidget::updateSymlinkSetting()
+{
+    APPLICATION->settings()->set("IgnoreJavaSymlinks",
+                                 ignoreDuplicates->isChecked());
     loadList();
 }
 
 void VersionSelectWidget::preselect()
 {
-    if(preselectedAlready)
+    if (preselectedAlready)
+    {
         return;
+    }
     selectCurrent();
-    if(preselectedAlready)
+    if (preselectedAlready)
+    {
         return;
+    }
     selectRecommended();
 }
 
 void VersionSelectWidget::selectCurrent()
 {
-    if(m_currentVersion.isEmpty())
+    if (m_currentVersion.isEmpty())
     {
         return;
     }
     auto idx = m_proxyModel->getVersion(m_currentVersion);
-    if(idx.isValid())
+    if (idx.isValid())
     {
         preselectedAlready = true;
-        listView->selectionModel()->setCurrentIndex(idx,QItemSelectionModel::SelectCurrent | QItemSelectionModel::Rows);
+        listView->selectionModel()->setCurrentIndex(
+            idx,
+            QItemSelectionModel::SelectCurrent | QItemSelectionModel::Rows);
         listView->scrollTo(idx, QAbstractItemView::PositionAtCenter);
     }
 }
@@ -212,10 +233,12 @@ void VersionSelectWidget::selectCurrent()
 void VersionSelectWidget::selectRecommended()
 {
     auto idx = m_proxyModel->getRecommended();
-    if(idx.isValid())
+    if (idx.isValid())
     {
         preselectedAlready = true;
-        listView->selectionModel()->setCurrentIndex(idx,QItemSelectionModel::SelectCurrent | QItemSelectionModel::Rows);
+        listView->selectionModel()->setCurrentIndex(
+            idx,
+            QItemSelectionModel::SelectCurrent | QItemSelectionModel::Rows);
         listView->scrollTo(idx, QAbstractItemView::PositionAtCenter);
     }
 }
@@ -228,21 +251,25 @@ bool VersionSelectWidget::hasVersions() const
 BaseVersionPtr VersionSelectWidget::selectedVersion() const
 {
     auto currentIndex = listView->selectionModel()->currentIndex();
-    auto variant = m_proxyModel->data(currentIndex, BaseVersionList::VersionPointerRole);
+    auto variant =
+        m_proxyModel->data(currentIndex, BaseVersionList::VersionPointerRole);
     return variant.value<BaseVersionPtr>();
 }
 
-void VersionSelectWidget::setExactFilter(BaseVersionList::ModelRoles role, QString filter)
+void VersionSelectWidget::setExactFilter(BaseVersionList::ModelRoles role,
+                                         QString filter)
 {
     m_proxyModel->setFilter(role, new ExactFilter(filter));
 }
 
-void VersionSelectWidget::setFuzzyFilter(BaseVersionList::ModelRoles role, QString filter)
+void VersionSelectWidget::setFuzzyFilter(BaseVersionList::ModelRoles role,
+                                         QString filter)
 {
     m_proxyModel->setFilter(role, new ContainsFilter(filter));
 }
 
-void VersionSelectWidget::setFilter(BaseVersionList::ModelRoles role, Filter *filter)
+void VersionSelectWidget::setFilter(BaseVersionList::ModelRoles role,
+                                    Filter* filter)
 {
     m_proxyModel->setFilter(role, filter);
 }

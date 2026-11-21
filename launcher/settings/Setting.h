@@ -32,19 +32,20 @@ public:
     /**
      * Construct a Setting
      *
-     * Synonyms are all the possible names used in the settings object, in order of preference.
-     * First synonym is the ID, which identifies the setting in PolyMC.
+     * Synonyms are all the possible names used in the settings object, in order
+     * of preference. First synonym is the ID, which identifies the setting in
+     * PolyMC.
      *
-     * defVal is the default value that will be returned when the settings object
-     * doesn't have any value for this setting.
+     * defVal is the default value that will be returned when the settings
+     * object doesn't have any value for this setting.
      */
     explicit Setting(QStringList synonyms, QVariant defVal = QVariant());
 
     /*!
      * \brief Gets this setting's ID.
      * This is used to refer to the setting within the application.
-     * \warning Changing the ID while the setting is registered with a SettingsObject results in
-     * undefined behavior.
+     * \warning Changing the ID while the setting is registered with a
+     * SettingsObject results in undefined behavior.
      * \return The ID of the setting.
      */
     virtual QString id() const
@@ -54,8 +55,8 @@ public:
 
     /*!
      * \brief Gets this setting's config file key.
-     * This is used to store the setting's value in the config file. It is usually
-     * the same as the setting's ID, but it can be different.
+     * This is used to store the setting's value in the config file. It is
+     * usually the same as the setting's ID, but it can be different.
      * \return The setting's config file key.
      */
     virtual QStringList configKeys() const
@@ -66,7 +67,8 @@ public:
     /*!
      * \brief Gets this setting's value as a QVariant.
      * This is done by calling the SettingsObject's retrieveValue() function.
-     * If this Setting doesn't have a SettingsObject, this returns an invalid QVariant.
+     * If this Setting doesn't have a SettingsObject, this returns an invalid
+     * QVariant.
      * \return QVariant containing this setting's value.
      * \sa value()
      */
@@ -84,16 +86,15 @@ signals:
      * \param setting A reference to the Setting that changed.
      * \param value This Setting object's new value.
      */
-    void SettingChanged(const Setting &setting, QVariant value);
+    void SettingChanged(const Setting& setting, QVariant value);
 
     /*!
      * \brief Signal emitted when this Setting object's value resets to default.
      * \param setting A reference to the Setting that changed.
      */
-    void settingReset(const Setting &setting);
+    void settingReset(const Setting& setting);
 
-public
-slots:
+public slots:
     /*!
      * \brief Changes the setting's value.
      * This is done by emitting the SettingChanged() signal which will then be
@@ -111,8 +112,7 @@ slots:
 
 protected:
     friend class SettingsObject;
-    SettingsObject * m_storage;
+    SettingsObject* m_storage;
     QStringList m_synonyms;
     QVariant m_defVal;
 };
-

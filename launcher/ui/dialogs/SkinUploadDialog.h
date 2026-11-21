@@ -5,13 +5,14 @@
 
 namespace Ui
 {
-    class SkinUploadDialog;
+class SkinUploadDialog;
 }
 
-class SkinUploadDialog : public QDialog {
+class SkinUploadDialog : public QDialog
+{
     Q_OBJECT
 public:
-    explicit SkinUploadDialog(MinecraftAccountPtr acct, QWidget *parent = 0);
+    explicit SkinUploadDialog(MinecraftAccountPtr acct, QWidget* parent = 0);
     virtual ~SkinUploadDialog() {};
 
 public slots:
@@ -25,5 +26,5 @@ protected:
     MinecraftAccountPtr m_acct;
 
 private:
-    Ui::SkinUploadDialog *ui;
+    Ui::SkinUploadDialog* ui;
 };

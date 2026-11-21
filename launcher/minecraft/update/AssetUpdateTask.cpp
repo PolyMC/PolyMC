@@ -14,12 +14,14 @@ static bool localFileMatches(const QString& path, const QByteArray& rawSha1)
 {
     QFile file(path);
     if (rawSha1.isEmpty() || !file.open(QIODevice::ReadOnly))
+    {
         return false;
+    }
     QCryptographicHash hash(QCryptographicHash::Sha1);
     return hash.addData(&file) && hash.result() == rawSha1;
 }
 
-AssetUpdateTask::AssetUpdateTask(MinecraftInstance * inst)
+AssetUpdateTask::AssetUpdateTask(MinecraftInstance* inst)
 {
     m_inst = inst;
 }
@@ -36,10 +38,8 @@ void AssetUpdateTask::executeTask()
     auto assets = profile->getMinecraftAssets();
     QUrl indexUrl = assets->url;
     QString localPath = assets->id + ".json";
-    auto job = new NetJob(
-        tr("Asset index for %1").arg(m_inst->name()),
-        APPLICATION->network()
-    );
+    auto job = new NetJob(tr("Asset index for %1").arg(m_inst->name()),
+                          APPLICATION->network());
 
     auto metacache = APPLICATION->metacache();
     auto entry = metacache->resolveEntry("asset_indexes", localPath);
@@ -48,15 +48,23 @@ void AssetUpdateTask::executeTask()
     auto rawSha1 = QByteArray::fromHex(assets->sha1.toLatin1());
     entry->setStale(!localFileMatches(entry->getFullPath(), rawSha1));
     auto dl = Net::Download::makeCached(indexUrl, entry);
-    dl->addValidator(new Net::ChecksumValidator(QCryptographicHash::Sha1, rawSha1));
+    dl->addValidator(
+        new Net::ChecksumValidator(QCryptographicHash::Sha1, rawSha1));
     job->addNetAction(dl);
 
     downloadJob.reset(job);
 
-    connect(downloadJob.get(), &NetJob::succeeded, this, &AssetUpdateTask::assetIndexFinished);
-    connect(downloadJob.get(), &NetJob::failed, this, &AssetUpdateTask::assetIndexFailed);
-    connect(downloadJob.get(), &NetJob::aborted, this, [this]{ emitFailed(tr("Aborted")); });
-    connect(downloadJob.get(), &NetJob::progress, this, &AssetUpdateTask::progress);
+    connect(downloadJob.get(), &NetJob::succeeded, this,
+            &AssetUpdateTask::assetIndexFinished);
+    connect(downloadJob.get(), &NetJob::failed, this,
+            &AssetUpdateTask::assetIndexFailed);
+    connect(downloadJob.get(), &NetJob::aborted, this,
+            [this]
+            {
+                emitFailed(tr("Aborted"));
+            });
+    connect(downloadJob.get(), &NetJob::progress, this,
+            &AssetUpdateTask::progress);
 
     qDebug() << m_inst->name() << ": Starting asset index download";
     downloadJob->start();
@@ -77,25 +85,34 @@ void AssetUpdateTask::assetIndexFinished()
     auto assets = profile->getMinecraftAssets();
 
     QString asset_fname = "assets/indexes/" + assets->id + ".json";
-    // FIXME: this looks like a job for a generic validator based on json schema?
+    // FIXME: this looks like a job for a generic validator based on json
+    // schema?
     if (!AssetsUtils::loadAssetsIndexJson(assets->id, asset_fname, index))
     {
         auto metacache = APPLICATION->metacache();
-        auto entry = metacache->resolveEntry("asset_indexes", assets->id + ".json");
+        auto entry =
+            metacache->resolveEntry("asset_indexes", assets->id + ".json");
         metacache->evictEntry(entry);
         emitFailed(tr("Failed to read the assets index!"));
         return;
     }
 
     auto job = index.getDownloadJob();
-    if(job)
+    if (job)
     {
         setStatus(tr("Getting the assets files from Mojang..."));
         downloadJob = job;
-        connect(downloadJob.get(), &NetJob::succeeded, this, &AssetUpdateTask::emitSucceeded);
-        connect(downloadJob.get(), &NetJob::failed, this, &AssetUpdateTask::assetsFailed);
-        connect(downloadJob.get(), &NetJob::aborted, this, [this]{ emitFailed(tr("Aborted")); });
-        connect(downloadJob.get(), &NetJob::progress, this, &AssetUpdateTask::progress);
+        connect(downloadJob.get(), &NetJob::succeeded, this,
+                &AssetUpdateTask::emitSucceeded);
+        connect(downloadJob.get(), &NetJob::failed, this,
+                &AssetUpdateTask::assetsFailed);
+        connect(downloadJob.get(), &NetJob::aborted, this,
+                [this]
+                {
+                    emitFailed(tr("Aborted"));
+                });
+        connect(downloadJob.get(), &NetJob::progress, this,
+                &AssetUpdateTask::progress);
         downloadJob->start();
         return;
     }
@@ -105,21 +122,23 @@ void AssetUpdateTask::assetIndexFinished()
 void AssetUpdateTask::assetIndexFailed(QString reason)
 {
     qDebug() << m_inst->name() << ": Failed asset index download";
-    // Keep going with the index we already have, if any. This fails properly if there is none.
+    // Keep going with the index we already have, if any. This fails properly if
+    // there is none.
     logWarning(tr("Failed to download the assets index:\n%1").arg(reason));
     assetIndexFinished();
 }
 
 void AssetUpdateTask::assetsFailed(QString reason)
 {
-    // Missing assets only mean missing sounds or translations, so don't stop the game from launching
+    // Missing assets only mean missing sounds or translations, so don't stop
+    // the game from launching
     logWarning(tr("Failed to download assets:\n%1").arg(reason));
     emitSucceeded();
 }
 
 bool AssetUpdateTask::abort()
 {
-    if(downloadJob)
+    if (downloadJob)
     {
         return downloadJob->abort();
     }

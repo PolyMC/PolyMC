@@ -7,7 +7,7 @@ class LibrariesTask : public Task
 {
     Q_OBJECT
 public:
-    LibrariesTask(MinecraftInstance * inst);
+    LibrariesTask(MinecraftInstance* inst);
     virtual ~LibrariesTask() {};
 
     void executeTask() override;
@@ -21,6 +21,6 @@ public slots:
     bool abort() override;
 
 private:
-    MinecraftInstance *m_inst;
+    MinecraftInstance* m_inst;
     NetJob::Ptr downloadJob;
 };

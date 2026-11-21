@@ -21,7 +21,7 @@ void JavaCheckerJob::partFinished(JavaCheckResult result)
 {
     num_finished++;
     qDebug() << m_job_name.toLocal8Bit() << "progress:" << num_finished << "/"
-                << javacheckers.size();
+             << javacheckers.size();
     setProgress(num_finished, javacheckers.size());
 
     javaresults.replace(result.id, result);
@@ -38,13 +38,19 @@ void JavaCheckerJob::executeTask()
     // Nothing to check means partFinished() is never called
     if (javacheckers.isEmpty())
     {
-        QMetaObject::invokeMethod(this, [this] { emitSucceeded(); }, Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this,
+                                  [this]
+                                  {
+                                      emitSucceeded();
+                                  },
+                                  Qt::QueuedConnection);
         return;
     }
     for (auto iter : std::as_const(javacheckers))
     {
         javaresults.append(JavaCheckResult());
-        connect(iter.get(), &JavaChecker::checkFinished, this, &JavaCheckerJob::partFinished);
+        connect(iter.get(), &JavaChecker::checkFinished, this,
+                &JavaCheckerJob::partFinished);
         iter->performCheck();
     }
 }

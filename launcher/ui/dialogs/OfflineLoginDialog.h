@@ -19,27 +19,26 @@ class OfflineLoginDialog : public QDialog
 public:
     ~OfflineLoginDialog();
 
-    static MinecraftAccountPtr newAccount(QWidget *parent, QString message);
+    static MinecraftAccountPtr newAccount(QWidget* parent, QString message);
 
 private:
-    explicit OfflineLoginDialog(QWidget *parent = 0);
+    explicit OfflineLoginDialog(QWidget* parent = 0);
 
     void setUserInputsEnabled(bool enable);
 
-protected
-slots:
+protected slots:
     void accept();
 
-    void onTaskFailed(const QString &reason);
+    void onTaskFailed(const QString& reason);
     void onTaskSucceeded();
-    void onTaskStatus(const QString &status);
+    void onTaskStatus(const QString& status);
     void onTaskProgress(qint64 current, qint64 total);
 
-    void on_userTextBox_textEdited(const QString &newText);
+    void on_userTextBox_textEdited(const QString& newText);
     void on_ignoreUsernameGuidelines_stateChanged(int value);
 
 private:
-    Ui::OfflineLoginDialog *ui;
+    Ui::OfflineLoginDialog* ui;
     MinecraftAccountPtr m_account;
     Task::Ptr m_loginTask;
     QRegularExpression regex;

@@ -63,11 +63,12 @@
 #include <utime.h>
 #endif
 
-// Snippet from https://github.com/gulrak/filesystem#using-it-as-single-file-header
+// Snippet from
+// https://github.com/gulrak/filesystem#using-it-as-single-file-header
 
 #ifdef __APPLE__
-#include <Availability.h> // for deployment target to support pre-catalina targets without std::fs
-#endif // __APPLE__
+#include <Availability.h>  // for deployment target to support pre-catalina targets without std::fs
+#endif                     // __APPLE__
 
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -88,12 +89,15 @@ std::string toStdString(QString s)
 
 #endif
 
-namespace FS {
+namespace FS
+{
 
 void ensureExists(const QDir& dir)
 {
-    if (!QDir().mkpath(dir.absolutePath())) {
-        throw FileSystemException("Unable to create folder " + dir.dirName() + " (" + dir.absolutePath() + ")");
+    if (!QDir().mkpath(dir.absolutePath()))
+    {
+        throw FileSystemException("Unable to create folder " + dir.dirName() +
+                                  " (" + dir.absolutePath() + ")");
     }
 }
 
@@ -101,31 +105,43 @@ void write(const QString& filename, const QByteArray& data)
 {
     ensureExists(QFileInfo(filename).dir());
     QSaveFile file(filename);
-    if (!file.open(QSaveFile::WriteOnly)) {
-        throw FileSystemException("Couldn't open " + filename + " for writing: " + file.errorString());
+    if (!file.open(QSaveFile::WriteOnly))
+    {
+        throw FileSystemException("Couldn't open " + filename +
+                                  " for writing: " + file.errorString());
     }
-    if (data.size() != file.write(data)) {
-        throw FileSystemException("Error writing data to " + filename + ": " + file.errorString());
+    if (data.size() != file.write(data))
+    {
+        throw FileSystemException("Error writing data to " + filename + ": " +
+                                  file.errorString());
     }
-    if (!file.commit()) {
-        throw FileSystemException("Error while committing data to " + filename + ": " + file.errorString());
+    if (!file.commit())
+    {
+        throw FileSystemException("Error while committing data to " + filename +
+                                  ": " + file.errorString());
     }
 }
 
 QByteArray read(const QString& filename)
 {
     QFile file(filename);
-    if (!file.open(QFile::ReadOnly)) {
-        throw FileSystemException("Unable to open " + filename + " for reading: " + file.errorString());
+    if (!file.open(QFile::ReadOnly))
+    {
+        throw FileSystemException("Unable to open " + filename +
+                                  " for reading: " + file.errorString());
     }
     const qint64 size = file.size();
-    if (size > (std::numeric_limits<int>::max)()) {
-        throw FileSystemException("Unable to read " + filename + ": the file is too large");
+    if (size > (std::numeric_limits<int>::max)())
+    {
+        throw FileSystemException("Unable to read " + filename +
+                                  ": the file is too large");
     }
     QByteArray data(int(size), 0);
     const qint64 ret = file.read(data.data(), size);
-    if (ret == -1 || ret != size) {
-        throw FileSystemException("Error reading data from " + filename + ": " + file.errorString());
+    if (ret == -1 || ret != size)
+    {
+        throw FileSystemException("Error reading data from " + filename + ": " +
+                                  file.errorString());
     }
     return data;
 }
@@ -181,36 +197,49 @@ bool copy::operator()(const QString& offset)
 
     // The default behavior is to follow symlinks
     if (!m_followSymlinks)
+    {
         opt |= copy_opts::copy_symlinks;
+    }
 
-    const auto testAndCopy = [opt, &err](const QString& s, const QString& d) {
-        if (ensureFilePathExists(d)) {
+    const auto testAndCopy = [opt, &err](const QString& s, const QString& d)
+    {
+        if (ensureFilePathExists(d))
+        {
             fs::copy(toStdString(s), toStdString(d), opt, err);
-        } else {
-            // mkpath failed which means the destination directory doesn't exist.
+        }
+        else
+        {
+            // mkpath failed which means the destination directory doesn't
+            // exist.
             err = std::make_error_code(std::errc::no_such_file_or_directory);
         }
 
-        if (err) {
-            qWarning() << "Failed to copy files:" << QString::fromStdString(err.message());
+        if (err)
+        {
+            qWarning() << "Failed to copy files:"
+                       << QString::fromStdString(err.message());
             qDebug() << "Source file:" << s;
             qDebug() << "Destination file:" << d;
         }
     };
 
-    // We can't use copy_opts::recursive because we need to take into account the
-    // blacklisted paths, so we iterate over the source directory, and if there's no blacklist
-    // match, we copy the file.
-    if (QDir src_dir(src); src_dir.exists()) {
-        QDirIterator source_it(src, QDir::Filter::Files | QDir::Filter::Hidden, QDirIterator::Subdirectories);
+    // We can't use copy_opts::recursive because we need to take into account
+    // the blacklisted paths, so we iterate over the source directory, and if
+    // there's no blacklist match, we copy the file.
+    if (QDir src_dir(src); src_dir.exists())
+    {
+        QDirIterator source_it(src, QDir::Filter::Files | QDir::Filter::Hidden,
+                               QDirIterator::Subdirectories);
 
-        while (source_it.hasNext()) {
+        while (source_it.hasNext())
+        {
             auto src_path = source_it.next();
             auto relative_path = src_dir.relativeFilePath(src_path);
 
             auto dst_path = PathCombine(dst, relative_path);
 
-            if (m_blacklist && m_blacklist->matches(relative_path)) {
+            if (m_blacklist && m_blacklist->matches(relative_path))
+            {
                 qDebug() << "Attempted to copy blacklisted file:";
                 qDebug() << "Source file:" << src_path;
                 qDebug() << "Destination file:" << dst_path;
@@ -219,12 +248,17 @@ bool copy::operator()(const QString& offset)
 
             testAndCopy(src_path, dst_path);
         }
-    } else { // src_dir could still be a file, try to copy it directly.
-        if (m_blacklist && m_blacklist->matches(src)){
+    }
+    else
+    {  // src_dir could still be a file, try to copy it directly.
+        if (m_blacklist && m_blacklist->matches(src))
+        {
             qDebug() << "Attempted to copy blacklisted file:";
             qDebug() << "Source file:" << src;
             qDebug() << "Destination file:" << dst;
-        } else {
+        }
+        else
+        {
             testAndCopy(src, dst);
         }
     }
@@ -233,34 +267,47 @@ bool copy::operator()(const QString& offset)
 }
 
 #if defined Q_OS_WIN32
-namespace {
+namespace
+{
 bool deletePathNoFollow(const QString& path)
 {
     const auto nativePath = QDir::toNativeSeparators(path).toStdWString();
     const DWORD attrs = GetFileAttributesW(nativePath.c_str());
-    if (attrs == INVALID_FILE_ATTRIBUTES) {
+    if (attrs == INVALID_FILE_ATTRIBUTES)
+    {
         const DWORD error = GetLastError();
         if (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND)
+        {
             return true;
+        }
         qWarning() << "Failed to remove" << path << "- error" << error;
         return false;
     }
 
     bool ok = true;
-    if ((attrs & FILE_ATTRIBUTE_DIRECTORY) && !(attrs & FILE_ATTRIBUTE_REPARSE_POINT)) {
-        const auto entries = QDir(path).entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden | QDir::AllDirs | QDir::Files);
+    if ((attrs & FILE_ATTRIBUTE_DIRECTORY) &&
+        !(attrs & FILE_ATTRIBUTE_REPARSE_POINT))
+    {
+        const auto entries = QDir(path).entryInfoList(
+            QDir::NoDotAndDotDot | QDir::System | QDir::Hidden | QDir::AllDirs |
+            QDir::Files);
         for (const auto& entry : entries)
+        {
             ok &= deletePathNoFollow(entry.absoluteFilePath());
+        }
     }
 
-    const BOOL removed = (attrs & FILE_ATTRIBUTE_DIRECTORY) ? RemoveDirectoryW(nativePath.c_str()) : DeleteFileW(nativePath.c_str());
-    if (!removed) {
+    const BOOL removed = (attrs & FILE_ATTRIBUTE_DIRECTORY)
+                             ? RemoveDirectoryW(nativePath.c_str())
+                             : DeleteFileW(nativePath.c_str());
+    if (!removed)
+    {
         qWarning() << "Failed to remove" << path << "- error" << GetLastError();
         ok = false;
     }
     return ok;
 }
-}
+}  // namespace
 #endif
 
 bool deletePath(QString path)
@@ -272,15 +319,17 @@ bool deletePath(QString path)
 
     fs::remove_all(toStdString(path), err);
 
-    if (err) {
-        qWarning() << "Failed to remove files:" << QString::fromStdString(err.message());
+    if (err)
+    {
+        qWarning() << "Failed to remove files:"
+                   << QString::fromStdString(err.message());
     }
 
     return err.value() == 0;
 #endif
 }
 
-bool trash(QString path, QString *pathInTrash = nullptr)
+bool trash(QString path, QString* pathInTrash = nullptr)
 {
     return QFile::moveToTrash(path, pathInTrash);
 }
@@ -288,18 +337,24 @@ bool trash(QString path, QString *pathInTrash = nullptr)
 QString PathCombine(const QString& path1, const QString& path2)
 {
     if (!path1.size())
+    {
         return path2;
+    }
     if (!path2.size())
+    {
         return path1;
+    }
     return QDir::cleanPath(path1 + QDir::separator() + path2);
 }
 
-QString PathCombine(const QString& path1, const QString& path2, const QString& path3)
+QString PathCombine(const QString& path1, const QString& path2,
+                    const QString& path3)
 {
     return PathCombine(PathCombine(path1, path2), path3);
 }
 
-QString PathCombine(const QString& path1, const QString& path2, const QString& path3, const QString& path4)
+QString PathCombine(const QString& path1, const QString& path2,
+                    const QString& path3, const QString& path4)
 {
     return PathCombine(PathCombine(path1, path2, path3), path4);
 }
@@ -307,11 +362,16 @@ QString PathCombine(const QString& path1, const QString& path2, const QString& p
 bool isSafeRelativePath(const QString& path)
 {
     const auto segments = QDir::fromNativeSeparators(path).split('/');
-    for (auto segment : segments) {
+    for (auto segment : segments)
+    {
         while (segment.endsWith(' '))
+        {
             segment.chop(1);
+        }
         if (segment.size() >= 2 && segment.count('.') == segment.size())
+        {
             return false;
+        }
     }
     return true;
 }
@@ -323,14 +383,17 @@ QString AbsolutePath(QString path)
 
 QString ResolveExecutable(QString path)
 {
-    if (path.isEmpty()) {
+    if (path.isEmpty())
+    {
         return QString();
     }
-    if (!path.contains('/')) {
+    if (!path.contains('/'))
+    {
         path = QStandardPaths::findExecutable(path);
     }
     QFileInfo pathInfo(path);
-    if (!pathInfo.exists() || !pathInfo.isExecutable()) {
+    if (!pathInfo.exists() || !pathInfo.isExecutable())
+    {
         return QString();
     }
     return pathInfo.absoluteFilePath();
@@ -339,8 +402,8 @@ QString ResolveExecutable(QString path)
 /**
  * Normalize path
  *
- * Any paths inside the current folder will be normalized to relative paths (to current)
- * Other paths will be made absolute
+ * Any paths inside the current folder will be normalized to relative paths (to
+ * current) Other paths will be made absolute
  */
 QString NormalizePath(QString path)
 {
@@ -350,9 +413,12 @@ QString NormalizePath(QString path)
     QDir b(path);
     QString newAbsolute = b.absolutePath();
 
-    if (newAbsolute.startsWith(currentAbsolute)) {
+    if (newAbsolute.startsWith(currentAbsolute))
+    {
         return a.relativeFilePath(newAbsolute);
-    } else {
+    }
+    else
+    {
         return newAbsolute;
     }
 }
@@ -361,8 +427,10 @@ QString badFilenameChars = "\"\\/?<>:;*|!+\r\n";
 
 QString RemoveInvalidFilenameChars(QString string, QChar replaceWith)
 {
-    for (int i = 0; i < string.length(); i++) {
-        if (badFilenameChars.contains(string[i])) {
+    for (int i = 0; i < string.length(); i++)
+    {
+        if (badFilenameChars.contains(string[i]))
+        {
             string[i] = replaceWith;
         }
     }
@@ -374,16 +442,22 @@ QString DirNameFromString(QString string, QString inDir)
     int num = 0;
     QString baseName = RemoveInvalidFilenameChars(string, '-');
     QString dirName;
-    do {
-        if (num == 0) {
+    do
+    {
+        if (num == 0)
+        {
             dirName = baseName;
-        } else {
+        }
+        else
+        {
             dirName = baseName + "(" + QString::number(num) + ")";
         }
 
         // If it's over 9000
         if (num > 9000)
+        {
             return "";
+        }
         num++;
     } while (QFileInfo(PathCombine(inDir, dirName)).exists());
     return dirName;
@@ -403,7 +477,8 @@ QString getDesktopDir()
 }
 
 // Cross-platform Shortcut creation
-bool createShortCut(QString location, QString dest, QStringList args, QString name, QString icon)
+bool createShortCut(QString location, QString dest, QStringList args,
+                    QString name, QString icon)
 {
 #if !defined(Q_OS_WIN) && !defined(Q_OS_OSX)
     location = PathCombine(location, name + ".desktop");
@@ -429,7 +504,8 @@ bool createShortCut(QString location, QString dest, QStringList args, QString na
     stream.flush();
     f.close();
 
-    f.setPermissions(f.permissions() | QFileDevice::ExeOwner | QFileDevice::ExeGroup | QFileDevice::ExeOther);
+    f.setPermissions(f.permissions() | QFileDevice::ExeOwner |
+                     QFileDevice::ExeGroup | QFileDevice::ExeOther);
 
     return true;
 #else
@@ -445,47 +521,64 @@ bool createShortCut(QString location, QString dest, QStringList args, QString na
 
 bool mergeFolders(QString dstpath, QString srcpath)
 {
-    const auto toQString = [](const fs::path& p) { return QString::fromStdU16String(p.u16string()); };
+    const auto toQString = [](const fs::path& p)
+    {
+        return QString::fromStdU16String(p.u16string());
+    };
 
     bool ok = true;
     std::error_code ec;
     fs::path fullSrcPath = toStdString(srcpath);
     fs::path fullDstPath = toStdString(dstpath);
     std::vector<fs::directory_entry> entries;
-    for (fs::recursive_directory_iterator it(fullSrcPath, ec), end; !ec && it != end; it.increment(ec))
+    for (fs::recursive_directory_iterator it(fullSrcPath, ec), end;
+         !ec && it != end; it.increment(ec))
+    {
         entries.push_back(*it);
+    }
     if (ec)
     {
-        qCritical() << "Failed to go through" << srcpath << ":" << QString::fromStdString(ec.message());
+        qCritical() << "Failed to go through" << srcpath << ":"
+                    << QString::fromStdString(ec.message());
         return false;
     }
 
     for (const auto& entry : entries)
     {
         std::error_code entry_ec;
-        fs::path childDst = fullDstPath / entry.path().lexically_relative(fullSrcPath);
+        fs::path childDst =
+            fullDstPath / entry.path().lexically_relative(fullSrcPath);
         if (entry.is_directory(entry_ec))
         {
             if (!fs::exists(childDst, entry_ec) && !entry_ec)
+            {
                 fs::create_directory(childDst, entry_ec);
+            }
         }
         else if (entry.is_regular_file(entry_ec))
         {
             if (fs::exists(childDst, entry_ec) && !entry_ec)
+            {
                 fs::remove(childDst, entry_ec);
+            }
             if (!entry_ec)
             {
                 fs::rename(entry.path(), childDst, entry_ec);
                 if (entry_ec)
                 {
                     entry_ec.clear();
-                    fs::copy(entry.path(), childDst, fs::copy_options::none, entry_ec);
+                    fs::copy(entry.path(), childDst, fs::copy_options::none,
+                             entry_ec);
                 }
             }
         }
         if (entry_ec)
         {
-            qCritical() << QString("File copy failed with: %1. File was %2 -> %3").arg(QString::fromStdString(entry_ec.message()), toQString(entry.path()), toQString(childDst));
+            qCritical() << QString(
+                               "File copy failed with: %1. File was %2 -> %3")
+                               .arg(QString::fromStdString(entry_ec.message()),
+                                    toQString(entry.path()),
+                                    toQString(childDst));
             ok = false;
         }
     }
@@ -493,4 +586,4 @@ bool mergeFolders(QString dstpath, QString srcpath)
     return ok;
 }
 
-}
+}  // namespace FS

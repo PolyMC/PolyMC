@@ -39,19 +39,22 @@
 #include "FileSink.h"
 #include "net/HttpMetaCache.h"
 
-namespace Net {
-class MetaCacheSink : public FileSink {
-   public:
-    MetaCacheSink(MetaEntryPtr entry, ChecksumValidator* md5sum, bool is_eternal = false);
+namespace Net
+{
+class MetaCacheSink : public FileSink
+{
+public:
+    MetaCacheSink(MetaEntryPtr entry, ChecksumValidator* md5sum,
+                  bool is_eternal = false);
     virtual ~MetaCacheSink() = default;
 
     bool hasLocalData() override;
 
-   protected:
+protected:
     Task::State initCache(QNetworkRequest& request) override;
     Task::State finalizeCache(QNetworkReply& reply) override;
 
-   private:
+private:
     MetaEntryPtr m_entry;
     ChecksumValidator* m_md5Node;
     bool m_is_eternal;

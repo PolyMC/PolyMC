@@ -41,15 +41,18 @@
 
 #include <katabasis/DeviceFlow.h>
 
-class MSAStep : public AuthStep {
+class MSAStep : public AuthStep
+{
     Q_OBJECT
 public:
-    enum Action {
+    enum Action
+    {
         Refresh,
         Login
     };
+
 public:
-    explicit MSAStep(AccountData *data, Action action);
+    explicit MSAStep(AccountData* data, Action action);
     virtual ~MSAStep() noexcept;
 
     void perform() override;
@@ -61,7 +64,7 @@ private slots:
     void onOAuthActivityChanged(Katabasis::Activity activity);
 
 private:
-    Katabasis::DeviceFlow *m_oauth2 = nullptr;
+    Katabasis::DeviceFlow* m_oauth2 = nullptr;
     Action m_action;
     QString m_clientId;
 };

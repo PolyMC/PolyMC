@@ -15,7 +15,8 @@
 
 #include "PassthroughSetting.h"
 
-PassthroughSetting::PassthroughSetting(std::shared_ptr<Setting> other, std::shared_ptr<Setting> gate)
+PassthroughSetting::PassthroughSetting(std::shared_ptr<Setting> other,
+                                       std::shared_ptr<Setting> gate)
     : Setting(other->configKeys(), QVariant())
 {
     Q_ASSERT(other);
@@ -25,7 +26,7 @@ PassthroughSetting::PassthroughSetting(std::shared_ptr<Setting> other, std::shar
 
 bool PassthroughSetting::isOverriding() const
 {
-    if(!m_gate)
+    if (!m_gate)
     {
         return false;
     }
@@ -34,7 +35,7 @@ bool PassthroughSetting::isOverriding() const
 
 QVariant PassthroughSetting::defValue() const
 {
-    if(isOverriding())
+    if (isOverriding())
     {
         return m_other->get();
     }
@@ -43,7 +44,7 @@ QVariant PassthroughSetting::defValue() const
 
 QVariant PassthroughSetting::get() const
 {
-    if(isOverriding())
+    if (isOverriding())
     {
         return Setting::get();
     }
@@ -52,7 +53,7 @@ QVariant PassthroughSetting::get() const
 
 void PassthroughSetting::reset()
 {
-    if(isOverriding())
+    if (isOverriding())
     {
         Setting::reset();
     }
@@ -64,7 +65,7 @@ void PassthroughSetting::reset()
 
 void PassthroughSetting::set(QVariant value)
 {
-    if(isOverriding())
+    if (isOverriding())
     {
         Setting::set(value);
     }

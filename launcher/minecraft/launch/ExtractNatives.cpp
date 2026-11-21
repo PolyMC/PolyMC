@@ -25,13 +25,14 @@
 #include <QDebug>
 
 #ifdef major
-    #undef major
+#undef major
 #endif
 #ifdef minor
-    #undef minor
+#undef minor
 #endif
 
-static QString replaceSuffix (QString target, const QString &suffix, const QString &replacement)
+static QString replaceSuffix(QString target, const QString& suffix,
+                             const QString& replacement)
 {
     if (!target.endsWith(suffix))
     {
@@ -41,10 +42,12 @@ static QString replaceSuffix (QString target, const QString &suffix, const QStri
     return target + replacement;
 }
 
-static bool unzipNatives(QString source, QString targetFolder, bool applyJnilibHack, bool nativeOpenAL, bool nativeGLFW)
+static bool unzipNatives(QString source, QString targetFolder,
+                         bool applyJnilibHack, bool nativeOpenAL,
+                         bool nativeGLFW)
 {
     QuaZip zip(source);
-    if(!zip.open(QuaZip::mdUnzip))
+    if (!zip.open(QuaZip::mdUnzip))
     {
         return false;
     }
@@ -57,13 +60,15 @@ static bool unzipNatives(QString source, QString targetFolder, bool applyJnilibH
     {
         QString name = zip.getCurrentFileName();
         auto lowercase = name.toLower();
-        if (nativeGLFW && name.contains("glfw")) {
+        if (nativeGLFW && name.contains("glfw"))
+        {
             continue;
         }
-        if (nativeOpenAL && name.contains("openal")) {
+        if (nativeOpenAL && name.contains("openal"))
+        {
             continue;
         }
-        if(applyJnilibHack)
+        if (applyJnilibHack)
         {
             name = replaceSuffix(name, ".jnilib", ".dylib");
         }
@@ -72,13 +77,16 @@ static bool unzipNatives(QString source, QString targetFolder, bool applyJnilibH
         const QString targetRoot = QDir::cleanPath(directory.absolutePath());
         if (!QDir::cleanPath(absFilePath).startsWith(targetRoot + '/'))
         {
-            qWarning() << "Skipping native" << name << "as it tries to place itself outside of" << targetRoot;
+            qWarning() << "Skipping native" << name
+                       << "as it tries to place itself outside of"
+                       << targetRoot;
             continue;
         }
         QuaZipFileInfo64 info;
         if (zip.getCurrentFileInfo(&info) && info.isSymbolicLink())
         {
-            qWarning() << "Skipping native" << name << "as it is a symbolic link";
+            qWarning() << "Skipping native" << name
+                       << "as it is a symbolic link";
             continue;
         }
         if (!JlCompress::extractFile(&zip, "", absFilePath))
@@ -87,7 +95,7 @@ static bool unzipNatives(QString source, QString targetFolder, bool applyJnilibH
         }
     } while (zip.goToNextFile());
     zip.close();
-    if(zip.getZipError()!=0)
+    if (zip.getZipError() != 0)
     {
         return false;
     }
@@ -97,9 +105,10 @@ static bool unzipNatives(QString source, QString targetFolder, bool applyJnilibH
 void ExtractNatives::executeTask()
 {
     auto instance = m_parent->instance();
-    std::shared_ptr<MinecraftInstance> minecraftInstance = std::dynamic_pointer_cast<MinecraftInstance>(instance);
+    std::shared_ptr<MinecraftInstance> minecraftInstance =
+        std::dynamic_pointer_cast<MinecraftInstance>(instance);
     auto toExtract = minecraftInstance->getNativeJars();
-    if(toExtract.isEmpty())
+    if (toExtract.isEmpty())
     {
         emitSucceeded();
         return;
@@ -108,15 +117,18 @@ void ExtractNatives::executeTask()
     bool nativeOpenAL = settings->get("UseNativeOpenAL").toBool();
     bool nativeGLFW = settings->get("UseNativeGLFW").toBool();
 
-    auto outputPath  = minecraftInstance->getNativePath();
+    auto outputPath = minecraftInstance->getNativePath();
     auto javaVersion = minecraftInstance->getJavaVersion();
     bool jniHackEnabled = javaVersion.major() >= 8;
-    for (const auto &source : std::as_const(toExtract))
+    for (const auto& source : std::as_const(toExtract))
     {
-        if(!unzipNatives(source, outputPath, jniHackEnabled, nativeOpenAL, nativeGLFW))
+        if (!unzipNatives(source, outputPath, jniHackEnabled, nativeOpenAL,
+                          nativeGLFW))
         {
-            const char *reason = QT_TR_NOOP("Couldn't extract native jar '%1' to destination '%2'");
-            emit logLine(QString(reason).arg(source, outputPath), MessageLevel::Fatal);
+            const char* reason = QT_TR_NOOP(
+                "Couldn't extract native jar '%1' to destination '%2'");
+            emit logLine(QString(reason).arg(source, outputPath),
+                         MessageLevel::Fatal);
             emitFailed(tr(reason).arg(source, outputPath));
             return;
         }

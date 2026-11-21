@@ -21,7 +21,7 @@
 #include "JsonFormat.h"
 #include "minecraft/PackProfile.h"
 
-Meta::Version::Version(const QString &uid, const QString &version)
+Meta::Version::Version(const QString& uid, const QString& version)
     : BaseVersion(), m_uid(uid), m_version(version)
 {
 }
@@ -36,8 +36,10 @@ QString Meta::Version::descriptor()
 }
 QString Meta::Version::name()
 {
-    if(m_data)
+    if (m_data)
+    {
         return m_data->name;
+    }
     return m_uid;
 }
 QString Meta::Version::typeString() const
@@ -61,9 +63,9 @@ void Meta::Version::parse(const QJsonObject& obj)
 
 void Meta::Version::mergeFromList(const Meta::VersionPtr& other)
 {
-    if(other->m_providesRecommendations)
+    if (other->m_providesRecommendations)
     {
-        if(m_recommended != other->m_recommended)
+        if (m_recommended != other->m_recommended)
         {
             setRecommended(other->m_recommended);
         }
@@ -84,16 +86,16 @@ void Meta::Version::mergeFromList(const Meta::VersionPtr& other)
     {
         m_conflicts = other->m_conflicts;
     }
-    if(m_volatile != other->m_volatile)
+    if (m_volatile != other->m_volatile)
     {
         setVolatile(other->m_volatile);
     }
 }
 
-void Meta::Version::merge(const VersionPtr &other)
+void Meta::Version::merge(const VersionPtr& other)
 {
     mergeFromList(other);
-    if(other->m_data)
+    if (other->m_data)
     {
         setData(other->m_data);
     }
@@ -104,7 +106,7 @@ QString Meta::Version::localFilename() const
     return m_uid + '/' + m_version + ".json";
 }
 
-void Meta::Version::setType(const QString &type)
+void Meta::Version::setType(const QString& type)
 {
     m_type = type;
     emit typeChanged();
@@ -116,7 +118,8 @@ void Meta::Version::setTime(const qint64 time)
     emit timeChanged();
 }
 
-void Meta::Version::setRequires(const Meta::RequireSet &required, const Meta::RequireSet &conflicts)
+void Meta::Version::setRequires(const Meta::RequireSet& required,
+                                const Meta::RequireSet& conflicts)
 {
     m_requires = required;
     m_conflicts = conflicts;
@@ -128,8 +131,7 @@ void Meta::Version::setVolatile(bool volatile_)
     m_volatile = volatile_;
 }
 
-
-void Meta::Version::setData(const VersionFilePtr &data)
+void Meta::Version::setData(const VersionFilePtr& data)
 {
     m_data = data;
 }

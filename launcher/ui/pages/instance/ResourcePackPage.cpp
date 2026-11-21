@@ -20,24 +20,35 @@
 #include "ResourcePackPage.h"
 #include "ui/dialogs/ModDownloadDialog.h"
 
-ResourcePackPage::ResourcePackPage(MinecraftInstance* instance,
-                               std::shared_ptr<ResourcePackFolderModel> model, QWidget* parent)
-    : DownloadableResourcesPage(instance, model, parent) {
+ResourcePackPage::ResourcePackPage(
+    MinecraftInstance* instance, std::shared_ptr<ResourcePackFolderModel> model,
+    QWidget* parent)
+    : DownloadableResourcesPage(instance, model, parent)
+{
     ui->actionViewConfigs->setVisible(false);
 
-    setupDownloadAction(tr("Download Resource Packs"),
-                        tr("Download resource packs from online mod platforms"));
-    connect(ui->actionDownloadItem, &QAction::triggered, this, &ResourcePackPage::installResourcePacks);
+    setupDownloadAction(
+        tr("Download Resource Packs"),
+        tr("Download resource packs from online mod platforms"));
+    connect(ui->actionDownloadItem, &QAction::triggered, this,
+            &ResourcePackPage::installResourcePacks);
 }
 
-void ResourcePackPage::installResourcePacks() {
+void ResourcePackPage::installResourcePacks()
+{
     if (!m_controlsEnabled)
+    {
         return;
+    }
     if (m_instance->typeName() != "Minecraft")
+    {
         return;  // this is a null instance or a legacy instance
+    }
 
-    ModDownloadDialog mdownload(m_model, this, ModAPI::ResourcePack, m_instance);
-    if (mdownload.exec()) {
+    ModDownloadDialog mdownload(m_model, this, ModAPI::ResourcePack,
+                                m_instance);
+    if (mdownload.exec())
+    {
         runTasks(mdownload.getTasks());
     }
 }

@@ -50,23 +50,31 @@ QString INIFile::unescape(QString orig)
 {
     QString out;
     QChar prev = QChar::Null;
-    for(auto c: orig)
+    for (auto c : orig)
     {
-        if(prev == '\\')
+        if (prev == '\\')
         {
-            if(c == 'n')
+            if (c == 'n')
+            {
                 out += '\n';
-            else if(c == 't')
+            }
+            else if (c == 't')
+            {
                 out += '\t';
-            else if(c == '#')
+            }
+            else if (c == '#')
+            {
                 out += '#';
+            }
             else
+            {
                 out += c;
+            }
             prev = QChar::Null;
         }
         else
         {
-            if(c == '\\')
+            if (c == '\\')
             {
                 prev = c;
                 continue;
@@ -81,18 +89,28 @@ QString INIFile::unescape(QString orig)
 QString INIFile::escape(QString orig)
 {
     QString out;
-    for(auto c: orig)
+    for (auto c : orig)
     {
-        if(c == '\n')
+        if (c == '\n')
+        {
             out += "\\n";
+        }
         else if (c == '\t')
+        {
             out += "\\t";
-        else if(c == '\\')
+        }
+        else if (c == '\\')
+        {
             out += "\\\\";
-        else if(c == '#')
+        }
+        else if (c == '#')
+        {
             out += "\\#";
+        }
         else
+        {
             out += c;
+        }
     }
     return out;
 }
@@ -114,7 +132,7 @@ bool INIFile::saveFile(QString fileName)
     {
         FS::write(fileName, outArray);
     }
-    catch (const Exception &e)
+    catch (const Exception& e)
     {
         qCritical() << e.what();
         return false;
@@ -123,12 +141,13 @@ bool INIFile::saveFile(QString fileName)
     return true;
 }
 
-
 bool INIFile::loadFile(QString fileName)
 {
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly))
+    {
         return false;
+    }
     bool success = loadFile(file.readAll());
     file.close();
     return success;
@@ -137,28 +156,34 @@ bool INIFile::loadFile(QString fileName)
 bool INIFile::loadFile(QByteArray file)
 {
     QTextStream in(file);
-    
+
     QStringList lines = in.readAll().split('\n');
     for (int i = 0; i < lines.count(); i++)
     {
-        QString &lineRaw = lines[i];
+        QString& lineRaw = lines[i];
         // Ignore comments.
-        // Start before the first character, so a # at the start of the line is found too
+        // Start before the first character, so a # at the start of the line is
+        // found too
         int commentIndex = -1;
         QString line = lineRaw;
         // Search for comments until no more escaped # are available
-        while((commentIndex = line.indexOf('#', commentIndex + 1)) != -1) {
-            if(commentIndex > 0 && line.at(commentIndex - 1) == '\\') {
+        while ((commentIndex = line.indexOf('#', commentIndex + 1)) != -1)
+        {
+            if (commentIndex > 0 && line.at(commentIndex - 1) == '\\')
+            {
                 continue;
             }
-            // Cut at this (unescaped) #, not at the first one, which may be an escaped one
+            // Cut at this (unescaped) #, not at the first one, which may be an
+            // escaped one
             line = line.left(commentIndex).trimmed();
             break;
         }
 
         int eqPos = line.indexOf('=');
         if (eqPos == -1)
+        {
             continue;
+        }
         QString key = line.left(eqPos).trimmed();
         QString valueStr = line.right(line.length() - eqPos - 1).trimmed();
 
@@ -174,9 +199,13 @@ bool INIFile::loadFile(QByteArray file)
 QVariant INIFile::get(QString key, QVariant def) const
 {
     if (!this->contains(key))
+    {
         return def;
+    }
     else
+    {
         return this->operator[](key);
+    }
 }
 
 void INIFile::set(QString key, QVariant val)

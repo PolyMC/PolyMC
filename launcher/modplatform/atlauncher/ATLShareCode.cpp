@@ -20,7 +20,8 @@
 
 #include "Json.h"
 
-namespace ATLauncher {
+namespace ATLauncher
+{
 
 static void loadShareCodeMod(ShareCodeMod& m, QJsonObject& obj)
 {
@@ -35,7 +36,8 @@ static void loadShareCode(ShareCode& c, QJsonObject& obj)
 
     auto mods = Json::requireObject(obj, "mods");
     auto optional = Json::requireArray(mods, "optional");
-    for (const auto modRaw : std::as_const(optional)) {
+    for (const auto modRaw : std::as_const(optional))
+    {
         auto modObj = Json::requireObject(modRaw);
         ShareCodeMod mod;
         loadShareCodeMod(mod, modObj);
@@ -49,12 +51,15 @@ void loadShareCodeResponse(ShareCodeResponse& r, QJsonObject& obj)
     r.code = Json::requireInteger(obj, "code");
 
     if (obj.contains("message") && !obj.value("message").isNull())
+    {
         r.message = Json::requireString(obj, "message");
+    }
 
-    if (!r.error) {
+    if (!r.error)
+    {
         auto dataRaw = Json::requireObject(obj, "data");
         loadShareCode(r.data, dataRaw);
     }
 }
 
-}
+}  // namespace ATLauncher

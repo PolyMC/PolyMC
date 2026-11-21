@@ -46,17 +46,22 @@
 
 #include <QWidget>
 
-namespace FTB {
+namespace FTB
+{
 
 class PackInstallTask final : public InstanceTask
 {
     Q_OBJECT
 
 public:
-    explicit PackInstallTask(Modpack pack, QString version, QWidget* parent = nullptr);
+    explicit PackInstallTask(Modpack pack, QString version,
+                             QWidget* parent = nullptr);
     ~PackInstallTask() override = default;
 
-    bool canAbort() const override { return m_abortable; }
+    bool canAbort() const override
+    {
+        return m_abortable;
+    }
     bool abort() override;
 
 protected:
@@ -80,7 +85,8 @@ private:
     bool m_abortable = true;
 
     NetJob::Ptr m_net_job = nullptr;
-    shared_qobject_ptr<Flame::FileResolvingTask> m_mod_id_resolver_task = nullptr;
+    shared_qobject_ptr<Flame::FileResolvingTask> m_mod_id_resolver_task =
+        nullptr;
 
     QList<int> m_file_id_map;
 
@@ -92,8 +98,8 @@ private:
 
     QMap<QString, QString> m_files_to_copy;
 
-    //FIXME: nuke
+    // FIXME: nuke
     QWidget* m_parent;
 };
 
-}
+}  // namespace FTB

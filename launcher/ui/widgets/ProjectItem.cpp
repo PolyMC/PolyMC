@@ -7,9 +7,14 @@
 
 #include <algorithm>
 
-ProjectItemDelegate::ProjectItemDelegate(QWidget* parent) : QStyledItemDelegate(parent) {}
+ProjectItemDelegate::ProjectItemDelegate(QWidget* parent)
+    : QStyledItemDelegate(parent)
+{
+}
 
-void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
+void ProjectItemDelegate::paint(QPainter* painter,
+                                const QStyleOptionViewItem& option,
+                                const QModelIndex& index) const
 {
     painter->save();
 
@@ -18,19 +23,24 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
 
     auto rect = opt.rect;
 
-    if (opt.state & QStyle::State_Selected) {
+    if (opt.state & QStyle::State_Selected)
+    {
         painter->fillRect(rect, opt.palette.highlight());
         painter->setPen(opt.palette.highlightedText().color());
-    } else if (opt.state & QStyle::State_MouseOver) {
+    }
+    else if (opt.state & QStyle::State_MouseOver)
+    {
         painter->fillRect(rect, opt.palette.window());
     }
 
-    // The default icon size will be a square (and height is usually the lower value).
+    // The default icon size will be a square (and height is usually the lower
+    // value).
     auto icon_width = rect.height(), icon_height = rect.height();
     int icon_x_margin = (rect.height() - icon_width) / 2;
     int icon_y_margin = (rect.height() - icon_height) / 2;
 
-    if (!opt.icon.isNull()) {  // Icon painting
+    if (!opt.icon.isNull())
+    {  // Icon painting
         {
             auto icon_size = opt.decorationSize;
             icon_width = icon_size.width();
@@ -38,7 +48,9 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
 
             float desired_dim = rect.height() - 10;
 
-            auto scaleRatio = icon_width > icon_height ? desired_dim / icon_width : desired_dim / icon_height;
+            auto scaleRatio = icon_width > icon_height
+                                  ? desired_dim / icon_width
+                                  : desired_dim / icon_height;
 
             icon_width *= scaleRatio;
             icon_height *= scaleRatio;
@@ -53,11 +65,14 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
 
         // Prevent 'scaling null pixmap' warnings
         if (icon_width > 0 && icon_height > 0)
+        {
             opt.icon.paint(painter, x, y, icon_width, icon_height);
+        }
     }
 
     // Change the rect so that further painting is easier
-    rect.setTopLeft(QPoint(rect.x() + icon_width + 2 * icon_x_margin, rect.y() + 4));
+    rect.setTopLeft(
+        QPoint(rect.x() + icon_width + 2 * icon_x_margin, rect.y() + 4));
 
     {  // Title painting
         auto title = index.data(UserDataTypes::TITLE).toString();
@@ -65,7 +80,8 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
         painter->save();
 
         auto font = opt.font;
-        if (index.data(UserDataTypes::SELECTED).toBool()) {
+        if (index.data(UserDataTypes::SELECTED).toBool())
+        {
             // Set nice font
             font.setBold(true);
             font.setUnderline(true);
@@ -76,7 +92,9 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
 
         QFontMetrics fontMetrics{font};
 
-        QRect titleRect(rect.topLeft() + QPoint(0, fontMetrics.ascent() - fontMetrics.height()), QSize(rect.width(), fontMetrics.height()));
+        QRect titleRect(rect.topLeft() + QPoint(0, fontMetrics.ascent() -
+                                                       fontMetrics.height()),
+                        QSize(rect.width(), fontMetrics.height()));
         // On the top, aligned to the left after the icon
         painter->drawText(titleRect, title, QTextOption(Qt::AlignTop));
         painter->restore();
@@ -102,7 +120,8 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
     painter->restore();
 }
 
-QSize ProjectItemDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
+QSize ProjectItemDelegate::sizeHint(const QStyleOptionViewItem& option,
+                                    const QModelIndex& index) const
 {
     int height = 0;
 
@@ -110,7 +129,8 @@ QSize ProjectItemDelegate::sizeHint(const QStyleOptionViewItem& option, const QM
     height += 2;
     {  // Ensure enough space for one line with the title font
         auto font = option.font;
-        if (index.data(UserDataTypes::SELECTED).toBool()) {
+        if (index.data(UserDataTypes::SELECTED).toBool())
+        {
             font.setBold(true);
             font.setUnderline(true);
         }
@@ -118,17 +138,19 @@ QSize ProjectItemDelegate::sizeHint(const QStyleOptionViewItem& option, const QM
         font.setPointSize(font.pointSize() + 2);
 
         // Ensure enough space for the title
-        height += QFontMetrics{ font }.height();
+        height += QFontMetrics{font}.height();
     }
 
-    { // Ensure enough space for 2 lines of description text
-        height += QFontMetrics{ option.font }.lineSpacing() * 2;
+    {  // Ensure enough space for 2 lines of description text
+        height += QFontMetrics{option.font}.lineSpacing() * 2;
     }
 
     QSize indexSizeHint = index.data(Qt::SizeHintRole).toSize();
 
-    if (indexSizeHint.isValid()) {
-        return QSize(indexSizeHint.width(), std::max(indexSizeHint.height(), height));
+    if (indexSizeHint.isValid())
+    {
+        return QSize(indexSizeHint.width(),
+                     std::max(indexSizeHint.height(), height));
     }
 
     return QSize(0, height);

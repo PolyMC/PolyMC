@@ -5,35 +5,38 @@
 
 #include <array>
 
-namespace {
-std::array<const char *, 6> validIconExtensions = {{
-    "svg",
-    "png",
-    "ico",
-    "gif",
-    "jpg",
-    "jpeg"
-}};
+namespace
+{
+std::array<const char*, 6> validIconExtensions = {
+    {"svg", "png", "ico", "gif", "jpg", "jpeg"}};
 }
 
-namespace IconUtils{
+namespace IconUtils
+{
 
-QString findBestIconIn(const QString &folder, const QString & iconKey) {
+QString findBestIconIn(const QString& folder, const QString& iconKey)
+{
     int best_found = static_cast<int>(validIconExtensions.size());
     QString best_filename;
 
-    QDirIterator it(folder, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::NoIteratorFlags);
-    while (it.hasNext()) {
+    QDirIterator it(folder, QDir::NoDotAndDotDot | QDir::Files,
+                    QDirIterator::NoIteratorFlags);
+    while (it.hasNext())
+    {
         it.next();
         auto fileInfo = it.fileInfo();
 
-        if(fileInfo.completeBaseName() != iconKey)
+        if (fileInfo.completeBaseName() != iconKey)
+        {
             continue;
+        }
 
         auto extension = fileInfo.suffix();
 
-        for(int i = 0; i < best_found; i++) {
-            if(extension == validIconExtensions[i]) {
+        for (int i = 0; i < best_found; i++)
+        {
+            if (extension == validIconExtensions[i])
+            {
                 best_found = i;
                 qDebug() << i << " : " << fileInfo.fileName();
                 best_filename = fileInfo.fileName();
@@ -43,12 +46,15 @@ QString findBestIconIn(const QString &folder, const QString & iconKey) {
     return FS::PathCombine(folder, best_filename);
 }
 
-QString getIconFilter() {
+QString getIconFilter()
+{
     QString out;
     QTextStream stream(&out);
     stream << '(';
-    for(size_t i = 0; i < validIconExtensions.size() - 1; i++) {
-        if(i > 0) {
+    for (size_t i = 0; i < validIconExtensions.size() - 1; i++)
+    {
+        if (i > 0)
+        {
             stream << " ";
         }
         stream << "*." << validIconExtensions[i];
@@ -58,5 +64,4 @@ QString getIconFilter() {
     return out;
 }
 
-}
-
+}  // namespace IconUtils

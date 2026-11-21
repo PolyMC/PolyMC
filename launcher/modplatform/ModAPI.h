@@ -42,26 +42,30 @@
 #include <Version.h>
 #include "net/NetJob.h"
 
-namespace ModPlatform {
+namespace ModPlatform
+{
 class ListModel;
 struct IndexedPack;
-}
+}  // namespace ModPlatform
 
-class ModAPI {
-   protected:
+class ModAPI
+{
+protected:
     using CallerType = ModPlatform::ListModel;
 
-   public:
+public:
     virtual ~ModAPI() = default;
 
-    enum ResourceType {
+    enum ResourceType
+    {
         Mod,
         ResourcePack,
         ShaderPack,
         DataPack,
     };
 
-    enum ModLoaderType {
+    enum ModLoaderType
+    {
         Unspecified = 0,
         Forge = 1 << 0,
         Cauldron = 1 << 1,
@@ -72,7 +76,8 @@ class ModAPI {
     };
     Q_DECLARE_FLAGS(ModLoaderTypes, ModLoaderType)
 
-    struct SearchArgs {
+    struct SearchArgs
+    {
         int offset;
         QString search;
         QString sorting;
@@ -82,23 +87,31 @@ class ModAPI {
     };
 
     virtual void searchMods(CallerType* caller, SearchArgs&& args) const = 0;
-    virtual void getModInfo(ModPlatform::IndexedPack& pack, std::function<void(QJsonDocument&, ModPlatform::IndexedPack&)> callback) = 0;
+    virtual void getModInfo(
+        ModPlatform::IndexedPack& pack,
+        std::function<void(QJsonDocument&, ModPlatform::IndexedPack&)>
+            callback) = 0;
 
     virtual NetJob* getProject(QString addonId, QByteArray* response) const = 0;
-    virtual NetJob* getProjects(QStringList addonIds, QByteArray* response) const = 0;
+    virtual NetJob* getProjects(QStringList addonIds,
+                                QByteArray* response) const = 0;
 
-
-    struct VersionSearchArgs {
+    struct VersionSearchArgs
+    {
         QString addonId;
         std::list<Version> mcVersions;
         ModLoaderTypes loaders;
         ResourceType type = Mod;
     };
 
-    virtual void getVersions(VersionSearchArgs&& args, std::function<void(QJsonDocument&, QString)> callback) const = 0;
+    virtual void getVersions(
+        VersionSearchArgs&& args,
+        std::function<void(QJsonDocument&, QString)> callback) const = 0;
 
-    static const QString getModLoaderString(ModLoaderType type) {
-        switch (type) {
+    static const QString getModLoaderString(ModLoaderType type)
+    {
+        switch (type)
+        {
             case Unspecified:
                 break;
             case Forge:
@@ -117,14 +130,15 @@ class ModAPI {
         return "";
     }
 
-   protected:
+protected:
     inline QString getGameVersionsString(std::list<Version> mcVersions) const
     {
         QString s;
-        for(auto& ver : mcVersions){
+        for (auto& ver : mcVersions)
+        {
             s += QString("\"%1\",").arg(ver.toString());
         }
-        s.remove(s.length() - 1, 1); //remove last comma
+        s.remove(s.length() - 1, 1);  // remove last comma
         return s;
     }
 };

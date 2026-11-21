@@ -38,7 +38,7 @@
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/gameoptions/GameOptions.h"
 
-GameOptionsPage::GameOptionsPage(MinecraftInstance * inst, QWidget* parent)
+GameOptionsPage::GameOptionsPage(MinecraftInstance* inst, QWidget* parent)
     : QWidget(parent), ui(new Ui::GameOptionsPage)
 {
     ui->setupUi(this);
@@ -46,10 +46,10 @@ GameOptionsPage::GameOptionsPage(MinecraftInstance * inst, QWidget* parent)
     m_model = inst->gameOptionsModel();
     ui->optionsView->setModel(m_model.get());
     auto head = ui->optionsView->header();
-    if(head->count())
+    if (head->count())
     {
         head->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-        for(int i = 1; i < head->count(); i++)
+        for (int i = 1; i < head->count(); i++)
         {
             head->setSectionResizeMode(i, QHeaderView::Stretch);
         }

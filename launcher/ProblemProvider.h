@@ -32,9 +32,10 @@ public:
     {
         return m_problemSeverity;
     }
-    virtual void addProblem(ProblemSeverity severity, const QString &description)
+    virtual void addProblem(ProblemSeverity severity,
+                            const QString& description)
     {
-        if(severity > m_problemSeverity)
+        if (severity > m_problemSeverity)
         {
             m_problemSeverity = severity;
         }

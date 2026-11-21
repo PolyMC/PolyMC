@@ -28,40 +28,48 @@ public:
     }
 
     virtual ~InstancePageProvider() {};
-    virtual QList<BasePage *> getPages() override
+    virtual QList<BasePage*> getPages() override
     {
-        QList<BasePage *> values;
+        QList<BasePage*> values;
         values.append(new LogPage(inst));
-        std::shared_ptr<MinecraftInstance> onesix = std::dynamic_pointer_cast<MinecraftInstance>(inst);
-        if(!onesix)
+        std::shared_ptr<MinecraftInstance> onesix =
+            std::dynamic_pointer_cast<MinecraftInstance>(inst);
+        if (!onesix)
         {
             return values;
         }
         values.append(new VersionPage(onesix.get()));
-        auto modsPage = new ModFolderPage(onesix.get(), onesix->loaderModList());
+        auto modsPage =
+            new ModFolderPage(onesix.get(), onesix->loaderModList());
         modsPage->setFilter("%1 (*.zip *.jar *.litemod)");
         values.append(modsPage);
-        values.append(new CoreModFolderPage(onesix.get(), onesix->coreModList()));
-        auto resourcePage = new ResourcePackPage(onesix.get(), onesix->resourcePackList());
+        values.append(
+            new CoreModFolderPage(onesix.get(), onesix->coreModList()));
+        auto resourcePage =
+            new ResourcePackPage(onesix.get(), onesix->resourcePackList());
         resourcePage->setFilter("%1 (*.zip)");
         values.append(resourcePage);
-        auto texturePage = new TexturePackPage(onesix.get(), onesix->texturePackList());
+        auto texturePage =
+            new TexturePackPage(onesix.get(), onesix->texturePackList());
         texturePage->setFilter("%1 (*.zip)");
         values.append(texturePage);
-        auto shaderPage = new ShaderPackPage(onesix.get(), onesix->shaderPackList());
+        auto shaderPage =
+            new ShaderPackPage(onesix.get(), onesix->shaderPackList());
         shaderPage->setFilter("%1 (*.zip)");
         values.append(shaderPage);
         values.append(new NotesPage(onesix.get()));
         values.append(new WorldListPage(onesix.get(), onesix->worldList()));
         values.append(new ServersPage(onesix));
         // values.append(new GameOptionsPage(onesix.get()));
-        values.append(new ScreenshotsPage(FS::PathCombine(onesix->gameRoot(), "screenshots")));
+        values.append(new ScreenshotsPage(
+            FS::PathCombine(onesix->gameRoot(), "screenshots")));
         values.append(new InstanceSettingsPage(onesix.get()));
         values.append(new StoragePage(onesix.get()));
         auto logMatcher = inst->getLogFileMatcher();
-        if(logMatcher)
+        if (logMatcher)
         {
-            values.append(new OtherLogsPage(inst->getLogFileRoot(), logMatcher));
+            values.append(
+                new OtherLogsPage(inst->getLogFileRoot(), logMatcher));
         }
         return values;
     }
@@ -70,7 +78,7 @@ public:
     {
         return tr("Edit Instance (%1)").arg(inst->name());
     }
+
 protected:
     InstancePtr inst;
 };
-

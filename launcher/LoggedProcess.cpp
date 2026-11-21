@@ -38,25 +38,29 @@
 #include "PolyMCTextCodec.h"
 #include "MessageLevel.h"
 
-LoggedProcess::LoggedProcess(QObject *parent) : QProcess(parent)
+LoggedProcess::LoggedProcess(QObject* parent) : QProcess(parent)
 {
     // QProcess has a strange interface... let's map a lot of those into a few.
-    connect(this, &QProcess::readyReadStandardOutput, this, &LoggedProcess::on_stdOut);
-    connect(this, &QProcess::readyReadStandardError, this, &LoggedProcess::on_stdErr);
+    connect(this, &QProcess::readyReadStandardOutput, this,
+            &LoggedProcess::on_stdOut);
+    connect(this, &QProcess::readyReadStandardError, this,
+            &LoggedProcess::on_stdErr);
     connect(this, &QProcess::finished, this, &LoggedProcess::on_exit);
     connect(this, &QProcess::errorOccurred, this, &LoggedProcess::on_error);
-    connect(this, &QProcess::stateChanged, this, &LoggedProcess::on_stateChange);
+    connect(this, &QProcess::stateChanged, this,
+            &LoggedProcess::on_stateChange);
 }
 
 LoggedProcess::~LoggedProcess()
 {
-    if(m_is_detachable)
+    if (m_is_detachable)
     {
         setProcessState(QProcess::NotRunning);
     }
 }
 
-QStringList reprocess(const QByteArray& data, PolyMCTextDecoder& decoder, QString& leftover)
+QStringList reprocess(const QByteArray& data, PolyMCTextDecoder& decoder,
+                      QString& leftover)
 {
     auto str = leftover + decoder.toUnicode(data);
     const auto lastLineFeed = str.lastIndexOf(QChar::LineFeed);
@@ -69,19 +73,22 @@ QStringList reprocess(const QByteArray& data, PolyMCTextDecoder& decoder, QStrin
     {
         leftover.clear();
     }
-    auto lines = str.remove(QChar::CarriageReturn).split(QChar::LineFeed, Qt::SkipEmptyParts);
+    auto lines = str.remove(QChar::CarriageReturn)
+                     .split(QChar::LineFeed, Qt::SkipEmptyParts);
     return lines;
 }
 
 void LoggedProcess::on_stdErr()
 {
-    auto lines = reprocess(readAllStandardError(), m_err_decoder, m_err_leftover);
+    auto lines =
+        reprocess(readAllStandardError(), m_err_decoder, m_err_leftover);
     emit log(lines, MessageLevel::StdErr);
 }
 
 void LoggedProcess::on_stdOut()
 {
-    auto lines = reprocess(readAllStandardOutput(), m_out_decoder, m_out_leftover);
+    auto lines =
+        reprocess(readAllStandardOutput(), m_out_decoder, m_out_leftover);
     emit log(lines, MessageLevel::StdOut);
 }
 
@@ -97,9 +104,15 @@ void LoggedProcess::on_exit(int exit_code, QProcess::ExitStatus status)
     }
 
     if (!m_out_leftover.trimmed().isEmpty())
-        emit log({ m_out_leftover.remove(QChar::CarriageReturn) }, MessageLevel::StdOut);
+    {
+        emit log({m_out_leftover.remove(QChar::CarriageReturn)},
+                 MessageLevel::StdOut);
+    }
     if (!m_err_leftover.trimmed().isEmpty())
-        emit log({ m_err_leftover.remove(QChar::CarriageReturn) }, MessageLevel::StdErr);
+    {
+        emit log({m_err_leftover.remove(QChar::CarriageReturn)},
+                 MessageLevel::StdErr);
+    }
     m_out_leftover.clear();
     m_err_leftover.clear();
 
@@ -109,16 +122,23 @@ void LoggedProcess::on_exit(int exit_code, QProcess::ExitStatus status)
         if (status == QProcess::NormalExit)
         {
             //: Message displayed on instance exit
-            emit log({tr("Process exited with code %1.").arg(exit_code)}, MessageLevel::Launcher);
+            emit log({tr("Process exited with code %1.").arg(exit_code)},
+                     MessageLevel::Launcher);
             changeState(LoggedProcess::Finished);
         }
         else
         {
             //: Message displayed on instance crashed
-            if(exit_code == -1)
+            if (exit_code == -1)
+            {
                 emit log({tr("Process crashed.")}, MessageLevel::Launcher);
+            }
             else
-                emit log({tr("Process crashed with exitcode %1.").arg(exit_code)}, MessageLevel::Launcher);
+            {
+                emit log(
+                    {tr("Process crashed with exitcode %1.").arg(exit_code)},
+                    MessageLevel::Launcher);
+            }
             changeState(LoggedProcess::Crashed);
         }
     }
@@ -132,7 +152,7 @@ void LoggedProcess::on_exit(int exit_code, QProcess::ExitStatus status)
 
 void LoggedProcess::on_error(QProcess::ProcessError error)
 {
-    switch(error)
+    switch (error)
     {
         case QProcess::FailedToStart:
         {
@@ -207,8 +227,10 @@ int LoggedProcess::exitCode() const
 
 void LoggedProcess::changeState(LoggedProcess::State state)
 {
-    if(state == m_state)
+    if (state == m_state)
+    {
         return;
+    }
     m_state = state;
     emit stateChanged(m_state);
 }
@@ -220,24 +242,26 @@ LoggedProcess::State LoggedProcess::state() const
 
 void LoggedProcess::on_stateChange(QProcess::ProcessState state)
 {
-    switch(state)
+    switch (state)
     {
         case QProcess::NotRunning:
-            break; // let's not - there are too many that handle this already.
+            break;  // let's not - there are too many that handle this already.
         case QProcess::Starting:
         {
-            if(m_state != LoggedProcess::NotRunning)
+            if (m_state != LoggedProcess::NotRunning)
             {
-                qWarning() << "Wrong state change for process from state" << m_state << "to" << (int) LoggedProcess::Starting;
+                qWarning() << "Wrong state change for process from state"
+                           << m_state << "to" << (int)LoggedProcess::Starting;
             }
             changeState(LoggedProcess::Starting);
             return;
         }
         case QProcess::Running:
         {
-            if(m_state != LoggedProcess::Starting)
+            if (m_state != LoggedProcess::Starting)
             {
-                qWarning() << "Wrong state change for process from state" << m_state << "to" << (int) LoggedProcess::Running;
+                qWarning() << "Wrong state change for process from state"
+                           << m_state << "to" << (int)LoggedProcess::Running;
             }
             if (m_suspender.attach(processId()))
             {

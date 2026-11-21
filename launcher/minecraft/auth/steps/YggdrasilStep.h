@@ -6,11 +6,12 @@
 
 class Yggdrasil;
 
-class YggdrasilStep : public AuthStep {
+class YggdrasilStep : public AuthStep
+{
     Q_OBJECT
 
 public:
-    explicit YggdrasilStep(AccountData *data, QString password);
+    explicit YggdrasilStep(AccountData* data, QString password);
     virtual ~YggdrasilStep() noexcept;
 
     void perform() override;
@@ -23,6 +24,6 @@ private slots:
     void onAuthFailed();
 
 private:
-    Yggdrasil *m_yggdrasil = nullptr;
+    Yggdrasil* m_yggdrasil = nullptr;
     QString m_password;
 };

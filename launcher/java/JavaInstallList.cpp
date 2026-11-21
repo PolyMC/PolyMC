@@ -44,9 +44,10 @@
 #include "java/JavaUtils.h"
 #include "FileSystem.h"
 
-JavaInstallList::JavaInstallList(QObject *parent) : BaseVersionList(parent)
+JavaInstallList::JavaInstallList(QObject* parent) : BaseVersionList(parent)
 {
-    prevIgnoreSymlinks = APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool();
+    prevIgnoreSymlinks =
+        APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool();
 }
 
 Task::Ptr JavaInstallList::getLoadTask()
@@ -57,7 +58,7 @@ Task::Ptr JavaInstallList::getLoadTask()
 
 Task::Ptr JavaInstallList::getCurrentTask()
 {
-    if(m_status == Status::InProgress)
+    if (m_status == Status::InProgress)
     {
         return m_loadTask;
     }
@@ -66,7 +67,7 @@ Task::Ptr JavaInstallList::getCurrentTask()
 
 void JavaInstallList::load()
 {
-    if(m_status != Status::InProgress)
+    if (m_status != Status::InProgress)
     {
         m_status = Status::InProgress;
         m_loadTask = new JavaListLoadTask(this);
@@ -82,7 +83,8 @@ const BaseVersionPtr JavaInstallList::at(int i) const
 bool JavaInstallList::isLoaded()
 {
     // reload the list if the ignore symlinks option has changed
-    const auto ignoreSymlinks = APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool();
+    const auto ignoreSymlinks =
+        APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool();
     const auto changed = ignoreSymlinks != prevIgnoreSymlinks;
     prevIgnoreSymlinks = ignoreSymlinks;
     return m_status == JavaInstallList::Status::Done && !changed;
@@ -93,13 +95,17 @@ int JavaInstallList::count() const
     return m_vlist.count();
 }
 
-QVariant JavaInstallList::data(const QModelIndex &index, int role) const
+QVariant JavaInstallList::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid())
+    {
         return QVariant();
+    }
 
     if (index.row() < 0 || index.row() >= count())
+    {
         return QVariant();
+    }
 
     auto version = std::dynamic_pointer_cast<JavaInstall>(m_vlist[index.row()]);
     switch (role)
@@ -123,16 +129,16 @@ QVariant JavaInstallList::data(const QModelIndex &index, int role) const
 
 BaseVersionList::RoleList JavaInstallList::providesRoles() const
 {
-    return {VersionPointerRole, VersionIdRole, VersionRole, RecommendedRole, PathRole, ArchitectureRole};
+    return {VersionPointerRole, VersionIdRole, VersionRole,
+            RecommendedRole,    PathRole,      ArchitectureRole};
 }
-
 
 void JavaInstallList::updateListData(QList<BaseVersionPtr> versions)
 {
     beginResetModel();
     m_vlist = versions;
     sortVersions();
-    if(m_vlist.size())
+    if (m_vlist.size())
     {
         auto best = std::dynamic_pointer_cast<JavaInstall>(m_vlist[0]);
         best->recommended = true;
@@ -156,7 +162,7 @@ void JavaInstallList::sortVersions()
     endResetModel();
 }
 
-JavaListLoadTask::JavaListLoadTask(JavaInstallList *vlist) : Task()
+JavaListLoadTask::JavaListLoadTask(JavaInstallList* vlist) : Task()
 {
     m_list = vlist;
     m_currentRecommended = NULL;
@@ -174,19 +180,24 @@ void JavaListLoadTask::executeTask()
     QList<QString> candidate_paths = ju.FindJavaPaths();
 
     m_job = new JavaCheckerJob("Java detection");
-    connect(m_job.get(), &Task::finished, this, &JavaListLoadTask::javaCheckerFinished);
+    connect(m_job.get(), &Task::finished, this,
+            &JavaListLoadTask::javaCheckerFinished);
     connect(m_job.get(), &Task::progress, this, &Task::setProgress);
 
     qDebug() << "Probing the following Java paths: ";
     int id = 0;
     QSet<QString> found;
-    const auto canonical = APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool();
+    const auto canonical =
+        APPLICATION->settings()->get("IgnoreJavaSymlinks").toBool();
 
-    for(const QString &candidate : std::as_const(candidate_paths))
+    for (const QString& candidate : std::as_const(candidate_paths))
     {
-        const auto clean = canonical ? QDir(candidate).canonicalPath() : QDir::cleanPath(candidate);
+        const auto clean = canonical ? QDir(candidate).canonicalPath()
+                                     : QDir::cleanPath(candidate);
         if (FS::ResolveExecutable(candidate).isEmpty() || found.contains(clean))
+        {
             continue;
+        }
         found.insert(clean);
 
         qDebug() << " " << clean;
@@ -208,9 +219,9 @@ void JavaListLoadTask::javaCheckerFinished()
     auto results = m_job->getResults();
 
     qDebug() << "Found the following valid Java installations:";
-    for(const JavaCheckResult &result : std::as_const(results))
+    for (const JavaCheckResult& result : std::as_const(results))
     {
-        if(result.validity == JavaCheckResult::Validity::Valid)
+        if (result.validity == JavaCheckResult::Validity::Valid)
         {
             JavaInstallPtr javaVersion(new JavaInstall());
 
@@ -219,14 +230,15 @@ void JavaListLoadTask::javaCheckerFinished()
             javaVersion->path = result.path;
             candidates.append(javaVersion);
 
-            qDebug() << " " << javaVersion->id.toString() << javaVersion->arch << javaVersion->path;
+            qDebug() << " " << javaVersion->id.toString() << javaVersion->arch
+                     << javaVersion->path;
         }
     }
 
     QList<BaseVersionPtr> javas_bvp;
-    for (const auto &java : candidates)
+    for (const auto& java : candidates)
     {
-        //qDebug() << java->id << java->arch << " at " << java->path;
+        // qDebug() << java->id << java->arch << " at " << java->path;
         BaseVersionPtr bp_java = std::dynamic_pointer_cast<BaseVersion>(java);
 
         if (bp_java)

@@ -7,15 +7,18 @@
 
 #include "QObjectPtr.h"
 
-enum class ResourceType {
+enum class ResourceType
+{
     UNKNOWN,     //!< Indicates an unspecified resource type.
-    ZIPFILE,     //!< The resource is a zip file containing the resource's class files.
+    ZIPFILE,     //!< The resource is a zip file containing the resource's class
+                 //!< files.
     SINGLEFILE,  //!< The resource is a single file (not a zip file).
     FOLDER,      //!< The resource is in a folder on the filesystem.
     LITEMOD,     //!< The resource is a litemod
 };
 
-enum class SortType {
+enum class SortType
+{
     NAME,
     DATE,
     VERSION,
@@ -24,50 +27,77 @@ enum class SortType {
     PACK_FORMAT
 };
 
-enum class EnableAction {
+enum class EnableAction
+{
     ENABLE,
     DISABLE,
     TOGGLE
 };
 
-/** General class for managed resources. It mirrors a file in disk, with some more info
- *  for display and house-keeping purposes.
+/** General class for managed resources. It mirrors a file in disk, with some
+ * more info for display and house-keeping purposes.
  *
- *  Subclass it to add additional data / behavior, such as Mods or Resource packs.
+ *  Subclass it to add additional data / behavior, such as Mods or Resource
+ * packs.
  */
-class Resource : public QObject {
+class Resource : public QObject
+{
     Q_OBJECT
     Q_DISABLE_COPY(Resource)
-   public:
+public:
     using Ptr = shared_qobject_ptr<Resource>;
     using WeakPtr = QPointer<Resource>;
 
     Resource(QObject* parent = nullptr);
     Resource(QFileInfo file_info);
-    Resource(QString file_path) : Resource(QFileInfo(file_path)) {}
+    Resource(QString file_path) : Resource(QFileInfo(file_path))
+    {
+    }
 
     ~Resource() override = default;
 
     void setFile(QFileInfo file_info);
     void parseFile();
 
-    [[nodiscard]] QFileInfo fileinfo() const { return m_file_info; }
-    [[nodiscard]] QDateTime dateTimeChanged() const { return m_changed_date_time; }
-    [[nodiscard]] QString internal_id() const { return m_internal_id; }
-    [[nodiscard]] ResourceType type() const { return m_type; }
-    [[nodiscard]] bool enabled() const { return m_enabled; }
+    [[nodiscard]] QFileInfo fileinfo() const
+    {
+        return m_file_info;
+    }
+    [[nodiscard]] QDateTime dateTimeChanged() const
+    {
+        return m_changed_date_time;
+    }
+    [[nodiscard]] QString internal_id() const
+    {
+        return m_internal_id;
+    }
+    [[nodiscard]] ResourceType type() const
+    {
+        return m_type;
+    }
+    [[nodiscard]] bool enabled() const
+    {
+        return m_enabled;
+    }
 
-    [[nodiscard]] virtual QString name() const { return m_name; }
-    [[nodiscard]] virtual bool valid() const { return m_type != ResourceType::UNKNOWN; }
+    [[nodiscard]] virtual QString name() const
+    {
+        return m_name;
+    }
+    [[nodiscard]] virtual bool valid() const
+    {
+        return m_type != ResourceType::UNKNOWN;
+    }
 
-    /** Compares two Resources, for sorting purposes, considering a ascending order, returning:
-     *  > 0: 'this' comes after 'other'
-     *  = 0: 'this' is equal to 'other'
-     *  < 0: 'this' comes before 'other'
+    /** Compares two Resources, for sorting purposes, considering a ascending
+     * order, returning: > 0: 'this' comes after 'other' = 0: 'this' is equal to
+     * 'other' < 0: 'this' comes before 'other'
      *
-     *  The second argument in the pair is true if the sorting type that decided which one is greater was 'type'.
+     *  The second argument in the pair is true if the sorting type that decided
+     * which one is greater was 'type'.
      */
-    [[nodiscard]] virtual std::pair<int, bool> compare(Resource const& other, SortType type = SortType::NAME) const;
+    [[nodiscard]] virtual std::pair<int, bool> compare(
+        Resource const& other, SortType type = SortType::NAME) const;
 
     /** Returns whether the given filter should filter out 'this' (false),
      *  or if such filter includes the Resource (true).
@@ -80,10 +110,22 @@ class Resource : public QObject {
      */
     bool enable(EnableAction action);
 
-    [[nodiscard]] bool shouldResolve() const { return !m_is_resolving && !m_is_resolved; }
-    [[nodiscard]] bool isResolving() const { return m_is_resolving; }
-    [[nodiscard]] bool isResolved() const { return m_is_resolved; }
-    [[nodiscard]] int resolutionTicket() const { return m_resolution_ticket; }
+    [[nodiscard]] bool shouldResolve() const
+    {
+        return !m_is_resolving && !m_is_resolved;
+    }
+    [[nodiscard]] bool isResolving() const
+    {
+        return m_is_resolving;
+    }
+    [[nodiscard]] bool isResolved() const
+    {
+        return m_is_resolved;
+    }
+    [[nodiscard]] int resolutionTicket() const
+    {
+        return m_resolution_ticket;
+    }
 
     void setResolving(bool resolving, int resolutionTicket)
     {
@@ -94,15 +136,17 @@ class Resource : public QObject {
     // Delete all files of this resource.
     bool destroy();
 
-   protected:
+protected:
     /* The file corresponding to this resource. */
     QFileInfo m_file_info;
     /* The cached date when this file was last changed. */
     QDateTime m_changed_date_time;
 
-    /* Internal ID for internal purposes. Properties such as human-readability should not be assumed. */
+    /* Internal ID for internal purposes. Properties such as human-readability
+     * should not be assumed. */
     QString m_internal_id;
-    /* Name as reported via the file name. In the absence of a better name, this is shown to the user. */
+    /* Name as reported via the file name. In the absence of a better name, this
+     * is shown to the user. */
     QString m_name;
 
     /* The type of file we're dealing with. */

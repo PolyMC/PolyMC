@@ -23,53 +23,74 @@ static ModPlatform::ProviderCapabilities ProviderCaps;
 
 static std::list<Version> mcVersions(BaseInstance* inst)
 {
-    return { static_cast<MinecraftInstance*>(inst)->getPackProfile()->getComponent("net.minecraft")->getVersion() };
+    return {static_cast<MinecraftInstance*>(inst)
+                ->getPackProfile()
+                ->getComponent("net.minecraft")
+                ->getVersion()};
 }
 
 static ModAPI::ModLoaderTypes mcLoaders(BaseInstance* inst)
 {
-    return { static_cast<MinecraftInstance*>(inst)->getPackProfile()->getModLoaders() };
+    return {static_cast<MinecraftInstance*>(inst)
+                ->getPackProfile()
+                ->getModLoaders()};
 }
 
-ModUpdateDialog::ModUpdateDialog(QWidget* parent, ModAPI::ResourceType type, BaseInstance* instance,
+ModUpdateDialog::ModUpdateDialog(QWidget* parent, ModAPI::ResourceType type,
+                                 BaseInstance* instance,
                                  const std::shared_ptr<ModFolderModel> mods,
                                  QList<Mod*>& search_for, bool update_mods)
-    : ReviewMessageBox(parent, "", ""), m_parent(parent), m_mod_model(mods),
-      m_candidates(search_for), m_second_try_metadata(new ConcurrentTask()), m_type(type),
-      m_typeString(m_type == ModAPI::Mod ? tr("mod") : tr("pack")), m_instance(instance),
-      m_update_mods(update_mods) {
+    : ReviewMessageBox(parent, "", ""),
+      m_parent(parent),
+      m_mod_model(mods),
+      m_candidates(search_for),
+      m_second_try_metadata(new ConcurrentTask()),
+      m_type(type),
+      m_typeString(m_type == ModAPI::Mod ? tr("mod") : tr("pack")),
+      m_instance(instance),
+      m_update_mods(update_mods)
+{
     ReviewMessageBox::setGeometry(0, 0, 800, 600);
 
     setWindowTitle(tr("Confirm %1s to update").arg(m_typeString));
 
-    ui->explainLabel->setText(tr("You're about to update the following %1s:").arg(m_typeString));
-    ui->onlyCheckedLabel->setText(tr("Only %1s with a check will be updated!").arg(m_typeString));
+    ui->explainLabel->setText(
+        tr("You're about to update the following %1s:").arg(m_typeString));
+    ui->onlyCheckedLabel->setText(
+        tr("Only %1s with a check will be updated!").arg(m_typeString));
 }
 
 void ModUpdateDialog::checkCandidates()
 {
     // Ensure mods have valid metadata
     auto went_well = ensureMetadata();
-    if (!went_well) {
+    if (!went_well)
+    {
         m_aborted = true;
         return;
     }
 
     // Report failed metadata generation
-    if (!m_failed_metadata.empty()) {
+    if (!m_failed_metadata.empty())
+    {
         QString text;
-        for (const auto& failed : std::as_const(m_failed_metadata)) {
+        for (const auto& failed : std::as_const(m_failed_metadata))
+        {
             const auto& mod = std::get<0>(failed);
             const auto& reason = std::get<1>(failed);
-            text += tr("Name: %1<br>File name: %2<br>Reason: %3<br><br>").arg(mod->name(), mod->fileinfo().fileName(), reason);
+            text += tr("Name: %1<br>File name: %2<br>Reason: %3<br><br>")
+                        .arg(mod->name(), mod->fileinfo().fileName(), reason);
         }
 
-        ScrollMessageBox message_dialog(m_parent, tr("Metadata generation failed"),
-                                        tr("Could not generate metadata for the following %1s:<br>"
-                                           "Do you wish to proceed without them?").arg(m_typeString),
-                                        text);
+        ScrollMessageBox message_dialog(
+            m_parent, tr("Metadata generation failed"),
+            tr("Could not generate metadata for the following %1s:<br>"
+               "Do you wish to proceed without them?")
+                .arg(m_typeString),
+            text);
         message_dialog.setModal(true);
-        if (message_dialog.exec() == QDialog::Rejected) {
+        if (message_dialog.exec() == QDialog::Rejected)
+        {
             m_aborted = true;
             QMetaObject::invokeMethod(this, "reject", Qt::QueuedConnection);
             return;
@@ -81,29 +102,50 @@ void ModUpdateDialog::checkCandidates()
 
     SequentialTask check_task(m_parent, tr("Checking for updates"));
 
-    if (!m_modrinth_to_update.empty()) {
-        m_modrinth_check_task = new ModrinthCheckUpdate(m_modrinth_to_update, versions, loaders, m_mod_model);
+    if (!m_modrinth_to_update.empty())
+    {
+        m_modrinth_check_task = new ModrinthCheckUpdate(
+            m_modrinth_to_update, versions, loaders, m_mod_model);
         connect(m_modrinth_check_task, &CheckUpdateTask::checkFailed, this,
-                [this](Mod* mod, QString reason, QUrl recover_url) { m_failed_check_update.append({mod, reason, recover_url}); });
+                [this](Mod* mod, QString reason, QUrl recover_url)
+                {
+                    m_failed_check_update.append({mod, reason, recover_url});
+                });
         check_task.addTask(m_modrinth_check_task);
     }
 
-    if (!m_flame_to_update.empty()) {
-        m_flame_check_task = new FlameCheckUpdate(m_flame_to_update, versions, loaders, m_mod_model);
+    if (!m_flame_to_update.empty())
+    {
+        m_flame_check_task = new FlameCheckUpdate(m_flame_to_update, versions,
+                                                  loaders, m_mod_model);
         connect(m_flame_check_task, &CheckUpdateTask::checkFailed, this,
-                [this](Mod* mod, QString reason, QUrl recover_url) { m_failed_check_update.append({mod, reason, recover_url}); });
+                [this](Mod* mod, QString reason, QUrl recover_url)
+                {
+                    m_failed_check_update.append({mod, reason, recover_url});
+                });
         check_task.addTask(m_flame_check_task);
     }
 
     connect(&check_task, &Task::failed, this,
-            [&](QString reason) { CustomMessageBox::selectable(this, tr("Error"), reason, QMessageBox::Critical)->exec(); });
+            [&](QString reason)
+            {
+                CustomMessageBox::selectable(this, tr("Error"), reason,
+                                             QMessageBox::Critical)
+                    ->exec();
+            });
 
-    connect(&check_task, &Task::succeeded, this, [&]() {
-        QStringList warnings = check_task.warnings();
-        if (warnings.count()) {
-            CustomMessageBox::selectable(this, tr("Warnings"), warnings.join('\n'), QMessageBox::Warning)->exec();
-        }
-    });
+    connect(&check_task, &Task::succeeded, this,
+            [&]()
+            {
+                QStringList warnings = check_task.warnings();
+                if (warnings.count())
+                {
+                    CustomMessageBox::selectable(this, tr("Warnings"),
+                                                 warnings.join('\n'),
+                                                 QMessageBox::Warning)
+                        ->exec();
+                }
+            });
 
     // Check for updates
     ProgressDialog progress_dialog(m_parent);
@@ -112,17 +154,21 @@ void ModUpdateDialog::checkCandidates()
     auto ret = progress_dialog.execWithTask(&check_task);
 
     // If the dialog was skipped / some download error happened
-    if (ret == QDialog::DialogCode::Rejected) {
+    if (ret == QDialog::DialogCode::Rejected)
+    {
         m_aborted = true;
         QMetaObject::invokeMethod(this, "reject", Qt::QueuedConnection);
         return;
     }
 
     // Add found updates for Modrinth
-    if (m_modrinth_check_task) {
+    if (m_modrinth_check_task)
+    {
         auto modrinth_updates = m_modrinth_check_task->getUpdatable();
-        for (auto& updatable : modrinth_updates) {
-            qDebug() << QString("Mod %1 has an update available!").arg(updatable.name);
+        for (auto& updatable : modrinth_updates)
+        {
+            qDebug() << QString("Mod %1 has an update available!")
+                            .arg(updatable.name);
 
             appendMod(updatable);
             m_tasks.insert(updatable.name, updatable.download);
@@ -130,10 +176,13 @@ void ModUpdateDialog::checkCandidates()
     }
 
     // Add found updated for Flame
-    if (m_flame_check_task) {
+    if (m_flame_check_task)
+    {
         auto flame_updates = m_flame_check_task->getUpdatable();
-        for (auto& updatable : flame_updates) {
-            qDebug() << QString("Mod %1 has an update available!").arg(updatable.name);
+        for (auto& updatable : flame_updates)
+        {
+            qDebug() << QString("Mod %1 has an update available!")
+                            .arg(updatable.name);
 
             appendMod(updatable);
             m_tasks.insert(updatable.name, updatable.download);
@@ -141,9 +190,11 @@ void ModUpdateDialog::checkCandidates()
     }
 
     // Report failed update checking
-    if (!m_failed_check_update.empty()) {
+    if (!m_failed_check_update.empty())
+    {
         QString text;
-        for (const auto& failed : std::as_const(m_failed_check_update)) {
+        for (const auto& failed : std::as_const(m_failed_check_update))
+        {
             const auto& mod = std::get<0>(failed);
             const auto& reason = std::get<1>(failed);
             const auto& recover_url = std::get<2>(failed);
@@ -152,20 +203,29 @@ void ModUpdateDialog::checkCandidates()
 
             text += tr("Mod name: %1").arg(mod->name()) + "<br>";
             if (!reason.isEmpty())
+            {
                 text += tr("Reason: %1").arg(reason) + "<br>";
+            }
             if (!recover_url.isEmpty())
+            {
                 //: %1 is the link to download it manually
-                text += tr("Possible solution: Getting the latest version manually:<br>%1<br>")
-                    .arg(QString("<a href='%1'>%1</a>").arg(recover_url.toString()));
+                text += tr("Possible solution: Getting the latest version "
+                           "manually:<br>%1<br>")
+                            .arg(QString("<a href='%1'>%1</a>")
+                                     .arg(recover_url.toString()));
+            }
             text += "<br>";
         }
 
-        ScrollMessageBox message_dialog(m_parent, tr("Failed to check for updates"),
-                                        tr("Could not check or get the following %1s for updates:<br>"
-                                           "Do you wish to proceed without them?").arg(m_typeString),
-                                        text);
+        ScrollMessageBox message_dialog(
+            m_parent, tr("Failed to check for updates"),
+            tr("Could not check or get the following %1s for updates:<br>"
+               "Do you wish to proceed without them?")
+                .arg(m_typeString),
+            text);
         message_dialog.setModal(true);
-        if (message_dialog.exec() == QDialog::Rejected) {
+        if (message_dialog.exec() == QDialog::Rejected)
+        {
             m_aborted = true;
             QMetaObject::invokeMethod(this, "reject", Qt::QueuedConnection);
             return;
@@ -173,24 +233,31 @@ void ModUpdateDialog::checkCandidates()
     }
 
     // If there's no mod to be updated
-    if (ui->modTreeWidget->topLevelItemCount() == 0) {
+    if (ui->modTreeWidget->topLevelItemCount() == 0)
+    {
         m_no_updates = true;
-    } else {
+    }
+    else
+    {
         // FIXME: Find a more efficient way of doing this!
 
-        // Sort major items in alphabetical order (also sorts the children unfortunately)
+        // Sort major items in alphabetical order (also sorts the children
+        // unfortunately)
         ui->modTreeWidget->sortItems(0, Qt::SortOrder::AscendingOrder);
 
         // Re-sort the children
         auto* item = ui->modTreeWidget->topLevelItem(0);
-        for (int i = 1; item != nullptr; ++i) {
+        for (int i = 1; item != nullptr; ++i)
+        {
             item->sortChildren(0, Qt::SortOrder::DescendingOrder);
             item = ui->modTreeWidget->topLevelItem(i);
         }
     }
 
     if (m_aborted || m_no_updates)
+    {
         QMetaObject::invokeMethod(this, "reject", Qt::QueuedConnection);
+    }
 }
 
 // Part 1: Ensure we have a valid metadata
@@ -210,8 +277,10 @@ bool ModUpdateDialog::ensureMetadata()
     bool skip_rest = false;
     ModPlatform::Provider provider_rest = ModPlatform::Provider::MODRINTH;
 
-    auto addToTmp = [&](Mod* m, ModPlatform::Provider p) {
-        switch (p) {
+    auto addToTmp = [&](Mod* m, ModPlatform::Provider p)
+    {
+        switch (p)
+        {
             case ModPlatform::Provider::MODRINTH:
                 modrinth_tmp.push_back(m);
                 break;
@@ -221,34 +290,43 @@ bool ModUpdateDialog::ensureMetadata()
         }
     };
 
-    for (auto candidate : std::as_const(m_candidates)) {
-        if (candidate->status() != ModStatus::NoMetadata) {
+    for (auto candidate : std::as_const(m_candidates))
+    {
+        if (candidate->status() != ModStatus::NoMetadata)
+        {
             onMetadataEnsured(candidate);
             continue;
         }
 
         if (skip_rest)
+        {
             continue;
+        }
 
-        if (confirm_rest) {
+        if (confirm_rest)
+        {
             addToTmp(candidate, provider_rest);
             should_try_others.insert(candidate->internal_id(), try_others_rest);
             continue;
         }
 
         ChooseProviderDialog chooser(this);
-        chooser.setDescription(tr("'%1' does not have any metadata yet. We need to generate it in "
-                                  "order to track relevant information on how to update this %2. "
-                                  "To do this, please select a %2 provider which we can use to "
-                                  "check for updates for this %2.")
-                                   .arg(candidate->name(), m_typeString));
+        chooser.setDescription(
+            tr("'%1' does not have any metadata yet. We need to generate it in "
+               "order to track relevant information on how to update this %2. "
+               "To do this, please select a %2 provider which we can use to "
+               "check for updates for this %2.")
+                .arg(candidate->name(), m_typeString));
         auto confirmed = chooser.exec() == QDialog::DialogCode::Accepted;
 
         auto response = chooser.getResponse();
 
         if (response.skip_all)
+        {
             skip_rest = true;
-        if (response.confirm_all) {
+        }
+        if (response.confirm_all)
+        {
             confirm_rest = true;
             provider_rest = response.chosen;
             try_others_rest = response.try_others;
@@ -257,31 +335,61 @@ bool ModUpdateDialog::ensureMetadata()
         should_try_others.insert(candidate->internal_id(), response.try_others);
 
         if (confirmed)
+        {
             addToTmp(candidate, response.chosen);
+        }
     }
 
-    if (!modrinth_tmp.empty()) {
-        auto* modrinth_task = new EnsureMetadataTask(modrinth_tmp, index_dir, ModPlatform::Provider::MODRINTH);
-        connect(modrinth_task, &EnsureMetadataTask::metadataReady, [this](Mod* candidate) { onMetadataEnsured(candidate); });
-        connect(modrinth_task, &EnsureMetadataTask::metadataFailed, [this, &should_try_others](Mod* candidate) {
-            onMetadataFailed(candidate, should_try_others.find(candidate->internal_id()).value(), ModPlatform::Provider::MODRINTH);
-        });
+    if (!modrinth_tmp.empty())
+    {
+        auto* modrinth_task = new EnsureMetadataTask(
+            modrinth_tmp, index_dir, ModPlatform::Provider::MODRINTH);
+        connect(modrinth_task, &EnsureMetadataTask::metadataReady,
+                [this](Mod* candidate)
+                {
+                    onMetadataEnsured(candidate);
+                });
+        connect(
+            modrinth_task, &EnsureMetadataTask::metadataFailed,
+            [this, &should_try_others](Mod* candidate)
+            {
+                onMetadataFailed(
+                    candidate,
+                    should_try_others.find(candidate->internal_id()).value(),
+                    ModPlatform::Provider::MODRINTH);
+            });
 
         if (modrinth_task->getHashingTask())
+        {
             seq.addTask(modrinth_task->getHashingTask());
+        }
 
         seq.addTask(modrinth_task);
     }
 
-    if (!flame_tmp.empty()) {
-        auto* flame_task = new EnsureMetadataTask(flame_tmp, index_dir, ModPlatform::Provider::FLAME);
-        connect(flame_task, &EnsureMetadataTask::metadataReady, [this](Mod* candidate) { onMetadataEnsured(candidate); });
-        connect(flame_task, &EnsureMetadataTask::metadataFailed, [this, &should_try_others](Mod* candidate) {
-            onMetadataFailed(candidate, should_try_others.find(candidate->internal_id()).value(), ModPlatform::Provider::FLAME);
-        });
+    if (!flame_tmp.empty())
+    {
+        auto* flame_task = new EnsureMetadataTask(flame_tmp, index_dir,
+                                                  ModPlatform::Provider::FLAME);
+        connect(flame_task, &EnsureMetadataTask::metadataReady,
+                [this](Mod* candidate)
+                {
+                    onMetadataEnsured(candidate);
+                });
+        connect(
+            flame_task, &EnsureMetadataTask::metadataFailed,
+            [this, &should_try_others](Mod* candidate)
+            {
+                onMetadataFailed(
+                    candidate,
+                    should_try_others.find(candidate->internal_id()).value(),
+                    ModPlatform::Provider::FLAME);
+            });
 
         if (flame_task->getHashingTask())
+        {
             seq.addTask(flame_task->getHashingTask());
+        }
 
         seq.addTask(flame_task);
     }
@@ -300,9 +408,12 @@ void ModUpdateDialog::onMetadataEnsured(Mod* mod)
 {
     // When the mod is a folder, for instance
     if (!mod->metadata() || !m_update_mods)
+    {
         return;
+    }
 
-    switch (mod->metadata()->provider) {
+    switch (mod->metadata()->provider)
+    {
         case ModPlatform::Provider::MODRINTH:
             m_modrinth_to_update.push_back(mod);
             break;
@@ -314,7 +425,8 @@ void ModUpdateDialog::onMetadataEnsured(Mod* mod)
 
 ModPlatform::Provider next(ModPlatform::Provider p)
 {
-    switch (p) {
+    switch (p)
+    {
         case ModPlatform::Provider::MODRINTH:
             return ModPlatform::Provider::FLAME;
         case ModPlatform::Provider::FLAME:
@@ -324,18 +436,32 @@ ModPlatform::Provider next(ModPlatform::Provider p)
     return ModPlatform::Provider::FLAME;
 }
 
-void ModUpdateDialog::onMetadataFailed(Mod* mod, bool try_others, ModPlatform::Provider first_choice)
+void ModUpdateDialog::onMetadataFailed(Mod* mod, bool try_others,
+                                       ModPlatform::Provider first_choice)
 {
-    if (try_others) {
+    if (try_others)
+    {
         auto index_dir = indexDir();
 
         auto* task = new EnsureMetadataTask(mod, index_dir, next(first_choice));
-        connect(task, &EnsureMetadataTask::metadataReady, [this](Mod* candidate) { onMetadataEnsured(candidate); });
-        connect(task, &EnsureMetadataTask::metadataFailed, [this](Mod* candidate) { onMetadataFailed(candidate, false); });
+        connect(task, &EnsureMetadataTask::metadataReady,
+                [this](Mod* candidate)
+                {
+                    onMetadataEnsured(candidate);
+                });
+        connect(task, &EnsureMetadataTask::metadataFailed,
+                [this](Mod* candidate)
+                {
+                    onMetadataFailed(candidate, false);
+                });
 
         m_second_try_metadata->addTask(task);
-    } else {
-        QString reason{ tr("Couldn't find a valid version on the selected %1 provider(s)").arg(m_typeString) };
+    }
+    else
+    {
+        QString reason{
+            tr("Couldn't find a valid version on the selected %1 provider(s)")
+                .arg(m_typeString)};
 
         m_failed_metadata.append({mod, reason});
     }
@@ -349,10 +475,14 @@ void ModUpdateDialog::appendMod(CheckUpdateTask::UpdatableMod const& info)
     item_top->setExpanded(true);
 
     auto provider_item = new QTreeWidgetItem(item_top);
-    provider_item->setText(0, tr("Provider: %1").arg(ProviderCaps.readableName(info.provider)));
+    provider_item->setText(
+        0, tr("Provider: %1").arg(ProviderCaps.readableName(info.provider)));
 
     auto old_version_item = new QTreeWidgetItem(item_top);
-    old_version_item->setText(0, tr("Old version: %1").arg(info.old_version.isEmpty() ? tr("Not installed") : info.old_version));
+    old_version_item->setText(
+        0, tr("Old version: %1")
+               .arg(info.old_version.isEmpty() ? tr("Not installed")
+                                               : info.old_version));
 
     auto new_version_item = new QTreeWidgetItem(item_top);
     new_version_item->setText(0, tr("New version: %1").arg(info.new_version));
@@ -363,7 +493,8 @@ void ModUpdateDialog::appendMod(CheckUpdateTask::UpdatableMod const& info)
     auto changelog = new QTreeWidgetItem(changelog_item);
     auto changelog_area = new RemoteTextBrowser();
 
-    switch (info.provider) {
+    switch (info.provider)
+    {
         case ModPlatform::Provider::MODRINTH:
             changelog_area->setHtml(Markdown::toHtml(info.changelog.toUtf8()));
             break;
@@ -373,11 +504,15 @@ void ModUpdateDialog::appendMod(CheckUpdateTask::UpdatableMod const& info)
     }
 
     changelog_area->setLineWrapMode(QTextBrowser::LineWrapMode::NoWrap);
-    changelog_area->setVerticalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAsNeeded);
+    changelog_area->setVerticalScrollBarPolicy(
+        Qt::ScrollBarPolicy::ScrollBarAsNeeded);
 
     // HACK: Is there a better way of achieving this?
     auto font_height = QFontMetrics(changelog_area->font()).height();
-    changelog_area->setMaximumHeight((changelog_area->toPlainText().count(QRegularExpression("\n|<br>")) + 2) * font_height);
+    changelog_area->setMaximumHeight(
+        (changelog_area->toPlainText().count(QRegularExpression("\n|<br>")) +
+         2) *
+        font_height);
 
     ui->modTreeWidget->setItemWidget(changelog, 0, changelog_area);
 
@@ -390,10 +525,14 @@ const QList<ModDownloadTask*> ModUpdateDialog::getTasks()
 
     auto* item = ui->modTreeWidget->topLevelItem(0);
 
-    for (int i = 1; item != nullptr; ++i) {
-        if (item->checkState(0) == Qt::CheckState::Checked) {
+    for (int i = 1; item != nullptr; ++i)
+    {
+        if (item->checkState(0) == Qt::CheckState::Checked)
+        {
             if (auto* task = m_tasks.take(item->text(0)))
+            {
                 list.push_back(task);
+            }
         }
 
         item = ui->modTreeWidget->topLevelItem(i);

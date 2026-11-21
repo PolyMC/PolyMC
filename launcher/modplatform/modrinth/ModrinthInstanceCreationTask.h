@@ -10,12 +10,17 @@
 
 #include "net/NetJob.h"
 
-class ModrinthCreationTask final : public InstanceCreationTask {
+class ModrinthCreationTask final : public InstanceCreationTask
+{
     Q_OBJECT
 
-   public:
-    ModrinthCreationTask(QString staging_path, SettingsObjectPtr global_settings, QWidget* parent, QString source_url = {})
-        : InstanceCreationTask(), m_parent(parent), m_source_url(std::move(source_url))
+public:
+    ModrinthCreationTask(QString staging_path,
+                         SettingsObjectPtr global_settings, QWidget* parent,
+                         QString source_url = {})
+        : InstanceCreationTask(),
+          m_parent(parent),
+          m_source_url(std::move(source_url))
     {
         setStagingPath(staging_path);
         setParentSettings(global_settings);
@@ -26,16 +31,20 @@ class ModrinthCreationTask final : public InstanceCreationTask {
     bool updateInstance() override;
     bool createInstance() override;
 
-   private:
-    bool parseManifest(const QString&, std::vector<Modrinth::File>&, bool set_managed_info = true, bool show_optional_dialog = true);
+private:
+    bool parseManifest(const QString&, std::vector<Modrinth::File>&,
+                       bool set_managed_info = true,
+                       bool show_optional_dialog = true);
     QString getManagedPackID() const;
-    // Warns about files not served by cdn.modrinth.com. Returns false if the user declined.
+    // Warns about files not served by cdn.modrinth.com. Returns false if the
+    // user declined.
     bool confirmNonModrinthDownloads();
 
-   private:
+private:
     QWidget* m_parent = nullptr;
 
-    QString minecraftVersion, fabricVersion, quiltVersion, forgeVersion, neoforgeVersion;
+    QString minecraftVersion, fabricVersion, quiltVersion, forgeVersion,
+        neoforgeVersion;
     QString m_managed_id, m_managed_version_id, m_managed_name;
     QString m_source_url;
 

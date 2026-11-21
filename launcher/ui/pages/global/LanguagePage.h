@@ -48,7 +48,7 @@ class LanguagePage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit LanguagePage(QWidget *parent = 0);
+    explicit LanguagePage(QWidget* parent = 0);
     virtual ~LanguagePage();
 
     QString displayName() const override
@@ -76,5 +76,5 @@ private:
     void loadSettings();
 
 private:
-    LanguageSelectionWidget *mainWidget;
+    LanguageSelectionWidget* mainWidget;
 };

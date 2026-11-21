@@ -26,7 +26,8 @@
 
 #include "tasks/Task.h"
 
-namespace TexturePackUtils {
+namespace TexturePackUtils
+{
 bool process(TexturePack& pack);
 
 void processZIP(TexturePack& pack);
@@ -36,19 +37,26 @@ void processPackTXT(TexturePack& pack, QByteArray&& raw_data);
 void processPackPNG(TexturePack& pack, QByteArray&& raw_data);
 }  // namespace TexturePackUtils
 
-class LocalTexturePackParseTask : public Task {
+class LocalTexturePackParseTask : public Task
+{
     Q_OBJECT
-   public:
+public:
     LocalTexturePackParseTask(int token, TexturePack& rp);
 
-    [[nodiscard]] bool canAbort() const override { return true; }
+    [[nodiscard]] bool canAbort() const override
+    {
+        return true;
+    }
     bool abort() override;
 
     void executeTask() override;
 
-    [[nodiscard]] int token() const { return m_token; }
+    [[nodiscard]] int token() const
+    {
+        return m_token;
+    }
 
-   private:
+private:
     int m_token;
 
     TexturePack& m_texture_pack;

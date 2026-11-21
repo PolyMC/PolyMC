@@ -27,17 +27,20 @@
 #include "gamemode_client.h"
 #endif
 
-DirectJavaLaunch::DirectJavaLaunch(LaunchTask *parent) : LaunchStep(parent)
+DirectJavaLaunch::DirectJavaLaunch(LaunchTask* parent) : LaunchStep(parent)
 {
     connect(&m_process, &LoggedProcess::log, this, &DirectJavaLaunch::logLines);
-    connect(&m_process, &LoggedProcess::stateChanged, this, &DirectJavaLaunch::on_state);
-    connect(&m_process, &LoggedProcess::suspendStateChanged, this, &DirectJavaLaunch::suspendStateChanged);
+    connect(&m_process, &LoggedProcess::stateChanged, this,
+            &DirectJavaLaunch::on_state);
+    connect(&m_process, &LoggedProcess::suspendStateChanged, this,
+            &DirectJavaLaunch::suspendStateChanged);
 }
 
 void DirectJavaLaunch::executeTask()
 {
     auto instance = m_parent->instance();
-    std::shared_ptr<MinecraftInstance> minecraftInstance = std::dynamic_pointer_cast<MinecraftInstance>(instance);
+    std::shared_ptr<MinecraftInstance> minecraftInstance =
+        std::dynamic_pointer_cast<MinecraftInstance>(instance);
     QStringList args = minecraftInstance->javaArguments();
 
     args.append("-Djava.library.path=" + minecraftInstance->getNativePath());
@@ -54,33 +57,44 @@ void DirectJavaLaunch::executeTask()
     args.append(minecraftInstance->getMainClass());
 
     QString allArgs = args.join(", ");
-    emit logLine("Java Arguments:\n[" + m_parent->censorPrivateInfo(allArgs) + "]\n\n", MessageLevel::Launcher);
+    emit logLine(
+        "Java Arguments:\n[" + m_parent->censorPrivateInfo(allArgs) + "]\n\n",
+        MessageLevel::Launcher);
 
-    auto javaPath = FS::ResolveExecutable(instance->settings()->get("JavaPath").toString());
+    auto javaPath =
+        FS::ResolveExecutable(instance->settings()->get("JavaPath").toString());
 
     m_process.setProcessEnvironment(instance->createLaunchEnvironment());
 
-    // make detachable - this will keep the process running even if the object is destroyed
+    // make detachable - this will keep the process running even if the object
+    // is destroyed
     m_process.setDetachable(true);
 
-    auto mcArgs = minecraftInstance->processMinecraftArgs(m_session, m_serverToJoin);
+    auto mcArgs =
+        minecraftInstance->processMinecraftArgs(m_session, m_serverToJoin);
     args.append(mcArgs);
 
     QString wrapperCommandStr = instance->getWrapperCommand().trimmed();
-    if(!wrapperCommandStr.isEmpty())
+    if (!wrapperCommandStr.isEmpty())
     {
         auto wrapperArgs = Commandline::splitArgs(wrapperCommandStr);
-        // Something like "" splits into nothing, which then fails to be found below
-        auto wrapperCommand = wrapperArgs.isEmpty() ? QString() : wrapperArgs.takeFirst();
-        auto realWrapperCommand = QStandardPaths::findExecutable(wrapperCommand);
+        // Something like "" splits into nothing, which then fails to be found
+        // below
+        auto wrapperCommand =
+            wrapperArgs.isEmpty() ? QString() : wrapperArgs.takeFirst();
+        auto realWrapperCommand =
+            QStandardPaths::findExecutable(wrapperCommand);
         if (realWrapperCommand.isEmpty())
         {
-            const char *reason = QT_TR_NOOP("The wrapper command \"%1\" couldn't be found.");
-            emit logLine(QString(reason).arg(wrapperCommand), MessageLevel::Fatal);
+            const char* reason =
+                QT_TR_NOOP("The wrapper command \"%1\" couldn't be found.");
+            emit logLine(QString(reason).arg(wrapperCommand),
+                         MessageLevel::Fatal);
             emitFailed(tr(reason).arg(wrapperCommand));
             return;
         }
-        emit logLine("Wrapper command is:\n" + wrapperCommandStr + "\n\n", MessageLevel::Launcher);
+        emit logLine("Wrapper command is:\n" + wrapperCommandStr + "\n\n",
+                     MessageLevel::Launcher);
         args.prepend(javaPath);
         m_process.start(wrapperCommand, wrapperArgs + args);
     }
@@ -90,7 +104,8 @@ void DirectJavaLaunch::executeTask()
     }
 
 #ifdef Q_OS_LINUX
-    if (instance->settings()->get("EnableFeralGamemode").toBool() && APPLICATION->capabilities() & Application::SupportsGameMode)
+    if (instance->settings()->get("EnableFeralGamemode").toBool() &&
+        APPLICATION->capabilities() & Application::SupportsGameMode)
     {
         auto pid = m_process.processId();
         if (pid)
@@ -103,12 +118,12 @@ void DirectJavaLaunch::executeTask()
 
 void DirectJavaLaunch::on_state(LoggedProcess::State state)
 {
-    switch(state)
+    switch (state)
     {
         case LoggedProcess::FailedToStart:
         {
             //: Error message displayed if instance can't start
-            const char *reason = QT_TR_NOOP("Could not launch Minecraft!");
+            const char* reason = QT_TR_NOOP("Could not launch Minecraft!");
             emit logLine(reason, MessageLevel::Fatal);
             emitFailed(tr(reason));
             return;
@@ -125,19 +140,21 @@ void DirectJavaLaunch::on_state(LoggedProcess::State state)
             m_parent->setPid(-1);
             // if the exit code wasn't 0, report this as a crash
             auto exitCode = m_process.exitCode();
-            if(exitCode != 0)
+            if (exitCode != 0)
             {
                 emitFailed(tr("Game crashed."));
                 return;
             }
-            //FIXME: make this work again
-            // m_postlaunchprocess.processEnvironment().insert("INST_EXITCODE", QString(exitCode));
-            // run post-exit
+            // FIXME: make this work again
+            //  m_postlaunchprocess.processEnvironment().insert("INST_EXITCODE",
+            //  QString(exitCode)); run post-exit
             emitSucceeded();
             break;
         }
         case LoggedProcess::Running:
-            emit logLine(QString("Minecraft process ID: %1\n\n").arg(m_process.processId()), MessageLevel::Launcher);
+            emit logLine(QString("Minecraft process ID: %1\n\n")
+                             .arg(m_process.processId()),
+                         MessageLevel::Launcher);
             m_parent->setPid(m_process.processId());
             m_parent->instance()->setLastLaunch();
             break;
@@ -146,7 +163,7 @@ void DirectJavaLaunch::on_state(LoggedProcess::State state)
     }
 }
 
-void DirectJavaLaunch::setWorkingDirectory(const QString &wd)
+void DirectJavaLaunch::setWorkingDirectory(const QString& wd)
 {
     m_process.setWorkingDirectory(wd);
 }
@@ -165,4 +182,3 @@ bool DirectJavaLaunch::abort()
     }
     return true;
 }
-

@@ -37,15 +37,16 @@ class JavaInstallList : public BaseVersionList
         InProgress,
         Done
     };
+
 public:
-    explicit JavaInstallList(QObject *parent = 0);
+    explicit JavaInstallList(QObject* parent = 0);
 
     Task::Ptr getLoadTask() override;
     bool isLoaded() override;
     const BaseVersionPtr at(int i) const override;
     int count() const override;
 
-    QVariant data(const QModelIndex &index, int role) const override;
+    QVariant data(const QModelIndex& index, int role) const override;
     RoleList providesRoles() const override;
 
 public slots:
@@ -68,7 +69,7 @@ class JavaListLoadTask : public Task
     Q_OBJECT
 
 public:
-    explicit JavaListLoadTask(JavaInstallList *vlist);
+    explicit JavaListLoadTask(JavaInstallList* vlist);
     virtual ~JavaListLoadTask();
 
     void executeTask() override;
@@ -77,6 +78,6 @@ public slots:
 
 protected:
     shared_qobject_ptr<JavaCheckerJob> m_job;
-    JavaInstallList *m_list;
-    JavaInstall *m_currentRecommended;
+    JavaInstallList* m_list;
+    JavaInstall* m_currentRecommended;
 };

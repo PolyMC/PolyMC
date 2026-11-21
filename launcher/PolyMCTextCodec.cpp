@@ -24,7 +24,8 @@
 
 #include <QHash>
 
-static QHash<QStringConverter::Encoding,PolyMCTextCodec*> *static_hash_quazip_codecs = nullptr;
+static QHash<QStringConverter::Encoding, PolyMCTextCodec*>*
+    static_hash_quazip_codecs = nullptr;
 
 class PolyMCTextCodecCleanup
 {
@@ -36,8 +37,9 @@ public:
     {
         if (static_hash_quazip_codecs)
         {
-            QList<PolyMCTextCodec*>list_quazip_codecs = static_hash_quazip_codecs->values();
-            qDeleteAll(list_quazip_codecs.begin(),list_quazip_codecs.end());
+            QList<PolyMCTextCodec*> list_quazip_codecs =
+                static_hash_quazip_codecs->values();
+            qDeleteAll(list_quazip_codecs.begin(), list_quazip_codecs.end());
             static_hash_quazip_codecs->clear();
             delete static_hash_quazip_codecs;
             static_hash_quazip_codecs = nullptr;
@@ -53,18 +55,23 @@ PolyMCTextCodec::PolyMCTextCodec()
 
 void PolyMCTextCodec::setup()
 {
-    if (static_hash_quazip_codecs) return;
+    if (static_hash_quazip_codecs)
+    {
+        return;
+    }
     (void)createPolyMCTextCodecCleanup();
 
-    static_hash_quazip_codecs = new QHash<QStringConverter::Encoding,PolyMCTextCodec*>;
+    static_hash_quazip_codecs =
+        new QHash<QStringConverter::Encoding, PolyMCTextCodec*>;
 }
 
-PolyMCTextCodec *PolyMCTextCodec::codecForName(const QByteArray &name)
+PolyMCTextCodec* PolyMCTextCodec::codecForName(const QByteArray& name)
 {
     PolyMCTextCodec::setup();
-    QStringConverter::Encoding  encoding = QStringConverter::Utf8;
+    QStringConverter::Encoding encoding = QStringConverter::Utf8;
 
-    std::optional<QStringConverter::Encoding> opt_encoding = QStringConverter::encodingForName(name);
+    std::optional<QStringConverter::Encoding> opt_encoding =
+        QStringConverter::encodingForName(name);
     if (opt_encoding != std::nullopt)
     {
         encoding = opt_encoding.value();
@@ -74,40 +81,43 @@ PolyMCTextCodec *PolyMCTextCodec::codecForName(const QByteArray &name)
         return static_hash_quazip_codecs->value(encoding);
     }
 
-    PolyMCTextCodec *codec = new PolyMCTextCodec();
+    PolyMCTextCodec* codec = new PolyMCTextCodec();
 
     codec->mEncoding = encoding;
-    static_hash_quazip_codecs->insert(encoding,codec);
+    static_hash_quazip_codecs->insert(encoding, codec);
     return codec;
 }
 
-PolyMCTextCodec *PolyMCTextCodec::codecForLocale()
+PolyMCTextCodec* PolyMCTextCodec::codecForLocale()
 {
     PolyMCTextCodec::setup();
-    return PolyMCTextCodec::codecForName(QStringConverter::nameForEncoding(QStringConverter::System));
+    return PolyMCTextCodec::codecForName(
+        QStringConverter::nameForEncoding(QStringConverter::System));
 }
 
-QByteArray PolyMCTextCodec::fromUnicode(const QString &str) const
+QByteArray PolyMCTextCodec::fromUnicode(const QString& str) const
 {
     auto from = QStringEncoder(mEncoding);
     return from(str);
 }
 
-QString PolyMCTextCodec::toUnicode(const QByteArray &a) const
+QString PolyMCTextCodec::toUnicode(const QByteArray& a) const
 {
     auto to = QStringDecoder(mEncoding);
     return to(a);
 }
 
-PolyMCTextDecoder::PolyMCTextDecoder(const PolyMCTextCodec *codec) : m_decoder(codec ? codec->mEncoding : QStringConverter::System)
+PolyMCTextDecoder::PolyMCTextDecoder(const PolyMCTextCodec* codec)
+    : m_decoder(codec ? codec->mEncoding : QStringConverter::System)
 {
 }
 
-PolyMCTextDecoder::PolyMCTextDecoder(QStringConverter::Encoding encoding) : m_decoder(encoding)
+PolyMCTextDecoder::PolyMCTextDecoder(QStringConverter::Encoding encoding)
+    : m_decoder(encoding)
 {
 }
 
-QString PolyMCTextDecoder::toUnicode(const QByteArray &data)
+QString PolyMCTextDecoder::toUnicode(const QByteArray& data)
 {
     return m_decoder(data);
 }

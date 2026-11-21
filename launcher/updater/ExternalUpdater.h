@@ -25,11 +25,12 @@
  * A base class for an updater that uses an external library.
  * This class contains basic functions to control the updater.
  *
- * To implement the updater on a new platform, create a new class that inherits from this class and
- * implement the pure virtual functions.
+ * To implement the updater on a new platform, create a new class that inherits
+ * from this class and implement the pure virtual functions.
  *
- * The initializer of the new class should have the side effect of starting the automatic updater. That is,
- * once the class is initialized, the program should automatically check for updates if necessary.
+ * The initializer of the new class should have the side effect of starting the
+ * automatic updater. That is, once the class is initialized, the program should
+ * automatically check for updates if necessary.
  */
 class ExternalUpdater : public QObject
 {
@@ -37,7 +38,8 @@ class ExternalUpdater : public QObject
 
 public:
     /*!
-     * Check for updates manually, showing the user a progress bar and an alert if no updates are found.
+     * Check for updates manually, showing the user a progress bar and an alert
+     * if no updates are found.
      */
     virtual void checkForUpdates() = 0;
 
@@ -52,7 +54,8 @@ public:
     virtual double getUpdateCheckInterval() = 0;
 
     /*!
-     * Indicates whether or not beta updates should be checked for in addition to regular releases.
+     * Indicates whether or not beta updates should be checked for in addition
+     * to regular releases.
      */
     virtual bool getBetaAllowed() = 0;
 
@@ -67,7 +70,8 @@ public:
     virtual void setUpdateCheckInterval(double seconds) = 0;
 
     /*!
-     * Set whether or not beta updates should be checked for in addition to regular releases.
+     * Set whether or not beta updates should be checked for in addition to
+     * regular releases.
      */
     virtual void setBetaAllowed(bool allowed) = 0;
 
@@ -75,13 +79,16 @@ signals:
     /*!
      * Emits whenever the user's ability to check for updates changes.
      *
-     * As per Sparkle documentation, "An update check can be made by the user when an update session isn’t in progress,
-     * or when an update or its progress is being shown to the user. A user cannot check for updates when data (such
-     * as the feed or an update) is still being downloaded automatically in the background.
+     * As per Sparkle documentation, "An update check can be made by the user
+     * when an update session isn’t in progress, or when an update or its
+     * progress is being shown to the user. A user cannot check for updates when
+     * data (such as the feed or an update) is still being downloaded
+     * automatically in the background.
      *
-     * This property is suitable to use for menu item validation for seeing if checkForUpdates can be invoked."
+     * This property is suitable to use for menu item validation for seeing if
+     * checkForUpdates can be invoked."
      */
     void canCheckForUpdatesChanged(bool canCheck);
 };
 
-#endif //LAUNCHER_EXTERNALUPDATER_H
+#endif  // LAUNCHER_EXTERNALUPDATER_H

@@ -47,17 +47,17 @@
 
 namespace Ui
 {
-    class AtlPage;
+class AtlPage;
 }
 
 class NewInstanceDialog;
 
 class AtlPage : public QWidget, public BasePage
 {
-Q_OBJECT
+    Q_OBJECT
 
 public:
-    explicit AtlPage(NewInstanceDialog* dialog, QWidget *parent = 0);
+    explicit AtlPage(NewInstanceDialog* dialog, QWidget* parent = 0);
     virtual ~AtlPage();
     virtual QString displayName() const override
     {
@@ -92,7 +92,7 @@ private slots:
     void onVersionSelectionChanged(QString newData);
 
 private:
-    Ui::AtlPage *ui = nullptr;
+    Ui::AtlPage* ui = nullptr;
     NewInstanceDialog* dialog = nullptr;
     Atl::ListModel* listModel = nullptr;
     Atl::FilterModel* filterModel = nullptr;
