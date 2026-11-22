@@ -74,7 +74,7 @@ public:
      * installed.
      */
     virtual QVector<QString> chooseOptionalMods(
-        PackVersion version, QVector<ATLauncher::VersionMod> mods) = 0;
+        const PackVersion& version, QVector<ATLauncher::VersionMod> mods) = 0;
 
     /**
      * Requests a user interaction to select a component version from a given
@@ -121,7 +121,7 @@ private slots:
 private:
     QString getDirForModType(ModType type, QString raw);
     QString getVersionForLoader(QString uid);
-    QString detectLibrary(VersionLibrary library);
+    QString detectLibrary(const VersionLibrary& library);
 
     bool createLibrariesComponent(QString instanceRoot,
                                   std::shared_ptr<PackProfile> profile);

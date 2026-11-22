@@ -53,7 +53,7 @@ public:
 
 public:
     static unique_qobject_ptr<ModFilterWidget> create(
-        Version default_version, QWidget* parent = nullptr);
+        const Version& default_version, QWidget* parent = nullptr);
     ~ModFilterWidget();
 
     void setInstance(MinecraftInstance* instance);
@@ -73,7 +73,7 @@ public:
     }
 
 private:
-    ModFilterWidget(Version def, QWidget* parent = nullptr);
+    ModFilterWidget(const Version& def, QWidget* parent = nullptr);
 
     inline QString mcVersionStr() const
     {

@@ -1860,7 +1860,7 @@ void MainWindow::updateNewsLabel()
     }
 }
 
-void MainWindow::updateAvailable(GoUpdate::Status status)
+void MainWindow::updateAvailable(const GoUpdate::Status& status)
 {
     if (!APPLICATION->updatesAreAllowed())
     {

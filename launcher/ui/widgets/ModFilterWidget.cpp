@@ -7,7 +7,7 @@
 #include "tasks/Task.h"
 
 unique_qobject_ptr<ModFilterWidget> ModFilterWidget::create(
-    Version default_version, QWidget* parent)
+    const Version& default_version, QWidget* parent)
 {
     auto filter_widget = new ModFilterWidget(default_version, parent);
 
@@ -35,7 +35,7 @@ void ModFilterWidget::onVersionIndexFailed()
                          tr("failed to get version index"));
 }
 
-ModFilterWidget::ModFilterWidget(Version def, QWidget* parent)
+ModFilterWidget::ModFilterWidget(const Version& def, QWidget* parent)
     : QTabWidget(parent), m_filter(new Filter()), ui(new Ui::ModFilterWidget)
 {
     ui->setupUi(this);

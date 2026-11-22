@@ -53,7 +53,7 @@ public:
     }
 
 private slots:
-    void partFinished(JavaCheckResult result);
+    void partFinished(const JavaCheckResult& result);
 
 protected:
     virtual void executeTask() override;

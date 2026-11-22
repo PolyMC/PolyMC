@@ -539,7 +539,7 @@ QString PackInstallTask::getVersionForLoader(QString uid)
     return m_version.loader.version;
 }
 
-QString PackInstallTask::detectLibrary(VersionLibrary library)
+QString PackInstallTask::detectLibrary(const VersionLibrary& library)
 {
     // Try to detect what the library is
     if (!library.server.isEmpty() && library.server.split("/").length() >= 3)

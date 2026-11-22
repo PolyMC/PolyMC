@@ -230,7 +230,7 @@ bool loadAssetsIndexJson(const QString& assetsId, const QString& path,
     {
         // qDebug() << iter.key();
 
-        QVariant variant = iter.value();
+        const QVariant& variant = iter.value();
         QVariantMap nested_objects = variant.toMap();
 
         AssetObject object;
@@ -240,7 +240,7 @@ bool loadAssetsIndexJson(const QString& assetsId, const QString& path,
         {
             // qDebug() << nested_iter.key() << nested_iter.value().toString();
             QString key = nested_iter.key();
-            QVariant value = nested_iter.value();
+            const QVariant& value = nested_iter.value();
 
             if (key == "hash")
             {

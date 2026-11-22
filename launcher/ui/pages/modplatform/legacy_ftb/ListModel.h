@@ -58,7 +58,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
     void fill(ModpackList newModpacks);
-    void addPack(Modpack modpack);
+    void addPack(const Modpack& modpack);
     void clear();
     void remove(int row);
 

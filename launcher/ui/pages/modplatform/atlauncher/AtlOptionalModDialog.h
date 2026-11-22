@@ -63,7 +63,8 @@ public:
         DescriptionColumn,
     };
 
-    AtlOptionalModListModel(QWidget* parent, ATLauncher::PackVersion version,
+    AtlOptionalModListModel(QWidget* parent,
+                            const ATLauncher::PackVersion& version,
                             QVector<ATLauncher::VersionMod> mods);
     ~AtlOptionalModListModel() override;
 
@@ -90,8 +91,8 @@ public slots:
     void clearAll();
 
 private:
-    void toggleMod(ATLauncher::VersionMod mod, int index);
-    void setMod(ATLauncher::VersionMod mod, int index, bool enable,
+    void toggleMod(const ATLauncher::VersionMod& mod, int index);
+    void setMod(const ATLauncher::VersionMod& mod, int index, bool enable,
                 bool shouldEmit = true);
 
 private:
@@ -111,7 +112,8 @@ class AtlOptionalModDialog : public QDialog
     Q_OBJECT
 
 public:
-    AtlOptionalModDialog(QWidget* parent, ATLauncher::PackVersion version,
+    AtlOptionalModDialog(QWidget* parent,
+                         const ATLauncher::PackVersion& version,
                          QVector<ATLauncher::VersionMod> mods);
     ~AtlOptionalModDialog() override;
 

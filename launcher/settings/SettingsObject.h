@@ -95,8 +95,8 @@ public:
      * the one that is being registered.
      * \return A valid Setting shared pointer if successful.
      */
-    std::shared_ptr<Setting> registerSetting(QStringList synonyms,
-                                             QVariant defVal = QVariant());
+    std::shared_ptr<Setting> registerSetting(
+        QStringList synonyms, const QVariant& defVal = QVariant());
 
     /*!
      * Registers the given setting with this SettingsObject and connects the
@@ -106,8 +106,8 @@ public:
      * the one that is being registered.
      * \return A valid Setting shared pointer if successful.
      */
-    std::shared_ptr<Setting> registerSetting(QString id,
-                                             QVariant defVal = QVariant())
+    std::shared_ptr<Setting> registerSetting(
+        QString id, const QVariant& defVal = QVariant())
     {
         return registerSetting(QStringList(id), defVal);
     }
@@ -136,7 +136,7 @@ public:
      * \param value The new value of the setting.
      * \return True if successful, false if it failed.
      */
-    bool set(const QString& id, QVariant value);
+    bool set(const QString& id, const QVariant& value);
 
     /*!
      * \brief Reverts the setting with the given ID to default.
@@ -168,7 +168,7 @@ signals:
      * \param setting A reference to the Setting object that changed.
      * \param value The Setting object's new value.
      */
-    void SettingChanged(const Setting& setting, QVariant value);
+    void SettingChanged(const Setting& setting, const QVariant& value);
 
     /*!
      * \brief Signal emitted when one of this SettingsObject object's settings
@@ -187,7 +187,8 @@ protected slots:
      * \param setting A reference to the Setting object that changed.
      * \param value The setting's new value.
      */
-    virtual void changeSetting(const Setting& setting, QVariant value) = 0;
+    virtual void changeSetting(const Setting& setting,
+                               const QVariant& value) = 0;
 
     /*!
      * \brief Resets a setting.

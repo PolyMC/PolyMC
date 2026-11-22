@@ -46,7 +46,7 @@ public:
     int m_permGen = 64;
 
 signals:
-    void checkFinished(JavaCheckResult result);
+    void checkFinished(const JavaCheckResult& result);
 
 private slots:
     void reportMissingChecker();

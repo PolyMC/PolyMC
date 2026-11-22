@@ -78,7 +78,7 @@ bool JavaCommon::checkJVMArgs(QString jvmargs, QWidget* parent)
     return true;
 }
 
-void JavaCommon::javaWasOk(QWidget* parent, JavaCheckResult result)
+void JavaCommon::javaWasOk(QWidget* parent, const JavaCheckResult& result)
 {
     QString text;
     text +=
@@ -101,7 +101,7 @@ void JavaCommon::javaWasOk(QWidget* parent, JavaCheckResult result)
         ->show();
 }
 
-void JavaCommon::javaArgsWereBad(QWidget* parent, JavaCheckResult result)
+void JavaCommon::javaArgsWereBad(QWidget* parent, const JavaCheckResult& result)
 {
     auto htmlError = result.errorLog;
     QString text;
@@ -115,7 +115,8 @@ void JavaCommon::javaArgsWereBad(QWidget* parent, JavaCheckResult result)
         ->show();
 }
 
-void JavaCommon::javaBinaryWasBad(QWidget* parent, JavaCheckResult /*result*/)
+void JavaCommon::javaBinaryWasBad(QWidget* parent,
+                                  const JavaCheckResult& /*result*/)
 {
     QString text;
     text += QObject::tr(
@@ -158,7 +159,7 @@ void JavaCommon::TestCheck::run()
     checker->performCheck();
 }
 
-void JavaCommon::TestCheck::checkFinished(JavaCheckResult result)
+void JavaCommon::TestCheck::checkFinished(const JavaCheckResult& result)
 {
     if (!m_parent)
     {
@@ -184,7 +185,7 @@ void JavaCommon::TestCheck::checkFinished(JavaCheckResult result)
     checker->performCheck();
 }
 
-void JavaCommon::TestCheck::checkFinishedWithArgs(JavaCheckResult result)
+void JavaCommon::TestCheck::checkFinishedWithArgs(const JavaCheckResult& result)
 {
     if (!m_parent)
     {

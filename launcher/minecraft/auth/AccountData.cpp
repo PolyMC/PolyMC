@@ -47,7 +47,7 @@
 
 namespace
 {
-void tokenToJSONV3(QJsonObject& parent, Katabasis::Token t,
+void tokenToJSONV3(QJsonObject& parent, const Katabasis::Token& t,
                    const char* tokenName)
 {
     if (!t.persistent)
@@ -131,7 +131,7 @@ Katabasis::Token tokenFromJSONV3(const QJsonObject& parent,
     return out;
 }
 
-void profileToJSONV3(QJsonObject& parent, MinecraftProfile p,
+void profileToJSONV3(QJsonObject& parent, const MinecraftProfile& p,
                      const char* tokenName)
 {
     if (p.id.isEmpty())

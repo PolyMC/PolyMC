@@ -231,7 +231,7 @@ void IconList::fileChanged(const QString& path)
     emit iconUpdated(key);
 }
 
-void IconList::SettingChanged(const Setting& setting, QVariant value)
+void IconList::SettingChanged(const Setting& setting, const QVariant& value)
 {
     if (setting.id() != "IconsDir")
     {

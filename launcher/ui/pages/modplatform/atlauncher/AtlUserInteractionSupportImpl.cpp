@@ -58,7 +58,8 @@ AtlUserInteractionSupportImpl::AtlUserInteractionSupportImpl(QWidget* parent)
 }
 
 QVector<QString> AtlUserInteractionSupportImpl::chooseOptionalMods(
-    ATLauncher::PackVersion version, QVector<ATLauncher::VersionMod> mods)
+    const ATLauncher::PackVersion& version,
+    QVector<ATLauncher::VersionMod> mods)
 {
     AtlOptionalModDialog optionalModDialog(m_parent, version, mods);
     optionalModDialog.exec();

@@ -256,7 +256,7 @@ private slots:
     void setupWizardFinished(int status);
 
 private:
-    void onIconsDirChanged(const Setting&, QVariant value);
+    void onIconsDirChanged(const Setting&, const QVariant& value);
     void insertTheme(ITheme* theme);
     void onAboutToQuit();
     void controllerAborted();

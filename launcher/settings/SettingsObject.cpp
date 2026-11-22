@@ -63,7 +63,7 @@ std::shared_ptr<Setting> SettingsObject::registerPassthrough(
 }
 
 std::shared_ptr<Setting> SettingsObject::registerSetting(QStringList synonyms,
-                                                         QVariant defVal)
+                                                         const QVariant& defVal)
 {
     if (synonyms.empty())
     {
@@ -100,7 +100,7 @@ QVariant SettingsObject::get(const QString& id) const
     return (setting ? setting->get() : QVariant());
 }
 
-bool SettingsObject::set(const QString& id, QVariant value)
+bool SettingsObject::set(const QString& id, const QVariant& value)
 {
     auto setting = getSetting(id);
     if (!setting)

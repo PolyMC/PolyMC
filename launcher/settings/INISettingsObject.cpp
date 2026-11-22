@@ -49,7 +49,8 @@ void INISettingsObject::resumeSave()
     }
 }
 
-void INISettingsObject::changeSetting(const Setting& setting, QVariant value)
+void INISettingsObject::changeSetting(const Setting& setting,
+                                      const QVariant& value)
 {
     if (contains(setting.id()))
     {

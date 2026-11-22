@@ -179,7 +179,7 @@ signals:
     void groupsChanged(QSet<QString> groups);
 
 public slots:
-    void on_InstFolderChanged(const Setting& setting, QVariant value);
+    void on_InstFolderChanged(const Setting& setting, const QVariant& value);
     void on_GroupStateChanged(const QString& group, bool collapsed);
 
 private slots:

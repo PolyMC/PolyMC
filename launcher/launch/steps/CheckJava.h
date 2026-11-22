@@ -31,7 +31,7 @@ public:
         return false;
     }
 private slots:
-    void checkJavaFinished(JavaCheckResult result);
+    void checkJavaFinished(const JavaCheckResult& result);
 
 private:
     void printJavaInfo(const QString& version, const QString& architecture,

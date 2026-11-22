@@ -77,7 +77,7 @@ public:
 signals:
     //! Signal emitted when an update is available. Passes the URL for the repo
     //! and the ID and name for the version.
-    void updateAvailable(GoUpdate::Status status);
+    void updateAvailable(const GoUpdate::Status& status);
 
     //! Signal emitted when the channel list finishes loading or fails to load.
     void channelListLoaded();

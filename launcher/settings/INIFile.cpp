@@ -196,7 +196,7 @@ bool INIFile::loadFile(QByteArray file)
     return true;
 }
 
-QVariant INIFile::get(QString key, QVariant def) const
+QVariant INIFile::get(QString key, const QVariant& def) const
 {
     if (!this->contains(key))
     {
@@ -208,7 +208,7 @@ QVariant INIFile::get(QString key, QVariant def) const
     }
 }
 
-void INIFile::set(QString key, QVariant val)
+void INIFile::set(QString key, const QVariant& val)
 {
     this->operator[](key) = val;
 }

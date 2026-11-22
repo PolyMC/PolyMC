@@ -30,8 +30,8 @@ public:
     bool loadFile(QString fileName);
     bool saveFile(QString fileName);
 
-    QVariant get(QString key, QVariant def) const;
-    void set(QString key, QVariant val);
+    QVariant get(QString key, const QVariant& def) const;
+    void set(QString key, const QVariant& val);
     static QString unescape(QString orig);
     static QString escape(QString orig);
 };

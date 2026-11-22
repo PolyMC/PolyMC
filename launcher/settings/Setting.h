@@ -39,7 +39,7 @@ public:
      * defVal is the default value that will be returned when the settings
      * object doesn't have any value for this setting.
      */
-    explicit Setting(QStringList synonyms, QVariant defVal = QVariant());
+    explicit Setting(QStringList synonyms, const QVariant& defVal = QVariant());
 
     /*!
      * \brief Gets this setting's ID.
@@ -86,7 +86,7 @@ signals:
      * \param setting A reference to the Setting that changed.
      * \param value This Setting object's new value.
      */
-    void SettingChanged(const Setting& setting, QVariant value);
+    void SettingChanged(const Setting& setting, const QVariant& value);
 
     /*!
      * \brief Signal emitted when this Setting object's value resets to default.
@@ -101,7 +101,7 @@ public slots:
      * handled by the SettingsObject object and cause the setting to change.
      * \param value The new value.
      */
-    virtual void set(QVariant value);
+    virtual void set(const QVariant& value);
 
     /*!
      * \brief Reset the setting to default

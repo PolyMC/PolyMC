@@ -63,7 +63,7 @@ void PassthroughSetting::reset()
     }
 }
 
-void PassthroughSetting::set(QVariant value)
+void PassthroughSetting::set(const QVariant& value)
 {
     if (isOverriding())
     {

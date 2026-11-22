@@ -73,7 +73,7 @@ public:
     void setModel(QAbstractItemModel* model) override;
 
     using visibilityFunction = std::function<bool(const QString&)>;
-    void setSourceOfGroupCollapseStatus(visibilityFunction f)
+    void setSourceOfGroupCollapseStatus(const visibilityFunction& f)
     {
         fVisibility = f;
     }
