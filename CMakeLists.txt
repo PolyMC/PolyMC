@@ -9,6 +9,7 @@ endif()
 
 ##################################### Set CMake options #####################################
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOGEN_ORIGIN_DEPENDS OFF)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -21,14 +22,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_C_STANDARD_REQUIRED true)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
-
-# set CXXFLAGS for build targets
-
-if (MSVC)
-    set(CMAKE_CXX_FLAGS_RELEASE "/O2 ${CMAKE_CXX_FLAGS_RELEASE}")
-else()
-    set(CMAKE_CXX_FLAGS_RELEASE "-O2 ${CMAKE_CXX_FLAGS_RELEASE}")
-endif()
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/")
 
@@ -75,11 +68,11 @@ endif()
 # Increases the stack size to 8MB for Windows, only when not building in Debug mode
 # because we don't want random users being affected by stack overflows in release builds,
 # but it's fine in debug builds for finding and fixing them
-if((NOT CMAKE_BUILD_TYPE STREQUAL "Debug") AND WIN32)
+if(WIN32)
     if (MSVC)
-        set(CMAKE_EXE_LINKER_FLAGS "/STACK:8388608 ${CMAKE_EXE_LINKER_FLAGS}")
+        add_link_options("$<$<NOT:$<CONFIG:Debug>>:/STACK:8388608>")
     else()
-        set(CMAKE_EXE_LINKER_FLAGS "-Wl,--stack,8388608 ${CMAKE_EXE_LINKER_FLAGS}")
+        add_link_options("$<$<NOT:$<CONFIG:Debug>>:-Wl,--stack,8388608>")
     endif()
 endif()
 

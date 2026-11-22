@@ -15,6 +15,7 @@ if(USE_CCACHE)
         message(STATUS "[UseCcache] Found ccache at: ${CCACHE_BINARY}")
         set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_BINARY})
         set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_BINARY})
+        set(CMAKE_DISABLE_PRECOMPILE_HEADERS ON)
     else()
         message(FATAL_ERROR "[UseCcache] USE_CCACHE enabled, but no "
             "executable found at: ${CCACHE_PATH}")

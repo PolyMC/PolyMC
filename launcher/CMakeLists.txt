@@ -590,6 +590,7 @@ set(LOGIC_SOURCES
 
 if(APPLE)
     set (LOGIC_SOURCES ${LOGIC_SOURCES} ${MAC_UPDATE_SOURCES})
+    set_source_files_properties(updater/MacSparkleUpdater.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 endif()
 
 SET(LAUNCHER_SOURCES
@@ -1009,6 +1010,26 @@ endif()
 add_library(Launcher_logic STATIC
     ${LOGIC_SOURCES} ${LAUNCHER_SOURCES} ${LAUNCHER_UI} ${LAUNCHER_RESOURCES})
 target_include_directories(Launcher_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_precompile_headers(Launcher_logic PRIVATE
+    <memory>
+    <utility>
+    <QByteArray>
+    <QDebug>
+    <QDir>
+    <QFile>
+    <QFileInfo>
+    <QIcon>
+    <QJsonDocument>
+    <QJsonObject>
+    <QList>
+    <QMap>
+    <QObject>
+    <QString>
+    <QStringList>
+    <QUrl>
+    <QVariant>
+    <QWidget>
+)
 target_link_libraries(Launcher_logic
     systeminfo
     Launcher_murmur2
