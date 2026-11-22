@@ -1913,3 +1913,5 @@ QString Application::getUserAgentUncached()
 
     return BuildConfig.USER_AGENT_UNCACHED;
 }
+
+#include "moc_Application.cpp"

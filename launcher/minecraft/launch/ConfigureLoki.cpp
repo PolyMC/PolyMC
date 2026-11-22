@@ -187,3 +187,5 @@ void ConfigureLoki::javaAgentDownloaded()
 void ConfigureLoki::finalize()
 {
 }
+
+#include "moc_ConfigureLoki.cpp"

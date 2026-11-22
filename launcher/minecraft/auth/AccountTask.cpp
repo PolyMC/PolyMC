@@ -139,3 +139,5 @@ bool AccountTask::changeState(AccountTaskState newState, QString reason)
         }
     }
 }
+
+#include "moc_AccountTask.cpp"

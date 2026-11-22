@@ -210,3 +210,5 @@ void LocalTexturePackParseTask::executeTask()
         emitSucceeded();
     }
 }
+
+#include "moc_LocalTexturePackParseTask.cpp"

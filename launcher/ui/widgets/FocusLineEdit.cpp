@@ -23,3 +23,5 @@ void FocusLineEdit::mousePressEvent(QMouseEvent* me)
     }
     qDebug() << selectedText();
 }
+
+#include "moc_FocusLineEdit.cpp"

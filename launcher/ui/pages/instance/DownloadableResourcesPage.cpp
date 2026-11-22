@@ -70,3 +70,5 @@ void DownloadableResourcesPage::runTasks(const QList<ModDownloadTask*>& toRun)
 
     m_model->update();
 }
+
+#include "moc_DownloadableResourcesPage.cpp"

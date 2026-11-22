@@ -271,3 +271,5 @@ QString ModrinthCheckUpdate::parseLatestVersions(
 
     return {};
 }
+
+#include "moc_ModrinthCheckUpdate.cpp"

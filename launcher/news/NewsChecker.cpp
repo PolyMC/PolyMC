@@ -170,3 +170,5 @@ void NewsChecker::fail(const QString& errorMsg)
     m_newsNetJob.reset();
     emit newsLoadingFailed(errorMsg);
 }
+
+#include "moc_NewsChecker.cpp"

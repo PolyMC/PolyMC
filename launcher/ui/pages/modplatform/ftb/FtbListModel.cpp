@@ -314,3 +314,5 @@ void ListModel::requestLogo(QString logo, QString url)
 }
 
 }  // namespace Ftb
+
+#include "moc_FtbListModel.cpp"

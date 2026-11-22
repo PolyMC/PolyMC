@@ -717,3 +717,5 @@ void FlameCreationTask::onFilesJobFailed(QString reason)
     m_files_job.reset();
     setError(reason);
 }
+
+#include "moc_FlameInstanceCreationTask.cpp"

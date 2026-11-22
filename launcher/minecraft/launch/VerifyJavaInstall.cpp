@@ -89,3 +89,5 @@ void VerifyJavaInstall::executeTask()
     }
     emitFailed(QString("Incompatible Java major version"));
 }
+
+#include "moc_VerifyJavaInstall.cpp"

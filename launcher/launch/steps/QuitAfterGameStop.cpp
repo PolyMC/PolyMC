@@ -23,3 +23,5 @@ void QuitAfterGameStop::executeTask()
 {
     APPLICATION->quit();
 }
+
+#include "moc_QuitAfterGameStop.cpp"

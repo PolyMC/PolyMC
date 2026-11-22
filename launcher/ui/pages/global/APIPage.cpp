@@ -221,3 +221,5 @@ void APIPage::retranslate()
 {
     ui->retranslateUi(this);
 }
+
+#include "moc_APIPage.cpp"

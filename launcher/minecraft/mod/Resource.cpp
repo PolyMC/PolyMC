@@ -188,3 +188,5 @@ bool Resource::destroy()
     m_type = ResourceType::UNKNOWN;
     return FS::deletePath(m_file_info.filePath());
 }
+
+#include "moc_Resource.cpp"

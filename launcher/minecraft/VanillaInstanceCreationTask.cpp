@@ -45,3 +45,5 @@ bool VanillaCreationTask::createInstance()
 
     return true;
 }
+
+#include "moc_VanillaInstanceCreationTask.cpp"

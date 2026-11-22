@@ -320,3 +320,5 @@ void Technic::ListModel::onLogoLoaded(const QString& logo)
         }
     }
 }
+
+#include "moc_TechnicModel.cpp"

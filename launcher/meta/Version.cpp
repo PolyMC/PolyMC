@@ -144,3 +144,5 @@ void Meta::Version::setRecommended(bool recommended)
 {
     m_recommended = recommended;
 }
+
+#include "moc_Version.cpp"

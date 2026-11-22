@@ -354,3 +354,5 @@ void FlamePage::updateUi()
 
     ui->packDescription->setHtml(text + current.description);
 }
+
+#include "moc_FlamePage.cpp"

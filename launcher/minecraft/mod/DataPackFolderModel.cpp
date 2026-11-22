@@ -166,3 +166,5 @@ Task* DataPackFolderModel::createParseTask(Resource& resource)
     return new LocalResourcePackParseTask(m_next_resolution_ticket,
                                           static_cast<DataPack&>(resource));
 }
+
+#include "moc_DataPackFolderModel.cpp"

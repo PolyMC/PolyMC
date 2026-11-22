@@ -52,3 +52,5 @@ WorldDataPacksDialog::~WorldDataPacksDialog()
 {
     m_page->closedImpl();
 }
+
+#include "moc_WorldDataPacksDialog.cpp"

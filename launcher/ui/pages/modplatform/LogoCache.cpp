@@ -95,3 +95,5 @@ void LogoCache::onFailed(const QString& name)
     m_failed.append(name);
     m_loading.removeAll(name);
 }
+
+#include "moc_LogoCache.cpp"

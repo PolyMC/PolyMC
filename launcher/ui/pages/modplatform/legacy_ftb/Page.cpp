@@ -472,3 +472,5 @@ void Page::onRemovePackClicked()
 }
 
 }  // namespace LegacyFTB
+
+#include "moc_Page.cpp"

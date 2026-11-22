@@ -92,3 +92,5 @@ bool FlameModPage::shouldDisplay() const
 {
     return true;
 }
+
+#include "moc_FlameModPage.cpp"

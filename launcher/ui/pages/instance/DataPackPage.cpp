@@ -53,3 +53,5 @@ void DataPackPage::installDataPacks()
         runTasks(mdownload.getTasks());
     }
 }
+
+#include "moc_DataPackPage.cpp"

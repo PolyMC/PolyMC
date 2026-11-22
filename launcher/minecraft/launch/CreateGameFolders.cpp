@@ -32,3 +32,5 @@ void CreateGameFolders::executeTask()
     }
     emitSucceeded();
 }
+
+#include "moc_CreateGameFolders.cpp"

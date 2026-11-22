@@ -111,3 +111,5 @@ void RecursiveFileSystemWatcher::directoryChange(const QString& /*path*/)
 {
     setFiles(scanRecursive(m_root));
 }
+
+#include "moc_RecursiveFileSystemWatcher.cpp"

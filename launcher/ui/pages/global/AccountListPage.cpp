@@ -356,3 +356,5 @@ void AccountListPage::on_actionDeleteSkin_triggered()
         return;
     }
 }
+
+#include "moc_AccountListPage.cpp"

@@ -319,3 +319,5 @@ ResourcePack::versionMap() const
 {
     return s_resource_pack_format_versions;
 }
+
+#include "moc_ResourcePack.cpp"

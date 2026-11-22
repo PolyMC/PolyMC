@@ -209,3 +209,5 @@ SkinUploadDialog::SkinUploadDialog(MinecraftAccountPtr acct, QWidget* parent)
         }
     }
 }
+
+#include "moc_SkinUploadDialog.cpp"

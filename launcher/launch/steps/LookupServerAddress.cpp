@@ -105,3 +105,5 @@ void LookupServerAddress::resolve(const QString& address, quint16 port)
     emitSucceeded();
     m_dnsLookup->deleteLater();
 }
+
+#include "moc_LookupServerAddress.cpp"

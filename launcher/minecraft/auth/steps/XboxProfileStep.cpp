@@ -89,3 +89,5 @@ void XboxProfileStep::onRequestDone(
 
     emit finished(AccountTaskState::STATE_WORKING, tr("Got Xbox profile"));
 }
+
+#include "moc_XboxProfileStep.cpp"

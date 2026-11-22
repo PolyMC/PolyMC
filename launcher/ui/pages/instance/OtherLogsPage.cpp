@@ -396,3 +396,5 @@ void OtherLogsPage::findActivated()
         ui->searchBar->selectAll();
     }
 }
+
+#include "moc_OtherLogsPage.cpp"

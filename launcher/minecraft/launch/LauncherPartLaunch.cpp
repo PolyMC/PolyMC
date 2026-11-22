@@ -323,3 +323,5 @@ bool LauncherPartLaunch::abort()
     }
     return true;
 }
+
+#include "moc_LauncherPartLaunch.cpp"

@@ -806,3 +806,5 @@ void TranslationsModel::indexFailed(QString reason)
     // Still set up the language from whatever we have locally
     indexReceived();
 }
+
+#include "moc_TranslationsModel.cpp"

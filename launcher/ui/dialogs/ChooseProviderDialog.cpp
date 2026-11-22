@@ -106,3 +106,5 @@ void ChooseProviderDialog::disableInput()
     ui->confirmOneButton->setEnabled(false);
     ui->confirmAllButton->setEnabled(false);
 }
+
+#include "moc_ChooseProviderDialog.cpp"

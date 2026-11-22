@@ -240,3 +240,5 @@ void JavaChecker::timeout()
         process->kill();
     }
 }
+
+#include "moc_JavaChecker.cpp"

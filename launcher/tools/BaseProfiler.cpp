@@ -36,3 +36,5 @@ BaseProfiler* BaseProfilerFactory::createProfiler(InstancePtr instance,
 {
     return qobject_cast<BaseProfiler*>(createTool(instance, parent));
 }
+
+#include "moc_BaseProfiler.cpp"

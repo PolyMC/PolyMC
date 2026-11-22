@@ -13,3 +13,5 @@ OfflineLogin::OfflineLogin(AccountData* data, QObject* parent)
 {
     m_steps.append(new OfflineStep(m_data));
 }
+
+#include "moc_Offline.cpp"

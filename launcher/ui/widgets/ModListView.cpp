@@ -62,3 +62,5 @@ void ModListView::setModel(QAbstractItemModel* model)
         }
     }
 }
+
+#include "moc_ModListView.cpp"

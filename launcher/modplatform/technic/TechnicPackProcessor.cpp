@@ -267,3 +267,5 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings,
     components->saveNow();
     emit succeeded();
 }
+
+#include "moc_TechnicPackProcessor.cpp"

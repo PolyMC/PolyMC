@@ -1440,3 +1440,5 @@ void ServersPage::on_actionRefresh_triggered()
 }
 
 #include "ServersPage.moc"
+
+#include "moc_ServersPage.cpp"

@@ -40,3 +40,5 @@ void DropLabel::dropEvent(QDropEvent* event)
 
     event->acceptProposedAction();
 }
+
+#include "moc_DropLabel.cpp"

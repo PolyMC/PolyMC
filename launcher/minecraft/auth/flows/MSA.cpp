@@ -42,3 +42,5 @@ MSAInteractive::MSAInteractive(AccountData* data, QObject* parent)
     m_steps.append(new MinecraftProfileStep(m_data));
     m_steps.append(new GetSkinStep(m_data));
 }
+
+#include "moc_MSA.cpp"

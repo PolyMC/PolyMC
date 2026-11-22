@@ -643,3 +643,5 @@ void ScreenshotsPage::openedImpl()
 }
 
 #include "ScreenshotsPage.moc"
+
+#include "moc_ScreenshotsPage.cpp"

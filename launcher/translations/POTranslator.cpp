@@ -412,3 +412,5 @@ bool POTranslator::isEmpty() const
 {
     return !d->loaded;
 }
+
+#include "moc_POTranslator.cpp"

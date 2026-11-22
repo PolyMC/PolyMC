@@ -113,3 +113,5 @@ void CapeChange::downloadFinished()
     }
     emitSucceeded();
 }
+
+#include "moc_CapeChange.cpp"

@@ -90,3 +90,5 @@ bool LocalModUpdateTask::abort()
     emitAborted();
     return true;
 }
+
+#include "moc_LocalModUpdateTask.cpp"

@@ -28,3 +28,5 @@ void ClaimAccount::finalize()
 {
     lock.reset();
 }
+
+#include "moc_ClaimAccount.cpp"

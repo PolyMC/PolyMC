@@ -74,3 +74,5 @@ void PassthroughSetting::set(const QVariant& value)
         m_other->set(value);
     }
 }
+
+#include "moc_PassthroughSetting.cpp"

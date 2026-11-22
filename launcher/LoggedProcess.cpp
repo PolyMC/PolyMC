@@ -277,3 +277,5 @@ void LoggedProcess::setDetachable(bool detachable)
 {
     m_is_detachable = detachable;
 }
+
+#include "moc_LoggedProcess.cpp"

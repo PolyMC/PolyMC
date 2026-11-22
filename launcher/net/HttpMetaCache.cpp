@@ -385,3 +385,5 @@ void HttpMetaCache::SaveNow()
         qWarning() << e.what();
     }
 }
+
+#include "moc_HttpMetaCache.cpp"

@@ -63,3 +63,5 @@ void InstanceName::setName(InstanceName& other)
 InstanceTask::InstanceTask() : Task(), InstanceName()
 {
 }
+
+#include "moc_InstanceTask.cpp"

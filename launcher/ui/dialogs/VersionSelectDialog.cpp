@@ -140,3 +140,5 @@ void VersionSelectDialog::setFuzzyFilter(BaseVersionList::ModelRoles role,
 {
     m_versionWidget->setFuzzyFilter(role, filter);
 }
+
+#include "moc_VersionSelectDialog.cpp"

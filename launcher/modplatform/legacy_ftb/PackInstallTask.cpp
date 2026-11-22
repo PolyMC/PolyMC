@@ -290,3 +290,5 @@ bool PackInstallTask::abort()
 }
 
 }  // namespace LegacyFTB
+
+#include "moc_PackInstallTask.cpp"

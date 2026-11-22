@@ -38,3 +38,5 @@ void ReconstructAssets::executeTask()
 
     emitSucceeded();
 }
+
+#include "moc_ReconstructAssets.cpp"

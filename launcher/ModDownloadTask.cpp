@@ -107,3 +107,5 @@ void ModDownloadTask::hasOldMod(QString name, QString filename)
 {
     to_delete = {name, filename};
 }
+
+#include "moc_ModDownloadTask.cpp"

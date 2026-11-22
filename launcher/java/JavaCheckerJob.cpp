@@ -51,3 +51,5 @@ void JavaCheckerJob::executeTask()
         iter->performCheck();
     }
 }
+
+#include "moc_JavaCheckerJob.cpp"

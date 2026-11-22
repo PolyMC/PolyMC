@@ -85,3 +85,5 @@ void PageDialog::closeEvent(QCloseEvent* event)
         event->ignore();
     }
 }
+
+#include "moc_PageDialog.cpp"

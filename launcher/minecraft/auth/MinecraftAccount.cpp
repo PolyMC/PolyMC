@@ -429,3 +429,5 @@ void MinecraftAccount::incrementUses()
         qWarning() << "Profile" << data.profileId() << "is now in use.";
     }
 }
+
+#include "moc_MinecraftAccount.cpp"

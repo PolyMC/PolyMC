@@ -473,3 +473,5 @@ void ModPage::updateUi()
 
     ui->packDescription->setHtml(text);
 }
+
+#include "moc_ModPage.cpp"

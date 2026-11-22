@@ -266,3 +266,5 @@ Qt::ItemFlags ListModel::flags(const QModelIndex& index) const
 }
 
 }  // namespace LegacyFTB
+
+#include "moc_ListModel.cpp"

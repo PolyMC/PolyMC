@@ -123,3 +123,5 @@ bool InstanceProxyModel::filterAcceptsRow(int sourceRow,
            group.contains(searchTerm, Qt::CaseInsensitive) ||
            id.contains(searchTerm, Qt::CaseInsensitive);
 }
+
+#include "moc_InstanceProxyModel.cpp"

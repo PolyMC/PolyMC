@@ -331,3 +331,5 @@ bool InstanceWindow::requestClose()
     }
     return false;
 }
+
+#include "moc_InstanceWindow.cpp"

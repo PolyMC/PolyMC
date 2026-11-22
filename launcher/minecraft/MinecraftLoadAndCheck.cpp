@@ -60,3 +60,5 @@ void MinecraftLoadAndCheck::subtaskAborted()
 {
     subtaskFailed(tr("Aborted"));
 }
+
+#include "moc_MinecraftLoadAndCheck.cpp"

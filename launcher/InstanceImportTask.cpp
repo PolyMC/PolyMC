@@ -354,3 +354,5 @@ void InstanceImportTask::processModrinth()
     runCreationTask(new ModrinthCreationTask(m_stagingPath, m_globalSettings,
                                              m_parent, m_sourceUrl.toString()));
 }
+
+#include "moc_InstanceImportTask.cpp"

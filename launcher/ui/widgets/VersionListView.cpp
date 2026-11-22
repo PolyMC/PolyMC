@@ -187,3 +187,5 @@ void VersionListView::paintInfoLabel(QPaintEvent* event) const
     painter.drawText(textRect, Qt::AlignHCenter | Qt::TextWordWrap,
                      emptyString);
 }
+
+#include "moc_VersionListView.cpp"

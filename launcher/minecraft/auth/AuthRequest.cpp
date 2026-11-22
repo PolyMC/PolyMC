@@ -193,3 +193,5 @@ void AuthRequest::finish()
     QList<QNetworkReply::RawHeaderPair> headers = reply_->rawHeaderPairs();
     emit finished(error_, data, headers);
 }
+
+#include "moc_AuthRequest.cpp"

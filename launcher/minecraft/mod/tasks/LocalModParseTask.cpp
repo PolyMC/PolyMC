@@ -518,3 +518,5 @@ void LocalModParseTask::executeTask()
         emitSucceeded();
     }
 }
+
+#include "moc_LocalModParseTask.cpp"

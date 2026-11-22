@@ -154,3 +154,5 @@ bool FMLLibrariesTask::abort()
     }
     return true;
 }
+
+#include "moc_FMLLibrariesTask.cpp"

@@ -170,3 +170,5 @@ void ModFolderLoadTask::getFromMetadata()
         m_result->mods[mod->internal_id()] = mod;
     }
 }
+
+#include "moc_ModFolderLoadTask.cpp"

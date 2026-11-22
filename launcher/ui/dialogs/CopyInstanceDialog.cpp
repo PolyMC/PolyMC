@@ -163,3 +163,5 @@ void CopyInstanceDialog::on_keepPlaytimeCheckbox_stateChanged(int state)
         m_keepPlaytime = true;
     }
 }
+
+#include "moc_CopyInstanceDialog.cpp"

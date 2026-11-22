@@ -83,3 +83,5 @@ void LanguageSelectionWidget::languageSettingChanged(const Setting&,
     auto index = translations->selectedIndex();
     languageView->setCurrentIndex(index);
 }
+
+#include "moc_LanguageSelectionWidget.cpp"

@@ -264,3 +264,5 @@ void ProgressDialog::closeEvent(QCloseEvent* e)
         QDialog::closeEvent(e);
     }
 }
+
+#include "moc_ProgressDialog.cpp"

@@ -146,3 +146,5 @@ void ExtractNatives::finalize()
     QDir dir(target_dir);
     dir.removeRecursively();
 }
+
+#include "moc_ExtractNatives.cpp"

@@ -277,3 +277,5 @@ void VersionSelectWidget::setFilter(BaseVersionList::ModelRoles role,
 {
     m_proxyModel->setFilter(role, filter);
 }
+
+#include "moc_VersionSelectWidget.cpp"

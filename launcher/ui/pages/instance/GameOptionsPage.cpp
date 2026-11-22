@@ -79,3 +79,5 @@ void GameOptionsPage::retranslate()
 {
     ui->retranslateUi(this);
 }
+
+#include "moc_GameOptionsPage.cpp"

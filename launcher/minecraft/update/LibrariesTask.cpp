@@ -128,3 +128,5 @@ bool LibrariesTask::abort()
     }
     return true;
 }
+
+#include "moc_LibrariesTask.cpp"

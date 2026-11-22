@@ -541,3 +541,5 @@ const QList<ModDownloadTask*> ModUpdateDialog::getTasks()
 
     return list;
 }
+
+#include "moc_ModUpdateDialog.cpp"

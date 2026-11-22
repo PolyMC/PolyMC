@@ -73,3 +73,5 @@ void ReviewMessageBox::setCheckLabel(const QString& desc)
 {
     ui->onlyCheckedLabel->setText(desc);
 }
+
+#include "moc_ReviewMessageBox.cpp"

@@ -316,3 +316,5 @@ void NewInstanceDialog::importIconNow()
     APPLICATION->settings()->set("NewInstanceGeometry",
                                  saveGeometry().toBase64());
 }
+
+#include "moc_NewInstanceDialog.cpp"

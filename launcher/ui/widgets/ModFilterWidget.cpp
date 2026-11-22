@@ -184,3 +184,5 @@ ModFilterWidget::~ModFilterWidget()
 {
     delete ui;
 }
+
+#include "moc_ModFilterWidget.cpp"

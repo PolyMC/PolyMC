@@ -233,3 +233,5 @@ void LogView::findNext(const QString& what, bool reverse)
         find(what, flags);
     }
 }
+
+#include "moc_LogView.cpp"

@@ -45,3 +45,5 @@ void PasteWizardPage::retranslate()
 {
     ui->retranslateUi(this);
 }
+
+#include "moc_PasteWizardPage.cpp"

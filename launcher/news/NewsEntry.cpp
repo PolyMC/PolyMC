@@ -63,3 +63,5 @@ bool NewsEntry::fromXmlElement(const QDomElement& element, NewsEntry* entry,
     entry->link = link;
     return true;
 }
+
+#include "moc_NewsEntry.cpp"

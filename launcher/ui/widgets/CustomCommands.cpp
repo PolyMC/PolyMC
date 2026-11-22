@@ -89,3 +89,5 @@ QString CustomCommands::postexitCommand() const
 {
     return ui->postExitCmdTextBox->text();
 }
+
+#include "moc_CustomCommands.cpp"

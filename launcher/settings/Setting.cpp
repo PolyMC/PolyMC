@@ -53,3 +53,5 @@ void Setting::reset()
 {
     emit settingReset(*this);
 }
+
+#include "moc_Setting.cpp"

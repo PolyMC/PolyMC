@@ -151,3 +151,5 @@ bool AssetUpdateTask::abort()
     }
     return true;
 }
+
+#include "moc_AssetUpdateTask.cpp"

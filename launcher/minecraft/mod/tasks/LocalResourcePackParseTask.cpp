@@ -234,3 +234,5 @@ void LocalResourcePackParseTask::executeTask()
         emitSucceeded();
     }
 }
+
+#include "moc_LocalResourcePackParseTask.cpp"

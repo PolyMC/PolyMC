@@ -254,3 +254,5 @@ void JavaListLoadTask::javaCheckerFinished()
     m_list->updateListData(javas_bvp);
     emitSucceeded();
 }
+
+#include "moc_JavaInstallList.cpp"

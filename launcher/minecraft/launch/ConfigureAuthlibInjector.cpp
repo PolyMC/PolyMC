@@ -130,3 +130,5 @@ void ConfigureAuthlibInjector::javaAgentDownloaded()
 void ConfigureAuthlibInjector::finalize()
 {
 }
+
+#include "moc_ConfigureAuthlibInjector.cpp"

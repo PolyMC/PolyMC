@@ -187,3 +187,5 @@ void IconPickerDialog::openFolder()
 {
     DesktopServices::openPath(APPLICATION->icons()->getDirectory(), true);
 }
+
+#include "moc_IconPickerDialog.cpp"

@@ -100,3 +100,5 @@ bool FilterModel::lessThan(const QModelIndex& left,
 }
 
 }  // namespace Ftb
+
+#include "moc_FtbFilterModel.cpp"

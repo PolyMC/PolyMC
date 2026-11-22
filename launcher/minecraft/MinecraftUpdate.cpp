@@ -184,3 +184,5 @@ bool MinecraftUpdate::canAbort() const
 {
     return true;
 }
+
+#include "moc_MinecraftUpdate.cpp"

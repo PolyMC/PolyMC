@@ -80,3 +80,5 @@ void SkinDelete::downloadFinished()
     }
     emitSucceeded();
 }
+
+#include "moc_SkinDelete.cpp"

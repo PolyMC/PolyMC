@@ -82,3 +82,5 @@ void JavaWizardPage::retranslate()
         "Please select one of the following or browse for a Java executable."));
     m_java_widget->retranslate();
 }
+
+#include "moc_JavaWizardPage.cpp"

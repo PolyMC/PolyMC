@@ -823,3 +823,5 @@ void VersionPage::onFilterTextChanged(const QString& newContents)
 }
 
 #include "VersionPage.moc"
+
+#include "moc_VersionPage.cpp"

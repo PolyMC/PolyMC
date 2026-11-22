@@ -20,3 +20,5 @@ void OfflineStep::perform()
     emit finished(AccountTaskState::STATE_WORKING,
                   tr("Created offline account."));
 }
+
+#include "moc_OfflineStep.cpp"

@@ -224,3 +224,5 @@ void Mod::finishResolvingWithDetails(ModDetails&& details)
         setMetadata(std::move(metadata));
     }
 }
+
+#include "moc_Mod.cpp"

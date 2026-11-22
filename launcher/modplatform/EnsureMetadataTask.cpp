@@ -796,3 +796,5 @@ void EnsureMetadataTask::flameCallback(ModPlatform::IndexedPack& pack,
         emitFail(mod);
     }
 }
+
+#include "moc_EnsureMetadataTask.cpp"

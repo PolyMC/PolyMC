@@ -321,3 +321,5 @@ void FlameCheckUpdate::executeTask()
 
     emitSucceeded();
 }
+
+#include "moc_FlameCheckUpdate.cpp"

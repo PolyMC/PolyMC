@@ -66,3 +66,5 @@ Task* TexturePackFolderModel::createParseTask(Resource& resource)
     return new LocalTexturePackParseTask(m_next_resolution_ticket,
                                          static_cast<TexturePack&>(resource));
 }
+
+#include "moc_TexturePackFolderModel.cpp"

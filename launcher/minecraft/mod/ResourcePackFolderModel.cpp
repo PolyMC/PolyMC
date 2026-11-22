@@ -167,3 +167,5 @@ Task* ResourcePackFolderModel::createParseTask(Resource& resource)
     return new LocalResourcePackParseTask(m_next_resolution_ticket,
                                           static_cast<ResourcePack&>(resource));
 }
+
+#include "moc_ResourcePackFolderModel.cpp"

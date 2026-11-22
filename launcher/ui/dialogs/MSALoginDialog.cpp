@@ -199,3 +199,5 @@ MinecraftAccountPtr MSALoginDialog::newAccount(QWidget* parent, QString msg)
     }
     return nullptr;
 }
+
+#include "moc_MSALoginDialog.cpp"

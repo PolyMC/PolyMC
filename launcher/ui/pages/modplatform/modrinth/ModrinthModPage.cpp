@@ -102,3 +102,5 @@ bool ModrinthModPage::shouldDisplay() const
 {
     return true;
 }
+
+#include "moc_ModrinthModPage.cpp"

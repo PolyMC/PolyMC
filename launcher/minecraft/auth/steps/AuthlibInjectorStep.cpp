@@ -70,3 +70,5 @@ void AuthlibInjectorStep::onRequestDone()
                          "the supplied base URL"));
     }
 }
+
+#include "moc_AuthlibInjectorStep.cpp"

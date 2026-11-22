@@ -477,3 +477,5 @@ void AtlOptionalModDialog::useShareCode()
 
     listModel->useShareCode(shareCode);
 }
+
+#include "moc_AtlOptionalModDialog.cpp"

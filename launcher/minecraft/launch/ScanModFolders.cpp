@@ -81,3 +81,5 @@ void ScanModFolders::checkDone()
         emitSucceeded();
     }
 }
+
+#include "moc_ScanModFolders.cpp"

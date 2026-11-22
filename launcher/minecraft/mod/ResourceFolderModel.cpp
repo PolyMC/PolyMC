@@ -686,3 +686,5 @@ void ResourceFolderModel::enableInteraction(bool enabled)
     }
     return (compare_result.first > 0);
 }
+
+#include "moc_ResourceFolderModel.cpp"

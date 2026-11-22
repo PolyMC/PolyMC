@@ -479,3 +479,5 @@ std::list<Version> ModPlatform::ListModel::getMineVersions() const
 {
     return m_parent->getFilter()->versions;
 }
+
+#include "moc_ModModel.cpp"

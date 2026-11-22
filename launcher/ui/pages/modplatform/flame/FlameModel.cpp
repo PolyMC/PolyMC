@@ -276,3 +276,5 @@ void Flame::ListModel::searchRequestFailed(QString /*reason*/)
 }
 
 }  // namespace Flame
+
+#include "moc_FlameModel.cpp"

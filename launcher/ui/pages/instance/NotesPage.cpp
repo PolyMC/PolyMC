@@ -58,3 +58,5 @@ void NotesPage::retranslate()
 {
     ui->retranslateUi(this);
 }
+
+#include "moc_NotesPage.cpp"

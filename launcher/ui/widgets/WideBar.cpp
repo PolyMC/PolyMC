@@ -183,3 +183,5 @@ QMenu* WideBar::createContextMenu(QWidget* parent, const QString& title)
 }
 
 #include "WideBar.moc"
+
+#include "moc_WideBar.cpp"

@@ -2885,3 +2885,5 @@ void MainWindow::refreshCurrentInstance(bool /*running*/)
     auto current = view->selectionModel()->currentIndex();
     instanceChanged(current, current);
 }
+
+#include "moc_MainWindow.cpp"

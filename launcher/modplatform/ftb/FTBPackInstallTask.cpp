@@ -477,3 +477,5 @@ void PackInstallTask::onModDownloadFailed(QString reason)
 }
 
 }  // namespace FTB
+
+#include "moc_FTBPackInstallTask.cpp"

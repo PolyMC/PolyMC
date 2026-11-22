@@ -128,3 +128,5 @@ bool ModMinecraftJar::removeJar()
     }
     return true;
 }
+
+#include "moc_ModMinecraftJar.cpp"
