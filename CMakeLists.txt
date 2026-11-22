@@ -42,24 +42,10 @@ include(GenerateExportHeader)
 
 if (MSVC)
     add_compile_options(
-        /W4
         /permissive-
-        )
-elseif((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
-    add_compile_options(
-        -Wall
-        -Wpedantic
-        -Wextra
-        -fstack-protector-strong
-        -ftrivial-auto-var-init=pattern
         )
 else()
     add_compile_options(
-        -Wall
-        -Wpedantic
-        -Wextra
-        -Wcast-align=strict
-        -Wuseless-cast
         -fstack-protector-strong
         -ftrivial-auto-var-init=pattern
         )
@@ -317,15 +303,16 @@ endif()
 include(ExternalProject)
 set_directory_properties(PROPERTIES EP_BASE External)
 
+set(CMAKE_AUTOMOC OFF)
 option(NBT_BUILD_SHARED "Build NBT shared library" OFF)
 option(NBT_USE_ZLIB "Build NBT library with zlib support" OFF)
 option(NBT_BUILD_TESTS "Build NBT library tests" OFF) #FIXME: fix unit tests.
 add_subdirectory(libraries/libnbtplusplus)
-
-add_subdirectory(libraries/systeminfo) # system information library
 add_subdirectory(libraries/md4c) # markdown parser
-add_subdirectory(libraries/launcher) # java based launcher part for Minecraft
-add_subdirectory(libraries/javacheck) # java compatibility checker
+add_subdirectory(libraries/gamemode)
+add_subdirectory(libraries/murmur2) # Hash for usage with the CurseForge API
+set(CMAKE_AUTOMOC ON)
+
 if (FORCE_BUNDLED_QUAZIP)
     message(STATUS "Using bundled QuaZip")
     set(BUILD_SHARED_LIBS 0)  # link statically to avoid conflicts.
@@ -335,17 +322,39 @@ if (FORCE_BUNDLED_QUAZIP)
 else()
     message(STATUS "Using system QuaZip")
 endif()
-add_subdirectory(libraries/rainbow) # Qt extension for colors
-add_subdirectory(libraries/LocalPeer) # fork of a library from Qt solutions
 if(NOT tomlplusplus_FOUND)
     message(STATUS "Using bundled tomlplusplus")
     add_subdirectory(libraries/tomlplusplus) # toml parser
 else()
     message(STATUS "Using system tomlplusplus")
 endif()
+
+if (MSVC)
+    add_compile_options(
+        /W4
+        )
+elseif((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
+    add_compile_options(
+        -Wall
+        -Wpedantic
+        -Wextra
+        )
+else()
+    add_compile_options(
+        -Wall
+        -Wpedantic
+        -Wextra
+        -Wcast-align=strict
+        -Wuseless-cast
+        )
+endif()
+
+add_subdirectory(libraries/systeminfo) # system information library
+add_subdirectory(libraries/launcher) # java based launcher part for Minecraft
+add_subdirectory(libraries/javacheck) # java compatibility checker
+add_subdirectory(libraries/rainbow) # Qt extension for colors
+add_subdirectory(libraries/LocalPeer) # fork of a library from Qt solutions
 add_subdirectory(libraries/katabasis) # An OAuth2 library that tried to do too much
-add_subdirectory(libraries/gamemode)
-add_subdirectory(libraries/murmur2) # Hash for usage with the CurseForge API
 
 ############################### Built Artifacts ###############################
 
