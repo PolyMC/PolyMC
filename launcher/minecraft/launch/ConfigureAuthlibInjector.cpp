@@ -123,7 +123,7 @@ void ConfigureAuthlibInjector::javaAgentDownloaded()
 {
     auto path = m_entry->getFullPath();
     qDebug() << path;
-    *m_javaagent_arg = QString("%1=%2").arg(path).arg(m_yggdrasil_base_url);
+    *m_javaagent_arg = QString("%1=%2").arg(path, m_yggdrasil_base_url);
     emitSucceeded();
 }
 

@@ -221,8 +221,11 @@ QList<JavaInstallPtr> JavaUtils::FindJavaFromRegistryKey(DWORD keyType,
         DWORD subKeyNameSize, numSubKeys, retCode;
 
         // Get the number of subkeys
-        RegQueryInfoKeyW(jreKey, NULL, NULL, NULL, &numSubKeys, NULL, NULL,
-                         NULL, NULL, NULL, NULL, NULL);
+        if (RegQueryInfoKeyW(jreKey, NULL, NULL, NULL, &numSubKeys, NULL, NULL,
+                             NULL, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)
+        {
+            numSubKeys = 0;
+        }
 
         // Iterate until RegEnumKeyEx fails
         for (DWORD i = 0; i < numSubKeys; i++)

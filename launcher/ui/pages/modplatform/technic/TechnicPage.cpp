@@ -200,7 +200,7 @@ void TechnicPage::onPackMetaReceived()
         qWarning() << "Error while parsing JSON response from Technic at "
                    << parse_error.offset
                    << " reason: " << parse_error.errorString();
-        qWarning() << *response;
+        qWarning() << response;
         return;
     }
     if (!obj.contains("url"))
