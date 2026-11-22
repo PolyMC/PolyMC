@@ -19,12 +19,14 @@
 
 #include <QString>
 
-namespace ArchiveExtractor {
+namespace ArchiveExtractor
+{
 
 /**
  * Extracts a .tar.gz or .zip archive into the target folder.
- * Entries that would land outside of the target (absolute paths, "..", escaping symlinks) are rejected.
- * Unix permissions and symlinks are kept for tar archives.
+ * Entries that would land outside of the target (absolute paths, "..", escaping
+ * symlinks) are rejected. Unix permissions and symlinks are kept for tar
+ * archives.
  *
  * Returns an empty string on success, an error message otherwise.
  */

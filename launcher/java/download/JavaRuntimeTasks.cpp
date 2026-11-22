@@ -35,17 +35,22 @@
 #include "FileSystem.h"
 #include "net/ChecksumValidator.h"
 
-namespace JavaRuntime {
+namespace JavaRuntime
+{
 
-namespace {
+namespace
+{
 
 const QString MOJANG_INDEX =
-    "https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json";
+    "https://launchermeta.mojang.com/v1/products/java-runtime/"
+    "2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json";
 const QString ADOPTIUM_API = "https://api.adoptium.net/v3";
 const QString AZUL_API = "https://api.azul.com/metadata/v1/zulu/packages/";
-// IBM no longer runs a Semeru metadata API, the GitHub releases are the source of truth.
-const QString SEMERU_RELEASES = "https://api.github.com/repos/ibmruntimes/semeru%1-binaries/releases";
-const QList<int> SEMERU_MAJORS = { 25, 21, 17, 11, 8 };
+// IBM no longer runs a Semeru metadata API, the GitHub releases are the source
+// of truth.
+const QString SEMERU_RELEASES =
+    "https://api.github.com/repos/ibmruntimes/semeru%1-binaries/releases";
+const QList<int> SEMERU_MAJORS = {25, 21, 17, 11, 8};
 
 QString mojangPlatform()
 {
@@ -64,9 +69,13 @@ QString mojangPlatform()
         return "mac-os";
 #elif defined(Q_OS_LINUX)
     if (arch == "x64")
+    {
         return "linux";
+    }
     if (arch == "x86")
+    {
         return "linux-i386";
+    }
 #endif
     return {};
 }
@@ -116,7 +125,9 @@ QUrl azulUrl(std::optional<int> major)
     QUrl url(AZUL_API);
     QUrlQuery query;
     if (major)
+    {
         query.addQueryItem("java_version", QString::number(*major));
+    }
     query.addQueryItem("os", azulOs());
     query.addQueryItem("arch", hostArch());
     query.addQueryItem("archive_type", archiveType());
@@ -124,10 +135,14 @@ QUrl azulUrl(std::optional<int> major)
     query.addQueryItem("crac_supported", "false");
     query.addQueryItem("release_status", "ga");
     query.addQueryItem("availability_types", "CA");
-    if (major) {
+    if (major)
+    {
         query.addQueryItem("page_size", "40");
-        query.addQueryItem("include_fields", "java_package_type,build_date,sha256_hash");
-    } else {
+        query.addQueryItem("include_fields",
+                           "java_package_type,build_date,sha256_hash");
+    }
+    else
+    {
         query.addQueryItem("latest", "true");
         query.addQueryItem("page_size", "1000");
     }
@@ -137,11 +152,15 @@ QUrl azulUrl(std::optional<int> major)
 
 QUrl releaseListUrl(Provider provider, int major)
 {
-    switch (provider) {
+    switch (provider)
+    {
         case Provider::Mojang:
             return MOJANG_INDEX;
-        case Provider::Adoptium: {
-            QUrl url(QString("%1/assets/feature_releases/%2/ga").arg(ADOPTIUM_API).arg(major));
+        case Provider::Adoptium:
+        {
+            QUrl url(QString("%1/assets/feature_releases/%2/ga")
+                         .arg(ADOPTIUM_API)
+                         .arg(major));
             QUrlQuery query;
             query.addQueryItem("os", vendorOs());
             query.addQueryItem("architecture", hostArch());
@@ -159,10 +178,12 @@ QUrl releaseListUrl(Provider provider, int major)
     return {};
 }
 
-// Mojang's index also lists things that are not Java runtimes, like minecraft-java-exe on Windows
+// Mojang's index also lists things that are not Java runtimes, like
+// minecraft-java-exe on Windows
 bool isMojangRuntimeComponent(const QString& component)
 {
-    return component.startsWith("java-runtime-") || component.startsWith("jre-");
+    return component.startsWith("java-runtime-") ||
+           component.startsWith("jre-");
 }
 
 // "8u202", "1.8.0_51", "17.0.15" -> major version
@@ -170,10 +191,14 @@ int majorFromVersionName(const QString& name)
 {
     auto parts = name.split(QRegularExpression("[^0-9]+"), Qt::SkipEmptyParts);
     if (parts.isEmpty())
+    {
         return 0;
+    }
     int first = parts[0].toInt();
     if (first == 1 && parts.size() > 1)
+    {
         return parts[1].toInt();
+    }
     return first;
 }
 
@@ -182,7 +207,9 @@ QJsonDocument parseJson(const QByteArray& data)
     QJsonParseError error;
     auto doc = QJsonDocument::fromJson(data, &error);
     if (error.error != QJsonParseError::NoError)
+    {
         qWarning() << "Could not parse Java metadata:" << error.errorString();
+    }
     return doc;
 }
 
@@ -190,7 +217,9 @@ QDateTime parseDate(const QString& text)
 {
     auto date = QDateTime::fromString(text, Qt::ISODate);
     if (!date.isValid())
+    {
         date = QDateTime::fromString(text, Qt::ISODateWithMs);
+    }
     return date;
 }
 
@@ -198,40 +227,56 @@ QDateTime parseDate(const QString& text)
 QString pathInside(const QDir& root, const QString& name)
 {
     if (name.isEmpty() || QDir::isAbsolutePath(name) || name.contains('\\'))
+    {
         return {};
+    }
     auto rootPath = QDir::cleanPath(root.absolutePath());
     auto path = QDir::cleanPath(root.absoluteFilePath(name));
     if (!path.startsWith(rootPath + '/'))
+    {
         return {};
+    }
     return path;
 }
 
 QString findJavaBinary(const QString& directory)
 {
     QString best;
-    QDirIterator it(directory, { javaBinaryName() }, QDir::Files, QDirIterator::Subdirectories);
-    while (it.hasNext()) {
+    QDirIterator it(directory, {javaBinaryName()}, QDir::Files,
+                    QDirIterator::Subdirectories);
+    while (it.hasNext())
+    {
         auto path = it.next();
         if (QFileInfo(path).dir().dirName() != "bin")
+        {
             continue;
-        // a JDK 8 has both bin/java and jre/bin/java, the outer one is the right one
+        }
+        // a JDK 8 has both bin/java and jre/bin/java, the outer one is the
+        // right one
         if (best.isEmpty() || path.size() < best.size())
+        {
             best = path;
+        }
     }
     return best;
 }
 
-// Virus scanners on Windows briefly lock freshly written files, which makes renaming their folder fail.
-// Retry for a moment, then copy instead.
+// Virus scanners on Windows briefly lock freshly written files, which makes
+// renaming their folder fail. Retry for a moment, then copy instead.
 bool moveDirectory(const QString& source, const QString& target)
 {
-    for (int attempt = 0; attempt < 10; attempt++) {
+    for (int attempt = 0; attempt < 10; attempt++)
+    {
         if (QDir().rename(source, target))
+        {
             return true;
+        }
         QThread::msleep(200);
     }
-    qWarning() << "Could not rename" << source << "to" << target << ", copying instead";
-    if (!FS::copy(source, target)()) {
+    qWarning() << "Could not rename" << source << "to" << target
+               << ", copying instead";
+    if (!FS::copy(source, target)())
+    {
         FS::deletePath(target);
         return false;
     }
@@ -242,7 +287,8 @@ bool moveDirectory(const QString& source, const QString& target)
 void makeExecutable(const QString& path)
 {
     QFile file(path);
-    file.setPermissions(file.permissions() | QFileDevice::ExeOwner | QFileDevice::ExeUser | QFileDevice::ExeGroup |
+    file.setPermissions(file.permissions() | QFileDevice::ExeOwner |
+                        QFileDevice::ExeUser | QFileDevice::ExeGroup |
                         QFileDevice::ExeOther);
 }
 
@@ -250,14 +296,19 @@ QList<Release> parseMojang(const QJsonDocument& doc, int major)
 {
     QList<Release> result;
     auto platform = doc.object().value(mojangPlatform()).toObject();
-    for (auto it = platform.begin(); it != platform.end(); ++it) {
+    for (auto it = platform.begin(); it != platform.end(); ++it)
+    {
         auto entries = it.value().toArray();
         if (entries.isEmpty() || !isMojangRuntimeComponent(it.key()))
+        {
             continue;
+        }
         auto entry = entries[0].toObject();
         auto version = entry.value("version").toObject();
         if (majorFromVersionName(version.value("name").toString()) != major)
+        {
             continue;
+        }
         auto manifest = entry.value("manifest").toObject();
         Release release;
         release.provider = Provider::Mojang;
@@ -267,10 +318,13 @@ QList<Release> parseMojang(const QJsonDocument& doc, int major)
         release.released = parseDate(version.value("released").toString());
         release.type = "jre";
         release.url = manifest.value("url").toString();
-        release.sha1 = QByteArray::fromHex(manifest.value("sha1").toString().toLatin1());
+        release.sha1 =
+            QByteArray::fromHex(manifest.value("sha1").toString().toLatin1());
         release.mojangComponent = it.key();
         if (!release.url.isEmpty())
+        {
             result.append(release);
+        }
     }
     return result;
 }
@@ -278,27 +332,39 @@ QList<Release> parseMojang(const QJsonDocument& doc, int major)
 QList<Release> parseAdoptium(const QJsonDocument& doc, int major)
 {
     QList<Release> result;
-    for (auto value : doc.array()) {
+    for (auto value : doc.array())
+    {
         auto obj = value.toObject();
-        for (auto binaryValue : obj.value("binaries").toArray()) {
+        for (auto binaryValue : obj.value("binaries").toArray())
+        {
             auto binary = binaryValue.toObject();
             auto type = binary.value("image_type").toString();
             if (type != "jre" && type != "jdk")
+            {
                 continue;
+            }
             auto package = binary.value("package").toObject();
             Release release;
             release.provider = Provider::Adoptium;
             release.major = major;
-            release.version = obj.value("version_data").toObject().value("openjdk_version").toString();
+            release.version = obj.value("version_data")
+                                  .toObject()
+                                  .value("openjdk_version")
+                                  .toString();
             release.name = obj.value("release_name").toString();
             release.released = parseDate(binary.value("updated_at").toString());
             if (!release.released.isValid())
+            {
                 release.released = parseDate(obj.value("timestamp").toString());
+            }
             release.type = type;
             release.url = package.value("link").toString();
-            release.sha256 = QByteArray::fromHex(package.value("checksum").toString().toLatin1());
+            release.sha256 = QByteArray::fromHex(
+                package.value("checksum").toString().toLatin1());
             if (!release.url.isEmpty())
+            {
                 result.append(release);
+            }
         }
     }
     return result;
@@ -308,27 +374,37 @@ QList<Release> parseAzul(const QJsonDocument& doc, int major)
 {
     QList<Release> result;
     auto suffix = "." + archiveType();
-    for (auto value : doc.array()) {
+    for (auto value : doc.array())
+    {
         auto obj = value.toObject();
         auto type = obj.value("java_package_type").toString();
         if (type != "jre" && type != "jdk")
+        {
             continue;
+        }
         QStringList version;
         for (auto part : obj.value("java_version").toArray())
+        {
             version.append(QString::number(part.toInt()));
+        }
         Release release;
         release.provider = Provider::Azul;
         release.major = major;
         release.version = version.join('.');
         release.name = obj.value("name").toString();
         if (release.name.endsWith(suffix))
+        {
             release.name.chop(suffix.size());
+        }
         release.released = parseDate(obj.value("build_date").toString());
         release.type = type;
         release.url = obj.value("download_url").toString();
-        release.sha256 = QByteArray::fromHex(obj.value("sha256_hash").toString().toLatin1());
+        release.sha256 =
+            QByteArray::fromHex(obj.value("sha256_hash").toString().toLatin1());
         if (!release.url.isEmpty())
+        {
             result.append(release);
+        }
     }
     return result;
 }
@@ -337,34 +413,52 @@ QList<Release> parseSemeru(const QJsonDocument& doc, int major)
 {
     QList<Release> result;
     auto suffix = "." + archiveType();
-    for (auto value : doc.array()) {
+    for (auto value : doc.array())
+    {
         auto obj = value.toObject();
         if (obj.value("draft").toBool() || obj.value("prerelease").toBool())
+        {
             continue;
-        for (auto type : { QString("jre"), QString("jdk") }) {
-            auto prefix = QString("ibm-semeru-open-%1_%2_%3_").arg(type, hostArch(), vendorOs());
-            for (auto assetValue : obj.value("assets").toArray()) {
+        }
+        for (auto type : {QString("jre"), QString("jdk")})
+        {
+            auto prefix = QString("ibm-semeru-open-%1_%2_%3_")
+                              .arg(type, hostArch(), vendorOs());
+            for (auto assetValue : obj.value("assets").toArray())
+            {
                 auto asset = assetValue.toObject();
                 auto name = asset.value("name").toString();
                 if (!name.startsWith(prefix) || !name.endsWith(suffix))
+                {
                     continue;
+                }
                 Release release;
                 release.provider = Provider::Semeru;
                 release.major = major;
-                release.version = name.mid(prefix.size(), name.size() - prefix.size() - suffix.size());
+                release.version = name.mid(
+                    prefix.size(), name.size() - prefix.size() - suffix.size());
                 release.name = obj.value("tag_name").toString();
-                release.released = parseDate(obj.value("published_at").toString());
+                release.released =
+                    parseDate(obj.value("published_at").toString());
                 release.type = type;
                 release.url = asset.value("browser_download_url").toString();
                 auto digest = asset.value("digest").toString();
                 if (digest.startsWith("sha256:"))
-                    release.sha256 = QByteArray::fromHex(digest.mid(7).toLatin1());
+                {
+                    release.sha256 =
+                        QByteArray::fromHex(digest.mid(7).toLatin1());
+                }
                 result.append(release);
                 break;
             }
         }
     }
     return result;
+}
+
+bool newerRelease(const Release& a, const Release& b)
+{
+    return a.released > b.released;
 }
 
 }  // namespace
@@ -376,7 +470,8 @@ bool isLts(int major)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-VersionListTask::VersionListTask(Provider provider) : Task(nullptr), m_provider(provider)
+VersionListTask::VersionListTask(Provider provider)
+    : Task(nullptr), m_provider(provider)
 {
     setAbortable(true);
 }
@@ -384,20 +479,24 @@ VersionListTask::VersionListTask(Provider provider) : Task(nullptr), m_provider(
 bool VersionListTask::abort()
 {
     if (m_job)
+    {
         m_job->abort();
+    }
     emitAborted();
     return true;
 }
 
 void VersionListTask::executeTask()
 {
-    if (!platformSupported()) {
+    if (!platformSupported())
+    {
         emitFailed(tr("Downloading Java is not supported on this platform."));
         return;
     }
 
     QUrl url;
-    switch (m_provider) {
+    switch (m_provider)
+    {
         case Provider::Mojang:
             url = MOJANG_INDEX;
             break;
@@ -413,20 +512,28 @@ void VersionListTask::executeTask()
             return;
     }
 
-    setStatus(tr("Fetching Java versions from %1...").arg(providerName(m_provider)));
+    setStatus(
+        tr("Fetching Java versions from %1...").arg(providerName(m_provider)));
     m_job.reset(new NetJob(tr("Java version list"), APPLICATION->network()));
     m_job->addNetAction(Net::Download::makeByteArray(url, m_data.get()));
-    connect(m_job.get(), &Task::succeeded, this, [this] {
-        m_job.reset();
-        parse();
-        emitSucceeded();
-    });
-    connect(m_job.get(), &Task::failed, this, [this](QString reason) {
-        m_job.reset();
-        emitFailed(reason);
-    });
+    connect(m_job.get(), &Task::succeeded, this,
+            &VersionListTask::jobSucceeded);
+    connect(m_job.get(), &Task::failed, this, &VersionListTask::jobFailed);
     connect(m_job.get(), &Task::progress, this, &Task::setProgress);
     m_job->start();
+}
+
+void VersionListTask::jobSucceeded()
+{
+    m_job.reset();
+    parse();
+    emitSucceeded();
+}
+
+void VersionListTask::jobFailed(QString reason)
+{
+    m_job.reset();
+    emitFailed(reason);
 }
 
 void VersionListTask::parse()
@@ -434,40 +541,60 @@ void VersionListTask::parse()
     auto doc = parseJson(*m_data);
     std::set<int> majors;
 
-    switch (m_provider) {
-        case Provider::Mojang: {
+    switch (m_provider)
+    {
+        case Provider::Mojang:
+        {
             auto platform = doc.object().value(mojangPlatform()).toObject();
-            for (auto it = platform.begin(); it != platform.end(); ++it) {
+            for (auto it = platform.begin(); it != platform.end(); ++it)
+            {
                 auto entries = it.value().toArray();
                 if (!entries.isEmpty() && isMojangRuntimeComponent(it.key()))
-                    majors.insert(majorFromVersionName(entries[0].toObject().value("version").toObject().value("name").toString()));
+                {
+                    majors.insert(majorFromVersionName(entries[0]
+                                                           .toObject()
+                                                           .value("version")
+                                                           .toObject()
+                                                           .value("name")
+                                                           .toString()));
+                }
             }
             break;
         }
         case Provider::Adoptium:
-            for (auto value : doc.object().value("available_releases").toArray())
+            for (auto value :
+                 doc.object().value("available_releases").toArray())
+            {
                 majors.insert(value.toInt());
+            }
             break;
         case Provider::Azul:
-            for (auto value : doc.array()) {
+            for (auto value : doc.array())
+            {
                 auto version = value.toObject().value("java_version").toArray();
                 if (!version.isEmpty())
+                {
                     majors.insert(version[0].toInt());
+                }
             }
             break;
         case Provider::Semeru:
             break;
     }
 
-    for (auto it = majors.rbegin(); it != majors.rend(); ++it) {
+    for (auto it = majors.rbegin(); it != majors.rend(); ++it)
+    {
         if (*it >= 8)
+        {
             m_majors.append(*it);
+        }
     }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-ReleaseListTask::ReleaseListTask(Provider provider, int major) : Task(nullptr), m_provider(provider), m_major(major)
+ReleaseListTask::ReleaseListTask(Provider provider, int major)
+    : Task(nullptr), m_provider(provider), m_major(major)
 {
     setAbortable(true);
 }
@@ -475,38 +602,52 @@ ReleaseListTask::ReleaseListTask(Provider provider, int major) : Task(nullptr), 
 bool ReleaseListTask::abort()
 {
     if (m_job)
+    {
         m_job->abort();
+    }
     emitAborted();
     return true;
 }
 
 void ReleaseListTask::executeTask()
 {
-    if (!platformSupported()) {
+    if (!platformSupported())
+    {
         emitFailed(tr("Downloading Java is not supported on this platform."));
         return;
     }
 
-    setStatus(tr("Fetching Java %1 builds from %2...").arg(m_major).arg(providerName(m_provider)));
+    setStatus(tr("Fetching Java %1 builds from %2...")
+                  .arg(m_major)
+                  .arg(providerName(m_provider)));
     m_job.reset(new NetJob(tr("Java release list"), APPLICATION->network()));
-    m_job->addNetAction(Net::Download::makeByteArray(releaseListUrl(m_provider, m_major), m_data.get()));
-    connect(m_job.get(), &Task::succeeded, this, [this] {
-        m_job.reset();
-        parse();
-        emitSucceeded();
-    });
-    connect(m_job.get(), &Task::failed, this, [this](QString reason) {
-        m_job.reset();
-        emitFailed(reason);
-    });
+    m_job->addNetAction(Net::Download::makeByteArray(
+        releaseListUrl(m_provider, m_major), m_data.get()));
+    connect(m_job.get(), &Task::succeeded, this,
+            &ReleaseListTask::jobSucceeded);
+    connect(m_job.get(), &Task::failed, this, &ReleaseListTask::jobFailed);
     connect(m_job.get(), &Task::progress, this, &Task::setProgress);
     m_job->start();
+}
+
+void ReleaseListTask::jobSucceeded()
+{
+    m_job.reset();
+    parse();
+    emitSucceeded();
+}
+
+void ReleaseListTask::jobFailed(QString reason)
+{
+    m_job.reset();
+    emitFailed(reason);
 }
 
 void ReleaseListTask::parse()
 {
     auto doc = parseJson(*m_data);
-    switch (m_provider) {
+    switch (m_provider)
+    {
         case Provider::Mojang:
             m_releases = parseMojang(doc, m_major);
             break;
@@ -520,17 +661,21 @@ void ReleaseListTask::parse()
             m_releases = parseSemeru(doc, m_major);
             break;
     }
-    std::stable_sort(m_releases.begin(), m_releases.end(),
-                     [](const Release& a, const Release& b) { return a.released > b.released; });
+    std::stable_sort(m_releases.begin(), m_releases.end(), newerRelease);
 }
 
 std::optional<Release> ReleaseListTask::recommended() const
 {
     // the list is sorted newest first
-    for (auto type : { QString("jre"), QString("jdk") }) {
-        for (auto& release : m_releases) {
-            if (release.type == type && !release.mojangComponent.endsWith("-snapshot"))
+    for (auto type : {QString("jre"), QString("jdk")})
+    {
+        for (auto& release : m_releases)
+        {
+            if (release.type == type &&
+                !release.mojangComponent.endsWith("-snapshot"))
+            {
                 return release;
+            }
         }
     }
     return std::nullopt;
@@ -538,61 +683,84 @@ std::optional<Release> ReleaseListTask::recommended() const
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-InstallTask::InstallTask(Release release) : Task(nullptr), m_provider(release.provider), m_release(std::move(release))
+InstallTask::InstallTask(Release release)
+    : Task(nullptr), m_provider(release.provider), m_release(std::move(release))
 {
     setAbortable(true);
-    connect(&m_extractWatcher, &QFutureWatcher<QString>::finished, this, &InstallTask::extractFinished);
+    connect(&m_extractWatcher, &QFutureWatcher<QString>::finished, this,
+            &InstallTask::extractFinished);
 }
 
-InstallTask::InstallTask(Provider provider, QList<int> majors) : Task(nullptr), m_provider(provider), m_majors(std::move(majors))
+InstallTask::InstallTask(Provider provider, QList<int> majors)
+    : Task(nullptr), m_provider(provider), m_majors(std::move(majors))
 {
     setAbortable(true);
-    connect(&m_extractWatcher, &QFutureWatcher<QString>::finished, this, &InstallTask::extractFinished);
+    connect(&m_extractWatcher, &QFutureWatcher<QString>::finished, this,
+            &InstallTask::extractFinished);
 }
 
 bool InstallTask::abort()
 {
     if (!canAbort())
+    {
         return false;
+    }
     m_aborted = true;
-    if (m_listTask) {
+    if (m_listTask)
+    {
         disconnect(m_listTask.get(), nullptr, this, nullptr);
         m_listTask->abort();
     }
     if (m_job)
+    {
         m_job->abort();
+    }
     emitAborted();
     return true;
 }
 
-void InstallTask::runJob(NetJob::Ptr job, std::function<void()> onSuccess)
+void InstallTask::runJob(NetJob::Ptr job, void (InstallTask::*next)())
 {
     m_job = job;
-    connect(job.get(), &Task::succeeded, this, [this, onSuccess] {
-        m_job.reset();
-        if (!m_aborted)
-            onSuccess();
-    });
-    connect(job.get(), &Task::failed, this, [this](QString reason) {
-        m_job.reset();
-        if (!m_aborted)
-            emitFailed(reason);
-    });
+    m_afterJob = next;
+    connect(job.get(), &Task::succeeded, this, &InstallTask::jobSucceeded);
+    connect(job.get(), &Task::failed, this, &InstallTask::jobFailed);
     connect(job.get(), &Task::progress, this, &Task::setProgress);
     job->start();
 }
 
+void InstallTask::jobSucceeded()
+{
+    m_job.reset();
+    if (!m_aborted)
+    {
+        (this->*m_afterJob)();
+    }
+}
+
+void InstallTask::jobFailed(QString reason)
+{
+    m_job.reset();
+    if (!m_aborted)
+    {
+        emitFailed(reason);
+    }
+}
+
 void InstallTask::executeTask()
 {
-    if (!platformSupported()) {
+    if (!platformSupported())
+    {
         emitFailed(tr("Downloading Java is not supported on this platform."));
         return;
     }
-    if (!m_release.url.isEmpty()) {
+    if (!m_release.url.isEmpty())
+    {
         download();
         return;
     }
-    if (m_majors.isEmpty()) {
+    if (m_majors.isEmpty())
+    {
         emitFailed(tr("No Java version was requested."));
         return;
     }
@@ -601,62 +769,91 @@ void InstallTask::executeTask()
 
 void InstallTask::resolveNext()
 {
-    if (m_majorIndex >= m_majors.size()) {
+    if (m_majorIndex >= m_majors.size())
+    {
         QStringList majors;
         for (int major : m_majors)
+        {
             majors.append(QString::number(major));
-        auto message = tr("%1 does not provide Java %2 for this platform.").arg(providerName(m_provider), majors.join(", "));
+        }
+        auto message = tr("%1 does not provide Java %2 for this platform.")
+                           .arg(providerName(m_provider), majors.join(", "));
         if (!m_lastError.isEmpty())
+        {
             message += "\n" + tr("Last error: %1").arg(m_lastError);
+        }
         emitFailed(message);
         return;
     }
 
     int major = m_majors[m_majorIndex];
-    setStatus(tr("Looking for Java %1 from %2...").arg(major).arg(providerName(m_provider)));
+    setStatus(tr("Looking for Java %1 from %2...")
+                  .arg(major)
+                  .arg(providerName(m_provider)));
     m_listTask.reset(new ReleaseListTask(m_provider, major));
-    connect(m_listTask.get(), &Task::finished, this, [this] {
-        auto task = m_listTask;
-        m_listTask.reset();
-        if (m_aborted)
-            return;
-        auto release = task->wasSuccessful() ? task->recommended() : std::nullopt;
-        if (!task->wasSuccessful())
-            m_lastError = task->failReason();
-        if (release) {
-            m_release = *release;
-            download();
-            return;
-        }
-        // a missing version is not fatal, the next compatible major might be available
-        m_majorIndex++;
-        resolveNext();
-    });
+    connect(m_listTask.get(), &Task::finished, this,
+            &InstallTask::releaseListFinished);
     m_listTask->start();
+}
+
+void InstallTask::releaseListFinished()
+{
+    auto task = m_listTask;
+    m_listTask.reset();
+    if (m_aborted)
+    {
+        return;
+    }
+    auto release = task->wasSuccessful() ? task->recommended() : std::nullopt;
+    if (!task->wasSuccessful())
+    {
+        m_lastError = task->failReason();
+    }
+    if (release)
+    {
+        m_release = *release;
+        download();
+        return;
+    }
+    // a missing version is not fatal, the next compatible major might be
+    // available
+    m_majorIndex++;
+    resolveNext();
 }
 
 void InstallTask::download()
 {
-    if (!QDir().mkpath(runtimesRoot())) {
+    if (!QDir().mkpath(runtimesRoot()))
+    {
         emitFailed(tr("Could not create %1").arg(runtimesRoot()));
         return;
     }
-    // inside the runtimes folder, so the final move is a cheap rename on the same file system
-    m_tempDir = std::make_unique<QTemporaryDir>(QDir(runtimesRoot()).absoluteFilePath(".download-XXXXXX"));
-    if (!m_tempDir->isValid()) {
-        emitFailed(tr("Could not create a temporary folder in %1: %2").arg(runtimesRoot(), m_tempDir->errorString()));
+    // inside the runtimes folder, so the final move is a cheap rename on the
+    // same file system
+    m_tempDir = std::make_unique<QTemporaryDir>(
+        QDir(runtimesRoot()).absoluteFilePath(".download-XXXXXX"));
+    if (!m_tempDir->isValid())
+    {
+        emitFailed(tr("Could not create a temporary folder in %1: %2")
+                       .arg(runtimesRoot(), m_tempDir->errorString()));
         return;
     }
 
-    if (m_provider == Provider::Mojang) {
-        setStatus(tr("Fetching file list for Java %1...").arg(m_release.version));
+    if (m_provider == Provider::Mojang)
+    {
+        setStatus(
+            tr("Fetching file list for Java %1...").arg(m_release.version));
         m_data->clear();
         auto dl = Net::Download::makeByteArray(m_release.url, m_data.get());
         if (!m_release.sha1.isEmpty())
-            dl->addValidator(new Net::ChecksumValidator(QCryptographicHash::Sha1, m_release.sha1));
-        NetJob::Ptr job(new NetJob(tr("Java manifest"), APPLICATION->network()));
+        {
+            dl->addValidator(new Net::ChecksumValidator(
+                QCryptographicHash::Sha1, m_release.sha1));
+        }
+        NetJob::Ptr job(
+            new NetJob(tr("Java manifest"), APPLICATION->network()));
         job->addNetAction(dl);
-        runJob(job, [this] { downloadMojangFiles(); });
+        runJob(job, &InstallTask::downloadMojangFiles);
         return;
     }
     downloadArchive();
@@ -664,18 +861,27 @@ void InstallTask::download()
 
 void InstallTask::downloadArchive()
 {
-    setStatus(tr("Downloading %1 Java %2...").arg(providerName(m_provider), m_release.version));
+    setStatus(tr("Downloading %1 Java %2...")
+                  .arg(providerName(m_provider), m_release.version));
     auto archive = m_tempDir->filePath("archive");
     auto dl = Net::Download::makeFile(m_release.url, archive);
     if (!m_release.sha256.isEmpty())
-        dl->addValidator(new Net::ChecksumValidator(QCryptographicHash::Sha256, m_release.sha256));
+    {
+        dl->addValidator(new Net::ChecksumValidator(QCryptographicHash::Sha256,
+                                                    m_release.sha256));
+    }
     NetJob::Ptr job(new NetJob(tr("Java download"), APPLICATION->network()));
     job->addNetAction(dl);
-    runJob(job, [this, archive] {
-        setStatus(tr("Extracting Java %1...").arg(m_release.version));
-        setAbortable(false);
-        m_extractWatcher.setFuture(QtConcurrent::run(ArchiveExtractor::extract, archive, m_tempDir->filePath("files")));
-    });
+    runJob(job, &InstallTask::extract);
+}
+
+void InstallTask::extract()
+{
+    setStatus(tr("Extracting Java %1...").arg(m_release.version));
+    setAbortable(false);
+    m_extractWatcher.setFuture(QtConcurrent::run(ArchiveExtractor::extract,
+                                                 m_tempDir->filePath("archive"),
+                                                 m_tempDir->filePath("files")));
 }
 
 void InstallTask::extractFinished()
@@ -683,7 +889,8 @@ void InstallTask::extractFinished()
     setAbortable(true);
     auto error = m_extractWatcher.result();
     QFile::remove(m_tempDir->filePath("archive"));
-    if (!error.isEmpty()) {
+    if (!error.isEmpty())
+    {
         emitFailed(error);
         return;
     }
@@ -693,7 +900,8 @@ void InstallTask::extractFinished()
 void InstallTask::downloadMojangFiles()
 {
     auto files = parseJson(*m_data).object().value("files").toObject();
-    if (files.isEmpty()) {
+    if (files.isEmpty())
+    {
         emitFailed(tr("The Mojang Java manifest is empty."));
         return;
     }
@@ -701,85 +909,121 @@ void InstallTask::downloadMojangFiles()
     QDir root(m_tempDir->filePath("files"));
     root.mkpath(".");
 
-    struct Link {
-        QString path;
-        QString target;
-    };
-    auto links = std::make_shared<QList<Link>>();
-    auto executables = std::make_shared<QStringList>();
+    m_links.clear();
+    m_executables.clear();
 
-    NetJob::Ptr job(new NetJob(tr("Java download"), APPLICATION->network(), nullptr, 16));
-    for (auto it = files.begin(); it != files.end(); ++it) {
+    NetJob::Ptr job(
+        new NetJob(tr("Java download"), APPLICATION->network(), nullptr, 16));
+    for (auto it = files.begin(); it != files.end(); ++it)
+    {
         auto path = pathInside(root, it.key());
-        if (path.isEmpty()) {
-            emitFailed(tr("The Mojang Java manifest contains an invalid path: %1").arg(it.key()));
+        if (path.isEmpty())
+        {
+            emitFailed(
+                tr("The Mojang Java manifest contains an invalid path: %1")
+                    .arg(it.key()));
             return;
         }
         auto entry = it.value().toObject();
         auto type = entry.value("type").toString();
-        if (type == "directory") {
+        if (type == "directory")
+        {
             root.mkpath(path);
-        } else if (type == "file") {
-            auto raw = entry.value("downloads").toObject().value("raw").toObject();
+        }
+        else if (type == "file")
+        {
+            auto raw =
+                entry.value("downloads").toObject().value("raw").toObject();
             auto url = raw.value("url").toString();
-            if (url.isEmpty()) {
-                emitFailed(tr("The Mojang Java manifest has no download for %1").arg(it.key()));
+            if (url.isEmpty())
+            {
+                emitFailed(tr("The Mojang Java manifest has no download for %1")
+                               .arg(it.key()));
                 return;
             }
             QDir().mkpath(QFileInfo(path).absolutePath());
             auto dl = Net::Download::makeFile(url, path);
-            dl->addValidator(
-                new Net::ChecksumValidator(QCryptographicHash::Sha1, QByteArray::fromHex(raw.value("sha1").toString().toLatin1())));
+            dl->addValidator(new Net::ChecksumValidator(
+                QCryptographicHash::Sha1,
+                QByteArray::fromHex(raw.value("sha1").toString().toLatin1())));
             job->addNetAction(dl);
             if (entry.value("executable").toBool())
-                executables->append(path);
-        } else if (type == "link") {
+            {
+                m_executables.append(path);
+            }
+        }
+        else if (type == "link")
+        {
             auto target = entry.value("target").toString();
-            auto resolved = QFileInfo(path).absoluteDir().absoluteFilePath(target);
-            if (target.isEmpty() || QDir::isAbsolutePath(target) || pathInside(root, root.relativeFilePath(resolved)).isEmpty()) {
-                emitFailed(tr("The Mojang Java manifest contains an invalid link: %1").arg(it.key()));
+            auto resolved =
+                QFileInfo(path).absoluteDir().absoluteFilePath(target);
+            if (target.isEmpty() || QDir::isAbsolutePath(target) ||
+                pathInside(root, root.relativeFilePath(resolved)).isEmpty())
+            {
+                emitFailed(
+                    tr("The Mojang Java manifest contains an invalid link: %1")
+                        .arg(it.key()));
                 return;
             }
-            links->append({ path, target });
+            m_links.append({path, target});
         }
     }
 
     setStatus(tr("Downloading Mojang Java %1...").arg(m_release.version));
-    runJob(job, [this, links, executables] {
-        for (auto& path : *executables)
-            makeExecutable(path);
-        for (auto& link : *links) {
-            QDir().mkpath(QFileInfo(link.path).absolutePath());
-            if (!QFile::link(link.target, link.path))
-                qWarning() << "Could not create link" << link.path << "->" << link.target;
+    runJob(job, &InstallTask::finishMojangFiles);
+}
+
+void InstallTask::finishMojangFiles()
+{
+    for (auto& path : m_executables)
+    {
+        makeExecutable(path);
+    }
+    for (auto& link : m_links)
+    {
+        QDir().mkpath(QFileInfo(link.path).absolutePath());
+        if (!QFile::link(link.target, link.path))
+        {
+            qWarning() << "Could not create link" << link.path << "->"
+                       << link.target;
         }
-        install();
-    });
+    }
+    install();
 }
 
 void InstallTask::install()
 {
     setStatus(tr("Installing Java %1...").arg(m_release.version));
 
-    // archives usually wrap everything in a single folder, use that as the runtime root
+    // archives usually wrap everything in a single folder, use that as the
+    // runtime root
     QString source = m_tempDir->filePath("files");
-    auto entries = QDir(source).entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System);
+    auto entries = QDir(source).entryInfoList(
+        QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System);
     if (entries.size() == 1 && entries[0].isDir() && !entries[0].isSymLink())
+    {
         source = entries[0].absoluteFilePath();
+    }
 
-    if (findJavaBinary(source).isEmpty()) {
-        emitFailed(tr("The downloaded Java %1 does not contain %2.").arg(m_release.version, javaBinaryName()));
+    if (findJavaBinary(source).isEmpty())
+    {
+        emitFailed(tr("The downloaded Java %1 does not contain %2.")
+                       .arg(m_release.version, javaBinaryName()));
         return;
     }
 
     QDir root(runtimesRoot());
-    auto folder = runtimeFolderName(m_provider, m_release.type, m_release.version, m_release.mojangComponent);
+    auto folder =
+        runtimeFolderName(m_provider, m_release.type, m_release.version,
+                          m_release.mojangComponent);
     auto target = root.absoluteFilePath(folder);
-    if (QFileInfo::exists(target) && !FS::deletePath(target)) {
+    if (QFileInfo::exists(target) && !FS::deletePath(target))
+    {
         emitFailed(tr("Could not replace %1. Is it still in use?").arg(target));
         return;
     }
-    if (!moveDirectory(source, target)) {
+    if (!moveDirectory(source, target))
+    {
         emitFailed(tr("Could not move Java into %1").arg(target));
         return;
     }
@@ -792,12 +1036,17 @@ void InstallTask::install()
     m_result.directory = target;
     m_result.javaPath = findJavaBinary(target);
 #ifndef Q_OS_WIN
-    for (auto& entry : QDir(QFileInfo(m_result.javaPath).absolutePath()).entryInfoList(QDir::Files))
+    for (auto& entry : QDir(QFileInfo(m_result.javaPath).absolutePath())
+                           .entryInfoList(QDir::Files))
+    {
         makeExecutable(entry.absoluteFilePath());
+    }
 #endif
 
-    if (!writeMetadata(m_result)) {
-        emitFailed(tr("Could not write the metadata of Java %1.").arg(m_release.version));
+    if (!writeMetadata(m_result))
+    {
+        emitFailed(tr("Could not write the metadata of Java %1.")
+                       .arg(m_release.version));
         return;
     }
     m_tempDir.reset();

@@ -20,21 +20,23 @@
 #include <QDateTime>
 #include <QFutureWatcher>
 #include <QTemporaryDir>
-#include <functional>
 #include <memory>
 
 #include "JavaRuntime.h"
 #include "net/NetJob.h"
 #include "tasks/Task.h"
 
-namespace JavaRuntime {
+namespace JavaRuntime
+{
 
 /** One downloadable build of Java. */
-struct Release {
+struct Release
+{
     Provider provider = Provider::Mojang;
     int major = 0;
     QString version;
-    /** Vendor name of the build, e.g. the release tag or the Mojang component. */
+    /** Vendor name of the build, e.g. the release tag or the Mojang component.
+     */
     QString name;
     QDateTime released;
     /** "jre" or "jdk". */
@@ -49,20 +51,33 @@ struct Release {
 /** Long-term support releases, the ones Minecraft targets. */
 bool isLts(int major);
 
-/** Lists the major Java versions a provider offers for this platform, newest first. */
-class VersionListTask : public Task {
+/** Lists the major Java versions a provider offers for this platform, newest
+ * first. */
+class VersionListTask : public Task
+{
     Q_OBJECT
-   public:
+public:
     explicit VersionListTask(Provider provider);
 
-    QList<int> majors() const { return m_majors; }
+    Provider provider() const
+    {
+        return m_provider;
+    }
+    QList<int> majors() const
+    {
+        return m_majors;
+    }
 
     bool abort() override;
 
-   protected:
+protected:
     void executeTask() override;
 
-   private:
+private slots:
+    void jobSucceeded();
+    void jobFailed(QString reason);
+
+private:
     void parse();
 
     Provider m_provider;
@@ -71,23 +86,41 @@ class VersionListTask : public Task {
     QList<int> m_majors;
 };
 
-/** Lists the builds a provider offers for one major version on this platform, newest first. */
-class ReleaseListTask : public Task {
+/** Lists the builds a provider offers for one major version on this platform,
+ * newest first. */
+class ReleaseListTask : public Task
+{
     Q_OBJECT
-   public:
+public:
     ReleaseListTask(Provider provider, int major);
 
-    QList<Release> releases() const { return m_releases; }
+    Provider provider() const
+    {
+        return m_provider;
+    }
+    int major() const
+    {
+        return m_major;
+    }
+    QList<Release> releases() const
+    {
+        return m_releases;
+    }
 
-    /** The build the launcher installs on its own: the newest JRE, or the newest JDK if there is no JRE. */
+    /** The build the launcher installs on its own: the newest JRE, or the
+     * newest JDK if there is no JRE. */
     std::optional<Release> recommended() const;
 
     bool abort() override;
 
-   protected:
+protected:
     void executeTask() override;
 
-   private:
+private slots:
+    void jobSucceeded();
+    void jobFailed(QString reason);
+
+private:
     void parse();
 
     Provider m_provider;
@@ -98,30 +131,48 @@ class ReleaseListTask : public Task {
 };
 
 /** Downloads and installs a runtime. */
-class InstallTask : public Task {
+class InstallTask : public Task
+{
     Q_OBJECT
-   public:
+public:
     /** Installs exactly this build. */
     explicit InstallTask(Release release);
     /** Installs the recommended build of the first major the provider has. */
     InstallTask(Provider provider, QList<int> majors);
 
-    InstalledRuntime result() const { return m_result; }
+    InstalledRuntime result() const
+    {
+        return m_result;
+    }
 
     bool abort() override;
 
-   protected:
+protected:
     void executeTask() override;
 
-   private:
+private slots:
+    void jobSucceeded();
+    void jobFailed(QString reason);
+    void releaseListFinished();
+    void extractFinished();
+
+private:
+    struct Link
+    {
+        QString path;
+        QString target;
+    };
+
     void resolveNext();
     void download();
     void downloadArchive();
-    void extractFinished();
+    void extract();
     void downloadMojangFiles();
+    void finishMojangFiles();
     void install();
 
-    void runJob(NetJob::Ptr job, std::function<void()> onSuccess);
+    /** Runs a download job and calls next once it succeeds. */
+    void runJob(NetJob::Ptr job, void (InstallTask::*next)());
 
     Provider m_provider;
     QList<int> m_majors;
@@ -131,8 +182,11 @@ class InstallTask : public Task {
 
     Release m_release;
     NetJob::Ptr m_job;
+    void (InstallTask::*m_afterJob)() = nullptr;
     std::shared_ptr<QByteArray> m_data = std::make_shared<QByteArray>();
     std::unique_ptr<QTemporaryDir> m_tempDir;
+    QList<Link> m_links;
+    QStringList m_executables;
     QFutureWatcher<QString> m_extractWatcher;
     bool m_aborted = false;
 

@@ -204,7 +204,10 @@ public:
      * \brief Makes the current launch use the given Java instead of the
      * JavaPath setting. An empty path goes back to the setting.
      */
-    void setRuntimeJavaPath(const QString& path) { m_runtimeJavaPath = path; }
+    void setRuntimeJavaPath(const QString& path)
+    {
+        m_runtimeJavaPath = path;
+    }
 
     /*!
      * \brief Loads settings specific to an instance type if they're not already

@@ -190,10 +190,12 @@ QStringList addJavasFromEnv(QList<QString> javas)
         }
     };
     // runtimes downloaded by the launcher
-    for (auto &runtime : JavaRuntime::installedRuntimes())
+    for (auto& runtime : JavaRuntime::installedRuntimes())
     {
         if (!javas.contains(runtime.javaPath))
+        {
             javas.append(runtime.javaPath);
+        }
     }
     return javas;
 }

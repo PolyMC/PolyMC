@@ -344,7 +344,9 @@ SettingsObjectPtr BaseInstance::settings()
 QString BaseInstance::javaPath()
 {
     if (!m_runtimeJavaPath.isEmpty())
+    {
         return m_runtimeJavaPath;
+    }
     return settings()->get("JavaPath").toString();
 }
 

@@ -8,31 +8,42 @@
 #include <GZip.h>
 #include <java/download/ArchiveExtractor.h>
 
-namespace {
+namespace
+{
 
 // Builds a tar archive in memory, one entry at a time.
-class TarBuilder {
-   public:
-    void add(const QByteArray& name, char type, const QByteArray& content = {}, const QByteArray& link = {}, int mode = 0644)
+void writeOctal(QByteArray& header, int offset, int size, qint64 value)
+{
+    auto text = QByteArray::number(value, 8).rightJustified(size - 1, '0');
+    memcpy(header.data() + offset, text.constData(), text.size());
+}
+
+class TarBuilder
+{
+public:
+    void add(const QByteArray& name, char type, const QByteArray& content = {},
+             const QByteArray& link = {}, int mode = 0644)
     {
         QByteArray header(512, '\0');
         memcpy(header.data(), name.constData(), qMin<int>(name.size(), 100));
-        auto octal = [&](int offset, int size, qint64 value) {
-            auto text = QByteArray::number(value, 8).rightJustified(size - 1, '0');
-            memcpy(header.data() + offset, text.constData(), text.size());
-        };
-        octal(100, 8, mode);
-        octal(108, 8, 0);
-        octal(116, 8, 0);
-        octal(124, 12, content.size());
-        octal(136, 12, 0);
+        writeOctal(header, 100, 8, mode);
+        writeOctal(header, 108, 8, 0);
+        writeOctal(header, 116, 8, 0);
+        writeOctal(header, 124, 12, content.size());
+        writeOctal(header, 136, 12, 0);
         header[156] = type;
-        memcpy(header.data() + 157, link.constData(), qMin<int>(link.size(), 100));
-        memcpy(header.data() + 257, "ustar\0" "00", 8);
+        memcpy(header.data() + 157, link.constData(),
+               qMin<int>(link.size(), 100));
+        memcpy(header.data() + 257,
+               "ustar\0"
+               "00",
+               8);
         memset(header.data() + 148, ' ', 8);
         int sum = 0;
         for (char c : header)
+        {
             sum += static_cast<unsigned char>(c);
+        }
         auto chksum = QByteArray::number(sum, 8).rightJustified(6, '0');
         memcpy(header.data() + 148, chksum.constData(), 6);
         header[154] = '\0';
@@ -54,7 +65,9 @@ class TarBuilder {
         // the length prefix counts its own digits
         int length = record.size();
         while (QByteArray::number(length).size() + record.size() != length)
+        {
             length = QByteArray::number(length).size() + record.size();
+        }
         add("PaxHeader", 'x', QByteArray::number(length) + record);
         add("ignored-short-name", '0', content);
     }
@@ -66,7 +79,7 @@ class TarBuilder {
         return out;
     }
 
-   private:
+private:
     QByteArray m_data;
 };
 
@@ -75,17 +88,20 @@ QString writeArchive(const QTemporaryDir& dir, const QByteArray& data)
     auto path = dir.filePath("archive.tar.gz");
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly))
+    {
         return {};
+    }
     file.write(data);
     return path;
 }
 
 }  // namespace
 
-class ArchiveExtractorTest : public QObject {
+class ArchiveExtractorTest : public QObject
+{
     Q_OBJECT
 
-   private slots:
+private slots:
     void test_extractTarGz()
     {
         QTemporaryDir dir;
@@ -101,12 +117,15 @@ class ArchiveExtractorTest : public QObject {
         tar.addPax("jdk/pax/named.txt", "pax");
 
         auto target = dir.filePath("out");
-        QCOMPARE(ArchiveExtractor::extract(writeArchive(dir, tar.gzipped()), target), QString());
+        QCOMPARE(
+            ArchiveExtractor::extract(writeArchive(dir, tar.gzipped()), target),
+            QString());
 
         QDir out(target);
         QVERIFY(QFileInfo(out.filePath("jdk/bin/java")).isFile());
 #ifndef Q_OS_WIN
-        // Windows decides executability by file extension, there is no mode bit to check
+        // Windows decides executability by file extension, there is no mode bit
+        // to check
         QVERIFY(QFileInfo(out.filePath("jdk/bin/java")).isExecutable());
 #endif
         QFile release(out.filePath("jdk/release"));
@@ -127,14 +146,21 @@ class ArchiveExtractorTest : public QObject {
         QTest::addColumn<QByteArray>("link");
 
         QTest::newRow("dotdot") << QByteArray("../evil") << '0' << QByteArray();
-        QTest::newRow("nested dotdot") << QByteArray("jdk/../../evil") << '0' << QByteArray();
-        QTest::newRow("absolute") << QByteArray("/tmp/evil") << '0' << QByteArray();
-        QTest::newRow("symlink out") << QByteArray("jdk/link") << '2' << QByteArray("../../evil");
-        QTest::newRow("absolute symlink") << QByteArray("jdk/link") << '2' << QByteArray("/etc/passwd");
-        QTest::newRow("hardlink out") << QByteArray("jdk/link") << '1' << QByteArray("../evil");
+        QTest::newRow("nested dotdot")
+            << QByteArray("jdk/../../evil") << '0' << QByteArray();
+        QTest::newRow("absolute")
+            << QByteArray("/tmp/evil") << '0' << QByteArray();
+        QTest::newRow("symlink out")
+            << QByteArray("jdk/link") << '2' << QByteArray("../../evil");
+        QTest::newRow("absolute symlink")
+            << QByteArray("jdk/link") << '2' << QByteArray("/etc/passwd");
+        QTest::newRow("hardlink out")
+            << QByteArray("jdk/link") << '1' << QByteArray("../evil");
 #ifdef Q_OS_WIN
-        QTest::newRow("drive relative") << QByteArray("C:evil") << '0' << QByteArray();
-        QTest::newRow("data stream") << QByteArray("jdk/file:stream") << '0' << QByteArray();
+        QTest::newRow("drive relative")
+            << QByteArray("C:evil") << '0' << QByteArray();
+        QTest::newRow("data stream")
+            << QByteArray("jdk/file:stream") << '0' << QByteArray();
 #endif
     }
 
@@ -146,10 +172,13 @@ class ArchiveExtractorTest : public QObject {
 
         QTemporaryDir dir;
         TarBuilder tar;
-        tar.add(name, type, type == '0' ? QByteArray("bad") : QByteArray(), link);
+        tar.add(name, type, type == '0' ? QByteArray("bad") : QByteArray(),
+                link);
 
         auto target = dir.filePath("out");
-        QVERIFY(!ArchiveExtractor::extract(writeArchive(dir, tar.gzipped()), target).isEmpty());
+        QVERIFY(
+            !ArchiveExtractor::extract(writeArchive(dir, tar.gzipped()), target)
+                 .isEmpty());
         QVERIFY(!QFileInfo::exists(dir.filePath("evil")));
     }
 
@@ -160,13 +189,17 @@ class ArchiveExtractorTest : public QObject {
         tar.add("jdk/bin/java", '0', QByteArray(4096, 'x'));
         auto data = tar.gzipped();
         data.chop(data.size() / 2);
-        QVERIFY(!ArchiveExtractor::extract(writeArchive(dir, data), dir.filePath("out")).isEmpty());
+        QVERIFY(!ArchiveExtractor::extract(writeArchive(dir, data),
+                                           dir.filePath("out"))
+                     .isEmpty());
     }
 
     void test_unknownFormat()
     {
         QTemporaryDir dir;
-        QVERIFY(!ArchiveExtractor::extract(writeArchive(dir, "not an archive"), dir.filePath("out")).isEmpty());
+        QVERIFY(!ArchiveExtractor::extract(writeArchive(dir, "not an archive"),
+                                           dir.filePath("out"))
+                     .isEmpty());
     }
 };
 

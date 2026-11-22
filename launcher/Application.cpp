@@ -654,7 +654,8 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting("IgnoreJavaSecWarn", false);
         m_settings->registerSetting("IgnoreJavaWizard", false);
         m_settings->registerSetting("IgnoreJavaSymlinks", false);
-        // Launcher-managed Java: pick a fitting runtime per instance and download it if missing
+        // Launcher-managed Java: pick a fitting runtime per instance and
+        // download it if missing
         m_settings->registerSetting("AutomaticJava", true);
         m_settings->registerSetting("AutomaticJavaProvider", "mojang");
 

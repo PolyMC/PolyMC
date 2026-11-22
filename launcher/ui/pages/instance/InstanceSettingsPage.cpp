@@ -94,8 +94,10 @@ InstanceSettingsPage::InstanceSettingsPage(BaseInstance* inst, QWidget* parent)
 
     updateMemoryWarning();
 
-    connect(ui->managedJavaComboBox, QOverload<int>::of(&QComboBox::activated), this, &InstanceSettingsPage::managedJavaSelected);
-    connect(ui->javaPathTextBox, &QLineEdit::textChanged, this, &InstanceSettingsPage::syncManagedJavaSelection);
+    connect(ui->managedJavaComboBox, QOverload<int>::of(&QComboBox::activated),
+            this, &InstanceSettingsPage::managedJavaSelected);
+    connect(ui->javaPathTextBox, &QLineEdit::textChanged, this,
+            &InstanceSettingsPage::syncManagedJavaSelection);
 
     loadSettings();
 }
@@ -640,15 +642,19 @@ void InstanceSettingsPage::refreshManagedJava()
 {
     ui->managedJavaComboBox->clear();
     ui->managedJavaComboBox->addItem(tr("Custom path"));
-    for (auto& runtime : JavaRuntime::installedRuntimes()) {
-        ui->managedJavaComboBox->addItem(tr("%1 - Java %2").arg(runtime.displayName()).arg(runtime.major), runtime.javaPath);
+    for (auto& runtime : JavaRuntime::installedRuntimes())
+    {
+        ui->managedJavaComboBox->addItem(
+            tr("%1 - Java %2").arg(runtime.displayName()).arg(runtime.major),
+            runtime.javaPath);
     }
     syncManagedJavaSelection();
 }
 
 void InstanceSettingsPage::syncManagedJavaSelection()
 {
-    // index 0 ("Custom path") has no data, so a path that is not a managed runtime lands there
+    // index 0 ("Custom path") has no data, so a path that is not a managed
+    // runtime lands there
     int index = ui->managedJavaComboBox->findData(ui->javaPathTextBox->text());
     ui->managedJavaComboBox->setCurrentIndex(index > 0 ? index : 0);
 }
@@ -657,7 +663,9 @@ void InstanceSettingsPage::managedJavaSelected(int index)
 {
     auto path = ui->managedJavaComboBox->itemData(index).toString();
     if (path.isEmpty())
+    {
         return;
+    }
     ui->javaPathTextBox->setText(path);
     updateSecWarnVisibility(FS::ResolveExecutable(path));
 }
@@ -667,7 +675,9 @@ void InstanceSettingsPage::on_installJavaBtn_clicked()
     auto runtime = JavaInstallDialog::pickAndInstall(this);
     refreshManagedJava();
     if (!runtime)
+    {
         return;
+    }
     ui->javaPathTextBox->setText(runtime->javaPath);
     updateSecWarnVisibility(FS::ResolveExecutable(runtime->javaPath));
 }

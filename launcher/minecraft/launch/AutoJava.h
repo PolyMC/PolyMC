@@ -22,22 +22,26 @@
 #include "java/download/JavaRuntimeTasks.h"
 
 /**
- * Picks a launcher-managed Java runtime that fits the instance, downloading one if needed.
- * Does nothing when automatic Java is turned off or the instance sets its own Java.
+ * Picks a launcher-managed Java runtime that fits the instance, downloading one
+ * if needed. Does nothing when automatic Java is turned off or the instance
+ * sets its own Java.
  */
-class AutoJava : public LaunchStep {
+class AutoJava : public LaunchStep
+{
     Q_OBJECT
-   public:
-    explicit AutoJava(LaunchTask* parent) : LaunchStep(parent) {}
+public:
+    explicit AutoJava(LaunchTask* parent) : LaunchStep(parent)
+    {
+    }
 
     void executeTask() override;
     void proceed() override;
     bool canAbort() const override;
 
-   public slots:
+public slots:
     bool abort() override;
 
-   private:
+private:
     void installFinished();
     void use(const JavaRuntime::InstalledRuntime& runtime);
     void fallBack(const QString& reason);

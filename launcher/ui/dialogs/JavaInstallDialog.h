@@ -29,23 +29,31 @@ class QPushButton;
 class QTreeWidget;
 
 /**
- * Lets the user browse the Java builds of every provider and pick one to install.
- * Provider dropdown on top, major versions and their builds below it.
+ * Lets the user browse the Java builds of every provider and pick one to
+ * install. Provider dropdown on top, major versions and their builds below it.
  */
-class JavaInstallDialog : public QDialog {
+class JavaInstallDialog : public QDialog
+{
     Q_OBJECT
-   public:
+public:
     explicit JavaInstallDialog(QWidget* parent = nullptr);
 
     std::optional<JavaRuntime::Release> selectedRelease() const;
 
     /**
      * Shows the dialog and installs the picked build with a progress dialog.
-     * Returns the new runtime, or nothing if the user cancelled or the install failed (errors are shown).
+     * Returns the new runtime, or nothing if the user cancelled or the install
+     * failed (errors are shown).
      */
-    static std::optional<JavaRuntime::InstalledRuntime> pickAndInstall(QWidget* parent);
+    static std::optional<JavaRuntime::InstalledRuntime> pickAndInstall(
+        QWidget* parent);
 
-   private:
+private slots:
+    void majorsLoaded();
+    void releasesLoaded();
+    void releaseDoubleClicked();
+
+private:
     JavaRuntime::Provider currentProvider() const;
     std::optional<int> currentMajor() const;
 
@@ -73,8 +81,10 @@ class JavaInstallDialog : public QDialog {
     shared_qobject_ptr<JavaRuntime::VersionListTask> m_majorTask;
     shared_qobject_ptr<JavaRuntime::ReleaseListTask> m_releaseTask;
 
-    // results are kept while the dialog is open, Refresh drops them for the current provider
+    // results are kept while the dialog is open, Refresh drops them for the
+    // current provider
     QMap<JavaRuntime::Provider, QList<int>> m_majors;
-    QMap<QPair<JavaRuntime::Provider, int>, QList<JavaRuntime::Release>> m_releases;
+    QMap<QPair<JavaRuntime::Provider, int>, QList<JavaRuntime::Release>>
+        m_releases;
     QList<JavaRuntime::Release> m_shownReleases;
 };

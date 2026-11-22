@@ -1119,7 +1119,8 @@ shared_qobject_ptr<LaunchTask> MinecraftInstance::createLaunchTask(
     AuthSessionPtr session, MinecraftServerTargetPtr serverToJoin)
 {
     updateRuntimeContext();
-    // a runtime picked for a previous launch may not fit anymore, AutoJava decides again
+    // a runtime picked for a previous launch may not fit anymore, AutoJava
+    // decides again
     setRuntimeJavaPath(QString());
     // FIXME: get rid of shared_from_this ...
     auto process = LaunchTask::create(
@@ -1211,7 +1212,8 @@ shared_qobject_ptr<LaunchTask> MinecraftInstance::createLaunchTask(
         process->appendStep(new Update(pptr, Net::Mode::Offline));
     }
 
-    // pick or download a fitting Java, then check it. Both need the resolved components from the update.
+    // pick or download a fitting Java, then check it. Both need the resolved
+    // components from the update.
     {
         process->appendStep(new AutoJava(pptr));
         process->appendStep(new CheckJava(pptr));
