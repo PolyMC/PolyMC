@@ -11,14 +11,14 @@
 #include <algorithm>
 #include <utility>
 
-static FlameAPI api;
-static ModPlatform::ProviderCapabilities ProviderCaps;
+static FlameAPI flameIndexApi;
+static ModPlatform::ProviderCapabilities FlameIndexProviderCaps;
 
 namespace
 {
 
-bool isNewerVersion(const ModPlatform::IndexedVersion& a,
-                    const ModPlatform::IndexedVersion& b)
+bool isNewerFlameVersion(const ModPlatform::IndexedVersion& a,
+                         const ModPlatform::IndexedVersion& b)
 {
     // dates are in RFC 3339 format
     return a.date > b.date;
@@ -84,7 +84,7 @@ void FlameMod::loadURLs(ModPlatform::IndexedPack& pack, QJsonObject& obj)
 
 void FlameMod::loadBody(ModPlatform::IndexedPack& pack, QJsonObject& /*obj*/)
 {
-    pack.extraData.body = api.getModDescription(pack.addonId.toInt());
+    pack.extraData.body = flameIndexApi.getModDescription(pack.addonId.toInt());
 
     if (!pack.extraData.issuesUrl.isEmpty() ||
         !pack.extraData.sourceUrl.isEmpty() ||
@@ -132,7 +132,8 @@ void FlameMod::loadIndexedPackVersions(
         }
     }
 
-    std::sort(unsortedVersions.begin(), unsortedVersions.end(), isNewerVersion);
+    std::sort(unsortedVersions.begin(), unsortedVersions.end(),
+              isNewerFlameVersion);
     pack.versions = unsortedVersions;
     pack.versionsLoaded = true;
 }
@@ -168,7 +169,8 @@ ModPlatform::IndexedVersion FlameMod::loadIndexedPackVersion(
     for (auto h : std::as_const(hash_list))
     {
         auto hash_entry = Json::ensureObject(h);
-        auto hash_types = ProviderCaps.hashType(ModPlatform::Provider::FLAME);
+        auto hash_types =
+            FlameIndexProviderCaps.hashType(ModPlatform::Provider::FLAME);
         auto hash_algo = enumToString(
             Json::ensureInteger(hash_entry, "algo", 1, "algorithm"));
         if (hash_types.contains(hash_algo))
@@ -181,8 +183,8 @@ ModPlatform::IndexedVersion FlameMod::loadIndexedPackVersion(
 
     if (load_changelog)
     {
-        file.changelog =
-            api.getModFileChangelog(file.addonId.toInt(), file.fileId.toInt());
+        file.changelog = flameIndexApi.getModFileChangelog(file.addonId.toInt(),
+                                                           file.fileId.toInt());
     }
 
     return file;

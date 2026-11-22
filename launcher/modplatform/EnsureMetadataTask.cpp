@@ -21,7 +21,7 @@
 
 #include "net/NetJob.h"
 
-static ModPlatform::ProviderCapabilities ProviderCaps;
+static ModPlatform::ProviderCapabilities MetadataProviderCaps;
 
 static ModrinthAPI modrinth_api;
 static FlameAPI flame_api;
@@ -211,12 +211,12 @@ void EnsureMetadataTask::executeTask()
     if (m_mods.size() > 1)
     {
         setStatus(tr("Requesting metadata information from %1...")
-                      .arg(ProviderCaps.readableName(m_provider)));
+                      .arg(MetadataProviderCaps.readableName(m_provider)));
     }
     else if (!m_mods.empty())
     {
         setStatus(tr("Requesting metadata information from %1 for '%2'...")
-                      .arg(ProviderCaps.readableName(m_provider),
+                      .arg(MetadataProviderCaps.readableName(m_provider),
                            m_mods.begin().value()->name()));
     }
 
@@ -326,7 +326,7 @@ void EnsureMetadataTask::emitFail(Mod* m, QString key, RemoveFromList remove)
 NetJob::Ptr EnsureMetadataTask::modrinthVersionsTask()
 {
     auto hash_type =
-        ProviderCaps.hashType(ModPlatform::Provider::MODRINTH).first();
+        MetadataProviderCaps.hashType(ModPlatform::Provider::MODRINTH).first();
 
     auto ver_task =
         modrinth_api.currentVersions(m_mods.keys(), hash_type, &m_response);

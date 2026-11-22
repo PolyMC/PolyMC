@@ -32,7 +32,7 @@
 #include <list>
 #include <utility>
 
-static ModPlatform::ProviderCapabilities ProviderCaps;
+static ModPlatform::ProviderCapabilities UpdateDialogProviderCaps;
 
 static std::list<Version> mcVersions(BaseInstance* inst)
 {
@@ -476,7 +476,8 @@ void ModUpdateDialog::appendMod(CheckUpdateTask::UpdatableMod const& info)
 
     auto provider_item = new QTreeWidgetItem(item_top);
     provider_item->setText(
-        0, tr("Provider: %1").arg(ProviderCaps.readableName(info.provider)));
+        0, tr("Provider: %1")
+               .arg(UpdateDialogProviderCaps.readableName(info.provider)));
 
     auto old_version_item = new QTreeWidgetItem(item_top);
     old_version_item->setText(

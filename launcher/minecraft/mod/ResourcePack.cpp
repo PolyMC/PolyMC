@@ -20,7 +20,7 @@ QString fmtToStr(std::pair<int, int> pair)
 
 // https://minecraft.wiki/w/Pack_format#List_of_pack_formats
 static const QMap<std::pair<int, int>, std::pair<Version, Version>>
-    s_pack_format_versions = {
+    s_resource_pack_format_versions = {
         {{1, 0}, {Version("1.6.1"), Version("1.8.9")}},
         {{2, 0}, {Version("1.9"), Version("1.10.2")}},
         {{3, 0}, {Version("1.11"), Version("1.12.2")}},
@@ -317,5 +317,5 @@ bool ResourcePack::applyFilter(QRegularExpression filter) const
 QMap<std::pair<int, int>, std::pair<Version, Version>>
 ResourcePack::versionMap() const
 {
-    return s_pack_format_versions;
+    return s_resource_pack_format_versions;
 }

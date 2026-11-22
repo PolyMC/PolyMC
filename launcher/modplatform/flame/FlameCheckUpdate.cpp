@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-static FlameAPI api;
+static FlameAPI flameUpdateApi;
 
 namespace
 {
@@ -184,7 +184,7 @@ void FlameCheckUpdate::executeTask()
         ModAPI::VersionSearchArgs args{mod->metadata()->project_id.toString(),
                                        m_game_versions, m_loaders};
         check.download = Net::Download::makeByteArray(
-            api.getLatestVersionURL(args), check.response.get());
+            flameUpdateApi.getLatestVersionURL(args), check.response.get());
         versions_job->addNetAction(check.download);
         checks.push_back(check);
     }
@@ -259,8 +259,8 @@ void FlameCheckUpdate::executeTask()
                           nullptr,
                           nullptr};
             update.changelog_download = Net::Download::makeByteArray(
-                api.getModFileChangelogURL(latest_ver.addonId.toInt(),
-                                           latest_ver.fileId.toInt()),
+                flameUpdateApi.getModFileChangelogURL(
+                    latest_ver.addonId.toInt(), latest_ver.fileId.toInt()),
                 update.changelog.get());
             details_job->addNetAction(update.changelog_download);
             if (update.old_version.isEmpty() &&

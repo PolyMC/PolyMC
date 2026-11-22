@@ -41,7 +41,7 @@ const static QMap<QString, QString> forgemap = {{"1.2.5", "3.4.9.171"},
                                                 {"1.4.7", "6.6.2.534"},
                                                 {"1.5.2", "7.8.1.737"}};
 
-static const FlameAPI api;
+static const FlameAPI flameInstanceApi;
 
 bool FlameCreationTask::abort()
 {
@@ -216,7 +216,7 @@ bool FlameCreationTask::updateInstance()
         }
 
         QByteArray raw_response;
-        auto job = api.getFiles(fileIds, &raw_response);
+        auto job = flameInstanceApi.getFiles(fileIds, &raw_response);
 
         QEventLoop loop;
 
