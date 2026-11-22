@@ -16,6 +16,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(BUILD_TESTING "Build the testing tree." ON)
 option(ENABLE_LTO "Enable Link Time Optimization" off)
+option(ENABLE_UNITY_BUILD "Compile the launcher library in unity batches" off)
 
 ######## Set compiler flags ########
 set(CMAKE_CXX_STANDARD_REQUIRED true)

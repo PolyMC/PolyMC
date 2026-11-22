@@ -590,7 +590,9 @@ set(LOGIC_SOURCES
 
 if(APPLE)
     set (LOGIC_SOURCES ${LOGIC_SOURCES} ${MAC_UPDATE_SOURCES})
-    set_source_files_properties(updater/MacSparkleUpdater.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+    set_source_files_properties(updater/MacSparkleUpdater.mm PROPERTIES
+        SKIP_PRECOMPILE_HEADERS ON
+        SKIP_UNITY_BUILD_INCLUSION ON)
 endif()
 
 SET(LAUNCHER_SOURCES
@@ -1010,6 +1012,9 @@ endif()
 add_library(Launcher_logic STATIC
     ${LOGIC_SOURCES} ${LAUNCHER_SOURCES} ${LAUNCHER_UI} ${LAUNCHER_RESOURCES})
 target_include_directories(Launcher_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+if(ENABLE_UNITY_BUILD)
+    set_target_properties(Launcher_logic PROPERTIES UNITY_BUILD ON)
+endif()
 target_precompile_headers(Launcher_logic PRIVATE
     <memory>
     <utility>
