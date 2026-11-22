@@ -633,6 +633,7 @@ bool TranslationsModel::selectLanguage(QString key)
                 FS::PathCombine(d->m_dir.path(), langCode + ".po"));
             if (poTranslator->isEmpty())
             {
+                delete poTranslator;
                 qCritical() << "Loading Application Language File failed.";
                 break;
             }

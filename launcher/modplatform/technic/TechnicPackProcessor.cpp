@@ -155,7 +155,6 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings,
             }
             data = file.readAll();
             file.close();
-            zipFile.close();
         }
         else if (QFile::exists(versionJson))
         {
@@ -256,6 +255,8 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings,
 
         processed = true;
     } while (0);
+
+    zipFile.close();
 
     if (!processed)
     {

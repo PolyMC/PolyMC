@@ -6,7 +6,6 @@
 #include <QProcess>
 #include <QString>
 #include <QStringList>
-#include <QTextStream>
 #include <Exception.h>
 #include <FileSystem.h>
 #include <updater/GoUpdate.h>
@@ -122,13 +121,13 @@ void UpdateController::installUpdates()
     if (!FS::ensureFolderPathExists(backupPath))
     {
         qWarning() << "couldn't create folder" << backupPath;
+        QMessageBox::critical(
+            m_parent, QObject::tr("Update failed!"),
+            QObject::tr("Couldn't create the backup folder %1. Nothing was "
+                        "changed.")
+                .arg(backupPath));
         return;
     }
-
-    bool useXPHack = false;
-    QString exePath;
-    QString exeOrigin;
-    QString exeBackup;
 
     // perform the update operations
     for (const auto& op : std::as_const(m_operations))
@@ -233,55 +232,6 @@ void UpdateController::installUpdates()
     args = qApp->arguments();
     args.removeFirst();
 
-    // on old Windows, do insane things... no error checking here, this is just
-    // to have something.
-    if (useXPHack)
-    {
-        QString script;
-        auto nativePath = QDir::toNativeSeparators(exePath);
-        auto nativeOriginPath = QDir::toNativeSeparators(exeOrigin);
-        auto nativeBackupPath = QDir::toNativeSeparators(exeBackup);
-
-        // so we write this vbscript thing...
-        QTextStream out(&script);
-        out << "WScript.Sleep 1000\n";
-        out << "Set fso=CreateObject(\"Scripting.FileSystemObject\")\n";
-        out << "Set shell=CreateObject(\"WScript.Shell\")\n";
-        out << "fso.MoveFile \"" << nativePath << "\", \"" << nativeBackupPath
-            << "\"\n";
-        out << "fso.MoveFile \"" << nativeOriginPath << "\", \"" << nativePath
-            << "\"\n";
-        out << "shell.Run \"" << nativePath << "\"\n";
-
-        QString scriptPath = FS::PathCombine(m_root, "update", "update.vbs");
-
-        // we save it
-        QFile scriptFile(scriptPath);
-        if (!scriptFile.open(QIODevice::WriteOnly))
-        {
-            qWarning() << "Couldn't write the update script" << scriptPath
-                       << ":" << scriptFile.errorString();
-            m_failedOperationType = Start;
-            fail();
-            return;
-        }
-        scriptFile.write(script.toLocal8Bit().replace("\n", "\r\n"));
-        scriptFile.close();
-
-        // we run it
-        started = QProcess::startDetached("wscript", {scriptPath}, m_root);
-        if (!started)
-        {
-            qWarning() << "Couldn't start the update script" << scriptPath;
-            m_failedOperationType = Start;
-            fail();
-            return;
-        }
-
-        // and we quit. conscious thought.
-        qApp->quit();
-        return;
-    }
     bool doLiveCheck = true;
     bool startFailed = false;
 

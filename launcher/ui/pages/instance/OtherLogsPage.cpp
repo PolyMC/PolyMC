@@ -191,6 +191,7 @@ void OtherLogsPage::on_btnReload_clicked()
                               tr("Unable to open %1 for reading: %2")
                                   .arg(m_currentFile, file.errorString()));
         m_currentFile = QString();
+        ui->text->clear();
     }
     else
     {
