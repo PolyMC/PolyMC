@@ -23,7 +23,7 @@ class PackInstallTask : public InstanceTask
 
 public:
     explicit PackInstallTask(shared_qobject_ptr<QNetworkAccessManager> network,
-                             Modpack pack, QString version);
+                             const Modpack& pack, QString version);
     virtual ~PackInstallTask()
     {
     }

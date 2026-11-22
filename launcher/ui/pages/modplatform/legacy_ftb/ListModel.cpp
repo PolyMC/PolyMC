@@ -214,7 +214,7 @@ void ListModel::fill(ModpackList newModpacks)
     endResetModel();
 }
 
-void ListModel::addPack(Modpack modpack)
+void ListModel::addPack(const Modpack& modpack)
 {
     beginResetModel();
     this->modpacks.append(modpack);

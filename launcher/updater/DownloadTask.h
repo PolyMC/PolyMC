@@ -45,7 +45,8 @@ public:
      * generated string, ensuring uniqueness
      */
     explicit DownloadTask(shared_qobject_ptr<QNetworkAccessManager> network,
-                          Status status, QString target, QObject* parent = 0);
+                          const Status& status, QString target,
+                          QObject* parent = 0);
     virtual ~DownloadTask() {};
 
     /// Get the directory that will contain the update files.

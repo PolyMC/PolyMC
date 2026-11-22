@@ -204,7 +204,7 @@ private slots:
 
     void startTask(Task* task);
 
-    void updateAvailable(GoUpdate::Status status);
+    void updateAvailable(const GoUpdate::Status& status);
 
     void updateNotAvailable();
 

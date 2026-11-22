@@ -54,7 +54,7 @@
 // ours
 bool MMCZip::mergeZipFiles(QuaZip* into, QFileInfo from,
                            QSet<QString>& contained,
-                           const FilterFunction filter)
+                           const FilterFunction& filter)
 {
     QuaZip modZip(from.filePath());
     modZip.open(QuaZip::mdUnzip);

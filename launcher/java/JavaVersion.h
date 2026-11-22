@@ -25,13 +25,13 @@ public:
     bool operator==(const JavaVersion& rhs) const;
     bool operator>(const JavaVersion& rhs) const;
 
-    bool requiresPermGen();
+    bool requiresPermGen() const;
 
     // Java 8 and below runtimes tend to have issues w/ forge,
     // and SHA1 is disabled
     bool requiresSecBypass();
 
-    QString toString();
+    QString toString() const;
 
     int major()
     {

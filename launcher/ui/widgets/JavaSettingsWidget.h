@@ -67,7 +67,7 @@ protected slots:
     void javaVersionSelected(BaseVersionPtr version);
     void on_javaBrowseBtn_clicked();
     void on_javaStatusBtn_clicked();
-    void checkFinished(JavaCheckResult result);
+    void checkFinished(const JavaCheckResult& result);
 
 protected: /* methods */
     void checkJavaPathOnEdit(const QString& path);

@@ -265,7 +265,7 @@ void Page::ftbPackDataDownloadAborted()
         ->show();
 }
 
-void Page::ftbPrivatePackDataDownloadSuccessfully(Modpack pack)
+void Page::ftbPrivatePackDataDownloadSuccessfully(const Modpack& pack)
 {
     privateListModel->addPack(pack);
 }

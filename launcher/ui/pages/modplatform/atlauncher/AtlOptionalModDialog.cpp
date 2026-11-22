@@ -54,7 +54,7 @@
 #include "Application.h"
 
 AtlOptionalModListModel::AtlOptionalModListModel(
-    QWidget* parent, ATLauncher::PackVersion version,
+    QWidget* parent, const ATLauncher::PackVersion& version,
     QVector<ATLauncher::VersionMod> mods)
     : QAbstractListModel(parent), m_version(version), m_mods(mods)
 {
@@ -301,7 +301,8 @@ void AtlOptionalModListModel::clearAll()
         AtlOptionalModListModel::index(m_mods.size() - 1, EnabledColumn));
 }
 
-void AtlOptionalModListModel::toggleMod(ATLauncher::VersionMod mod, int index)
+void AtlOptionalModListModel::toggleMod(const ATLauncher::VersionMod& mod,
+                                        int index)
 {
     auto enable = !m_selection[mod.name];
 
@@ -328,8 +329,8 @@ void AtlOptionalModListModel::toggleMod(ATLauncher::VersionMod mod, int index)
     setMod(mod, index, enable);
 }
 
-void AtlOptionalModListModel::setMod(ATLauncher::VersionMod mod, int index,
-                                     bool enable, bool shouldEmit)
+void AtlOptionalModListModel::setMod(const ATLauncher::VersionMod& mod,
+                                     int index, bool enable, bool shouldEmit)
 {
     if (m_selection[mod.name] == enable)
     {
@@ -421,9 +422,9 @@ void AtlOptionalModListModel::setMod(ATLauncher::VersionMod mod, int index,
     }
 }
 
-AtlOptionalModDialog::AtlOptionalModDialog(QWidget* parent,
-                                           ATLauncher::PackVersion version,
-                                           QVector<ATLauncher::VersionMod> mods)
+AtlOptionalModDialog::AtlOptionalModDialog(
+    QWidget* parent, const ATLauncher::PackVersion& version,
+    QVector<ATLauncher::VersionMod> mods)
     : QDialog(parent), ui(new Ui::AtlOptionalModDialog)
 {
     ui->setupUi(this);

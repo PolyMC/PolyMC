@@ -68,10 +68,9 @@
 namespace FTB
 {
 
-PackInstallTask::PackInstallTask(Modpack pack, QString version, QWidget* parent)
-    : m_pack(std::move(pack)),
-      m_version_name(std::move(version)),
-      m_parent(parent)
+PackInstallTask::PackInstallTask(const Modpack& pack, QString version,
+                                 QWidget* parent)
+    : m_pack(pack), m_version_name(std::move(version)), m_parent(parent)
 {
 }
 

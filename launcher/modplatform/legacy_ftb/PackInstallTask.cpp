@@ -63,7 +63,7 @@ namespace LegacyFTB
 {
 
 PackInstallTask::PackInstallTask(
-    shared_qobject_ptr<QNetworkAccessManager> network, Modpack pack,
+    shared_qobject_ptr<QNetworkAccessManager> network, const Modpack& pack,
     QString version)
 {
     m_pack = pack;

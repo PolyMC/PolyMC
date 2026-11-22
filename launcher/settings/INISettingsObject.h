@@ -51,7 +51,8 @@ public:
     void resumeSave() override;
 
 protected slots:
-    virtual void changeSetting(const Setting& setting, QVariant value) override;
+    virtual void changeSetting(const Setting& setting,
+                               const QVariant& value) override;
     virtual void resetSetting(const Setting& setting) override;
 
 protected:

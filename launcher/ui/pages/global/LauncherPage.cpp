@@ -228,7 +228,7 @@ void LauncherPage::refreshUpdateChannelList()
     int selection = -1;
     for (int i = 0; i < channelList.count(); i++)
     {
-        UpdateChecker::ChannelListEntry entry = channelList.at(i);
+        const UpdateChecker::ChannelListEntry& entry = channelList.at(i);
 
         // When it comes to selection, we'll rely on the indexes of a channel
         // entry being the same in the combo box as it is in the update
@@ -279,7 +279,7 @@ void LauncherPage::refreshUpdateChannelDesc()
     if (selectedIndex < channelList.count())
     {
         // Find the channel list entry with the given index.
-        UpdateChecker::ChannelListEntry selected =
+        const UpdateChecker::ChannelListEntry& selected =
             channelList.at(selectedIndex);
 
         // Set the description text.

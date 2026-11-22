@@ -202,7 +202,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
     }
     else
     {
-        for (auto version : std::as_const(current.versions))
+        for (const auto& version : std::as_const(current.versions))
         {
             if (!version.name.contains(version.version))
             {
@@ -294,7 +294,7 @@ void ModrinthPage::onVersionsLoaded()
                    << e.cause();
     }
 
-    for (auto version : std::as_const(current.versions))
+    for (const auto& version : std::as_const(current.versions))
     {
         if (!version.name.contains(version.version))
         {

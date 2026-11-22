@@ -974,7 +974,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
     performMainStartupAction();
 }
 
-void Application::onIconsDirChanged(const Setting&, QVariant value)
+void Application::onIconsDirChanged(const Setting&, const QVariant& value)
 {
     m_icons->directoryChanged(value.toString());
 }

@@ -59,7 +59,7 @@ public:
     {
         m_dialogTitle = title;
     }
-    void addPageCreator(PageCreator page)
+    void addPageCreator(const PageCreator& page)
     {
         m_creators.append(page);
     }

@@ -58,7 +58,7 @@ class PackInstallTask final : public InstanceTask
     Q_OBJECT
 
 public:
-    explicit PackInstallTask(Modpack pack, QString version,
+    explicit PackInstallTask(const Modpack& pack, QString version,
                              QWidget* parent = nullptr);
     ~PackInstallTask() override = default;
 

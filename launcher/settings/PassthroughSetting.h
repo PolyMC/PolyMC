@@ -34,7 +34,7 @@ public:
 
     virtual QVariant defValue() const;
     virtual QVariant get() const;
-    virtual void set(QVariant value);
+    virtual void set(const QVariant& value);
     virtual void reset();
 
 private:

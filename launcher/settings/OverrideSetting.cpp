@@ -49,7 +49,7 @@ void OverrideSetting::reset()
     Setting::reset();
 }
 
-void OverrideSetting::set(QVariant value)
+void OverrideSetting::set(const QVariant& value)
 {
     Setting::set(value);
 }
