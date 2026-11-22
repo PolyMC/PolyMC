@@ -29,8 +29,10 @@ class Task;
 
 namespace Meta
 {
-using VersionListPtr = std::shared_ptr<class VersionList>;
-using VersionPtr = std::shared_ptr<class Version>;
+class Version;
+class VersionList;
+using VersionListPtr = std::shared_ptr<VersionList>;
+using VersionPtr = std::shared_ptr<Version>;
 
 class Index : public QAbstractListModel, public BaseEntity
 {

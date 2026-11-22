@@ -193,6 +193,7 @@ set(QUAZIP_ENABLE_QTEXTCODEC OFF)
 
 # Qt 6 sets these by default. Notably causes Windows APIs to use UNICODE strings.
 add_compile_definitions(UNICODE _UNICODE)
+add_compile_definitions(NOMINMAX)
 
 set(QT_MKSPECS_DIR ${QT_DATA_DIR}/mkspecs)
 

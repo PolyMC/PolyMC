@@ -1,3 +1,4 @@
+#pragma once
 #include "IPathMatcher.h"
 #include <QRegularExpression>
 

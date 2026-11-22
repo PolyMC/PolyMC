@@ -29,8 +29,10 @@
 
 namespace Meta
 {
-using VersionPtr = std::shared_ptr<class Version>;
-using VersionListPtr = std::shared_ptr<class VersionList>;
+class Version;
+class VersionList;
+using VersionPtr = std::shared_ptr<Version>;
+using VersionListPtr = std::shared_ptr<VersionList>;
 
 class VersionList : public BaseVersionList, public BaseEntity
 {
