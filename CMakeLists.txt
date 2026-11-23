@@ -351,7 +351,6 @@ else()
         )
 endif()
 
-add_subdirectory(libraries/systeminfo) # system information library
 add_subdirectory(libraries/launcher) # java based launcher part for Minecraft
 add_subdirectory(libraries/javacheck) # java compatibility checker
 add_subdirectory(libraries/rainbow) # Qt extension for colors
