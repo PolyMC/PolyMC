@@ -384,8 +384,13 @@ QString iframeLink(const QString& attributes)
                video.captured(1) + "\">" + QObject::tr("Watch on YouTube") +
                "</a></p>";
     }
+    QString host = url.host();
+    if (host.contains(':'))
+    {
+        host = '[' + host + ']';
+    }
     return "<p><a href=\"" + url.toString(QUrl::FullyEncoded).toHtmlEscaped() +
-           "\">" + url.host().toHtmlEscaped() + "</a></p>";
+           "\">" + host.toHtmlEscaped() + "</a></p>";
 }
 
 }  // namespace

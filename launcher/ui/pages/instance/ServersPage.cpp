@@ -58,6 +58,7 @@
 #include <QDateTime>
 #include <QDnsLookup>
 #include <QHostAddress>
+#include <QHostInfo>
 #include <QJsonParseError>
 #include <QQueue>
 #include <QImageReader>
@@ -261,6 +262,10 @@ public:
         m_timeout.setSingleShot(true);
         m_timeout.setInterval(5000);
         connect(&m_timeout, &QTimer::timeout, this, &ServerPinger::onTimeout);
+        m_attemptTimeout.setSingleShot(true);
+        m_attemptTimeout.setInterval(1500);
+        connect(&m_attemptTimeout, &QTimer::timeout, this,
+                &ServerPinger::connectNext);
 
         m_dns =
             new QDnsLookup(QDnsLookup::SRV, "_minecraft._tcp." + host, this);
@@ -273,7 +278,7 @@ public:
         m_timeout.start();
         if (QHostAddress().setAddress(m_connectHost))
         {
-            m_socket->connectToHost(m_connectHost, m_port);
+            resolveAndConnect();
         }
         else
         {
@@ -296,10 +301,31 @@ private:
         }
         m_finished = true;
         m_timeout.stop();
+        m_attemptTimeout.stop();
         m_dns->abort();
+        if (m_lookupId != -1)
+        {
+            QHostInfo::abortHostLookup(m_lookupId);
+            m_lookupId = -1;
+        }
         m_socket->abort();
         emit done(success, currentPlayers, maxPlayers, pingMs, motd, icon);
         deleteLater();
+    }
+
+    void resolveAndConnect()
+    {
+        QHostAddress literal;
+        if (literal.setAddress(m_connectHost))
+        {
+            m_addresses = {literal};
+            connectNext();
+        }
+        else
+        {
+            m_lookupId = QHostInfo::lookupHost(
+                m_connectHost, this, &ServerPinger::onHostLookupDone);
+        }
     }
 
 private slots:
@@ -309,6 +335,7 @@ private slots:
         {
             return;
         }
+        m_attemptTimeout.stop();
 
         QByteArray handshake;
         writeVarInt(handshake, 0x00);
@@ -340,7 +367,73 @@ private slots:
 
     void onSocketError(QAbstractSocket::SocketError)
     {
-        finish(false);
+        m_attemptTimeout.stop();
+        if (m_state == Idle && !m_addresses.isEmpty())
+        {
+            QMetaObject::invokeMethod(this, &ServerPinger::connectNext,
+                                      Qt::QueuedConnection);
+        }
+        else
+        {
+            finish(false);
+        }
+    }
+
+    void onHostLookupDone(const QHostInfo& info)
+    {
+        m_lookupId = -1;
+        if (m_finished)
+        {
+            return;
+        }
+
+        const QList<QHostAddress> resolved = info.addresses();
+        QList<QHostAddress> preferred;
+        QList<QHostAddress> other;
+        for (const QHostAddress& address : resolved)
+        {
+            if (address.protocol() == resolved.first().protocol())
+            {
+                preferred.append(address);
+            }
+            else
+            {
+                other.append(address);
+            }
+        }
+        while (!preferred.isEmpty() || !other.isEmpty())
+        {
+            if (!preferred.isEmpty())
+            {
+                m_addresses.append(preferred.takeFirst());
+            }
+            if (!other.isEmpty())
+            {
+                m_addresses.append(other.takeFirst());
+            }
+        }
+        connectNext();
+    }
+
+    void connectNext()
+    {
+        if (m_finished)
+        {
+            return;
+        }
+        if (m_addresses.isEmpty())
+        {
+            finish(false);
+            return;
+        }
+
+        const QHostAddress address = m_addresses.takeFirst();
+        m_socket->abort();
+        m_socket->connectToHost(address, m_port);
+        if (!m_addresses.isEmpty())
+        {
+            m_attemptTimeout.start();
+        }
     }
 
     void onTimeout()
@@ -365,7 +458,7 @@ private slots:
             }
             m_port = srv.port();
         }
-        m_socket->connectToHost(m_connectHost, m_port);
+        resolveAndConnect();
     }
 
 private:
@@ -549,6 +642,9 @@ private:
     QTcpSocket* m_socket;
     QDnsLookup* m_dns;
     QTimer m_timeout;
+    QTimer m_attemptTimeout;
+    QList<QHostAddress> m_addresses;
+    int m_lookupId = -1;
     QElapsedTimer m_pingTimer;
     QString m_handshakeHost;
     QString m_connectHost;

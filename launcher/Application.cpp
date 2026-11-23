@@ -1659,6 +1659,11 @@ void Application::on_windowClose()
 void Application::updateProxySettings(QString proxyTypeStr, QString addr,
                                       int port, QString user, QString password)
 {
+    if (addr.startsWith('[') && addr.endsWith(']'))
+    {
+        addr = addr.mid(1, addr.size() - 2);
+    }
+
     // Set the application proxy settings.
     if (proxyTypeStr == "SOCKS5")
     {
@@ -1714,7 +1719,12 @@ void Application::updateProxySettings(QString proxyTypeStr, QString addr,
             proxyDesc = "DERP proxy: ";
             break;
     }
-    proxyDesc += QString("%1:%2").arg(proxy.hostName()).arg(proxy.port());
+    QString proxyHost = proxy.hostName();
+    if (proxyHost.contains(':'))
+    {
+        proxyHost = '[' + proxyHost + ']';
+    }
+    proxyDesc += QString("%1:%2").arg(proxyHost).arg(proxy.port());
     qDebug() << proxyDesc;
 }
 

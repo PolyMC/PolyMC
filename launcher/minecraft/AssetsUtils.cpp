@@ -137,6 +137,13 @@ bool isLocalMetadataHost(const QString& host)
         return true;
     }
 
+    bool hasIPv4Form = false;
+    const quint32 ipv4Form = address.toIPv4Address(&hasIPv4Form);
+    if (hasIPv4Form)
+    {
+        address.setAddress(ipv4Form);
+    }
+
     const QPair<QHostAddress, int> localSubnets[] = {
         {QHostAddress("10.0.0.0"), 8},    {QHostAddress("169.254.0.0"), 16},
         {QHostAddress("172.16.0.0"), 12}, {QHostAddress("192.168.0.0"), 16},

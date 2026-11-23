@@ -48,7 +48,8 @@ void Technic::SingleZipPackInstallTask::executeTask()
 {
     setStatus(tr("Downloading modpack:\n%1").arg(m_sourceUrl.toString()));
 
-    const QString path = m_sourceUrl.host() + '/' + m_sourceUrl.path();
+    const QString path = FS::RemoveInvalidFilenameChars(m_sourceUrl.host()) +
+                         '/' + m_sourceUrl.path();
     auto entry = APPLICATION->metacache()->resolveEntry("general", path);
     entry->setStale(true);
     m_filesNetJob = new NetJob(tr("Modpack download"), APPLICATION->network());
