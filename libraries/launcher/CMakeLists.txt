@@ -4,7 +4,11 @@ find_package(Java 1.8 REQUIRED COMPONENTS Development)
 
 include(UseJava)
 set(CMAKE_JAVA_JAR_ENTRY_POINT org.polymc.EntryPoint)
-set(CMAKE_JAVA_COMPILE_FLAGS -target 8 -source 8 -Xlint:deprecation -Xlint:unchecked)
+if(Java_VERSION VERSION_GREATER_EQUAL 9)
+    set(CMAKE_JAVA_COMPILE_FLAGS --release 8 -Xlint:-options -Xlint:deprecation -Xlint:unchecked)
+else()
+    set(CMAKE_JAVA_COMPILE_FLAGS -source 8 -target 8 -Xlint:deprecation -Xlint:unchecked)
+endif()
 
 set(SRC
     org/polymc/EntryPoint.java
