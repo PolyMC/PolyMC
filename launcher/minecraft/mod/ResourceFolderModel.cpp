@@ -16,6 +16,27 @@
 
 #include "tasks/Task.h"
 
+namespace
+{
+
+class TaskRunner : public QRunnable
+{
+public:
+    explicit TaskRunner(Task::Ptr task) : m_task(task)
+    {
+    }
+
+    void run() override
+    {
+        m_task->run();
+    }
+
+private:
+    Task::Ptr m_task;
+};
+
+}  // namespace
+
 ResourceFolderModel::ResourceFolderModel(QDir dir, QObject* parent)
     : QAbstractListModel(parent), m_dir(dir), m_watcher(this)
 {
@@ -321,7 +342,7 @@ bool ResourceFolderModel::update()
             &ResourceFolderModel::updateTaskFinished,
             Qt::ConnectionType::QueuedConnection);
 
-    m_thread_pool.start(m_current_update_task.get());
+    m_thread_pool.start(new TaskRunner(m_current_update_task));
 
     return true;
 }
@@ -356,14 +377,15 @@ void ResourceFolderModel::resolveResource(Resource::Ptr res)
     int ticket = m_next_resolution_ticket.fetch_add(1);
 
     res->setResolving(true, ticket);
-    m_active_parse_tasks.insert(ticket, task);
+    Task::Ptr task_ptr(task);
+    m_active_parse_tasks.insert(ticket, task_ptr);
 
     connect(
         task, &Task::finished, this,
         std::bind(&ResourceFolderModel::parseTaskFinished, this, ticket, res),
         Qt::ConnectionType::QueuedConnection);
 
-    m_thread_pool.start(task);
+    m_thread_pool.start(new TaskRunner(task_ptr));
 }
 
 void ResourceFolderModel::parseTaskFinished(int ticket, Resource::Ptr resource)
