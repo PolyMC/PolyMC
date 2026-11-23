@@ -89,6 +89,10 @@ set(CORE_SOURCES
     # Time
     MMCTime.h
     MMCTime.cpp
+
+    # System information
+    SystemInformation.h
+    SystemInformation.cpp
 )
 
 set(PATHMATCHER_SOURCES
@@ -1036,7 +1040,6 @@ target_precompile_headers(Launcher_logic PRIVATE
     <QWidget>
 )
 target_link_libraries(Launcher_logic
-    systeminfo
     Launcher_murmur2
     nbt++
     ${ZLIB_LIBRARIES}

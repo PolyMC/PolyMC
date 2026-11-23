@@ -16,8 +16,6 @@
 
 #include <memory>
 
-#include <sys.h>
-
 #include "JavaCommon.h"
 #include "java/JavaInstall.h"
 #include "java/JavaInstallList.h"
@@ -30,9 +28,11 @@
 #include "Application.h"
 #include "BuildConfig.h"
 
+#include "SystemInformation.h"
+
 JavaSettingsWidget::JavaSettingsWidget(QWidget* parent) : QWidget(parent)
 {
-    m_availableMemory = Sys::getSystemRam() / Sys::mebibyte;
+    m_availableMemory = SystemInformation::getSystemMemoryInMiB();
 
     goodIcon = APPLICATION->getThemedIcon("status-good");
     yellowIcon = APPLICATION->getThemedIcon("status-yellow");

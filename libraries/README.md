@@ -173,12 +173,6 @@ Color functions extracted from [KGuiAddons](https://inqlude.org/libraries/kguiad
 
 Available either under LGPL version 2.1 or later.
 
-## systeminfo
-
-A PolyMC-specific library for probing system information.
-
-Apache 2.0
-
 ## tomlplusplus
 
 A TOML language parser. Used by Forge 1.14+ to store mod metadata.

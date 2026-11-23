@@ -55,15 +55,15 @@
 
 #include <FileSystem.h>
 #include "Application.h"
-#include <sys.h>
+#include "SystemInformation.h"
 
 JavaPage::JavaPage(QWidget* parent) : QWidget(parent), ui(new Ui::JavaPage)
 {
     ui->setupUi(this);
     ui->tabWidget->tabBar()->hide();
 
-    auto sysMiB = Sys::getSystemRam() / Sys::mebibyte;
-    ui->maxMemSpinBox->setMaximum(sysMiB);
+    ui->maxMemSpinBox->setMaximum(
+        static_cast<int32_t>(SystemInformation::getSystemMemoryInMiB()));
     ui->lowMemWarnWidget->hide();
 
     // TODO(crueter): add warning theme icons.

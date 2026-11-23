@@ -45,8 +45,6 @@
 #include <QPixmap>
 #include <QSpinBox>
 
-#include <sys.h>
-
 #include "ui/dialogs/VersionSelectDialog.h"
 #include "ui/widgets/CustomCommands.h"
 
@@ -58,6 +56,8 @@
 #include "minecraft/auth/AccountList.h"
 #include "minecraft/auth/MinecraftAccount.h"
 
+#include "SystemInformation.h"
+
 InstanceSettingsPage::InstanceSettingsPage(BaseInstance* inst, QWidget* parent)
     : QWidget(parent), ui(new Ui::InstanceSettingsPage), m_instance(inst)
 {
@@ -66,8 +66,8 @@ InstanceSettingsPage::InstanceSettingsPage(BaseInstance* inst, QWidget* parent)
     ui->setupUi(this);
     ui->accountComboBox->setPlaceholderText(tr("No account selected"));
 
-    auto sysMB = Sys::getSystemRam() / Sys::mebibyte;
-    ui->maxMemSpinBox->setMaximum(sysMB);
+    ui->maxMemSpinBox->setMaximum(
+        static_cast<int32_t>(SystemInformation::getSystemMemoryInMiB()));
     connect(ui->openGlobalJavaSettingsButton, &QCommandLinkButton::clicked,
             this, &InstanceSettingsPage::globalSettingsButtonClicked);
     connect(APPLICATION, &Application::globalSettingsAboutToOpen, this,
