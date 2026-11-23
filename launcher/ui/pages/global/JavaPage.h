@@ -40,6 +40,7 @@
 #include "JavaCommon.h"
 #include <Application.h>
 #include <QObjectPtr.h>
+#include "java/download/JavaRuntime.h"
 
 class SettingsObject;
 
@@ -78,6 +79,8 @@ public:
 private:
     void applySettings();
     void loadSettings();
+    void refreshInstalledJava();
+    std::optional<JavaRuntime::InstalledRuntime> selectedRuntime() const;
 
 private slots:
     void on_javaDetectBtn_clicked();
@@ -86,8 +89,14 @@ private slots:
     void checkerFinished();
     void updateMemoryWarning();
     void normalizeMemory();
+    void updateJavaButtons();
+    void on_installJavaBtn_clicked();
+    void on_removeJavaBtn_clicked();
+    void on_useJavaBtn_clicked();
+    void on_openJavaFolderBtn_clicked();
 
 private:
     Ui::JavaPage* ui;
     unique_qobject_ptr<JavaCommon::TestCheck> checker;
+    QList<JavaRuntime::InstalledRuntime> m_installedJava;
 };

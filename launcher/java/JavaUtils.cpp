@@ -42,6 +42,7 @@
 
 #include <QDebug>
 #include "java/JavaUtils.h"
+#include "java/download/JavaRuntime.h"
 #include "FileSystem.h"
 #include "Application.h"
 
@@ -188,6 +189,14 @@ QStringList addJavasFromEnv(QList<QString> javas)
             javas.append(i);
         }
     };
+    // runtimes downloaded by the launcher
+    for (auto& runtime : JavaRuntime::installedRuntimes())
+    {
+        if (!javas.contains(runtime.javaPath))
+        {
+            javas.append(runtime.javaPath);
+        }
+    }
     return javas;
 }
 

@@ -63,8 +63,7 @@ void DirectJavaLaunch::executeTask()
         "Java Arguments:\n[" + m_parent->censorPrivateInfo(allArgs) + "]\n\n",
         MessageLevel::Launcher);
 
-    auto javaPath =
-        FS::ResolveExecutable(instance->settings()->get("JavaPath").toString());
+    auto javaPath = FS::ResolveExecutable(instance->javaPath());
 
     m_process.setProcessEnvironment(instance->createLaunchEnvironment());
 

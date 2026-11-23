@@ -8,6 +8,7 @@ endfunction()
 
 add_test_wrapper(FileSystem)
 add_test_wrapper(GZip)
+add_test_wrapper(ArchiveExtractor)
 add_test_wrapper(GradleSpecifier)
 add_test_wrapper(PackageManifest)
 add_test_wrapper(MojangVersionFormat)

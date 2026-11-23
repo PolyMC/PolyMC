@@ -605,6 +605,10 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting("IgnoreJavaSecWarn", false);
         m_settings->registerSetting("IgnoreJavaWizard", false);
         m_settings->registerSetting("IgnoreJavaSymlinks", false);
+        // Launcher-managed Java: pick a fitting runtime per instance and
+        // download it if missing
+        m_settings->registerSetting("AutomaticJava", true);
+        m_settings->registerSetting("AutomaticJavaProvider", "mojang");
 
         // Native library workarounds
         m_settings->registerSetting("UseNativeOpenAL", false);
@@ -958,6 +962,11 @@ bool Application::isJavaSetupRequired()
 {
     bool ignoreJavaWizard = m_settings->get("IgnoreJavaWizard").toBool();
     if (ignoreJavaWizard)
+    {
+        return false;
+    }
+    // the launcher downloads Java on its own, nothing to set up
+    if (m_settings->get("AutomaticJava").toBool())
     {
         return false;
     }

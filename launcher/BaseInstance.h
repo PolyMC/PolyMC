@@ -193,6 +193,23 @@ public:
     virtual SettingsObjectPtr settings();
 
     /*!
+     * \brief The Java executable used for launching.
+     *
+     * This is the runtime picked by the launcher for the current launch if
+     * there is one, and the JavaPath setting otherwise.
+     */
+    QString javaPath();
+
+    /*!
+     * \brief Makes the current launch use the given Java instead of the
+     * JavaPath setting. An empty path goes back to the setting.
+     */
+    void setRuntimeJavaPath(const QString& path)
+    {
+        m_runtimeJavaPath = path;
+    }
+
+    /*!
      * \brief Loads settings specific to an instance type if they're not already
      * loaded.
      */
@@ -335,6 +352,7 @@ protected slots:
 protected: /* data */
     QString m_rootDir;
     SettingsObjectPtr m_settings;
+    QString m_runtimeJavaPath;
     // InstanceFlags m_flags;
     bool m_isRunning = false;
     bool m_canSuspend = false;

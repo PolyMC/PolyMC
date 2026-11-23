@@ -43,13 +43,18 @@
 #include <QSpinBox>
 #include <QStyle>
 #include <QTabBar>
+#include <QHeaderView>
 
 #include <memory>
 
+#include "ui/dialogs/CustomMessageBox.h"
+#include "ui/dialogs/JavaInstallDialog.h"
 #include "ui/dialogs/VersionSelectDialog.h"
 
 #include "java/JavaInstall.h"
 #include "java/JavaInstallList.h"
+
+#include "DesktopServices.h"
 #include "java/JavaUtils.h"
 #include "settings/SettingsObject.h"
 
@@ -83,7 +88,23 @@ JavaPage::JavaPage(QWidget* parent) : QWidget(parent), ui(new Ui::JavaPage)
 
     updateMemoryWarning();
 
+    for (auto provider : JavaRuntime::allProviders())
+    {
+        ui->javaProviderComboBox->addItem(JavaRuntime::providerName(provider),
+                                          JavaRuntime::providerId(provider));
+    }
+    connect(ui->automaticJavaCheckbox, &QCheckBox::toggled,
+            ui->javaProviderComboBox, &QWidget::setEnabled);
+
+    ui->installedJavaTree->header()->setSectionResizeMode(
+        0, QHeaderView::ResizeToContents);
+    ui->installedJavaTree->header()->setSectionResizeMode(
+        1, QHeaderView::ResizeToContents);
+    connect(ui->installedJavaTree, &QTreeWidget::currentItemChanged, this,
+            &JavaPage::updateJavaButtons);
+
     loadSettings();
+    refreshInstalledJava();
 }
 
 JavaPage::~JavaPage()
@@ -122,6 +143,9 @@ void JavaPage::applySettings()
     s->set("IgnoreJavaCompatibility",
            ui->skipCompatibilityCheckbox->isChecked());
     s->set("IgnoreJavaWizard", ui->skipJavaWizardCheckbox->isChecked());
+    s->set("AutomaticJava", ui->automaticJavaCheckbox->isChecked());
+    s->set("AutomaticJavaProvider",
+           ui->javaProviderComboBox->currentData().toString());
     JavaCommon::checkJVMArgs(s->get("JvmArgs").toString(),
                              this->parentWidget());
 }
@@ -149,6 +173,106 @@ void JavaPage::loadSettings()
     ui->skipCompatibilityCheckbox->setChecked(
         s->get("IgnoreJavaCompatibility").toBool());
     ui->skipJavaWizardCheckbox->setChecked(s->get("IgnoreJavaWizard").toBool());
+
+    ui->automaticJavaCheckbox->setChecked(s->get("AutomaticJava").toBool());
+    ui->javaProviderComboBox->setEnabled(
+        ui->automaticJavaCheckbox->isChecked());
+    int providerIndex = ui->javaProviderComboBox->findData(
+        s->get("AutomaticJavaProvider").toString());
+    ui->javaProviderComboBox->setCurrentIndex(providerIndex >= 0 ? providerIndex
+                                                                 : 0);
+}
+
+void JavaPage::refreshInstalledJava()
+{
+    m_installedJava = JavaRuntime::installedRuntimes();
+    ui->installedJavaTree->clear();
+    for (auto& runtime : m_installedJava)
+    {
+        auto item = new QTreeWidgetItem(ui->installedJavaTree);
+        item->setText(0, runtime.displayName());
+        item->setText(1, QString::number(runtime.major));
+        item->setText(2, runtime.javaPath);
+        item->setToolTip(2, runtime.javaPath);
+    }
+    updateJavaButtons();
+}
+
+std::optional<JavaRuntime::InstalledRuntime> JavaPage::selectedRuntime() const
+{
+    auto item = ui->installedJavaTree->currentItem();
+    if (!item)
+    {
+        return std::nullopt;
+    }
+    int index = ui->installedJavaTree->indexOfTopLevelItem(item);
+    if (index < 0 || index >= m_installedJava.size())
+    {
+        return std::nullopt;
+    }
+    return m_installedJava[index];
+}
+
+void JavaPage::updateJavaButtons()
+{
+    bool selected = selectedRuntime().has_value();
+    ui->removeJavaBtn->setEnabled(selected);
+    ui->useJavaBtn->setEnabled(selected);
+}
+
+void JavaPage::on_installJavaBtn_clicked()
+{
+    JavaInstallDialog::pickAndInstall(this);
+    refreshInstalledJava();
+}
+
+void JavaPage::on_removeJavaBtn_clicked()
+{
+    auto runtime = selectedRuntime();
+    if (!runtime)
+    {
+        return;
+    }
+
+    auto answer = CustomMessageBox::selectable(
+                      this, tr("Remove Java"),
+                      tr("Remove %1?\nThis deletes %2")
+                          .arg(runtime->displayName(), runtime->directory),
+                      QMessageBox::Question, QMessageBox::Yes | QMessageBox::No,
+                      QMessageBox::No)
+                      ->exec();
+    if (answer != QMessageBox::Yes)
+    {
+        return;
+    }
+
+    if (!JavaRuntime::removeRuntime(*runtime))
+    {
+        CustomMessageBox::selectable(
+            this, tr("Remove Java"),
+            tr("Could not delete %1. Is it still in use?")
+                .arg(runtime->directory),
+            QMessageBox::Warning)
+            ->exec();
+    }
+    if (ui->javaPathTextBox->text() == runtime->javaPath)
+    {
+        ui->javaPathTextBox->clear();
+    }
+    refreshInstalledJava();
+}
+
+void JavaPage::on_useJavaBtn_clicked()
+{
+    if (auto runtime = selectedRuntime())
+    {
+        ui->javaPathTextBox->setText(runtime->javaPath);
+    }
+}
+
+void JavaPage::on_openJavaFolderBtn_clicked()
+{
+    DesktopServices::openPath(JavaRuntime::runtimesRoot(), true);
 }
 
 void JavaPage::updateMemoryWarning()

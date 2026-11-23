@@ -73,6 +73,7 @@
 #include "minecraft/launch/ReconstructAssets.h"
 #include "minecraft/launch/ScanModFolders.h"
 #include "minecraft/launch/VerifyJavaInstall.h"
+#include "minecraft/launch/AutoJava.h"
 
 #include "java/JavaUtils.h"
 
@@ -554,7 +555,7 @@ QMap<QString, QString> MinecraftInstance::getVariables()
     out.insert("INST_ID", id());
     out.insert("INST_DIR", QDir(instanceRoot()).absolutePath());
     out.insert("INST_MC_DIR", QDir(gameRoot()).absolutePath());
-    out.insert("INST_JAVA", settings()->get("JavaPath").toString());
+    out.insert("INST_JAVA", javaPath());
     out.insert("INST_JAVA_ARGS", javaArguments().join(' '));
     return out;
 }
@@ -1118,6 +1119,9 @@ shared_qobject_ptr<LaunchTask> MinecraftInstance::createLaunchTask(
     AuthSessionPtr session, MinecraftServerTargetPtr serverToJoin)
 {
     updateRuntimeContext();
+    // a runtime picked for a previous launch may not fit anymore, AutoJava
+    // decides again
+    setRuntimeJavaPath(QString());
     // FIXME: get rid of shared_from_this ...
     auto process = LaunchTask::create(
         std::dynamic_pointer_cast<MinecraftInstance>(shared_from_this()));
@@ -1131,11 +1135,6 @@ shared_qobject_ptr<LaunchTask> MinecraftInstance::createLaunchTask(
         process->appendStep(
             new TextPrint(pptr, "Minecraft folder is:\n" + gameRoot() + "\n\n",
                           MessageLevel::Launcher));
-    }
-
-    // check java
-    {
-        process->appendStep(new CheckJava(pptr));
     }
 
     // check launch method
@@ -1211,6 +1210,13 @@ shared_qobject_ptr<LaunchTask> MinecraftInstance::createLaunchTask(
     else
     {
         process->appendStep(new Update(pptr, Net::Mode::Offline));
+    }
+
+    // pick or download a fitting Java, then check it. Both need the resolved
+    // components from the update.
+    {
+        process->appendStep(new AutoJava(pptr));
+        process->appendStep(new CheckJava(pptr));
     }
 
     // if there are any jar mods
