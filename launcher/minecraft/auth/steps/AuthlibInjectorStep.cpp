@@ -2,6 +2,7 @@
 #include "Application.h"
 
 #include <QDebug>
+#include <QHostAddress>
 #include <QNetworkRequest>
 #include <QUrl>
 
@@ -22,7 +23,14 @@ void AuthlibInjectorStep::perform()
     QUrl url(m_data->authlibInjectorBaseUrl);
     if (url.scheme() != "http" && url.scheme() != "https")
     {
-        url = QUrl("https://" + m_data->authlibInjectorBaseUrl);
+        QString base = m_data->authlibInjectorBaseUrl;
+        QHostAddress literal;
+        if (literal.setAddress(base) &&
+            literal.protocol() == QAbstractSocket::IPv6Protocol)
+        {
+            base = '[' + base + ']';
+        }
+        url = QUrl("https://" + base);
     }
     qDebug() << url << url.toString() << url.isLocalFile();
     m_data->authlibInjectorApiLocation = url.toString();
