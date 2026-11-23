@@ -37,6 +37,7 @@
 #include "Application.h"
 #include "BuildConfig.h"
 #include "Exception.h"
+#include "MMCZip.h"
 
 #include "net/PasteUpload.h"
 #include "ui/MainWindow.h"
@@ -196,6 +197,10 @@ void moveLogFile(const QString& from, const QString& to)
 
 Application::Application(int& argc, char** argv) : QApplication(argc, argv)
 {
+    // HACK: QuaZip ctor calls codecForLocale() which ultimately does writes
+    // to an unguarded static. QuaZip can be called on multiple workers
+    MMCZip::initTextCodecs();
+
 #if defined Q_OS_WIN32
     // attach the parent console
     if (AttachConsole(ATTACH_PARENT_PROCESS))

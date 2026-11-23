@@ -141,6 +141,8 @@ bool extractFile(QString fileCompressed, QString file, QString dir);
 
 std::optional<QByteArray> readFile(QuaZip* zip, const QString& file);
 
+void initTextCodecs();
+
 /**
  * Populate a QFileInfoList with a directory tree recursively.
  * \param rootDir directory to start off
