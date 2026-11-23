@@ -459,10 +459,20 @@ void EnsureMetadataTask::onModrinthProjectsReceived()
 
         for (auto entry : std::as_const(entries))
         {
-            auto entry_obj = Json::requireObject(entry);
-
+            // A malformed project shouldn't stop the remaining projects from
+            // getting their metadata
             ModPlatform::IndexedPack pack;
-            Modrinth::loadIndexedPack(pack, entry_obj);
+            try
+            {
+                auto entry_obj = Json::requireObject(entry);
+                Modrinth::loadIndexedPack(pack, entry_obj);
+            }
+            catch (Json::JsonException& e)
+            {
+                qDebug() << e.cause();
+                qDebug() << entry;
+                continue;
+            }
 
             auto hash_iter = m_addon_ids.constFind(pack.addonId.toString());
             if (hash_iter == m_addon_ids.constEnd())
