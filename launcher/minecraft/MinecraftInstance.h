@@ -115,6 +115,8 @@ public:
      * mode. */
     [[nodiscard]] bool supportsDemo() const;
 
+    [[nodiscard]] bool supportsQuickPlay() const;
+
     void updateRuntimeContext();
 
     //////  Profile management //////

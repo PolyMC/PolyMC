@@ -35,8 +35,10 @@
  */
 
 #include "MinecraftInstance.h"
+#include <QDateTime>
 #include <QDebug>
 #include <QFileInfo>
+#include <QTimeZone>
 #include <QRegularExpression>
 #include <QVariant>
 #include <algorithm>
@@ -87,6 +89,7 @@
 #include "WorldList.h"
 
 #include "PackProfile.h"
+#include "Component.h"
 #include "AssetsUtils.h"
 #include "MinecraftUpdate.h"
 #include "MinecraftLoadAndCheck.h"
@@ -334,6 +337,15 @@ bool MinecraftInstance::supportsDemo() const
     // FIXME: Due to Version constraints atm, this can't handle well non-release
     // versions
     return instance_ver >= Version("1.3.1");
+}
+
+bool MinecraftInstance::supportsQuickPlay() const
+{
+    static const QDateTime quickPlayIntroduced(QDate(2023, 4, 5), QTime(0, 0),
+                                               QTimeZone::UTC);
+    auto component = getPackProfile()->getComponent("net.minecraft");
+    return component &&
+           component->getReleaseDateTime() >= quickPlayIntroduced;
 }
 
 QString MinecraftInstance::jarModsDir() const
@@ -643,8 +655,21 @@ QStringList MinecraftInstance::processMinecraftArgs(
 
     if (serverToJoin && !serverToJoin->address.isEmpty())
     {
-        args_pattern += " --server " + serverToJoin->address;
-        args_pattern += " --port " + QString::number(serverToJoin->port);
+        if (supportsQuickPlay())
+        {
+            QString host = serverToJoin->address;
+            if (host.contains(':'))
+            {
+                host = '[' + host + ']';
+            }
+            args_pattern += " --quickPlayMultiplayer " + host + ':' +
+                            QString::number(serverToJoin->port);
+        }
+        else
+        {
+            args_pattern += " --server " + serverToJoin->address;
+            args_pattern += " --port " + QString::number(serverToJoin->port);
+        }
     }
 
     QMap<QString, QString> token_mapping;
@@ -713,7 +738,8 @@ QString MinecraftInstance::createLaunchScript(
         launchScript += "appletClass " + appletClass + "\n";
     }
 
-    if (serverToJoin && !serverToJoin->address.isEmpty())
+    const bool quickPlay = supportsQuickPlay();
+    if (!quickPlay && serverToJoin && !serverToJoin->address.isEmpty())
     {
         launchScript += "serverAddress " + serverToJoin->address + "\n";
         launchScript +=
@@ -722,8 +748,8 @@ QString MinecraftInstance::createLaunchScript(
 
     // generic minecraft params
     for (const auto& param : processMinecraftArgs(
-             session, nullptr /* When using a launch script, the server
-                                 parameters are handled by it*/
+             session, quickPlay ? serverToJoin : nullptr /* Otherwise the server
+                                 parameters are handled by the launch script */
              ))
     {
         launchScript += "param " + param + "\n";
