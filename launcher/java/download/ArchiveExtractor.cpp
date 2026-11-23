@@ -276,6 +276,46 @@ QFileDevice::Permissions toPermissions(qint64 mode)
     return perms;
 }
 
+// Writes the next `size` bytes of the archive to `path` and skips the padding
+// up to `padded`. Returns an error message, or an empty string on success.
+QString writeFile(GzReader& reader, const QString& path, qint64 size,
+                  qint64 padded, qint64 mode)
+{
+    QDir().mkpath(QFileInfo(path).absolutePath());
+    QFile out(path);
+    if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate))
+    {
+        return QObject::tr("Could not write %1: %2")
+            .arg(path, out.errorString());
+    }
+    QByteArray buffer(65536, '\0');
+    qint64 left = size;
+    while (left > 0)
+    {
+        qint64 n = qMin<qint64>(left, buffer.size());
+        if (!reader.read(buffer.data(), n))
+        {
+            return QObject::tr("Unexpected end of archive.");
+        }
+        if (out.write(buffer.constData(), n) != n)
+        {
+            return QObject::tr("Could not write %1: %2")
+                .arg(path, out.errorString());
+        }
+        left -= n;
+    }
+    out.close();
+    if (mode)
+    {
+        out.setPermissions(toPermissions(mode));
+    }
+    if (!reader.skip(padded - size))
+    {
+        return QObject::tr("Unexpected end of archive.");
+    }
+    return {};
+}
+
 QString extractTarGz(const QString& archive, const QString& target)
 {
     QFile file(archive);
@@ -423,37 +463,10 @@ QString extractTarGz(const QString& archive, const QString& target)
             case '\0':
             case '7':
             {
-                QDir().mkpath(QFileInfo(path).absolutePath());
-                QFile out(path);
-                if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate))
+                auto error = writeFile(reader, path, size, padded, mode);
+                if (!error.isEmpty())
                 {
-                    return QObject::tr("Could not write %1: %2")
-                        .arg(path, out.errorString());
-                }
-                QByteArray buffer(65536, '\0');
-                qint64 left = size;
-                while (left > 0)
-                {
-                    qint64 n = qMin<qint64>(left, buffer.size());
-                    if (!reader.read(buffer.data(), n))
-                    {
-                        return QObject::tr("Unexpected end of archive.");
-                    }
-                    if (out.write(buffer.constData(), n) != n)
-                    {
-                        return QObject::tr("Could not write %1: %2")
-                            .arg(path, out.errorString());
-                    }
-                    left -= n;
-                }
-                out.close();
-                if (mode)
-                {
-                    out.setPermissions(toPermissions(mode));
-                }
-                if (!reader.skip(padded - size))
-                {
-                    return QObject::tr("Unexpected end of archive.");
+                    return error;
                 }
                 break;
             }

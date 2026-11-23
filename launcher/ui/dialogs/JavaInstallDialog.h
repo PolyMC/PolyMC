@@ -57,6 +57,11 @@ private:
     JavaRuntime::Provider currentProvider() const;
     std::optional<int> currentMajor() const;
 
+    void createWidgets();
+    void createLayout();
+    void connectSignals();
+    void selectPreferredProvider();
+
     void providerChanged();
     void majorChanged();
     void refresh();
@@ -77,6 +82,8 @@ private:
     QLineEdit* m_releaseSearch;
     QCheckBox* m_recommended;
     QPushButton* m_downloadButton;
+    QPushButton* m_refreshButton;
+    QPushButton* m_cancelButton;
 
     shared_qobject_ptr<JavaRuntime::VersionListTask> m_majorTask;
     shared_qobject_ptr<JavaRuntime::ReleaseListTask> m_releaseTask;

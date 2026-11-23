@@ -62,14 +62,23 @@ JavaInstallDialog::JavaInstallDialog(QWidget* parent) : QDialog(parent)
     setWindowTitle(tr("Install Java"));
     resize(700, 500);
 
+    createWidgets();
+    createLayout();
+    connectSignals();
+    selectPreferredProvider();
+    updateButtons();
+}
+
+// Creates the provider box, the version lists, their search fields and the
+// buttons. Layout and signals are set up separately.
+void JavaInstallDialog::createWidgets()
+{
     m_providerBox = new QComboBox(this);
     for (auto provider : JavaRuntime::allProviders())
     {
         m_providerBox->addItem(JavaRuntime::providerName(provider),
                                JavaRuntime::providerId(provider));
     }
-    auto providerLabel = new QLabel(tr("&Provider:"), this);
-    providerLabel->setBuddy(m_providerBox);
 
     m_majorTree = makeTree(this, {tr("Major Version")});
     m_majorTree->setFixedWidth(130);
@@ -93,7 +102,7 @@ JavaInstallDialog::JavaInstallDialog(QWidget* parent) : QDialog(parent)
     m_releaseSearch->setPlaceholderText(tr("Search"));
     m_releaseSearch->setClearButtonEnabled(true);
 
-    auto refreshButton = new QPushButton(tr("&Refresh"), this);
+    m_refreshButton = new QPushButton(tr("&Refresh"), this);
     m_recommended = new QCheckBox(tr("Re&commended"), this);
     m_recommended->setToolTip(
         tr("Only show long-term support versions and JRE builds, the ones "
@@ -103,10 +112,15 @@ JavaInstallDialog::JavaInstallDialog(QWidget* parent) : QDialog(parent)
         new QPushButton(style()->standardIcon(QStyle::SP_DialogApplyButton),
                         tr("&Download"), this);
     m_downloadButton->setDefault(true);
-    auto cancelButton =
+    m_cancelButton =
         new QPushButton(style()->standardIcon(QStyle::SP_DialogCancelButton),
                         tr("Cancel"), this);
+}
 
+// Provider row on top, the two lists with their search fields in the middle,
+// buttons at the bottom.
+void JavaInstallDialog::createLayout()
+{
     auto lists = new QGridLayout();
     lists->addWidget(m_majorTree, 0, 0);
     lists->addWidget(m_releaseTree, 0, 1);
@@ -116,12 +130,14 @@ JavaInstallDialog::JavaInstallDialog(QWidget* parent) : QDialog(parent)
     lists->setRowStretch(0, 1);
 
     auto buttons = new QHBoxLayout();
-    buttons->addWidget(refreshButton);
+    buttons->addWidget(m_refreshButton);
     buttons->addWidget(m_recommended);
     buttons->addStretch(1);
     buttons->addWidget(m_downloadButton);
-    buttons->addWidget(cancelButton);
+    buttons->addWidget(m_cancelButton);
 
+    auto providerLabel = new QLabel(tr("&Provider:"), this);
+    providerLabel->setBuddy(m_providerBox);
     auto providerRow = new QHBoxLayout();
     providerRow->addWidget(providerLabel);
     providerRow->addWidget(m_providerBox, 1);
@@ -130,7 +146,12 @@ JavaInstallDialog::JavaInstallDialog(QWidget* parent) : QDialog(parent)
     layout->addLayout(providerRow);
     layout->addLayout(lists, 1);
     layout->addLayout(buttons);
+}
 
+// Selecting a provider loads its versions, selecting a version loads its
+// builds, and the search fields and the Recommended box filter both lists.
+void JavaInstallDialog::connectSignals()
+{
     connect(m_providerBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &JavaInstallDialog::providerChanged);
     connect(m_majorTree, &QTreeWidget::currentItemChanged, this,
@@ -145,11 +166,16 @@ JavaInstallDialog::JavaInstallDialog(QWidget* parent) : QDialog(parent)
             &JavaInstallDialog::applyFilters);
     connect(m_recommended, &QCheckBox::toggled, this,
             &JavaInstallDialog::applyFilters);
-    connect(refreshButton, &QPushButton::clicked, this,
+    connect(m_refreshButton, &QPushButton::clicked, this,
             &JavaInstallDialog::refresh);
     connect(m_downloadButton, &QPushButton::clicked, this, &QDialog::accept);
-    connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
+    connect(m_cancelButton, &QPushButton::clicked, this, &QDialog::reject);
+}
 
+// Opens the dialog on the provider that automatic Java downloads from, since
+// that is the one the user most likely wants.
+void JavaInstallDialog::selectPreferredProvider()
+{
     auto preferred =
         APPLICATION->settings()->get("AutomaticJavaProvider").toString();
     int index = m_providerBox->findData(preferred);
@@ -162,7 +188,6 @@ JavaInstallDialog::JavaInstallDialog(QWidget* parent) : QDialog(parent)
         providerChanged();  // index 0 is already current, so no change signal
                             // fires
     }
-    updateButtons();
 }
 
 Provider JavaInstallDialog::currentProvider() const
@@ -389,7 +414,7 @@ void JavaInstallDialog::applyFilters()
     for (int i = 0; i < m_majorTree->topLevelItemCount(); i++)
     {
         auto item = m_majorTree->topLevelItem(i);
-        if (!item->data(0, ROLE_MAJOR).isValid())
+        if (!item || !item->data(0, ROLE_MAJOR).isValid())
         {
             continue;
         }
@@ -416,7 +441,7 @@ void JavaInstallDialog::applyFilters()
     for (int i = 0; i < m_releaseTree->topLevelItemCount(); i++)
     {
         auto item = m_releaseTree->topLevelItem(i);
-        if (!item->data(0, ROLE_INDEX).isValid())
+        if (!item || !item->data(0, ROLE_INDEX).isValid())
         {
             continue;
         }
