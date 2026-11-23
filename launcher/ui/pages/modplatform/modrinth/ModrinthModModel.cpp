@@ -51,3 +51,5 @@ QJsonArray ListModel::documentToArray(QJsonDocument& obj) const
 }
 
 }  // namespace Modrinth
+
+#include "moc_ModrinthModModel.cpp"

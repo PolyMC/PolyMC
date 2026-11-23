@@ -424,3 +424,5 @@ void LogPage::retranslate()
 {
     ui->retranslateUi(this);
 }
+
+#include "moc_LogPage.cpp"

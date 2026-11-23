@@ -173,3 +173,5 @@ bool LogModel::wrapLines() const
 {
     return m_lineWrap;
 }
+
+#include "moc_LogModel.cpp"

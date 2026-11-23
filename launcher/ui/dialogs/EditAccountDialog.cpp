@@ -60,3 +60,5 @@ QString EditAccountDialog::password() const
 {
     return ui->passTextBox->text();
 }
+
+#include "moc_EditAccountDialog.cpp"

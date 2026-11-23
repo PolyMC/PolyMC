@@ -135,3 +135,5 @@ void Technic::SingleZipPackInstallTask::extractAborted()
 {
     emitFailed(tr("Instance import has been aborted."));
 }
+
+#include "moc_SingleZipPackInstallTask.cpp"

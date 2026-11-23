@@ -19,8 +19,8 @@
 
 #include "tasks/ConcurrentTask.h"
 
-static ModrinthAPI api;
-static ModPlatform::ProviderCapabilities ProviderCaps;
+static ModrinthAPI modrinthUpdateApi;
+static ModPlatform::ProviderCapabilities ModrinthUpdateProviderCaps;
 
 bool ModrinthCheckUpdate::abort()
 {
@@ -47,7 +47,8 @@ void ModrinthCheckUpdate::executeTask()
     QStringList hashes;
     QList<QPair<Mod*, Hashing::Hasher::Ptr>> hashers;
     auto best_hash_type =
-        ProviderCaps.hashType(ModPlatform::Provider::MODRINTH).first();
+        ModrinthUpdateProviderCaps.hashType(ModPlatform::Provider::MODRINTH)
+            .first();
 
     ConcurrentTask hashing_task(this, "MakeModrinthHashesTask", 10);
     for (auto* mod : std::as_const(m_mods))
@@ -102,8 +103,8 @@ void ModrinthCheckUpdate::executeTask()
     QString error;
 
     QByteArray response;
-    auto job = api.latestVersions(hashes, best_hash_type, m_game_versions,
-                                  m_loaders, &response);
+    auto job = modrinthUpdateApi.latestVersions(
+        hashes, best_hash_type, m_game_versions, m_loaders, &response);
 
     QEventLoop lock;
 
@@ -194,7 +195,7 @@ QString ModrinthCheckUpdate::parseLatestVersions(
             {
                 if (m_loaders.testFlag(flag))
                 {
-                    loader_filter = api.getModLoaderString(flag);
+                    loader_filter = modrinthUpdateApi.getModLoaderString(flag);
                     break;
                 }
             }
@@ -270,3 +271,5 @@ QString ModrinthCheckUpdate::parseLatestVersions(
 
     return {};
 }
+
+#include "moc_ModrinthCheckUpdate.cpp"

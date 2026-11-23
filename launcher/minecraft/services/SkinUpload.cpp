@@ -117,3 +117,5 @@ void SkinUpload::downloadFinished()
     }
     emitSucceeded();
 }
+
+#include "moc_SkinUpload.cpp"

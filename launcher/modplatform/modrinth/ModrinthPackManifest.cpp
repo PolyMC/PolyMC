@@ -44,7 +44,7 @@
 #include <algorithm>
 #include <utility>
 
-static ModrinthAPI api;
+static ModrinthAPI modrinthManifestApi;
 
 namespace Modrinth
 {
@@ -67,8 +67,8 @@ void loadIndexedPack(Modpack& pack, QJsonObject& obj)
     pack.name = Json::ensureString(obj, "title");
     pack.description = Json::ensureString(obj, "description");
     auto temp_author_name = Json::ensureString(obj, "author");
-    pack.author =
-        std::make_tuple(temp_author_name, api.getAuthorURL(temp_author_name));
+    pack.author = std::make_tuple(
+        temp_author_name, modrinthManifestApi.getAuthorURL(temp_author_name));
     pack.iconName = QString("modrinth_%1").arg(Json::ensureString(obj, "slug"));
     pack.iconUrl = Json::ensureString(obj, "icon_url");
 }

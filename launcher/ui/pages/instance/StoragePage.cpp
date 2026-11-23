@@ -236,3 +236,5 @@ bool StoragePage::eventFilter(QObject* /*object*/, QEvent* event)
     }
     return false;
 }
+
+#include "moc_StoragePage.cpp"

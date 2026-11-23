@@ -42,3 +42,5 @@ void KonamiCode::input(QEvent* event)
         }
     }
 }
+
+#include "moc_KonamiCode.cpp"

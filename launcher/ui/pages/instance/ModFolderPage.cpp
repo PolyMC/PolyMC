@@ -380,3 +380,5 @@ bool CoreModFolderPage::shouldDisplay() const
     }
     return false;
 }
+
+#include "moc_ModFolderPage.cpp"

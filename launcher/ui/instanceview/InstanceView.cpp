@@ -1091,3 +1091,5 @@ int InstanceView::verticalScrollToValue(const QModelIndex& /*index*/,
     }
     return verticalValue;
 }
+
+#include "moc_InstanceView.cpp"

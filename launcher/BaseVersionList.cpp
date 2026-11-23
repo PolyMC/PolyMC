@@ -127,3 +127,5 @@ QHash<int, QByteArray> BaseVersionList::roleNames() const
     roles.insert(ArchitectureRole, "architecture");
     return roles;
 }
+
+#include "moc_BaseVersionList.cpp"

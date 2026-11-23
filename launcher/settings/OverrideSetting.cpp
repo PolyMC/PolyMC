@@ -53,3 +53,5 @@ void OverrideSetting::set(const QVariant& value)
 {
     Setting::set(value);
 }
+
+#include "moc_OverrideSetting.cpp"

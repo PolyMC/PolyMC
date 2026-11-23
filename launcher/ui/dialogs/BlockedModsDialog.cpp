@@ -33,3 +33,5 @@ void BlockedModsDialog::openAll()
         QDesktopServices::openUrl(url);
     }
 }
+
+#include "moc_BlockedModsDialog.cpp"

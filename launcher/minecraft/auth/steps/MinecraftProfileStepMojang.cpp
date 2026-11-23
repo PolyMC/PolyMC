@@ -119,3 +119,5 @@ void MinecraftProfileStepMojang::onRequestDone(
     emit finished(AccountTaskState::STATE_WORKING,
                   tr("Minecraft Java profile acquisition succeeded."));
 }
+
+#include "moc_MinecraftProfileStepMojang.cpp"

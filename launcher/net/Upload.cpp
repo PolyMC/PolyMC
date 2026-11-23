@@ -293,3 +293,5 @@ Upload::Ptr Upload::makeByteArray(QUrl url, QByteArray* output,
     return up;
 }
 }  // namespace Net
+
+#include "moc_Upload.cpp"

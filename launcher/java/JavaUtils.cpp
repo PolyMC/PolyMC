@@ -555,3 +555,5 @@ QString JavaUtils::getJavaCheckPath()
 {
     return APPLICATION->getJarPath("JavaCheck.jar");
 }
+
+#include "moc_JavaUtils.cpp"

@@ -64,3 +64,5 @@ void InstanceCopyTask::copyAborted()
     emitFailed(tr("Instance folder copy has been aborted."));
     return;
 }
+
+#include "moc_InstanceCopyTask.cpp"

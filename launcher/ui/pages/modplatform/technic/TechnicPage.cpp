@@ -414,3 +414,5 @@ void TechnicPage::onVersionSelectionChanged(QString newData)
     selectedVersion = newData;
     selectVersion();
 }
+
+#include "moc_TechnicPage.cpp"

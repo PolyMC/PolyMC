@@ -236,3 +236,5 @@ AboutDialog::~AboutDialog()
 {
     delete ui;
 }
+
+#include "moc_AboutDialog.cpp"

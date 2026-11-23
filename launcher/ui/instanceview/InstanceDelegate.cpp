@@ -507,3 +507,5 @@ void ListViewDelegate::editingDone()
 }
 
 #include "InstanceDelegate.moc"
+
+#include "moc_InstanceDelegate.cpp"

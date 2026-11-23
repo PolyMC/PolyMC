@@ -160,3 +160,5 @@ QSize ProjectItemDelegate::sizeHint(const QStyleOptionViewItem& option,
 
     return QSize(0, height);
 }
+
+#include "moc_ProjectItem.cpp"

@@ -323,3 +323,5 @@ void UpdateChecker::chanListDownloadFailed(QString reason)
     qCritical() << QString("Failed to download channel list: %1").arg(reason);
     emit channelListLoaded();
 }
+
+#include "moc_UpdateChecker.cpp"

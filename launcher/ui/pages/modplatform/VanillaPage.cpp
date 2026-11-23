@@ -316,3 +316,5 @@ void VanillaPage::triggerSearch()
     ui->versionList->setFuzzyFilter(BaseVersionList::VersionRole,
                                     ui->searchEdit->text());
 }
+
+#include "moc_VanillaPage.cpp"

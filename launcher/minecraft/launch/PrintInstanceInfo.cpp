@@ -161,3 +161,5 @@ void PrintInstanceInfo::executeTask()
              MessageLevel::Launcher);
     emitSucceeded();
 }
+
+#include "moc_PrintInstanceInfo.cpp"

@@ -203,3 +203,5 @@ void ListModel::onLogoLoaded(const QString& logo)
 }
 
 }  // namespace Atl
+
+#include "moc_AtlListModel.cpp"

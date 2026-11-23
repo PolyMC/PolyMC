@@ -1408,3 +1408,5 @@ QList<Mod*> MinecraftInstance::getJarMods() const
 }
 
 #include "MinecraftInstance.moc"
+
+#include "moc_MinecraftInstance.cpp"

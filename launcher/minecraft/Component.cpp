@@ -490,3 +490,5 @@ void Component::updateCachedData()
         emit dataChanged();
     }
 }
+
+#include "moc_Component.cpp"

@@ -291,3 +291,5 @@ void Flame::FileResolvingTask::onSlugJobFinished()
     }
     emitSucceeded();
 }
+
+#include "moc_FileResolvingTask.cpp"

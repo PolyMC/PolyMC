@@ -186,3 +186,5 @@ void AtlPage::onVersionSelectionChanged(QString newData)
     selectedVersion = newData;
     suggestCurrent();
 }
+
+#include "moc_AtlPage.cpp"

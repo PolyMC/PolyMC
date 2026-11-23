@@ -405,3 +405,5 @@ void ModpackListModel::searchRequestAborted()
 }  // namespace Modrinth
 
 /******** Helpers ********/
+
+#include "moc_ModrinthModel.cpp"

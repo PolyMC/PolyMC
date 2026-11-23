@@ -894,3 +894,5 @@ void AccountList::endActivity()
         emit activityChanged(false);
     }
 }
+
+#include "moc_AccountList.cpp"

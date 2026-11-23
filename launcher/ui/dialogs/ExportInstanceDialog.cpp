@@ -555,3 +555,5 @@ void ExportInstanceDialog::savePackIgnore()
 }
 
 #include "ExportInstanceDialog.moc"
+
+#include "moc_ExportInstanceDialog.cpp"

@@ -1427,3 +1427,5 @@ static Meta::VersionPtr getComponentVersion(const QString& uid,
 }
 
 }  // namespace ATLauncher
+
+#include "moc_ATLPackInstallTask.cpp"

@@ -548,3 +548,5 @@ void VersionProxyModel::setCurrentVersion(const QString& version)
 }
 
 #include "VersionProxyModel.moc"
+
+#include "moc_VersionProxyModel.cpp"

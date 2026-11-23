@@ -31,3 +31,5 @@ bool TextPrint::abort()
     emitFailed("Aborted.");
     return true;
 }
+
+#include "moc_TextPrint.cpp"

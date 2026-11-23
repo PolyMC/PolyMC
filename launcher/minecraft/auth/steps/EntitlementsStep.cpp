@@ -72,3 +72,5 @@ void EntitlementsStep::onRequestDone(
 
     emit finished(AccountTaskState::STATE_WORKING, tr("Got entitlements"));
 }
+
+#include "moc_EntitlementsStep.cpp"

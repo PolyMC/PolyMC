@@ -208,3 +208,5 @@ void FtbPage::onVersionSelectionChanged(QString newData)
     selectedVersion = newData;
     suggestCurrent();
 }
+
+#include "moc_FtbPage.cpp"

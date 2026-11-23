@@ -146,3 +146,5 @@ void ProxyPage::retranslate()
 {
     ui->retranslateUi(this);
 }
+
+#include "moc_ProxyPage.cpp"

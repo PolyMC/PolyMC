@@ -57,3 +57,5 @@ QPixmap TexturePack::image(QSize size)
     }
     return cached_image.scaled(size);
 }
+
+#include "moc_TexturePack.cpp"

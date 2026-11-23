@@ -116,3 +116,5 @@ QVariant INISettingsObject::retrieveValue(const Setting& setting)
     }
     return QVariant();
 }
+
+#include "moc_INISettingsObject.cpp"

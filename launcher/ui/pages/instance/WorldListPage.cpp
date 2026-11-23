@@ -494,3 +494,5 @@ void WorldListPage::on_actionRefresh_triggered()
 }
 
 #include "WorldListPage.moc"
+
+#include "moc_WorldListPage.cpp"

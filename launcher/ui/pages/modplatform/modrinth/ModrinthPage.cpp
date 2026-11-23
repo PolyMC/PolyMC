@@ -452,3 +452,5 @@ void ModrinthPage::onVersionSelectionChanged(QString newData)
     selectedVersion = ui->versionSelectionBox->currentData().toString();
     suggestCurrent();
 }
+
+#include "moc_ModrinthPage.cpp"

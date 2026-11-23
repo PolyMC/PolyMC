@@ -36,3 +36,5 @@ BaseDetachedTool* BaseDetachedToolFactory::createDetachedTool(
 {
     return qobject_cast<BaseDetachedTool*>(createTool(instance, parent));
 }
+
+#include "moc_BaseExternalTool.cpp"

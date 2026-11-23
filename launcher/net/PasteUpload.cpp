@@ -293,3 +293,5 @@ void PasteUpload::downloadFinished()
     }
     emitSucceeded();
 }
+
+#include "moc_PasteUpload.cpp"

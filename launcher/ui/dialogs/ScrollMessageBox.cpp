@@ -15,3 +15,5 @@ ScrollMessageBox::~ScrollMessageBox()
 {
     delete ui;
 }
+
+#include "moc_ScrollMessageBox.cpp"

@@ -53,3 +53,5 @@ void MigrationEligibilityStep::onRequestDone(
     }
     emit finished(AccountTaskState::STATE_WORKING, tr("Got migration flags"));
 }
+
+#include "moc_MigrationEligibilityStep.cpp"

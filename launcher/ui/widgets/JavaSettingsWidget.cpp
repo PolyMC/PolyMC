@@ -502,3 +502,5 @@ void JavaSettingsWidget::retranslate()
         tr("The amount of memory available to store loaded Java classes."));
     m_javaBrowseBtn->setText(tr("Browse"));
 }
+
+#include "moc_JavaSettingsWidget.cpp"

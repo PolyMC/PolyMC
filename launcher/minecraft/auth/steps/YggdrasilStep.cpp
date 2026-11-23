@@ -84,3 +84,5 @@ void YggdrasilStep::onAuthFailed()
     }
     emit finished(state, errorMessage);
 }
+
+#include "moc_YggdrasilStep.cpp"

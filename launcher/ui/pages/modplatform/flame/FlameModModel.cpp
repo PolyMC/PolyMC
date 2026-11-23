@@ -35,3 +35,5 @@ QJsonArray ListModel::documentToArray(QJsonDocument& obj) const
 }
 
 }  // namespace FlameMod
+
+#include "moc_FlameModModel.cpp"

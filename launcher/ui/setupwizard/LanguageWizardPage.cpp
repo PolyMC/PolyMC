@@ -48,3 +48,5 @@ void LanguageWizardPage::retranslate()
         tr("Select the language to use in %1").arg(BuildConfig.LAUNCHER_NAME));
     mainWidget->retranslate();
 }
+
+#include "moc_LanguageWizardPage.cpp"

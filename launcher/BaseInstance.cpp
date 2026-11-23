@@ -419,3 +419,5 @@ void BaseInstance::updateRuntimeContext()
 {
     // NOOP
 }
+
+#include "moc_BaseInstance.cpp"

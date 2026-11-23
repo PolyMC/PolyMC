@@ -217,3 +217,5 @@ QStringList Task::warnings() const
 {
     return m_Warnings;
 }
+
+#include "moc_Task.cpp"

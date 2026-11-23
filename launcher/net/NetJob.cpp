@@ -166,3 +166,5 @@ void NetJob::updateState()
                        QString::number(m_done.count()),
                        QString::number(m_total_size)));
 }
+
+#include "moc_NetJob.cpp"

@@ -144,3 +144,5 @@ void MinecraftPage::retranslate()
 {
     ui->retranslateUi(this);
 }
+
+#include "moc_MinecraftPage.cpp"

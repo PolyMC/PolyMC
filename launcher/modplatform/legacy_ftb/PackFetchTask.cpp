@@ -250,3 +250,5 @@ void PackFetchTask::fileDownloadAborted()
 }
 
 }  // namespace LegacyFTB
+
+#include "moc_PackFetchTask.cpp"

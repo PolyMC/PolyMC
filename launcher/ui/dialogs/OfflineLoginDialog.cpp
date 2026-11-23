@@ -137,3 +137,5 @@ MinecraftAccountPtr OfflineLoginDialog::newAccount(QWidget* parent, QString msg)
     }
     return nullptr;
 }
+
+#include "moc_OfflineLoginDialog.cpp"

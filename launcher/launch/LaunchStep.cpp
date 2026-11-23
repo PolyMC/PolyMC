@@ -29,3 +29,5 @@ void LaunchStep::bind(LaunchTask* parent)
     connect(this, &LaunchStep::suspendStateChanged, parent,
             &LaunchTask::onSuspendStateChanged);
 }
+
+#include "moc_LaunchStep.cpp"

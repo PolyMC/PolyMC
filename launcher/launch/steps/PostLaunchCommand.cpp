@@ -119,3 +119,5 @@ bool PostLaunchCommand::abort()
     }
     return true;
 }
+
+#include "moc_PostLaunchCommand.cpp"

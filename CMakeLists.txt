@@ -9,26 +9,20 @@ endif()
 
 ##################################### Set CMake options #####################################
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOGEN_ORIGIN_DEPENDS OFF)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(BUILD_TESTING "Build the testing tree." ON)
 option(ENABLE_LTO "Enable Link Time Optimization" off)
+option(ENABLE_UNITY_BUILD "Compile the launcher library in unity batches" off)
 
 ######## Set compiler flags ########
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_C_STANDARD_REQUIRED true)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
-
-# set CXXFLAGS for build targets
-
-if (MSVC)
-    set(CMAKE_CXX_FLAGS_RELEASE "/O2 ${CMAKE_CXX_FLAGS_RELEASE}")
-else()
-    set(CMAKE_CXX_FLAGS_RELEASE "-O2 ${CMAKE_CXX_FLAGS_RELEASE}")
-endif()
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/")
 
@@ -49,24 +43,10 @@ include(GenerateExportHeader)
 
 if (MSVC)
     add_compile_options(
-        /W4
         /permissive-
-        )
-elseif((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
-    add_compile_options(
-        -Wall
-        -Wpedantic
-        -Wextra
-        -fstack-protector-strong
-        -ftrivial-auto-var-init=pattern
         )
 else()
     add_compile_options(
-        -Wall
-        -Wpedantic
-        -Wextra
-        -Wcast-align=strict
-        -Wuseless-cast
         -fstack-protector-strong
         -ftrivial-auto-var-init=pattern
         )
@@ -75,11 +55,11 @@ endif()
 # Increases the stack size to 8MB for Windows, only when not building in Debug mode
 # because we don't want random users being affected by stack overflows in release builds,
 # but it's fine in debug builds for finding and fixing them
-if((NOT CMAKE_BUILD_TYPE STREQUAL "Debug") AND WIN32)
+if(WIN32)
     if (MSVC)
-        set(CMAKE_EXE_LINKER_FLAGS "/STACK:8388608 ${CMAKE_EXE_LINKER_FLAGS}")
+        add_link_options("$<$<NOT:$<CONFIG:Debug>>:/STACK:8388608>")
     else()
-        set(CMAKE_EXE_LINKER_FLAGS "-Wl,--stack,8388608 ${CMAKE_EXE_LINKER_FLAGS}")
+        add_link_options("$<$<NOT:$<CONFIG:Debug>>:-Wl,--stack,8388608>")
     endif()
 endif()
 
@@ -214,6 +194,7 @@ set(QUAZIP_ENABLE_QTEXTCODEC OFF)
 
 # Qt 6 sets these by default. Notably causes Windows APIs to use UNICODE strings.
 add_compile_definitions(UNICODE _UNICODE)
+add_compile_definitions(NOMINMAX)
 
 set(QT_MKSPECS_DIR ${QT_DATA_DIR}/mkspecs)
 
@@ -324,15 +305,16 @@ endif()
 include(ExternalProject)
 set_directory_properties(PROPERTIES EP_BASE External)
 
+set(CMAKE_AUTOMOC OFF)
 option(NBT_BUILD_SHARED "Build NBT shared library" OFF)
 option(NBT_USE_ZLIB "Build NBT library with zlib support" OFF)
 option(NBT_BUILD_TESTS "Build NBT library tests" OFF) #FIXME: fix unit tests.
 add_subdirectory(libraries/libnbtplusplus)
-
-add_subdirectory(libraries/systeminfo) # system information library
 add_subdirectory(libraries/md4c) # markdown parser
-add_subdirectory(libraries/launcher) # java based launcher part for Minecraft
-add_subdirectory(libraries/javacheck) # java compatibility checker
+add_subdirectory(libraries/gamemode)
+add_subdirectory(libraries/murmur2) # Hash for usage with the CurseForge API
+set(CMAKE_AUTOMOC ON)
+
 if (FORCE_BUNDLED_QUAZIP)
     message(STATUS "Using bundled QuaZip")
     set(BUILD_SHARED_LIBS 0)  # link statically to avoid conflicts.
@@ -342,17 +324,39 @@ if (FORCE_BUNDLED_QUAZIP)
 else()
     message(STATUS "Using system QuaZip")
 endif()
-add_subdirectory(libraries/rainbow) # Qt extension for colors
-add_subdirectory(libraries/LocalPeer) # fork of a library from Qt solutions
 if(NOT tomlplusplus_FOUND)
     message(STATUS "Using bundled tomlplusplus")
     add_subdirectory(libraries/tomlplusplus) # toml parser
 else()
     message(STATUS "Using system tomlplusplus")
 endif()
+
+if (MSVC)
+    add_compile_options(
+        /W4
+        )
+elseif((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
+    add_compile_options(
+        -Wall
+        -Wpedantic
+        -Wextra
+        )
+else()
+    add_compile_options(
+        -Wall
+        -Wpedantic
+        -Wextra
+        -Wcast-align=strict
+        -Wuseless-cast
+        )
+endif()
+
+add_subdirectory(libraries/systeminfo) # system information library
+add_subdirectory(libraries/launcher) # java based launcher part for Minecraft
+add_subdirectory(libraries/javacheck) # java compatibility checker
+add_subdirectory(libraries/rainbow) # Qt extension for colors
+add_subdirectory(libraries/LocalPeer) # fork of a library from Qt solutions
 add_subdirectory(libraries/katabasis) # An OAuth2 library that tried to do too much
-add_subdirectory(libraries/gamemode)
-add_subdirectory(libraries/murmur2) # Hash for usage with the CurseForge API
 
 ############################### Built Artifacts ###############################
 

@@ -317,3 +317,5 @@ void PageContainer::changeEvent(QEvent* event)
     }
     QWidget::changeEvent(event);
 }
+
+#include "moc_PageContainer.cpp"

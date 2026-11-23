@@ -90,3 +90,5 @@ void XboxUserStep::onRequestDone(QNetworkReply::NetworkError error,
     m_data->userToken = temp;
     emit finished(AccountTaskState::STATE_WORKING, tr("Got Xbox user token"));
 }
+
+#include "moc_XboxUserStep.cpp"

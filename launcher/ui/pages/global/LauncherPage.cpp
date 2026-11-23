@@ -618,3 +618,5 @@ void LauncherPage::retranslate()
 {
     ui->retranslateUi(this);
 }
+
+#include "moc_LauncherPage.cpp"

@@ -317,3 +317,5 @@ void InfoFrame::boxClosed(int /*result*/)
 {
     m_current_box = nullptr;
 }
+
+#include "moc_InfoFrame.cpp"

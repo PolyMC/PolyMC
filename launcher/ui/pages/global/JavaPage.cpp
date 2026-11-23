@@ -248,3 +248,5 @@ void JavaPage::retranslate()
 {
     ui->retranslateUi(this);
 }
+
+#include "moc_JavaPage.cpp"

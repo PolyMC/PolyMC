@@ -322,3 +322,5 @@ void ModFolderModel::onParseSucceeded(int ticket, QString mod_id)
 
     emit dataChanged(index(row), index(row, columnCount(QModelIndex()) - 1));
 }
+
+#include "moc_ModFolderModel.cpp"

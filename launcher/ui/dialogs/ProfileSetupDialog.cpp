@@ -336,3 +336,5 @@ void ProfileSetupDialog::setupProfileFinished(
         button->setEnabled(true);
     }
 }
+
+#include "moc_ProfileSetupDialog.cpp"

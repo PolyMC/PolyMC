@@ -72,7 +72,7 @@ static inline QString indexFileName(QString const& mod_slug)
     return QString("%1.pw.toml").arg(mod_slug);
 }
 
-static ModPlatform::ProviderCapabilities ProviderCaps;
+static ModPlatform::ProviderCapabilities PackwizProviderCaps;
 
 namespace
 {
@@ -226,8 +226,8 @@ void V1::updateModIndex(QDir& index_dir, Mod& mod)
         addToStream(in_stream, "hash", mod.hash);
 
         in_stream << QString("\n[update]\n");
-        in_stream
-            << QString("[update.%1]\n").arg(ProviderCaps.name(mod.provider));
+        in_stream << QString("[update.%1]\n")
+                         .arg(PackwizProviderCaps.name(mod.provider));
         switch (mod.provider)
         {
             case (ModPlatform::Provider::FLAME):
@@ -377,14 +377,15 @@ V1::Mod V1::getIndexForMod(QDir& index_dir, QString slug)
 
         toml::table* mod_provider_table = nullptr;
         if ((mod_provider_table =
-                 update_table[ProviderCaps.name(Provider::FLAME)].as_table()))
+                 update_table[PackwizProviderCaps.name(Provider::FLAME)]
+                     .as_table()))
         {
             mod.provider = Provider::FLAME;
             mod.file_id = intEntry(*mod_provider_table, "file-id");
             mod.project_id = intEntry(*mod_provider_table, "project-id");
         }
         else if ((mod_provider_table =
-                      update_table[ProviderCaps.name(Provider::MODRINTH)]
+                      update_table[PackwizProviderCaps.name(Provider::MODRINTH)]
                           .as_table()))
         {
             mod.provider = Provider::MODRINTH;

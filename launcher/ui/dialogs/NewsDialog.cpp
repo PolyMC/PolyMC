@@ -71,3 +71,5 @@ void NewsDialog::toggleArticleList()
         ui->toggleListButton->setText(tr("Hide article list"));
     }
 }
+
+#include "moc_NewsDialog.cpp"

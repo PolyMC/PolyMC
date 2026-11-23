@@ -825,3 +825,5 @@ void ComponentUpdateTask::checkIfAllFinished()
         d->remoteLoadStatusList.clear();
     }
 }
+
+#include "moc_ComponentUpdateTask.cpp"

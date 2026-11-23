@@ -131,3 +131,5 @@ MinecraftAccountPtr LoginDialog::newAccount(QWidget* parent, QString msg,
     }
     return nullptr;
 }
+
+#include "moc_LoginDialog.cpp"

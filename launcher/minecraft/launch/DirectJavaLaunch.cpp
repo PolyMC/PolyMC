@@ -184,3 +184,5 @@ bool DirectJavaLaunch::abort()
     }
     return true;
 }
+
+#include "moc_DirectJavaLaunch.cpp"

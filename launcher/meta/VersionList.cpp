@@ -306,3 +306,5 @@ BaseVersionPtr VersionList::getRecommended() const
 }
 
 }  // namespace Meta
+
+#include "moc_VersionList.cpp"

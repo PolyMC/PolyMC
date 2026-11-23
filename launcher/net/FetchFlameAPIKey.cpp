@@ -79,3 +79,5 @@ void FetchFlameAPIKey::downloadFinished()
         emitFailed("The API returned an unexpected JSON output.");
     }
 }
+
+#include "moc_FetchFlameAPIKey.cpp"

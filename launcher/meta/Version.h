@@ -31,7 +31,8 @@
 
 namespace Meta
 {
-using VersionPtr = std::shared_ptr<class Version>;
+class Version;
+using VersionPtr = std::shared_ptr<Version>;
 
 class Version : public QObject, public BaseVersion, public BaseEntity
 {

@@ -288,3 +288,5 @@ bool ExternalResourcesPage::onSelectionChanged(const QModelIndex& current,
 
     return true;
 }
+
+#include "moc_ExternalResourcesPage.cpp"

@@ -186,3 +186,5 @@ void MSAStep::onOAuthActivityChanged(Katabasis::Activity activity)
         }
     }
 }
+
+#include "moc_MSAStep.cpp"

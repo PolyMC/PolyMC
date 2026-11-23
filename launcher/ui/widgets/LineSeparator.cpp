@@ -38,3 +38,5 @@ void LineSeparator::paintEvent(QPaintEvent*)
     style()->drawPrimitive(QStyle::PE_IndicatorToolBarSeparator, &opt, &p,
                            parentWidget());
 }
+
+#include "moc_LineSeparator.cpp"

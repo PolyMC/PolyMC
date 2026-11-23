@@ -328,3 +328,5 @@ void LaunchTask::substituteVariables(QString& cmd) const
         cmd.replace("$" + key, env.value(key));
     }
 }
+
+#include "moc_LaunchTask.cpp"

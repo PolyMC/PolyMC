@@ -152,3 +152,5 @@ void SettingsObject::connectSignals(const Setting& setting)
     connect(&setting, &Setting::settingReset, this,
             &SettingsObject::settingReset);
 }
+
+#include "moc_SettingsObject.cpp"

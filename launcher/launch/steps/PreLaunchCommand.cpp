@@ -118,3 +118,5 @@ bool PreLaunchCommand::abort()
     }
     return true;
 }
+
+#include "moc_PreLaunchCommand.cpp"

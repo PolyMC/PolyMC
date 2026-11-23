@@ -542,3 +542,5 @@ QString IconList::getDirectory() const
 }
 
 // #include "IconList.moc"
+
+#include "moc_IconList.cpp"

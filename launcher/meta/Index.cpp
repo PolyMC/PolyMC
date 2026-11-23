@@ -162,3 +162,5 @@ void Index::versionListNameChanged(int row)
     emit dataChanged(index(row), index(row), QVector<int>() << Qt::DisplayRole);
 }
 }  // namespace Meta
+
+#include "moc_Index.cpp"

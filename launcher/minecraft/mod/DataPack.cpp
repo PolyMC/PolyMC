@@ -27,7 +27,7 @@
 // Values taken from:
 // https://minecraft.wiki/w/Pack_format#List_of_pack_formats
 static const QMap<std::pair<int, int>, std::pair<Version, Version>>
-    s_pack_format_versions = {
+    s_data_pack_format_versions = {
         {{4, 0}, {Version("1.13"), Version("1.14.4")}},
         {{5, 0}, {Version("1.15"), Version("1.16.1")}},
         {{6, 0}, {Version("1.16.2"), Version("1.16.5")}},
@@ -166,5 +166,5 @@ static const QMap<std::pair<int, int>, std::pair<Version, Version>>
 QMap<std::pair<int, int>, std::pair<Version, Version>> DataPack::versionMap()
     const
 {
-    return s_pack_format_versions;
+    return s_data_pack_format_versions;
 }

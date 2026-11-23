@@ -95,3 +95,5 @@ void SetupWizard::changeEvent(QEvent* event)
 SetupWizard::~SetupWizard()
 {
 }
+
+#include "moc_SetupWizard.cpp"

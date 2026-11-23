@@ -176,3 +176,5 @@ void CheckJava::printJavaInfo(const QString& version,
             .arg(version, architecture, realArchitecture, vendor),
         MessageLevel::Launcher);
 }
+
+#include "moc_CheckJava.cpp"

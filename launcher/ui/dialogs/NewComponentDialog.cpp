@@ -115,3 +115,5 @@ void NewComponentDialog::setBlacklist(QStringList badUids)
 {
     uidBlacklist = badUids;
 }
+
+#include "moc_NewComponentDialog.cpp"

@@ -1132,3 +1132,5 @@ ModAPI::ModLoaderTypes PackProfile::getModLoaders()
     }
     return result;
 }
+
+#include "moc_PackProfile.cpp"

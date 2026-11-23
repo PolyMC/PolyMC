@@ -134,3 +134,5 @@ void LabeledToolButton::resetIcon()
     m_label->setSizePolicy(QSizePolicy::MinimumExpanding,
                            QSizePolicy::Preferred);
 }
+
+#include "moc_LabeledToolButton.cpp"

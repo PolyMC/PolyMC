@@ -129,3 +129,5 @@ void ProgressWidget::taskDestroyed()
 {
     m_task = nullptr;
 }
+
+#include "moc_ProgressWidget.cpp"

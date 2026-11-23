@@ -571,3 +571,5 @@ void LaunchController::onProfilerAborted(const QString& message)
     m_launcher->abort();
     emitFailed("Profiler startup failed!");
 }
+
+#include "moc_LaunchController.cpp"

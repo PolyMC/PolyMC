@@ -328,3 +328,5 @@ QList<RemoteTextBrowser::ImageFragment> RemoteTextBrowser::collectFragments(
 
     return fragments;
 }
+
+#include "moc_RemoteTextBrowser.cpp"

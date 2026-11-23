@@ -254,23 +254,23 @@ void ListModel::logoLoaded(QString logo, bool stale)
         {
             return;
         }
-        QImage small;
+        QImage scaled;
         if (image.width() > image.height())
         {
-            small = image.scaledToWidth(512).scaledToWidth(
+            scaled = image.scaledToWidth(512).scaledToWidth(
                 256, Qt::SmoothTransformation);
         }
         else
         {
-            small = image.scaledToHeight(512).scaledToHeight(
+            scaled = image.scaledToHeight(512).scaledToHeight(
                 256, Qt::SmoothTransformation);
         }
-        QPoint offset((256 - small.width()) / 2, (256 - small.height()) / 2);
+        QPoint offset((256 - scaled.width()) / 2, (256 - scaled.height()) / 2);
         QImage square(QSize(256, 256), QImage::Format_ARGB32);
         square.fill(Qt::transparent);
 
         QPainter painter(&square);
-        painter.drawImage(offset, small);
+        painter.drawImage(offset, scaled);
         painter.end();
 
         square.save(logoObj.fullpath + ".small", "PNG");
@@ -314,3 +314,5 @@ void ListModel::requestLogo(QString logo, QString url)
 }
 
 }  // namespace Ftb
+
+#include "moc_FtbListModel.cpp"

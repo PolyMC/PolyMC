@@ -280,3 +280,5 @@ void ExternalToolsPage::retranslate()
 {
     ui->retranslateUi(this);
 }
+
+#include "moc_ExternalToolsPage.cpp"

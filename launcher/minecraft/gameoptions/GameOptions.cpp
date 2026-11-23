@@ -150,3 +150,5 @@ bool GameOptions::save()
 {
     return ::save(path, contents, version);
 }
+
+#include "moc_GameOptions.cpp"

@@ -54,3 +54,5 @@ void TexturePackPage::installTexturePacks()
         runTasks(mdownload.getTasks());
     }
 }
+
+#include "moc_TexturePackPage.cpp"

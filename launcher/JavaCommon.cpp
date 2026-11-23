@@ -200,3 +200,5 @@ void JavaCommon::TestCheck::checkFinishedWithArgs(const JavaCheckResult& result)
     javaArgsWereBad(m_parent, result);
     emit finished();
 }
+
+#include "moc_JavaCommon.cpp"

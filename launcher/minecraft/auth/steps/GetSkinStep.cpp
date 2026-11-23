@@ -46,3 +46,5 @@ void GetSkinStep::onRequestDone(QNetworkReply::NetworkError error,
     }
     emit finished(AccountTaskState::STATE_SUCCEEDED, tr("Got skin"));
 }
+
+#include "moc_GetSkinStep.cpp"

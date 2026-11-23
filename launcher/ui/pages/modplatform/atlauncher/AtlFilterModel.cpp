@@ -109,3 +109,5 @@ bool FilterModel::lessThan(const QModelIndex& left,
 }
 
 }  // namespace Atl
+
+#include "moc_AtlFilterModel.cpp"

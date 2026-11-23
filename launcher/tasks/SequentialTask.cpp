@@ -26,3 +26,5 @@ void SequentialTask::updateState()
                   .arg(QString::number(m_doing.count() + m_done.count()),
                        QString::number(m_total_size)));
 }
+
+#include "moc_SequentialTask.cpp"

@@ -190,3 +190,5 @@ QUrl ImportPage::modpackUrl() const
         return QUrl::fromLocalFile(ui->modpackEdit->text());
     }
 }
+
+#include "moc_ImportPage.cpp"

@@ -200,3 +200,5 @@ bool XboxAuthorizationStep::processSTSError(
     }
     return false;
 }
+
+#include "moc_XboxAuthorizationStep.cpp"

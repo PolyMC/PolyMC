@@ -29,14 +29,14 @@
 #include <algorithm>
 #include <utility>
 
-static ModrinthAPI api;
-static ModPlatform::ProviderCapabilities ProviderCaps;
+static ModrinthAPI modrinthIndexApi;
+static ModPlatform::ProviderCapabilities ModrinthIndexProviderCaps;
 
 namespace
 {
 
-bool isNewerVersion(const ModPlatform::IndexedVersion& a,
-                    const ModPlatform::IndexedVersion& b)
+bool isNewerModrinthVersion(const ModPlatform::IndexedVersion& a,
+                            const ModPlatform::IndexedVersion& b)
 {
     // dates are in RFC 3339 format
     return a.date > b.date;
@@ -76,7 +76,7 @@ void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj,
     ModPlatform::ModpackAuthor modAuthor;
     modAuthor.name =
         Json::ensureString(obj, "author", QObject::tr("No author(s)"));
-    modAuthor.url = api.getAuthorURL(modAuthor.name);
+    modAuthor.url = modrinthIndexApi.getAuthorURL(modAuthor.name);
     pack.authors.append(modAuthor);
 
     // Modrinth can have more data than what's provided by the basic search :)
@@ -150,7 +150,8 @@ void Modrinth::loadIndexedPackVersions(
             unsortedVersions.append(file);
         }
     }
-    std::sort(unsortedVersions.begin(), unsortedVersions.end(), isNewerVersion);
+    std::sort(unsortedVersions.begin(), unsortedVersions.end(),
+              isNewerModrinthVersion);
     pack.versions = unsortedVersions;
     pack.versionsLoaded = true;
 }
@@ -230,8 +231,8 @@ ModPlatform::IndexedVersion Modrinth::loadIndexedPackVersion(
         }
         else
         {
-            auto hash_types =
-                ProviderCaps.hashType(ModPlatform::Provider::MODRINTH);
+            auto hash_types = ModrinthIndexProviderCaps.hashType(
+                ModPlatform::Provider::MODRINTH);
             for (auto& hash_type : hash_types)
             {
                 if (hash_list.contains(hash_type))

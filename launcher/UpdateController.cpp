@@ -80,7 +80,7 @@ static QFile::Permissions unixModeToPermissions(const int mode)
     return perms;
 }
 
-static const QLatin1String liveCheckFile("live.check");
+static const QLatin1String updaterLiveCheckFile("live.check");
 
 UpdateController::UpdateController(QWidget* parent, const QString& root,
                                    const QString updateFilesDir,
@@ -236,11 +236,11 @@ void UpdateController::installUpdates()
     bool startFailed = false;
 
     // remove live check file, if any
-    if (QFile::exists(liveCheckFile))
+    if (QFile::exists(updaterLiveCheckFile))
     {
-        if (!QFile::remove(liveCheckFile))
+        if (!QFile::remove(updaterLiveCheckFile))
         {
-            qWarning() << "Couldn't remove the" << liveCheckFile
+            qWarning() << "Couldn't remove the" << updaterLiveCheckFile
                        << "file! We will proceed without :(";
             doLiveCheck = false;
         }
@@ -290,15 +290,16 @@ void UpdateController::installUpdates()
             attempts++;
             QString key;
             std::this_thread::sleep_for(std::chrono::milliseconds(250));
-            if (!QFile::exists(liveCheckFile))
+            if (!QFile::exists(updaterLiveCheckFile))
             {
-                qWarning() << "Couldn't find the" << liveCheckFile << "file!";
+                qWarning() << "Couldn't find the" << updaterLiveCheckFile
+                           << "file!";
                 startFailed = true;
                 continue;
             }
             try
             {
-                key = QString::fromUtf8(FS::read(liveCheckFile));
+                key = QString::fromUtf8(FS::read(updaterLiveCheckFile));
                 auto id = ApplicationId::fromRawString(key);
                 LocalPeer peer(nullptr, id);
                 if (peer.isClient())
@@ -317,7 +318,8 @@ void UpdateController::installUpdates()
             }
             catch (const Exception&)
             {
-                qWarning() << "Couldn't read the" << liveCheckFile << "file!";
+                qWarning() << "Couldn't read the" << updaterLiveCheckFile
+                           << "file!";
                 startFailed = true;
                 continue;
             }

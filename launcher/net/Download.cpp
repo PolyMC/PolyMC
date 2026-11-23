@@ -356,3 +356,5 @@ bool Net::Download::abort()
     }
     return true;
 }
+
+#include "moc_Download.cpp"

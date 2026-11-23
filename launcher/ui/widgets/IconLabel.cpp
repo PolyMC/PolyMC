@@ -39,3 +39,5 @@ void IconLabel::paintEvent(QPaintEvent*)
     }
     m_icon.paint(&p, rect);
 }
+
+#include "moc_IconLabel.cpp"

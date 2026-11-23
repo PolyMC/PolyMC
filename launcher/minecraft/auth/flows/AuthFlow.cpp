@@ -75,3 +75,5 @@ void AuthFlow::stepFinished(AccountTaskState resultingState, QString message)
         nextStep();
     }
 }
+
+#include "moc_AuthFlow.cpp"

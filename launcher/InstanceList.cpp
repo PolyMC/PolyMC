@@ -1171,3 +1171,5 @@ int InstanceList::getTotalPlayTime()
 }
 
 #include "InstanceList.moc"
+
+#include "moc_InstanceList.cpp"

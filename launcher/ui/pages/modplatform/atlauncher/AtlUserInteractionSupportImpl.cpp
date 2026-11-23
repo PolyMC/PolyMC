@@ -127,3 +127,5 @@ void AtlUserInteractionSupportImpl::displayMessage(QString message)
 {
     QMessageBox::information(m_parent, tr("Installing"), message);
 }
+
+#include "moc_AtlUserInteractionSupportImpl.cpp"

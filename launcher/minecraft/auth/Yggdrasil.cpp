@@ -430,3 +430,5 @@ void Yggdrasil::processError(QJsonObject responseData)
                     tr("An unknown Yggdrasil error occurred."));
     }
 }
+
+#include "moc_Yggdrasil.cpp"

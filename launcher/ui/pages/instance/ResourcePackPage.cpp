@@ -55,3 +55,5 @@ void ResourcePackPage::installResourcePacks()
         runTasks(mdownload.getTasks());
     }
 }
+
+#include "moc_ResourcePackPage.cpp"

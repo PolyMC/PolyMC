@@ -242,3 +242,5 @@ void ModDownloadDialog::selectedPageChanged(BasePage* previous,
     // Same effect as having a global search bar
     selected_page->setSearchTerm(prev_page->getSearchTerm());
 }
+
+#include "moc_ModDownloadDialog.cpp"

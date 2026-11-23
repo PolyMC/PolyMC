@@ -122,3 +122,5 @@ void ProfileSelectDialog::on_buttonBox_rejected()
 {
     close();
 }
+
+#include "moc_ProfileSelectDialog.cpp"

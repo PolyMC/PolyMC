@@ -87,3 +87,5 @@ void CustomCommandsPage::retranslate()
 {
     commands->retranslate();
 }
+
+#include "moc_CustomCommandsPage.cpp"

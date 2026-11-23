@@ -702,3 +702,5 @@ void InstanceSettingsPage::retranslate()
     ui->customCommands
         ->retranslate();  // TODO: why is this seperate from the others?
 }
+
+#include "moc_InstanceSettingsPage.cpp"

@@ -24,3 +24,5 @@ AuthlibInjectorLogin::AuthlibInjectorLogin(AccountData* data, QString password,
     m_steps.append(new MinecraftProfileStepMojang(m_data));
     m_steps.append(new GetSkinStep(m_data));
 }
+
+#include "moc_AuthlibInjector.cpp"

@@ -94,3 +94,5 @@ void LauncherLoginStep::onRequestDone(
     }
     emit finished(AccountTaskState::STATE_WORKING, tr(""));
 }
+
+#include "moc_LauncherLoginStep.cpp"

@@ -53,3 +53,5 @@ void FoldersTask::executeTask()
     }
     emitSucceeded();
 }
+
+#include "moc_FoldersTask.cpp"

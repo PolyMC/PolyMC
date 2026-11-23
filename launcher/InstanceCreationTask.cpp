@@ -67,3 +67,5 @@ void InstanceCreationTask::executeTask()
     emitSucceeded();
     return;
 }
+
+#include "moc_InstanceCreationTask.cpp"

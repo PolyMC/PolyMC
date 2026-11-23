@@ -13,7 +13,7 @@
 namespace Hashing
 {
 
-static ModPlatform::ProviderCapabilities ProviderCaps;
+static ModPlatform::ProviderCapabilities HashProviderCaps;
 
 Hasher::Ptr createHasher(QString file_path, ModPlatform::Provider provider)
 {
@@ -53,8 +53,9 @@ static QString hashModrinthFile(const QString& path)
     }
 
     auto hash_type =
-        ProviderCaps.hashType(ModPlatform::Provider::MODRINTH).first();
-    return ProviderCaps.hash(ModPlatform::Provider::MODRINTH, &file, hash_type);
+        HashProviderCaps.hashType(ModPlatform::Provider::MODRINTH).first();
+    return HashProviderCaps.hash(ModPlatform::Provider::MODRINTH, &file,
+                                 hash_type);
 }
 
 // CF-specific

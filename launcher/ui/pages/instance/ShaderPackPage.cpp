@@ -55,3 +55,5 @@ void ShaderPackPage::installShaderPacks()
 }
 
 // TODO: update
+
+#include "moc_ShaderPackPage.cpp"

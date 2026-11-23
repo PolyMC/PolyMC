@@ -191,3 +191,5 @@ OperationList DownloadTask::operations()
 }
 
 }  // namespace GoUpdate
+
+#include "moc_DownloadTask.cpp"

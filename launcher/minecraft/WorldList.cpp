@@ -494,3 +494,5 @@ bool WorldList::dropMimeData(const QMimeData* data, Qt::DropAction action,
 }
 
 #include "WorldList.moc"
+
+#include "moc_WorldList.cpp"

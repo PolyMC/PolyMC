@@ -76,3 +76,5 @@ void LanguagePage::retranslate()
 {
     mainWidget->retranslate();
 }
+
+#include "moc_LanguagePage.cpp"

@@ -79,3 +79,5 @@ bool Update::abort()
     }
     return true;
 }
+
+#include "moc_Update.cpp"

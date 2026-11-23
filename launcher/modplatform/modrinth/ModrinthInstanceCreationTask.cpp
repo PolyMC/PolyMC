@@ -691,3 +691,5 @@ void ModrinthCreationTask::onFileDownloadFailed(
         shared->succeeded();
     }
 }
+
+#include "moc_ModrinthInstanceCreationTask.cpp"

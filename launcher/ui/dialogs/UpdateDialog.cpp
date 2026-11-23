@@ -264,3 +264,5 @@ void UpdateDialog::closeEvent(QCloseEvent* evt)
                                  saveGeometry().toBase64());
     QDialog::closeEvent(evt);
 }
+
+#include "moc_UpdateDialog.cpp"
