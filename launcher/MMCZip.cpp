@@ -550,6 +550,11 @@ bool MMCZip::collectFileListRecursively(const QString& rootDir,
     return true;
 }
 
+void MMCZip::initTextCodecs()
+{
+    QuaZip zip;
+}
+
 std::optional<QByteArray> MMCZip::readFile(QuaZip* zip, const QString& file)
 {
     unzFile unz = zip->getUnzFile();

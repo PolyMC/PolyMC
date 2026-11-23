@@ -11,6 +11,7 @@
 #include <functional>
 
 #include "FileSystem.h"
+#include "MMCZip.h"
 
 #include "minecraft/mod/tasks/BasicFolderLoadTask.h"
 
@@ -40,6 +41,10 @@ private:
 ResourceFolderModel::ResourceFolderModel(QDir dir, QObject* parent)
     : QAbstractListModel(parent), m_dir(dir), m_watcher(this)
 {
+    // HACK: QuaZip ctor calls codecForLocale() which ultimately does writes
+    // to an unguarded static. QuaZip can be called on multiple workers
+    MMCZip::initTextCodecs();
+
     FS::ensureFolderPathExists(m_dir.absolutePath());
 
     m_dir.setFilter(QDir::Readable | QDir::NoDotAndDotDot | QDir::Files |
