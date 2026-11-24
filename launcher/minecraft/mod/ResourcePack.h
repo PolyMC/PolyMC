@@ -3,7 +3,6 @@
 #include "Resource.h"
 
 #include <QImage>
-#include <QMap>
 #include <QMutex>
 #include <QPixmap>
 #include <QPixmapCache>
@@ -13,6 +12,35 @@
 #include <utility>
 
 class Version;
+
+struct PackFormatVersions
+{
+    int m_major;
+    int m_minor;
+    const char* m_first;
+    const char* m_last;
+};
+
+struct PackFormatTable
+{
+    const PackFormatVersions* m_rows;
+    qsizetype m_count;
+};
+
+constexpr bool packFormatsAscend(const PackFormatVersions* rows,
+                                 qsizetype count)
+{
+    bool ascending = true;
+    for (qsizetype i = 1; i < count && ascending; ++i)
+    {
+        const PackFormatVersions& previous = rows[i - 1];
+        const PackFormatVersions& current = rows[i];
+        ascending = previous.m_major < current.m_major ||
+                    (previous.m_major == current.m_major &&
+                     previous.m_minor < current.m_minor);
+    }
+    return ascending;
+}
 
 /* TODO:
  *
@@ -73,8 +101,7 @@ public:
 protected:
     mutable QMutex m_data_lock;
 
-    virtual QMap<std::pair<int, int>, std::pair<Version, Version>> versionMap()
-        const;
+    virtual PackFormatTable versionTable() const;
 
     /* The 'version' of a resource pack, as defined in the pack.mcmeta file.
      * See

@@ -21,6 +21,7 @@
 
 #include <FileSystem.h>
 
+#include <minecraft/mod/DataPack.h>
 #include <minecraft/mod/ResourcePack.h>
 #include <minecraft/mod/tasks/LocalResourcePackParseTask.h>
 
@@ -71,6 +72,41 @@ private slots:
         QVERIFY(pack.description() ==
                 "o quartel pegou fogo, policia deu sinal, acode acode acode a "
                 "bandeira nacional");
+    }
+
+    void test_compatibleVersions()
+    {
+        ResourcePack pack;
+
+        pack.setPackFormat(3, {0, 0}, {0, 0});
+        QCOMPARE(pack.toString(), QString("3 (1.11 - 1.12.2)"));
+
+        pack.setPackFormat(100, {0, 0}, {0, 0});
+        QCOMPARE(pack.toString(), QString("100 (26.4-snap3 - 26.4-snap3)"));
+
+        pack.setPackFormat(9999, {0, 0}, {0, 0});
+        QCOMPARE(pack.toString(), QString("9999"));
+
+        pack.setPackFormat(0, {4, 0}, {6, 0});
+        QCOMPARE(pack.toString(), QString("4 - 6 (1.13 - 1.16.5)"));
+
+        pack.setPackFormat(0, {97, 1}, {97, 1});
+        QCOMPARE(pack.toString(), QString("97.1 (26.3)"));
+
+        pack.setPackFormat(0, {4, 0}, {9999, 0});
+        QCOMPARE(pack.toString(), QString("4 - 9999 (1.13 - 26.4-snap3)"));
+
+        DataPack data;
+
+        data.setPackFormat(3, {0, 0}, {0, 0});
+        QCOMPARE(data.toString(), QString("3"));
+
+        data.setPackFormat(4, {0, 0}, {0, 0});
+        QCOMPARE(data.toString(), QString("4 (1.13 - 1.14.4)"));
+
+        data.setPackFormat(0, {94, 1}, {101, 1});
+        QCOMPARE(data.toString(),
+                 QString("94.1 - 101.1 (1.21.11-pre4 - 26.1.2)"));
     }
 };
 
