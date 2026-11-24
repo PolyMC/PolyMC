@@ -17,7 +17,7 @@ struct MojangDownloadInfo
     /// sha-1 checksum of the file
     QString sha1;
     /// size of the file in bytes
-    int size;
+    int size = 0;
 };
 
 struct MojangLibraryDownloadInfo
@@ -37,7 +37,7 @@ struct MojangLibraryDownloadInfo
             return artifact.get();
         }
 
-        return classifiers[classifier].get();
+        return classifiers.value(classifier).get();
     }
 
     // data
@@ -77,7 +77,7 @@ struct MojangAssetIndexInfo : public MojangDownloadInfo
     }
 
     // data
-    int totalSize;
+    int totalSize = 0;
     QString id;
     bool known = true;
 };

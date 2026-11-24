@@ -138,7 +138,7 @@ struct Language
         return (key == other.key && file_name == other.file_name &&
                 file_size == other.file_size && file_sha1 == other.file_sha1 &&
                 translated == other.translated && fuzzy == other.fuzzy &&
-                total == other.fuzzy && localFileType == other.localFileType);
+                total == other.total && localFileType == other.localFileType);
     }
 
     Language& apply(Language& other)

@@ -132,7 +132,7 @@ bool ModrinthPage::eventFilter(QObject* watched, QEvent* event)
 {
     if (watched == ui->searchEdit && event->type() == QEvent::KeyPress)
     {
-        auto* keyEvent = reinterpret_cast<QKeyEvent*>(event);
+        auto* keyEvent = static_cast<QKeyEvent*>(event);
         if (keyEvent->key() == Qt::Key_Return)
         {
             this->triggerSearch();

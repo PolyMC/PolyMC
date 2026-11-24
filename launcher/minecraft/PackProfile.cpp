@@ -195,6 +195,7 @@ static bool savePackProfile(const QString& filename,
     {
         qCritical() << "Couldn't save" << outFile.fileName()
                     << "because:" << outFile.errorString();
+        return false;
     }
     return true;
 }

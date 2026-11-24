@@ -21,6 +21,8 @@
 #include <QByteArray>
 #include <QObject>
 
+#include <atomic>
+
 #include "minecraft/mod/ResourcePack.h"
 
 #include "tasks/Task.h"
@@ -60,5 +62,5 @@ private:
 
     ResourcePack& m_resource_pack;
 
-    bool m_aborted = false;
+    std::atomic<bool> m_aborted = false;
 };

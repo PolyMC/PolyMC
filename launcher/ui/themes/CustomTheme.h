@@ -24,7 +24,7 @@ public:
 private: /* data */
     QPalette m_palette;
     QColor m_fadeColor;
-    double m_fadeAmount;
+    double m_fadeAmount = 0.0;
     QString m_styleSheet;
     QString m_name;
     QString m_id;

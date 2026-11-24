@@ -310,7 +310,10 @@ void Download::downloadFinished()
     }
 
     // otherwise, finalize the whole graph
-    m_state = m_sink->finalize(*m_reply.get());
+    if (m_state != State::Failed)
+    {
+        m_state = m_sink->finalize(*m_reply.get());
+    }
     if (m_state != State::Succeeded)
     {
         qDebug() << "Download failed to finalize:" << m_url.toString();

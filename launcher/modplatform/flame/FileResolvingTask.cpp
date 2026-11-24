@@ -15,17 +15,10 @@
 #include <algorithm>
 #include <functional>
 #include <iterator>
-#include <numeric>
 #include <utility>
 
 namespace
 {
-
-QVariantList appendFileId(QVariantList& list, const Flame::File& file)
-{
-    list.push_back(file.fileId);
-    return list;
-}
 
 void markResolved(Flame::File& file)
 {
@@ -73,9 +66,12 @@ void Flame::FileResolvingTask::executeTask()
     // build json data to send
     QJsonObject object;
 
-    object["fileIds"] = QJsonArray::fromVariantList(
-        std::accumulate(m_toProcess.files.begin(), m_toProcess.files.end(),
-                        QVariantList(), appendFileId));
+    QVariantList file_ids;
+    for (const Flame::File& file : std::as_const(m_toProcess.files))
+    {
+        file_ids.push_back(file.fileId);
+    }
+    object["fileIds"] = QJsonArray::fromVariantList(file_ids);
     QByteArray data = Json::toText(object);
     auto dl = Net::Upload::makeByteArray(
         QUrl("https://api.curseforge.com/v1/mods/files"), result.get(), data);

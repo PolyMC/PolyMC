@@ -204,7 +204,10 @@ void Upload::downloadFinished()
     }
 
     // otherwise, finalize the whole graph
-    m_state = m_sink->finalize(*m_reply.get());
+    if (m_state != State::Failed)
+    {
+        m_state = m_sink->finalize(*m_reply.get());
+    }
     if (m_state != State::Succeeded)
     {
         qDebug() << "Upload failed to finalize:" << m_url.toString();

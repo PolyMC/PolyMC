@@ -71,6 +71,8 @@ QString MCEditTool::getProgramPath()
         return mceditDir.absoluteFilePath("mcedit2.exe");
     }
     return QString();
+#else
+    return QString();
 #endif
 #endif
 }

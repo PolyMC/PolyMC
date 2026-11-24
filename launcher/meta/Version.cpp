@@ -77,14 +77,8 @@ void Meta::Version::mergeFromList(const Meta::VersionPtr& other)
     {
         setTime(other->m_time);
     }
-    if (m_requires != other->m_requires)
-    {
-        m_requires = other->m_requires;
-    }
-    if (m_conflicts != other->m_conflicts)
-    {
-        m_conflicts = other->m_conflicts;
-    }
+    m_requires = other->m_requires;
+    m_conflicts = other->m_conflicts;
     if (m_volatile != other->m_volatile)
     {
         setVolatile(other->m_volatile);

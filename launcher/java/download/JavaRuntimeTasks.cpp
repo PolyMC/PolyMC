@@ -173,7 +173,7 @@ QUrl releaseListUrl(Provider provider, int major)
         case Provider::Azul:
             return azulUrl(major);
         case Provider::Semeru:
-            return QString(SEMERU_RELEASES + "?per_page=20").arg(major);
+            return (SEMERU_RELEASES + "?per_page=20").arg(major);
     }
     return {};
 }

@@ -198,6 +198,7 @@ void LocalTexturePackParseTask::executeTask()
 
     if (!TexturePackUtils::process(m_texture_pack))
     {
+        emitFailed();
         return;
     }
 

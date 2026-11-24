@@ -243,7 +243,7 @@ static QString sortFromIndex(int index, bool& unhandled)
             return "updated";
         default:
             unhandled = true;
-            qWarning() << QString("Unhandled case in sortFromIndex (%i)")
+            qWarning() << QString("Unhandled case in sortFromIndex (%1)")
                               .arg(QString::number(index));
             break;
     }

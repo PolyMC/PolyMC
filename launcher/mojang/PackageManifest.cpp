@@ -271,6 +271,7 @@ Package Package::fromInspectedFolder(const QString& folderPath)
     QDir root(folderPath);
 
     Package out;
+    out.valid = true;
     QDirIterator iterator(
         folderPath,
         QDir::NoDotAndDotDot | QDir::AllEntries | QDir::System | QDir::Hidden,
@@ -336,7 +337,6 @@ Package Package::fromInspectedFolder(const QString& folderPath)
         }
     }
     out.folders.insert(Path("."));
-    out.valid = true;
     return out;
 }
 

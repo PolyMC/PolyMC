@@ -135,5 +135,4 @@ void ImgurAlbumCreation::downloadProgress(qint64 bytesReceived,
                                           qint64 bytesTotal)
 {
     setProgress(bytesReceived, bytesTotal);
-    emit progress(bytesReceived, bytesTotal);
 }

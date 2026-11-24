@@ -165,9 +165,10 @@ private:
     // coordinates
     QPoint m_pressedPosition;
     QPersistentModelIndex m_pressedIndex;
-    bool m_pressedAlreadySelected;
-    VisualGroup* m_pressedCategory;
-    QItemSelectionModel::SelectionFlag m_ctrlDragSelectionFlag;
+    bool m_pressedAlreadySelected = false;
+    VisualGroup* m_pressedCategory = nullptr;
+    QItemSelectionModel::SelectionFlag m_ctrlDragSelectionFlag =
+        QItemSelectionModel::NoUpdate;
     QPoint m_lastDragPosition;
 
     VisualGroup* category(const QModelIndex& index) const;

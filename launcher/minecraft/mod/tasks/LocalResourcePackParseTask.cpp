@@ -222,6 +222,7 @@ void LocalResourcePackParseTask::executeTask()
 
     if (!ResourcePackUtils::process(m_resource_pack))
     {
+        emitFailed();
         return;
     }
 
