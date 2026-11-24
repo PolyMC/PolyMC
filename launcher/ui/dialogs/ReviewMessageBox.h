@@ -21,6 +21,8 @@ public:
     {
         QString name;
         QString filename;
+        // Set for dependencies, the mod that needs it
+        QString required_by;
     };
 
     void appendMod(ModInformation&& info);

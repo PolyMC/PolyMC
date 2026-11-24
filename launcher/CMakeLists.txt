@@ -482,6 +482,8 @@ set(API_SOURCES
 
     modplatform/EnsureMetadataTask.h
     modplatform/EnsureMetadataTask.cpp
+    modplatform/ResolveDependenciesTask.h
+    modplatform/ResolveDependenciesTask.cpp
 
     modplatform/CheckUpdateTask.h
 

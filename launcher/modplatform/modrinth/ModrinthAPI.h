@@ -52,6 +52,8 @@ public:
     NetJob::Ptr getProjects(QStringList addonIds,
                             QByteArray* response) const override;
 
+    NetJob::Ptr getVersion(const QString& id, QByteArray* response) const;
+
 public:
     const Modrinth::Source& source() const
     {

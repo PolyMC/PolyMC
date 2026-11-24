@@ -75,12 +75,17 @@ private slots:
     void selectedPageChanged(BasePage* previous, BasePage* selected);
 
 private:
+    // Adds the dependencies of the picked mods, returns false to go back
+    bool resolveDependencies();
+
     Ui::ModDownloadDialog* ui = nullptr;
     PageContainer* m_container = nullptr;
     QDialogButtonBox* m_buttons = nullptr;
     QVBoxLayout* m_verticalLayout = nullptr;
 
     QHash<QString, ModDownloadTask*> modTask;
+    // Dependencies added to modTask, and the mod needing them
+    QHash<QString, QString> m_required_by;
     ModAPI::ResourceType m_type;
     QString m_typeString;
     BaseInstance* m_instance;
