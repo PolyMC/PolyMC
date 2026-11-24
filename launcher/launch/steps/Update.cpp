@@ -23,7 +23,14 @@ void Update::executeTask()
         emitFailed(tr("Task aborted."));
         return;
     }
-    m_updateTask.reset(m_parent->instance()->createUpdateTask(m_mode));
+    if (m_task)
+    {
+        m_updateTask.reset(m_task);
+    }
+    else
+    {
+        m_updateTask.reset(m_parent->instance()->createUpdateTask(m_mode));
+    }
     if (m_updateTask)
     {
         connect(m_updateTask.get(), &Task::finished, this,

@@ -31,7 +31,18 @@ class MinecraftUpdate : public Task
 {
     Q_OBJECT
 public:
-    explicit MinecraftUpdate(MinecraftInstance* inst, QObject* parent = 0);
+    // Launching resolves the components first, then picks Java, then
+    // downloads the files: which natives a library needs depends on the
+    // architecture of that Java
+    enum class Part
+    {
+        All,
+        Components,
+        Files
+    };
+
+    explicit MinecraftUpdate(MinecraftInstance* inst, Part part = Part::All,
+                             QObject* parent = 0);
     virtual ~MinecraftUpdate() {};
 
     void executeTask() override;
@@ -47,6 +58,7 @@ private:
 
 private:
     MinecraftInstance* m_inst = nullptr;
+    Part m_part = Part::All;
     QList<Task::Ptr> m_tasks;
     QString m_preFailure;
     int m_currentTask = -1;

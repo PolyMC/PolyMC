@@ -160,6 +160,8 @@ void CheckJava::checkJavaFinished(const JavaCheckResult& result)
                                       result.realPlatform);
             instance->settings()->set("JavaVendor", result.javaVendor);
             instance->settings()->set("JavaTimestamp", m_javaUnixTime);
+            // the libraries are picked for this architecture after this step
+            instance->updateRuntimeContext();
             emitSucceeded();
             return;
         }
