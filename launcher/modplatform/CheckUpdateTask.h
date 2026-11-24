@@ -43,6 +43,8 @@ public:
         ModDownloadTask* download;
         // Set for Modrinth-compatible sources other than official Modrinth
         QString source_name;
+        // Set for new dependencies of updates, the mod needing it
+        QString required_by;
 
     public:
         UpdatableMod(QString name, QString old_h, QString old_v, QString new_v,
