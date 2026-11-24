@@ -8,6 +8,7 @@
 #include <optional>
 
 class QIcon;
+class QUrl;
 
 namespace Modrinth
 {
@@ -23,6 +24,9 @@ struct Source
     QString api_url;
     // Empty means the scheme and host of the API URL
     QString website_url;
+    // Lets the API show private projects, like drafts. Only ever sent to the
+    // API URL. Empty for none.
+    QString token;
 
     bool isOfficial() const
     {
@@ -46,12 +50,19 @@ QString normalizeApiUrl(const QString& url);
 QList<Source> customSources();
 void setCustomSources(const QList<Source>& sources);
 
+// Official Modrinth, with its token if one is set
+Source officialSource();
+
 // Official Modrinth first, then the custom sources
 QList<Source> allSources();
 
 // The source with this API URL, if it is configured. An empty URL is
 // official Modrinth.
 std::optional<Source> findSource(const QString& url);
+
+// The token to send with a request to this URL: the one of the Modrinth
+// source whose API it goes to, if that source has one. Empty otherwise.
+QString tokenFor(const QUrl& url);
 
 // The icon the source's website declares, once fetchSourceIcon() got it, a
 // generic one before that

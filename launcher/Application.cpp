@@ -641,6 +641,8 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting("IgnoreNonModrinthDownloadsWarning", false);
         // Modrinth-compatible sites next to official Modrinth, as JSON
         m_settings->registerSetting("ModrinthSources", "[]");
+        // Sent to official Modrinth's API, like the tokens of other sources
+        m_settings->registerSetting("ModrinthToken", "");
 
         // Minecraft offline player name
         m_settings->registerSetting("LastOfflinePlayerName", "");
