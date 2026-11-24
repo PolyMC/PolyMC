@@ -164,6 +164,10 @@
         <file>48x48/status-running.png</file>
         <file>64x64/status-running.png</file>
         <file>scalable/status-running.svg</file>
+        <file>16x16/status-locked.png</file>
+        <file>22x22/status-locked.png</file>
+        <file>32x32/status-locked.png</file>
+        <file>scalable/status-locked.svg</file>
 
         <!-- Plugin (blue recolor), CC-BY-SA 3.0, Oxygen icons. -->
         <file>16x16/loadermods.png</file>

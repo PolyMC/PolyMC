@@ -107,6 +107,10 @@ public:
 
     RESOURCE_HELPERS(Mod)
 
+private:
+    // Whether the mod has metadata with update checks disabled
+    bool isUpdateLocked(int row) const;
+
 private slots:
     void onUpdateSucceeded() override;
     void onParseSucceeded(int ticket, QString resource_id) override;
