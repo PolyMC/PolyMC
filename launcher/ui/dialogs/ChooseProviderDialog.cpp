@@ -4,8 +4,6 @@
 #include <QPushButton>
 #include <QRadioButton>
 
-#include "modplatform/ModIndex.h"
-
 static ModPlatform::ProviderCapabilities ChooserProviderCaps;
 
 ChooseProviderDialog::ChooseProviderDialog(QWidget* parent, bool single_choice,
@@ -62,34 +60,46 @@ void ChooseProviderDialog::skipAll()
 
 void ChooseProviderDialog::confirmOne()
 {
-    m_response.chosen = getSelectedProvider();
+    auto choice = getSelectedChoice();
+    m_response.chosen = choice.provider;
+    m_response.source = choice.source;
     m_response.try_others = ui->tryOthersCheckbox->isChecked();
     accept();
 }
 void ChooseProviderDialog::confirmAll()
 {
-    m_response.chosen = getSelectedProvider();
+    auto choice = getSelectedChoice();
+    m_response.chosen = choice.provider;
+    m_response.source = choice.source;
     m_response.confirm_all = true;
     m_response.try_others = ui->tryOthersCheckbox->isChecked();
     accept();
 }
 
-ModPlatform::Provider ChooseProviderDialog::getSelectedProvider() const
+ChooseProviderDialog::Choice ChooseProviderDialog::getSelectedChoice() const
 {
-    return ModPlatform::Provider(m_providers.checkedId());
+    return m_choices.value(m_providers.checkedId(),
+                           {ModPlatform::Provider::MODRINTH, {}});
 }
 
 void ChooseProviderDialog::addProviders()
 {
-    int btn_index = 0;
-    QRadioButton* btn;
-
-    for (auto& provider :
-         {ModPlatform::Provider::MODRINTH, ModPlatform::Provider::FLAME})
+    m_choices.append({ModPlatform::Provider::MODRINTH, {}});
+    m_choices.append({ModPlatform::Provider::FLAME, {}});
+    for (const auto& source : Modrinth::customSources())
     {
-        btn =
-            new QRadioButton(ChooserProviderCaps.readableName(provider), this);
-        m_providers.addButton(btn, btn_index++);
+        m_choices.append({ModPlatform::Provider::MODRINTH, source});
+    }
+
+    for (int i = 0; i < m_choices.size(); i++)
+    {
+        const auto& choice = m_choices.at(i);
+        auto name = choice.source.isOfficial()
+                        ? ChooserProviderCaps.readableName(choice.provider)
+                        : choice.source.displayName();
+
+        auto* btn = new QRadioButton(name, this);
+        m_providers.addButton(btn, i);
         ui->providersLayout->addWidget(btn);
     }
 }

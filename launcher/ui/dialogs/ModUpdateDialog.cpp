@@ -24,6 +24,7 @@
 
 #include <QDebug>
 #include <QFontMetrics>
+#include <QMap>
 #include <QMessageBox>
 #include <QRegularExpression>
 #include <QStringList>
@@ -51,14 +52,26 @@ static ModAPI::ModLoaderTypes mcLoaders(BaseInstance* inst)
 
 namespace
 {
-void addToTmp(QList<Mod*>& modrinth, QList<Mod*>& flame, Mod* mod,
-              ModPlatform::Provider provider)
+// Mods to generate metadata for from one Modrinth source
+struct ModrinthMetadataBatch
+{
+    Modrinth::Source source;
+    QList<Mod*> mods;
+};
+
+void addToTmp(QMap<QString, ModrinthMetadataBatch>& modrinth,
+              QList<Mod*>& flame, Mod* mod, ModPlatform::Provider provider,
+              const Modrinth::Source& source)
 {
     switch (provider)
     {
         case ModPlatform::Provider::MODRINTH:
-            modrinth.push_back(mod);
+        {
+            auto& batch = modrinth[source.api_url];
+            batch.source = source;
+            batch.mods.push_back(mod);
             break;
+        }
         case ModPlatform::Provider::FLAME:
             flame.push_back(mod);
             break;
@@ -312,13 +325,14 @@ bool ModUpdateDialog::ensureMetadata()
     SequentialTask seq(m_parent, tr("Looking for metadata"));
 
     m_fallback_provider.clear();
-    QList<Mod*> modrinth_tmp;
+    QMap<QString, ModrinthMetadataBatch> modrinth_tmp;
     QList<Mod*> flame_tmp;
 
     bool confirm_rest = false;
     bool try_others_rest = false;
     bool skip_rest = false;
     ModPlatform::Provider provider_rest = ModPlatform::Provider::MODRINTH;
+    Modrinth::Source source_rest;
 
     for (auto candidate : std::as_const(m_candidates))
     {
@@ -335,7 +349,8 @@ bool ModUpdateDialog::ensureMetadata()
 
         if (confirm_rest)
         {
-            addToTmp(modrinth_tmp, flame_tmp, candidate, provider_rest);
+            addToTmp(modrinth_tmp, flame_tmp, candidate, provider_rest,
+                     source_rest);
             if (try_others_rest)
             {
                 m_fallback_provider.insert(candidate->internal_id(),
@@ -363,12 +378,14 @@ bool ModUpdateDialog::ensureMetadata()
         {
             confirm_rest = true;
             provider_rest = response.chosen;
+            source_rest = response.source;
             try_others_rest = response.try_others;
         }
 
         if (confirmed)
         {
-            addToTmp(modrinth_tmp, flame_tmp, candidate, response.chosen);
+            addToTmp(modrinth_tmp, flame_tmp, candidate, response.chosen,
+                     response.source);
             if (response.try_others)
             {
                 m_fallback_provider.insert(candidate->internal_id(),
@@ -377,10 +394,11 @@ bool ModUpdateDialog::ensureMetadata()
         }
     }
 
-    if (!modrinth_tmp.empty())
+    for (auto& batch : modrinth_tmp)
     {
         auto* modrinth_task = new EnsureMetadataTask(
-            modrinth_tmp, index_dir, ModPlatform::Provider::MODRINTH);
+            batch.mods, index_dir, ModPlatform::Provider::MODRINTH,
+            batch.source);
         connect(modrinth_task, &EnsureMetadataTask::metadataReady, this,
                 &ModUpdateDialog::onMetadataEnsured);
         connect(modrinth_task, &EnsureMetadataTask::metadataFailed, this,
