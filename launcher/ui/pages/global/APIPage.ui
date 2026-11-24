@@ -155,7 +155,7 @@
          <property name="text">
           <string>Sites serving the Modrinth API, such as a self-hosted Labrinth, can be added next to Modrinth. Each one gets its own page when downloading mods and modpacks, and mods keep updating from the site they came from.
 
-The API URL is the versioned API root, for example https://example.org/_labrinth/v2. The website is optional, it defaults to the API URL's host.</string>
+The API URL is the versioned API root, for example https://example.org/_labrinth/v2. A token is only needed for private projects, and is only ever sent to its own API URL.</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -168,7 +168,7 @@ The API URL is the versioned API root, for example https://example.org/_labrinth
           <bool>false</bool>
          </property>
          <property name="editTriggers">
-          <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
+          <set>QAbstractItemView::NoEditTriggers</set>
          </property>
          <column>
           <property name="text">
@@ -185,6 +185,11 @@ The API URL is the versioned API root, for example https://example.org/_labrinth
            <string>Website</string>
           </property>
          </column>
+         <column>
+          <property name="text">
+           <string>Token</string>
+          </property>
+         </column>
         </widget>
        </item>
        <item>
@@ -197,16 +202,16 @@ The API URL is the versioned API root, for example https://example.org/_labrinth
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="removeModrinthSourceButton">
+          <widget class="QPushButton" name="editModrinthSourceButton">
            <property name="text">
-            <string>&amp;Remove</string>
+            <string>&amp;Edit</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="testModrinthSourceButton">
+          <widget class="QPushButton" name="removeModrinthSourceButton">
            <property name="text">
-            <string>&amp;Test</string>
+            <string>&amp;Remove</string>
            </property>
           </widget>
          </item>
@@ -224,19 +229,6 @@ The API URL is the versioned API root, for example https://example.org/_labrinth
           </spacer>
          </item>
         </layout>
-       </item>
-       <item>
-        <widget class="QLabel" name="modrinthTestResult">
-         <property name="text">
-          <string notr="true"/>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-         <property name="textInteractionFlags">
-          <set>Qt::TextSelectableByMouse</set>
-         </property>
-        </widget>
        </item>
       </layout>
      </widget>
@@ -345,6 +337,35 @@ The API URL is the versioned API root, for example https://example.org/_labrinth
             </property>
             <property name="wordWrap">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_modrinth">
+         <property name="title">
+          <string>&amp;Modrinth</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_modrinthToken">
+          <item>
+           <widget class="QLabel" name="modrinthTokenLabel">
+            <property name="text">
+             <string>A personal access token lets PolyMC show your private Modrinth projects, like drafts. It's only sent to Modrinth's API. Other Modrinth sources have their own token in the Modrinth Sources tab.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="modrinthToken">
+            <property name="echoMode">
+             <enum>QLineEdit::Password</enum>
+            </property>
+            <property name="placeholderText">
+             <string>None</string>
             </property>
            </widget>
           </item>
