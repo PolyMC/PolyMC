@@ -187,6 +187,55 @@ ModPlatform::IndexedVersion Modrinth::loadIndexedPackVersion(
     // Modrinth sends null for versions without a changelog
     file.changelog = Json::ensureString(obj, "changelog", "");
 
+    auto dependencies = Json::ensureArray(obj, "dependencies");
+    for (const auto& value : std::as_const(dependencies))
+    {
+        auto dependency_obj = value.toObject();
+
+        ModPlatform::Dependency dependency;
+        auto type = Json::ensureString(dependency_obj, "dependency_type");
+        if (type == "required")
+        {
+            dependency.type = ModPlatform::DependencyType::Required;
+        }
+        else if (type == "optional")
+        {
+            dependency.type = ModPlatform::DependencyType::Optional;
+        }
+        else if (type == "incompatible")
+        {
+            dependency.type = ModPlatform::DependencyType::Incompatible;
+        }
+        else if (type == "embedded")
+        {
+            dependency.type = ModPlatform::DependencyType::Embedded;
+        }
+
+        // Modrinth sends null for the fields it doesn't use
+        dependency.addonId =
+            Json::ensureString(dependency_obj, "project_id", "");
+        dependency.version =
+            Json::ensureString(dependency_obj, "version_id", "");
+        dependency.name = Json::ensureString(dependency_obj, "file_name", "");
+
+        // 67minecraft's dependencies on projects on other platforms
+        dependency.external_source =
+            Json::ensureString(dependency_obj, "external_source", "");
+        dependency.external_id =
+            dependency_obj.value("external_id").toVariant().toString();
+        dependency.external_version =
+            dependency_obj.value("external_version_id").toVariant().toString();
+        auto external_name =
+            Json::ensureString(dependency_obj, "external_name", "");
+        if (!external_name.isEmpty())
+        {
+            dependency.name = external_name;
+        }
+        dependency.url = Json::ensureString(dependency_obj, "external_url", "");
+
+        file.dependencies.append(dependency);
+    }
+
     auto files = Json::requireArray(obj, "files");
     if (files.isEmpty())
     {
