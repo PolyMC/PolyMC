@@ -49,6 +49,9 @@
 #include <QSpinBox>
 #include <QList>
 #include <QDebug>
+#include <QIcon>
+
+#include <algorithm>
 
 #include "updater/UpdateChecker.h"
 
@@ -56,6 +59,7 @@
 #include "Application.h"
 #include "BuildConfig.h"
 #include "MessageLevel.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 #include "settings/SettingsObject.h"
 #include "ui/themes/ITheme.h"
 
@@ -400,7 +404,8 @@ void LauncherPage::applySettings()
 
     // Mods
     s->set("ModMetadataDisabled", ui->metadataDisableBtn->isChecked());
-    s->set("DefaultModPlatform", ui->modPlatform->currentText());
+    // The ID of the page the mod download dialog opens on
+    s->set("DefaultModPlatform", ui->modPlatform->currentData().toString());
     s->set("IgnoreNonModrinthDownloadsWarning",
            !ui->warnNonModrinthDownloadsBtn->isChecked());
 }
@@ -573,7 +578,21 @@ void LauncherPage::loadSettings()
     // Mods
     ui->metadataDisableBtn->setChecked(s->get("ModMetadataDisabled").toBool());
     ui->metadataWarningLabel->setHidden(!ui->metadataDisableBtn->isChecked());
-    ui->modPlatform->setCurrentText(s->get("DefaultModPlatform").toString());
+    ui->modPlatform->clear();
+    ui->modPlatform->addItem(APPLICATION->getThemedIcon("modrinth"), "Modrinth",
+                             "modrinth");
+    ui->modPlatform->addItem(APPLICATION->getThemedIcon("flame"), "CurseForge",
+                             "curseforge");
+    for (const auto& source : Modrinth::customSources())
+    {
+        ui->modPlatform->addItem(Modrinth::sourceIcon(source),
+                                 source.displayName(), source.key());
+    }
+    // Older versions saved the display name, which matches the IDs once
+    // lowercased
+    auto platform_index = ui->modPlatform->findData(
+        s->get("DefaultModPlatform").toString().toLower());
+    ui->modPlatform->setCurrentIndex(std::max(platform_index, 0));
     ui->warnNonModrinthDownloadsBtn->setChecked(
         !s->get("IgnoreNonModrinthDownloadsWarning").toBool());
 }

@@ -204,18 +204,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="modPlatform">
-            <item>
-             <property name="text">
-              <string>Modrinth</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Curseforge</string>
-             </property>
-            </item>
-           </widget>
+           <widget class="QComboBox" name="modPlatform"/>
           </item>
          </layout>
         </widget>

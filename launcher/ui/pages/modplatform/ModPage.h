@@ -37,16 +37,12 @@ public:
                      BaseInstance* instance)
     {
         auto page = new T(dialog, type, instance);
-
-        auto filter_widget =
-            ModFilterWidget::create(static_cast<MinecraftInstance*>(instance)
-                                        ->getPackProfile()
-                                        ->getComponentVersion("net.minecraft"),
-                                    page);
-        page->setFilterWidget(filter_widget);
-
+        addFilterWidget(page, instance);
         return page;
     }
+
+    // Gives a new page the filter for the instance's Minecraft version
+    static void addFilterWidget(ModPage* page, BaseInstance* instance);
 
     ~ModPage() override;
 

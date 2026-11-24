@@ -38,11 +38,13 @@
 
 #pragma once
 
+#include <QByteArray>
 #include <QWidget>
 #include <QValidator>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
 
+#include "net/NetJob.h"
 #include "ui/pages/BasePage.h"
 #include <Application.h>
 
@@ -98,6 +100,19 @@ private:
     void applySettings();
     void fetchKeyButtonPressed();
 
+    void loadModrinthSources();
+    bool validateModrinthSources();
+    void applyModrinthSources();
+    void addModrinthSource();
+    void removeModrinthSource();
+    void testModrinthSource();
+    void onModrinthTestSucceeded();
+    void onModrinthTestFailed(QString reason);
+    void stopModrinthTest();
+
 private:
     Ui::APIPage* ui;
+
+    NetJob::Ptr m_modrinth_test_job;
+    QByteArray m_modrinth_test_response;
 };

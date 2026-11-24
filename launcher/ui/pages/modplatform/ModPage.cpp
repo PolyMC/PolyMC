@@ -118,6 +118,16 @@ ModPage::~ModPage()
     delete ui;
 }
 
+void ModPage::addFilterWidget(ModPage* page, BaseInstance* instance)
+{
+    auto filter_widget =
+        ModFilterWidget::create(static_cast<MinecraftInstance*>(instance)
+                                    ->getPackProfile()
+                                    ->getComponentVersion("net.minecraft"),
+                                page);
+    page->setFilterWidget(filter_widget);
+}
+
 void ModPage::setFilterWidget(unique_qobject_ptr<ModFilterWidget>& widget)
 {
     if (m_filter_widget)

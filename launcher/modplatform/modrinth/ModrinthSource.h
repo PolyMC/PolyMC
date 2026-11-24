@@ -7,6 +7,8 @@
 
 #include <optional>
 
+class QIcon;
+
 namespace Modrinth
 {
 
@@ -50,5 +52,12 @@ QList<Source> allSources();
 // The source with this API URL, if it is configured. An empty URL is
 // official Modrinth.
 std::optional<Source> findSource(const QString& url);
+
+// The icon the source's website declares, once fetchSourceIcon() got it, a
+// generic one before that
+QIcon sourceIcon(const Source& source);
+// Downloads and caches the icon the source's website declares. Without
+// refresh, only when it isn't cached and wasn't tried yet this session.
+void fetchSourceIcon(const Source& source, bool refresh = false);
 
 }  // namespace Modrinth
