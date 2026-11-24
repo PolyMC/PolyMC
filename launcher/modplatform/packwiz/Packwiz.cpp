@@ -369,6 +369,12 @@ V1::Mod V1::getIndexForMod(QDir& index_dir, QString slug)
         {
             mod.do_updates = stringEntry(*do_updates_table, "do_updates");
         }
+        // Prism Launcher writes its own key instead, keep the mods it locked
+        // from updating locked here too
+        else if (table["x-prismlauncher-lock-update"].value_or(false))
+        {
+            mod.do_updates = "false";
+        }
         else
         {
             qDebug() << QString(
