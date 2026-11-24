@@ -59,6 +59,9 @@ private:
     QStringList sourceHosts() const;
     bool isSourceDownloadUrl(const QUrl& url) const;
     bool isAllowedDownloadUrl(const QUrl& url) const;
+    // The source a mod of the pack is looked up on, by where it is
+    // downloaded from. None for files that aren't on a Modrinth source.
+    std::optional<Modrinth::Source> metadataSource(const QUrl& url) const;
     void onFileDownloadFailed(Modrinth::File& file, const QString& path,
                               const QWeakPointer<Net::Download>& action);
 

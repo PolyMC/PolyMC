@@ -9,6 +9,7 @@
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 
+#include "modplatform/helpers/ModpackMetadata.h"
 #include "modplatform/helpers/OverrideUtils.h"
 
 #include "net/ChecksumValidator.h"
@@ -337,6 +338,24 @@ bool ModrinthCreationTask::createInstance()
 
     m_files_job = new NetJob(tr("Mod download"), APPLICATION->network());
 
+    // Where the mods are looked up afterwards, decided before downloading
+    // takes their URLs
+    QList<ModpackMetadata::Entry> metadata_entries;
+    for (const auto& file : m_files)
+    {
+        QFileInfo file_info(file.path);
+        if (file_info.path() != "mods" || file.downloads.isEmpty())
+        {
+            continue;
+        }
+        auto source = metadataSource(file.downloads.front());
+        if (source)
+        {
+            metadata_entries.append({file_info.fileName(),
+                                     ModPlatform::Provider::MODRINTH, *source});
+        }
+    }
+
     for (auto& file : m_files)
     {
         auto path = FS::PathCombine(m_stagingPath, ".minecraft", file.path);
@@ -373,6 +392,15 @@ bool ModrinthCreationTask::createInstance()
     if (m_files_job->getState() == Task::State::Failed)
     {
         setError(m_files_job->failReason());
+    }
+
+    if (ended_well &&
+        !APPLICATION->settings()->get("ModMetadataDisabled").toBool())
+    {
+        setStatus(tr("Generating metadata for the modpack's mods..."));
+        ModpackMetadata::generate(
+            QDir(FS::PathCombine(m_stagingPath, ".minecraft", "mods")),
+            metadata_entries);
     }
 
     // Update information of the already installed instance, if any.
@@ -739,6 +767,20 @@ bool ModrinthCreationTask::isSourceDownloadUrl(const QUrl& url) const
 bool ModrinthCreationTask::isAllowedDownloadUrl(const QUrl& url) const
 {
     return Modrinth::validateDownloadUrl(url) || isSourceDownloadUrl(url);
+}
+
+std::optional<Modrinth::Source> ModrinthCreationTask::metadataSource(
+    const QUrl& url) const
+{
+    if (Modrinth::isModrinthCdnUrl(url))
+    {
+        return Modrinth::Source{};
+    }
+    if (isSourceDownloadUrl(url))
+    {
+        return m_pack_source;
+    }
+    return {};
 }
 
 QString ModrinthCreationTask::getManagedPackID() const

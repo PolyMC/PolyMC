@@ -1,6 +1,7 @@
 #pragma once
 
 #include "InstanceCreationTask.h"
+#include "modplatform/helpers/ModpackMetadata.h"
 
 #include <QByteArray>
 #include <QDir>
@@ -56,6 +57,9 @@ private:
     // Handle to allow aborting
     NetJob* m_process_update_file_info_job = nullptr;
     NetJob::Ptr m_files_job = nullptr;
+
+    // The mods of the pack, to look up once they're installed
+    QList<ModpackMetadata::Entry> m_metadata_entries;
 
     std::optional<InstancePtr> m_instance;
 };
