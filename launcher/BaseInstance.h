@@ -160,6 +160,10 @@ public:
                         const QString& name, const QString& versionId,
                         const QString& version);
     void copyManagedPack(BaseInstance& other);
+    // API URL of the Modrinth-compatible source a Modrinth pack came from,
+    // empty for official Modrinth
+    QString getManagedPackSource() const;
+    void setManagedPackSource(const QString& url);
 
     /// guess log level from a line of game log
     virtual MessageLevel::Enum guessLevel(const QString& /*line*/,

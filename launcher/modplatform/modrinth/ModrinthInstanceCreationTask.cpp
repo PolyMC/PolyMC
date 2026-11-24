@@ -5,6 +5,7 @@
 #include "InstanceList.h"
 #include "Json.h"
 
+#include "minecraft/AssetsUtils.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 
@@ -65,6 +66,12 @@ bool ModrinthCreationTask::updateInstance()
         {
             return false;
         }
+    }
+
+    // A pack with the same name from another source is a different pack
+    if (inst->getManagedPackSource() != m_pack_source.api_url)
+    {
+        return false;
     }
 
     QString index_path = FS::PathCombine(m_stagingPath, "modrinth.index.json");
@@ -324,6 +331,7 @@ bool ModrinthCreationTask::createInstance()
 
     instance.setManagedPack("modrinth", getManagedPackID(), m_managed_name,
                             m_managed_version_id, version());
+    instance.setManagedPackSource(m_pack_source.api_url);
     instance.setName(name());
     instance.saveNow();
 
@@ -510,7 +518,7 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path,
                                           .arg(download.toString(), file.path);
                         had_rejected_url = true;
                     }
-                    else if (!Modrinth::validateDownloadUrl(download_url))
+                    else if (!isAllowedDownloadUrl(download_url))
                     {
                         qWarning()
                             << QString(
@@ -529,7 +537,7 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path,
                 // to be one
                 if (file.downloads.isEmpty())
                 {
-                    if (had_rejected_url)
+                    if (had_rejected_url && m_pack_source.isOfficial())
                     {
                         throw JSONValidationError(
                             tr("No allowed download URL found for %1. Only "
@@ -537,6 +545,15 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path,
                                "raw.githubusercontent.com and gitlab.com are "
                                "allowed.")
                                 .arg(file.path));
+                    }
+                    if (had_rejected_url)
+                    {
+                        throw JSONValidationError(
+                            tr("No allowed download URL found for %1. Only "
+                               "HTTPS URLs from cdn.modrinth.com, github.com, "
+                               "raw.githubusercontent.com, gitlab.com and %2 "
+                               "are allowed.")
+                                .arg(file.path, sourceHosts().join(", ")));
                     }
                     throw JSONValidationError(
                         tr("No downloads found for %1").arg(file.path));
@@ -617,7 +634,7 @@ bool ModrinthCreationTask::confirmNonModrinthDownloads()
         QStringList external_urls;
         for (const auto& url : file.downloads)
         {
-            if (!Modrinth::isModrinthCdnUrl(url))
+            if (!Modrinth::isModrinthCdnUrl(url) && !isSourceDownloadUrl(url))
             {
                 external_urls.append(url.toString());
             }
@@ -634,8 +651,8 @@ bool ModrinthCreationTask::confirmNonModrinthDownloads()
         return true;
     }
 
-    auto dialog = CustomMessageBox::selectable(
-        m_parent, tr("Mods from outside Modrinth"),
+    auto title = tr("Mods from outside Modrinth");
+    auto text =
         tr("%n mod(s) in this modpack will be downloaded from outside of "
            "Modrinth.\n\n"
            "Modrinth does not host or check these files, so they could be "
@@ -643,9 +660,27 @@ bool ModrinthCreationTask::confirmNonModrinthDownloads()
            "Only continue if you trust the creator of this modpack.\n\n"
            "Click \"Show Details...\" to see which mods and where they come "
            "from.",
-           nullptr, entries.size()),
-        QMessageBox::Warning, QMessageBox::Yes | QMessageBox::No,
-        QMessageBox::No);
+           nullptr, entries.size());
+    if (!m_pack_source.isOfficial())
+    {
+        auto name = m_pack_source.displayName();
+        title = tr("Mods from outside %1").arg(name);
+        text =
+            tr("%n mod(s) in this modpack will be downloaded from outside "
+               "of %1 and Modrinth.\n\n"
+               "Neither %1 nor Modrinth hosts or checks these files, so they "
+               "could be unsafe. "
+               "Only continue if you trust the creator of this "
+               "modpack.\n\n"
+               "Click \"Show Details...\" to see which mods and where they "
+               "come from.",
+               nullptr, entries.size())
+                .arg(name);
+    }
+
+    auto dialog = CustomMessageBox::selectable(
+        m_parent, title, text, QMessageBox::Warning,
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     dialog->setDetailedText(entries.join("\n\n"));
     dialog->button(QMessageBox::Yes)->setText(tr("Continue"));
     dialog->button(QMessageBox::No)->setText(tr("Cancel"));
@@ -667,8 +702,53 @@ bool ModrinthCreationTask::confirmNonModrinthDownloads()
     return accepted;
 }
 
+QStringList ModrinthCreationTask::sourceHosts() const
+{
+    if (m_pack_source.isOfficial())
+    {
+        return {};
+    }
+
+    QStringList hosts;
+    for (const auto& url :
+         {m_pack_source.api_url, m_pack_source.websiteRoot(), m_source_url})
+    {
+        auto host = QUrl(url).host().toLower();
+        if (!host.isEmpty() && !hosts.contains(host))
+        {
+            hosts.append(host);
+        }
+    }
+    return hosts;
+}
+
+bool ModrinthCreationTask::isSourceDownloadUrl(const QUrl& url) const
+{
+    auto host = url.host().toLower();
+    if (!url.isValid() || !sourceHosts().contains(host))
+    {
+        return false;
+    }
+
+    // Like the source itself, HTTP is only fine on this machine or network
+    auto scheme = url.scheme().toLower();
+    return scheme == "https" ||
+           (scheme == "http" && AssetsUtils::isLocalMetadataHost(host));
+}
+
+bool ModrinthCreationTask::isAllowedDownloadUrl(const QUrl& url) const
+{
+    return Modrinth::validateDownloadUrl(url) || isSourceDownloadUrl(url);
+}
+
 QString ModrinthCreationTask::getManagedPackID() const
 {
+    // Known when installing from a Modrinth page
+    if (!m_project_id.isEmpty())
+    {
+        return m_project_id;
+    }
+
     if (!m_source_url.isEmpty())
     {
         QRegularExpression regex(R"(data\/(.*)\/versions)");

@@ -60,25 +60,31 @@ bool isNewerVersion(const ModpackVersion& a, const ModpackVersion& b)
 
 }  // namespace
 
-void loadIndexedPack(Modpack& pack, QJsonObject& obj)
+void loadIndexedPack(Modpack& pack, QJsonObject& obj, const ModrinthAPI* api)
 {
+    const auto& source_api = api ? *api : modrinthManifestApi;
+
     pack.id = Json::ensureString(obj, "project_id");
 
     pack.name = Json::ensureString(obj, "title");
     pack.description = Json::ensureString(obj, "description");
     auto temp_author_name = Json::ensureString(obj, "author");
-    pack.author = std::make_tuple(
-        temp_author_name, modrinthManifestApi.getAuthorURL(temp_author_name));
-    pack.iconName = QString("modrinth_%1").arg(Json::ensureString(obj, "slug"));
+    pack.author = std::make_tuple(temp_author_name,
+                                  source_api.getAuthorURL(temp_author_name));
+    // Official Modrinth keeps its modrinth_<slug> names
+    pack.iconName = QString("%1_%2").arg(source_api.source().key(),
+                                         Json::ensureString(obj, "slug"));
     pack.iconUrl = Json::ensureString(obj, "icon_url");
 }
 
-void loadIndexedInfo(Modpack& pack, QJsonObject& obj)
+void loadIndexedInfo(Modpack& pack, QJsonObject& obj, const ModrinthAPI* api)
 {
+    const auto& source_api = api ? *api : modrinthManifestApi;
+
     pack.extra.body = Json::ensureString(obj, "body");
-    pack.extra.projectUrl = QString("%1/modpack/%2")
-                                .arg(modrinthManifestApi.websiteRoot(),
-                                     Json::ensureString(obj, "slug"));
+    pack.extra.projectUrl =
+        QString("%1/modpack/%2")
+            .arg(source_api.websiteRoot(), Json::ensureString(obj, "slug"));
 
     pack.extra.issuesUrl = Json::ensureString(obj, "issues_url");
     if (pack.extra.issuesUrl.endsWith('/'))

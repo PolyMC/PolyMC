@@ -109,6 +109,7 @@ BaseInstance::BaseInstance(SettingsObjectPtr globalSettings,
     m_settings->registerSetting("ManagedPackName", "");
     m_settings->registerSetting("ManagedPackVersionID", "");
     m_settings->registerSetting("ManagedPackVersionName", "");
+    m_settings->registerSetting("ManagedPackSource", "");
 }
 
 QString BaseInstance::getPreLaunchCommand()
@@ -177,6 +178,17 @@ void BaseInstance::copyManagedPack(BaseInstance& other)
     m_settings->set("ManagedPackVersionID", other.getManagedPackVersionID());
     m_settings->set("ManagedPackVersionName",
                     other.getManagedPackVersionName());
+    m_settings->set("ManagedPackSource", other.getManagedPackSource());
+}
+
+QString BaseInstance::getManagedPackSource() const
+{
+    return m_settings->get("ManagedPackSource").toString();
+}
+
+void BaseInstance::setManagedPackSource(const QString& url)
+{
+    m_settings->set("ManagedPackSource", url);
 }
 
 int BaseInstance::getConsoleMaxLines() const

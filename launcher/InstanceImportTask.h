@@ -44,9 +44,11 @@
 #include <QStringList>
 #include <QVector>
 #include "modplatform/flame/PackManifest.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 
 #include <memory>
 #include <optional>
+#include <utility>
 
 class QuaZip;
 class InstanceCreationTask;
@@ -63,6 +65,13 @@ public:
                                 QWidget* parent = nullptr);
 
     bool abort() override;
+    // The Modrinth source and project a Modrinth pack is installed from
+    void setModrinthSource(Modrinth::Source source, QString project)
+    {
+        m_modrinth_source = std::move(source);
+        m_modrinth_project = std::move(project);
+    }
+
     const QVector<Flame::File>& getBlockedFiles() const
     {
         return m_blockedMods;
@@ -98,6 +107,8 @@ private: /* data */
     QFuture<std::optional<QStringList>> m_extractFuture;
     QFutureWatcher<std::optional<QStringList>> m_extractFutureWatcher;
     QVector<Flame::File> m_blockedMods;
+    Modrinth::Source m_modrinth_source;
+    QString m_modrinth_project;
     enum class ModpackType
     {
         Unknown,
