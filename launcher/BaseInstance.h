@@ -252,7 +252,7 @@ public:
 
     virtual QString typeName() const = 0;
 
-    void updateRuntimeContext();
+    virtual void updateRuntimeContext();
     RuntimeContext runtimeContext() const
     {
         return m_runtimeContext;

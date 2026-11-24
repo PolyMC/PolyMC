@@ -114,6 +114,7 @@ QProcessEnvironment CleanEnviroment()
                 key, value, rawenv.value("LAUNCHER_" + key));
 
             qDebug() << "Env: stripped" << key << value << "to" << newValue;
+            value = newValue;
         }
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD) || defined(Q_OS_OPENBSD)
         // Strip IBus

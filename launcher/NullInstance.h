@@ -128,7 +128,7 @@ public:
     {
         return QString();
     }
-    void updateRuntimeContext()
+    void updateRuntimeContext() override
     {
         // NOOP
     }

@@ -45,6 +45,7 @@ void INISettingsObject::resumeSave()
     m_suspendSave = false;
     if (m_doSave)
     {
+        m_doSave = false;
         m_ini.saveFile(m_filePath);
     }
 }

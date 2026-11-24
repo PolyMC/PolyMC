@@ -467,7 +467,7 @@ void AccountData::invalidateClientToken()
         return;
     }
     yggdrasilToken.extra["clientToken"] =
-        QUuid::createUuid().toString().remove(QRegularExpression("[{-}]"));
+        QUuid::createUuid().toString().remove(QRegularExpression("[{}-]"));
 }
 
 QString AccountData::profileId() const

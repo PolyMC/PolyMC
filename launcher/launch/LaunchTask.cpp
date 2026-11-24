@@ -313,8 +313,10 @@ void LaunchTask::substituteVariables(QStringList& args) const
 {
     auto env = m_instance->createEnvironment();
 
-    for (const auto& key : env.keys())
+    const QStringList keys = env.keys();
+    for (qsizetype i = keys.size(); i > 0; --i)
     {
+        const QString& key = keys.at(i - 1);
         args.replaceInStrings("$" + key, env.value(key));
     }
 }
@@ -323,8 +325,10 @@ void LaunchTask::substituteVariables(QString& cmd) const
 {
     auto env = m_instance->createEnvironment();
 
-    for (const auto& key : env.keys())
+    const QStringList keys = env.keys();
+    for (qsizetype i = keys.size(); i > 0; --i)
     {
+        const QString& key = keys.at(i - 1);
         cmd.replace("$" + key, env.value(key));
     }
 }

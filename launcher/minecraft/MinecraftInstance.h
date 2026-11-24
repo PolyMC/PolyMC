@@ -117,7 +117,7 @@ public:
 
     [[nodiscard]] bool supportsQuickPlay() const;
 
-    void updateRuntimeContext();
+    void updateRuntimeContext() override;
 
     //////  Profile management //////
     std::shared_ptr<PackProfile> getPackProfile() const;

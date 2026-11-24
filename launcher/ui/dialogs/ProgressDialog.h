@@ -70,7 +70,7 @@ private:
 private:
     Ui::ProgressDialog* ui;
 
-    Task* task;
+    Task* task = nullptr;
 
     bool m_is_multi_step = false;
 };

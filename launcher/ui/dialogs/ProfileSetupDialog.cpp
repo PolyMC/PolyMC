@@ -283,7 +283,7 @@ struct MojangError
     static MojangError fromJSON(QByteArray data)
     {
         MojangError out;
-        out.error = QString::fromUtf8(data);
+        out.rawError = QString::fromUtf8(data);
         auto doc = QJsonDocument::fromJson(data, &out.parseError);
         auto object = doc.object();
 

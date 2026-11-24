@@ -227,14 +227,15 @@ bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath,
             QDir dir(what_to_zip);
             dir.cdUp();
             QString parent_dir = dir.absolutePath();
-            auto files = QFileInfoList();
-            MMCZip::collectFileListRecursively(what_to_zip, nullptr, &files);
+            auto found = QFileInfoList();
+            MMCZip::collectFileListRecursively(what_to_zip, nullptr, &found);
 
-            for (const auto& e : std::as_const(files))
+            auto files = QFileInfoList();
+            for (const auto& e : std::as_const(found))
             {
-                if (addedFiles.contains(e.filePath()))
+                if (!addedFiles.contains(e.filePath()))
                 {
-                    files.removeAll(e);
+                    files.append(e);
                 }
             }
 
