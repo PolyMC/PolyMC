@@ -32,6 +32,5 @@ public:
     }
 
 protected:
-    QMap<std::pair<int, int>, std::pair<Version, Version>> versionMap()
-        const override;
+    PackFormatTable versionTable() const override;
 };

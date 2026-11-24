@@ -1,7 +1,8 @@
 #include "ResourcePack.h"
 
-#include <QMap>
 #include <QRegularExpression>
+
+#include <iterator>
 
 #include "Version.h"
 
@@ -16,117 +17,146 @@ QString fmtToStr(std::pair<int, int> pair)
     }
     return str;
 }
+
+const PackFormatVersions* findPackFormat(const PackFormatTable& table,
+                                         std::pair<int, int> format)
+{
+    const PackFormatVersions* found = nullptr;
+    qsizetype low = 0;
+    qsizetype high = table.m_count;
+    while (low < high && found == nullptr)
+    {
+        const qsizetype middle = low + (high - low) / 2;
+        const PackFormatVersions& row = table.m_rows[middle];
+        const std::pair<int, int> key = {row.m_major, row.m_minor};
+        if (key < format)
+        {
+            low = middle + 1;
+        }
+        else if (format < key)
+        {
+            high = middle;
+        }
+        else
+        {
+            found = &row;
+        }
+    }
+    return found;
+}
 }  // namespace
 
 // https://minecraft.wiki/w/Pack_format#List_of_pack_formats
-static const QMap<std::pair<int, int>, std::pair<Version, Version>>
-    s_resource_pack_format_versions = {
-        {{1, 0}, {Version("1.6.1"), Version("1.8.9")}},
-        {{2, 0}, {Version("1.9"), Version("1.10.2")}},
-        {{3, 0}, {Version("1.11"), Version("1.12.2")}},
-        {{4, 0}, {Version("1.13"), Version("1.14.4")}},
-        {{5, 0}, {Version("1.15"), Version("1.16.1")}},
-        {{6, 0}, {Version("1.16.2"), Version("1.16.5")}},
-        {{7, 0}, {Version("1.17"), Version("1.17.1")}},
-        {{8, 0}, {Version("1.18"), Version("1.18.2")}},
-        {{9, 0}, {Version("1.19"), Version("1.19.2")}},
-        {{11, 0}, {Version("22w42a"), Version("22w44a")}},
-        {{12, 0}, {Version("1.19.3"), Version("1.19.3")}},
-        {{13, 0}, {Version("1.19.4"), Version("1.19.4")}},
-        {{14, 0}, {Version("23w14a"), Version("23w16a")}},
-        {{15, 0}, {Version("1.20"), Version("1.20.1")}},
-        {{16, 0}, {Version("23w31a"), Version("23w31a")}},
-        {{17, 0}, {Version("23w32a"), Version("1.20.2-pre1")}},
-        {{18, 0}, {Version("1.20.2"), Version("1.20.2")}},
-        {{19, 0}, {Version("23w42a"), Version("23w42a")}},
-        {{20, 0}, {Version("23w43a"), Version("23w44a")}},
-        {{21, 0}, {Version("23w45a"), Version("23w46a")}},
-        {{22, 0}, {Version("1.20.3"), Version("1.20.4")}},
-        {{24, 0}, {Version("24w03a"), Version("24w04a")}},
-        {{25, 0}, {Version("24w05a"), Version("24w05b")}},
-        {{26, 0}, {Version("24w06a"), Version("24w07a")}},
-        {{28, 0}, {Version("24w09a"), Version("24w10a")}},
-        {{29, 0}, {Version("24w11a"), Version("24w11a")}},
-        {{30, 0}, {Version("24w12a"), Version("24w12a")}},
-        {{31, 0}, {Version("24w13a"), Version("1.20.5-pre3")}},
-        {{32, 0}, {Version("1.20.5"), Version("1.20.6")}},
-        {{33, 0}, {Version("24w18a"), Version("24w20a")}},
-        {{34, 0}, {Version("1.21"), Version("1.21.1")}},
-        {{35, 0}, {Version("24w33a"), Version("24w33a")}},
-        {{36, 0}, {Version("24w34a"), Version("24w35a")}},
-        {{37, 0}, {Version("24w36a"), Version("24w36a")}},
-        {{38, 0}, {Version("24w37a"), Version("24w37a")}},
-        {{39, 0}, {Version("24w38a"), Version("24w39a")}},
-        {{40, 0}, {Version("24w40a"), Version("24w40a")}},
-        {{41, 0}, {Version("1.21.2-pre1"), Version("1.21.2-pre2")}},
-        {{42, 0}, {Version("1.21.2"), Version("1.21.3")}},
-        {{43, 0}, {Version("24w44a"), Version("24w44a")}},
-        {{44, 0}, {Version("24w45a"), Version("24w45a")}},
-        {{45, 0}, {Version("24w46a"), Version("24w46a")}},
-        {{46, 0}, {Version("1.21.4"), Version("1.21.4")}},
-        {{47, 0}, {Version("25w02a"), Version("25w02a")}},
-        {{48, 0}, {Version("25w03a"), Version("25w03a")}},
-        {{49, 0}, {Version("25w04a"), Version("25w04a")}},
-        {{50, 0}, {Version("25w05a"), Version("25w05a")}},
-        {{51, 0}, {Version("25w06a"), Version("25w06a")}},
-        {{52, 0}, {Version("25w07a"), Version("25w07a")}},
-        {{53, 0}, {Version("25w08a"), Version("25w09b")}},
-        {{54, 0}, {Version("25w10a"), Version("25w10a")}},
-        {{55, 0}, {Version("1.21.5"), Version("1.21.5")}},
-        {{56, 0}, {Version("25w15a"), Version("25w15a")}},
-        {{57, 0}, {Version("25w16a"), Version("25w16a")}},
-        {{58, 0}, {Version("25w17a"), Version("25w17a")}},
-        {{59, 0}, {Version("25w18a"), Version("25w18a")}},
-        {{60, 0}, {Version("25w19a"), Version("25w19a")}},
-        {{61, 0}, {Version("25w20a"), Version("25w20a")}},
-        {{62, 0}, {Version("25w21a"), Version("25w21a")}},
-        {{63, 0}, {Version("1.21.6"), Version("1.21.6")}},
-        {{64, 0}, {Version("1.21.7"), Version("1.21.8")}},
-        {{65, 0}, {Version("25w31a"), Version("25w31a")}},
-        {{65, 1}, {Version("25w32a"), Version("25w32a")}},
-        {{65, 2}, {Version("25w33a"), Version("25w33a")}},
-        {{66, 0}, {Version("25w34a"), Version("25w34b")}},
-        {{67, 0}, {Version("25w35a"), Version("25w35a")}},
-        {{68, 0}, {Version("25w36a"), Version("25w36b")}},
-        {{69, 0}, {Version("1.21.9"), Version("1.21.10")}},
-        {{70, 0}, {Version("25w41a"), Version("25w41a")}},
-        {{70, 1}, {Version("25w42a"), Version("25w42a")}},
-        {{71, 0}, {Version("25w43a"), Version("25w43a")}},
-        {{72, 0}, {Version("25w44a"), Version("25w44a")}},
-        {{73, 0}, {Version("25w45a"), Version("25w45a")}},
-        {{74, 0}, {Version("25w46a"), Version("25w46a")}},
-        {{75, 0}, {Version("1.21.11"), Version("1.21.11")}},
-        {{76, 0}, {Version("26.1-snap1"), Version("26.1-snap1")}},
-        {{77, 0}, {Version("26.1-snap2"), Version("26.1-snap2")}},
-        {{78, 0}, {Version("26.1-snap3"), Version("26.1-snap3")}},
-        {{78, 1}, {Version("26.1-snap4"), Version("26.1-snap4")}},
-        {{79, 0}, {Version("26.1-snap5"), Version("26.1-snap5")}},
-        {{80, 0}, {Version("26.1-snap6"), Version("26.1-snap6")}},
-        {{81, 0}, {Version("26.1-snap7"), Version("26.1-snap7")}},
-        {{81, 1}, {Version("26.1-snap8"), Version("26.1-snap9")}},
-        {{82, 0}, {Version("26.1-snap10"), Version("26.1-snap10")}},
-        {{83, 0}, {Version("26.1-snap11"), Version("26.1-snap11")}},
-        {{84, 0}, {Version("26.1"), Version("26.1.2")}},
-        {{85, 0}, {Version("26.2-snap1"), Version("26.2-snap2")}},
-        {{86, 0}, {Version("26.2-snap3"), Version("26.2-snap3")}},
-        {{86, 1}, {Version("26.2-snap4"), Version("26.2-snap4")}},
-        {{86, 2}, {Version("26.2-snap5"), Version("26.2-snap6")}},
-        {{87, 0}, {Version("26.2-snap7"), Version("26.2-snap8")}},
-        {{88, 0}, {Version("26.2"), Version("26.2")}},
-        {{89, 0}, {Version("26.3-snap1"), Version("26.3-snap1")}},
-        {{90, 0}, {Version("26.3-snap2"), Version("26.3-snap2")}},
-        {{91, 0}, {Version("26.3-snap3"), Version("26.3-snap3")}},
-        {{92, 0}, {Version("26.3-snap4"), Version("26.3-snap4")}},
-        {{93, 0}, {Version("26.3-snap5"), Version("26.3-snap5")}},
-        {{94, 0}, {Version("26.3-snap6"), Version("26.3-snap6")}},
-        {{95, 0}, {Version("26.3-snap7"), Version("26.3-snap7")}},
-        {{96, 0}, {Version("26.3-snap8"), Version("26.3-snap9")}},
-        {{97, 0}, {Version("26.3-snap10"), Version("26.3-snap10")}},
-        {{97, 1}, {Version("26.3"), Version("26.3")}},
-        {{98, 0}, {Version("26.4-snap1"), Version("26.4-snap1")}},
-        {{99, 0}, {Version("26.4-snap2"), Version("26.4-snap2")}},
-        {{100, 0}, {Version("26.4-snap3"), Version("26.4-snap3")}},
+static constexpr PackFormatVersions s_resource_pack_format_versions[] = {
+    {1, 0, "1.6.1", "1.8.9"},
+    {2, 0, "1.9", "1.10.2"},
+    {3, 0, "1.11", "1.12.2"},
+    {4, 0, "1.13", "1.14.4"},
+    {5, 0, "1.15", "1.16.1"},
+    {6, 0, "1.16.2", "1.16.5"},
+    {7, 0, "1.17", "1.17.1"},
+    {8, 0, "1.18", "1.18.2"},
+    {9, 0, "1.19", "1.19.2"},
+    {11, 0, "22w42a", "22w44a"},
+    {12, 0, "1.19.3", "1.19.3"},
+    {13, 0, "1.19.4", "1.19.4"},
+    {14, 0, "23w14a", "23w16a"},
+    {15, 0, "1.20", "1.20.1"},
+    {16, 0, "23w31a", "23w31a"},
+    {17, 0, "23w32a", "1.20.2-pre1"},
+    {18, 0, "1.20.2", "1.20.2"},
+    {19, 0, "23w42a", "23w42a"},
+    {20, 0, "23w43a", "23w44a"},
+    {21, 0, "23w45a", "23w46a"},
+    {22, 0, "1.20.3", "1.20.4"},
+    {24, 0, "24w03a", "24w04a"},
+    {25, 0, "24w05a", "24w05b"},
+    {26, 0, "24w06a", "24w07a"},
+    {28, 0, "24w09a", "24w10a"},
+    {29, 0, "24w11a", "24w11a"},
+    {30, 0, "24w12a", "24w12a"},
+    {31, 0, "24w13a", "1.20.5-pre3"},
+    {32, 0, "1.20.5", "1.20.6"},
+    {33, 0, "24w18a", "24w20a"},
+    {34, 0, "1.21", "1.21.1"},
+    {35, 0, "24w33a", "24w33a"},
+    {36, 0, "24w34a", "24w35a"},
+    {37, 0, "24w36a", "24w36a"},
+    {38, 0, "24w37a", "24w37a"},
+    {39, 0, "24w38a", "24w39a"},
+    {40, 0, "24w40a", "24w40a"},
+    {41, 0, "1.21.2-pre1", "1.21.2-pre2"},
+    {42, 0, "1.21.2", "1.21.3"},
+    {43, 0, "24w44a", "24w44a"},
+    {44, 0, "24w45a", "24w45a"},
+    {45, 0, "24w46a", "24w46a"},
+    {46, 0, "1.21.4", "1.21.4"},
+    {47, 0, "25w02a", "25w02a"},
+    {48, 0, "25w03a", "25w03a"},
+    {49, 0, "25w04a", "25w04a"},
+    {50, 0, "25w05a", "25w05a"},
+    {51, 0, "25w06a", "25w06a"},
+    {52, 0, "25w07a", "25w07a"},
+    {53, 0, "25w08a", "25w09b"},
+    {54, 0, "25w10a", "25w10a"},
+    {55, 0, "1.21.5", "1.21.5"},
+    {56, 0, "25w15a", "25w15a"},
+    {57, 0, "25w16a", "25w16a"},
+    {58, 0, "25w17a", "25w17a"},
+    {59, 0, "25w18a", "25w18a"},
+    {60, 0, "25w19a", "25w19a"},
+    {61, 0, "25w20a", "25w20a"},
+    {62, 0, "25w21a", "25w21a"},
+    {63, 0, "1.21.6", "1.21.6"},
+    {64, 0, "1.21.7", "1.21.8"},
+    {65, 0, "25w31a", "25w31a"},
+    {65, 1, "25w32a", "25w32a"},
+    {65, 2, "25w33a", "25w33a"},
+    {66, 0, "25w34a", "25w34b"},
+    {67, 0, "25w35a", "25w35a"},
+    {68, 0, "25w36a", "25w36b"},
+    {69, 0, "1.21.9", "1.21.10"},
+    {70, 0, "25w41a", "25w41a"},
+    {70, 1, "25w42a", "25w42a"},
+    {71, 0, "25w43a", "25w43a"},
+    {72, 0, "25w44a", "25w44a"},
+    {73, 0, "25w45a", "25w45a"},
+    {74, 0, "25w46a", "25w46a"},
+    {75, 0, "1.21.11", "1.21.11"},
+    {76, 0, "26.1-snap1", "26.1-snap1"},
+    {77, 0, "26.1-snap2", "26.1-snap2"},
+    {78, 0, "26.1-snap3", "26.1-snap3"},
+    {78, 1, "26.1-snap4", "26.1-snap4"},
+    {79, 0, "26.1-snap5", "26.1-snap5"},
+    {80, 0, "26.1-snap6", "26.1-snap6"},
+    {81, 0, "26.1-snap7", "26.1-snap7"},
+    {81, 1, "26.1-snap8", "26.1-snap9"},
+    {82, 0, "26.1-snap10", "26.1-snap10"},
+    {83, 0, "26.1-snap11", "26.1-snap11"},
+    {84, 0, "26.1", "26.1.2"},
+    {85, 0, "26.2-snap1", "26.2-snap2"},
+    {86, 0, "26.2-snap3", "26.2-snap3"},
+    {86, 1, "26.2-snap4", "26.2-snap4"},
+    {86, 2, "26.2-snap5", "26.2-snap6"},
+    {87, 0, "26.2-snap7", "26.2-snap8"},
+    {88, 0, "26.2", "26.2"},
+    {89, 0, "26.3-snap1", "26.3-snap1"},
+    {90, 0, "26.3-snap2", "26.3-snap2"},
+    {91, 0, "26.3-snap3", "26.3-snap3"},
+    {92, 0, "26.3-snap4", "26.3-snap4"},
+    {93, 0, "26.3-snap5", "26.3-snap5"},
+    {94, 0, "26.3-snap6", "26.3-snap6"},
+    {95, 0, "26.3-snap7", "26.3-snap7"},
+    {96, 0, "26.3-snap8", "26.3-snap9"},
+    {97, 0, "26.3-snap10", "26.3-snap10"},
+    {97, 1, "26.3", "26.3"},
+    {98, 0, "26.4-snap1", "26.4-snap1"},
+    {99, 0, "26.4-snap2", "26.4-snap2"},
+    {100, 0, "26.4-snap3", "26.4-snap3"},
 };
+
+static_assert(packFormatsAscend(s_resource_pack_format_versions,
+                                std::size(s_resource_pack_format_versions)));
 
 void ResourcePack::setPackFormat(int new_format_id, std::pair<int, int> min,
                                  std::pair<int, int> max)
@@ -220,7 +250,7 @@ QString ResourcePack::toString() const
 
 std::pair<Version, Version> ResourcePack::compatibleVersions() const
 {
-    const auto& map = versionMap();
+    const PackFormatTable table = versionTable();
 
     std::pair<Version, Version> res = {{}, {}};
     if (m_minFormat > m_maxFormat)
@@ -228,28 +258,39 @@ std::pair<Version, Version> ResourcePack::compatibleVersions() const
         return res;
     }
 
-    const std::pair<int, int> packFormatPair = {m_pack_format, 0};
+    const PackFormatVersions* lower = nullptr;
+    const PackFormatVersions* upper = nullptr;
 
     // if a valid min is defined use it as the lower bound
-    if (m_minFormat.first != 0 && map.contains(m_minFormat))
+    if (m_minFormat.first != 0)
     {
-        res.first = map.constFind(m_minFormat).value().first;
+        lower = findPackFormat(table, m_minFormat);
+    }
 
+    if (lower != nullptr)
+    {
         // if a valid max is defined, use it as the upper bound
-        if (m_maxFormat.first != 0 && map.contains(m_maxFormat))
+        if (m_maxFormat.first != 0)
         {
-            res.second = map.constFind(m_maxFormat).value().second;
+            upper = findPackFormat(table, m_maxFormat);
         }
-        // otherwise assume it supports the newest value in the map
-        else
+        // otherwise assume it supports the newest value in the table
+        if (upper == nullptr)
         {
-            res.second = map.last().second;
+            upper = &table.m_rows[table.m_count - 1];
         }
     }
     // otherwise, use pack format
-    else if (m_pack_format != 0 && map.contains(packFormatPair))
+    else if (m_pack_format != 0)
     {
-        res = map.constFind(packFormatPair).value();
+        lower = findPackFormat(table, {m_pack_format, 0});
+        upper = lower;
+    }
+
+    if (lower != nullptr)
+    {
+        res.first = Version(QString::fromLatin1(lower->m_first));
+        res.second = Version(QString::fromLatin1(upper->m_last));
     }
 
     // if no valid version was found it will be unrecognized
@@ -314,10 +355,10 @@ bool ResourcePack::applyFilter(QRegularExpression filter) const
     return Resource::applyFilter(filter);
 }
 
-QMap<std::pair<int, int>, std::pair<Version, Version>>
-ResourcePack::versionMap() const
+PackFormatTable ResourcePack::versionTable() const
 {
-    return s_resource_pack_format_versions;
+    return {s_resource_pack_format_versions,
+            std::size(s_resource_pack_format_versions)};
 }
 
 #include "moc_ResourcePack.cpp"
