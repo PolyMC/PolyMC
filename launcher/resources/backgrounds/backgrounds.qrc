@@ -1,21 +1,21 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource prefix="/backgrounds">
-        <file alias="defaultCatmas">catmas.png</file>
-        <file alias="defaultCattiversary">cattiversary.png</file>
-        <file alias="defaultCat">catbackground.png</file>
-        <file alias="defaultCatmilk">catmilk.png</file>
-        <file alias="jinxCat">jinxbg.png</file>
-        <file alias="jinxCatmas">jinxmas.png</file>
-        <file alias="jinxCattiversary">jinxversary.png</file>
-        <file alias="jinxCatmilk">jinxmilk.png</file>
-        <file alias="floppaCat">floppabg.png</file>
-        <file alias="floppaCatmas">floppaxmas.png</file>
-        <file alias="floppaCattiversary">floppaversary.png</file>
-        <file alias="floppaCatmilk">floppamilk.png</file>
-        <file alias="manulCat">manulbg.png</file>
-        <file alias="manulCatmas">manulxmas.png</file>
-        <file alias="manulCattiversary">manulversary.png</file>
-        <file alias="manulCatmilk">manulmilk.png</file>
+        <file alias="defaultCatmas">webp/catmas.webp</file>
+        <file alias="defaultCattiversary">webp/cattiversary.webp</file>
+        <file alias="defaultCat">webp/catbackground.webp</file>
+        <file alias="defaultCatmilk">webp/catmilk.webp</file>
+        <file alias="jinxCat">webp/jinxbg.webp</file>
+        <file alias="jinxCatmas">webp/jinxmas.webp</file>
+        <file alias="jinxCattiversary">webp/jinxversary.webp</file>
+        <file alias="jinxCatmilk">webp/jinxmilk.webp</file>
+        <file alias="floppaCat">webp/floppabg.webp</file>
+        <file alias="floppaCatmas">webp/floppaxmas.webp</file>
+        <file alias="floppaCattiversary">webp/floppaversary.webp</file>
+        <file alias="floppaCatmilk">webp/floppamilk.webp</file>
+        <file alias="manulCat">webp/manulbg.webp</file>
+        <file alias="manulCatmas">webp/manulxmas.webp</file>
+        <file alias="manulCattiversary">webp/manulversary.webp</file>
+        <file alias="manulCatmilk">webp/manulmilk.webp</file>
     </qresource>
 </RCC>
