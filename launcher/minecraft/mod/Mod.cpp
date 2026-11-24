@@ -43,6 +43,10 @@
 
 #include "MetadataHandler.h"
 #include "Version.h"
+#include "modplatform/ModIndex.h"
+#include "modplatform/modrinth/ModrinthSource.h"
+
+static ModPlatform::ProviderCapabilities ModProviderCaps;
 
 Mod::Mod(const QFileInfo& file) : Resource(file), m_local_details()
 {
@@ -81,6 +85,17 @@ std::pair<int, bool> Mod::compare(const Resource& other, SortType type) const
 
     switch (type)
     {
+        case SortType::PROVIDER:
+        {
+            auto compare_result = QString::compare(
+                provider(), cast_other->provider(), Qt::CaseInsensitive);
+            if (compare_result != 0)
+            {
+                return {compare_result, true};
+            }
+            // Mods from the same place are in name order
+            return {Resource::compare(other, SortType::NAME).first, false};
+        }
         default:
         case SortType::ENABLED:
         case SortType::NAME:
@@ -195,6 +210,28 @@ QStringList Mod::authors() const
 ModStatus Mod::status() const
 {
     return details().status;
+}
+
+QString Mod::provider() const
+{
+    auto meta = metadata();
+    if (!meta)
+    {
+        return {};
+    }
+    if (meta->provider != ModPlatform::Provider::MODRINTH)
+    {
+        return ModProviderCaps.readableName(meta->provider);
+    }
+
+    auto source = Modrinth::findSource(meta->api_url);
+    if (!source)
+    {
+        // A source that was removed is still named by its host
+        source = Modrinth::Source();
+        source->api_url = meta->api_url;
+    }
+    return source->displayName();
 }
 
 std::shared_ptr<Metadata::ModStruct> Mod::metadata()

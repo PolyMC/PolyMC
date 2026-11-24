@@ -6,6 +6,7 @@
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QFile>
+#include <QHash>
 #include <QIcon>
 #include <QImage>
 #include <QImageReader>
@@ -108,6 +109,14 @@ QString modrinthSourceIconPath(const Source& source)
                            "modrinth_sources", source.key() + ".png");
 }
 
+// The cached icons already loaded, by source key. Mod lists ask for them
+// every time they're drawn.
+QHash<QString, QIcon>& loadedSourceIcons()
+{
+    static QHash<QString, QIcon> icons;
+    return icons;
+}
+
 // Finds the icon a source's website declares and caches it as a PNG. Labrinth
 // front ends often still serve Modrinth's own favicon.ico, so only icons the
 // page links to are used.
@@ -173,6 +182,7 @@ private:
                                          Qt::SmoothTransformation);
                 }
                 image.save(modrinthSourceIconPath(m_source), "PNG");
+                loadedSourceIcons().remove(m_source.key());
             }
         }
 
@@ -315,12 +325,20 @@ QIcon sourceIcon(const Source& source)
         return APPLICATION->getThemedIcon("modrinth");
     }
 
+    auto& loaded = loadedSourceIcons();
+    auto cached = loaded.constFind(source.key());
+    if (cached != loaded.constEnd())
+    {
+        return *cached;
+    }
+
     auto path = modrinthSourceIconPath(source);
     if (QFile::exists(path))
     {
         QIcon icon(path);
         if (!icon.isNull())
         {
+            loaded.insert(source.key(), icon);
             return icon;
         }
     }
