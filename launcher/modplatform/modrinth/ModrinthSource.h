@@ -2,7 +2,10 @@
 
 #pragma once
 
+#include <QList>
 #include <QString>
+
+#include <optional>
 
 namespace Modrinth
 {
@@ -36,5 +39,16 @@ struct Source
 
 // Trims whitespace and trailing slashes so equal URLs compare equal
 QString normalizeApiUrl(const QString& url);
+
+// The Modrinth-compatible sources the user added, without official Modrinth
+QList<Source> customSources();
+void setCustomSources(const QList<Source>& sources);
+
+// Official Modrinth first, then the custom sources
+QList<Source> allSources();
+
+// The source with this API URL, if it is configured. An empty URL is
+// official Modrinth.
+std::optional<Source> findSource(const QString& url);
 
 }  // namespace Modrinth

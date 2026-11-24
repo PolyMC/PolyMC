@@ -5,6 +5,7 @@
 #include "minecraft/mod/ModFolderModel.h"
 #include "modplatform/CheckUpdateTask.h"
 #include "modplatform/ModAPI.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 #include "net/NetJob.h"
 
 #include <QByteArray>
@@ -34,9 +35,13 @@ protected slots:
     void executeTask() override;
 
 private:
+    QString checkSource(const QString& url,
+                        const QHash<QString, Mod*>& mappings,
+                        const QString& format);
     QString parseLatestVersions(const QByteArray& response,
                                 const QHash<QString, Mod*>& mappings,
-                                const QString& format);
+                                const QString& format,
+                                const Modrinth::Source& source);
 
     NetJob* m_net_job = nullptr;
 };

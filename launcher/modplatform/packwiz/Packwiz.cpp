@@ -27,6 +27,7 @@
 
 #include <toml++/toml.h>
 #include "modplatform/ModIndex.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 
 namespace Packwiz
 {
@@ -151,6 +152,10 @@ V1::Mod V1::createModFormat(QDir& /*index_dir*/,
     mod.provider = mod_pack.provider;
     mod.file_id = mod_version.fileId;
     mod.project_id = mod_pack.addonId;
+    if (mod_pack.provider == ModPlatform::Provider::MODRINTH)
+    {
+        mod.api_url = mod_pack.apiUrl;
+    }
 
     mod.do_updates = "true";
 
@@ -239,6 +244,12 @@ void V1::updateModIndex(QDir& index_dir, Mod& mod)
             case (ModPlatform::Provider::MODRINTH):
                 addToStream(in_stream, "mod-id", mod.mod_id().toString());
                 addToStream(in_stream, "version", mod.version().toString());
+                // Only written for Modrinth-compatible sources, so official
+                // Modrinth metadata stays as it was
+                if (!mod.api_url.isEmpty())
+                {
+                    addToStream(in_stream, "api-url", mod.api_url);
+                }
                 break;
         }
         in_stream << QString("\n[update.do_updates]\n");
@@ -397,6 +408,9 @@ V1::Mod V1::getIndexForMod(QDir& index_dir, QString slug)
             mod.provider = Provider::MODRINTH;
             mod.mod_id() = stringEntry(*mod_provider_table, "mod-id");
             mod.version() = stringEntry(*mod_provider_table, "version");
+            // Optional, missing means official Modrinth
+            mod.api_url = Modrinth::normalizeApiUrl(QString::fromStdString(
+                (*mod_provider_table)["api-url"].value_or("")));
         }
         else
         {

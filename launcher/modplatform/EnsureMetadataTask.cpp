@@ -23,7 +23,6 @@
 
 static ModPlatform::ProviderCapabilities MetadataProviderCaps;
 
-static ModrinthAPI modrinth_api;
 static FlameAPI flame_api;
 
 namespace
@@ -49,8 +48,13 @@ protected:
 }  // namespace
 
 EnsureMetadataTask::EnsureMetadataTask(Mod* mod, QDir dir,
-                                       ModPlatform::Provider prov)
-    : Task(nullptr), m_index_dir(dir), m_provider(prov), m_hashing_task(nullptr)
+                                       ModPlatform::Provider prov,
+                                       Modrinth::Source source)
+    : Task(nullptr),
+      m_index_dir(dir),
+      m_provider(prov),
+      m_source(std::move(source)),
+      m_hashing_task(nullptr)
 {
     auto hash_task = createNewHash(mod);
     if (!hash_task)
@@ -69,8 +73,12 @@ EnsureMetadataTask::EnsureMetadataTask(Mod* mod, QDir dir,
 }
 
 EnsureMetadataTask::EnsureMetadataTask(QList<Mod*>& mods, QDir dir,
-                                       ModPlatform::Provider prov)
-    : Task(nullptr), m_index_dir(dir), m_provider(prov)
+                                       ModPlatform::Provider prov,
+                                       Modrinth::Source source)
+    : Task(nullptr),
+      m_index_dir(dir),
+      m_provider(prov),
+      m_source(std::move(source))
 {
     m_hashing_task.reset(new HashingTask(nullptr, "MakeHashesTask", 10));
     for (auto* mod : mods)
@@ -328,8 +336,8 @@ NetJob::Ptr EnsureMetadataTask::modrinthVersionsTask()
     auto hash_type =
         MetadataProviderCaps.hashType(ModPlatform::Provider::MODRINTH).first();
 
-    auto ver_task =
-        modrinth_api.currentVersions(m_mods.keys(), hash_type, &m_response);
+    auto ver_task = ModrinthAPI(m_source).currentVersions(
+        m_mods.keys(), hash_type, &m_response);
 
     // Prevents unfortunate timings when aborting the task
     if (!ver_task)
@@ -411,12 +419,13 @@ NetJob::Ptr EnsureMetadataTask::modrinthProjectsTask()
     }
     else if (m_addon_ids.size() == 1)
     {
-        proj_task =
-            modrinth_api.getProject(*m_addon_ids.keyBegin(), &m_response);
+        proj_task = ModrinthAPI(m_source).getProject(*m_addon_ids.keyBegin(),
+                                                     &m_response);
     }
     else
     {
-        proj_task = modrinth_api.getProjects(m_addon_ids.keys(), &m_response);
+        proj_task =
+            ModrinthAPI(m_source).getProjects(m_addon_ids.keys(), &m_response);
     }
 
     // Prevents unfortunate timings when aborting the task
@@ -465,7 +474,8 @@ void EnsureMetadataTask::onModrinthProjectsReceived()
             try
             {
                 auto entry_obj = Json::requireObject(entry);
-                Modrinth::loadIndexedPack(pack, entry_obj);
+                ModrinthAPI api(m_source);
+                Modrinth::loadIndexedPack(pack, entry_obj, ModAPI::Mod, &api);
             }
             catch (Json::JsonException& e)
             {

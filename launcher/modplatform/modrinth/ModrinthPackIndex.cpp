@@ -45,8 +45,11 @@ bool isNewerModrinthVersion(const ModPlatform::IndexedVersion& a,
 }  // namespace
 
 void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj,
-                               ModAPI::ResourceType /*type*/)
+                               ModAPI::ResourceType /*type*/,
+                               const ModrinthAPI* api)
 {
+    const auto& source_api = api ? *api : modrinthIndexApi;
+
     pack.addonId = Json::ensureString(obj, "project_id");
     if (pack.addonId.toString().isEmpty())
     {
@@ -54,13 +57,14 @@ void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj,
     }
 
     pack.provider = ModPlatform::Provider::MODRINTH;
+    pack.apiUrl = source_api.source().api_url;
     pack.name = Json::requireString(obj, "title");
 
     pack.slug = Json::ensureString(obj, "slug", "");
     if (!pack.slug.isEmpty())
     {
         // FIXME(crueter): conditional
-        pack.websiteUrl = modrinthIndexApi.websiteRoot() + "/mod/" + pack.slug;
+        pack.websiteUrl = source_api.websiteRoot() + "/mod/" + pack.slug;
     }
     else
     {
@@ -71,12 +75,12 @@ void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj,
 
     // Modrinth sends null for projects without an icon
     pack.logoUrl = Json::ensureString(obj, "icon_url", "");
-    pack.logoName = pack.addonId.toString();
+    pack.logoName = source_api.source().cacheName(pack.addonId.toString());
 
     ModPlatform::ModpackAuthor modAuthor;
     modAuthor.name =
         Json::ensureString(obj, "author", QObject::tr("No author(s)"));
-    modAuthor.url = modrinthIndexApi.getAuthorURL(modAuthor.name);
+    modAuthor.url = source_api.getAuthorURL(modAuthor.name);
     pack.authors.append(modAuthor);
 
     // Modrinth can have more data than what's provided by the basic search :)

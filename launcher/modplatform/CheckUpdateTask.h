@@ -41,6 +41,8 @@ public:
         QString changelog;
         ModPlatform::Provider provider;
         ModDownloadTask* download;
+        // Set for Modrinth-compatible sources other than official Modrinth
+        QString source_name;
 
     public:
         UpdatableMod(QString name, QString old_h, QString old_v, QString new_v,

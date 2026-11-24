@@ -477,7 +477,9 @@ void ModUpdateDialog::appendMod(CheckUpdateTask::UpdatableMod const& info)
     auto provider_item = new QTreeWidgetItem(item_top);
     provider_item->setText(
         0, tr("Provider: %1")
-               .arg(UpdateDialogProviderCaps.readableName(info.provider)));
+               .arg(info.source_name.isEmpty()
+                        ? UpdateDialogProviderCaps.readableName(info.provider)
+                        : info.source_name));
 
     auto old_version_item = new QTreeWidgetItem(item_top);
     old_version_item->setText(

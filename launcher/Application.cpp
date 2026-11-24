@@ -639,6 +639,8 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting("ModMetadataDisabled", false);
         m_settings->registerSetting("DefaultModPlatform", "Modrinth");
         m_settings->registerSetting("IgnoreNonModrinthDownloadsWarning", false);
+        // Modrinth-compatible sites next to official Modrinth, as JSON
+        m_settings->registerSetting("ModrinthSources", "[]");
 
         // Minecraft offline player name
         m_settings->registerSetting("LastOfflinePlayerName", "");

@@ -91,6 +91,8 @@ struct IndexedPack
 {
     QVariant addonId;
     Provider provider;
+    // API URL of the Modrinth-compatible source, empty for official Modrinth
+    QString apiUrl;
     QString name;
     QString slug;
     QString description;
