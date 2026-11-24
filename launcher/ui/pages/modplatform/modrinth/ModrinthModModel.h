@@ -25,6 +25,9 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QList>
+
+class ModrinthExtraProjects;
 
 namespace Modrinth
 {
@@ -34,10 +37,13 @@ class ListModel : public ModPlatform::ListModel
     Q_OBJECT
 
 public:
-    ListModel(ModrinthModPage* parent) : ModPlatform::ListModel(parent) {};
+    ListModel(ModrinthModPage* parent);
     ~ListModel() override = default;
 
 private:
+    void searchExtra() override;
+    void onExtraProjects(QList<QJsonObject> projects);
+
     void loadIndexedPack(ModPlatform::IndexedPack& m,
                          QJsonObject& obj) override;
     void loadExtraPackInfo(ModPlatform::IndexedPack& m,
@@ -53,6 +59,8 @@ private:
     {
         return sorts;
     };
+
+    ModrinthExtraProjects* m_extra;
 };
 
 }  // namespace Modrinth

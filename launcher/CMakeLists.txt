@@ -493,6 +493,8 @@ set(API_SOURCES
     modplatform/modrinth/ModrinthAPI.cpp
     modplatform/modrinth/ModrinthSource.h
     modplatform/modrinth/ModrinthSource.cpp
+    modplatform/modrinth/ModrinthExtraProjects.h
+    modplatform/modrinth/ModrinthExtraProjects.cpp
     modplatform/helpers/NetworkModAPI.h
     modplatform/helpers/NetworkModAPI.cpp
     modplatform/helpers/ModpackMetadata.h

@@ -39,6 +39,7 @@
 #include "Application.h"
 #include "BuildConfig.h"
 #include "Json.h"
+#include "modplatform/modrinth/ModrinthExtraProjects.h"
 #include "modplatform/modrinth/ModrinthAPI.h"
 #include "net/Download.h"
 #include "ui/widgets/ProjectItem.h"
@@ -62,10 +63,13 @@ ModpackListModel::ModpackListModel(ModrinthPage* parent)
       m_parent(parent),
       m_logos(new LogoCache(
           "ModrinthPacks", parent->debugName() + " Icon Download",
-          "screenshot-placeholder", LogoCache::Skip::EmptyUrl, this))
+          "screenshot-placeholder", LogoCache::Skip::EmptyUrl, this)),
+      m_extra(new ModrinthExtraProjects(this))
 {
     connect(m_logos, &LogoCache::logoLoaded, this,
             &ModpackListModel::onLogoLoaded);
+    connect(m_extra, &ModrinthExtraProjects::projectsFound, this,
+            &ModpackListModel::onExtraProjects);
 }
 
 QString ModpackListModel::debugName() const
@@ -187,6 +191,67 @@ void ModpackListModel::performPaginatedSearch()
 
     jobPtr = netJob;
     jobPtr->start();
+
+    if (nextSearchOffset == 0)
+    {
+        ModrinthExtraProjects::Filter filter;
+        filter.project_type = "modpack";
+        m_extra->search(m_parent->api(), currentSearchTerm, filter);
+    }
+}
+
+bool ModpackListModel::isListed(const QString& id) const
+{
+    for (const auto& pack : modpacks)
+    {
+        if (pack.id == id)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void ModpackListModel::onExtraProjects(QList<QJsonObject> projects)
+{
+    QList<Modrinth::Modpack> packs;
+    for (auto& project : projects)
+    {
+        Modrinth::Modpack pack;
+        try
+        {
+            Modrinth::loadIndexedPack(pack, project, &m_parent->api());
+        }
+        catch (const JSONValidationError& e)
+        {
+            qWarning() << "Error while loading a modpack from"
+                       << m_parent->debugName() << ":" << e.cause();
+            continue;
+        }
+        if (isListed(pack.id))
+        {
+            continue;
+        }
+
+        auto status = ModrinthExtraProjects::statusLabel(project);
+        if (!status.isEmpty())
+        {
+            pack.description = QString("[%1] %2").arg(status, pack.description);
+        }
+        packs.append(pack);
+    }
+
+    if (packs.isEmpty())
+    {
+        return;
+    }
+
+    beginInsertRows(QModelIndex(), 0, packs.size() - 1);
+    for (int i = 0; i < packs.size(); i++)
+    {
+        modpacks.insert(i, packs.at(i));
+    }
+    endInsertRows();
 }
 
 void ModpackListModel::onSearchSucceeded()
@@ -307,7 +372,11 @@ void ModpackListModel::searchRequestFinished(QJsonDocument& doc_all)
         try
         {
             Modrinth::loadIndexedPack(pack, packObj, &m_parent->api());
-            newList.append(pack);
+            // Packs found besides the search may be in it too
+            if (!isListed(pack.id))
+            {
+                newList.append(pack);
+            }
         }
         catch (const JSONValidationError& e)
         {

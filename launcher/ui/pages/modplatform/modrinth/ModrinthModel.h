@@ -38,6 +38,7 @@
 #include <QAbstractListModel>
 #include <QByteArray>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QList>
 #include <QString>
 #include <QVariant>
@@ -49,6 +50,7 @@
 #include "ui/pages/modplatform/modrinth/ModrinthPage.h"
 
 class LogoCache;
+class ModrinthExtraProjects;
 class ModPage;
 class Version;
 
@@ -115,6 +117,8 @@ protected:
 private:
     void onSearchSucceeded();
     void onLogoLoaded(const QString& logo);
+    void onExtraProjects(QList<QJsonObject> projects);
+    bool isListed(const QString& id) const;
 
 protected:
     ModrinthPage* m_parent;
@@ -140,5 +144,8 @@ protected:
     QByteArray m_specific_response;
 
     int m_modpacks_per_page = 20;
+
+    // Finds the packs the search can't
+    ModrinthExtraProjects* m_extra;
 };
 }  // namespace Modrinth

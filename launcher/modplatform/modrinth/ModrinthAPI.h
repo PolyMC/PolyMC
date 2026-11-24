@@ -54,6 +54,16 @@ public:
 
     NetJob::Ptr getVersion(const QString& id, QByteArray* response) const;
 
+    // The user the token is for, needs one
+    NetJob::Ptr getCurrentUser(QByteArray* response) const;
+    // With the private ones when it's the user the token is for
+    NetJob::Ptr getUserProjects(const QString& user,
+                                QByteArray* response) const;
+
+    // The project a link to this source, or an ID or slug, names. Empty
+    // if the text isn't one.
+    QString projectReference(const QString& text) const;
+
 public:
     const Modrinth::Source& source() const
     {
