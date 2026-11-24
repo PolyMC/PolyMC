@@ -39,6 +39,7 @@
 #include "Application.h"
 #include "BuildConfig.h"
 #include "Json.h"
+#include "modplatform/modrinth/ModrinthAPI.h"
 #include "net/Download.h"
 #include "ui/widgets/ProjectItem.h"
 
@@ -52,6 +53,8 @@
 #include <utility>
 
 #include "ui/pages/modplatform/LogoCache.h"
+
+static ModrinthAPI modrinth_modpack_list_api;
 
 namespace Modrinth
 {
@@ -159,7 +162,7 @@ void ModpackListModel::performPaginatedSearch()
     NetJob* netJob =
         new NetJob("Modrinth::SearchModpack", APPLICATION->network());
     auto searchAllUrl =
-        (BuildConfig.MODRINTH_PROD_URL +
+        (modrinth_modpack_list_api.apiRoot() +
          "/search?"
          "offset=%1&"
          "limit=%2&"

@@ -76,8 +76,9 @@ void loadIndexedPack(Modpack& pack, QJsonObject& obj)
 void loadIndexedInfo(Modpack& pack, QJsonObject& obj)
 {
     pack.extra.body = Json::ensureString(obj, "body");
-    pack.extra.projectUrl = QString("https://modrinth.com/modpack/%1")
-                                .arg(Json::ensureString(obj, "slug"));
+    pack.extra.projectUrl = QString("%1/modpack/%2")
+                                .arg(modrinthManifestApi.websiteRoot(),
+                                     Json::ensureString(obj, "slug"));
 
     pack.extra.issuesUrl = Json::ensureString(obj, "issues_url");
     if (pack.extra.issuesUrl.endsWith('/'))
