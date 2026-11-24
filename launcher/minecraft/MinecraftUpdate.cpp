@@ -171,10 +171,13 @@ bool MinecraftUpdate::abort()
     if (!m_abort)
     {
         m_abort = true;
-        auto task = m_tasks[m_currentTask];
-        if (task->canAbort())
+        if (m_currentTask >= 0 && m_currentTask < m_tasks.size())
         {
-            return task->abort();
+            auto task = m_tasks[m_currentTask];
+            if (task->canAbort())
+            {
+                return task->abort();
+            }
         }
     }
     return true;

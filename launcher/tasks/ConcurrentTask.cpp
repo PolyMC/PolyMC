@@ -91,11 +91,10 @@ bool ConcurrentTask::abort()
 
     bool suceedeed = true;
 
-    QMutableHashIterator<Task*, Task::Ptr> doing_iter(m_doing);
-    while (doing_iter.hasNext())
+    const QList<Task::Ptr> doing = m_doing.values();
+    for (const Task::Ptr& task : doing)
     {
-        auto task = doing_iter.next();
-        suceedeed &= (task.value())->abort();
+        suceedeed &= task->abort();
     }
 
     if (suceedeed)

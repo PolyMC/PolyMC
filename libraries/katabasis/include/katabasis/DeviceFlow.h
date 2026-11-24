@@ -19,9 +19,6 @@ class DeviceFlow: public QObject
 {
     Q_OBJECT
 public:
-    Q_ENUMS(GrantFlow)
-
-public:
 
     struct Options {
         QString userAgent = QStringLiteral("Katabasis/1.0");

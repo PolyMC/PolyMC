@@ -378,6 +378,7 @@ bool Component::customize()
     catch (const Exception& error)
     {
         qWarning() << "Version could not be loaded:" << error.cause();
+        return false;
     }
     return true;
 }

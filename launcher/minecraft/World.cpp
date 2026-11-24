@@ -424,7 +424,10 @@ bool World::rename(const QString& newName)
         return false;
     }
 
-    putLevelDatDataToFS(m_containerFile, data);
+    if (!putLevelDatDataToFS(m_containerFile, data))
+    {
+        return false;
+    }
 
     m_actualName = newName;
 
