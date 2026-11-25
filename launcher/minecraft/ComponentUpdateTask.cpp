@@ -17,6 +17,7 @@
 #include "meta/Index.h"
 #include "meta/JsonFormat.h"
 #include "meta/Version.h"
+#include "meta/VersionList.h"
 #include "ComponentUpdateTask_p.h"
 #include "cassert"
 #include "Version.h"
@@ -63,6 +64,8 @@ void ComponentUpdateTask::executeTask()
 {
     qDebug() << "Loading components";
     d->resolutionRounds = 0;
+    d->indexRefreshed = false;
+    d->waitingForIndex = false;
     loadComponents();
 }
 
@@ -122,10 +125,27 @@ static LoadResult loadComponent(ComponentPtr component, Task::Ptr& loadTask,
     }
     else
     {
+        // The index lists the hash of each package index, and the package
+        // index the hash of each version file. Comparing them with the cached
+        // files shows which ones a newer metadata release has replaced.
+        auto metaList = APPLICATION->metadataIndex()->get(component->m_uid);
+        metaList->load(Net::Mode::Offline);
+        const bool listOutdated =
+            netmode == Net::Mode::Online && !metaList->isUpToDate();
+        if (listOutdated)
+        {
+            // Refresh it in the background, so later launches compare against
+            // its current hashes
+            metaList->load(Net::Mode::Online);
+        }
         auto metaVersion = APPLICATION->metadataIndex()->get(
             component->m_uid, component->m_version);
         component->m_metaVersion = metaVersion;
-        if (metaVersion->isLoaded())
+        // With an outdated package index, the hash listed for the version is
+        // old too, so the version file is downloaded again either way
+        const bool outdated = listOutdated || (netmode == Net::Mode::Online &&
+                                               !metaVersion->isUpToDate());
+        if (metaVersion->isLoaded() && !outdated)
         {
             component->m_loaded = true;
             result = LoadResult::LoadedLocal;
@@ -179,10 +199,13 @@ Net::Mode netmode)
 }
 */
 
-static LoadResult loadIndex(Task::Ptr& loadTask, Net::Mode netmode)
+static LoadResult loadIndex(Task::Ptr& loadTask, Net::Mode netmode,
+                            bool refresh)
 {
-    // FIXME: DECIDE. do we want to run the update task anyway?
-    if (APPLICATION->metadataIndex()->isLoaded())
+    // An index loaded from the cache, for example when the instance was shown
+    // offline, would hold old hashes
+    if (APPLICATION->metadataIndex()->isLoaded() &&
+        !(refresh && netmode == Net::Mode::Online))
     {
         qDebug() << "Index is already loaded";
         return LoadResult::LoadedLocal;
@@ -206,7 +229,9 @@ void ComponentUpdateTask::loadComponents()
     {
         // FIXME: tear out as a method? or lambda?
         Task::Ptr indexLoadTask;
-        auto singleResult = loadIndex(indexLoadTask, d->netmode);
+        auto singleResult =
+            loadIndex(indexLoadTask, d->netmode, !d->indexRefreshed);
+        d->indexRefreshed = true;
         result = composeLoadResult(result, singleResult);
         if (indexLoadTask)
         {
@@ -214,6 +239,14 @@ void ComponentUpdateTask::loadComponents()
             RemoteLoadStatus status;
             status.type = RemoteLoadStatus::Type::Index;
             watchRemoteLoad(indexLoadTask.get(), status);
+            if (d->netmode == Net::Mode::Online)
+            {
+                // The components are checked against the hashes the new
+                // index lists, so they are loaded once it is in
+                d->waitingForIndex = true;
+                d->remoteTasksInProgress = d->remoteLoadStatusList.size();
+                return;
+            }
         }
     }
     // load all the components OR their lists...
@@ -805,6 +838,12 @@ void ComponentUpdateTask::checkIfAllFinished()
         // nothing bad happened... clear the temp load status and proceed with
         // looking at dependencies
         d->remoteLoadStatusList.clear();
+        if (d->waitingForIndex)
+        {
+            d->waitingForIndex = false;
+            loadComponents();
+            return;
+        }
         resolveDependencies(d->mode == Mode::Launch);
     }
     else

@@ -31,6 +31,11 @@ struct ComponentUpdateTaskData
     // How many times dependency resolution had to start over, to stop it from
     // going on forever
     int resolutionRounds = 0;
+    // Online, the index is downloaded again once per update, and the
+    // components wait for it: the cached files are checked against the hashes
+    // it lists
+    bool indexRefreshed = false;
+    bool waitingForIndex = false;
     ComponentUpdateTask::Mode mode;
     Net::Mode netmode;
 };

@@ -41,19 +41,29 @@ public:
     virtual ~BaseEntity();
 
     virtual void parse(const QJsonObject& obj) = 0;
-    void parseRemote(const QJsonObject& obj);
+    void parseRemote(const QJsonObject& obj, const QByteArray& data);
 
     virtual QString localFilename() const = 0;
     virtual QUrl url() const;
 
     bool isLoaded() const;
+    // False when the index that lists this entity expects a different file
+    bool isUpToDate() const;
     bool shouldStartRemoteUpdate() const;
 
     void load(Net::Mode loadType);
     Task::Ptr getCurrentTask();
 
+public: /* for parsers */
+    void setSha256(const QString& sha256);
+
 protected: /* methods */
     bool loadLocalFile();
+
+protected: /* data */
+    // The SHA-256 the parent index lists, and that of the loaded file
+    QString m_sha256;
+    QString m_fileSha256;
 
 private:
     LoadStatus m_loadStatus = LoadStatus::NotLoaded;

@@ -232,6 +232,10 @@ void VersionList::mergeFromIndex(const VersionListPtr& other)
     {
         setName(other->m_name);
     }
+    if (!other->m_sha256.isEmpty())
+    {
+        m_sha256 = other->m_sha256;
+    }
 }
 
 void VersionList::merge(const VersionListPtr& other)

@@ -16,6 +16,7 @@
 #include "BaseEntity.h"
 
 #include <QByteArray>
+#include <QCryptographicHash>
 #include <QDebug>
 #include <QDir>
 #include <QFile>
@@ -28,6 +29,7 @@
 #include "net/NetJob.h"
 #include "net/Validator.h"
 #include "Exception.h"
+#include "FileSystem.h"
 #include "Json.h"
 
 #include "BuildConfig.h"
@@ -63,7 +65,7 @@ public: /* methods */
         {
             auto doc = Json::requireDocument(data, fname);
             auto obj = Json::requireObject(doc, fname);
-            m_entity->parseRemote(obj);
+            m_entity->parseRemote(obj, data);
             return true;
         }
         catch (const Exception& e)
@@ -77,6 +79,11 @@ private: /* data */
     QByteArray data;
     Meta::BaseEntity* m_entity;
 };
+
+static QString metaFileSha256(const QByteArray& data)
+{
+    return QCryptographicHash::hash(data, QCryptographicHash::Sha256).toHex();
+}
 
 Meta::BaseEntity::~BaseEntity()
 {
@@ -103,12 +110,13 @@ bool Meta::BaseEntity::loadLocalFile()
     {
         return false;
     }
-    // TODO: check if the file has the expected checksum
     try
     {
-        auto doc = Json::requireDocument(fname, fname);
+        const QByteArray data = FS::read(fname);
+        auto doc = Json::requireDocument(data, fname);
         auto obj = Json::requireObject(doc, fname);
         parse(obj);
+        m_fileSha256 = metaFileSha256(data);
         return true;
     }
     catch (const Exception& e)
@@ -153,15 +161,27 @@ void Meta::BaseEntity::load(Net::Mode loadType)
     m_updateTask->start();
 }
 
-void Meta::BaseEntity::parseRemote(const QJsonObject& obj)
+void Meta::BaseEntity::parseRemote(const QJsonObject& obj,
+                                   const QByteArray& data)
 {
     parse(obj);
+    m_fileSha256 = metaFileSha256(data);
     m_loadStatus = LoadStatus::Remote;
 }
 
 bool Meta::BaseEntity::isLoaded() const
 {
     return m_loadStatus > LoadStatus::NotLoaded;
+}
+
+bool Meta::BaseEntity::isUpToDate() const
+{
+    return m_sha256.isEmpty() || m_sha256 == m_fileSha256;
+}
+
+void Meta::BaseEntity::setSha256(const QString& sha256)
+{
+    m_sha256 = sha256;
 }
 
 bool Meta::BaseEntity::shouldStartRemoteUpdate() const
