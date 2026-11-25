@@ -44,7 +44,7 @@ void ATLauncher::loadIndexedPack(ATLauncher::IndexedPack& m, QJsonObject& obj)
         loadIndexedVersion(version, versionObj);
         m.versions.append(version);
     }
-    m.system = Json::ensureBoolean(obj, QString("system"), false);
+    m.system = Json::ensureBoolean(obj, "system", false);
     m.description = Json::ensureString(obj, "description", "");
 
     m.safeName = Json::requireString(obj, "name")

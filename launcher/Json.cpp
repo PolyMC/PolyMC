@@ -147,180 +147,195 @@ void writeStringList(QJsonObject& to, const QString& key,
     }
 }
 
-template <>
-QJsonValue toJson<QUrl>(const QUrl& url)
+namespace
 {
-    return QJsonValue(url.toString(QUrl::FullyEncoded));
-}
-template <>
-QJsonValue toJson<QByteArray>(const QByteArray& data)
-{
-    return QJsonValue(QString::fromLatin1(data.toHex()));
-}
-template <>
-QJsonValue toJson<QDateTime>(const QDateTime& datetime)
-{
-    return QJsonValue(datetime.toString(Qt::ISODate));
-}
-template <>
-QJsonValue toJson<QDir>(const QDir& dir)
-{
-    return QDir::current().relativeFilePath(dir.absolutePath());
-}
-template <>
-QJsonValue toJson<QUuid>(const QUuid& uuid)
-{
-    return uuid.toString();
-}
-template <>
-QJsonValue toJson<QVariant>(const QVariant& variant)
-{
-    return QJsonValue::fromVariant(variant);
-}
-
-template <>
-QByteArray requireIsType<QByteArray>(const QJsonValue& value,
-                                     const QString& what)
-{
-    const QString string = requireIsType<QString>(value, what);
-    // ensure that the string can be safely cast to Latin1
-    if (string != QString::fromLatin1(string.toLatin1()))
-    {
-        throw JsonException(what + " is not encodable as Latin1");
-    }
-    return QByteArray::fromHex(string.toLatin1());
-}
-
-template <>
-QJsonArray requireIsType<QJsonArray>(const QJsonValue& value,
-                                     const QString& what)
-{
-    if (!value.isArray())
-    {
-        throw JsonException(what + " is not an array");
-    }
-    return value.toArray();
-}
-
-template <>
-QString requireIsType<QString>(const QJsonValue& value, const QString& what)
+const char* convert(const QJsonValue& value, QString& out)
 {
     if (!value.isString())
     {
-        throw JsonException(what + " is not a string");
+        return " is not a string";
     }
-    return value.toString();
+    out = value.toString();
+    return nullptr;
 }
 
-template <>
-bool requireIsType<bool>(const QJsonValue& value, const QString& what)
+const char* convert(const QJsonValue& value, bool& out)
 {
     if (!value.isBool())
     {
-        throw JsonException(what + " is not a bool");
+        return " is not a bool";
     }
-    return value.toBool();
+    out = value.toBool();
+    return nullptr;
 }
 
-template <>
-double requireIsType<double>(const QJsonValue& value, const QString& what)
+const char* convert(const QJsonValue& value, double& out)
 {
     if (!value.isDouble())
     {
-        throw JsonException(what + " is not a double");
+        return " is not a double";
     }
-    return value.toDouble();
+    out = value.toDouble();
+    return nullptr;
 }
 
-template <>
-int requireIsType<int>(const QJsonValue& value, const QString& what)
+const char* convert(const QJsonValue& value, int& out)
 {
-    const double doubl = requireIsType<double>(value, what);
-    if (fmod(doubl, 1) != 0)
+    double real = 0.0;
+    const char* complaint = convert(value, real);
+    if (complaint)
     {
-        throw JsonException(what + " is not an integer");
+        return complaint;
     }
-    return int(doubl);
+    if (fmod(real, 1) != 0)
+    {
+        return " is not an integer";
+    }
+    out = int(real);
+    return nullptr;
 }
 
-template <>
-QDateTime requireIsType<QDateTime>(const QJsonValue& value, const QString& what)
-{
-    const QString string = requireIsType<QString>(value, what);
-    const QDateTime datetime = QDateTime::fromString(string, Qt::ISODate);
-    if (!datetime.isValid())
-    {
-        throw JsonException(what + " is not a ISO formatted date/time value");
-    }
-    return datetime;
-}
-
-template <>
-QUrl requireIsType<QUrl>(const QJsonValue& value, const QString& what)
-{
-    const QString string = requireIsType<QString>(value, what);
-    if (string.isEmpty())
-    {
-        return QUrl();
-    }
-    const QUrl url = QUrl(string, QUrl::StrictMode);
-    if (!url.isValid())
-    {
-        throw JsonException(what + " is not a correctly formatted URL");
-    }
-    return url;
-}
-
-template <>
-QDir requireIsType<QDir>(const QJsonValue& value, const QString& what)
-{
-    const QString string = requireIsType<QString>(value, what);
-    // FIXME: does not handle invalid characters!
-    return QDir::current().absoluteFilePath(string);
-}
-
-template <>
-QUuid requireIsType<QUuid>(const QJsonValue& value, const QString& what)
-{
-    const QString string = requireIsType<QString>(value, what);
-    const QUuid uuid = QUuid(string);
-    if (uuid.toString() != string)  // converts back => valid
-    {
-        throw JsonException(what + " is not a valid UUID");
-    }
-    return uuid;
-}
-
-template <>
-QJsonObject requireIsType<QJsonObject>(const QJsonValue& value,
-                                       const QString& what)
+const char* convert(const QJsonValue& value, QJsonObject& out)
 {
     if (!value.isObject())
     {
-        throw JsonException(what + " is not an object");
+        return " is not an object";
     }
-    return value.toObject();
+    out = value.toObject();
+    return nullptr;
 }
 
-template <>
-QVariant requireIsType<QVariant>(const QJsonValue& value, const QString& what)
+const char* convert(const QJsonValue& value, QJsonArray& out)
+{
+    if (!value.isArray())
+    {
+        return " is not an array";
+    }
+    out = value.toArray();
+    return nullptr;
+}
+
+const char* convert(const QJsonValue& value, QUrl& out)
+{
+    QString text;
+    const char* complaint = convert(value, text);
+    if (complaint)
+    {
+        return complaint;
+    }
+    if (text.isEmpty())
+    {
+        out = QUrl();
+        return nullptr;
+    }
+    out = QUrl(text, QUrl::StrictMode);
+    return out.isValid() ? nullptr : " is not a correctly formatted URL";
+}
+
+const char* convert(const QJsonValue& value, QVariant& out)
 {
     if (value.isNull() || value.isUndefined())
     {
-        throw JsonException(what + " is null or undefined");
+        return " is null or undefined";
     }
-    return value.toVariant();
+    out = value.toVariant();
+    return nullptr;
 }
 
-template <>
-QJsonValue requireIsType<QJsonValue>(const QJsonValue& value,
-                                     const QString& what)
+QString named(const QString& what, const QString& key)
 {
-    if (value.isNull() || value.isUndefined())
-    {
-        throw JsonException(what + " is null or undefined");
-    }
-    return value;
+    return what.isEmpty() ? '\'' + key + '\'' : what;
 }
+
+template <typename T>
+T require(const QJsonValue& value, const QString& what)
+{
+    T out{};
+    const char* complaint = convert(value, out);
+    if (complaint)
+    {
+        throw JsonException(what + complaint);
+    }
+    return out;
+}
+
+template <typename T>
+T require(const QJsonObject& parent, const QJsonValue& value,
+          const QString& key, const QString& what)
+{
+    if (value.isUndefined() && !parent.contains(key))
+    {
+        const QString label = named(what, key);
+        throw JsonException(label + "s parent does not contain " + label);
+    }
+    T out{};
+    const char* complaint = convert(value, out);
+    if (complaint)
+    {
+        throw JsonException(named(what, key) + complaint);
+    }
+    return out;
+}
+
+template <typename T>
+T ensure(const QJsonValue& value, const T& fallback)
+{
+    T out{};
+    if (value.isUndefined() || value.isNull() || convert(value, out))
+    {
+        return fallback;
+    }
+    return out;
+}
+}  // namespace
+
+#define JSON_HELPERFUNCTIONS(NAME, TYPE)                                       \
+    TYPE require##NAME(const QJsonValue& value, const QString& what)           \
+    {                                                                          \
+        return require<TYPE>(value,                                            \
+                             what.isEmpty() ? QStringLiteral("Value") : what); \
+    }                                                                          \
+    TYPE require##NAME(const QJsonObject& parent, const QString& key,          \
+                       const QString& what)                                    \
+    {                                                                          \
+        return require<TYPE>(parent, parent.value(key), key, what);            \
+    }                                                                          \
+    TYPE require##NAME(const QJsonObject& parent, const char* key,             \
+                       const QString& what)                                    \
+    {                                                                          \
+        const QJsonValue value = parent.value(QLatin1StringView(key));         \
+        TYPE out{};                                                            \
+        if (value.isUndefined() || convert(value, out))                        \
+        {                                                                      \
+            return require<TYPE>(parent, value, QString::fromLatin1(key),      \
+                                 what);                                        \
+        }                                                                      \
+        return out;                                                            \
+    }                                                                          \
+    TYPE ensure##NAME(const QJsonValue& value, const TYPE& fallback)           \
+    {                                                                          \
+        return ensure<TYPE>(value, fallback);                                  \
+    }                                                                          \
+    TYPE ensure##NAME(const QJsonObject& parent, const QString& key,           \
+                      const TYPE& fallback)                                    \
+    {                                                                          \
+        return ensure<TYPE>(parent.value(key), fallback);                      \
+    }                                                                          \
+    TYPE ensure##NAME(const QJsonObject& parent, const char* key,              \
+                      const TYPE& fallback)                                    \
+    {                                                                          \
+        return ensure<TYPE>(parent.value(QLatin1StringView(key)), fallback);   \
+    }
+
+JSON_HELPERFUNCTIONS(Array, QJsonArray)
+JSON_HELPERFUNCTIONS(Object, QJsonObject)
+JSON_HELPERFUNCTIONS(String, QString)
+JSON_HELPERFUNCTIONS(Boolean, bool)
+JSON_HELPERFUNCTIONS(Double, double)
+JSON_HELPERFUNCTIONS(Integer, int)
+JSON_HELPERFUNCTIONS(Url, QUrl)
+JSON_HELPERFUNCTIONS(Variant, QVariant)
+
+#undef JSON_HELPERFUNCTIONS
 
 }  // namespace Json

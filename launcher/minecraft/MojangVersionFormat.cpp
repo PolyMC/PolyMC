@@ -431,10 +431,7 @@ QJsonObject MojangVersionFormat::libraryToJson(Library* library)
 {
     QJsonObject libRoot;
     libRoot.insert("name", library->m_name.serialize());
-    if (!library->m_repositoryURL.isEmpty())
-    {
-        libRoot.insert("url", library->m_repositoryURL);
-    }
+    writeString(libRoot, "url", library->m_repositoryURL);
     if (library->isNative())
     {
         QJsonObject nativeList;

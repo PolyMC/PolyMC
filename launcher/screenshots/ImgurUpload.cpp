@@ -152,10 +152,10 @@ void ImgurUpload::downloadFinished()
         emitFailed();
         return;
     }
-    m_shot->m_imgurId = object.value("data").toObject().value("id").toString();
-    m_shot->m_url = object.value("data").toObject().value("link").toString();
-    m_shot->m_imgurDeleteHash =
-        object.value("data").toObject().value("deletehash").toString();
+    const QJsonObject uploaded = object.value("data").toObject();
+    m_shot->m_imgurId = uploaded.value("id").toString();
+    m_shot->m_url = uploaded.value("link").toString();
+    m_shot->m_imgurDeleteHash = uploaded.value("deletehash").toString();
     m_state = Task::State::Succeeded;
     finished = true;
     emit succeeded();

@@ -271,8 +271,8 @@ ModDetails ReadQuiltModInfo(QByteArray contents)
         QJsonParseError jsonError;
         QJsonDocument jsonDoc = QJsonDocument::fromJson(contents, &jsonError);
         auto object = Json::requireObject(jsonDoc, "quilt.mod.json");
-        auto schemaVersion = Json::ensureInteger(object.value("schema_version"),
-                                                 0, "Quilt schema_version");
+        auto schemaVersion =
+            Json::ensureInteger(object.value("schema_version"), 0);
 
         ModDetails details;
 

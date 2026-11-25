@@ -84,9 +84,10 @@ void ConfigureLoki::indexDownloaded()
             continue;
         }
 
-        if (version.toObject().value("recommended").toBool())
+        const QJsonObject versionObj = version.toObject();
+        if (versionObj.value("recommended").toBool())
         {
-            selectedVersion = version.toObject().value("version").toString();
+            selectedVersion = versionObj.value("version").toString();
             break;
         }
     }

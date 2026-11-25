@@ -303,8 +303,7 @@ void HttpMetaCache::Load()
         foo->remote_changed_timestamp =
             Json::ensureString(element_obj, "remote_changed_timestamp");
 
-        foo->makeEternal(
-            Json::ensureBoolean(element_obj, QString("eternal"), false));
+        foo->makeEternal(Json::ensureBoolean(element_obj, "eternal", false));
         if (!foo->isEternal())
         {
             foo->current_age = Json::ensureDouble(element_obj, "current_age");
@@ -356,11 +355,8 @@ void HttpMetaCache::SaveNow()
             Json::writeString(entryObj, "etag", entry->etag);
             entryObj.insert("last_changed_timestamp",
                             QJsonValue(double(entry->local_changed_timestamp)));
-            if (!entry->remote_changed_timestamp.isEmpty())
-            {
-                entryObj.insert("remote_changed_timestamp",
-                                QJsonValue(entry->remote_changed_timestamp));
-            }
+            Json::writeString(entryObj, "remote_changed_timestamp",
+                              entry->remote_changed_timestamp);
             if (entry->isEternal())
             {
                 entryObj.insert("eternal", true);

@@ -171,8 +171,8 @@ ModPlatform::IndexedVersion FlameMod::loadIndexedPackVersion(
         auto hash_entry = Json::ensureObject(h);
         auto hash_types =
             FlameIndexProviderCaps.hashType(ModPlatform::Provider::FLAME);
-        auto hash_algo = enumToString(
-            Json::ensureInteger(hash_entry, "algo", 1, "algorithm"));
+        auto hash_algo =
+            enumToString(Json::ensureInteger(hash_entry, "algo", 1));
         if (hash_types.contains(hash_algo))
         {
             file.hash = Json::requireString(hash_entry, "value");

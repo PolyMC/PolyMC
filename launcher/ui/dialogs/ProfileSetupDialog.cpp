@@ -284,7 +284,7 @@ struct MojangError
     {
         MojangError out;
         out.rawError = QString::fromUtf8(data);
-        auto doc = QJsonDocument::fromJson(data, &out.parseError);
+        auto doc = QJsonDocument::fromJson(data);
         auto object = doc.object();
 
         out.fullyParsed = true;
@@ -297,7 +297,6 @@ struct MojangError
     }
 
     QString rawError;
-    QJsonParseError parseError;
     bool fullyParsed;
 
     QString path;
