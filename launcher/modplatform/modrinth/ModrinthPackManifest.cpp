@@ -185,8 +185,7 @@ ModpackVersion loadIndexedVersion(QJsonObject& obj)
     {
         File indexed_file;
         auto parent = Json::requireObject(file_iter);
-        auto is_primary =
-            Json::ensureBoolean(parent, QString("primary"), false);
+        auto is_primary = Json::ensureBoolean(parent, "primary", false);
         if (!is_primary)
         {
             auto filename = Json::ensureString(parent, "filename");

@@ -179,7 +179,7 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings,
             QJsonDocument doc = Json::requireDocument(data);
             QJsonObject root = Json::requireObject(doc, "version.json");
             QString jsonMinecraftVersion =
-                Json::ensureString(root, "inheritsFrom", QString(), "");
+                Json::ensureString(root, "inheritsFrom");
             if (jsonMinecraftVersion.isEmpty())
             {
                 if (fmlMinecraftVersion.isEmpty())
@@ -200,9 +200,8 @@ void Technic::TechnicPackProcessor::run(SettingsObjectPtr globalSettings,
                     continue;
                 }
 
-                auto libraryObject = Json::ensureObject(library, {}, "");
-                auto libraryName =
-                    Json::ensureString(libraryObject, "name", "", "");
+                auto libraryObject = Json::ensureObject(library);
+                auto libraryName = Json::ensureString(libraryObject, "name");
 
                 if (libraryName.startsWith("net.minecraftforge:forge:") &&
                     libraryName.contains('-'))

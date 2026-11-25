@@ -53,12 +53,13 @@ static VersionListPtr parseIndexEntry(const QJsonObject& obj)
 
 static std::shared_ptr<Index> parseIndexInternal(const QJsonObject& obj)
 {
-    const QVector<QJsonObject> objects =
-        requireIsArrayOf<QJsonObject>(obj, "packages");
+    const QJsonArray packages = requireArray(obj, "packages");
     QVector<VersionListPtr> lists;
-    lists.reserve(objects.size());
-    std::transform(objects.begin(), objects.end(), std::back_inserter(lists),
-                   parseIndexEntry);
+    lists.reserve(packages.size());
+    for (const QJsonValue& item : packages)
+    {
+        lists.push_back(parseIndexEntry(requireObject(item, "'packages'")));
+    }
     return std::make_shared<Index>(lists);
 }
 
@@ -72,8 +73,8 @@ static VersionPtr parseCommonVersion(const QString& uid, const QJsonObject& obj)
             .toMSecsSinceEpoch() /
         1000);
     version->setType(ensureString(obj, "type", QString()));
-    version->setRecommended(ensureBoolean(obj, QString("recommended"), false));
-    version->setVolatile(ensureBoolean(obj, QString("volatile"), false));
+    version->setRecommended(ensureBoolean(obj, "recommended", false));
+    version->setVolatile(ensureBoolean(obj, "volatile", false));
     RequireSet required, conflicts;
     parseRequires(obj, &required, "requires");
     parseRequires(obj, &conflicts, "conflicts");
@@ -98,13 +99,13 @@ static std::shared_ptr<VersionList> parseVersionListInternal(
 {
     const QString uid = requireString(obj, "uid");
 
-    const QVector<QJsonObject> versionsRaw =
-        requireIsArrayOf<QJsonObject>(obj, "versions");
+    const QJsonArray versionsRaw = requireArray(obj, "versions");
     QVector<VersionPtr> versions;
     versions.reserve(versionsRaw.size());
-    for (const QJsonObject& version_obj : versionsRaw)
+    for (const QJsonValue& item : versionsRaw)
     {
-        auto version = parseCommonVersion(uid, version_obj);
+        auto version =
+            parseCommonVersion(uid, requireObject(item, "'versions'"));
         version->setProvidesRecommendations();
         versions.push_back(version);
     }

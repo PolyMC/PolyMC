@@ -145,12 +145,11 @@ static ATLauncher::ModType parseModType(QString rawType)
 static void loadVersionLoader(ATLauncher::VersionLoader& p, QJsonObject& obj)
 {
     p.type = Json::requireString(obj, "type");
-    p.choose = Json::ensureBoolean(obj, QString("choose"), false);
+    p.choose = Json::ensureBoolean(obj, "choose", false);
 
     auto metadata = Json::requireObject(obj, "metadata");
-    p.latest = Json::ensureBoolean(metadata, QString("latest"), false);
-    p.recommended =
-        Json::ensureBoolean(metadata, QString("recommended"), false);
+    p.latest = Json::ensureBoolean(metadata, "latest", false);
+    p.recommended = Json::ensureBoolean(metadata, "recommended", false);
 
     // Minecraft Forge, and NeoForge which describes its version the same way
     if (p.type == "forge" || p.type == "neoforge")
@@ -223,13 +222,13 @@ static void loadVersionMod(ATLauncher::VersionMod& p, QJsonObject& obj)
         p.decompFile = Json::requireString(obj, "decompFile");
     }
 
-    p.description = Json::ensureString(obj, QString("description"), "");
-    p.optional = Json::ensureBoolean(obj, QString("optional"), false);
-    p.recommended = Json::ensureBoolean(obj, QString("recommended"), false);
-    p.selected = Json::ensureBoolean(obj, QString("selected"), false);
-    p.hidden = Json::ensureBoolean(obj, QString("hidden"), false);
-    p.library = Json::ensureBoolean(obj, QString("library"), false);
-    p.group = Json::ensureString(obj, QString("group"), "");
+    p.description = Json::ensureString(obj, "description", "");
+    p.optional = Json::ensureBoolean(obj, "optional", false);
+    p.recommended = Json::ensureBoolean(obj, "recommended", false);
+    p.selected = Json::ensureBoolean(obj, "selected", false);
+    p.hidden = Json::ensureBoolean(obj, "hidden", false);
+    p.library = Json::ensureBoolean(obj, "library", false);
+    p.group = Json::ensureString(obj, "group", "");
     if (obj.contains("depends"))
     {
         auto dependsArr = Json::requireArray(obj, "depends");
@@ -238,10 +237,10 @@ static void loadVersionMod(ATLauncher::VersionMod& p, QJsonObject& obj)
             p.depends.append(Json::requireString(depends));
         }
     }
-    p.colour = Json::ensureString(obj, QString("colour"), "");
-    p.warning = Json::ensureString(obj, QString("warning"), "");
+    p.colour = Json::ensureString(obj, "colour", "");
+    p.warning = Json::ensureString(obj, "warning", "");
 
-    p.client = Json::ensureBoolean(obj, QString("client"), false);
+    p.client = Json::ensureBoolean(obj, "client", false);
 
     // computed
     p.effectively_hidden = p.hidden || p.library;
@@ -338,7 +337,7 @@ void ATLauncher::loadVersion(PackVersion& v, QJsonObject& obj)
 {
     v.version = Json::requireString(obj, "version");
     v.minecraft = Json::requireString(obj, "minecraft");
-    v.noConfigs = Json::ensureBoolean(obj, QString("noConfigs"), false);
+    v.noConfigs = Json::ensureBoolean(obj, "noConfigs", false);
 
     if (obj.contains("mainClass"))
     {

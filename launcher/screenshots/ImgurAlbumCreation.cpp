@@ -116,9 +116,9 @@ void ImgurAlbumCreation::downloadFinished()
             emitFailed();
             return;
         }
-        m_deleteHash =
-            object.value("data").toObject().value("deletehash").toString();
-        m_id = object.value("data").toObject().value("id").toString();
+        const QJsonObject album = object.value("data").toObject();
+        m_deleteHash = album.value("deletehash").toString();
+        m_id = album.value("id").toString();
         m_state = State::Succeeded;
         emit succeeded();
         return;

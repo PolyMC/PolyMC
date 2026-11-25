@@ -9,13 +9,13 @@ static void loadFileV1(Flame::File& f, QJsonObject& file)
 {
     f.projectId = Json::requireInteger(file, "projectID");
     f.fileId = Json::requireInteger(file, "fileID");
-    f.required = Json::ensureBoolean(file, QString("required"), true);
+    f.required = Json::ensureBoolean(file, "required", true);
 }
 
 static void loadModloaderV1(Flame::Modloader& m, QJsonObject& modLoader)
 {
     m.id = Json::requireString(modLoader, "id");
-    m.primary = Json::ensureBoolean(modLoader, QString("primary"), false);
+    m.primary = Json::ensureBoolean(modLoader, "primary", false);
 }
 
 static void loadMinecraftV1(Flame::Minecraft& m, QJsonObject& minecraft)
@@ -24,8 +24,7 @@ static void loadMinecraftV1(Flame::Minecraft& m, QJsonObject& minecraft)
     // extra libraries... apparently only used for a custom Minecraft launcher
     // in the 1.2.5 FTB retro pack intended use is likely hardcoded in the
     // 'Flame' client, the manifest says nothing
-    m.libraries =
-        Json::ensureString(minecraft, QString("libraries"), QString());
+    m.libraries = Json::ensureString(minecraft, "libraries", QString());
     auto arr = Json::ensureArray(minecraft, "modLoaders", QJsonArray());
     for (const auto& item : std::as_const(arr))
     {
@@ -42,9 +41,9 @@ static void loadManifestV1(Flame::Manifest& pack, QJsonObject& manifest)
 
     loadMinecraftV1(pack.minecraft, mc);
 
-    pack.name = Json::ensureString(manifest, QString("name"), "Unnamed");
-    pack.version = Json::ensureString(manifest, QString("version"), QString());
-    pack.author = Json::ensureString(manifest, QString("author"), "Anonymous");
+    pack.name = Json::ensureString(manifest, "name", "Unnamed");
+    pack.version = Json::ensureString(manifest, "version", QString());
+    pack.author = Json::ensureString(manifest, "author", "Anonymous");
 
     auto arr = Json::ensureArray(manifest, "files", QJsonArray());
     for (auto item : std::as_const(arr))

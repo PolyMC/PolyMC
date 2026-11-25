@@ -233,16 +233,11 @@ void TechnicPage::onPackMetaReceived()
         }
     }
 
-    current.minecraftVersion =
-        Json::ensureString(obj, "minecraft", QString(), "__placeholder__");
-    current.websiteUrl =
-        Json::ensureString(obj, "platformUrl", QString(), "__placeholder__");
-    current.author =
-        Json::ensureString(obj, "user", QString(), "__placeholder__");
-    current.description =
-        Json::ensureString(obj, "description", QString(), "__placeholder__");
-    current.currentVersion =
-        Json::ensureString(obj, "version", QString(), "__placeholder__");
+    current.minecraftVersion = Json::ensureString(obj, "minecraft");
+    current.websiteUrl = Json::ensureString(obj, "platformUrl");
+    current.author = Json::ensureString(obj, "user");
+    current.description = Json::ensureString(obj, "description");
+    current.currentVersion = Json::ensureString(obj, "version");
     current.metadataLoaded = true;
 
     metadataLoaded();

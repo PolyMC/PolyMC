@@ -367,8 +367,7 @@ void Yggdrasil::processReply()
         if (jsonError.error == QJsonParseError::NoError ||
             replyData.size() == 0)
         {
-            processResponse(replyData.size() > 0 ? doc.object()
-                                                 : QJsonObject());
+            processResponse(doc.object());
             return;
         }
         else

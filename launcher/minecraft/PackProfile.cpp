@@ -95,10 +95,7 @@ static QJsonObject componentToJsonV1(ComponentPtr component)
     QJsonObject obj;
     // critical
     obj.insert("uid", component->m_uid);
-    if (!component->m_version.isEmpty())
-    {
-        obj.insert("version", component->m_version);
-    }
+    Json::writeString(obj, "version", component->m_version);
     if (component->m_dependencyOnly)
     {
         obj.insert("dependencyOnly", true);
@@ -113,14 +110,8 @@ static QJsonObject componentToJsonV1(ComponentPtr component)
     }
 
     // cached
-    if (!component->m_cachedVersion.isEmpty())
-    {
-        obj.insert("cachedVersion", component->m_cachedVersion);
-    }
-    if (!component->m_cachedName.isEmpty())
-    {
-        obj.insert("cachedName", component->m_cachedName);
-    }
+    Json::writeString(obj, "cachedVersion", component->m_cachedVersion);
+    Json::writeString(obj, "cachedName", component->m_cachedName);
     Meta::serializeRequires(obj, &component->m_cachedRequires,
                             "cachedRequires");
     Meta::serializeRequires(obj, &component->m_cachedConflicts,

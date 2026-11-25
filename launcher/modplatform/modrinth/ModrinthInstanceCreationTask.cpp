@@ -414,17 +414,17 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path,
 
             if (set_managed_info)
             {
-                m_managed_version_id =
-                    Json::ensureString(obj, "versionId", {}, "Managed ID");
-                m_managed_name =
-                    Json::ensureString(obj, "name", {}, "Managed Name");
+                m_managed_version_id = Json::ensureString(obj, "versionId");
+                m_managed_name = Json::ensureString(obj, "name");
             }
 
-            auto jsonFiles = Json::requireIsArrayOf<QJsonObject>(
-                obj, "files", "modrinth.index.json");
+            auto jsonFiles =
+                Json::requireArray(obj, "files", "modrinth.index.json");
             bool had_optional = false;
-            for (const auto& modInfo : std::as_const(jsonFiles))
+            for (const QJsonValue& fileValue : std::as_const(jsonFiles))
             {
+                auto modInfo =
+                    Json::requireObject(fileValue, "modrinth.index.json");
                 Modrinth::File file;
                 file.path = Json::requireString(modInfo, "path");
 

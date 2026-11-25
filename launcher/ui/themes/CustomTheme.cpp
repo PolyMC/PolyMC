@@ -89,8 +89,7 @@ static bool readThemeJson(const QString& path, QPalette& palette,
 
             // fade
             fadeColor = readColor(colorsRoot, "fadeColor");
-            fadeAmount = Json::ensureDouble(colorsRoot, "fadeAmount", 0.5,
-                                            "fade amount");
+            fadeAmount = Json::ensureDouble(colorsRoot, "fadeAmount", 0.5);
         }
         catch (const Exception& e)
         {
