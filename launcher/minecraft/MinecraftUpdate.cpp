@@ -26,20 +26,26 @@
 #include "update/FMLLibrariesTask.h"
 #include "update/AssetUpdateTask.h"
 
-MinecraftUpdate::MinecraftUpdate(MinecraftInstance* inst, QObject* parent)
-    : Task(parent), m_inst(inst)
+MinecraftUpdate::MinecraftUpdate(MinecraftInstance* inst, Part part,
+                                 QObject* parent)
+    : Task(parent), m_inst(inst), m_part(part)
 {
 }
 
 void MinecraftUpdate::executeTask()
 {
     m_tasks.clear();
+    bool with_components = m_part != Part::Files;
+    bool with_files = m_part != Part::Components;
+
     // create folders
+    if (with_files)
     {
         m_tasks.append(new FoldersTask(m_inst));
     }
 
     // add metadata update task if necessary
+    if (with_components)
     {
         auto components = m_inst->getPackProfile();
         components->reload(Net::Mode::Online);
@@ -51,16 +57,19 @@ void MinecraftUpdate::executeTask()
     }
 
     // libraries download
+    if (with_files)
     {
         m_tasks.append(new LibrariesTask(m_inst));
     }
 
     // FML libraries download and copy into the instance
+    if (with_files)
     {
         m_tasks.append(new FMLLibrariesTask(m_inst));
     }
 
     // assets update
+    if (with_files)
     {
         m_tasks.append(new AssetUpdateTask(m_inst));
     }

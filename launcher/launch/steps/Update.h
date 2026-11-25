@@ -27,6 +27,9 @@ class Update : public LaunchStep
 public:
     explicit Update(LaunchTask* parent, Net::Mode mode)
         : LaunchStep(parent), m_mode(mode) {};
+    // Runs the given task instead of the instance's whole update
+    explicit Update(LaunchTask* parent, Task::Ptr task)
+        : LaunchStep(parent), m_task(task) {};
     virtual ~Update() {};
 
     void executeTask() override;
@@ -39,6 +42,7 @@ private slots:
     void updateFinished();
 
 private:
+    Task::Ptr m_task;
     Task::Ptr m_updateTask;
     bool m_aborted = false;
     Net::Mode m_mode = Net::Mode::Offline;

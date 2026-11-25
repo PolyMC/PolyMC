@@ -269,6 +269,8 @@ void MinecraftInstance::loadSpecificSettings()
 void MinecraftInstance::updateRuntimeContext()
 {
     m_runtimeContext.updateFromInstanceSettings(m_settings);
+    // the libraries and natives in the profile depend on the runtime context
+    m_components->invalidateLaunchProfile();
 }
 
 QString MinecraftInstance::typeName() const
@@ -1225,13 +1227,16 @@ shared_qobject_ptr<LaunchTask> MinecraftInstance::createLaunchTask(
     }
 
     // if we aren't in offline mode,.
-    if (session->status != AuthSession::PlayableOffline)
+    bool online = session->status != AuthSession::PlayableOffline;
+    if (online)
     {
         if (!session->demo)
         {
             process->appendStep(new ClaimAccount(pptr, session));
         }
-        process->appendStep(new Update(pptr, Net::Mode::Online));
+        process->appendStep(
+            new Update(pptr, Task::Ptr(new MinecraftUpdate(
+                                 this, MinecraftUpdate::Part::Components))));
     }
     else
     {
@@ -1243,6 +1248,15 @@ shared_qobject_ptr<LaunchTask> MinecraftInstance::createLaunchTask(
     {
         process->appendStep(new AutoJava(pptr));
         process->appendStep(new CheckJava(pptr));
+    }
+
+    // download libraries and assets only now: which natives they need depends
+    // on the architecture of the Java that was picked
+    if (online)
+    {
+        process->appendStep(
+            new Update(pptr, Task::Ptr(new MinecraftUpdate(
+                                 this, MinecraftUpdate::Part::Files))));
     }
 
     // if there are any jar mods

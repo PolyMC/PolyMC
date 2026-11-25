@@ -154,13 +154,13 @@ public:
 
     ModAPI::ModLoaderTypes getModLoaders();
 
+    /// drop the cached launch profile, so getProfile() applies the components
+    /// again, e.g. for another runtime context
+    void invalidateLaunchProfile();
+
 private:
     void scheduleSave();
     bool saveIsScheduled() const;
-
-    /// apply the component patches. Catches all the errors and returns
-    /// true/false for success/failure
-    void invalidateLaunchProfile();
 
     /// insert component so that its index is ideally the specified one (returns
     /// real index)
