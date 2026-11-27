@@ -57,6 +57,25 @@
 
 namespace
 {
+// A metadata or assets server URL as entered: with the trailing slash URLs
+// are resolved against, and HTTPS unless it's on this computer or network.
+// Meta is basically RCE with all the jar files, so remote HTTP isn't allowed.
+// Local HTTP is useful for development and offline mirrors.
+QUrl serverOverrideUrl(const QString& text)
+{
+    QUrl url(text);
+    if (!url.isEmpty() && !url.path().endsWith('/'))
+    {
+        url.setPath(url.path() + '/');
+    }
+    if (!url.isEmpty() && url.scheme() == "http" &&
+        !AssetsUtils::isLocalMetadataHost(url.host()))
+    {
+        url.setScheme("https");
+    }
+    return url;
+}
+
 enum ModrinthSourceColumn
 {
     SourceNameColumn = 0,
@@ -120,6 +139,7 @@ APIPage::APIPage(QWidget* parent) : QWidget(parent), ui(new Ui::APIPage)
         new TrimmedRegExValidator(validFlameKey, ui->flameKey));
 
     ui->metaURL->setPlaceholderText(BuildConfig.META_URL);
+    ui->resourceURL->setPlaceholderText(BuildConfig.RESOURCE_BASE);
     ui->userAgentLineEdit->setPlaceholderText(BuildConfig.USER_AGENT);
 
     if (BuildConfig.FLAME_API_KEY_API_URL.isEmpty())
@@ -200,6 +220,7 @@ void APIPage::loadSettings()
     ui->msaClientID->setText(msaClientID);
     QString metaURL = s->get("MetaURLOverride").toString();
     ui->metaURL->setText(metaURL);
+    ui->resourceURL->setText(s->get("ResourceURLOverride").toString());
     QString flameKey = s->get("FlameKeyOverride").toString();
     ui->flameKey->setText(flameKey);
     QString customUserAgent = s->get("UserAgentOverride").toString();
@@ -218,24 +239,9 @@ void APIPage::applySettings()
 
     QString msaClientID = ui->msaClientID->text();
     s->set("MSAClientIDOverride", msaClientID);
-    QUrl metaURL = ui->metaURL->text();
-    // Add required trailing slash
-    if (!metaURL.isEmpty() && !metaURL.path().endsWith('/'))
-    {
-        QString path = metaURL.path();
-        path.append('/');
-        metaURL.setPath(path);
-    }
-    // Don't allow HTTP for remote metadata, since meta is basically RCE with
-    // all the jar files. Local HTTP is useful for development and offline
-    // metadata mirrors.
-    if (!metaURL.isEmpty() && metaURL.scheme() == "http" &&
-        !AssetsUtils::isLocalMetadataHost(metaURL.host()))
-    {
-        metaURL.setScheme("https");
-    }
-
-    s->set("MetaURLOverride", metaURL);
+    s->set("MetaURLOverride", serverOverrideUrl(ui->metaURL->text()));
+    s->set("ResourceURLOverride",
+           serverOverrideUrl(ui->resourceURL->text()).toString());
     QString flameKey = ui->flameKey->text();
     s->set("FlameKeyOverride", flameKey);
     s->set("UserAgentOverride", ui->userAgentLineEdit->text());
