@@ -73,6 +73,22 @@ QString providerName(Provider provider)
     return {};
 }
 
+QString metaUid(Provider provider)
+{
+    switch (provider)
+    {
+        case Provider::Mojang:
+            return "net.minecraft.java";
+        case Provider::Adoptium:
+            return "net.adoptium.java";
+        case Provider::Azul:
+            return "com.azul.java";
+        case Provider::Semeru:
+            return "com.ibm.java";
+    }
+    return {};
+}
+
 std::optional<Provider> providerFromId(const QString& id)
 {
     for (auto provider : allProviders())

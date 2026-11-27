@@ -43,6 +43,9 @@ QList<Provider> allProviders();
 QString providerId(Provider provider);
 QString providerName(Provider provider);
 std::optional<Provider> providerFromId(const QString& id);
+/** The metadata component that lists the provider's runtimes in Prism
+ * Launcher's format, like net.minecraft.java for Mojang. */
+QString metaUid(Provider provider);
 
 /** Architecture of the host, in the naming used by most vendors: x64, x86,
  * aarch64 or arm. Empty if unsupported. */

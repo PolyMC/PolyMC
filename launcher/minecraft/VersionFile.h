@@ -38,6 +38,7 @@
 #include <QString>
 #include <QStringList>
 #include <QDateTime>
+#include <QJsonArray>
 #include <QList>
 #include <QMap>
 #include <QSet>
@@ -101,6 +102,10 @@ public: /* data */
 
     /// Mojang: list of compatible java majors
     QList<int> compatibleJavaMajors;
+
+    /// Prism Launcher: the Java runtimes of a Java component, like
+    /// net.minecraft.java, as listed by the metadata server
+    QJsonArray runtimes;
 
     /// Mojang: type of the Minecraft version
     QString type;

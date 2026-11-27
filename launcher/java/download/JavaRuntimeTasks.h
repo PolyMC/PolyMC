@@ -46,6 +46,9 @@ struct Release
     QByteArray sha1;
     /** Only set for Mojang runtimes. */
     QString mojangComponent;
+    /** A Mojang file manifest, downloaded file by file. Otherwise an archive.
+     */
+    bool manifest = false;
 };
 
 /** Long-term support releases, the ones Minecraft targets. */
@@ -76,12 +79,18 @@ protected:
 private slots:
     void jobSucceeded();
     void jobFailed(QString reason);
+    void metaIndexLoaded();
+    void metaListLoaded();
 
 private:
+    /** Asks the provider itself, when the metadata server doesn't list its
+     * runtimes. */
+    void fetchFromProvider();
     void parse();
 
     Provider m_provider;
     NetJob::Ptr m_job;
+    Task::Ptr m_metaTask;
     std::shared_ptr<QByteArray> m_data = std::make_shared<QByteArray>();
     QList<int> m_majors;
 };
@@ -119,13 +128,20 @@ protected:
 private slots:
     void jobSucceeded();
     void jobFailed(QString reason);
+    void metaIndexLoaded();
+    void metaListLoaded();
+    void metaVersionLoaded();
 
 private:
+    /** Asks the provider itself, when the metadata server doesn't list its
+     * runtimes. */
+    void fetchFromProvider();
     void parse();
 
     Provider m_provider;
     int m_major;
     NetJob::Ptr m_job;
+    Task::Ptr m_metaTask;
     std::shared_ptr<QByteArray> m_data = std::make_shared<QByteArray>();
     QList<Release> m_releases;
 };
