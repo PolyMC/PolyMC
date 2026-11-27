@@ -379,6 +379,26 @@ std::optional<Source> findSource(const QString& url)
     return {};
 }
 
+std::optional<Source> findSourceByHost(const QUrl& url)
+{
+    auto host = url.host().toLower();
+    if (host.isEmpty())
+    {
+        return {};
+    }
+
+    for (const auto& source : customSources())
+    {
+        if (QUrl(source.api_url).host().toLower() == host ||
+            QUrl(source.websiteRoot()).host().toLower() == host)
+        {
+            return source;
+        }
+    }
+
+    return {};
+}
+
 QString tokenFor(const QUrl& url)
 {
     for (const auto& source : allSources())

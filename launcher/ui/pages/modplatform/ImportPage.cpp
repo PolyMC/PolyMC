@@ -47,6 +47,7 @@
 #include "ui/dialogs/NewInstanceDialog.h"
 
 #include "InstanceImportTask.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 
 class UrlValidator : public QValidator
 {
@@ -140,8 +141,14 @@ void ImportPage::updateState()
             }
             // hook, line and sinker.
             QFileInfo fi(url.fileName());
-            dialog->setSuggestedPack(fi.completeBaseName(),
-                                     new InstanceImportTask(url, this));
+            auto* task = new InstanceImportTask(url, this);
+            // A pack linked from a Modrinth-compatible source downloads its
+            // files from that source
+            if (auto source = Modrinth::findSourceByHost(url))
+            {
+                task->setModrinthSource(*source, {});
+            }
+            dialog->setSuggestedPack(fi.completeBaseName(), task);
             dialog->setSuggestedIcon("default");
         }
     }
