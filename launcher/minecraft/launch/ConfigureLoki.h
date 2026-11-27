@@ -3,34 +3,23 @@
 #include <QString>
 #include <memory>
 
-#include <launch/LaunchStep.h>
-#include "net/HttpMetaCache.h"
-#include "net/NetJob.h"
+#include "ConfigureYggdrasilAgent.h"
 
-class ConfigureLoki : public LaunchStep
+class ConfigureLoki : public ConfigureYggdrasilAgent
 {
     Q_OBJECT
 public:
-    explicit ConfigureLoki(LaunchTask* parent, QString yggdrasil_base_url,
-                           std::shared_ptr<QString> javaagent_arg);
-    virtual ~ConfigureLoki() {};
+    explicit ConfigureLoki(LaunchTask* parent, QString server,
+                           std::shared_ptr<QString> argument);
 
-    void executeTask() override;
-    void finalize() override;
-    bool canAbort() const override
+protected:
+    QString agentName() const override
     {
-        return false;
+        return "Loki";
     }
-
-private:
-    void downloadFailed(QString reason);
-    void indexDownloaded();
-    void versionDownloaded();
-    void javaAgentDownloaded();
-
-    std::unique_ptr<NetJob> m_job;
-    MetaEntryPtr m_entry;
-    QString m_selected_version;
-    std::shared_ptr<QString> m_javaagent_arg;
-    QString m_yggdrasil_base_url;
+    QString cacheBase() const override
+    {
+        return "loki";
+    }
+    QList<Source> sources() const override;
 };
