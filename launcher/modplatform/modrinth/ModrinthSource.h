@@ -60,6 +60,10 @@ QList<Source> allSources();
 // official Modrinth.
 std::optional<Source> findSource(const QString& url);
 
+// The configured Modrinth-compatible source whose API or website is on the
+// host of this URL, if there is one. Never official Modrinth.
+std::optional<Source> findSourceByHost(const QUrl& url);
+
 // The token to send with a request to this URL: the one of the Modrinth
 // source whose API it goes to, if that source has one. Empty otherwise.
 QString tokenFor(const QUrl& url);

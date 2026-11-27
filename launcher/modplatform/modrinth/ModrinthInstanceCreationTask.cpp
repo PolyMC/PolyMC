@@ -565,7 +565,7 @@ bool ModrinthCreationTask::parseManifest(const QString& index_path,
                 // to be one
                 if (file.downloads.isEmpty())
                 {
-                    if (had_rejected_url && m_pack_source.isOfficial())
+                    if (had_rejected_url && sourceHosts().isEmpty())
                     {
                         throw JSONValidationError(
                             tr("No allowed download URL found for %1. Only "
@@ -730,18 +730,55 @@ bool ModrinthCreationTask::confirmNonModrinthDownloads()
     return accepted;
 }
 
-QStringList ModrinthCreationTask::sourceHosts() const
+namespace
 {
-    if (m_pack_source.isOfficial())
-    {
-        return {};
-    }
-
+QStringList modrinthSourceHosts(const Modrinth::Source& source)
+{
     QStringList hosts;
-    for (const auto& url :
-         {m_pack_source.api_url, m_pack_source.websiteRoot(), m_source_url})
+    for (const auto& url : {source.api_url, source.websiteRoot()})
     {
         auto host = QUrl(url).host().toLower();
+        if (!host.isEmpty() && !hosts.contains(host))
+        {
+            hosts.append(host);
+        }
+    }
+    return hosts;
+}
+}  // namespace
+
+QList<Modrinth::Source> ModrinthCreationTask::fileSources() const
+{
+    if (!m_pack_source.isOfficial())
+    {
+        return {m_pack_source};
+    }
+    // A pack file opened from disk, like one exported for offline use, may
+    // download from any source the user added
+    if (m_project_id.isEmpty() && QUrl(m_source_url).isLocalFile())
+    {
+        return Modrinth::customSources();
+    }
+    return {};
+}
+
+QStringList ModrinthCreationTask::sourceHosts() const
+{
+    QStringList hosts;
+    for (const auto& source : fileSources())
+    {
+        for (const auto& host : modrinthSourceHosts(source))
+        {
+            if (!hosts.contains(host))
+            {
+                hosts.append(host);
+            }
+        }
+    }
+
+    if (!m_pack_source.isOfficial())
+    {
+        auto host = QUrl(m_source_url).host().toLower();
         if (!host.isEmpty() && !hosts.contains(host))
         {
             hosts.append(host);
@@ -776,9 +813,22 @@ std::optional<Modrinth::Source> ModrinthCreationTask::metadataSource(
     {
         return Modrinth::Source{};
     }
-    if (isSourceDownloadUrl(url))
+    if (!isSourceDownloadUrl(url))
+    {
+        return {};
+    }
+    if (!m_pack_source.isOfficial())
     {
         return m_pack_source;
+    }
+    // A pack file of unknown origin: the source the file is on
+    auto host = url.host().toLower();
+    for (const auto& source : fileSources())
+    {
+        if (modrinthSourceHosts(source).contains(host))
+        {
+            return source;
+        }
     }
     return {};
 }

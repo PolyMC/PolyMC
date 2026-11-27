@@ -2,6 +2,7 @@
 
 #include "InstanceCreationTask.h"
 
+#include <QList>
 #include <QString>
 #include <QStringList>
 #include <QUrl>
@@ -54,8 +55,12 @@ private:
     // Warns about files not served by cdn.modrinth.com. Returns false if the
     // user declined.
     bool confirmNonModrinthDownloads();
-    // Hosts a pack from a Modrinth-compatible source may also download
-    // from: the source itself and wherever it serves the pack from
+    // The Modrinth-compatible sources the files of the pack may come from:
+    // the pack's own source, or for a pack file of unknown origin, every
+    // configured one
+    QList<Modrinth::Source> fileSources() const;
+    // Hosts the pack may also download from: those of its file sources, and
+    // wherever a source served the pack from
     QStringList sourceHosts() const;
     bool isSourceDownloadUrl(const QUrl& url) const;
     bool isAllowedDownloadUrl(const QUrl& url) const;
