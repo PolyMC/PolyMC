@@ -493,6 +493,8 @@ set(API_SOURCES
     modplatform/modrinth/ModrinthSource.cpp
     modplatform/helpers/NetworkModAPI.h
     modplatform/helpers/NetworkModAPI.cpp
+    modplatform/helpers/ModpackMetadata.h
+    modplatform/helpers/ModpackMetadata.cpp
     modplatform/helpers/HashUtils.h
     modplatform/helpers/HashUtils.cpp
     modplatform/helpers/OverrideUtils.h

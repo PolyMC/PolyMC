@@ -23,6 +23,7 @@
 
 #include <QAbstractButton>
 #include <QDebug>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
@@ -619,6 +620,15 @@ bool FlameCreationTask::createInstance()
     // instance then either
     bool did_succeed = getError().isEmpty() && !m_abort;
 
+    if (did_succeed &&
+        !APPLICATION->settings()->get("ModMetadataDisabled").toBool())
+    {
+        setStatus(tr("Generating metadata for the modpack's mods..."));
+        ModpackMetadata::generate(
+            QDir(FS::PathCombine(m_stagingPath, "minecraft", "mods")),
+            m_metadata_entries);
+    }
+
     // Update information of the already installed instance, if any.
     if (m_instance && did_succeed)
     {
@@ -659,6 +669,14 @@ void FlameCreationTask::setupDownloadJob(QEventLoop& loop)
         auto relpath =
             FS::PathCombine("minecraft", result.targetFolder, filename);
         auto path = FS::PathCombine(m_stagingPath, relpath);
+
+        // Blocked mods too, the user may have added them by hand
+        if (result.type == Flame::File::Type::Mod &&
+            result.targetFolder == "mods")
+        {
+            m_metadata_entries.append(
+                {filename, ModPlatform::Provider::FLAME, {}});
+        }
 
         switch (result.type)
         {
