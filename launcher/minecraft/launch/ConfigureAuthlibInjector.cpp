@@ -1,134 +1,29 @@
 #include "ConfigureAuthlibInjector.h"
 
-#include <launch/LaunchTask.h>
-#include <QByteArray>
-#include <QCryptographicHash>
-#include <QDebug>
-#include <QFile>
-#include <QFileInfo>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonParseError>
 #include <QUrl>
-#include <Qt>
-
-#include "Application.h"
-#include "net/ChecksumValidator.h"
-#include "net/Download.h"
-#include "net/HttpMetaCache.h"
-#include "net/NetAction.h"
+#include <utility>
 
 ConfigureAuthlibInjector::ConfigureAuthlibInjector(
-    LaunchTask* parent, QString yggdrasil_base_url,
-    std::shared_ptr<QString> javaagent_arg)
-    : LaunchStep(parent),
-      m_javaagent_arg{javaagent_arg},
-      m_yggdrasil_base_url{yggdrasil_base_url}
+    LaunchTask* parent, QString server, std::shared_ptr<QString> argument)
+    : ConfigureYggdrasilAgent(parent, std::move(server), std::move(argument))
 {
 }
 
-void ConfigureAuthlibInjector::executeTask()
+QList<ConfigureYggdrasilAgent::Source> ConfigureAuthlibInjector::sources() const
 {
-    m_entry = APPLICATION->metacache()->resolveEntry("authlibinjector",
-                                                     "latest.json");
-
-    m_entry->setStale(true);
-    m_job = std::make_unique<NetJob>("Download authlibinjector latest.json",
-                                     APPLICATION->network());
-    auto latestJsonDl = Net::Download::makeCached(
-        QUrl("https://authlib-injector.yushi.moe/artifact/latest.json"),
-        m_entry, Net::Download::Option::NoOptions);
-    m_job->addNetAction(latestJsonDl);
-    connect(m_job.get(), &NetJob::succeeded, this,
-            &ConfigureAuthlibInjector::latestJsonDownloaded,
-            // This slot can't run instantly because it needs to wait for the
-            // netjob's code to stop running Since it will destroy the old
-            // netjob by reassigning the unique_ptr
-            Qt::QueuedConnection);
-    connect(m_job.get(), &NetJob::failed, this,
-            &ConfigureAuthlibInjector::downloadFailed);
-    m_job->start();
-}
-
-void ConfigureAuthlibInjector::downloadFailed(QString reason)
-{
-    return emitFailed(QString("Download failed: %1").arg(reason));
-}
-
-void ConfigureAuthlibInjector::latestJsonDownloaded()
-{
-    QFile authlibInjectorLatestJson{m_entry->getFullPath()};
-    if (!authlibInjectorLatestJson.open(QIODevice::ReadOnly))
+    QList<Source> list;
+    // A metadata server the user set, like an offline mirror, comes first. It
+    // lists authlib-injector as a component, like Fjord Launcher's does.
+    auto meta = metaUrlOverride();
+    if (!meta.isEmpty())
     {
-        return emitFailed(
-            QString("Failed to open authlib-injector info json: %1")
-                .arg(authlibInjectorLatestJson.errorString()));
+        list.append({true, meta.resolved(QUrl("moe.yushi.authlibinjector/")),
+                     "override/"});
     }
-
-    QJsonParseError json_parse_error;
-    QJsonDocument doc = QJsonDocument::fromJson(
-        authlibInjectorLatestJson.readAll(), &json_parse_error);
-    if (json_parse_error.error != QJsonParseError::NoError)
-    {
-        return emitFailed(
-            QString("Failed to parse authlib-injector info json: %1")
-                .arg(json_parse_error.errorString()));
-    }
-
-    if (!doc.isObject())
-    {
-        return emitFailed(
-            QString("Failed to parse authlib-injector info json: not a "
-                    "json object"));
-    }
-    QJsonObject obj = doc.object();
-
-    QString authlibInjectorJarUrl = obj["download_url"].toString();
-    if (authlibInjectorJarUrl.isNull())
-    {
-        return emitFailed(
-            QString("Failed to parse authlib-injector info json: "
-                    "download url missing"));
-    }
-
-    QString sha256Sum = obj["checksums"].toObject()["sha256"].toString();
-    if (sha256Sum.isNull())
-    {
-        return emitFailed(
-            "Failed to parse authlib-injector info json: sha256 "
-            "checksum missing");
-    }
-
-    auto sha256SumRaw = QByteArray::fromHex(sha256Sum.toLatin1());
-
-    QString filename = QFileInfo(authlibInjectorJarUrl).fileName();
-    m_entry =
-        APPLICATION->metacache()->resolveEntry("authlibinjector", filename);
-    m_job = std::make_unique<NetJob>("Download authlibinjector java agent",
-                                     APPLICATION->network());
-    auto javaAgentDl =
-        Net::Download::makeCached(QUrl(authlibInjectorJarUrl), m_entry,
-                                  Net::Download::Option::MakeEternal);
-    javaAgentDl->addValidator(
-        new Net::ChecksumValidator(QCryptographicHash::Sha256, sha256SumRaw));
-    m_job->addNetAction(javaAgentDl);
-    connect(m_job.get(), &NetJob::succeeded, this,
-            &ConfigureAuthlibInjector::javaAgentDownloaded);
-    connect(m_job.get(), &NetJob::failed, this,
-            &ConfigureAuthlibInjector::downloadFailed);
-    m_job->start();
-}
-
-void ConfigureAuthlibInjector::javaAgentDownloaded()
-{
-    auto path = m_entry->getFullPath();
-    qDebug() << path;
-    *m_javaagent_arg = QString("%1=%2").arg(path, m_yggdrasil_base_url);
-    emitSucceeded();
-}
-
-void ConfigureAuthlibInjector::finalize()
-{
+    list.append(
+        {false, QUrl("https://authlib-injector.yushi.moe/artifact/latest.json"),
+         ""});
+    return list;
 }
 
 #include "moc_ConfigureAuthlibInjector.cpp"

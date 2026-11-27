@@ -261,6 +261,8 @@ set(MINECRAFT_SOURCES
     minecraft/launch/ConfigureAuthlibInjector.h
     minecraft/launch/ConfigureLoki.cpp
     minecraft/launch/ConfigureLoki.h
+    minecraft/launch/ConfigureYggdrasilAgent.cpp
+    minecraft/launch/ConfigureYggdrasilAgent.h
     minecraft/launch/CreateGameFolders.cpp
     minecraft/launch/CreateGameFolders.h
     minecraft/launch/ModMinecraftJar.cpp

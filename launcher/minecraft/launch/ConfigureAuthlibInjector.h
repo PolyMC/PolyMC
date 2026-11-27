@@ -3,33 +3,23 @@
 #include <QString>
 #include <memory>
 
-#include <launch/LaunchStep.h>
-#include "net/HttpMetaCache.h"
-#include "net/NetJob.h"
+#include "ConfigureYggdrasilAgent.h"
 
-class ConfigureAuthlibInjector : public LaunchStep
+class ConfigureAuthlibInjector : public ConfigureYggdrasilAgent
 {
     Q_OBJECT
 public:
-    explicit ConfigureAuthlibInjector(LaunchTask* parent,
-                                      QString authlibinjector_base_url,
-                                      std::shared_ptr<QString> javaagent_arg);
-    virtual ~ConfigureAuthlibInjector() {};
+    explicit ConfigureAuthlibInjector(LaunchTask* parent, QString server,
+                                      std::shared_ptr<QString> argument);
 
-    void executeTask() override;
-    void finalize() override;
-    bool canAbort() const override
+protected:
+    QString agentName() const override
     {
-        return false;
+        return "authlib-injector";
     }
-
-private:
-    void downloadFailed(QString reason);
-    void latestJsonDownloaded();
-    void javaAgentDownloaded();
-
-    std::unique_ptr<NetJob> m_job;
-    MetaEntryPtr m_entry;
-    std::shared_ptr<QString> m_javaagent_arg;
-    QString m_yggdrasil_base_url;
+    QString cacheBase() const override
+    {
+        return "authlibinjector";
+    }
+    QList<Source> sources() const override;
 };
