@@ -711,6 +711,8 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         }
         // meta URL
         m_settings->registerSetting("MetaURLOverride", "");
+        // assets server, named like Prism Launcher's setting
+        m_settings->registerSetting("ResourceURLOverride", "");
 
         m_settings->registerSetting("CloseAfterLaunch", false);
         m_settings->registerSetting("QuitAfterGameStop", false);

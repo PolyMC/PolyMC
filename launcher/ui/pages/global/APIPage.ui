@@ -131,6 +131,28 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBox_resources">
+         <property name="title">
+          <string>A&amp;ssets Server</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_resources">
+          <item>
+           <widget class="QLabel" name="label_resources">
+            <property name="text">
+             <string>Where Minecraft's assets, such as sounds and translations, are downloaded from. Leave this empty to use Mojang's server, or the metadata server above when it is on this computer or local network.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="resourceURL"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

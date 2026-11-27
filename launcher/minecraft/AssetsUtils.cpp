@@ -91,6 +91,19 @@ QSet<QString> collectPathsFromDir(QString dirPath)
 
 QUrl assetResourceBaseUrl()
 {
+    // An assets server the user set comes first
+    QUrl resourceOverride(
+        APPLICATION->settings()->get("ResourceURLOverride").toString());
+    if (!resourceOverride.isEmpty())
+    {
+        // Asset paths are resolved against it
+        if (!resourceOverride.path().endsWith('/'))
+        {
+            resourceOverride.setPath(resourceOverride.path() + '/');
+        }
+        return resourceOverride;
+    }
+
     QUrl baseUrl(BuildConfig.RESOURCE_BASE);
     const QUrl metaOverride(
         APPLICATION->settings()->get("MetaURLOverride").toString());
