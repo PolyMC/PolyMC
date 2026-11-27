@@ -23,6 +23,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegularExpression>
+#include <QSet>
 #include <QThread>
 #include <QUrlQuery>
 #include <QtConcurrentRun>
@@ -33,7 +34,12 @@
 #include "Application.h"
 #include "ArchiveExtractor.h"
 #include "FileSystem.h"
+#include "meta/Index.h"
+#include "meta/Version.h"
+#include "meta/VersionList.h"
+#include "minecraft/VersionFile.h"
 #include "net/ChecksumValidator.h"
+#include "net/Mode.h"
 
 namespace JavaRuntime
 {
@@ -321,6 +327,7 @@ QList<Release> parseMojang(const QJsonDocument& doc, int major)
         release.sha1 =
             QByteArray::fromHex(manifest.value("sha1").toString().toLatin1());
         release.mojangComponent = it.key();
+        release.manifest = true;
         if (!release.url.isEmpty())
         {
             result.append(release);
@@ -461,6 +468,122 @@ bool newerRelease(const Release& a, const Release& b)
     return a.released > b.released;
 }
 
+// The platform in the naming of Prism Launcher's Java components
+QString metaRuntimeOs()
+{
+    auto arch = hostArch();
+#if defined(Q_OS_WIN)
+    QString os = "windows";
+#elif defined(Q_OS_MACOS)
+    QString os = "mac-os";
+#elif defined(Q_OS_LINUX)
+    QString os = "linux";
+#else
+    QString os;
+#endif
+    if (os.isEmpty() || arch.isEmpty())
+    {
+        return {};
+    }
+    if (arch == "aarch64")
+    {
+        return os + "-arm64";
+    }
+    if (arch == "arm")
+    {
+        return os + "-arm32";
+    }
+    return os + "-" + arch;
+}
+
+// Java components name their versions after the major: java8, java21...
+int metaMajor(const QString& version)
+{
+    if (!version.startsWith("java"))
+    {
+        return 0;
+    }
+    return version.mid(4).toInt();
+}
+
+QList<Release> parseMeta(const QJsonArray& runtimes, Provider provider,
+                         int major)
+{
+    QList<Release> result;
+    QSet<QString> urls;
+    auto os = metaRuntimeOs();
+    for (const auto& value : runtimes)
+    {
+        auto runtime = value.toObject();
+        auto download_type = runtime.value("downloadType").toString();
+        if (runtime.value("runtimeOS").toString() != os ||
+            (download_type != "manifest" && download_type != "archive"))
+        {
+            continue;
+        }
+
+        Release release;
+        release.provider = provider;
+        release.major = major;
+        release.name = runtime.value("name").toString();
+        auto version = runtime.value("version").toObject();
+        release.version = version.value("name").toString();
+        if (release.version.isEmpty())
+        {
+            release.version = QString("%1.%2.%3")
+                                  .arg(version.value("major").toInt())
+                                  .arg(version.value("minor").toInt())
+                                  .arg(version.value("security").toInt());
+            if (version.contains("build"))
+            {
+                release.version +=
+                    QString("+%1").arg(version.value("build").toInt());
+            }
+        }
+        release.released = parseDate(runtime.value("releaseTime").toString());
+        release.type = runtime.value("packageType").toString("jre");
+        release.url = runtime.value("url").toString();
+        release.manifest = download_type == "manifest";
+        auto checksum = runtime.value("checksum").toObject();
+        auto hash =
+            QByteArray::fromHex(checksum.value("hash").toString().toLatin1());
+        if (checksum.value("type").toString() == "sha256")
+        {
+            release.sha256 = hash;
+        }
+        else
+        {
+            release.sha1 = hash;
+        }
+        // For Mojang, the name is the runtime component, even when the
+        // metadata fills a gap with another vendor's build
+        if (provider == Provider::Mojang)
+        {
+            release.mojangComponent = release.name;
+        }
+
+        if (!release.url.isEmpty() && !urls.contains(release.url))
+        {
+            urls.insert(release.url);
+            result.append(release);
+        }
+    }
+    return result;
+}
+
+// Loads the metadata index if it isn't yet. Returns the download to wait for,
+// null if there is nothing to wait for.
+Task::Ptr loadMetaIndex()
+{
+    auto index = APPLICATION->metadataIndex();
+    if (index->isLoaded())
+    {
+        return nullptr;
+    }
+    index->load(Net::Mode::Online);
+    return index->getCurrentTask();
+}
+
 }  // namespace
 
 bool isLts(int major)
@@ -482,6 +605,10 @@ bool VersionListTask::abort()
     {
         m_job->abort();
     }
+    if (m_metaTask)
+    {
+        disconnect(m_metaTask.get(), nullptr, this, nullptr);
+    }
     emitAborted();
     return true;
 }
@@ -494,6 +621,72 @@ void VersionListTask::executeTask()
         return;
     }
 
+    // A metadata server that lists the provider's runtimes, like Prism
+    // Launcher's, is used instead of the provider's own servers
+    setStatus(tr("Fetching Java versions..."));
+    m_metaTask = loadMetaIndex();
+    if (m_metaTask)
+    {
+        connect(m_metaTask.get(), &Task::finished, this,
+                &VersionListTask::metaIndexLoaded, Qt::QueuedConnection);
+        return;
+    }
+    metaIndexLoaded();
+}
+
+void VersionListTask::metaIndexLoaded()
+{
+    m_metaTask.reset();
+    auto index = APPLICATION->metadataIndex();
+    auto uid = metaUid(m_provider);
+    if (!index->isLoaded() || !index->hasUid(uid))
+    {
+        fetchFromProvider();
+        return;
+    }
+
+    setStatus(tr("Fetching Java versions from the metadata server..."));
+    auto list = index->get(uid);
+    list->load(Net::Mode::Online);
+    m_metaTask = list->getCurrentTask();
+    if (m_metaTask)
+    {
+        connect(m_metaTask.get(), &Task::finished, this,
+                &VersionListTask::metaListLoaded, Qt::QueuedConnection);
+        return;
+    }
+    metaListLoaded();
+}
+
+void VersionListTask::metaListLoaded()
+{
+    m_metaTask.reset();
+    auto list = APPLICATION->metadataIndex()->get(metaUid(m_provider));
+    if (!list->isLoaded())
+    {
+        emitFailed(
+            tr("Could not load the Java versions from the metadata server."));
+        return;
+    }
+
+    std::set<int> majors;
+    for (const auto& version : list->versions())
+    {
+        int major = metaMajor(version->version());
+        if (major >= 8)
+        {
+            majors.insert(major);
+        }
+    }
+    for (auto it = majors.rbegin(); it != majors.rend(); ++it)
+    {
+        m_majors.append(*it);
+    }
+    emitSucceeded();
+}
+
+void VersionListTask::fetchFromProvider()
+{
     QUrl url;
     switch (m_provider)
     {
@@ -605,6 +798,10 @@ bool ReleaseListTask::abort()
     {
         m_job->abort();
     }
+    if (m_metaTask)
+    {
+        disconnect(m_metaTask.get(), nullptr, this, nullptr);
+    }
     emitAborted();
     return true;
 }
@@ -617,6 +814,95 @@ void ReleaseListTask::executeTask()
         return;
     }
 
+    // Like the version list, the metadata server comes first when it lists
+    // the provider's runtimes
+    setStatus(tr("Fetching Java %1 builds...").arg(m_major));
+    m_metaTask = loadMetaIndex();
+    if (m_metaTask)
+    {
+        connect(m_metaTask.get(), &Task::finished, this,
+                &ReleaseListTask::metaIndexLoaded, Qt::QueuedConnection);
+        return;
+    }
+    metaIndexLoaded();
+}
+
+void ReleaseListTask::metaIndexLoaded()
+{
+    m_metaTask.reset();
+    auto index = APPLICATION->metadataIndex();
+    auto uid = metaUid(m_provider);
+    if (!index->isLoaded() || !index->hasUid(uid))
+    {
+        fetchFromProvider();
+        return;
+    }
+
+    setStatus(
+        tr("Fetching Java %1 builds from the metadata server...").arg(m_major));
+    auto list = index->get(uid);
+    list->load(Net::Mode::Online);
+    m_metaTask = list->getCurrentTask();
+    if (m_metaTask)
+    {
+        connect(m_metaTask.get(), &Task::finished, this,
+                &ReleaseListTask::metaListLoaded, Qt::QueuedConnection);
+        return;
+    }
+    metaListLoaded();
+}
+
+void ReleaseListTask::metaListLoaded()
+{
+    m_metaTask.reset();
+    auto uid = metaUid(m_provider);
+    auto list = APPLICATION->metadataIndex()->get(uid);
+    if (!list->isLoaded())
+    {
+        emitFailed(
+            tr("Could not load the Java versions from the metadata server."));
+        return;
+    }
+    // The metadata server is the source for this provider now, so a major it
+    // doesn't list has no builds
+    auto id = QString("java%1").arg(m_major);
+    if (!list->hasVersion(id))
+    {
+        emitSucceeded();
+        return;
+    }
+
+    auto version = APPLICATION->metadataIndex()->get(uid, id);
+    version->load(Net::Mode::Online);
+    m_metaTask = version->getCurrentTask();
+    if (m_metaTask)
+    {
+        connect(m_metaTask.get(), &Task::finished, this,
+                &ReleaseListTask::metaVersionLoaded, Qt::QueuedConnection);
+        return;
+    }
+    metaVersionLoaded();
+}
+
+void ReleaseListTask::metaVersionLoaded()
+{
+    m_metaTask.reset();
+    auto version = APPLICATION->metadataIndex()->get(
+        metaUid(m_provider), QString("java%1").arg(m_major));
+    if (!version->isLoaded() || !version->data())
+    {
+        emitFailed(
+            tr("Could not load the Java %1 builds from the metadata server.")
+                .arg(m_major));
+        return;
+    }
+    m_releases = parseMeta(version->data()->runtimes, m_provider, m_major);
+    std::stable_sort(m_releases.begin(), m_releases.end(), newerRelease);
+    emitSucceeded();
+}
+
+void ReleaseListTask::fetchFromProvider()
+{
     setStatus(tr("Fetching Java %1 builds from %2...")
                   .arg(m_major)
                   .arg(providerName(m_provider)));
@@ -666,15 +952,19 @@ void ReleaseListTask::parse()
 
 std::optional<Release> ReleaseListTask::recommended() const
 {
-    // the list is sorted newest first
-    for (auto type : {QString("jre"), QString("jdk")})
+    // the list is sorted newest first. Snapshot components come last, some
+    // platforms only have those.
+    for (bool snapshots : {false, true})
     {
-        for (auto& release : m_releases)
+        for (auto type : {QString("jre"), QString("jdk")})
         {
-            if (release.type == type &&
-                !release.mojangComponent.endsWith("-snapshot"))
+            for (auto& release : m_releases)
             {
-                return release;
+                if (release.type == type &&
+                    release.mojangComponent.endsWith("-snapshot") == snapshots)
+                {
+                    return release;
+                }
             }
         }
     }
@@ -839,7 +1129,7 @@ void InstallTask::download()
         return;
     }
 
-    if (m_provider == Provider::Mojang)
+    if (m_release.manifest)
     {
         setStatus(
             tr("Fetching file list for Java %1...").arg(m_release.version));
@@ -869,6 +1159,11 @@ void InstallTask::downloadArchive()
     {
         dl->addValidator(new Net::ChecksumValidator(QCryptographicHash::Sha256,
                                                     m_release.sha256));
+    }
+    else if (!m_release.sha1.isEmpty())
+    {
+        dl->addValidator(new Net::ChecksumValidator(QCryptographicHash::Sha1,
+                                                    m_release.sha1));
     }
     NetJob::Ptr job(new NetJob(tr("Java download"), APPLICATION->network()));
     job->addNetAction(dl);

@@ -199,6 +199,11 @@ VersionFilePtr OneSixVersionFormat::versionFileFromJson(
         }
     }
 
+    if (root.contains("runtimes"))
+    {
+        out->runtimes = requireArray(root.value("runtimes"));
+    }
+
     if (root.contains("jarMods"))
     {
         for (auto libVal : requireArray(root.value("jarMods")))
