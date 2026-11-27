@@ -41,6 +41,7 @@
 #include <QString>
 #include <utility>
 
+#include "Application.h"
 #include "minecraft/mod/tasks/LocalModParseTask.h"
 #include "minecraft/mod/tasks/ModFolderLoadTask.h"
 
@@ -100,7 +101,20 @@ QVariant ModFolderModel::data(const QModelIndex& index, int role) const
             }
 
         case Qt::ToolTipRole:
+            if (column == VersionColumn && isUpdateLocked(row))
+            {
+                return tr("Update checks are disabled for this mod");
+            }
             return m_resources[row]->internal_id();
+
+        // Like Prism Launcher, show a lock next to the version of mods that
+        // don't update, such as the mods of a modpack
+        case Qt::DecorationRole:
+            if (column == VersionColumn && isUpdateLocked(row))
+            {
+                return APPLICATION->getThemedIcon("status-locked");
+            }
+            return QVariant();
 
         case Qt::CheckStateRole:
             switch (column)
@@ -113,6 +127,12 @@ QVariant ModFolderModel::data(const QModelIndex& index, int role) const
         default:
             return QVariant();
     }
+}
+
+bool ModFolderModel::isUpdateLocked(int row) const
+{
+    auto metadata = at(row)->metadata();
+    return metadata && metadata->do_updates == "false";
 }
 
 QVariant ModFolderModel::headerData(int section,
