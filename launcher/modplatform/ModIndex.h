@@ -58,6 +58,35 @@ struct DonationData
     QString url;
 };
 
+enum class DependencyType
+{
+    Required,
+    Optional,
+    Incompatible,
+    Embedded,
+    Unknown
+};
+
+struct Dependency
+{
+    DependencyType type = DependencyType::Unknown;
+    // A project on the same platform, and Modrinth source, as the version
+    QVariant addonId;
+    // A specific version of it, only on Modrinth
+    QString version;
+
+    // Some Modrinth-compatible sources, like 67minecraft, also name projects
+    // on other platforms: external_source is "modrinth" or "curseforge", and
+    // external_id the project ID there
+    QString external_source;
+    QString external_id;
+    QString external_version;
+
+    // A name and a link to show when it can't be installed
+    QString name;
+    QString url;
+};
+
 struct IndexedVersion
 {
     QVariant addonId;
@@ -73,6 +102,7 @@ struct IndexedVersion
     QString hash;
     bool is_preferred = true;
     QString changelog;
+    QList<Dependency> dependencies;
 };
 
 struct ExtraPackData

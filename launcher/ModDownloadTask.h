@@ -45,6 +45,14 @@ public:
     {
         return m_mod_version.fileName;
     }
+    const ModPlatform::IndexedPack& getPack() const
+    {
+        return m_mod;
+    }
+    const ModPlatform::IndexedVersion& getVersion() const
+    {
+        return m_mod_version;
+    }
 
 protected:
     void executeTask() override;

@@ -15,6 +15,7 @@
 #include "minecraft/mod/ModDetails.h"
 
 #include "modplatform/EnsureMetadataTask.h"
+#include "modplatform/ResolveDependenciesTask.h"
 #include "modplatform/flame/FlameCheckUpdate.h"
 #include "modplatform/modrinth/ModrinthCheckUpdate.h"
 
@@ -232,6 +233,13 @@ void ModUpdateDialog::checkCandidates()
                 appendMod(updatable);
                 m_tasks.insert(updatable.name, updatable.download);
             }
+        }
+
+        // Updated mods may need mods that aren't installed yet
+        if (!resolveUpdateDependencies())
+        {
+            m_aborted = true;
+            break;
         }
 
         // Report failed update checking
@@ -499,6 +507,13 @@ void ModUpdateDialog::appendMod(CheckUpdateTask::UpdatableMod const& info)
                         ? UpdateDialogProviderCaps.readableName(info.provider)
                         : info.source_name));
 
+    if (!info.required_by.isEmpty())
+    {
+        auto required_by_item = new QTreeWidgetItem(item_top);
+        required_by_item->setText(0,
+                                  tr("Required by: %1").arg(info.required_by));
+    }
+
     auto old_version_item = new QTreeWidgetItem(item_top);
     old_version_item->setText(
         0, tr("Old version: %1")
@@ -508,36 +523,100 @@ void ModUpdateDialog::appendMod(CheckUpdateTask::UpdatableMod const& info)
     auto new_version_item = new QTreeWidgetItem(item_top);
     new_version_item->setText(0, tr("New version: %1").arg(info.new_version));
 
-    auto changelog_item = new QTreeWidgetItem(item_top);
-    changelog_item->setText(0, tr("Changelog of the latest version"));
-
-    auto changelog = new QTreeWidgetItem(changelog_item);
-    auto changelog_area = new RemoteTextBrowser();
-
-    switch (info.provider)
+    // New dependencies may not come with one
+    if (!info.changelog.isEmpty())
     {
-        case ModPlatform::Provider::MODRINTH:
-            changelog_area->setHtml(Markdown::toHtml(info.changelog.toUtf8()));
-            break;
-        case ModPlatform::Provider::FLAME:
-            changelog_area->setHtml(Markdown::lowerHtml(info.changelog));
-            break;
+        auto changelog_item = new QTreeWidgetItem(item_top);
+        changelog_item->setText(0, tr("Changelog of the latest version"));
+
+        auto changelog = new QTreeWidgetItem(changelog_item);
+        auto changelog_area = new RemoteTextBrowser();
+
+        switch (info.provider)
+        {
+            case ModPlatform::Provider::MODRINTH:
+                changelog_area->setHtml(
+                    Markdown::toHtml(info.changelog.toUtf8()));
+                break;
+            case ModPlatform::Provider::FLAME:
+                changelog_area->setHtml(Markdown::lowerHtml(info.changelog));
+                break;
+        }
+
+        changelog_area->setLineWrapMode(QTextBrowser::LineWrapMode::NoWrap);
+        changelog_area->setVerticalScrollBarPolicy(
+            Qt::ScrollBarPolicy::ScrollBarAsNeeded);
+
+        // HACK: Is there a better way of achieving this?
+        auto font_height = QFontMetrics(changelog_area->font()).height();
+        changelog_area->setMaximumHeight((changelog_area->toPlainText().count(
+                                              QRegularExpression("\n|<br>")) +
+                                          2) *
+                                         font_height);
+
+        ui->modTreeWidget->setItemWidget(changelog, 0, changelog_area);
     }
 
-    changelog_area->setLineWrapMode(QTextBrowser::LineWrapMode::NoWrap);
-    changelog_area->setVerticalScrollBarPolicy(
-        Qt::ScrollBarPolicy::ScrollBarAsNeeded);
-
-    // HACK: Is there a better way of achieving this?
-    auto font_height = QFontMetrics(changelog_area->font()).height();
-    changelog_area->setMaximumHeight(
-        (changelog_area->toPlainText().count(QRegularExpression("\n|<br>")) +
-         2) *
-        font_height);
-
-    ui->modTreeWidget->setItemWidget(changelog, 0, changelog_area);
-
     ui->modTreeWidget->addTopLevelItem(item_top);
+}
+
+bool ModUpdateDialog::resolveUpdateDependencies()
+{
+    QList<ResolveDependenciesTask::Selected> selected;
+    for (auto* task : std::as_const(m_tasks))
+    {
+        selected.append({task->getPack(), task->getVersion()});
+    }
+    if (selected.isEmpty())
+    {
+        return true;
+    }
+
+    ResolveDependenciesTask task(selected, m_instance, m_mod_model->allMods());
+    ProgressDialog progress_dialog(m_parent);
+    progress_dialog.setSkipButton(true, tr("Skip"));
+    progress_dialog.execWithTask(&task);
+
+    for (const auto& dependency : task.resolved())
+    {
+        if (m_tasks.contains(dependency.pack.name))
+        {
+            continue;
+        }
+
+        auto* download = new ModDownloadTask(dependency.pack,
+                                             dependency.version, m_mod_model);
+        auto version = dependency.version.version_number.isEmpty()
+                           ? dependency.version.version
+                           : dependency.version.version_number;
+        CheckUpdateTask::UpdatableMod info(
+            dependency.pack.name, {}, {}, version, dependency.version.changelog,
+            dependency.pack.provider, download);
+        info.required_by = dependency.required_by;
+        if (!dependency.pack.apiUrl.isEmpty())
+        {
+            auto source = Modrinth::findSource(dependency.pack.apiUrl);
+            info.source_name =
+                source ? source->displayName() : dependency.pack.apiUrl;
+        }
+
+        appendMod(info);
+        m_tasks.insert(dependency.pack.name, download);
+    }
+
+    if (task.unresolved().isEmpty())
+    {
+        return true;
+    }
+
+    ScrollMessageBox message_dialog(
+        m_parent, tr("Missing dependencies"),
+        tr("The updates require the following dependencies, which could not "
+           "be downloaded automatically and may need to be installed "
+           "manually.<br>Do you want to continue?"),
+        task.unresolvedText());
+    message_dialog.setModal(true);
+    return message_dialog.exec() != QDialog::Rejected;
 }
 
 const QList<ModDownloadTask*> ModUpdateDialog::getTasks()

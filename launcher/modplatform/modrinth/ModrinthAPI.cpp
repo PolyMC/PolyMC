@@ -61,6 +61,18 @@ NetJob::Ptr ModrinthAPI::latestVersions(const QStringList& hashes,
     return netJob;
 }
 
+NetJob::Ptr ModrinthAPI::getVersion(const QString& id,
+                                    QByteArray* response) const
+{
+    auto netJob = new NetJob(QString("Modrinth::GetVersion(%1)").arg(id),
+                             APPLICATION->network());
+
+    netJob->addNetAction(Net::Download::makeByteArray(
+        QUrl(apiRoot() + "/version/" + id), response));
+
+    return netJob;
+}
+
 NetJob::Ptr ModrinthAPI::getProjects(QStringList addonIds,
                                      QByteArray* response) const
 {

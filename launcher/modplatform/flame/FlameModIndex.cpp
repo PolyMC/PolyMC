@@ -165,6 +165,35 @@ ModPlatform::IndexedVersion FlameMod::loadIndexedPackVersion(
     file.downloadUrl = Json::ensureString(obj, "downloadUrl");
     file.fileName = Json::requireString(obj, "fileName");
 
+    auto dependencies = Json::ensureArray(obj, "dependencies");
+    for (const auto& value : std::as_const(dependencies))
+    {
+        auto dependency_obj = value.toObject();
+
+        ModPlatform::Dependency dependency;
+        dependency.addonId = Json::ensureInteger(dependency_obj, "modId");
+        // https://docs.curseforge.com/rest-api/#tocS_FileRelationType
+        switch (Json::ensureInteger(dependency_obj, "relationType"))
+        {
+            case 1:
+                dependency.type = ModPlatform::DependencyType::Embedded;
+                break;
+            case 2:
+                dependency.type = ModPlatform::DependencyType::Optional;
+                break;
+            case 3:
+                dependency.type = ModPlatform::DependencyType::Required;
+                break;
+            case 5:
+                dependency.type = ModPlatform::DependencyType::Incompatible;
+                break;
+            default:
+                break;
+        }
+
+        file.dependencies.append(dependency);
+    }
+
     auto hash_list = Json::ensureArray(obj, "hashes");
     for (auto h : std::as_const(hash_list))
     {

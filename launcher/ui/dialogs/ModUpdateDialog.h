@@ -66,6 +66,8 @@ private slots:
 private:
     void onCheckFailed(Mod* mod, QString reason, QUrl recovery);
     void onCheckTaskFailed(QString reason);
+    // Adds the new dependencies of the updates, returns false to abort
+    bool resolveUpdateDependencies();
 
     QWidget* m_parent;
 

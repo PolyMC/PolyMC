@@ -42,6 +42,12 @@ void ReviewMessageBox::appendMod(ModInformation&& info)
 
     itemTop->insertChildren(0, {filenameItem});
 
+    if (!info.required_by.isEmpty())
+    {
+        auto requiredByItem = new QTreeWidgetItem(itemTop);
+        requiredByItem->setText(0, tr("Required by: %1").arg(info.required_by));
+    }
+
     ui->modTreeWidget->addTopLevelItem(itemTop);
 }
 

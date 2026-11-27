@@ -31,6 +31,10 @@
 #include <utility>
 
 #include "ModDownloadTask.h"
+#include "ProgressDialog.h"
+#include "ScrollMessageBox.h"
+#include "minecraft/mod/ModFolderModel.h"
+#include "modplatform/ResolveDependenciesTask.h"
 #include "modplatform/modrinth/ModrinthSource.h"
 #include "ui/pages/modplatform/ModPage.h"
 #include "ui/pages/modplatform/flame/FlameModPage.h"
@@ -126,6 +130,11 @@ void ModDownloadDialog::reject()
 
 void ModDownloadDialog::confirm()
 {
+    if (!resolveDependencies())
+    {
+        return;
+    }
+
     auto keys = modTask.keys();
     keys.sort(Qt::CaseInsensitive);
 
@@ -138,8 +147,9 @@ void ModDownloadDialog::confirm()
 
     for (auto& task : keys)
     {
-        confirm_dialog->appendMod(
-            {task, modTask.find(task).value()->getFilename()});
+        confirm_dialog->appendMod({task,
+                                   modTask.find(task).value()->getFilename(),
+                                   m_required_by.value(task)});
     }
 
     if (confirm_dialog->exec())
@@ -152,6 +162,68 @@ void ModDownloadDialog::confirm()
 
         this->accept();
     }
+}
+
+bool ModDownloadDialog::resolveDependencies()
+{
+    if (m_type != ModAPI::Mod)
+    {
+        return true;
+    }
+
+    // Look again every time, the picked mods may have changed since, and
+    // dependencies of mods that aren't picked anymore shouldn't stay
+    const auto previous = m_required_by.keys();
+    for (const auto& name : previous)
+    {
+        removeSelectedMod(name);
+    }
+    m_required_by.clear();
+
+    QList<ResolveDependenciesTask::Selected> selected;
+    for (auto* task : std::as_const(modTask))
+    {
+        selected.append({task->getPack(), task->getVersion()});
+    }
+
+    QList<Mod*> installed;
+    if (auto model = std::dynamic_pointer_cast<ModFolderModel>(mods))
+    {
+        installed = model->allMods();
+    }
+
+    ResolveDependenciesTask task(selected, m_instance, installed);
+    ProgressDialog progress_dialog(this);
+    progress_dialog.setSkipButton(true, tr("Skip"));
+    progress_dialog.execWithTask(&task);
+
+    bool is_indexed =
+        !APPLICATION->settings()->get("ModMetadataDisabled").toBool();
+    for (const auto& dependency : task.resolved())
+    {
+        if (modTask.contains(dependency.pack.name))
+        {
+            continue;
+        }
+        addSelectedMod(dependency.pack.name,
+                       new ModDownloadTask(dependency.pack, dependency.version,
+                                           mods, is_indexed));
+        m_required_by.insert(dependency.pack.name, dependency.required_by);
+    }
+
+    if (task.unresolved().isEmpty())
+    {
+        return true;
+    }
+
+    ScrollMessageBox message_dialog(
+        this, tr("Missing dependencies"),
+        tr("The following dependencies could not be downloaded "
+           "automatically and may need to be installed manually.<br>"
+           "Do you want to continue?"),
+        task.unresolvedText());
+    message_dialog.setModal(true);
+    return message_dialog.exec() != QDialog::Rejected;
 }
 
 void ModDownloadDialog::accept()
@@ -183,6 +255,8 @@ void ModDownloadDialog::addSelectedMod(QString name, ModDownloadTask* task)
 {
     removeSelectedMod(name);
     modTask.insert(name, task);
+    // Picked by hand, it stays picked
+    m_required_by.remove(name);
 
     m_buttons->button(QDialogButtonBox::Ok)->setEnabled(!modTask.isEmpty());
 }
@@ -194,6 +268,7 @@ void ModDownloadDialog::removeSelectedMod(QString name)
         delete modTask.find(name).value();
     }
     modTask.remove(name);
+    m_required_by.remove(name);
 
     m_buttons->button(QDialogButtonBox::Ok)->setEnabled(!modTask.isEmpty());
 }
