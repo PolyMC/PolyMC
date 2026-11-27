@@ -19,6 +19,7 @@
 #include "ModrinthModModel.h"
 
 #include "Application.h"
+#include "modplatform/modrinth/ModrinthAPI.h"
 #include "modplatform/modrinth/ModrinthPackIndex.h"
 
 namespace Modrinth
@@ -30,7 +31,9 @@ const char* ListModel::sorts[5]{"relevance", "downloads", "follows", "updated",
 
 void ListModel::loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj)
 {
-    Modrinth::loadIndexedPack(m, obj);
+    // Modrinth list models only live on Modrinth pages
+    auto* api = static_cast<const ModrinthAPI*>(m_parent->apiProvider());
+    Modrinth::loadIndexedPack(m, obj, ModAPI::Mod, api);
 }
 
 void ListModel::loadExtraPackInfo(ModPlatform::IndexedPack& m, QJsonObject& obj)

@@ -52,6 +52,8 @@
 
 class MinecraftInstance;
 
+class ModrinthAPI;
+
 namespace Modrinth
 {
 
@@ -115,8 +117,9 @@ struct Modpack
     QVector<ModpackVersion> versions;
 };
 
-void loadIndexedPack(Modpack&, QJsonObject&);
-void loadIndexedInfo(Modpack&, QJsonObject&);
+// The API is the source the pack came from, official Modrinth if null
+void loadIndexedPack(Modpack&, QJsonObject&, const ModrinthAPI* = nullptr);
+void loadIndexedInfo(Modpack&, QJsonObject&, const ModrinthAPI* = nullptr);
 void loadIndexedVersions(Modpack&, QJsonDocument&);
 ModpackVersion loadIndexedVersion(QJsonObject&);
 

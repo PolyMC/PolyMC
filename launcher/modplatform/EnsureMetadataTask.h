@@ -11,6 +11,7 @@
 #include "net/NetJob.h"
 
 #include "modplatform/helpers/HashUtils.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 
 #include "tasks/ConcurrentTask.h"
 #include "tasks/Task.h"
@@ -23,10 +24,13 @@ class EnsureMetadataTask : public Task
     Q_OBJECT
 
 public:
+    // The source is only used with Modrinth
     EnsureMetadataTask(Mod*, QDir,
-                       ModPlatform::Provider = ModPlatform::Provider::MODRINTH);
+                       ModPlatform::Provider = ModPlatform::Provider::MODRINTH,
+                       Modrinth::Source = {});
     EnsureMetadataTask(QList<Mod*>&, QDir,
-                       ModPlatform::Provider = ModPlatform::Provider::MODRINTH);
+                       ModPlatform::Provider = ModPlatform::Provider::MODRINTH,
+                       Modrinth::Source = {});
 
     ~EnsureMetadataTask();
 
@@ -86,6 +90,7 @@ private:
     QHash<QString, Mod*> m_mods;
     QDir m_index_dir;
     ModPlatform::Provider m_provider;
+    Modrinth::Source m_source;
 
     QHash<QString, ModPlatform::IndexedVersion> m_temp_versions;
     shared_qobject_ptr<ConcurrentTask> m_hashing_task;

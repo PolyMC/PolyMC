@@ -46,8 +46,10 @@
 
 ModrinthModPage::ModrinthModPage(ModDownloadDialog* dialog,
                                  ModAPI::ResourceType type,
-                                 BaseInstance* instance)
-    : ModPage(dialog, type, instance, new ModrinthAPI())
+                                 BaseInstance* instance,
+                                 Modrinth::Source source)
+    : ModPage(dialog, type, instance, new ModrinthAPI(source)),
+      m_source(std::move(source))
 {
     listModel = new Modrinth::ListModel(this);
     ui->packView->setModel(listModel);

@@ -60,6 +60,8 @@ public:
         ModPlatform::Provider provider{};
         QVariant file_id{};
         QVariant project_id{};
+        // Modrinth-compatible source, empty for official Modrinth
+        QString api_url{};
         QString do_updates{"true"};
 
     public:

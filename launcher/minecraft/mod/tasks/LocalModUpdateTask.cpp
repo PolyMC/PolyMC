@@ -62,6 +62,15 @@ void LocalModUpdateTask::executeTask()
     if (!old_metadata.isValid() || old_metadata.mod_id() != m_mod.addonId)
     {
         old_metadata = Metadata::get(m_index_dir, m_mod.addonId);
+
+        // The same ID on another provider or Modrinth-compatible source is
+        // a different project, so it isn't the old version of this one
+        if (old_metadata.isValid() &&
+            (old_metadata.provider != m_mod.provider ||
+             old_metadata.api_url != m_mod.apiUrl))
+        {
+            old_metadata = {};
+        }
     }
     if (old_metadata.isValid())
     {

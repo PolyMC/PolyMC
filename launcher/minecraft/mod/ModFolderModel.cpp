@@ -44,12 +44,15 @@
 #include "Application.h"
 #include "minecraft/mod/tasks/LocalModParseTask.h"
 #include "minecraft/mod/tasks/ModFolderLoadTask.h"
+#include "modplatform/ModIndex.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 
 ModFolderModel::ModFolderModel(const QString& dir, bool is_indexed)
     : ResourceFolderModel(QDir(dir)), m_is_indexed(is_indexed)
 {
-    m_column_sort_keys = {SortType::ENABLED, SortType::NAME, SortType::VERSION,
-                          SortType::DATE, SortType::DO_UPDATES};
+    m_column_sort_keys = {SortType::ENABLED,  SortType::NAME,
+                          SortType::VERSION,  SortType::DATE,
+                          SortType::PROVIDER, SortType::DO_UPDATES};
 }
 
 QVariant ModFolderModel::data(const QModelIndex& index, int role) const
@@ -105,6 +108,10 @@ QVariant ModFolderModel::data(const QModelIndex& index, int role) const
             {
                 return tr("Update checks are disabled for this mod");
             }
+            if (column == SourceColumn && at(row)->metadata())
+            {
+                return sourceToolTip(row);
+            }
             return m_resources[row]->internal_id();
 
         // Like Prism Launcher, show a lock next to the version of mods that
@@ -113,6 +120,10 @@ QVariant ModFolderModel::data(const QModelIndex& index, int role) const
             if (column == VersionColumn && isUpdateLocked(row))
             {
                 return APPLICATION->getThemedIcon("status-locked");
+            }
+            if (column == SourceColumn)
+            {
+                return sourceIcon(row);
             }
             return QVariant();
 
@@ -135,6 +146,38 @@ bool ModFolderModel::isUpdateLocked(int row) const
     return metadata && metadata->do_updates == "false";
 }
 
+QVariant ModFolderModel::sourceIcon(int row) const
+{
+    auto metadata = at(row)->metadata();
+    if (!metadata)
+    {
+        return {};
+    }
+    if (metadata->provider == ModPlatform::Provider::FLAME)
+    {
+        return APPLICATION->getThemedIcon("flame");
+    }
+
+    auto source = Modrinth::findSource(metadata->api_url);
+    if (!source)
+    {
+        source = Modrinth::Source();
+        source->api_url = metadata->api_url;
+    }
+    return Modrinth::sourceIcon(*source);
+}
+
+QString ModFolderModel::sourceToolTip(int row) const
+{
+    auto metadata = at(row)->metadata();
+    if (metadata->provider == ModPlatform::Provider::MODRINTH &&
+        !Modrinth::findSource(metadata->api_url))
+    {
+        return tr("%1 (not in your Modrinth sources)").arg(at(row)->provider());
+    }
+    return at(row)->provider();
+}
+
 QVariant ModFolderModel::headerData(int section,
                                     Qt::Orientation /*orientation*/,
                                     int role) const
@@ -146,6 +189,7 @@ QVariant ModFolderModel::headerData(int section,
             {
                 case ActiveColumn:
                     return QString();
+                case SourceColumn:
                 case ModUpdateColumn:
                     return QString();
                 case NameColumn:
@@ -163,6 +207,8 @@ QVariant ModFolderModel::headerData(int section,
             {
                 case ActiveColumn:
                     return tr("Is the mod enabled?");
+                case SourceColumn:
+                    return tr("The source of the mod.");
                 case ModUpdateColumn:
                     return tr("Are update checks enabled?");
                 case NameColumn:

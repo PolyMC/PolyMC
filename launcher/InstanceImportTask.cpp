@@ -352,8 +352,9 @@ void InstanceImportTask::processMultiMC()
 
 void InstanceImportTask::processModrinth()
 {
-    runCreationTask(new ModrinthCreationTask(m_stagingPath, m_globalSettings,
-                                             m_parent, m_sourceUrl.toString()));
+    runCreationTask(new ModrinthCreationTask(
+        m_stagingPath, m_globalSettings, m_parent, m_sourceUrl.toString(),
+        m_modrinth_source, m_modrinth_project));
 }
 
 #include "moc_InstanceImportTask.cpp"

@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QEventLoop>
 #include <QJsonDocument>
+#include <QMap>
 #include <QPair>
 #include <QStringList>
 
@@ -19,7 +20,6 @@
 
 #include "tasks/ConcurrentTask.h"
 
-static ModrinthAPI modrinthUpdateApi;
 static ModPlatform::ProviderCapabilities ModrinthUpdateProviderCaps;
 
 bool ModrinthCheckUpdate::abort()
@@ -44,7 +44,6 @@ void ModrinthCheckUpdate::executeTask()
     QHash<QString, Mod*> mappings;
 
     // Create all hashes
-    QStringList hashes;
     QList<QPair<Mod*, Hashing::Hasher::Ptr>> hashers;
     auto best_hash_type =
         ModrinthUpdateProviderCaps.hashType(ModPlatform::Provider::MODRINTH)
@@ -74,7 +73,6 @@ void ModrinthCheckUpdate::executeTask()
         }
         else
         {
-            hashes.append(hash);
             mappings.insert(hash, mod);
         }
     }
@@ -89,7 +87,6 @@ void ModrinthCheckUpdate::executeTask()
         if (hasher->wasSuccessful())
         {
             QString hash(hasher->getResult());
-            hashes.append(hash);
             mappings.insert(hash, mod);
         }
         else if (hasher->getState() == Task::State::Failed)
@@ -98,20 +95,69 @@ void ModrinthCheckUpdate::executeTask()
         }
     }
 
+    // A project ID only means something on the source it came from, so ask
+    // every source about its own mods
+    QMap<QString, QHash<QString, Mod*>> mappings_by_source;
+    for (auto it = mappings.cbegin(); it != mappings.cend(); ++it)
+    {
+        mappings_by_source[it.value()->metadata()->api_url].insert(it.key(),
+                                                                   it.value());
+    }
+
+    setProgress(1, 3);
+
     // Collect errors here and report them once at the end, emitting failed()
     // directly would be followed by emitSucceeded()
-    QString error;
+    QStringList errors;
+    for (auto it = mappings_by_source.cbegin(); it != mappings_by_source.cend();
+         ++it)
+    {
+        auto error = checkSource(it.key(), it.value(), best_hash_type);
+        if (getState() == Task::State::AbortedByUser)
+        {
+            return;
+        }
+        if (!error.isEmpty())
+        {
+            errors.append(error);
+        }
+    }
+
+    if (!errors.isEmpty())
+    {
+        emitFailed(errors.join('\n'));
+        return;
+    }
+    emitSucceeded();
+}
+
+QString ModrinthCheckUpdate::checkSource(const QString& url,
+                                         const QHash<QString, Mod*>& mappings,
+                                         const QString& format)
+{
+    auto source = Modrinth::findSource(url);
+    if (!source)
+    {
+        for (auto* mod : mappings)
+        {
+            emit checkFailed(mod,
+                             tr("The source %1 is no longer in your Modrinth "
+                                "sources.")
+                                 .arg(url));
+        }
+        return {};
+    }
 
     QByteArray response;
-    auto job = modrinthUpdateApi.latestVersions(
-        hashes, best_hash_type, m_game_versions, m_loaders, &response);
+    auto job = ModrinthAPI(*source).latestVersions(
+        mappings.keys(), format, m_game_versions, m_loaders, &response);
 
     QEventLoop lock;
 
     connect(job.get(), &Task::finished, &lock, &QEventLoop::quit);
 
-    setStatus(tr("Waiting for the API response from Modrinth..."));
-    setProgress(1, 3);
+    setStatus(tr("Waiting for the API response from %1...")
+                  .arg(source->displayName()));
 
     m_net_job = job.get();
     job->start();
@@ -124,27 +170,22 @@ void ModrinthCheckUpdate::executeTask()
     if (job->getState() == Task::State::AbortedByUser)
     {
         emitAborted();
-        return;
+        return {};
     }
     if (job->getState() == Task::State::Failed)
     {
-        error = job->failReason();
+        return job->failReason();
     }
-    else if (job->wasSuccessful())
+    if (job->wasSuccessful())
     {
-        error = parseLatestVersions(response, mappings, best_hash_type);
+        return parseLatestVersions(response, mappings, format, *source);
     }
-    if (!error.isEmpty())
-    {
-        emitFailed(error);
-        return;
-    }
-    emitSucceeded();
+    return {};
 }
 
 QString ModrinthCheckUpdate::parseLatestVersions(
     const QByteArray& response, const QHash<QString, Mod*>& mappings,
-    const QString& format)
+    const QString& format, const Modrinth::Source& source)
 {
     QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(response, &parse_error);
@@ -159,7 +200,8 @@ QString ModrinthCheckUpdate::parseLatestVersions(
         return parse_error.errorString();
     }
 
-    setStatus(tr("Parsing the API response from Modrinth..."));
+    setStatus(
+        tr("Parsing the API response from %1...").arg(source.displayName()));
     setProgress(2, 3);
 
     try
@@ -195,7 +237,7 @@ QString ModrinthCheckUpdate::parseLatestVersions(
             {
                 if (m_loaders.testFlag(flag))
                 {
-                    loader_filter = modrinthUpdateApi.getModLoaderString(flag);
+                    loader_filter = ModAPI::getModLoaderString(flag);
                     break;
                 }
             }
@@ -253,6 +295,7 @@ QString ModrinthCheckUpdate::parseLatestVersions(
                 }
                 pack.description = mod->description();
                 pack.provider = ModPlatform::Provider::MODRINTH;
+                pack.apiUrl = source.api_url;
 
                 auto download_task =
                     new ModDownloadTask(pack, project_ver, m_mods_folder);
@@ -261,6 +304,10 @@ QString ModrinthCheckUpdate::parseLatestVersions(
                     pack.name, hash, mod->version(), project_ver.version_number,
                     project_ver.changelog, ModPlatform::Provider::MODRINTH,
                     download_task);
+                if (!source.isOfficial())
+                {
+                    m_updatable.back().source_name = source.displayName();
+                }
             }
         }
     }

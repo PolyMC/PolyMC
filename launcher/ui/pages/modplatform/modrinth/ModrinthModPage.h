@@ -38,9 +38,12 @@
 #include <QIcon>
 #include <QString>
 
+#include <utility>
+
 #include "Application.h"
 #include "modplatform/ModAPI.h"
 #include "modplatform/ModIndex.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 #include "ui/pages/modplatform/ModPage.h"
 
 class ModrinthModPage : public ModPage
@@ -50,26 +53,30 @@ class ModrinthModPage : public ModPage
 public:
     static ModrinthModPage* create(ModDownloadDialog* dialog,
                                    ModAPI::ResourceType type,
-                                   BaseInstance* instance)
+                                   BaseInstance* instance,
+                                   Modrinth::Source source = {})
     {
-        return ModPage::create<ModrinthModPage>(dialog, type, instance);
+        auto* page =
+            new ModrinthModPage(dialog, type, instance, std::move(source));
+        addFilterWidget(page, instance);
+        return page;
     }
 
     ModrinthModPage(ModDownloadDialog* dialog, ModAPI::ResourceType type,
-                    BaseInstance* instance);
+                    BaseInstance* instance, Modrinth::Source source = {});
     ~ModrinthModPage() override = default;
 
     inline QString displayName() const override
     {
-        return "Modrinth";
+        return m_source.displayName();
     }
     inline QIcon icon() const override
     {
-        return APPLICATION->getThemedIcon("modrinth");
+        return Modrinth::sourceIcon(m_source);
     }
     inline QString id() const override
     {
-        return "modrinth";
+        return m_source.key();
     }
     inline QString helpPage() const override
     {
@@ -78,7 +85,7 @@ public:
 
     inline QString debugName() const override
     {
-        return "Modrinth";
+        return m_source.displayName();
     }
     inline QString metaEntryBase() const override
     {
@@ -90,4 +97,7 @@ public:
         ModAPI::ModLoaderTypes loaders = ModAPI::Unspecified) const override;
 
     bool shouldDisplay() const override;
+
+private:
+    Modrinth::Source m_source;
 };

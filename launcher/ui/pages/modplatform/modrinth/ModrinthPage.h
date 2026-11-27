@@ -40,7 +40,9 @@
 #include "ui/dialogs/NewInstanceDialog.h"
 #include "ui/pages/BasePage.h"
 
+#include "modplatform/modrinth/ModrinthAPI.h"
 #include "modplatform/modrinth/ModrinthPackManifest.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 #include "net/NetJob.h"
 
 #include <QByteArray>
@@ -65,20 +67,26 @@ class ModrinthPage : public QWidget, public BasePage
     Q_OBJECT
 
 public:
-    explicit ModrinthPage(NewInstanceDialog* dialog, QWidget* parent = nullptr);
+    explicit ModrinthPage(NewInstanceDialog* dialog,
+                          Modrinth::Source source = {},
+                          QWidget* parent = nullptr);
     ~ModrinthPage() override;
 
     QString displayName() const override
     {
-        return tr("Modrinth");
+        if (m_api.source().isOfficial())
+        {
+            return tr("Modrinth");
+        }
+        return m_api.source().displayName();
     }
     QIcon icon() const override
     {
-        return APPLICATION->getThemedIcon("modrinth");
+        return Modrinth::sourceIcon(m_api.source());
     }
     QString id() const override
     {
-        return "modrinth";
+        return m_api.source().key();
     }
     QString helpPage() const override
     {
@@ -87,12 +95,17 @@ public:
 
     inline QString debugName() const
     {
-        return "Modrinth";
+        return m_api.source().displayName();
     }
     inline QString metaEntryBase() const
     {
         return "ModrinthModpacks";
     };
+
+    const ModrinthAPI& api() const
+    {
+        return m_api;
+    }
 
     Modrinth::Modpack& getCurrent()
     {
@@ -117,6 +130,7 @@ private:
 
     Ui::ModrinthPage* ui;
     NewInstanceDialog* dialog;
+    ModrinthAPI m_api;
     Modrinth::ModpackListModel* m_model;
 
     Modrinth::Modpack current;

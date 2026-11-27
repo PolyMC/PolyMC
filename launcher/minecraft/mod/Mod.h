@@ -70,6 +70,9 @@ public:
     QString description() const;
     QStringList authors() const;
     ModStatus status() const;
+    // Where the mod was downloaded from, like CurseForge or the name of a
+    // Modrinth source. Empty without metadata.
+    QString provider() const;
 
     std::shared_ptr<Metadata::ModStruct> metadata();
     const std::shared_ptr<Metadata::ModStruct> metadata() const;

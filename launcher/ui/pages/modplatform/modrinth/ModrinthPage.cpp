@@ -61,8 +61,6 @@
 #include <tuple>
 #include <utility>
 
-static ModrinthAPI modrinth_modpack_page_api;
-
 namespace
 {
 void stopJob(NetJob* job, QObject* receiver)
@@ -80,8 +78,12 @@ QString donateToStr(Modrinth::DonationData& donate)
 }
 }  // namespace
 
-ModrinthPage::ModrinthPage(NewInstanceDialog* dialog, QWidget* parent)
-    : QWidget(parent), ui(new Ui::ModrinthPage), dialog(dialog)
+ModrinthPage::ModrinthPage(NewInstanceDialog* dialog, Modrinth::Source source,
+                           QWidget* parent)
+    : QWidget(parent),
+      ui(new Ui::ModrinthPage),
+      dialog(dialog),
+      m_api(std::move(source))
 {
     ui->setupUi(this);
 
@@ -172,8 +174,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
             QString("Modrinth::PackInformation(%1)").arg(current.name),
             APPLICATION->network());
         m_info_job->addNetAction(Net::Download::makeByteArray(
-            QString("%1/project/%2")
-                .arg(modrinth_modpack_page_api.apiRoot(), current.id),
+            QString("%1/project/%2").arg(m_api.apiRoot(), current.id),
             &m_info_response));
 
         connect(m_info_job.get(), &NetJob::succeeded, this,
@@ -194,8 +195,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
             new NetJob(QString("Modrinth::PackVersions(%1)").arg(current.name),
                        APPLICATION->network());
         m_versions_job->addNetAction(Net::Download::makeByteArray(
-            QString("%1/project/%2/version")
-                .arg(modrinth_modpack_page_api.apiRoot(), current.id),
+            QString("%1/project/%2/version").arg(m_api.apiRoot(), current.id),
             &m_versions_response));
 
         connect(m_versions_job.get(), &NetJob::succeeded, this,
@@ -241,7 +241,7 @@ void ModrinthPage::onInfoLoaded()
         // Inside the try block, this throws when the response isn't
         // an object
         auto obj = Json::requireObject(doc);
-        Modrinth::loadIndexedInfo(current, obj);
+        Modrinth::loadIndexedInfo(current, obj, &m_api);
     }
     catch (const JSONValidationError& e)
     {
@@ -423,9 +423,9 @@ void ModrinthPage::suggestCurrent()
     {
         if (ver.id == selectedVersion)
         {
-            dialog->setSuggestedPack(
-                current.name, ver.version,
-                new InstanceImportTask(ver.download_url, this));
+            auto* task = new InstanceImportTask(ver.download_url, this);
+            task->setModrinthSource(m_api.source(), current.id);
+            dialog->setSuggestedPack(current.name, ver.version, task);
             auto iconName = current.iconName;
             auto path = m_model->logoPath(iconName, current.iconUrl.toString());
             if (!path.isEmpty())

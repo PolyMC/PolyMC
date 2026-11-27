@@ -31,6 +31,7 @@
 #include <utility>
 
 #include "ModDownloadTask.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 #include "ui/pages/modplatform/ModPage.h"
 #include "ui/pages/modplatform/flame/FlameModPage.h"
 #include "ui/pages/modplatform/modrinth/ModrinthModPage.h"
@@ -168,6 +169,11 @@ QList<BasePage*> ModDownloadDialog::getPages()
     if (APPLICATION->capabilities() & Application::SupportsFlame)
     {
         pages.append(FlameModPage::create(this, m_type, m_instance));
+    }
+    for (const auto& source : Modrinth::customSources())
+    {
+        Modrinth::fetchSourceIcon(source);
+        pages.append(ModrinthModPage::create(this, m_type, m_instance, source));
     }
 
     return pages;

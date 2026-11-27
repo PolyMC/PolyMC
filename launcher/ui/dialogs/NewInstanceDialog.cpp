@@ -58,6 +58,7 @@
 #include "ui/pages/modplatform/flame/FlamePage.h"
 #include "ui/pages/modplatform/ImportPage.h"
 #include "ui/pages/modplatform/modrinth/ModrinthPage.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 #include "ui/pages/modplatform/technic/TechnicPage.h"
 
 NewInstanceDialog::NewInstanceDialog(const QString& initialGroup,
@@ -167,6 +168,11 @@ QList<BasePage*> NewInstanceDialog::getPages()
     pages.append(new FtbPage(this));
     pages.append(new LegacyFTB::Page(this));
     pages.append(new ModrinthPage(this));
+    for (const auto& source : Modrinth::customSources())
+    {
+        Modrinth::fetchSourceIcon(source);
+        pages.append(new ModrinthPage(this, source));
+    }
     pages.append(new TechnicPage(this));
 
     return pages;

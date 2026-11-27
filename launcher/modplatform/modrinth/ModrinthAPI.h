@@ -22,6 +22,7 @@
 #include "Version.h"
 #include "modplatform/ModAPI.h"
 #include "modplatform/helpers/NetworkModAPI.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 #include "net/NetJob.h"
 
 #include <QDebug>
@@ -30,10 +31,17 @@
 #include <QUrl>
 
 #include <list>
+#include <utility>
 
 class ModrinthAPI : public NetworkModAPI
 {
 public:
+    // Official Modrinth
+    ModrinthAPI() = default;
+    explicit ModrinthAPI(Modrinth::Source source) : m_source(std::move(source))
+    {
+    }
+
     NetJob::Ptr currentVersions(const QStringList& hashes, QString hash_format,
                                 QByteArray* response);
 
@@ -45,15 +53,26 @@ public:
                             QByteArray* response) const override;
 
 public:
+    const Modrinth::Source& source() const
+    {
+        return m_source;
+    }
+
     // Modrinth API and website URLs are built from these
     inline QString apiRoot() const
     {
-        return BuildConfig.MODRINTH_PROD_URL;
+        // Read here instead of stored, static ModrinthAPI objects can be
+        // created before BuildConfig
+        if (m_source.isOfficial())
+        {
+            return BuildConfig.MODRINTH_PROD_URL;
+        }
+        return m_source.api_url;
     }
 
     inline QString websiteRoot() const
     {
-        return "https://modrinth.com";
+        return m_source.websiteRoot();
     }
 
     inline QString getAuthorURL(const QString& name) const
@@ -192,4 +211,6 @@ private:
         return (loaders == Unspecified) ||
                (loaders & (Forge | NeoForge | Fabric | Quilt));
     }
+
+    Modrinth::Source m_source;
 };

@@ -54,8 +54,6 @@
 
 #include "ui/pages/modplatform/LogoCache.h"
 
-static ModrinthAPI modrinth_modpack_list_api;
-
 namespace Modrinth
 {
 
@@ -162,7 +160,7 @@ void ModpackListModel::performPaginatedSearch()
     NetJob* netJob =
         new NetJob("Modrinth::SearchModpack", APPLICATION->network());
     auto searchAllUrl =
-        (modrinth_modpack_list_api.apiRoot() +
+        (m_parent->api().apiRoot() +
          "/search?"
          "offset=%1&"
          "limit=%2&"
@@ -308,7 +306,7 @@ void ModpackListModel::searchRequestFinished(QJsonDocument& doc_all)
         Modrinth::Modpack pack;
         try
         {
-            Modrinth::loadIndexedPack(pack, packObj);
+            Modrinth::loadIndexedPack(pack, packObj, &m_parent->api());
             newList.append(pack);
         }
         catch (const JSONValidationError& e)

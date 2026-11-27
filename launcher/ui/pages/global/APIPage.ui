@@ -145,6 +145,101 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab_modrinth">
+      <attribute name="title">
+       <string>Modrinth Sources</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_modrinth">
+       <item>
+        <widget class="QLabel" name="modrinthSourcesLabel">
+         <property name="text">
+          <string>Sites serving the Modrinth API, such as a self-hosted Labrinth, can be added next to Modrinth. Each one gets its own page when downloading mods and modpacks, and mods keep updating from the site they came from.
+
+The API URL is the versioned API root, for example https://example.org/_labrinth/v2. The website is optional, it defaults to the API URL's host.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTreeWidget" name="modrinthSourcesTree">
+         <property name="rootIsDecorated">
+          <bool>false</bool>
+         </property>
+         <property name="editTriggers">
+          <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
+         </property>
+         <column>
+          <property name="text">
+           <string>Name</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>API URL</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Website</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="modrinthSourcesButtons">
+         <item>
+          <widget class="QPushButton" name="addModrinthSourceButton">
+           <property name="text">
+            <string>&amp;Add</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="removeModrinthSourceButton">
+           <property name="text">
+            <string>&amp;Remove</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="testModrinthSourceButton">
+           <property name="text">
+            <string>&amp;Test</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="modrinthSourcesButtonsSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="modrinthTestResult">
+         <property name="text">
+          <string notr="true"/>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+         <property name="textInteractionFlags">
+          <set>Qt::TextSelectableByMouse</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
        <string>API Keys</string>

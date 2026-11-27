@@ -2,16 +2,15 @@
 
 #include <QButtonGroup>
 #include <QDialog>
+#include <QList>
 #include <QString>
+
+#include "modplatform/ModIndex.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 
 namespace Ui
 {
 class ChooseProviderDialog;
-}
-
-namespace ModPlatform
-{
-enum class Provider;
 }
 
 class Mod;
@@ -30,6 +29,14 @@ class ChooseProviderDialog : public QDialog
         bool try_others = false;
 
         ModPlatform::Provider chosen;
+        // Only used with Modrinth
+        Modrinth::Source source;
+    };
+
+    struct Choice
+    {
+        ModPlatform::Provider provider;
+        Modrinth::Source source;
     };
 
 public:
@@ -54,12 +61,14 @@ private:
     void addProviders();
     void disableInput();
 
-    ModPlatform::Provider getSelectedProvider() const;
+    Choice getSelectedChoice() const;
 
 private:
     Ui::ChooseProviderDialog* ui;
 
     QButtonGroup m_providers;
+    // Indexed by the IDs of the buttons in m_providers
+    QList<Choice> m_choices;
 
     Response m_response;
 };

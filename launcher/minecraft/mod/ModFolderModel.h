@@ -62,6 +62,7 @@ public:
         NameColumn,
         VersionColumn,
         DateColumn,
+        SourceColumn,
         ModUpdateColumn,
         NUM_COLUMNS
     };
@@ -110,6 +111,9 @@ public:
 private:
     // Whether the mod has metadata with update checks disabled
     bool isUpdateLocked(int row) const;
+    // The icon and name of where the mod was downloaded from
+    QVariant sourceIcon(int row) const;
+    QString sourceToolTip(int row) const;
 
 private slots:
     void onUpdateSucceeded() override;

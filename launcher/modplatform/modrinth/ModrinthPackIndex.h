@@ -27,11 +27,15 @@
 #include <QNetworkAccessManager>
 #include <QString>
 
+class ModrinthAPI;
+
 namespace Modrinth
 {
 
+// api is the source the pack came from, official Modrinth if null
 void loadIndexedPack(ModPlatform::IndexedPack& m, QJsonObject& obj,
-                     ModAPI::ResourceType type = ModAPI::Mod);
+                     ModAPI::ResourceType type = ModAPI::Mod,
+                     const ModrinthAPI* api = nullptr);
 void loadExtraPackData(ModPlatform::IndexedPack& m, QJsonObject& obj);
 void loadIndexedPackVersions(
     ModPlatform::IndexedPack& pack, QJsonArray& arr,

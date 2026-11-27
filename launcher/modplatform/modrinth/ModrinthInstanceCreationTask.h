@@ -3,6 +3,8 @@
 #include "InstanceCreationTask.h"
 
 #include <QString>
+#include <QStringList>
+#include <QUrl>
 #include <QWeakPointer>
 #include <QWidget>
 
@@ -13,6 +15,7 @@
 #include "BaseInstance.h"
 
 #include "modplatform/modrinth/ModrinthPackManifest.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 
 #include "net/Download.h"
 #include "net/NetJob.h"
@@ -26,10 +29,13 @@ class ModrinthCreationTask final : public InstanceCreationTask
 public:
     ModrinthCreationTask(QString staging_path,
                          SettingsObjectPtr global_settings, QWidget* parent,
-                         QString source_url = {})
+                         QString source_url = {}, Modrinth::Source source = {},
+                         QString project = {})
         : InstanceCreationTask(),
           m_parent(parent),
-          m_source_url(std::move(source_url))
+          m_source_url(std::move(source_url)),
+          m_pack_source(std::move(source)),
+          m_project_id(std::move(project))
     {
         setStagingPath(staging_path);
         setParentSettings(global_settings);
@@ -48,6 +54,11 @@ private:
     // Warns about files not served by cdn.modrinth.com. Returns false if the
     // user declined.
     bool confirmNonModrinthDownloads();
+    // Hosts a pack from a Modrinth-compatible source may also download
+    // from: the source itself and wherever it serves the pack from
+    QStringList sourceHosts() const;
+    bool isSourceDownloadUrl(const QUrl& url) const;
+    bool isAllowedDownloadUrl(const QUrl& url) const;
     void onFileDownloadFailed(Modrinth::File& file, const QString& path,
                               const QWeakPointer<Net::Download>& action);
 
@@ -58,6 +69,8 @@ private:
         neoforgeVersion;
     QString m_managed_id, m_managed_version_id, m_managed_name;
     QString m_source_url;
+    Modrinth::Source m_pack_source;
+    QString m_project_id;
 
     std::vector<Modrinth::File> m_files;
     NetJob::Ptr m_files_job;

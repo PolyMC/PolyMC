@@ -28,6 +28,7 @@ enum class SortType
     VERSION,
     ENABLED,
     DO_UPDATES,
+    PROVIDER,
     PACK_FORMAT
 };
 
