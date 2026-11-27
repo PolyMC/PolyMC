@@ -493,6 +493,8 @@ set(API_SOURCES
     modplatform/modrinth/ModrinthAPI.cpp
     modplatform/modrinth/ModrinthSource.h
     modplatform/modrinth/ModrinthSource.cpp
+    modplatform/modrinth/ModrinthExtraProjects.h
+    modplatform/modrinth/ModrinthExtraProjects.cpp
     modplatform/helpers/NetworkModAPI.h
     modplatform/helpers/NetworkModAPI.cpp
     modplatform/helpers/ModpackMetadata.h
@@ -871,6 +873,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/SkinUploadDialog.h
     ui/dialogs/ModDownloadDialog.cpp
     ui/dialogs/ModDownloadDialog.h
+    ui/dialogs/ModrinthSourceDialog.cpp
+    ui/dialogs/ModrinthSourceDialog.h
     ui/dialogs/ScrollMessageBox.cpp
     ui/dialogs/ScrollMessageBox.h
     ui/dialogs/BlockedModsDialog.cpp

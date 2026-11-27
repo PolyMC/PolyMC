@@ -65,6 +65,11 @@ void loadIndexedPack(Modpack& pack, QJsonObject& obj, const ModrinthAPI* api)
     const auto& source_api = api ? *api : modrinthManifestApi;
 
     pack.id = Json::ensureString(obj, "project_id");
+    // Search results call it project_id, projects themselves id
+    if (pack.id.isEmpty())
+    {
+        pack.id = Json::ensureString(obj, "id");
+    }
 
     pack.name = Json::ensureString(obj, "title");
     pack.description = Json::ensureString(obj, "description");

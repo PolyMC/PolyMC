@@ -39,12 +39,7 @@
 #include "ui_APIPage.h"
 
 #include <QComboBox>
-#include <QDebug>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonParseError>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
@@ -54,11 +49,11 @@
 #include "Application.h"
 #include "minecraft/AssetsUtils.h"
 #include "modplatform/modrinth/ModrinthSource.h"
-#include "net/Download.h"
 #include "net/PasteUpload.h"
 #include "BuildConfig.h"
 
 #include "ui/GuiUtil.h"
+#include "ui/dialogs/ModrinthSourceDialog.h"
 
 namespace
 {
@@ -67,17 +62,8 @@ enum ModrinthSourceColumn
     SourceNameColumn = 0,
     SourceApiColumn,
     SourceWebsiteColumn,
+    SourceTokenColumn,
 };
-
-QTreeWidgetItem* makeModrinthSourceItem(QTreeWidget* tree,
-                                        const Modrinth::Source& source)
-{
-    auto* item = new QTreeWidgetItem(
-        tree, {source.name, source.api_url, source.website_url});
-    item->setFlags(item->flags() | Qt::ItemIsEditable);
-    item->setIcon(SourceNameColumn, Modrinth::sourceIcon(source));
-    return item;
-}
 
 // Whether a source with the same API URL and website was there before
 bool hasSameModrinthSite(const QList<Modrinth::Source>& sources,
@@ -92,31 +78,6 @@ bool hasSameModrinthSite(const QList<Modrinth::Source>& sources,
         }
     }
     return false;
-}
-
-// Mods are code, so remote sources have to use HTTPS. HTTP stays allowed for
-// local ones, like a Labrinth running on this machine.
-QString sanitizeModrinthSourceUrl(const QString& text)
-{
-    auto normalized = Modrinth::normalizeApiUrl(text);
-    if (normalized.isEmpty())
-    {
-        return {};
-    }
-
-    QUrl url(normalized);
-    if (url.scheme() == "http" && !AssetsUtils::isLocalMetadataHost(url.host()))
-    {
-        url.setScheme("https");
-    }
-    return url.toString();
-}
-
-bool isUsableModrinthSourceUrl(const QString& text)
-{
-    QUrl url(text);
-    return url.isValid() && !url.host().isEmpty() &&
-           (url.scheme() == "https" || url.scheme() == "http");
 }
 }  // namespace
 
@@ -179,16 +140,16 @@ APIPage::APIPage(QWidget* parent) : QWidget(parent), ui(new Ui::APIPage)
 
     connect(ui->addModrinthSourceButton, &QPushButton::clicked, this,
             &APIPage::addModrinthSource);
+    connect(ui->editModrinthSourceButton, &QPushButton::clicked, this,
+            &APIPage::editModrinthSource);
     connect(ui->removeModrinthSourceButton, &QPushButton::clicked, this,
             &APIPage::removeModrinthSource);
-    connect(ui->testModrinthSourceButton, &QPushButton::clicked, this,
-            &APIPage::testModrinthSource);
+    connect(ui->modrinthSourcesTree, &QTreeWidget::itemDoubleClicked, this,
+            &APIPage::editModrinthSource);
 }
 
 APIPage::~APIPage()
 {
-    // The test writes into m_modrinth_test_response
-    stopModrinthTest();
     delete ui;
 }
 
@@ -244,6 +205,7 @@ void APIPage::loadSettings()
     QString customUserAgent = s->get("UserAgentOverride").toString();
     ui->userAgentLineEdit->setText(customUserAgent);
 
+    ui->modrinthToken->setText(s->get("ModrinthToken").toString());
     loadModrinthSources();
 }
 
@@ -278,6 +240,7 @@ void APIPage::applySettings()
     s->set("FlameKeyOverride", flameKey);
     s->set("UserAgentOverride", ui->userAgentLineEdit->text());
 
+    s->set("ModrinthToken", ui->modrinthToken->text().trimmed());
     applyModrinthSources();
 
     APPLICATION->updateCapabilities();
@@ -285,10 +248,20 @@ void APIPage::applySettings()
 
 void APIPage::loadModrinthSources()
 {
+    m_modrinth_sources = Modrinth::customSources();
+    refreshModrinthSources();
+}
+
+void APIPage::refreshModrinthSources()
+{
     ui->modrinthSourcesTree->clear();
-    for (const auto& source : Modrinth::customSources())
+    for (const auto& source : std::as_const(m_modrinth_sources))
     {
-        makeModrinthSourceItem(ui->modrinthSourcesTree, source);
+        auto* item = new QTreeWidgetItem(
+            ui->modrinthSourcesTree,
+            {source.displayName(), source.api_url, source.website_url,
+             source.token.isEmpty() ? QString() : tr("Set")});
+        item->setIcon(SourceNameColumn, Modrinth::sourceIcon(source));
     }
     for (int i = 0; i < ui->modrinthSourcesTree->columnCount(); i++)
     {
@@ -296,112 +269,26 @@ void APIPage::loadModrinthSources()
     }
 }
 
-bool APIPage::validateModrinthSources()
+QStringList APIPage::otherModrinthApiUrls(int row) const
 {
-    QStringList problems;
     QStringList api_urls;
-    QTreeWidgetItem* first_invalid = nullptr;
-
-    for (int i = 0; i < ui->modrinthSourcesTree->topLevelItemCount(); i++)
+    for (int i = 0; i < m_modrinth_sources.size(); i++)
     {
-        auto* item = ui->modrinthSourcesTree->topLevelItem(i);
-        if (!item)
+        if (i != row)
         {
-            continue;
-        }
-
-        auto name = item->text(SourceNameColumn).trimmed();
-        auto label = name.isEmpty() ? tr("Source %1").arg(i + 1) : name;
-        auto entered_api_url = item->text(SourceApiColumn).trimmed();
-        auto api_url = sanitizeModrinthSourceUrl(entered_api_url);
-        auto website = item->text(SourceWebsiteColumn).trimmed();
-
-        QString problem;
-        if (api_url.isEmpty())
-        {
-            problem = tr("%1 has no API URL.").arg(label);
-        }
-        else if (!isUsableModrinthSourceUrl(api_url))
-        {
-            problem = tr("The API URL of %1, \"%2\", isn't an http:// or "
-                         "https:// address.")
-                          .arg(label, entered_api_url);
-        }
-        else if (api_url ==
-                 Modrinth::normalizeApiUrl(BuildConfig.MODRINTH_PROD_URL))
-        {
-            problem = tr("%1 is official Modrinth, which is always there.")
-                          .arg(label);
-        }
-        else if (api_urls.contains(api_url))
-        {
-            problem =
-                tr("%1 has the same API URL as another source.").arg(label);
-        }
-        else if (!website.isEmpty() &&
-                 !isUsableModrinthSourceUrl(sanitizeModrinthSourceUrl(website)))
-        {
-            problem = tr("The website of %1, \"%2\", isn't an http:// or "
-                         "https:// address.")
-                          .arg(label, website);
-        }
-
-        api_urls.append(api_url);
-        if (!problem.isEmpty())
-        {
-            problems.append(problem);
-            if (!first_invalid)
-            {
-                first_invalid = item;
-            }
+            api_urls.append(m_modrinth_sources.at(i).api_url);
         }
     }
-
-    if (problems.isEmpty())
-    {
-        return true;
-    }
-
-    if (m_container)
-    {
-        m_container->selectPage(id());
-    }
-    ui->tabWidget->setCurrentWidget(ui->tab_modrinth);
-    ui->modrinthSourcesTree->setCurrentItem(first_invalid);
-
-    QMessageBox::warning(
-        this, tr("Invalid Modrinth sources"),
-        tr("These Modrinth sources can't be saved:\n\n%1\n\nFix or remove "
-           "them first.")
-            .arg(problems.join('\n')));
-    return false;
+    return api_urls;
 }
 
 void APIPage::applyModrinthSources()
 {
-    // validateModrinthSources() already made sure every row is usable
-    QList<Modrinth::Source> sources;
-    for (int i = 0; i < ui->modrinthSourcesTree->topLevelItemCount(); i++)
-    {
-        auto* item = ui->modrinthSourcesTree->topLevelItem(i);
-        if (!item)
-        {
-            continue;
-        }
-
-        Modrinth::Source source;
-        source.name = item->text(SourceNameColumn).trimmed();
-        source.api_url = sanitizeModrinthSourceUrl(item->text(SourceApiColumn));
-        source.website_url =
-            sanitizeModrinthSourceUrl(item->text(SourceWebsiteColumn));
-        sources.append(source);
-    }
-
     auto old_sources = Modrinth::customSources();
-    Modrinth::setCustomSources(sources);
+    Modrinth::setCustomSources(m_modrinth_sources);
 
     // New sites, or sites with another website, may have another icon
-    for (const auto& source : std::as_const(sources))
+    for (const auto& source : std::as_const(m_modrinth_sources))
     {
         if (!hasSameModrinthSite(old_sources, source))
         {
@@ -412,86 +299,51 @@ void APIPage::applyModrinthSources()
 
 void APIPage::addModrinthSource()
 {
-    Modrinth::Source source;
-    source.name = tr("New source");
+    ModrinthSourceDialog dialog(this, {}, otherModrinthApiUrls(-1));
+    if (dialog.exec() != QDialog::Accepted)
+    {
+        return;
+    }
 
-    auto* item = makeModrinthSourceItem(ui->modrinthSourcesTree, source);
-    // Without an API URL yet it would get official Modrinth's icon
-    item->setIcon(SourceNameColumn, APPLICATION->getThemedIcon("worlds"));
-    ui->modrinthSourcesTree->setCurrentItem(item);
-    ui->modrinthSourcesTree->editItem(item, SourceNameColumn);
+    m_modrinth_sources.append(dialog.source());
+    refreshModrinthSources();
+    ui->modrinthSourcesTree->setCurrentItem(
+        ui->modrinthSourcesTree->topLevelItem(m_modrinth_sources.size() - 1));
+}
+
+void APIPage::editModrinthSource()
+{
+    auto row = ui->modrinthSourcesTree->indexOfTopLevelItem(
+        ui->modrinthSourcesTree->currentItem());
+    if (row < 0)
+    {
+        return;
+    }
+
+    ModrinthSourceDialog dialog(this, m_modrinth_sources.at(row),
+                                otherModrinthApiUrls(row));
+    if (dialog.exec() != QDialog::Accepted)
+    {
+        return;
+    }
+
+    m_modrinth_sources[row] = dialog.source();
+    refreshModrinthSources();
+    ui->modrinthSourcesTree->setCurrentItem(
+        ui->modrinthSourcesTree->topLevelItem(row));
 }
 
 void APIPage::removeModrinthSource()
 {
-    delete ui->modrinthSourcesTree->currentItem();
-}
-
-void APIPage::testModrinthSource()
-{
-    auto* item = ui->modrinthSourcesTree->currentItem();
-    if (!item)
+    auto row = ui->modrinthSourcesTree->indexOfTopLevelItem(
+        ui->modrinthSourcesTree->currentItem());
+    if (row < 0)
     {
-        ui->modrinthTestResult->setText(tr("Select a source to test it."));
         return;
     }
 
-    auto api_url = sanitizeModrinthSourceUrl(item->text(SourceApiColumn));
-    if (!isUsableModrinthSourceUrl(api_url))
-    {
-        ui->modrinthTestResult->setText(
-            tr("The API URL has to be an http:// or https:// address."));
-        return;
-    }
-
-    stopModrinthTest();
-    m_modrinth_test_response.clear();
-
-    m_modrinth_test_job =
-        new NetJob(tr("Test Modrinth source"), APPLICATION->network());
-    m_modrinth_test_job->addNetAction(Net::Download::makeByteArray(
-        QUrl(api_url + "/search?limit=1"), &m_modrinth_test_response));
-    connect(m_modrinth_test_job.get(), &NetJob::succeeded, this,
-            &APIPage::onModrinthTestSucceeded);
-    connect(m_modrinth_test_job.get(), &NetJob::failed, this,
-            &APIPage::onModrinthTestFailed);
-
-    ui->modrinthTestResult->setText(tr("Testing %1...").arg(api_url));
-    m_modrinth_test_job->start();
-}
-
-void APIPage::onModrinthTestSucceeded()
-{
-    QJsonParseError parse_error{};
-    auto doc = QJsonDocument::fromJson(m_modrinth_test_response, &parse_error);
-    auto obj = doc.object();
-    if (parse_error.error != QJsonParseError::NoError ||
-        !obj.value("hits").isArray())
-    {
-        ui->modrinthTestResult->setText(
-            tr("This doesn't look like a Modrinth API, searching it didn't "
-               "return projects. Check that the URL is the versioned API "
-               "root, ending in something like /v2."));
-        return;
-    }
-
-    ui->modrinthTestResult->setText(
-        tr("It works, the search found %n project(s).", nullptr,
-           obj.value("total_hits").toInt()));
-}
-
-void APIPage::onModrinthTestFailed(QString reason)
-{
-    ui->modrinthTestResult->setText(tr("Couldn't reach it: %1").arg(reason));
-}
-
-void APIPage::stopModrinthTest()
-{
-    if (m_modrinth_test_job && m_modrinth_test_job->isRunning())
-    {
-        m_modrinth_test_job->disconnect(this);
-        m_modrinth_test_job->abort();
-    }
+    m_modrinth_sources.removeAt(row);
+    refreshModrinthSources();
 }
 
 void APIPage::fetchKeyButtonPressed()
@@ -506,11 +358,6 @@ void APIPage::fetchKeyButtonPressed()
 
 bool APIPage::apply()
 {
-    // Saving would drop the broken sources, keep the dialog open instead
-    if (!validateModrinthSources())
-    {
-        return false;
-    }
     applySettings();
     return true;
 }

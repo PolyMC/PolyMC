@@ -175,6 +175,44 @@ void ListModel::performPaginatedSearch()
     connect(jobPtr.get(), &NetJob::aborted, this,
             &ListModel::searchRequestAborted);
     jobPtr->start();
+
+    if (nextSearchOffset == 0)
+    {
+        searchExtra();
+    }
+}
+
+void ListModel::addExtraPacks(const QList<ModPlatform::IndexedPack>& packs)
+{
+    QList<ModPlatform::IndexedPack> new_packs;
+    for (const auto& pack : packs)
+    {
+        bool listed = false;
+        for (const auto& other : std::as_const(modpacks))
+        {
+            if (other.addonId == pack.addonId)
+            {
+                listed = true;
+                break;
+            }
+        }
+        if (!listed)
+        {
+            new_packs.append(pack);
+        }
+    }
+
+    if (new_packs.isEmpty())
+    {
+        return;
+    }
+
+    beginInsertRows(QModelIndex(), 0, new_packs.size() - 1);
+    for (int i = 0; i < new_packs.size(); i++)
+    {
+        modpacks.insert(i, new_packs.at(i));
+    }
+    endInsertRows();
 }
 
 void ListModel::requestModInfo(const ModPlatform::IndexedPack& current,
@@ -274,7 +312,21 @@ void ListModel::searchRequestFinished(QJsonDocument& doc)
         try
         {
             loadIndexedPack(pack, packObj);
-            newList.append(pack);
+
+            // Projects found besides the search may be in it too
+            bool listed = false;
+            for (const auto& other : std::as_const(modpacks))
+            {
+                if (other.addonId == pack.addonId)
+                {
+                    listed = true;
+                    break;
+                }
+            }
+            if (!listed)
+            {
+                newList.append(pack);
+            }
         }
         catch (const JSONValidationError& e)
         {

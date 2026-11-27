@@ -46,6 +46,7 @@
 #include "MetaCacheSink.h"
 
 #include "Application.h"
+#include "modplatform/modrinth/ModrinthSource.h"
 
 namespace Net
 {
@@ -138,6 +139,17 @@ void Download::executeTask()
     {
         request.setHeader(QNetworkRequest::UserAgentHeader,
                           APPLICATION->getUserAgent().toUtf8());
+    }
+
+    auto modrinth_token = Modrinth::tokenFor(request.url());
+    if (!modrinth_token.isEmpty())
+    {
+        request.setRawHeader("Authorization", modrinth_token.toUtf8());
+        // Qt would follow redirects with the token, even to other hosts.
+        // handleRedirect() makes a new request instead, which only gets a
+        // token if it goes to that token's API too.
+        request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                             QNetworkRequest::ManualRedirectPolicy);
     }
 
     if (!(m_options & Option::AllowHttp2))

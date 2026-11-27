@@ -90,6 +90,14 @@ protected slots:
     void performPaginatedSearch();
 
 protected:
+    // Called when a new search starts, to look for packs the search can't
+    // find, added with addExtraPacks()
+    virtual void searchExtra()
+    {
+    }
+    // Adds packs at the top, unless the list has them already
+    void addExtraPacks(const QList<ModPlatform::IndexedPack>& packs);
+
     virtual QJsonArray documentToArray(QJsonDocument& obj) const = 0;
     virtual const char** getSorts() const = 0;
 

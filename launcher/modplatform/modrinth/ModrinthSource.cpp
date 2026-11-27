@@ -13,6 +13,8 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMutex>
+#include <QMutexLocker>
 #include <QObject>
 #include <QRegularExpression>
 #include <QSet>
@@ -101,6 +103,34 @@ bool isOfficialApiUrl(const QString& url)
 {
     return url.isEmpty() ||
            url == normalizeApiUrl(BuildConfig.MODRINTH_PROD_URL);
+}
+
+int modrinthDefaultPort(const QUrl& url)
+{
+    return url.scheme().compare("https", Qt::CaseInsensitive) == 0 ? 443 : 80;
+}
+
+// Whether the URL is on the same scheme, host and port as the API root, and
+// under its path. Files of a source served elsewhere, even on the same host,
+// don't get its token.
+bool isUnderModrinthApiRoot(const QUrl& url, const QString& root)
+{
+    QUrl api(root);
+    if (url.scheme().compare(api.scheme(), Qt::CaseInsensitive) != 0 ||
+        url.host().compare(api.host(), Qt::CaseInsensitive) != 0 ||
+        url.port(modrinthDefaultPort(url)) !=
+            api.port(modrinthDefaultPort(api)))
+    {
+        return false;
+    }
+
+    auto api_path = api.path();
+    while (api_path.endsWith('/'))
+    {
+        api_path.chop(1);
+    }
+    return api_path.isEmpty() || url.path() == api_path ||
+           url.path().startsWith(api_path + '/');
 }
 
 QString modrinthSourceIconPath(const Source& source)
@@ -247,12 +277,11 @@ private:
 };
 }  // namespace
 
-QList<Source> customSources()
+static QList<Source> parseCustomSources(const QString& json)
 {
     QList<Source> sources;
 
-    auto doc = QJsonDocument::fromJson(
-        APPLICATION->settings()->get("ModrinthSources").toString().toUtf8());
+    auto doc = QJsonDocument::fromJson(json.toUtf8());
     const auto array = doc.array();
     for (const auto& value : array)
     {
@@ -263,6 +292,7 @@ QList<Source> customSources()
         source.api_url = normalizeApiUrl(obj.value("api_url").toString());
         source.website_url =
             normalizeApiUrl(obj.value("website_url").toString());
+        source.token = obj.value("token").toString().trimmed();
 
         // Official Modrinth is always there, don't list it twice
         if (isOfficialApiUrl(source.api_url))
@@ -275,6 +305,25 @@ QList<Source> customSources()
     return sources;
 }
 
+QList<Source> customSources()
+{
+    // Every request asks for the token to send, so only parse the setting
+    // again when it changes
+    static QMutex mutex;
+    static QString cached_json;
+    static QList<Source> cached_sources;
+
+    auto json = APPLICATION->settings()->get("ModrinthSources").toString();
+
+    QMutexLocker locker(&mutex);
+    if (cached_json.isNull() || json != cached_json)
+    {
+        cached_sources = parseCustomSources(json);
+        cached_json = json;
+    }
+    return cached_sources;
+}
+
 void setCustomSources(const QList<Source>& sources)
 {
     QJsonArray array;
@@ -284,6 +333,10 @@ void setCustomSources(const QList<Source>& sources)
         obj.insert("name", source.name);
         obj.insert("api_url", normalizeApiUrl(source.api_url));
         obj.insert("website_url", normalizeApiUrl(source.website_url));
+        if (!source.token.isEmpty())
+        {
+            obj.insert("token", source.token);
+        }
         array.append(obj);
     }
 
@@ -292,9 +345,17 @@ void setCustomSources(const QList<Source>& sources)
         QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact)));
 }
 
+Source officialSource()
+{
+    Source source;
+    source.token =
+        APPLICATION->settings()->get("ModrinthToken").toString().trimmed();
+    return source;
+}
+
 QList<Source> allSources()
 {
-    QList<Source> sources{Source{}};
+    QList<Source> sources{officialSource()};
     sources.append(customSources());
     return sources;
 }
@@ -304,7 +365,7 @@ std::optional<Source> findSource(const QString& url)
     auto normalized = normalizeApiUrl(url);
     if (isOfficialApiUrl(normalized))
     {
-        return Source{};
+        return officialSource();
     }
 
     for (const auto& source : customSources())
@@ -315,6 +376,21 @@ std::optional<Source> findSource(const QString& url)
         }
     }
 
+    return {};
+}
+
+QString tokenFor(const QUrl& url)
+{
+    for (const auto& source : allSources())
+    {
+        if (!source.token.isEmpty() &&
+            isUnderModrinthApiRoot(url, source.isOfficial()
+                                            ? BuildConfig.MODRINTH_PROD_URL
+                                            : source.api_url))
+        {
+            return source.token;
+        }
+    }
     return {};
 }
 
