@@ -60,7 +60,7 @@ void Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, QJsonObject& obj,
     if (!pack.slug.isEmpty())
     {
         // FIXME(crueter): conditional
-        pack.websiteUrl = "https://modrinth.com/mod/" + pack.slug;
+        pack.websiteUrl = modrinthIndexApi.websiteRoot() + "/mod/" + pack.slug;
     }
     else
     {

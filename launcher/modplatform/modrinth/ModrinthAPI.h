@@ -45,9 +45,20 @@ public:
                             QByteArray* response) const override;
 
 public:
+    // Modrinth API and website URLs are built from these
+    inline QString apiRoot() const
+    {
+        return BuildConfig.MODRINTH_PROD_URL;
+    }
+
+    inline QString websiteRoot() const
+    {
+        return "https://modrinth.com";
+    }
+
     inline QString getAuthorURL(const QString& name) const
     {
-        return "https://modrinth.com/user/" + name;
+        return websiteRoot() + "/user/" + name;
     };
 
     static inline QString getProjectType(ResourceType type)
@@ -129,7 +140,7 @@ private:
         const auto search =
             QString::fromUtf8(QUrl::toPercentEncoding(args.search));
 
-        return (BuildConfig.MODRINTH_PROD_URL +
+        return (apiRoot() +
                 "/search?"
                 "offset=%1&"
                 "limit=25&"
@@ -142,12 +153,12 @@ private:
 
     inline QString getModInfoURL(QString& id) const override
     {
-        return BuildConfig.MODRINTH_PROD_URL + "/project/" + id;
+        return apiRoot() + "/project/" + id;
     };
 
     inline QString getMultipleModInfoURL(QStringList ids) const
     {
-        return BuildConfig.MODRINTH_PROD_URL +
+        return apiRoot() +
                QString("/projects?ids=[\"%1\"]").arg(ids.join("\",\""));
     };
 
@@ -158,7 +169,7 @@ private:
                 ? QStringLiteral("&loaders=[\"%1\"]")
                       .arg(getModLoaderStrings(args.loaders).join("\",\""))
                 : "";
-        return (BuildConfig.MODRINTH_PROD_URL +
+        return (apiRoot() +
                 "/project/%1/version?"
                 "game_versions=[%2]"
                 "%3")

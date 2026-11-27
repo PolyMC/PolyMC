@@ -24,7 +24,7 @@ NetJob::Ptr ModrinthAPI::currentVersions(const QStringList& hashes,
     auto body_raw = body.toJson();
 
     netJob->addNetAction(Net::Upload::makeByteArray(
-        BuildConfig.MODRINTH_PROD_URL + "/version_files", response, body_raw));
+        apiRoot() + "/version_files", response, body_raw));
 
     return netJob;
 }
@@ -56,8 +56,7 @@ NetJob::Ptr ModrinthAPI::latestVersions(const QStringList& hashes,
     auto body_raw = body.toJson();
 
     netJob->addNetAction(Net::Upload::makeByteArray(
-        BuildConfig.MODRINTH_PROD_URL + "/version_files/update", response,
-        body_raw));
+        apiRoot() + "/version_files/update", response, body_raw));
 
     return netJob;
 }

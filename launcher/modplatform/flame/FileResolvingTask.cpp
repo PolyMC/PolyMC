@@ -1,5 +1,6 @@
 #include "FileResolvingTask.h"
 
+#include "BuildConfig.h"
 #include "Json.h"
 #include "net/Download.h"
 #include "net/Upload.h"
@@ -154,10 +155,8 @@ void Flame::FileResolvingTask::netJobFinished()
             auto hash = out.hash;
             if (!hash.isEmpty())
             {
-                auto url = QString(
-                               "https://api.modrinth.com/v2/version_file/"
-                               "%1?algorithm=sha1")
-                               .arg(hash);
+                auto url = QString("%1/version_file/%2?algorithm=sha1")
+                               .arg(BuildConfig.MODRINTH_PROD_URL, hash);
                 auto output = new QByteArray();
                 auto dl = Net::Download::makeByteArray(QUrl(url), output);
                 QObject::connect(dl.get(), &Net::Download::succeeded,

@@ -39,9 +39,9 @@
 
 #include "ModrinthModel.h"
 
-#include "BuildConfig.h"
 #include "InstanceImportTask.h"
 #include "Json.h"
+#include "modplatform/modrinth/ModrinthAPI.h"
 #include "net/Download.h"
 
 #include "ui/widgets/ProjectItem.h"
@@ -60,6 +60,8 @@
 
 #include <tuple>
 #include <utility>
+
+static ModrinthAPI modrinth_modpack_page_api;
 
 namespace
 {
@@ -171,7 +173,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
             APPLICATION->network());
         m_info_job->addNetAction(Net::Download::makeByteArray(
             QString("%1/project/%2")
-                .arg(BuildConfig.MODRINTH_PROD_URL, current.id),
+                .arg(modrinth_modpack_page_api.apiRoot(), current.id),
             &m_info_response));
 
         connect(m_info_job.get(), &NetJob::succeeded, this,
@@ -193,7 +195,7 @@ void ModrinthPage::onSelectionChanged(QModelIndex curr, QModelIndex /*prev*/)
                        APPLICATION->network());
         m_versions_job->addNetAction(Net::Download::makeByteArray(
             QString("%1/project/%2/version")
-                .arg(BuildConfig.MODRINTH_PROD_URL, current.id),
+                .arg(modrinth_modpack_page_api.apiRoot(), current.id),
             &m_versions_response));
 
         connect(m_versions_job.get(), &NetJob::succeeded, this,
