@@ -83,6 +83,11 @@ void Meta::Version::mergeFromList(const Meta::VersionPtr& other)
     {
         setVolatile(other->m_volatile);
     }
+    // Only package indexes list the hash; parsed version files don't
+    if (!other->m_sha256.isEmpty())
+    {
+        m_sha256 = other->m_sha256;
+    }
 }
 
 void Meta::Version::merge(const VersionPtr& other)
